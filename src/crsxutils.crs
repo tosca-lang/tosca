@@ -1,0 +1,118 @@
+// Copyright (c) 2015 IBM Corporation.
+/*
+ * Various utility rules related to CRSX terms.
+ */
+CrsxUtil[(
+
+$Lax;
+$Use["parser/crsx.crs"];
+$Use["std/core.crs"];
+$Use["std/num.crs"];
+$Use["std/string.crs"];
+
+// Get data/function arity
+ArityArgumentsOpt[$List[Crsx_arguments_sort]] :: $Numeric;
+ArityArgumentsOpt[%arguments?⟨            ⟩] → 0;
+ArityArgumentsOpt[%arguments?⟨ #arguments ⟩] → ArityArguments[#arguments];
+
+ArityArguments[Crsx_arguments_sort] :: $Numeric;
+ArityArguments[%arguments⟨ [        ] ⟩] → 0;
+ArityArguments[%arguments⟨ [ #terms ] ⟩] → ArityTerms[#terms];
+
+
+ArityTerms[Crsx_terms_sort] :: $Numeric;
+ArityTerms[%terms⟨ #term #terms_S1*⟩] → NumberPlus[1, ArityTerms_S1_ZOM[#terms_S1*]];
+
+ArityTerms_S1_ZOM[Crsx_terms_S1_ZOM_sort] :: $Numeric;
+ArityTerms_S1_ZOM[%terms_S1*⟨                    ⟩] → 0;
+ArityTerms_S1_ZOM[%terms_S1*⟨ , #term #terms_S1* ⟩] → NumberPlus[1, ArityTerms_S1_ZOM[#terms_S1*]];
+
+
+// Whether the constructor is potentially a CRSX3 directive (start with $)
+IsDirective[Crsx_constructor_sort] :: Boolean;
+IsDirective[%constructor⟨ #CONSTRUCTOR ⟩] → StartsWith[#CONSTRUCTOR, "$"];
+IsDirective[%constructor⟨ :            ⟩] → FALSE;
+
+// 
+// Whether the constructor is potentially a CRSX3 directive (start with $)
+IsDirectiveUnwrap[Crsx_constructor_sort] :: $Boolean;
+IsDirectiveUnwrap[%constructor⟨ #CONSTRUCTOR ⟩] → $[StartsWith, #CONSTRUCTOR, "$"];
+IsDirectiveUnwrap[%constructor⟨ :            ⟩] → $False;
+
+// 
+// Whether all terms in pattern are meta. No argument means all meta.
+AllMetaInPatternRule[Crsx_ruleDeclaration_sort] :: Boolean;
+AllMetaInPatternRule[%ruleDeclaration⟨ #option? #properties? #constructor #arguments? → #contractum ⟩]
+→
+AllMetaArgumentsOpt[#arguments?];
+
+AllMetaArgumentsOpt[$List[Crsx_arguments_sort]] :: Boolean;
+AllMetaArgumentsOpt[%arguments?⟨            ⟩] → TRUE;
+AllMetaArgumentsOpt[%arguments?⟨ [        ] ⟩] → TRUE;
+AllMetaArgumentsOpt[%arguments?⟨ [ #terms ] ⟩] → AllMetaTerms[#terms];
+
+AllMetaTerms[Crsx_terms_sort] :: Boolean;
+AllMetaTerms[%terms⟨ #METAVAR #terms_S1* ⟩] → AllMetaTerms_S1_ZOM[#terms_S1*];
+-[Fallback] : AllMetaTerms[#terms]         → FALSE;
+
+AllMetaTerms_S1_ZOM[Crsx_terms_S1_ZOM_sort] :: Boolean;
+AllMetaTerms_S1_ZOM[%terms_S1*⟨                       ⟩] → TRUE;
+AllMetaTerms_S1_ZOM[%terms_S1*⟨ , #METAVAR #terms_S1* ⟩] → AllMetaTerms_S1_ZOM[#terms_S1*];
+-[Fallback] : AllMetaTerms_S1_ZOM[#terms_S1_ZOM]        → FALSE;
+
+// --- Annotations
+
+{$String:$List[Crsx_arguments_sort]} // Map annotation name to its argument
+Annotations ::= ( ANNOTATIONS; );
+
+// Index annotations
+IndexAnnotations[$List[Crsx_annotations_sort]] ::  Annotations;
+
+IndexAnnotations[%annotations?⟨              ⟩] → {}ANNOTATIONS;
+IndexAnnotations[%annotations?⟨ #annotation+ ⟩] → {}SeqMap[anno cont.IndexAnnotation[anno, cont], #annotation+, ok¹.Then[ok¹]];
+
+{#E}Then[OK] → {#E}ANNOTATIONS; 
+
+IndexAnnotation[Crsx_annotations_sort, Continuation[Annotations]] ::  Annotations;
+
+{#A}IndexAnnotation[%annotation⟨ @ #CONSTRUCTOR #arguments? ⟩, CONTINUATION[ok¹.#[ok¹]]] → $[Trace, {#A; #CONSTRUCTOR: #arguments?}#[OK]];
+
+// Syntactic sugar helpers
+
+SugarTermsOpt[$List[Crsx_terms_S1_sort]] :: $List[Crsx_terms_sort];
+SugarTermsOpt[%terms_S1*⟨                    ⟩] → %terms?⟨⟩; 
+SugarTermsOpt[%terms_S1*⟨ , #term #terms_S1* ⟩] → %terms?⟨ #term #terms_S1* ⟩; 
+
+SugarTerms[$List[Crsx_terms_S1_sort]] :: Crsx_terms_sort;
+SugarTerms[%terms_S1*⟨                    ⟩] → $[Error, "Internal error: cannot rewrite an empty list of terms to term"];
+SugarTerms[%terms_S1*⟨ , #term #terms_S1* ⟩] → %terms⟨ #term #terms_S1* ⟩; 
+
+SugarDispatchCases[$List[Crsx_dispatchCases_S1_ZOM_sort]] :: Crsx_dispatchCases_sort;
+SugarDispatchCases[%dispatchCases_S1*⟨                                    ⟩] → $[Error, "Assertion error: at least one dispatch case must be defined."]; 
+SugarDispatchCases[%dispatchCases_S1*⟨ ; #dispatchCase #dispatchCases_S1* ⟩] → %dispatchCases⟨ #dispatchCase #dispatchCases_S1* ⟩; 
+
+// Syntactic desugar helpers (temporary to alleviate pg4 limitations)
+
+DesugarDeclarations[Crsx_declarations_sort] :: $List[Crsx_declarations_S1_sort];
+DesugarDeclarations[%declarations⟨ #declaration #declarations_S1* ⟩] → %declarations_S1*⟨ ; #declaration #declarations_S1* ⟩; 
+
+DesugarTerms[Crsx_terms_sort] :: $List[Crsx_terms_S1_sort];
+DesugarTerms[%terms⟨ #term #terms_S1* ⟩] → %terms_S1*⟨ ,  #term #terms_S1* ⟩; 
+
+DesugarTermList[Crsx_termList_sort] :: $List[Crsx_termList_S1_sort];
+DesugarTermList[%termList⟨ #term #termList_S1* ⟩] →  %termList_S1*⟨ ; #term #termList_S1* ⟩;
+
+DesugarList[Crsx_list_sort] :: Crsx_freeTerm_sort;
+DesugarList[%list⟨ (           ) ⟩] → %freeTerm⟨ $Nil ⟩;
+DesugarList[%list⟨ ( #termList ) ⟩] → DesugarListTermList[DesugarTermList[#termList]]; 
+
+DesugarListTermList[$List[Crsx_termList_S1_sort]] :: Crsx_freeTerm_sort;
+DesugarListTermList[%termList_S1*⟨                                ⟩] → %freeTerm⟨ $Nil ⟩;
+DesugarListTermList[%termList_S1*⟨ ;                              ⟩] → %freeTerm⟨ $Nil ⟩;
+DesugarListTermList[%termList_S1*⟨ ; #freeTerm                    ⟩] → #freeTerm;
+DesugarListTermList[%termList_S1*⟨ ; #term ; #term2 #termList_S1* ⟩] → %freeTerm⟨ $Cons[ ⟨term: #term⟩, ⟨freeTerm: DesugarListTermList[%termList_S1*⟨ ; #term2 #termList_S1* ⟩] ⟩ ] ⟩;
+
+DesugarDispatchCases[Crsx_dispatchCases_sort] :: $List[Crsx_dispatchCases_S1_sort];
+DesugarDispatchCases[%dispatchCases⟨ #dispatchCase #dispatchCases_S1* ⟩] → %dispatchCases_S1*⟨ ; #dispatchCase #dispatchCases_S1* ⟩; 
+
+)]

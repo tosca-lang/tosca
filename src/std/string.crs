@@ -1,0 +1,55 @@
+/* Copyright (c) 2015 IBM Corporation. */
+
+/*
+ * Standard library for string.
+ */
+String[(
+
+$Use["std/core.crs"];
+
+
+StartsWith[$String /* string */, $String /* search string */] :: Boolean; /* extern */
+-[Data[#string, #search]]: StartsWith[#string, #search] → WrapBoolean[$[StartsWith, #string, #search]];
+
+StringEqual[$String /* string */, $String /* other string */] :: Boolean; /* extern */
+-[Data[#string1, #string2]]: StringEqual[#string1, #string2] → WrapBoolean[$[Equal, #string1, #string2]];
+
+UnString[$String] :: $String; 
+-[Data[#string]]: UnString[#string] → $[Rescape, #string] ;
+
+// Make sure the first character is upper case
+UpCaseFirst[$String] :: $String;
+UpCaseFirst[#string] → $[:, $[UpCase, $[Substring, #string, 0, 1]], $[Substring, #string, 1]]; 
+
+AfterLast[$String, $String] :: $String;
+
+-[Data[#string, #sep]]:
+AfterLast[#string, #sep]
+→
+$[If, $[Contains, #string, #sep], 
+    AfterLast2[$[AfterFirst, #string, #sep], #sep],
+    #string];
+
+// Internal helper.
+-[Data[#string]]:
+AfterLast2[#string, #sep] → AfterLast[#string, #sep];
+
+
+BeforeLast[$String, $String] :: $String;
+
+-[Data[#String, #Sep]]:
+BeforeLast[#String, #Sep]
+→
+$[If, $[Contains, #String, #Sep], 
+    BeforeLast2[$[BeforeFirst, #String, #Sep], #Sep, BeforeLast[$[AfterFirst, #String, #Sep], #Sep]],
+    ""];
+
+-[Data[#After]]:
+BeforeLast2[#Before, #Sep, #After]
+→
+$[If, $[Equal, #After, ""], 
+    #Before,
+    $[:, #Before, #Sep, #After]];
+
+
+)]

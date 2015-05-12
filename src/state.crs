@@ -1,0 +1,263 @@
+// Copyright (c) 2015 IBM Corporation.
+/*
+ * Compilation state carried along passes
+ */
+State[(
+
+$Lax;
+
+$Use["std/core.crs"];
+$Use["std/env.crs"];
+
+// --- Modules
+
+// Main module or sub-module
+Mode ::= ( MAINMODULE; SUBMODULE; ); 
+
+
+$StringEntry ::= (
+
+    // Modules composing the system. List of keys in this environment.
+    MODULES[$List[$String]];                                            // key: #modules
+
+    // A module composing the system
+    MODULE[$String /* filename */, Mode, Content];                            // key: $module$<filename>. 
+
+);
+
+// Compute the module key from the given filename
+ModuleKey[$String] :: $String;
+-[Data[#filename]]: ModuleKey[#filename]  → $[:, "$module", #filename];
+
+// Register module to compile. If module already registered, this does nothing.
+∀ a.{$String:$StringEntry}AddModule[$String /* filename */, Boolean, ok¹::OK_SORT.$Sort[a]] :: a;
+{#E}AddModule[#filename, #main, ok¹.#[ok¹]] → {#E}AddModuleKey[ModuleKey[#filename], #filename, #main, ok¹.#[ok¹]]; 
+
+∀ a.{$String:$StringEntry}AddModuleKey[$String, $String, Boolean, ok¹::OK_SORT.$Sort[a]] :: a;
+
+-[Data[#key]]: 
+{#E; "$modules":MODULES[#modules]}
+AddModuleKey[#key, #filename, #main, ok¹.#[ok¹]] 
+→ 
+$[{#E}IfDef, #key, 
+    {#E}#[OK], 
+    {#E; #key: MODULE[#filename, #main, NOTLOADED]; "$modules":MODULES[(#key; #modules)]}#[OK]];
+
+// --- A module
+
+// Module content
+{$String:ContentEntry}
+Content ::= ( 
+
+    // Module not loaded yet.
+    NOTLOADED;      
+
+    // Module has been fully loaded into ContentEntry 
+    LOADED;        
+
+    /*, STUB (might need a stub for fast compilation) */
+);
+
+ContentEntry ::= (
+
+    // Entry in this environment
+    KEYS[$List[$String]];                                           // keys: 
+                                                                    // $rulekeys  : list of rule keys
+                                                                    // $datakeys  : list of data sort keys
+                                                                    // $funckeys  : list of function sort keys 
+
+    // Imported modules, as a list of filenames
+    IMPORTS[$List[$String]];                                        // key: $imported
+
+    // List of rules for a given constructor
+    // Before normalization: might contains more than one rules
+    // After normalization: only one rule
+    RULES[$List[Crsx_ruleDeclaration_sort]];                        // key: $rules$<constructor>
+
+    // Data sorts. Extensible.
+    DATASORT[$List[Crsx_sortDeclaration_sort]];                     // key: $data$<sortname>
+    
+    // Function sort. Unique.
+    FUNCSORT[Crsx_sortDeclaration_sort];                            // key: $func$<sortname>
+
+);
+
+// --- Sort utilities
+
+UnDATASORT[ContentEntry] :: $List[Crsx_sortDeclaration_sort];
+UnDATASORT[DATASORT[#]] → #;
+
+UnFUNCSORT[ContentEntry] :: Crsx_sortDeclaration_sort;
+UnFUNCSORT[FUNCSORT[#]] → #;
+
+UnRULES[ContentEntry] :: $List[Crsx_ruleDeclaration_sort];
+UnRULES[RULES[#]] → #;
+
+RulesKey[Crsx_constructor_sort] :: $String;
+RulesKey[%constructor⟨ #CONSTRUCTOR ⟩] → $[:, "$rules$", #CONSTRUCTOR];
+RulesKey[%constructor⟨ :            ⟩] → "$rules$colon";
+
+DataSortKey[Crsx_sortname_sort] :: $String;
+DataSortKey[%sortname⟨ #CONSTRUCTOR #sortarguments? ⟩] → $[:, "$data$", #CONSTRUCTOR];
+DataSortKey[%sortname⟨ :            #sortarguments? ⟩] → "$data$colon";
+
+FuncSortKey[Crsx_constructor_sort] :: $String;
+FuncSortKey[%constructor⟨ #CONSTRUCTOR ⟩] → $[:, "$func$", #CONSTRUCTOR];
+FuncSortKey[%constructor⟨ :            ⟩] → "$func$colon";
+
+SortnameToString[Crsx_sortname_sort] :: $String;
+SortnameToString[%sortname⟨ #CONSTRUCTOR #sortarguments? ⟩] → #CONSTRUCTOR;
+SortnameToString[%sortname⟨ :            #sortarguments? ⟩] → ":";
+
+ConstructorToString[Crsx_constructor_sort] :: $String;
+ConstructorToString[%constructor⟨ #CONSTRUCTOR ⟩] → #CONSTRUCTOR;
+ConstructorToString[%constructor⟨ :            ⟩] → ":";
+
+
+// --- State mutation.
+
+∀ a.AddRule[$String, Crsx_ruleDeclaration_sort, ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
+
+-[Data[#key]]:
+{#E}AddRule[#key, #ruleDeclaration, ok¹.#[ok¹]]
+→
+{#E}AddRule2[#key, #ruleDeclaration, ok¹.#[ok¹]];
+
+∀ a.AddRule2[$String, Crsx_ruleDeclaration_sort, ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
+
+-[Data[#key]]:
+{#E; #key: RULES[#rules]}
+AddRule2[#key, #ruleDeclaration, ok¹.#[ok¹]]
+→
+{#E; #key: RULES[Concat[#rules, (#ruleDeclaration;)]]} // The lexical order must be preserved.
+#[OK];
+
+-[Data[#key]]:
+{#E; ¬#key; "$rulekeys": KEYS[#keys]} 
+AddRule2[#key, #ruleDeclaration, ok¹.#[ok¹]] 
+→
+{#E; #key: RULES[(#ruleDeclaration;)]; "$rulekeys": KEYS[(#key; #keys)]}
+#[OK];
+
+∀ a.AddDataSort[$String, Crsx_sortDeclaration_sort, ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
+
+-[Data[#key]]:
+{#E}AddDataSort[#key, #sortDeclaration, ok¹.#[ok¹]]
+→
+{#E}AddDataSort2[#key, #sortDeclaration, ok¹.#[ok¹]];
+
+∀ a.AddDataSort2[$String, Crsx_sortDeclaration_sort, ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
+
+-[Data[#key]]:
+{#E; #key: DATASORT[#sorts]}
+AddDataSort2[#key, #sortDeclaration, ok¹.#[ok¹]]
+→
+{#E; #key: DATASORT[(#sortDeclaration; #sorts)]}  
+#[OK];
+
+
+-[Data[#key]]:
+{#E; ¬#key; "$datakeys": KEYS[#keys]}
+AddDataSort2[#key, #sortDeclaration, ok¹.#[ok¹]]
+→
+{#E; #key: DATASORT[(#sortDeclaration;)]; "$datakeys": KEYS[(#key; #keys)]}
+#[OK];
+
+∀ a.AddFuncSort[$String, Crsx_sortDeclaration_sort, ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
+
+// Crsx Interpreter does not like fetching a env entry and data at the same time.
+-[Data[#key]]: 
+{#E}AddFuncSort[#key, #sortDeclaration, ok¹.#[ok¹]]
+→
+{#E}AddFuncSort2[#key, #sortDeclaration, ok¹.#[ok¹]];
+
+∀ a.AddFuncSort2[$String, Crsx_sortDeclaration_sort, ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
+
+-[Data[#key]]:
+{#E; #key: FUNCSORT[#sort]}
+AddFuncSort2[#key, %sortDeclaration⟨ #sortparams? #sortset #constructor #arguments? :: #sortname  ⟩, ok¹.#[ok¹]]
+→
+$[Error, $[:, "Function sort already defined:", ConstructorToString[#constructor]]]; // TODO: locations, data 
+
+-[Data[#key]]:
+{#E; ¬#key; "$funckeys": KEYS[#keys]}
+AddFuncSort2[#key, #sortDeclaration, ok¹.#[ok¹]] 
+→
+{#E; #key: FUNCSORT[#sortDeclaration]; "$funckeys": KEYS[(#key; #keys)]}
+#[OK];
+
+
+// --- Load CRSX into state.
+
+// TODO: copy from normalizer.
+
+
+// --- Convert state back to CRSX (debugging only)
+
+{$String:ContentEntry}
+OutputCrsx[OK_SORT] :: Crsx_crsx_sort;
+
+{#E; "$datakeys": KEYS[#keys]}OutputCrsx[OK] 
+→
+%crsx⟨ $Lax ⟨declarations_S1*: {#E}OutputDataDeclarations[#keys]⟩ ⟩;
+
+
+{$String:ContentEntry}
+OutputDataDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_sort];
+
+{#E; "$funckeys": KEYS[#keys]}
+OutputDataDeclarations[(           )] →  {#E}OutputFuncDeclarations[#keys];
+
+{#E}OutputDataDeclarations[(#key; #keys)] 
+→ 
+{#E}OutputDataDeclarationsForKey[UnDATASORT[$[{#E}Get, #key]], #keys];
+
+{$String:ContentEntry}
+OutputDataDeclarationsForKey[$List[Crsx_sortDeclaration_sort], $List[$String]] :: $List[Crsx_declarations_S1_sort];
+
+{#E}OutputDataDeclarationsForKey[(             ), #keys] 
+→ 
+{#E}OutputDataDeclarations[#keys];
+
+{#E}OutputDataDeclarationsForKey[(#sort; #sorts), #keys]
+→ 
+%declarations_S1*⟨ ; ⟨sortDeclaration: #sort⟩ ⟨declarations_S1*: {#E}OutputDataDeclarationsForKey[#sorts, #keys]⟩ ⟩;
+
+{$String:ContentEntry}
+OutputFuncDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_sort];
+
+{#E; "$rulekeys": KEYS[#keys]}
+OutputFuncDeclarations[()] →  {#E}OutputRuleDeclarations[#keys];
+
+{#E}OutputFuncDeclarations[(#key; #keys)] 
+→ 
+{#E}OutputFuncDeclaration[UnFUNCSORT[$[{#E}Get, #key]], #keys];
+
+{$String:ContentEntry}
+OutputFuncDeclaration[Crsx_sortDeclaration_sort, $List[$String]] :: $List[Crsx_declarations_S1_sort];
+
+{#E}OutputFuncDeclaration[#sort, #keys]
+→ 
+%declarations_S1*⟨ ; ⟨sortDeclaration: #sort⟩ ⟨declarations_S1*: {#E}OutputFuncDeclarations[#keys]⟩ ⟩;
+
+{$String:ContentEntry}
+OutputRuleDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_sort];
+
+{#E}OutputRuleDeclarations[(           )] → %declarations_S1*⟨ ⟩;
+
+{#E}OutputRuleDeclarations[(#key; #keys)] 
+→ 
+{#E}OutputRuleDeclarationsForKey[UnRULES[$[{#E}Get, #key]], #keys];
+
+{$String:ContentEntry}
+OutputRuleDeclarationsForKey[$List[Crsx_ruleDeclaration_sort], $List[$String]] :: $List[Crsx_declarations_S1_sort];
+
+{#E}OutputRuleDeclarationsForKey[(), #keys]
+→ 
+{#E}OutputRuleDeclarations[#keys];
+
+{#E}OutputRuleDeclarationsForKey[(#rule; #rules), #keys]
+→ 
+%declarations_S1*⟨ ; ⟨ruleDeclaration: #rule⟩ ⟨declarations_S1*: {#E}OutputRuleDeclarationsForKey[#rules, #keys]⟩ ⟩;
+
+)]

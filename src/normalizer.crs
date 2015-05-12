@@ -1,0 +1,267 @@
+// Copyright (c) 2015 IBM Corporation.
+/*
+ * Normalize CRSX programs to Core CRSX.
+ *
+ * Eliminate syntactic sugars and perform various checks.
+ *
+ * In particular:
+ * - Gather rules with same constructor into a single rule. 
+ * - Convert all patterns to be only meta-variables (including properties)
+ * - Resolve qualified constructor (not implemented yet)
+ * - Create unique binder names (not implemented yet)
+ *
+ */
+CrsxNormalizer[(
+
+$Lax;
+
+$AddGrammar["org.crsx.parser.CrsxMetaParser"];
+$CheckGrammar["org.crsx.parser.CrsxMetaParser"];
+
+$Use["parser/Crsx.crs"];
+$Use["state.crs"];
+$Use["crsxutils.crs"];
+$Use["std/core.crs"];
+$Use["std/string.crs"];
+$Use["std/list.crs"];
+$Use["std/num.crs"];
+
+// --- API
+
+// Normalize Crsx and produces a normalized Crsx
+NormalizeToCrsx[Crsx_crsx_sort] :: Crsx_crsx_sort;
+NormalizeToCrsx[%crsx⟨ #declarations ⟩] → N1Declarations[DesugarDeclarations[#declarations], ok¹.N2[ok¹, ok¹.OutputCrsx[ok¹]]];
+
+// Normalize Crsx and produces a state
+NormalizeToState[Crsx_crsx_sort] :: ContentEntry;
+NormalizeToState[%crsx⟨ #declarations ⟩] → N1Declarations[DesugarDeclarations[#declarations], ok¹.N2[ok¹, ok¹.LOADED]];
+
+// --- Pass1
+// 
+// - Mangle constructor in module (NOT YET IMPLEMENTED)
+// - Collect declarations into the environment (state).
+//
+
+N1Declarations[$List[Crsx_declarations_S1_sort], ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
+
+N1Declarations[#declarations, ok¹.#[ok¹]]
+→
+{"$rulekeys": KEYS[()]; "$datakeys": KEYS[()]; "$funckeys": KEYS[()]; "$imported": IMPORTS[()]}
+N1Declarations1[OK, #declarations, ok¹.#[ok¹]];
+
+//
+∀ a.{$String:ContentEntry} 
+N1Declarations1[OK_SORT, $List[Crsx_declarations_S1_sort], ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
+
+{#E}N1Declarations1[OK, %declarations_S1*⟨                                  ⟩, ok¹.#[ok¹]] → {#E}#[OK];
+{#E}N1Declarations1[OK, %declarations_S1*⟨ ;                                ⟩, ok¹.#[ok¹]] → {#E}#[OK];
+
+{#E}N1Declarations1[OK, %declarations_S1*⟨ ; #declaration #declarations_S1* ⟩, ok¹.#[ok¹]] 
+→ 
+{#E}N1Declaration[#declaration, ok¹.N1Declarations1[ok¹, #declarations_S1*, ok¹.#[ok¹]]];
+
+//
+∀ a.{$String:ContentEntry} 
+N1Declaration[Crsx_declaration_sort, ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
+
+{#E}N1Declaration[%declaration⟨ #constructor [( )] ⟩, ok¹.#[ok¹]]
+→
+//If[IsDirective[#constructor],
+$[If, IsDirectiveUnwrap[#constructor], 
+    {#E}N1DirectiveConstructor[#constructor, %directiveArguments?⟨⟩], // potential directive.
+    {#E}#[OK]];  // Crsx 3 empty module
+
+
+{#E}N1Declaration[%declaration⟨ #constructor [( #declarations )] ⟩, ok¹.#[ok¹]] 
+→
+//If[IsDirective[#constructor], 
+$[If, IsDirectiveUnwrap[#constructor], 
+    {#E}N1DirectiveConstructor[#constructor, %directiveArguments?⟨ [( ⟨declarations: #declarations⟩ )] ⟩], // potential directive.
+    {#E}N1Declarations[DesugarDeclarations[#declarations], ok¹.#[ok¹]]]; // Crsx 3 module: no name mangling.
+
+{#E}N1Declaration[%declaration⟨ #directive ⟩, ok¹.#[ok¹]] 
+→
+{#E}N1Directive[#directive, ok¹.#[ok¹]];
+
+// Crsx 4 module: name mangling
+{#E}N1Declaration[%declaration⟨ module #STRING { #declarations } ⟩, ok¹.#[ok¹]] // TODO propagate module ID
+→ 
+{#E}N1Declarations[DesugarDeclarations[#declarations], ok¹.#[ok¹]];
+
+{#E}N1Declaration[%declaration⟨ #option? #properties? #constructor #arguments? → #contractum ⟩, ok¹.#[ok¹]]
+→
+{#E}AddRule[RulesKey[#constructor], %ruleDeclaration⟨ #option? #properties? #constructor #arguments? → #contractum ⟩, ok¹.#[ok¹]];
+
+{#E}N1Declaration[%declaration⟨ #sortparams? #sortset #sortname ::= ( #forms ) ⟩, ok¹.#[ok¹]] 
+→ 
+{#E}AddDataSort[DataSortKey[#sortname], %sortDeclaration⟨ #sortparams? #sortset #sortname ::= ( #forms ) ⟩, ok¹.#[ok¹]];
+
+{#E}N1Declaration[%declaration⟨ #sortparams? #sortset #constructor #arguments? :: #sortname ⟩, ok¹.#[ok¹]] 
+→ 
+{#E}AddFuncSort[FuncSortKey[#constructor], %sortDeclaration⟨ #sortparams? #sortset #constructor #arguments? :: #sortname ⟩, ok¹.#[ok¹]];
+
+//
+∀ a.{$String:ContentEntry} 
+N1Directive[Crsx_directive_sort, ok¹::OK_SORT.$Sort[a]] :: a;
+
+{#E}N1Directive[%directive⟨ #CONSTRUCTOR #directiveArguments? ⟩, ok¹.#[ok¹]]
+→
+$[If, $[Equal, #CONSTRUCTOR, "$Use"], 
+    {#E}N1Use[#directiveArguments?, ok¹.#[ok¹]],
+    {#E}#[OK]]; // Just ignore unknown directives. We might want to output a warning.
+
+{#E}N1Directive[#directive, ok¹.#[ok¹]]
+→
+{#E}#[OK];
+
+//
+∀ a.{$String:ContentEntry} 
+N1DirectiveConstructor[Crsx_constructor_sort, ok¹::OK_SORT.$Sort[a]] :: a;
+   
+{#E}N1DirectiveConstructor[#constructor, ok¹.#[ok¹]] → {#E}#[OK];
+
+
+// Import a module: at this level just record dependency.
+∀ a.{$String:ContentEntry} 
+N1Use[$List[Crsx_directiveArguments_sort], ok¹::OK_SORT.$Sort[a]] :: a;
+
+{#E}N1Use[%directiveArguments?⟨                  ⟩, ok¹.#[ok¹]] → $[Error, "Error: missing filename argument in $Use directive."];
+{#E}N1Use[%directiveArguments?⟨ [ #directives? ] ⟩, ok¹.#[ok¹]] → {#E}N1UseDirectives[#directives?, ok¹.#[ok¹]];
+
+∀ a.{$String:ContentEntry} 
+N1UseDirectives[$List[Crsx_directives_sort], ok¹::OK_SORT.$Sort[a]] :: a;
+
+{#E}N1UseDirectives[%directives?⟨                                           ⟩, ok¹.#[ok¹]] → $[Error, "Error: missing filename argument in $Use directive."];
+{#E}N1UseDirectives[%directives?⟨ #directive1 , #directive2 #directives_S1* ⟩, ok¹.#[ok¹]] → $[Error, "Error: extraneous argument in $Use directive."];
+{#E}N1UseDirectives[%directives?⟨ #directive                                ⟩, ok¹.#[ok¹]] → {#E}N1UseDirective[#directive, ok¹.#[ok¹]];
+
+∀ a.{$String:ContentEntry} 
+N1UseDirective[Crsx_directive_sort, ok¹::OK_SORT.$Sort[a]] :: a;
+
+{#E; "$imported": IMPORTS[#imported]}N1UseDirective[%directive⟨ #STRING ⟩, ok¹.#[ok¹]] 
+→ 
+{#E; "$imported": IMPORTS[(UnString[#STRING]; #imported)]}#[OK];
+
+{#E}N1UseDirective[#directive, ok¹.#[ok¹]] → $[Error, "Error: invalid argument in $Use directive."];
+
+// --- Pass2: normalize/check.
+//
+
+∀ a.{$String:ContentEntry} 
+N2[OK_SORT, ok¹::OK_SORT.$Sort[a]] :: a;
+
+{#E; "$rulekeys":KEYS[#keys]}N2[OK, ok¹.#[ok¹]] 
+→ 
+{#E}GroupRules[#keys, ok¹.#[ok¹]];
+
+∀ a.{$String:ContentEntry} 
+GroupRules[$List[$String], ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
+
+{#E}GroupRules[#keys, ok¹.#[ok¹]]
+→
+{#E}SeqMap[x c.MayGroupRule[x,c], #keys, ok¹.#[ok¹]];
+
+∀ a.{$String:ContentEntry} 
+MayGroupRule[$String, Continuation[a]] :: a;
+
+{#E; #key: RULES[#rules]}
+MayGroupRule[#key, CONTINUATION[ok¹.#[ok¹]]] 
+→ 
+If[Or[IsEmpty[#rules], And[IsSingleton[#rules], AllMetaInPatternRule[Head[#rules]]]],
+    {#E}#[OK],
+    {#E}GroupRule[#key, #rules, ok¹.#[ok¹]]];
+
+//
+// Create a single rule composing all the given rules 
+// using the dispatch core expression.
+// 
+// Basically do:
+//
+// O₁:{#E₁}R₁[P₁¹ ... P₁ⁿ] → C₁ 
+// ..
+// Oᵢ:{#Eᵢ}Rᵢ[Pᵢ¹ ... Pᵢⁿ] → Cᵢ
+// 
+// becomes
+//
+// {#E}R[#¹ ... #ⁿ] →
+//    dispatch {#E} & #¹ & ... & #ⁿ
+//      O₁:{#E₁} & P₁¹ &  ... & P₁ⁿ → C₁
+//      ...
+//      Oᵢ:{#Eᵢ} & Pᵢ¹ &  ... & Pᵢⁿ → Cᵢ
+//      delay 
+// 
+
+∀ a.{$String:ContentEntry} 
+GroupRule[$String, $List[Crsx_ruleDeclaration_sort], ok¹::OK_SORT.$Sort[a]] :: a;
+  
+{#E}GroupRule[#key, #rules, ok¹.#[ok¹]] 
+→ 
+{#E; #key:RULES[(Dispatch[#rules];)]}#[OK];
+
+// Create the dispatch rule.
+Dispatch[$List[Crsx_ruleDeclaration_sort]] :: Crsx_ruleDeclaration_sort;
+ 
+// TODO: properties. Look at sort 
+// Constructor must have at least one argument, otherwise GroupRule wouldn't be called.
+Dispatch[(%ruleDeclaration⟨ #option? #properties? #constructor [ #terms ] → #contractum ⟩; #rules)]
+→ 
+%ruleDeclaration⟨ 
+  #constructor [ ⟨terms: SugarTerms[DispatchPattern[DesugarTerms[#terms], 0]]⟩ ] 
+  →
+  dispatch #constructor [ ⟨terms: SugarTerms[DispatchPattern[DesugarTerms[#terms], 0]]⟩ ]
+    ⟨dispatchCases: SugarDispatchCases[DispatchCases[(%ruleDeclaration⟨ #option? #properties? #constructor [ #terms ] → #contractum ⟩; #rules)]]⟩
+    delay
+⟩;
+
+// Create the dispatch rule/term => replace all arguments by metavar.
+DispatchPattern[$List[Crsx_terms_S1_sort], $Numeric] :: $List[Crsx_terms_S1_sort];
+
+DispatchPattern[%terms_S1*⟨                    ⟩, #count] → %terms_S1*⟨⟩;
+  
+DispatchPattern[%terms_S1*⟨ , #term #terms_S1* ⟩, #count]
+→
+%terms_S1*⟨ , ⟨term: DispatchPatternTerm[#term, #count, %freeTerms_S1*⟨⟩]⟩ ⟨terms_S1*: DispatchPattern[#terms_S1*, $[Plus, #count, 1]] ⟩ ⟩;
+ 
+DispatchPatternTerm[Crsx_term_sort, $Numeric, $List[Crsx_freeTerms_S1_sort]] :: Crsx_term_sort;
+
+DispatchPatternTerm[%term⟨ #freeTerm ⟩, #count, #freeTerms_S1*]
+→
+%term⟨ ⟨freeTerm: DispatchPatternFreeTerm[#freeTerm, #count, #freeTerms_S1*]⟩ ⟩;
+
+DispatchPatternTerm[%term⟨ #binder #nextBinder ⟩, #count, #freeTerms_S1*]
+→ 
+DispatchPatternBinder[#binder, #nextBinder, #count, #freeTerms_S1*];
+
+DispatchPatternFreeTerm[Crsx_freeTerm_sort, $Numeric, $List[Crsx_freeTerms_S1_sort]] :: Crsx_freeTerm_sort;
+
+DispatchPatternFreeTerm[#freeTerm, #count, #freeTerms_S1*]
+→
+%freeTerm⟨ ⟨METAVAR: $[:, "#$P$", $[FormatNumber, #count]]⟩ ⟨freeArguments?: DispatchMetaArgsOpt[#freeTerms_S1*]⟩ ⟩;
+
+DispatchPatternBinder[Crsx_binder_sort, Crsx_nextBinder_sort, $Numeric, $List[Crsx_freeTerms_S1_sort]] :: Crsx_term_sort;
+
+DispatchPatternBinder[%binder⟨ #annotations? #VARIABLE #linear? #functional? #varsort?  ⟩, #nextBinder, #count, #freeTerms_S1*] 
+→
+%term⟨ #annotations? #VARIABLE #linear? #functional? #varsort? 
+        ⟨nextBinder: DispatchPatternNextBinder[#nextBinder, #count, Concat[#freeTerms_S1*, (%freeTerms_S1⟨ , #VARIABLE #linear? #functional? ⟩; )]]⟩  ⟩;
+
+DispatchPatternNextBinder[Crsx_nextBinder_sort, $Numeric, $List[Crsx_freeTerms_S1_sort]] :: Crsx_nextBinder_sort;
+
+DispatchPatternNextBinder[%nextBinder⟨ . #freeTerm ⟩, #count, #freeTerms_S1*] → %nextBinder⟨ . ⟨freeTerm: DispatchPatternFreeTerm[#freeTerm, #count, #freeTerms_S1*] ⟩ ⟩;
+
+DispatchPatternNextBinder[%nextBinder⟨ #annotations? #VARIABLE #linear? #functional? #varsort? #nextBinder ⟩, #count, #freeTerms_S1*]
+→
+%nextBinder⟨ #annotations? #VARIABLE #linear? #functional? #varsort? 
+        ⟨nextBinder: DispatchPatternNextBinder[#nextBinder, #count, Concat[#freeTerms_S1*, (%freeTerms_S1⟨ , #annotations? #VARIABLE #linear? #functional? ⟩; )]]⟩  ⟩;
+
+DispatchMetaArgsOpt[$List[Crsx_freeTerms_S1_sort]] :: $List[Crsx_freeArguments_sort];
+
+DispatchMetaArgsOpt[%freeTerms_S1*⟨                            ⟩] → %freeArguments?⟨ ⟩;
+DispatchMetaArgsOpt[%freeTerms_S1*⟨ , #freeTerm #freeTerms_S1* ⟩] → %freeArguments?⟨ [ ⟨freeTerms: %freeTerms⟨ #freeTerm #freeTerms_S1*⟩ ⟩ ] ⟩;
+
+DispatchCases[$List[Crsx_ruleDeclaration_sort]] :: $List[Crsx_dispatchCases_S1_ZOM_sort];
+
+DispatchCases[(             )] → %dispatchCases_S1*⟨ ⟩;
+DispatchCases[(#rule; #rules)] → %dispatchCases_S1*⟨ ; ⟨ruleDeclaration: #rule⟩ ⟨dispatchCases_S1*: DispatchCases[#rules]⟩ ⟩;
+
+)]

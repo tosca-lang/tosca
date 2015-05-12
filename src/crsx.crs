@@ -1,0 +1,92 @@
+// Copyright (c) 2015 IBM Corporation.
+//
+// CRSX command line
+// 
+Crsx[(
+
+$Use["state.crs"];
+$Use["normalizer.crs"];
+$Use["cg/cgjava.crs"];
+$Use["std/core.crs"];;
+$Use["std/list.crs"];
+
+
+// REVISIT: very limited. to revisit when crsx4 is stable enough to compile itself 
+
+
+// Compile a CRSX system.
+Compile[$String] :: Text;  
+
+Compile[#filename] 
+→
+{"$modules":MODULES[()]}AddModule[#filename, MAINMODULE, ok¹.CompileNextModule[ok¹]];
+
+{$String:$StringEntry}
+CompileNextModule[OK_SORT] :: Text; 
+
+{#E; "$modules":MODULES[()]}CompileNextModule[OK] → %n⟨}⟩; // TODO: temporary closing bracket 
+
+{#E; "$modules":MODULES[(#module; #modules)]}CompileNextModule[OK] 
+→ 
+{#E; "$modules":MODULES[#modules]}CompileModule[#module, ok¹.CompileNextModule[ok¹]];
+
+{$String:$StringEntry}
+CompileModule[$String, ok¹::OK_SORT.Text] :: Text;
+
+-[Data[#key]]:
+{#E}CompileModule[#key, ok¹.#[ok¹]] 
+→
+{#E}CompileModuleLoad[$[{#E}Get, #key], ok¹.#[ok¹]]; 
+
+{$String:$StringEntry}
+CompileModuleLoad[$StringEntry, ok¹::OK_SORT.Text] :: Text;
+
+// Module not loaded: load and generated compiled file.
+{#E}CompileModuleLoad[MODULE[#filename, #mode, NOTLOADED], ok¹.#[ok¹]]
+→
+{#E}CompileParsed[#filename, #mode, $[ParseResource, "crsx", #filename], ok¹.#[ok¹]];
+
+// Module loaded: skip
+{#E}CompileModuleLoad[MODULE[#filename, {#M}LOADED], ok¹.#[ok¹]]
+→
+{#E}#[OK];
+
+{$String:$StringEntry}
+CompileParsed[$String, Mode, Crsx_crsx_sort, ok¹::OK_SORT.Text] :: Text;
+
+{#E}CompileParsed[#filename, #mode, #crsx, ok¹.#[ok¹]] 
+→ 
+{#E}CompileNormalized[#filename, #mode, NormalizeToState[#crsx], ok¹.#[ok¹]];
+
+{$String:$StringEntry}
+CompileNormalized[$String, Mode, ContentEntry, ok¹::OK_SORT.Text] :: Text;
+
+// Module has been laoded and normalized. Register module dependencies
+{#E}CompileNormalized[#filename, #mode, {#M; "$imported": IMPORTS[#imports]}LOADED, ok¹.#[ok¹]] 
+→ 
+{#E}SeqMap[name cont.AddImport[name, cont], #imports, ok¹.CompileCode[ok¹, #filename, #mode, {#M}LOADED, ok¹.#[ok¹]]];
+
+{$String:$StringEntry}
+AddImport[$String, Continuation[Text]] :: Text;
+{#E}AddImport[#filename, CONTINUATION[ok¹.#[ok¹]]] → {#E}AddModule[#filename, SUBMODULE, ok¹.#[ok¹]];
+
+{$String:$StringEntry}
+CompileCode[OK_SORT, $String, Mode, ContentEntry, ok¹::OK_SORT.Text] :: Text;
+
+{#E}CompileCode[OK, #filename, #mode, {#M}LOADED, ok¹.#[ok¹]]
+→
+{#E}CompileSave[$[:, #filename, ".java"], GenerateJavaParsed[#filename, {#M}OutputCrsx[OK], #mode], ok¹.#[ok¹]];
+//{#E}CompileSave[$[:, #filename, ".java"], Crsx_Print_crsx[{#M}OutputCrsx[OK]], ok¹.#[ok¹]];
+
+{$String:$StringEntry}
+CompileSave[$String, Text, ok¹::OK_SORT.Text] :: $Numeric;
+
+-[Data[#code, #filename]]:
+{#E}CompileSave[#filename, #code, ok¹.#[ok¹]]
+→
+%n⟨/* START MODULE †«#filename» */
+«#code»
+/* END MODULE «#filename» */
+«{#E}#[OK]»⟩;
+
+)]

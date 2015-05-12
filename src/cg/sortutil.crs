@@ -1,0 +1,21 @@
+/*
+ * Utilities related to sorts
+ */
+
+SU[(
+
+GetSort[Crsx_constructor_sort] :: STRING_ENTRY; 
+
+/*
+  Retrieves the sort of the given constructor 
+ */
+{#E}GetSort[%constructor⟨ #CONSTRUCTOR ⟩] → $[{#E}Get, #CONSTRUCTOR];
+{#E}GetSort[%constructor⟨ : ⟩]            → $[{#E}Get, ":"];
+
+/*
+ Whether the given constructor is data 
+ */
+{#E}IsData[%constructor⟨ #CONSTRUCTOR ⟩] → $[Equal, $[{#E}Get, #CONSTRUCTOR], DATA];
+{#E}IsData[%constructor⟨ : ⟩]            → $False;
+
+)]

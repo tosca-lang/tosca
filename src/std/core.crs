@@ -1,0 +1,39 @@
+/* Copyright (c) 2014 IBM Corporation. */
+/*
+ * Core CRSX API.
+ */
+Core[(
+
+$Lax;
+
+// Top sort
+//$Any ::= ( ANY; );
+
+OK_SORT ::= ( OK; );
+
+// --- Boolean
+
+Boolean ::=( TRUE; FALSE; );
+
+∀ a . If[Boolean, a, a] :: a ;
+If[TRUE,  #1, #2] → #1 ;
+If[FALSE, #1, #2] → #2 ;
+
+And[Boolean, Boolean] :: Boolean ;
+And[TRUE, #]  → # ;
+And[FALSE, #] → FALSE ;
+
+Or[Boolean, Boolean] :: Boolean ;
+Or[TRUE, #]  → TRUE;
+Or[FALSE, #] → #;
+
+WrapBoolean[$Boolean] :: Boolean ;
+WrapBoolean[$True]  → TRUE;
+WrapBoolean[$False] → FALSE;
+
+UnwrapBoolean[Boolean] :: $Boolean ;
+UnwrapBoolean[TRUE]  → $True;
+UnwrapBoolean[FALSE] → $False;
+
+
+)]

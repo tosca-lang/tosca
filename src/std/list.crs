@@ -1,0 +1,70 @@
+/* Copyright (c) 2015 IBM Corporation. */
+
+/*
+ * Standard library for list.
+ */
+List[(
+
+$Use["std/core.crs"];
+
+// Sort list definition.
+//∀ a.$List ::= ( $Cons[a, $List[a]]; $Nil; );
+
+// TRUE if list is empty
+∀ a . IsEmpty[$List[a]] :: Boolean ;
+IsEmpty[()    ] → TRUE ;
+IsEmpty[(#;##)] → FALSE ;
+
+
+∀ a b . IfEmpty[$List[a], b, b] :: b ;
+IfEmpty[()    , #1, #2] → #1 ;
+IfEmpty[(#;##), #1, #2] → #2 ;
+
+// TRUE is list is a singleton
+∀ a. IsSingleton[$List[a]] :: Boolean ;
+IsSingleton[()    ] → FALSE ;
+IsSingleton[(#;##)] → IsEmpty[##] ;
+
+∀ a b . IfSingleton[$List[a], b, b] :: b ;
+IfSingleton[()    , #1, #2] → #2 ;
+IfSingleton[(#;##), #1, #2] → IfEmpty[##, #1, #2] ;
+
+// Head of the list
+∀ a . Head[$List[a]] :: a ;
+Head[(#;##)] → # ;
+Head[()] → $[Error,"Head of empty list"] ;
+
+// Tail for the list
+∀ a . Tail[$List[a]] :: $List[a] ;
+Tail[(#;##)] → ## ;
+Tail[()] → $[Error,"Tail of empty list"] ;
+
+// Concat the two list 
+∀ a.Concat[$List[a], $List[a]] :: $List[a] ;
+Concat[(), #tail] → #tail ;
+Concat[(#1;#s), #tail] → (#1 ; Concat[#s, #tail]) ;
+
+//
+// Apply each item in list to function
+//
+∀ a b . Map[x::a . $sort[b], $List[a]] :: $List[b] ;
+Map[x.#[x], ()] → () ;
+Map[x.#[x], (#1;#s)] → (#[#1]; Map[x.#[x], #s]) ;
+
+
+//
+// Apply each item in list to function, as a continuation, 
+// passing the environment along
+//
+∀ a.Continuation[a] ::= ( CONTINUATION[ok¹::OK_SORT.$Sort[a]];  );
+
+∀ a b. {$String:$Any}SeqMap[x::a c::Continuation[b]. $sort[b], $List[a], ok::OK_SORT.$Sort[b]] :: b ;
+
+{#E}SeqMap[x c.#[x, c], #list, ok¹.#done[ok¹]] → {#E}SeqMap1[OK, x c.#[x, c], #list, ok¹.#done[ok¹]];
+
+∀ a b. SeqMap1[OK_SORT, x::a c::Continuation[b]. $sort[b], $List[a], ok¹::OK_SORT.$sort[b]] :: $List[b] ;
+{#E}SeqMap1[OK, x c.#[x, c], ()     , ok¹.#done[ok¹]] → {#E}#done[OK];
+{#E}SeqMap1[OK, x c.#[x, c], (#1;#s), ok¹.#done[ok¹]] → {#E}#[#1, CONTINUATION[ok¹.SeqMap1[ok¹, x c.#[x, c], #s,  ok¹.#done[ok¹]]]];
+
+
+)]

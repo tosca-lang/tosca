@@ -1,0 +1,9 @@
+Util[(
+
+$Lax;
+
+// Unwrap Grammar Id
+UnwrapId[ANTLR_id_A1[#id]] → #id;
+UnwrapId[ANTLR_id_A2[#id]] → #id;
+
+)]

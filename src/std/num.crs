@@ -1,0 +1,23 @@
+/* Copyright (c) 2015 IBM Corporation. */
+
+/*
+ * Standard library for numeric.
+ */
+Numeric[(
+
+$Use["std/core.crs"];
+
+// Compare the 2 numeric values
+/* extern */ NumberEqual[$Numeric, $Numeric] :: Boolean;
+-[Data[#1, #2]]: NumberEqual[#1, #2] → $[If, $[Equal, #1, #2], TRUE, FALSE];
+
+// Addition
+/* extern */ NumberPlus[$Numeric, $Numeric] :: $Numeric;
+-[Data[#1, #2]]: NumberPlus[#1, #2] → $[Plus, #1, #2];
+
+
+// Subtraction
+/* extern */ NumberMinus[$Numeric, $Numeric] :: $Numeric;
+-[Data[#1, #2]]: NumberMinus[#1, #2] → $[Minus, #1, #2];
+
+)]
