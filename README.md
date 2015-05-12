@@ -1,6 +1,6 @@
 CRSX
 ====
-CRSX is a functional programming language design to facilitate writing compilers and other syntax-directed transformation systems. 
+CRSX is a functional programming language designed to facilitate writing compilers and other syntax-directed transformation systems. 
 
 Its main features are:
 
