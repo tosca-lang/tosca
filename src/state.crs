@@ -155,7 +155,6 @@ AddDataSort2[#key, #sortDeclaration, ok¹.#[ok¹]]
 {#E; #key: DATASORT[(#sortDeclaration; #sorts)]}  
 #[OK];
 
-
 -[Data[#key]]:
 {#E; ¬#key; "$datakeys": KEYS[#keys]}
 AddDataSort2[#key, #sortDeclaration, ok¹.#[ok¹]]
@@ -201,6 +200,12 @@ OutputCrsx[OK_SORT] :: Crsx_crsx_sort;
 →
 %crsx⟨ $Lax ⟨declarations_S1*: {#E}OutputDataDeclarations[#keys]⟩ ⟩;
 
+{$String:ContentEntry}
+OutputDeclarations[OK_SORT] :: Crsx_declarations_sort;
+
+{#E; "$datakeys": KEYS[#keys]}OutputDeclarations[OK] 
+→
+%declarations⟨ $Lax ⟨declarations_S1*: {#E}OutputDataDeclarations[#keys]⟩ ⟩;
 
 {$String:ContentEntry}
 OutputDataDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_sort];

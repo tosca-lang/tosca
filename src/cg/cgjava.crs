@@ -2,9 +2,7 @@
 /*
  * CRSX Java backend code generator
  *
- * Generate Java 8 source code from normalized CRSX.
- *  
- * 
+ * Generate Java 8 source code from normalized CRSX. 
  */
 CG[(
 
@@ -16,13 +14,13 @@ $AddGrammar["org.crsx.parser.CrsxMetaParser"];
 $CheckGrammar["net.sf.crsx.text.Text"];
 $CheckGrammar["org.crsx.parser.CrsxMetaParser"];
 
-$Use["cg/sortutil.crs"];
 $Use["parser/Crsx.crs"];
 $Use["text/Text.crs"];
 $Use["std/string.crs"];
 $Use["std/text.crs"];
 $Use["std/list.crs"];
 $Use["crsxutils.crs"];
+$Use["cg/cgutils.crs"];
 
 // ===== API
 
@@ -32,7 +30,6 @@ GenerateJava[#, #mode] → GenerateJavaParsed[#, $[ParseResource, "crsx", #], #m
 GenerateJavaParsed[$String, Crsx_crsx_sort, Mode] :: Text;
 GenerateJavaParsed[#filename, #crsx, #mode] 
 → 
-//LoadSort_Crsx[#crsx, ok.Crsx[ok, #filename, #crsx, #mode]];
 Crsx[OK, #filename, #crsx, #mode];
 
 // ===== Sorts and utilities
@@ -161,15 +158,21 @@ Signature[Crsx_term_sort, Crsx_term_sort] :: Text;
 {#E}Signature[%pattern⟨ #properties? #constructor #arguments? ⟩, #contractum] 
 → 
 %n⟨«{#E; "$method-name": ToJavaId[#constructor]}ToJavaId[#constructor]»(Sink sink, int shared, int depth«
-  {#E; "$thunk-args": TEXTS[(%n⟨sink⟩; Descriptor[#constructor];)]}SigMaybeArguments[#arguments?, %pattern⟨  #properties? #constructor #arguments? ⟩, #contractum]»⟩;  // )
+  {#E; "$thunk-args": TEXTS[(%n⟨sink⟩; Descriptor[#constructor];)]}
+     SigMaybeProperties[#properties?, ok¹.
+     SigMaybeArguments[ok¹, #arguments?, %pattern⟨  #properties? #constructor #arguments? ⟩, #contractum]]»⟩;  // )
 
+SigMaybeProperties[$List[Crsx_properties_sort], ok¹::OK_SORT.Text] :: Text;
+{#E}SigMaybeProperties[%properties?⟨              ⟩, ok¹.#[ok¹]] → {#E}#[OK];
+{#E}SigMaybeProperties[%properties?⟨ {          } ⟩, ok¹.#[ok¹]] → {#E}#[OK];
+{#E}SigMaybeProperties[%properties?⟨ { #METAVAR } ⟩, ok¹.#[ok¹]] → {#E}SigPropertyRef[MetaKey[#METAVAR], ok¹.#[ok¹]];
 
-SigMaybeArguments[$List[Crsx_arguments_sort], Crsx_pattern_sort, Crsx_contractum_sort] :: Text;
+-[Fallback]:
+{#E}SigMaybeProperties[#properties?, ok¹.#[ok¹]] → $[Error, $[:, "Internal error: invalid top-level properties on pattern. Must be a property reference. Got:", $[Show, #properties?]]];
 
-// Constant function.
-{#E}SigMaybeArguments[%arguments?⟨            ⟩, #pattern, #contractum] → {#E}Body[#pattern, #contractum];
-
-{#E}SigMaybeArguments[%arguments?⟨ #arguments ⟩, #pattern, #contractum] → {#E}SigArguments[#arguments, #pattern, #contractum] ;
+SigMaybeArguments[OK_SORT, $List[Crsx_arguments_sort], Crsx_pattern_sort, Crsx_contractum_sort] :: Text;
+{#E}SigMaybeArguments[OK, %arguments?⟨            ⟩, #pattern, #contractum] → {#E}Body[#pattern, #contractum]; // Constant function.
+{#E}SigMaybeArguments[OK, %arguments?⟨ #arguments ⟩, #pattern, #contractum] → {#E}SigArguments[#arguments, #pattern, #contractum] ;
 
 SigArguments[Crsx_arguments_sort, Crsx_pattern_sort, Crsx_contractum_sort] :: Text;
 {#E}SigArguments[%arguments⟨ [ #terms? ] ⟩, #pattern, #contractum] → {#E}SigMaybeTerms[#terms?, #pattern, #contractum];
@@ -210,6 +213,11 @@ SigNextBinder[Crsx_nextBinder_sort, $List[Crsx_terms_S1_sort], Crsx_pattern_sort
 {#E}SigNextBinder[%nextBinder⟨ #binder #nextBinder ⟩, #terms_S1*, #pattern, #contractum]
 →
 {#E}SigVar[BinderKey[#binder], #nextBinder, #terms_S1*, #pattern, #contractum];
+
+SigPropertyRef[$String, ok¹::OK_SORT.Text] :: Text;
+
+-[Fresh[props::Text], Data[#key]]:
+{#E}SigPropertyRef[#key, ok¹.#[ok¹]] → %n⟨, Properties «props»«{#E; #key:META[props, ()]}#[OK]»⟩;
 
 SigMeta[$String, $List[Crsx_terms_S1_sort], Crsx_pattern_sort, Crsx_contractum_sort] :: Text;
 
@@ -254,20 +262,20 @@ SendTerm[Crsx_term_sort] :: Text;
 SendFreeTerm[Crsx_freeTerm_sort] :: Text;
 
 // Construction     
-{#E}SendFreeTerm[%freeTerm⟨ #annotations? #constructor #arguments? ⟩] 
+{#E}SendFreeTerm[%freeTerm⟨ #annotations? #properties? #constructor #arguments? ⟩] 
 → 
-{#E}SendConstructor[IndexAnnotations[#annotations?], #constructor, #arguments?];
+{#E}SendConstructor[IndexAnnotations[#annotations?], #properties?, #constructor, #arguments?];
 
 // Construction one argument     
-{#E}SendFreeTerm[%freeTerm⟨ #annotations? #constructor #term ⟩] 
+{#E}SendFreeTerm[%freeTerm⟨ #annotations? #properties? #constructor #term ⟩] 
 →
-{#E}SendFreeTerm[%freeTerm⟨ #annotations? #constructor [ #term ] ⟩];
+{#E}SendFreeTerm[%freeTerm⟨ #annotations? #properties? #constructor [ #term ] ⟩];
 
 // Literal     
 {#E; "$sink":TEXT[#sink]; "$tail":#tail}
-SendFreeTerm[%freeTerm⟨ #annotations? #literal ⟩] 
+SendFreeTerm[%freeTerm⟨ #annotations? #properties? #literal ⟩] 
 →
-%n⟨¶«#sink».literal(«#literal»);«SendTail[#tail]»⟩;
+%n⟨¶«#sink».literal(«Literal[#literal]»);«SendTail[#tail]»⟩;
 
 // List     
 {#E}SendFreeTerm[%freeTerm⟨ #annotations? #list ⟩] 
@@ -286,37 +294,40 @@ $[Error, "Named data structure not implemented yet."];
 
 // meta     
 {#E; "$tail":#tail}
-SendFreeTerm[%freeTerm⟨ #annotations? #METAVAR #freeArguments? ⟩] 
+SendFreeTerm[%freeTerm⟨ #annotations? #properties? #METAVAR #freeArguments? ⟩] 
 →
 %n⟪«{#E; "$tail": NO}SendMeta[#METAVAR, #freeArguments?]»«SendTail[#tail]»⟫;
 
 // dispatch expression
-{#E}SendFreeTerm[%freeTerm⟨ #annotations? #dispatch ⟩] 
+{#E}SendFreeTerm[%freeTerm⟨ #annotations? #properties? #dispatch ⟩] 
 →
 {#E}SendDispatch[#dispatch]; 
 
-{#E}SendFreeTerm[%freeTerm⟨ #annotations? #expression ⟩] 
+{#E}SendFreeTerm[%freeTerm⟨ #annotations? #properties?  #expression ⟩] 
 →
 $[Error, $[:, "Expression not implemented yet: ", #expression]]; 
 
 // --- SEND constructor
 
-SendConstructor[Annotations, Crsx_constructor_sort,  $List[Crsx_arguments_sort]] :: Text;
+SendConstructor[Annotations, $List[Crsx_properties_sort], Crsx_constructor_sort,  $List[Crsx_arguments_sort]] :: Text;
 
 // Data constructor: send start/end event to sink.
 {#E; "$tail": #tail; "$sink": TEXT[#sink]}
-SendConstructor[{#A; ¬"@Function"}ANNOTATIONS, #constructor, #arguments?]
+SendConstructor[{#A; ¬"@Function"}ANNOTATIONS, #properties?, #constructor, #arguments?]
 →
-%n⟨¶«#sink».start(«Descriptor[#constructor]»);«{#E; "$tail": NO}SendArgumentsOpt[#arguments?]»
+%n⟨¶«#sink».start(«Descriptor[#constructor]»);«{#E; "$tail": NO}SendMaybeProperties[#properties?, ok¹.ThenSendArgumentsOpt[ok¹, #arguments?]]»
 «#sink».end();«SendTail[#tail]»⟩;
 
 // Function constructor - lazy
 {#E; "$tail": #tail; "$sink": TEXT[#sink]}   
-SendConstructor[{#A; "@Function"}ANNOTATIONS, #constructor2, #arguments2?]
+SendConstructor[{#A; "@Function"}ANNOTATIONS, #properties?, #constructor, #arguments?]
 →
 %n⟨ 
-«#sink».start(«Descriptor[#constructor2]»);«{#E; "$tail": NO}SendArgumentsOpt[#arguments2?]»
+«#sink».start(«Descriptor[#constructor]»);«{#E; "$tail": NO}SendMaybeProperties[#properties?, ok¹.ThenSendArgumentsOpt[ok¹, #arguments?]]»
 «#sink».end();ff«SendTail[#tail]»⟩;
+
+ThenSendArgumentsOpt[OK_SORT, $List[Crsx_arguments_sort]] :: Text;
+{#E}ThenSendArgumentsOpt[OK, #arguments?] → {#E}SendArgumentsOpt[#arguments?];
 
 SendArgumentsOpt[$List[Crsx_arguments_sort]] :: Text;
 
@@ -356,6 +367,67 @@ SendBindersKey[#key, %binder⟨ #VARIABLE ⟩, #nextBinder]
 %n⟨¶Variable «var» = «#sink».context().makeVariable("†«#VARIABLE»");«
       {#E; var: BOUND; #key: TEXT[var]; "$binders": TEXTS[Concat[#binders, (var;)]]}SendBinders[#nextBinder]»⟩;
 
+// --- SEND properties
+
+SendMaybeProperties[$List[Crsx_properties_sort], ok¹::OK_SORT.Text] :: Text;
+
+{#E}SendMaybeProperties[%properties?⟨                   ⟩, ok¹.#[ok¹]] → {#E}#[OK];
+{#E}SendMaybeProperties[%properties?⟨ {               } ⟩, ok¹.#[ok¹]] → {#E}#[OK];
+{#E}SendMaybeProperties[%properties?⟨ { #propertyList } ⟩, ok¹.#[ok¹]] → {#E}SendPropertyList[OK, DesugarPropertyList[#propertyList], ok¹.#[ok¹]];
+
+SendPropertyList[OK_SORT, $List[Crsx_propertyList_S1_sort], ok¹::OK_SORT.Text] :: Text;
+
+{#E}SendPropertyList[OK, %propertyList_S1*⟨                               ⟩, ok¹.#[ok¹]] → {#E}#[OK];
+{#E}SendPropertyList[OK, %propertyList_S1*⟨ ; #propertyList_S1*           ⟩, ok¹.#[ok¹]] → {#E}SendPropertyList[#propertyList_S1*];
+{#E}SendPropertyList[OK, %propertyList_S1*⟨ ; #property #propertyList_S1* ⟩, ok¹.#[ok¹]] → {#E}SendProperty[#property, ok¹.SendPropertyList[ok¹, #propertyList_S1*, ok¹.#[ok¹]]];
+
+SendProperty[Crsx_property_sort, ok¹::OK_SORT.Text] :: Text;
+
+{#E; "$sink": TEXT[#sink]}
+SendProperty[%property⟨ #METAVAR ⟩, ok¹.#[ok¹]] 
+→
+%n⟨¶«#sink».properties(«{#E}MetaVar[#METAVAR]»);«{#E}#[OK]»⟩;       
+                          
+{#E}SendProperty[%property⟨ #METAVAR : #freeTerm  ⟩, ok¹.#[ok¹]] 
+→ 
+{#E}SetFreeTerm[#freeTerm, ok¹ value.SendMetaProperty[ok¹, #METAVAR, value, ok¹.#[ok¹]]];                        
+
+{#E}SendProperty[%property⟨ #VARIABLE : #freeTerm ⟩, ok¹.#[ok¹]] 
+→ 
+{#E}SetFreeTerm[#freeTerm, ok¹ value.SendVariableProperty[ok¹, #VARIABLE, value, ok¹.#[ok¹]]];               
+                               
+{#E}SendProperty[%property⟨ #STRING : #freeTerm   ⟩, ok¹.#[ok¹]] 
+→ 
+{#E}SetFreeTerm[#freeTerm, ok¹ value.SendNamedProperty[ok¹, #STRING, value, ok¹.#[ok¹]]];               
+
+{#E}SendProperty[%property⟨ ¬ #METAVAR            ⟩, ok¹.#[ok¹]] → $[Error, "Internal error: test for property absence not allowed in contraction"];
+{#E}SendProperty[%property⟨ #VARIABLE             ⟩, ok¹.#[ok¹]] → $[Error, "Internal error: test for variable presence not allowed in contraction"];                                               
+{#E}SendProperty[%property⟨ ¬ #VARIABLE           ⟩, ok¹.#[ok¹]] → $[Error, "Internal error: test for variable absence not allowed in contraction"];                                          
+{#E}SendProperty[%property⟨ #STRING               ⟩, ok¹.#[ok¹]] → $[Error, "Internal error: test for named property presence not allowed in contraction"];                                             
+{#E}SendProperty[%property⟨ ¬ #STRING             ⟩, ok¹.#[ok¹]] → $[Error, "Internal error: test for named property absence not allowed in contraction"];                                            
+{#E}SendProperty[%property⟨  #constructor : #freeTerm ⟩, ok¹.#[ok¹]] →  $[Error, "Internal error: sort set declaration not allowed in contraction"];                        
+
+SendMetaProperty[OK_SORT, $String, Text, ok¹::OK_SORT.Text] :: Text;
+
+{#E; "$sink": TEXT[#sink]}
+SendMetaProperty[OK, #METAVAR, #value, ok¹.#[ok¹]] 
+→
+%n⟨¶Sink.property(«#sink», «{#E}MetaVar[#METAVAR]», «#value»);«{#E}#[OK]»⟩;           
+
+SendVariableProperty[OK_SORT, $String, Text, ok¹::OK_SORT.Text] :: Text;
+
+{#E; "$sink": TEXT[#sink]}
+SendVariableProperty[OK, #VARIABLE, #value, ok¹.#[ok¹]] 
+→
+%n⟨¶«#sink».propertyVariable(«{#E}Variable[#VARIABLE]», «#value»);«{#E}#[OK]»⟩;           
+
+SendNamedProperty[OK_SORT, $String, Text, ok¹::OK_SORT.Text] :: Text;
+
+{#E; "$sink": TEXT[#sink]}
+SendNamedProperty[OK, #name, #value, ok¹.#[ok¹]] 
+→
+%n⟨¶«#sink».propertyNamed(†«#name», «#value»);«{#E}#[OK]»⟩;           
+
 // --- SEND var
 
 SendVariable[$String] :: Text;
@@ -374,9 +446,8 @@ SendVariable0[TEXT[#var]]
 
 // --- SEND meta
 
-// TODO: reuse and functional binders
 SendMeta[$String, $List[Crsx_freeArguments_sort]] :: Text;
-{#E}SendMeta[#metavar, #freeArguments?] → $[Trace, {#E}SendMetaKey[MetaKey[#metavar], #metavar, #freeArguments?]];
+{#E}SendMeta[#metavar, #freeArguments?] → {#E}SendMetaKey[MetaKey[#metavar], #metavar, #freeArguments?];
 
 SendMetaKey[$String, $String, $List[Crsx_freeArguments_sort]] :: Text;
 
@@ -417,45 +488,47 @@ SendSubstitutes[OK, #metavar, #binders, #substitutes]
 //
 // Generate code for the dispatch expression.
 //
-// The core dispatched term must always be a constructor of the form C[x₁..xᵢ.#1[x₁..xᵢ], ..., x₁..xᵢ.#N[x₁..xᵢ]],
-// where all arguments are meta-variables, potentially with binders. They must be ordered is such a way that
-// patterns capturing terms must occur before pattern using captured terms.
+// The core dispatched term must always be a constructor of the form {#E}C[x₁..xᵢ.#1[x₁..xᵢ], ..., x₁..xᵢ.#N[x₁..xᵢ]],
+// where all arguments are meta-variables, potentially with binders. 
 //
 // Since the dispatched term is all meta-variables (except the wrapping constructor), there is no need to construct it.
-// Instead, each meta-variable is mapped to an existing meta-variable and dereferenced as needed. And furthermore,
+// Instead, each meta-variable is mapped to an existing meta-variable and dereferenced as needed. Furthermore,
 // since all dispatch cases start with the same dispatched term constructor, there is also no need to dynamically check for it.
 //
+// Terms must be ordered is such a way that patterns capturing terms must occur before pattern using captured terms.
+// 
 // A dispatch expression with a delay branch must always be top-level.
 //
  
 SendDispatch[Crsx_dispatch_sort] :: Text;
 
-{#E}SendDispatch[%dispatch⟨ dispatch #term #dispatchCases #delayCase? ⟩]
+{#E}SendDispatch[%dispatch⟨ dispatch #freeTerm #dispatchCases #delayCase? ⟩]
 →
-{#E}SendDispatchTopTerm[#term, ok¹.SendDispatchCases[ok¹, DesugarDispatchCases[#dispatchCases]]];
+{#E}SendDispatchTopFreeTerm[#freeTerm, ok¹.SendDispatchCases[ok¹, DesugarDispatchCases[#dispatchCases]]];
 
--[Fallback]:
-{#E}SendDispatch[#dispatch]
-→
-$[Error, "Invalid CRSX core term: conjunctive dispatch expression not allowed."];
+-[Fallback]: {#E}SendDispatch[#dispatch] → $[Error, "Invalid CRSX core term: conjunctive dispatch expression not allowed."];
 
-// Process dispatch term
-
-SendDispatchTopTerm[Crsx_term_sort, ok¹::OK_SORT.Text] :: Text;
-
-{#E}SendDispatchTopTerm[%term⟨ #freeTerm ⟩,           ok¹.#[ok¹]] → {#E}SendDispatchTopFreeTerm[#freeTerm, ok¹.#[ok¹]];
-{#E}SendDispatchTopTerm[%term⟨ #binder #nextBinder ⟩, ok¹.#[ok¹]] → $[Error, "Error: a dispatch term cannot start with binders."];
+// Process dispatch term: just record in the environment the meta-variable mappings
 
 SendDispatchTopFreeTerm[Crsx_freeTerm_sort, ok¹::OK_SORT.Text] :: Text;
 
-{#E}SendDispatchTopFreeTerm[%freeTerm⟨ #constructor [ #terms ] ⟩, ok¹.#[ok¹]] 
+{#E}SendDispatchTopFreeTerm[%freeTerm⟨ #annotations? #properties? #constructor [ #terms ] ⟩, ok¹.#[ok¹]] 
 →
-{#E}SendDispatchTerms[OK, DesugarTerms[#terms], 0, ok¹.#[ok¹]];
+{#E}SendDispatchMaybeProperties[#properties?, ok¹.SendDispatchTerms[ok¹, DesugarTerms[#terms], 0, ok¹.#[ok¹]]];
 
 -[Fallback]:
 {#E}SendDispatchTopFreeTerm[#freeTerm, ok¹.#[ok¹]] 
 →
 $[Error, $[:, "Internal Error: invalid dispatch term. Got: ", $[Show, #freeTerm]]];
+
+SendDispatchMaybeProperties[$List[Crsx_properties_sort], ok¹::OK_SORT.Text] :: Text;
+
+{#E}SendDispatchMaybeProperties[%properties?⟨              ⟩, ok¹.#[ok¹]] → {#E}#[OK];
+{#E}SendDispatchMaybeProperties[%properties?⟨ {          } ⟩, ok¹.#[ok¹]] → {#E}#[OK];
+{#E}SendDispatchMaybeProperties[%properties?⟨ { #METAVAR } ⟩, ok¹.#[ok¹]] → {#E; "$dispatch$env": TEXT[{#E}MetaVar[#METAVAR]]}#[OK];
+
+-[Fallback]:
+{#E}SendDispatchMaybeProperties[#properties, ok¹.#[ok¹]] → $[Error, $[:, "Internal error: invalid dispatch term properties:", $[Show, #properties]]];
 
 SendDispatchTerms[OK_SORT, $List[Crsx_terms_S1_sort], $Numeric, ok¹::OK_SORT.Text] :: Text;
 
@@ -467,13 +540,8 @@ SendDispatchTerms[OK_SORT, $List[Crsx_terms_S1_sort], $Numeric, ok¹::OK_SORT.Te
 
 SendDispatchTerm[Crsx_term_sort, $Numeric, ok¹::OK_SORT.Text] :: Text;
 
-{#E}SendDispatchTerm[%term⟨ #freeTerm ⟩, #position, ok¹.#[ok¹]]
-→
-{#E}SendDispatchFreeTerm[#freeTerm, #position, ok¹.#[ok¹]]; 
-
-{#E}SendDispatchTerm[%term⟨ #binder #nextBinder ⟩, #position, ok¹.#[ok¹]] 
-→
-{#E}SendDispatchBinders[%nextBinder⟨ #binder #nextBinder ⟩, #position, ok¹.#[ok¹]];
+{#E}SendDispatchTerm[%term⟨ #freeTerm           ⟩, #position, ok¹.#[ok¹]] → {#E}SendDispatchFreeTerm[#freeTerm, #position, ok¹.#[ok¹]]; 
+{#E}SendDispatchTerm[%term⟨ #binder #nextBinder ⟩, #position, ok¹.#[ok¹]] → {#E}SendDispatchBinders[%nextBinder⟨ #binder #nextBinder ⟩, #position, ok¹.#[ok¹]];
 
 SendDispatchFreeTerm[Crsx_freeTerm_sort, $Numeric, ok¹::OK_SORT.Text] :: Text;
 
@@ -489,20 +557,14 @@ $[Error, $[:, "Internal error: dispatch term arguments must be all meta-variable
 SendDispatchMeta[$String, $String, ok¹::OK_SORT.Text] :: Text;
 
 -[Data[#dispatchKey, #metavarKey]]:
-{#E}SendDispatchMeta[#dispatchKey, #metavarKey, ok¹.#[ok¹]]
-→
-{#E; #dispatchKey: STRING[#metavarKey]}#[OK];
+{#E}SendDispatchMeta[#dispatchKey, #metavarKey, ok¹.#[ok¹]] → {#E; #dispatchKey: STRING[#metavarKey]}#[OK];
 
 SendDispatchBinders[Crsx_nextBinder_sort, $Numeric, ok¹::OK_SORT.Text] :: Text;
 
-{#E}SendDispatchBinders[%nextBinder⟨ . #freeTerm ⟩, #position, ok¹.#[ok¹]] 
-→ 
-{#E}SendDispatchFreeTerm[#freeTerm,  #position, ok¹.#[ok¹]];
+{#E}SendDispatchBinders[%nextBinder⟨ . #freeTerm         ⟩, #position, ok¹.#[ok¹]] → {#E}SendDispatchFreeTerm[#freeTerm,  #position, ok¹.#[ok¹]];
 
 // Not need to keep tracks of binders, as they are not materialized.
-{#E}SendDispatchBinders[%nextBinder⟨ #binder #nextBinder ⟩, #position, ok¹.#[ok¹]] 
-→ 
-{#E}SendDispatchBinders[#nextBinder, #position, ok¹.#[ok¹]];
+{#E}SendDispatchBinders[%nextBinder⟨ #binder #nextBinder ⟩, #position, ok¹.#[ok¹]] → {#E}SendDispatchBinders[#nextBinder, #position, ok¹.#[ok¹]];
 
 // --- dispatch cases
 
@@ -516,64 +578,184 @@ SendDispatchCases[OK_SORT, $List[Crsx_dispatchCases_S1_sort]] :: Text;
 
 SendDispatchCase[Crsx_dispatchCase_sort] :: Text;
 
-// TODO: handle properties
 -[Fresh[label::Text]]:
 {#E}SendDispatchCase[%dispatchCase⟨ #option? #properties? #constructor [ #terms ] → #freeTerm ⟩] 
 →
-%n⟨¶«label»: {⟦«{#E; "$caselabel":TEXT[label]}SendMatchTerms[OK, DesugarTerms[#terms], 0, ok¹.SendContraction[ok¹, #freeTerm]]»⟧¶}⟩;
+%n⟨¶«label»: {⟦«{#E; "$caselabel":TEXT[label]}SendMatchTopMaybeProperties[#properties?, ok¹.SendMatchTopArguments[ok¹, DesugarTerms[#terms], 0, ok¹.SendContraction[ok¹, #freeTerm]]]»⟧¶}⟩;
 
 -[Fallback]:
 {#E}SendDispatchCase[#dispatchCase] 
 →
 $[Error, $[:, "Internal error: dispatch case pattern must be of the form C[ ... ]. Got: ", $[Show, #dispatchCase]]];
 
-SendMatchTerms[OK_SORT, $List[Crsx_terms_S1_sort], $Numeric, ok¹::OK_SORT.Text] :: Text;
+// Match the top-level properties
+SendMatchTopMaybeProperties[$List[Crsx_properties_sort], ok¹::OK_SORT.Text] :: Text;
 
-{#E}SendMatchTerms[OK, %terms_S1*⟨                    ⟩, #position, ok¹.#[ok¹]] → {#E}#[OK];
+{#E}SendMatchTopMaybeProperties[%properties?⟨                   ⟩, ok¹.#[ok¹]] → {#E}#[OK];
+{#E}SendMatchTopMaybeProperties[%properties?⟨ {              }  ⟩, ok¹.#[ok¹]] → {#E}#[OK];
+{#E}SendMatchTopMaybeProperties[%properties?⟨ { #propertyList } ⟩, ok¹.#[ok¹]] → {#E; "$top-props":YES}SendMatchPropertyList[OK, DesugarPropertyList[#propertyList], %n⟨⟩, ok¹.#[ok¹]];
 
-{#E}SendMatchTerms[OK, %terms_S1*⟨ , #term #terms_S1* ⟩, #position, ok¹.#[ok¹]] 
+// Match the top-level argument: set the term to be match against by dereferencing the dispatched meta variable.
+SendMatchTopArguments[OK_SORT, $List[Crsx_terms_S1_sort], $Numeric, ok¹::OK_SORT.Text] :: Text;
+
+{#E}SendMatchTopArguments[OK, %terms_S1*⟨                    ⟩, #position, ok¹.#[ok¹]] → {#E}#[OK];
+
+{#E}SendMatchTopArguments[OK, %terms_S1*⟨ , #term #terms_S1* ⟩, #position, ok¹.#[ok¹]] 
 → 
-{#E; "$binders": TEXTS[{#E}DispatchedMetaVarBinders[#position]]}SendMatchTerm[#term, {#E}DispatchedMetaVar[#position], #position, ok¹.SendMatchTerms[ok¹, #terms_S1*, $[Plus, #position, 1], ok¹.#[ok¹]]];
+{#E; "$binders": TEXTS[{#E}DispatchedMetaVarBinders[#position]]}
+  SendMatchTerm[#term, {#E}DispatchedMetaVar[#position], #position, ok¹.
+  SendMatchTopArguments[ok¹, #terms_S1*, $[Plus, #position, 1], ok¹.#[ok¹]]];
 
+// Match current term 
 SendMatchTerm[Crsx_term_sort, Text /* Current term */, $Numeric /* term position*/, ok¹::OK_SORT.Text] :: Text;
 
-{#E}SendMatchTerm[%term⟨ #freeTerm ⟩, #term, #termpos, ok¹.#[ok¹]] 
-→
-{#E}SendMatchFreeTerm[#freeTerm, #term, ok¹.#[ok¹]];
-
-// 
-{#E}SendMatchTerm[%term⟨ #binder #nextBinder ⟩, #term, #termpos, ok¹.#[ok¹]] 
-→
-{#E}SendMatchNextBinder[%nextBinder⟨ #binder #nextBinder⟩, #term, #termpos, 0, ok¹.#[ok¹]];
+{#E}SendMatchTerm[%term⟨ #freeTerm           ⟩, #term, #termpos, ok¹.#[ok¹]] → {#E}SendMatchFreeTerm[#freeTerm, #term, ok¹.#[ok¹]];
+{#E}SendMatchTerm[%term⟨ #binder #nextBinder ⟩, #term, #termpos, ok¹.#[ok¹]] → {#E}SendMatchNextBinder[%nextBinder⟨ #binder #nextBinder⟩, #term, #termpos, 0, ok¹.#[ok¹]];
 
 SendMatchFreeTerm[Crsx_freeTerm_sort, Text /* Current term */, ok¹::OK_SORT.Text] :: Text;
 
 // TODO: compare descriptors?
-{#E;"$caselabel":TEXT[#label]}
-SendMatchFreeTerm[%freeTerm⟨ #constructor #arguments? ⟩, #term, ok¹.#[ok¹]] 
+{#E; "$caselabel":TEXT[#label]}
+SendMatchFreeTerm[%freeTerm⟨ #annotations? #properties? #constructor #arguments? ⟩, #term, ok¹.#[ok¹]] 
 →
-%n⟨¶if (!«#term».symbol().equals(«QuotedConstructor[#constructor]»))¶{⟦¶break «#label»;⟧¶}«{#E}SendMatchArgumentsOpt[#arguments?, #term, ok¹.#[ok¹]]»⟩;
+%n⟨¶if (!«#term».symbol().equals(«QuotedConstructor[#constructor]»))
+{⟦
+  break «#label»;⟧
+}«{#E}SendMatchMaybeProperties[#properties?, #term, ok¹.SendMatchMaybeArguments[ok¹, #arguments?, #term, ok¹.#[ok¹]]]»⟩;
 
 // Just desuaar single arg construction. 
-{#E}SendMatchFreeTerm[%freeTerm⟨ #constructor #term ⟩, #cterm, ok¹.#[ok¹]] 
+{#E}SendMatchFreeTerm[%freeTerm⟨ #annotations? #properties? #constructor #term ⟩, #cterm, ok¹.#[ok¹]] 
 →
-{#E}SendMatchFreeTerm[%freeTerm⟨ #constructor [ #term ] ⟩, #cterm, ok¹.#[ok¹]];
+{#E}SendMatchFreeTerm[%freeTerm⟨ #annotations? #properties? #constructor [ #term ] ⟩, #cterm, ok¹.#[ok¹]];
 
 // Match Literal
-{#E}SendMatchFreeTerm[%freeTerm⟨ #literal ⟩, #term, ok¹.#[ok¹]] 
+{#E}SendMatchFreeTerm[%freeTerm⟨ #annotations? #properties? #literal ⟩, #term, ok¹.#[ok¹]] 
 →
 $[Error, "Internal error: literals cannot appear in patterns, not yet..."];
 
 // Desugar list
-{#E}SendMatchFreeTerm[%freeTerm⟨ #list ⟩, #term, ok¹.#[ok¹]] 
+{#E}SendMatchFreeTerm[%freeTerm⟨ #annotations? #list ⟩, #term, ok¹.#[ok¹]] 
 →
 {#E}SendMatchFreeTerm[DesugarList[#list], #term, ok¹.#[ok¹]];
 
 // Metavariable matches all terms. Just record name in the environment.
 -[Data[#term]]:
-{#E}SendMatchFreeTerm[%freeTerm⟨ #METAVAR #freeArguments? ⟩, #term, ok¹.#[ok¹]] 
+{#E}SendMatchFreeTerm[%freeTerm⟨ #annotations? #properties? #METAVAR #freeArguments? ⟩, #term, ok¹.#[ok¹]] 
 →
 %n⟨¶/* «Text-CommentToken[#METAVAR]»=«Text-CommentToken[$[Show, #term]]» */«{#E}SendMatchMeta[MetaKey[#METAVAR], #term, ok¹.#[ok¹]]»⟩;
+
+SendMatchMaybeProperties[$List[Crsx_properties_sort], Text, ok¹::OK_SORT.Text] :: Text;
+
+{#E}SendMatchMaybeProperties[%properties?⟨                   ⟩, #term, ok¹.#[ok¹]] → {#E}#[OK];
+{#E}SendMatchMaybeProperties[%properties?⟨ {               } ⟩, #term, ok¹.#[ok¹]] → {#E}#[OK];
+
+{#E}SendMatchMaybeProperties[%properties?⟨ { #propertyList } ⟩, #term, ok¹.#[ok¹]] 
+→ 
+{#E}SendMatchPropertyList[OK, DesugarPropertyList[#propertyList], #term,  ok¹.#[ok¹]];
+
+SendMatchPropertyList[OK_SORT, $List[Crsx_propertyList_S1_sort], Text, ok¹::OK_SORT.Text] :: Text;
+
+{#E}SendMatchPropertyList[OK, %propertyList_S1*⟨                               ⟩, #term, ok¹.#[ok¹]] → {#E}#[OK];
+{#E}SendMatchPropertyList[OK, %propertyList_S1*⟨ ; #propertyList_S1*           ⟩, #term, ok¹.#[ok¹]] → {#E}SendMatchPropertyList[OK, #propertyList_S1*, #term, ok¹.#[ok¹]];
+{#E}SendMatchPropertyList[OK, %propertyList_S1*⟨ ; #property #propertyList_S1* ⟩, #term, ok¹.#[ok¹]] → {#E}SendMatchProperty[#property, #term, ok¹.SendMatchPropertyList[ok¹, #propertyList_S1*, #term, ok¹.#[ok¹]]];
+
+SendMatchProperty[Crsx_property_sort, Text, ok¹::OK_SORT.Text] :: Text;
+
+{#E; "$top-props":YES; "$dispatch$env": TEXT[#props]}
+SendMatchProperty[%property⟨ #METAVAR ⟩, #term, ok¹.#[ok¹]] 
+→
+{#E; "$props": TEXT[#props]}AddMetaVar[#METAVAR, #props, (), ok¹.#[ok¹]];
+
+-[Fresh[props::Text]]:
+{#E; "$top-props":NO}
+SendMatchProperty[%property⟨ #METAVAR ⟩, #term, ok¹.#[ok¹]] 
+→
+%n⟨¶Properties «props» = «#term».properties().ref();«{#E; "$props": TEXT[props]}AddMetaVar[#METAVAR, props, (), ok¹.#[ok¹]]»⟩;
+                          
+{#E; "$props": TEXT[#props]; "$caselabel":TEXT[#label]}
+SendMatchProperty[%property⟨ ¬ #METAVAR            ⟩, #term, ok¹.#[ok¹]] 
+→ 
+%n⟨¶if («#props».lookup(«{#E}MetaVar[#METAVAR]») != null) 
+{⟦
+  break «#label»;⟧
+}«{#E}#[OK]»⟩;
+
+{#E; "$props": TEXT[#props]; "$caselabel":TEXT[#label]}
+SendMatchProperty[%property⟨ #VARIABLE             ⟩, #term, ok¹.#[ok¹]] 
+→ 
+%n⟨¶if («#props».lookup(«{#E}Variable[#VARIABLE]») == null) 
+{⟦
+  break «#label»;⟧
+}«{#E}#[OK]»⟩;
+
+{#E; "$props": TEXT[#props]; "$caselabel":TEXT[#label]}
+SendMatchProperty[%property⟨ ¬ #VARIABLE           ⟩, #term, ok¹.#[ok¹]]
+→ 
+%n⟨¶if («#props».lookup(«{#E}Variable[#VARIABLE]») == null) 
+{⟦
+  break «#label»;⟧
+}«{#E}#[OK]»⟩;
+
+{#E; "$props": TEXT[#props]; "$caselabel":TEXT[#label]}
+SendMatchProperty[%property⟨ #STRING               ⟩, #term, ok¹.#[ok¹]] 
+→
+%n⟨¶if («#props».lookup(†«#STRING») == null) 
+{⟦
+  break «#label»;⟧
+}«{#E}#[OK]»⟩;
+
+{#E; "$props": TEXT[#props]; "$caselabel":TEXT[#label]}
+SendMatchProperty[%property⟨ ¬ #STRING             ⟩, #term, ok¹.#[ok¹]] 
+→ 
+%n⟨¶if («#props».lookup(†«#STRING») != null) 
+{⟦
+  break «#label»;⟧
+}«{#E}#[OK]»⟩;
+
+-[Fresh[value::Text]]:
+{#E; "$props": TEXT[#props]; "$caselabel":TEXT[#label]}
+SendMatchProperty[%property⟨ #METAVAR1 : #METAVAR2 ⟩, #term, ok¹.#[ok¹]] 
+→ 
+%n⟨¶Term «value» = «#props».lookup(«{#E}MetaVar[#METAVAR1]»);
+if («value» == null) 
+{⟦
+  break «#label»;⟧
+}
+«value» = «value».ref();«{#E}AddMetaVar[#METAVAR2, value, (), ok¹.#[ok¹]]»⟩;
+
+-[Fresh[value::Text]]:
+{#E; "$props": TEXT[#props]; "$caselabel":TEXT[#label]}
+SendMatchProperty[%property⟨ #VARIABLE : #METAVAR ⟩, #term, ok¹.#[ok¹]] 
+→ 
+%n⟨¶Term «value» = «#props».lookup(«{#E}Variable[#VARIABLE]»);
+if («value» == null) 
+{⟦
+  break «#label»;⟧
+}
+«value» = «value».ref();«{#E}AddMetaVar[#METAVAR, value, (), ok¹.#[ok¹]]»⟩;
+
+-[Fresh[value::Text]]:
+{#E; "$props": TEXT[#props]; "$caselabel":TEXT[#label]}
+SendMatchProperty[%property⟨ #STRING : #METAVAR ⟩, #term, ok¹.#[ok¹]] 
+→ 
+%n⟨¶Term «value» = «#props».lookup(†«#STRING»);
+if («value» == null) 
+{⟦
+  break «#label»;⟧
+}
+«value» = «value».ref();«{#E}AddMetaVar[#METAVAR, value, (), ok¹.#[ok¹]]»⟩;
+
+// REVISIT: could easily be supported.
+{#E}SendMatchProperty[%property⟨ #METAVAR : #freeTerm  ⟩, #term, ok¹.#[ok¹]] → $[Error, "Internal error: property construction not allowed in pattern"];
+
+// REVISIT: could easily be supported.
+{#E}SendMatchProperty[%property⟨ #VARIABLE : #freeTerm ⟩, #term, ok¹.#[ok¹]] → $[Error, "Internal error: variable property construction not allowed in pattern"];
+
+// REVISIT: could easily be supported.
+{#E}SendMatchProperty[%property⟨ #STRING : #freeTerm   ⟩, #term, ok¹.#[ok¹]] → $[Error, "Internal error: named property construction  not allowed in pattern"];
+
+{#E}
+SendMatchProperty[%property⟨  #constructor : #freeTerm ⟩, ok¹.#[ok¹]] →  $[Error, "Internal error: sort set declaration not allowed in pattern."];                        
 
 SendMatchMeta[$String, Text, ok¹::OK_SORT.Text] :: Text;
 
@@ -583,11 +765,11 @@ SendMatchMeta[#key, #term, ok¹.#[ok¹]]
 →
 {#E; #key: META[#term, #binders]}#[OK];
 
-SendMatchArgumentsOpt[$List[Crsx_arguments_sort], Text, ok¹::OK_SORT.Text] :: Text;
+SendMatchMaybeArguments[OK_SORT, $List[Crsx_arguments_sort], Text, ok¹::OK_SORT.Text] :: Text;
 
-{#E}SendMatchArgumentsOpt[%arguments?⟨            ⟩, #term, ok¹.#[ok¹]] → {#E}#[OK];
-{#E}SendMatchArgumentsOpt[%arguments?⟨ []         ⟩, #term, ok¹.#[ok¹]] → {#E}#[OK];
-{#E}SendMatchArgumentsOpt[%arguments?⟨ [ #terms ] ⟩, #term, ok¹.#[ok¹]] → {#E}SendMatchSubTerms[OK, DesugarTerms[#terms], #term, 0, ok¹.#[ok¹]];
+{#E}SendMatchMaybeArguments[OK, %arguments?⟨            ⟩, #term, ok¹.#[ok¹]] → {#E}#[OK];
+{#E}SendMatchMaybeArguments[OK, %arguments?⟨ []         ⟩, #term, ok¹.#[ok¹]] → {#E}#[OK];
+{#E}SendMatchMaybeArguments[OK, %arguments?⟨ [ #terms ] ⟩, #term, ok¹.#[ok¹]] → {#E}SendMatchSubTerms[OK, DesugarTerms[#terms], #term, 0, ok¹.#[ok¹]];
 
 SendMatchSubTerms[OK_SORT, $List[Crsx_terms_S1_sort], Text, $Numeric, ok¹::OK_SORT.Text] :: Text;
 
@@ -602,7 +784,7 @@ SendMatchSubTerm[Crsx_term_sort, Text, $Numeric, ok¹::OK_SORT.Text] :: Text;
 -[Fresh[sub::Text]]:
 {#E}SendMatchSubTerm[#sub, #parent, #subpos, ok¹.#[ok¹]]
 →
-%n⟨¶Term «sub» = «#parent».sub(«NumberToText[#subpos]»).ref();«{#E}SendMatchTerm[#sub, sub, #subpos, ok¹.#[ok¹]]»⟩;
+%n⟨¶Term «sub» = «#parent».sub(«NumberToText[#subpos]»).ref();«{#E; "$top-props":NO}SendMatchTerm[#sub, sub, #subpos, ok¹.#[ok¹]]»⟩;
 
 SendMatchNextBinder[Crsx_nextBinder_sort, Text /* Current term */, $Numeric, $Numeric, ok¹::OK_SORT.Text] :: Text;
 
@@ -666,29 +848,29 @@ SetFreeTerms_S1_ZOM[$List[Crsx_freeTerms_S1_sort], ok¹::OK_SORT vars::$List[Tex
 SetFreeTerm[Crsx_freeTerm_sort, ok¹::OK_SORT var::Text.Text] :: Text;
 
 // Construction
-{#E}SetFreeTerm[%freeTerm⟨ #constructor #arguments? ⟩, ok¹ var.#[ok¹, var]] 
+{#E}SetFreeTerm[%freeTerm⟨ #annotations? #properties? #constructor #arguments? ⟩, ok¹ var.#[ok¹, var]] 
 → 
-{#E}SetBuffer[%freeTerm⟨ #constructor #arguments? ⟩, ok¹ var.#[ok¹, var]];
+{#E}SetBuffer[%freeTerm⟨ #annotations? #properties? #constructor #arguments? ⟩, ok¹ var.#[ok¹, var]];
 
 // Construction one argument     
-{#E}SetFreeTerm[%freeTerm⟨ #constructor #term ⟩, ok¹ var.#[ok¹, var]] 
+{#E}SetFreeTerm[%freeTerm⟨ #annotations? #properties? #constructor #term ⟩, ok¹ var.#[ok¹, var]] 
 →
-$[Error, "Invalid CRSX core term: construction with one argument."];
+{#E}SetFreeTerm[%freeTerm⟨ #annotations? #properties? #constructor [ #term ] ⟩, ok¹ var.#[ok¹, var]];
 
 // Literals can be directly created 
 -[Fresh[literal::Text]]:
 {#E;"$sink":TEXT[#sink]}
-SetFreeTerm[%freeTerm⟨ #literal ⟩, ok¹ var.#[ok¹, var]]
+SetFreeTerm[%freeTerm⟨ #annotations? #properties? #literal ⟩, ok¹ var.#[ok¹, var]]
 →
-%n⟪¶Term «literal» = makeStringLiteral(«#sink».context, «Text-String[#literal]»);« {#E}#[OK, literal] »⟫;
+%n⟪¶Term «literal» = Literal.make(«Literal[#literal]»);« {#E}#[OK, literal] »⟫;
 
 // List     
-{#E}SetFreeTerm[%freeTerm⟨ #list ⟩, ok¹ var.#[ok¹, var]] 
+{#E}SetFreeTerm[%freeTerm⟨ #annotations? #list ⟩, ok¹ var.#[ok¹, var]] 
 →
 {#E}SetFreeTerm[DesugarList[#list], ok¹ var.#[ok¹, var]];
 
 // variable
-{#E}SetFreeTerm[%freeTerm⟨ #VARIABLE #linear? #functional? #varsort? ⟩, ok¹ var.#[ok¹, var]] 
+{#E}SetFreeTerm[%freeTerm⟨ #annotations? #VARIABLE #linear? #functional? #varsort? ⟩, ok¹ var.#[ok¹, var]] 
 →
 {#E}SetVariable[VarKey[%variable⟨ #VARIABLE ⟩], ok¹ var.#[ok¹, var]];
 
@@ -698,14 +880,14 @@ SetFreeTerm[%freeTerm⟨ #literal ⟩, ok¹ var.#[ok¹, var]]
 $[Error, "Named data structure not implemented yet."];
 
 // meta     
-{#E}SetFreeTerm[%freeTerm⟨ #METAVAR #freeArguments? ⟩, ok¹ var.#[ok¹, var]]
+{#E}SetFreeTerm[%freeTerm⟨ #annotations? #properties? #METAVAR #freeArguments? ⟩, ok¹ var.#[ok¹, var]]
 →
-{#E}SetBuffer[%freeTerm⟨ #METAVAR #freeArguments? ⟩, ok¹ var.#[ok¹, var]];
+{#E}SetBuffer[%freeTerm⟨ #annotations? #properties? #METAVAR #freeArguments? ⟩, ok¹ var.#[ok¹, var]];
 
 // expression     
-{#E}SetFreeTerm[%freeTerm⟨ #expression ⟩, ok¹ var.#[ok¹, var]] 
+{#E}SetFreeTerm[%freeTerm⟨ #annotations? #properties? #expression ⟩, ok¹ var.#[ok¹, var]] 
 →
-{#E}SetBuffer[%freeTerm⟨ #expression ⟩, ok¹ var.#[ok¹, var]];
+{#E}SetBuffer[%freeTerm⟨ #annotations? #properties? #expression ⟩, ok¹ var.#[ok¹, var]];
 
 SetArgumentsOpt[$List[Crsx_arguments_sort], ok¹::OK_SORT args¹::$List[Text].Text] :: Text;
 
@@ -764,10 +946,7 @@ BufferSink «buf» = «#sink».context().makeBuffer();« {#E; "$sink":TEXT[buf]}
 «term» = «buf».term();⟧
 }«{#E; "$sink":TEXT[#sink]}#[OK, term]»⟫; // Repeat $sink because of interpreter bug.
 
-
-//
-// ------ initModule
-//
+// ----- initModule
 
 InitModule[$List[Crsx_declarations_S1_sort]] :: Text;
 
@@ -777,7 +956,6 @@ InitModule[#declarations]
 %n⟨public static void init(Context context)
 {⟦«Registers[#declarations]»⟧
 }⟩;
-
 
 Registers[$List[Crsx_declarations_S1_sort]] :: Text;
 
@@ -826,75 +1004,6 @@ RegisterDataForm[Crsx_forms_S1_sort] :: Text;
 RegisterDataForm[%forms_S1⟨ #constructor #arguments? ; ⟩] 
 →
 %n⟨¶context.register(«Descriptor[#constructor]»);⟩;
-
-// Some helpers
-
-//
-// Print the Java meta variable id
-MetaVar[$String] :: Text;
-{#E}MetaVar[#] → {#E}MetaVar0[MetaKey[#]];
-
-MetaVar0[$String] :: Text;
--[Data[#]]: {#E}MetaVar0[#] → UnMETA[$[{#E}Get, #]];
-
-//
-// Gets property name for given meta-application
-MetaKey[$String] :: $String;
-MetaKey[#] → $[:, "$meta$", #];
-
-//
-// Gets property name for dispatched metavariable
-MetaDispatchKey[$Numeric] :: $String;
-MetaDispatchKey[#position] → $[:, "$dispatch$", $[FormatNumber, #position]];
-
-//
-// Gets the dispatched metavar at the given position
-DispatchedMetaVar[$Numeric] :: Text;
-{#E}DispatchedMetaVar[#position] → {#E}DispatchedMetaVar1[MetaDispatchKey[#position]];
-
-DispatchedMetaVar1[$String] :: Text;
--[Data[#key]]: {#E}DispatchedMetaVar1[#key] → {#E}DispatchedMetaVar2[UnSTRING[$[{#E}Get, #key]]];
-
-DispatchedMetaVar2[$String] :: Text;
--[Data[#key]]: {#E}DispatchedMetaVar2[#key] → UnMETA[$[{#E}Get, #key]];
-
-//
-// Gets the binders of the dispatched metavar at the given position
-DispatchedMetaVarBinders[$Numeric] :: Text;
-{#E}DispatchedMetaVarBinders[#position] → {#E}DispatchedMetaVarBinders1[MetaDispatchKey[#position]];
-
-DispatchedMetaVarBinders1[$String] :: Text;
--[Data[#key]]: {#E}DispatchedMetaVarBinders1[#key] → {#E}DispatchedMetaVarBinders2[UnSTRING[$[{#E}Get, #key]]];
-
-DispatchedMetaVarBinder2[$String] :: Text;
--[Data[#key]]: {#E}DispatchedMetaVarBinders2[#key] → UnMETABinders[$[{#E}Get, #key]];
-
-//
-// Gets property name for given binder
-BinderKey[Crsx_binder_sort] :: $String;
-BinderKey[%binder⟨ #variable ⟩] → VarKey[#variable];
-
-//
-// Gets property name for given variable
-VarKey[Crsx_variable_sort] :: $String;
-VarKey[%variable⟨ #VARIABLE #linear? #functional? #varsort? ⟩] → $[:, "$var$", #VARIABLE];
-
-//
-// Print construction descriptor name
-Descriptor[Crsx_constructor_sort] :: Text;
-Descriptor[%constructor⟨ #qualifier #CONSTRUCTOR ⟩] → %n⟨«Qualifier[#qualifier]»«ToJavaIdString[#CONSTRUCTOR]»⟩;
-Descriptor[%constructor⟨ :                       ⟩] → %n⟨Colon⟩;
-
-// Print construction descriptor qualifier name
-Qualifier[Crsx_qualifier_sort] :: Text;
-Qualifier[%qualifier⟨ #CONSTRUCTOR . ⟩] → %n⟨†«UpCaseFirst[#CONSTRUCTOR]».⟩;
-Qualifier[%qualifier⟨                ⟩] → %n⟨⟩;
-
-//
-// Print quoted constructor
-QuotedConstructor[Crsx_constructor_sort] :: Text;
-QuotedConstructor[%constructor⟨ #CONSTRUCTOR ⟩] → Text-QuoteString[#CONSTRUCTOR];
-QuotedConstructor[%constructor⟨ : ⟩]            → %n⟨":"⟩;
 
 // Print package declaration
 PackageDeclaration :: Text;

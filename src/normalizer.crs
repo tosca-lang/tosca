@@ -37,11 +37,9 @@ NormalizeToState[Crsx_crsx_sort] :: ContentEntry;
 NormalizeToState[%crsx⟨ #declarations ⟩] → N1Declarations[DesugarDeclarations[#declarations], ok¹.N2[ok¹, ok¹.LOADED]];
 
 // --- Pass1
-// 
-// - Mangle constructor in module (NOT YET IMPLEMENTED)
+//  
 // - Collect declarations into the environment (state).
 //
-
 N1Declarations[$List[Crsx_declarations_S1_sort], ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
 
 N1Declarations[#declarations, ok¹.#[ok¹]]
@@ -120,7 +118,6 @@ N1DirectiveConstructor[Crsx_constructor_sort, ok¹::OK_SORT.$Sort[a]] :: a;
    
 {#E}N1DirectiveConstructor[#constructor, ok¹.#[ok¹]] → {#E}#[OK];
 
-
 // Import a module: at this level just record dependency.
 ∀ a.{$String:ContentEntry} 
 N1Use[$List[Crsx_directiveArguments_sort], ok¹::OK_SORT.$Sort[a]] :: a;
@@ -184,10 +181,10 @@ If[Or[IsEmpty[#rules], And[IsSingleton[#rules], AllMetaInPatternRule[Head[#rules
 // becomes
 //
 // {#E}R[#¹ ... #ⁿ] →
-//    dispatch {#E} & #¹ & ... & #ⁿ
-//      O₁:{#E₁} & P₁¹ &  ... & P₁ⁿ → C₁
+//    dispatch {#E}R[#¹ ... #ⁿ]
+//      O₁:{#E₁}R[P₁¹ ... P₁ⁿ] → C₁
 //      ...
-//      Oᵢ:{#Eᵢ} & Pᵢ¹ &  ... & Pᵢⁿ → Cᵢ
+//      Oᵢ:{#Eᵢ}R[Pᵢ¹ ... Pᵢⁿ] → Cᵢ
 //      delay 
 // 
 
@@ -201,26 +198,48 @@ GroupRule[$String, $List[Crsx_ruleDeclaration_sort], ok¹::OK_SORT.$Sort[a]] :: 
 // Create the dispatch rule.
 Dispatch[$List[Crsx_ruleDeclaration_sort]] :: Crsx_ruleDeclaration_sort;
  
-// TODO: properties. Look at sort 
 // Constructor must have at least one argument, otherwise GroupRule wouldn't be called.
 Dispatch[(%ruleDeclaration⟨ #option? #properties? #constructor [ #terms ] → #contractum ⟩; #rules)]
 → 
 %ruleDeclaration⟨ 
-  #constructor [ ⟨terms: SugarTerms[DispatchPattern[DesugarTerms[#terms], 0]]⟩ ] 
+  ⟨properties?: DispatchProperties[#properties?]⟩ #constructor [ ⟨terms: SugarTerms[DispatchPatternArgs[DesugarTerms[#terms], 0]]⟩ ] 
   →
-  dispatch #constructor [ ⟨terms: SugarTerms[DispatchPattern[DesugarTerms[#terms], 0]]⟩ ]
+  dispatch ⟨properties?: DispatchProperties[#properties?]⟩ #constructor [ ⟨terms: SugarTerms[DispatchPatternArgs[DesugarTerms[#terms], 0]]⟩ ]  
     ⟨dispatchCases: SugarDispatchCases[DispatchCases[(%ruleDeclaration⟨ #option? #properties? #constructor [ #terms ] → #contractum ⟩; #rules)]]⟩
     delay
 ⟩;
 
-// Create the dispatch rule/term => replace all arguments by metavar.
-DispatchPattern[$List[Crsx_terms_S1_sort], $Numeric] :: $List[Crsx_terms_S1_sort];
+//// Potential CRSX4 version to preserve location:
+//Dispatch[(#rule; #rules)] →
+//   dispatch #rule
+//     case %ruleDeclaration⟨ #option? #properties? #constructor [ #terms ] → #contractum ⟩ → 
+//        %ruleDeclaration⟨ 
+//          #constructor [ ⟨terms: SugarTerms[DispatchPattern[DesugarTerms[#terms], 0]]⟩ ] 
+//          →
+//          dispatch #constructor [ ⟨terms: SugarTerms[DispatchPattern[DesugarTerms[#terms], 0]]⟩ ]
+//            ⟨dispatchCases: SugarDispatchCases[DispatchCases[(#rule; #rules)]]⟩
+//            delay
+//        ⟩;
 
-DispatchPattern[%terms_S1*⟨                    ⟩, #count] → %terms_S1*⟨⟩;
+// Output properties if any
+DispatchProperties[$List[Crsx_properties_sort]] :: $List[Crsx_properties_sort];
+
+DispatchProperties[%properties?⟨             ⟩] → %properties?⟨         ⟩;
+DispatchProperties[%properties?⟨ #properties ⟩] → %properties?⟨ {#$P$E} ⟩; 
+
+//// Create the dispatch rule/term => replace all arguments by metavar.
+//DispatchPattern[$List[Crsx_properties_sort], Crsx_constructor_sort, Crsx_terms_sort] :: Crsx_term_sort;
+//
+//DispatchPattern[%properties?⟨             ⟩, #constructor, #terms] → %term⟨ #constructor [ ⟨terms: SugarTerms[DispatchPatternArgs[DesugarTerms[#terms], 0]]⟩ ] ⟩;
+//DispatchPattern[%properties?⟨ #properties ⟩, #constructor, #terms] → %term⟨ {#$P$E} #constructor [ ⟨terms: SugarTerms[DispatchPatternArgs[DesugarTerms[#terms], 0]]⟩ ] ⟩;
+//
+DispatchPatternArgs[$List[Crsx_terms_S1_sort], $Numeric] :: $List[Crsx_terms_S1_sort];
+
+DispatchPatternArgs[%terms_S1*⟨                    ⟩, #count] → %terms_S1*⟨⟩;
   
-DispatchPattern[%terms_S1*⟨ , #term #terms_S1* ⟩, #count]
+DispatchPatternArgs[%terms_S1*⟨ , #term #terms_S1* ⟩, #count]
 →
-%terms_S1*⟨ , ⟨term: DispatchPatternTerm[#term, #count, %freeTerms_S1*⟨⟩]⟩ ⟨terms_S1*: DispatchPattern[#terms_S1*, $[Plus, #count, 1]] ⟩ ⟩;
+%terms_S1*⟨ , ⟨term: DispatchPatternTerm[#term, #count, %freeTerms_S1*⟨⟩]⟩ ⟨terms_S1*: DispatchPatternArgs[#terms_S1*, $[Plus, #count, 1]] ⟩ ⟩;
  
 DispatchPatternTerm[Crsx_term_sort, $Numeric, $List[Crsx_freeTerms_S1_sort]] :: Crsx_term_sort;
 

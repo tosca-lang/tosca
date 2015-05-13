@@ -1662,85 +1662,85 @@ public interface CrsxMetaParserListener extends ParseTreeListener {
 	 */
 	void exitProperties_EOF(CrsxMetaParser.Properties_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#propertylist_OPT}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#propertyList_OPT}.
 	 * @param ctx the parse tree
 	 */
-	void enterPropertylist_OPT(CrsxMetaParser.Propertylist_OPTContext ctx);
+	void enterPropertyList_OPT(CrsxMetaParser.PropertyList_OPTContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#propertylist_OPT}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#propertyList_OPT}.
 	 * @param ctx the parse tree
 	 */
-	void exitPropertylist_OPT(CrsxMetaParser.Propertylist_OPTContext ctx);
+	void exitPropertyList_OPT(CrsxMetaParser.PropertyList_OPTContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#propertylist_OPT_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#propertyList_OPT_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterPropertylist_OPT_EOF(CrsxMetaParser.Propertylist_OPT_EOFContext ctx);
+	void enterPropertyList_OPT_EOF(CrsxMetaParser.PropertyList_OPT_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#propertylist_OPT_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#propertyList_OPT_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitPropertylist_OPT_EOF(CrsxMetaParser.Propertylist_OPT_EOFContext ctx);
+	void exitPropertyList_OPT_EOF(CrsxMetaParser.PropertyList_OPT_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#propertylist}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#propertyList}.
 	 * @param ctx the parse tree
 	 */
-	void enterPropertylist(CrsxMetaParser.PropertylistContext ctx);
+	void enterPropertyList(CrsxMetaParser.PropertyListContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#propertylist}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#propertyList}.
 	 * @param ctx the parse tree
 	 */
-	void exitPropertylist(CrsxMetaParser.PropertylistContext ctx);
+	void exitPropertyList(CrsxMetaParser.PropertyListContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#propertylist_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#propertyList_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterPropertylist_EOF(CrsxMetaParser.Propertylist_EOFContext ctx);
+	void enterPropertyList_EOF(CrsxMetaParser.PropertyList_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#propertylist_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#propertyList_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitPropertylist_EOF(CrsxMetaParser.Propertylist_EOFContext ctx);
+	void exitPropertyList_EOF(CrsxMetaParser.PropertyList_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#propertylist_S1_ZOM}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#propertyList_S1_ZOM}.
 	 * @param ctx the parse tree
 	 */
-	void enterPropertylist_S1_ZOM(CrsxMetaParser.Propertylist_S1_ZOMContext ctx);
+	void enterPropertyList_S1_ZOM(CrsxMetaParser.PropertyList_S1_ZOMContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#propertylist_S1_ZOM}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#propertyList_S1_ZOM}.
 	 * @param ctx the parse tree
 	 */
-	void exitPropertylist_S1_ZOM(CrsxMetaParser.Propertylist_S1_ZOMContext ctx);
+	void exitPropertyList_S1_ZOM(CrsxMetaParser.PropertyList_S1_ZOMContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#propertylist_S1_ZOM_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#propertyList_S1_ZOM_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterPropertylist_S1_ZOM_EOF(CrsxMetaParser.Propertylist_S1_ZOM_EOFContext ctx);
+	void enterPropertyList_S1_ZOM_EOF(CrsxMetaParser.PropertyList_S1_ZOM_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#propertylist_S1_ZOM_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#propertyList_S1_ZOM_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitPropertylist_S1_ZOM_EOF(CrsxMetaParser.Propertylist_S1_ZOM_EOFContext ctx);
+	void exitPropertyList_S1_ZOM_EOF(CrsxMetaParser.PropertyList_S1_ZOM_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#propertylist_S1}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#propertyList_S1}.
 	 * @param ctx the parse tree
 	 */
-	void enterPropertylist_S1(CrsxMetaParser.Propertylist_S1Context ctx);
+	void enterPropertyList_S1(CrsxMetaParser.PropertyList_S1Context ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#propertylist_S1}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#propertyList_S1}.
 	 * @param ctx the parse tree
 	 */
-	void exitPropertylist_S1(CrsxMetaParser.Propertylist_S1Context ctx);
+	void exitPropertyList_S1(CrsxMetaParser.PropertyList_S1Context ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#propertylist_S1_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#propertyList_S1_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterPropertylist_S1_EOF(CrsxMetaParser.Propertylist_S1_EOFContext ctx);
+	void enterPropertyList_S1_EOF(CrsxMetaParser.PropertyList_S1_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#propertylist_S1_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#propertyList_S1_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitPropertylist_S1_EOF(CrsxMetaParser.Propertylist_S1_EOFContext ctx);
+	void exitPropertyList_S1_EOF(CrsxMetaParser.PropertyList_S1_EOFContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxMetaParser#property_OPT}.
 	 * @param ctx the parse tree

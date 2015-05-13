@@ -399,25 +399,25 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 */
 	void exitProperties(CrsxTermParser.PropertiesContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#propertylist}.
+	 * Enter a parse tree produced by {@link CrsxTermParser#propertyList}.
 	 * @param ctx the parse tree
 	 */
-	void enterPropertylist(CrsxTermParser.PropertylistContext ctx);
+	void enterPropertyList(CrsxTermParser.PropertyListContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#propertylist}.
+	 * Exit a parse tree produced by {@link CrsxTermParser#propertyList}.
 	 * @param ctx the parse tree
 	 */
-	void exitPropertylist(CrsxTermParser.PropertylistContext ctx);
+	void exitPropertyList(CrsxTermParser.PropertyListContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#propertylist_S1}.
+	 * Enter a parse tree produced by {@link CrsxTermParser#propertyList_S1}.
 	 * @param ctx the parse tree
 	 */
-	void enterPropertylist_S1(CrsxTermParser.Propertylist_S1Context ctx);
+	void enterPropertyList_S1(CrsxTermParser.PropertyList_S1Context ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#propertylist_S1}.
+	 * Exit a parse tree produced by {@link CrsxTermParser#propertyList_S1}.
 	 * @param ctx the parse tree
 	 */
-	void exitPropertylist_S1(CrsxTermParser.Propertylist_S1Context ctx);
+	void exitPropertyList_S1(CrsxTermParser.PropertyList_S1Context ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#property}.
 	 * @param ctx the parse tree

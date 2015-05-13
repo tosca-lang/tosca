@@ -1,4 +1,5 @@
 // Copyright (c) 2014 IBM Corporation.
+
 package org.crsx.runtime;
 
 /**
@@ -8,6 +9,19 @@ package org.crsx.runtime;
  */
 public abstract class Sink
 {
+
+	/** 
+	 * Static helper sending a named or variable property
+	 * @param key of the property
+	 * @param term property value. The reference is used by this method.
+	 * @return continuation sink to use for subsequent operation
+	 */
+	public static Sink property(Sink sink, Term key, Term value)
+	{
+		return key.isVariableUse() ? sink.propertyVariable(((VariableUse) key).variable, value) : sink.propertyNamed(
+				key.symbol(), value);
+	}
+
 	/**
 	 * Start construction.
 	 * 
@@ -33,7 +47,8 @@ public abstract class Sink
 	 */
 	public Sink bind(Variable binder)
 	{
-		return binds(new Variable[] { binder });
+		return binds(new Variable[]
+			{binder});
 	}
 
 	/**
@@ -113,7 +128,9 @@ public abstract class Sink
 	 */
 	public Sink substitute(Term term, Variable binder, Term substitute)
 	{
-		return substitute(term, new Variable[] { binder }, new Term[] { substitute });
+		return substitute(term, new Variable[]
+			{binder}, new Term[]
+			{substitute});
 	}
 
 	/**

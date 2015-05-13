@@ -483,25 +483,25 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterPropertylist(CrsxTermParser.PropertylistContext ctx) { }
+	@Override public void enterPropertyList(CrsxTermParser.PropertyListContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitPropertylist(CrsxTermParser.PropertylistContext ctx) { }
+	@Override public void exitPropertyList(CrsxTermParser.PropertyListContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterPropertylist_S1(CrsxTermParser.Propertylist_S1Context ctx) { }
+	@Override public void enterPropertyList_S1(CrsxTermParser.PropertyList_S1Context ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitPropertylist_S1(CrsxTermParser.Propertylist_S1Context ctx) { }
+	@Override public void exitPropertyList_S1(CrsxTermParser.PropertyList_S1Context ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

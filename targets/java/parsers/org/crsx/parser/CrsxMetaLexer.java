@@ -57,9 +57,9 @@ public class CrsxMetaLexer extends Lexer {
 		ET_dispatchCases_S1_ZOM=154, MT_dispatchCases_S1=155, ET_dispatchCases_S1=156, 
 		MT_dispatchCase=157, ET_dispatchCase=158, MT_delayCase=159, ET_delayCase=160, 
 		MT_delay_TOK=161, ET_delay_TOK=162, MT_properties=163, ET_properties=164, 
-		MT_propertylist_OPT=165, ET_propertylist_OPT=166, MT_propertylist=167, 
-		ET_propertylist=168, MT_propertylist_S1_ZOM=169, ET_propertylist_S1_ZOM=170, 
-		MT_propertylist_S1=171, ET_propertylist_S1=172, MT_property_OPT=173, ET_property_OPT=174, 
+		MT_propertyList_OPT=165, ET_propertyList_OPT=166, MT_propertyList=167, 
+		ET_propertyList=168, MT_propertyList_S1_ZOM=169, ET_propertyList_S1_ZOM=170, 
+		MT_propertyList_S1=171, ET_propertyList_S1=172, MT_property_OPT=173, ET_property_OPT=174, 
 		MT_property=175, ET_property=176, MT_not_TOK=177, ET_not_TOK=178, MT_expression=179, 
 		ET_expression=180, MT_sortDeclaration=181, ET_sortDeclaration=182, MT_sortparams_OPT=183, 
 		ET_sortparams_OPT=184, MT_datasort_TOK=185, ET_datasort_TOK=186, MT_sortparams=187, 
@@ -127,9 +127,9 @@ public class CrsxMetaLexer extends Lexer {
 		"MT_dispatchCases", "ET_dispatchCases", "MT_dispatchCases_S1_ZOM", "ET_dispatchCases_S1_ZOM", 
 		"MT_dispatchCases_S1", "ET_dispatchCases_S1", "MT_dispatchCase", "ET_dispatchCase", 
 		"MT_delayCase", "ET_delayCase", "MT_delay_TOK", "ET_delay_TOK", "MT_properties", 
-		"ET_properties", "MT_propertylist_OPT", "ET_propertylist_OPT", "MT_propertylist", 
-		"ET_propertylist", "MT_propertylist_S1_ZOM", "ET_propertylist_S1_ZOM", 
-		"MT_propertylist_S1", "ET_propertylist_S1", "MT_property_OPT", "ET_property_OPT", 
+		"ET_properties", "MT_propertyList_OPT", "ET_propertyList_OPT", "MT_propertyList", 
+		"ET_propertyList", "MT_propertyList_S1_ZOM", "ET_propertyList_S1_ZOM", 
+		"MT_propertyList_S1", "ET_propertyList_S1", "MT_property_OPT", "ET_property_OPT", 
 		"MT_property", "ET_property", "MT_not_TOK", "ET_not_TOK", "MT_expression", 
 		"ET_expression", "MT_sortDeclaration", "ET_sortDeclaration", "MT_sortparams_OPT", 
 		"ET_sortparams_OPT", "MT_datasort_TOK", "ET_datasort_TOK", "MT_sortparams", 
@@ -219,9 +219,9 @@ public class CrsxMetaLexer extends Lexer {
 		"MT_dispatchCases", "ET_dispatchCases", "MT_dispatchCases_S1_ZOM", "ET_dispatchCases_S1_ZOM", 
 		"MT_dispatchCases_S1", "ET_dispatchCases_S1", "MT_dispatchCase", "ET_dispatchCase", 
 		"MT_delayCase", "ET_delayCase", "MT_delay_TOK", "ET_delay_TOK", "MT_properties", 
-		"ET_properties", "MT_propertylist_OPT", "ET_propertylist_OPT", "MT_propertylist", 
-		"ET_propertylist", "MT_propertylist_S1_ZOM", "ET_propertylist_S1_ZOM", 
-		"MT_propertylist_S1", "ET_propertylist_S1", "MT_property_OPT", "ET_property_OPT", 
+		"ET_properties", "MT_propertyList_OPT", "ET_propertyList_OPT", "MT_propertyList", 
+		"ET_propertyList", "MT_propertyList_S1_ZOM", "ET_propertyList_S1_ZOM", 
+		"MT_propertyList_S1", "ET_propertyList_S1", "MT_property_OPT", "ET_property_OPT", 
 		"MT_property", "ET_property", "MT_not_TOK", "ET_not_TOK", "MT_expression", 
 		"ET_expression", "MT_sortDeclaration", "ET_sortDeclaration", "MT_sortparams_OPT", 
 		"ET_sortparams_OPT", "MT_datasort_TOK", "ET_datasort_TOK", "MT_sortparams", 
@@ -1625,49 +1625,49 @@ public class CrsxMetaLexer extends Lexer {
 		"\u0c19\u0c1a\7<\2\2\u0c1a\u0c1b\3\2\2\2\u0c1b\u0c1c\b\u00a5\2\2\u0c1c"+
 		"\u014c\3\2\2\2\u0c1d\u0c1e\5\u0235\u011a\2\u0c1e\u0c1f\7r\2\2\u0c1f\u0c20"+
 		"\7t\2\2\u0c20\u0c21\7q\2\2\u0c21\u0c22\7r\2\2\u0c22\u0c23\7g\2\2\u0c23"+
-		"\u0c24\7t\2\2\u0c24\u0c25\7v\2\2\u0c25\u0c26\7{\2\2\u0c26\u0c27\7n\2\2"+
+		"\u0c24\7t\2\2\u0c24\u0c25\7v\2\2\u0c25\u0c26\7{\2\2\u0c26\u0c27\7N\2\2"+
 		"\u0c27\u0c28\7k\2\2\u0c28\u0c29\7u\2\2\u0c29\u0c2a\7v\2\2\u0c2a\u0c2b"+
 		"\7A\2\2\u0c2b\u0c2f\3\2\2\2\u0c2c\u0c2e\t\2\2\2\u0c2d\u0c2c\3\2\2\2\u0c2e"+
 		"\u0c31\3\2\2\2\u0c2f\u0c2d\3\2\2\2\u0c2f\u0c30\3\2\2\2\u0c30\u014e\3\2"+
 		"\2\2\u0c31\u0c2f\3\2\2\2\u0c32\u0c33\5\u0237\u011b\2\u0c33\u0c34\7r\2"+
 		"\2\u0c34\u0c35\7t\2\2\u0c35\u0c36\7q\2\2\u0c36\u0c37\7r\2\2\u0c37\u0c38"+
 		"\7g\2\2\u0c38\u0c39\7t\2\2\u0c39\u0c3a\7v\2\2\u0c3a\u0c3b\7{\2\2\u0c3b"+
-		"\u0c3c\7n\2\2\u0c3c\u0c3d\7k\2\2\u0c3d\u0c3e\7u\2\2\u0c3e\u0c3f\7v\2\2"+
+		"\u0c3c\7N\2\2\u0c3c\u0c3d\7k\2\2\u0c3d\u0c3e\7u\2\2\u0c3e\u0c3f\7v\2\2"+
 		"\u0c3f\u0c40\7A\2\2\u0c40\u0c41\7<\2\2\u0c41\u0c42\3\2\2\2\u0c42\u0c43"+
 		"\b\u00a7\2\2\u0c43\u0150\3\2\2\2\u0c44\u0c45\5\u0235\u011a\2\u0c45\u0c46"+
 		"\7r\2\2\u0c46\u0c47\7t\2\2\u0c47\u0c48\7q\2\2\u0c48\u0c49\7r\2\2\u0c49"+
 		"\u0c4a\7g\2\2\u0c4a\u0c4b\7t\2\2\u0c4b\u0c4c\7v\2\2\u0c4c\u0c4d\7{\2\2"+
-		"\u0c4d\u0c4e\7n\2\2\u0c4e\u0c4f\7k\2\2\u0c4f\u0c50\7u\2\2\u0c50\u0c51"+
+		"\u0c4d\u0c4e\7N\2\2\u0c4e\u0c4f\7k\2\2\u0c4f\u0c50\7u\2\2\u0c50\u0c51"+
 		"\7v\2\2\u0c51\u0c55\3\2\2\2\u0c52\u0c54\t\2\2\2\u0c53\u0c52\3\2\2\2\u0c54"+
 		"\u0c57\3\2\2\2\u0c55\u0c53\3\2\2\2\u0c55\u0c56\3\2\2\2\u0c56\u0152\3\2"+
 		"\2\2\u0c57\u0c55\3\2\2\2\u0c58\u0c59\5\u0237\u011b\2\u0c59\u0c5a\7r\2"+
 		"\2\u0c5a\u0c5b\7t\2\2\u0c5b\u0c5c\7q\2\2\u0c5c\u0c5d\7r\2\2\u0c5d\u0c5e"+
 		"\7g\2\2\u0c5e\u0c5f\7t\2\2\u0c5f\u0c60\7v\2\2\u0c60\u0c61\7{\2\2\u0c61"+
-		"\u0c62\7n\2\2\u0c62\u0c63\7k\2\2\u0c63\u0c64\7u\2\2\u0c64\u0c65\7v\2\2"+
+		"\u0c62\7N\2\2\u0c62\u0c63\7k\2\2\u0c63\u0c64\7u\2\2\u0c64\u0c65\7v\2\2"+
 		"\u0c65\u0c66\7<\2\2\u0c66\u0c67\3\2\2\2\u0c67\u0c68\b\u00a9\2\2\u0c68"+
 		"\u0154\3\2\2\2\u0c69\u0c6a\5\u0235\u011a\2\u0c6a\u0c6b\7r\2\2\u0c6b\u0c6c"+
 		"\7t\2\2\u0c6c\u0c6d\7q\2\2\u0c6d\u0c6e\7r\2\2\u0c6e\u0c6f\7g\2\2\u0c6f"+
-		"\u0c70\7t\2\2\u0c70\u0c71\7v\2\2\u0c71\u0c72\7{\2\2\u0c72\u0c73\7n\2\2"+
+		"\u0c70\7t\2\2\u0c70\u0c71\7v\2\2\u0c71\u0c72\7{\2\2\u0c72\u0c73\7N\2\2"+
 		"\u0c73\u0c74\7k\2\2\u0c74\u0c75\7u\2\2\u0c75\u0c76\7v\2\2\u0c76\u0c77"+
 		"\7a\2\2\u0c77\u0c78\7U\2\2\u0c78\u0c79\7\63\2\2\u0c79\u0c7a\7,\2\2\u0c7a"+
 		"\u0c7e\3\2\2\2\u0c7b\u0c7d\t\2\2\2\u0c7c\u0c7b\3\2\2\2\u0c7d\u0c80\3\2"+
 		"\2\2\u0c7e\u0c7c\3\2\2\2\u0c7e\u0c7f\3\2\2\2\u0c7f\u0156\3\2\2\2\u0c80"+
 		"\u0c7e\3\2\2\2\u0c81\u0c82\5\u0237\u011b\2\u0c82\u0c83\7r\2\2\u0c83\u0c84"+
 		"\7t\2\2\u0c84\u0c85\7q\2\2\u0c85\u0c86\7r\2\2\u0c86\u0c87\7g\2\2\u0c87"+
-		"\u0c88\7t\2\2\u0c88\u0c89\7v\2\2\u0c89\u0c8a\7{\2\2\u0c8a\u0c8b\7n\2\2"+
+		"\u0c88\7t\2\2\u0c88\u0c89\7v\2\2\u0c89\u0c8a\7{\2\2\u0c8a\u0c8b\7N\2\2"+
 		"\u0c8b\u0c8c\7k\2\2\u0c8c\u0c8d\7u\2\2\u0c8d\u0c8e\7v\2\2\u0c8e\u0c8f"+
 		"\7a\2\2\u0c8f\u0c90\7U\2\2\u0c90\u0c91\7\63\2\2\u0c91\u0c92\7,\2\2\u0c92"+
 		"\u0c93\7<\2\2\u0c93\u0c94\3\2\2\2\u0c94\u0c95\b\u00ab\2\2\u0c95\u0158"+
 		"\3\2\2\2\u0c96\u0c97\5\u0235\u011a\2\u0c97\u0c98\7r\2\2\u0c98\u0c99\7"+
 		"t\2\2\u0c99\u0c9a\7q\2\2\u0c9a\u0c9b\7r\2\2\u0c9b\u0c9c\7g\2\2\u0c9c\u0c9d"+
-		"\7t\2\2\u0c9d\u0c9e\7v\2\2\u0c9e\u0c9f\7{\2\2\u0c9f\u0ca0\7n\2\2\u0ca0"+
+		"\7t\2\2\u0c9d\u0c9e\7v\2\2\u0c9e\u0c9f\7{\2\2\u0c9f\u0ca0\7N\2\2\u0ca0"+
 		"\u0ca1\7k\2\2\u0ca1\u0ca2\7u\2\2\u0ca2\u0ca3\7v\2\2\u0ca3\u0ca4\7a\2\2"+
 		"\u0ca4\u0ca5\7U\2\2\u0ca5\u0ca6\7\63\2\2\u0ca6\u0caa\3\2\2\2\u0ca7\u0ca9"+
 		"\t\2\2\2\u0ca8\u0ca7\3\2\2\2\u0ca9\u0cac\3\2\2\2\u0caa\u0ca8\3\2\2\2\u0caa"+
 		"\u0cab\3\2\2\2\u0cab\u015a\3\2\2\2\u0cac\u0caa\3\2\2\2\u0cad\u0cae\5\u0237"+
 		"\u011b\2\u0cae\u0caf\7r\2\2\u0caf\u0cb0\7t\2\2\u0cb0\u0cb1\7q\2\2\u0cb1"+
 		"\u0cb2\7r\2\2\u0cb2\u0cb3\7g\2\2\u0cb3\u0cb4\7t\2\2\u0cb4\u0cb5\7v\2\2"+
-		"\u0cb5\u0cb6\7{\2\2\u0cb6\u0cb7\7n\2\2\u0cb7\u0cb8\7k\2\2\u0cb8\u0cb9"+
+		"\u0cb5\u0cb6\7{\2\2\u0cb6\u0cb7\7N\2\2\u0cb7\u0cb8\7k\2\2\u0cb8\u0cb9"+
 		"\7u\2\2\u0cb9\u0cba\7v\2\2\u0cba\u0cbb\7a\2\2\u0cbb\u0cbc\7U\2\2\u0cbc"+
 		"\u0cbd\7\63\2\2\u0cbd\u0cbe\7<\2\2\u0cbe\u0cbf\3\2\2\2\u0cbf\u0cc0\b\u00ad"+
 		"\2\2\u0cc0\u015c\3\2\2\2\u0cc1\u0cc2\5\u0235\u011a\2\u0cc2\u0cc3\7r\2"+

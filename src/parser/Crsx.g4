@@ -19,7 +19,7 @@ crsx
     ;   
     
 declarations
-    : declaration (SEMI declaration?)*
+    : declaration (SEMI declaration?)* 
     ;
         
 declaration 
@@ -69,17 +69,16 @@ term
     ;    
         
 freeTerm 
-    : annotations? constructor arguments?                   /* [CORE]  Construction with zero or more arguments */  
-    | annotations? constructor term                         /* [SUGAR] One argument construction (suffix operator)*/  
-    | annotations? literal                                  /* [CORE]  Literal construction */
+    : annotations? properties? constructor arguments?       /* [CORE]  Construction with zero or more arguments */  
+    | annotations? properties? constructor term             /* [SUGAR] One argument construction (suffix operator)*/  
+    | annotations? properties? literal                      /* [CORE]  Literal construction */
     | annotations? list                                     /* [SUGAR] List construction */ 
     | annotations? variable                                 /* [CORE]  Variable construction */
-    | annotations? properties term                          /* [BC3]   Properties */
     | annotations? properties                               /* [CORE]  Named data structure */
-    | annotations? METAVAR freeArguments?                   /* [CORE]  Meta variable. */
-    | annotations? expression                               /* [CORE]  Expression reducing to a term */
+    | annotations? properties? METAVAR freeArguments?       /* [CORE]  Meta variable. */
+    | annotations? properties? expression                   /* [CORE]  Expression reducing to a term */
     ;
-    
+             
 boundTerm
     : binder nextBinder                                     /* [CORE]  Binder */       /* TODO: binder should really be a CRSX binder when PG4 supports it. */
     ;
@@ -142,7 +141,7 @@ dispatch
     ;
     
 dispatchTerm
-    : term (AND term)*                                      /* [CORE:  no conjunctive pattern. Rewritten as a single term pattern.] */
+    : freeTerm (AND freeTerm)*                              /* [CORE:  no conjunctive pattern. Rewritten as a single term pattern.] */
     ;
     
 dispatchCases
@@ -158,25 +157,26 @@ delayCase
     ; 
     
 properties
-    : LBRACE propertylist? RBRACE
+    : LBRACE propertyList? RBRACE
     ;
     
-propertylist
+propertyList
     : property (SEMI property?)*
     ;
     
-// TODO: should split this up as not all properties are allowed everywhere.
+// REVISIT: could split this up as not all properties are allowed everywhere.
+// REVISIT: allow dynamic keys.
 property
     : METAVAR                                               /* [CORE]  property reference (match/construct)      */
     | NOT METAVAR                                           /* [CORE]  no property references (match only)       */
-    | METAVAR COLON term                                    /* [CORE]  match property value / construct          */
+    | METAVAR COLON freeTerm                                /* [CORE]  match property value / construct          */
     | VARIABLE                                              /* [CORE]  match / construct variable property       */
     | NOT VARIABLE                                          /* [CORE]  no variable (match only)                  */
-    | VARIABLE COLON term                                   /* [CORE]  match variable property value / construct */
+    | VARIABLE COLON freeTerm                               /* [CORE]  match variable property value / construct */
     | STRING                                                /* [CORE]  match / construct named property          */
     | NOT STRING                                            /* [CORE]  no named property (match only)            */
-    | STRING COLON term                                     /* [CORE]  match named property value / construct    */
-    | constructor COLON term                                /* [CORE]  property sort declaration                 */
+    | STRING COLON freeTerm                                 /* [CORE]  match named property value / construct    */
+    | constructor COLON freeTerm                            /* [CORE]  property sort declaration                 */
     ;
  
 expression
@@ -195,7 +195,7 @@ sortparams
     ;
     
 sortset
-    : properties?
+    : properties? // TODO: specialize...
     ;
     
 sortnames

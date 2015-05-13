@@ -115,4 +115,8 @@ DesugarListTermList[%termList_S1*⟨ ; #term ; #term2 #termList_S1* ⟩] → %fr
 DesugarDispatchCases[Crsx_dispatchCases_sort] :: $List[Crsx_dispatchCases_S1_sort];
 DesugarDispatchCases[%dispatchCases⟨ #dispatchCase #dispatchCases_S1* ⟩] → %dispatchCases_S1*⟨ ; #dispatchCase #dispatchCases_S1* ⟩; 
 
+DesugarPropertyList[Crsx_propertyList_sort] :: $List[Crsx_propertyList_S1_sort];
+DesugarPropertyList[%propertyList⟨ #property #propertyList_S1* ⟩] →  %propertyList_S1*⟨ ; #property #propertyList_S1* ⟩;
+
+
 )]

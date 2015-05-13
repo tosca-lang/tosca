@@ -72,6 +72,17 @@ public class Properties extends Reference
 		return value;
 	}
 
+
+	/**
+	 * Lookup property value
+	 * @param key. Reference is not released.
+	 * @return value or null if none. Does not return a new reference.
+	 */
+	public Term lookup(Term key)
+	{
+		return key.isVariableUse() ? lookup(((VariableUse) key).variable) : lookup(key.symbol());
+	}
+	
 	@Override
 	public Properties ref()
 	{
