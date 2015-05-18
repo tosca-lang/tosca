@@ -26,7 +26,7 @@ $Use["std/string.crs"];
 $Use["std/list.crs"];
 $Use["std/num.crs"];
 
-// --- API
+// ----- API
 
 // Normalize Crsx and produces a normalized Crsx
 NormalizeToCrsx[Crsx_crsx_sort] :: Crsx_crsx_sort;
@@ -36,9 +36,10 @@ NormalizeToCrsx[%crsx⟨ #declarations ⟩] → N1Declarations[DesugarDeclaratio
 NormalizeToState[Crsx_crsx_sort] :: ContentEntry;
 NormalizeToState[%crsx⟨ #declarations ⟩] → N1Declarations[DesugarDeclarations[#declarations], ok¹.N2[ok¹, ok¹.LOADED]];
 
-// --- Pass1
+// ----- Pass1
 //  
 // - Collect declarations into the environment (state).
+// - Collect imported module file names
 //
 N1Declarations[$List[Crsx_declarations_S1_sort], ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
 
@@ -108,14 +109,11 @@ $[If, $[Equal, #CONSTRUCTOR, "$Use"],
     {#E}N1Use[#directiveArguments?, ok¹.#[ok¹]],
     {#E}#[OK]]; // Just ignore unknown directives. We might want to output a warning.
 
-{#E}N1Directive[#directive, ok¹.#[ok¹]]
-→
-{#E}#[OK];
+{#E}N1Directive[#directive, ok¹.#[ok¹]] → {#E}#[OK];
 
 //
 ∀ a.{$String:ContentEntry} 
 N1DirectiveConstructor[Crsx_constructor_sort, ok¹::OK_SORT.$Sort[a]] :: a;
-   
 {#E}N1DirectiveConstructor[#constructor, ok¹.#[ok¹]] → {#E}#[OK];
 
 // Import a module: at this level just record dependency.
@@ -141,8 +139,9 @@ N1UseDirective[Crsx_directive_sort, ok¹::OK_SORT.$Sort[a]] :: a;
 
 {#E}N1UseDirective[#directive, ok¹.#[ok¹]] → $[Error, "Error: invalid argument in $Use directive."];
 
-// --- Pass2: normalize/check.
-//
+
+// ----- Pass2: normalize/check.
+
 
 ∀ a.{$String:ContentEntry} 
 N2[OK_SORT, ok¹::OK_SORT.$Sort[a]] :: a;
@@ -174,18 +173,18 @@ If[Or[IsEmpty[#rules], And[IsSingleton[#rules], AllMetaInPatternRule[Head[#rules
 // 
 // Basically do:
 //
-// O₁:{#E₁}R₁[P₁¹ ... P₁ⁿ] → C₁ 
-// ..
-// Oᵢ:{#Eᵢ}Rᵢ[Pᵢ¹ ... Pᵢⁿ] → Cᵢ
+//   O₁:{#E₁}R₁[P₁¹ ... P₁ⁿ] → C₁ 
+//   ..
+//   Oᵢ:{#Eᵢ}Rᵢ[Pᵢ¹ ... Pᵢⁿ] → Cᵢ
 // 
 // becomes
 //
-// {#E}R[#¹ ... #ⁿ] →
-//    dispatch {#E}R[#¹ ... #ⁿ]
-//      O₁:{#E₁}R[P₁¹ ... P₁ⁿ] → C₁
-//      ...
-//      Oᵢ:{#Eᵢ}R[Pᵢ¹ ... Pᵢⁿ] → Cᵢ
-//      delay 
+//   {#$P$E}R[#¹ ... #ⁿ] →
+//      dispatch {#$P$E}R[#¹ ... #ⁿ]
+//        O₁:{#E₁}R[P₁¹ ... P₁ⁿ] → C₁
+//        ...
+//        Oᵢ:{#Eᵢ}R[Pᵢ¹ ... Pᵢⁿ] → Cᵢ
+//        delay
 // 
 
 ∀ a.{$String:ContentEntry} 
@@ -227,12 +226,7 @@ DispatchProperties[$List[Crsx_properties_sort]] :: $List[Crsx_properties_sort];
 DispatchProperties[%properties?⟨             ⟩] → %properties?⟨         ⟩;
 DispatchProperties[%properties?⟨ #properties ⟩] → %properties?⟨ {#$P$E} ⟩; 
 
-//// Create the dispatch rule/term => replace all arguments by metavar.
-//DispatchPattern[$List[Crsx_properties_sort], Crsx_constructor_sort, Crsx_terms_sort] :: Crsx_term_sort;
-//
-//DispatchPattern[%properties?⟨             ⟩, #constructor, #terms] → %term⟨ #constructor [ ⟨terms: SugarTerms[DispatchPatternArgs[DesugarTerms[#terms], 0]]⟩ ] ⟩;
-//DispatchPattern[%properties?⟨ #properties ⟩, #constructor, #terms] → %term⟨ {#$P$E} #constructor [ ⟨terms: SugarTerms[DispatchPatternArgs[DesugarTerms[#terms], 0]]⟩ ] ⟩;
-//
+
 DispatchPatternArgs[$List[Crsx_terms_S1_sort], $Numeric] :: $List[Crsx_terms_S1_sort];
 
 DispatchPatternArgs[%terms_S1*⟨                    ⟩, #count] → %terms_S1*⟨⟩;

@@ -253,37 +253,4 @@ public class Construction extends Term
 		return builder.toString();
 	}
 
-//	// Inner classes
-//
-//	/** Sub-term with binders */
-//	static public class Sub
-//	{
-//
-//		/** Sub binders */
-//		public Variable[] binders;
-//
-//		/** Sub term */
-//		public Term term;
-//
-//		public Sub(Term term, Variable[] binders)
-//		{
-//			this.term = term;
-//			this.binders = binders;
-//		}
-//
-//		/**
-//		 * Release all references
-//		 */
-//		public void release()
-//		{
-//			term.release();
-//
-//			if (binders != null)
-//			{
-//				for (int i = binders.length - 1; i >= 0; i--)
-//					binders[i].release();
-//			}
-//		}
-//	}
-
 }

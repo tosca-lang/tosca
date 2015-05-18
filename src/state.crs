@@ -18,7 +18,7 @@ Mode ::= ( MAINMODULE; SUBMODULE; );
 $StringEntry ::= (
 
     // Modules composing the system. List of keys in this environment.
-    MODULES[$List[$String]];                                            // key: #modules
+    MODULES[$List[$String]];                                                  // keys: $modules, $notloaded, $normalized
 
     // A module composing the system
     MODULE[$String /* filename */, Mode, Content];                            // key: $module$<filename>. 
@@ -29,19 +29,19 @@ $StringEntry ::= (
 ModuleKey[$String] :: $String;
 -[Data[#filename]]: ModuleKey[#filename]  → $[:, "$module", #filename];
 
-// Register module to compile. If module already registered, this does nothing.
+// Register module to compile. If module already registered, this does nothing. Add it to the $notloaded list
 ∀ a.{$String:$StringEntry}AddModule[$String /* filename */, Boolean, ok¹::OK_SORT.$Sort[a]] :: a;
 {#E}AddModule[#filename, #main, ok¹.#[ok¹]] → {#E}AddModuleKey[ModuleKey[#filename], #filename, #main, ok¹.#[ok¹]]; 
 
 ∀ a.{$String:$StringEntry}AddModuleKey[$String, $String, Boolean, ok¹::OK_SORT.$Sort[a]] :: a;
 
 -[Data[#key]]: 
-{#E; "$modules":MODULES[#modules]}
+{#E; "$modules":MODULES[#modules]; "$notloaded":MODULES[#notloaded]}
 AddModuleKey[#key, #filename, #main, ok¹.#[ok¹]] 
 → 
 $[{#E}IfDef, #key, 
     {#E}#[OK], 
-    {#E; #key: MODULE[#filename, #main, NOTLOADED]; "$modules":MODULES[(#key; #modules)]}#[OK]];
+    {#E; #key: MODULE[#filename, #main, NOTLOADED]; "$modules":MODULES[(#key; #modules)]; "$notloaded":MODULES[(#key; #notloaded)]}#[OK]];
 
 // --- A module
 

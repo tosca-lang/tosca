@@ -315,16 +315,17 @@ SendConstructor[Annotations, $List[Crsx_properties_sort], Crsx_constructor_sort,
 {#E; "$tail": #tail; "$sink": TEXT[#sink]}
 SendConstructor[{#A; ¬"@Function"}ANNOTATIONS, #properties?, #constructor, #arguments?]
 →
-%n⟨¶«#sink».start(«Descriptor[#constructor]»);«{#E; "$tail": NO}SendMaybeProperties[#properties?, ok¹.ThenSendArgumentsOpt[ok¹, #arguments?]]»
+%n⟨«{#E}SendMaybeProperties[#properties?]»
+«#sink».start(«Descriptor[#constructor]»);«{#E; "$tail": NO}SendArgumentsOpt[#arguments?]»
 «#sink».end();«SendTail[#tail]»⟩;
 
 // Function constructor - lazy
 {#E; "$tail": #tail; "$sink": TEXT[#sink]}   
 SendConstructor[{#A; "@Function"}ANNOTATIONS, #properties?, #constructor, #arguments?]
 →
-%n⟨ 
-«#sink».start(«Descriptor[#constructor]»);«{#E; "$tail": NO}SendMaybeProperties[#properties?, ok¹.ThenSendArgumentsOpt[ok¹, #arguments?]]»
-«#sink».end();ff«SendTail[#tail]»⟩;
+%n⟨«{#E}SendMaybeProperties[#properties?]» 
+«#sink».start(«Descriptor[#constructor]»);«{#E; "$tail": NO}SendArgumentsOpt[#arguments?]»
+«#sink».end();«SendTail[#tail]»⟩;
 
 ThenSendArgumentsOpt[OK_SORT, $List[Crsx_arguments_sort]] :: Text;
 {#E}ThenSendArgumentsOpt[OK, #arguments?] → {#E}SendArgumentsOpt[#arguments?];
@@ -369,64 +370,64 @@ SendBindersKey[#key, %binder⟨ #VARIABLE ⟩, #nextBinder]
 
 // --- SEND properties
 
-SendMaybeProperties[$List[Crsx_properties_sort], ok¹::OK_SORT.Text] :: Text;
+SendMaybeProperties[$List[Crsx_properties_sort]] :: Text;
 
-{#E}SendMaybeProperties[%properties?⟨                   ⟩, ok¹.#[ok¹]] → {#E}#[OK];
-{#E}SendMaybeProperties[%properties?⟨ {               } ⟩, ok¹.#[ok¹]] → {#E}#[OK];
-{#E}SendMaybeProperties[%properties?⟨ { #propertyList } ⟩, ok¹.#[ok¹]] → {#E}SendPropertyList[OK, DesugarPropertyList[#propertyList], ok¹.#[ok¹]];
+{#E}SendMaybeProperties[%properties?⟨                   ⟩] → %n⟨⟩;
+{#E}SendMaybeProperties[%properties?⟨ {               } ⟩] → %n⟨⟩;
+{#E}SendMaybeProperties[%properties?⟨ { #propertyList } ⟩] → {#E; "$tail": NO}SendPropertyList[DesugarPropertyList[#propertyList]];
 
-SendPropertyList[OK_SORT, $List[Crsx_propertyList_S1_sort], ok¹::OK_SORT.Text] :: Text;
+SendPropertyList[$List[Crsx_propertyList_S1_sort]] :: Text;
 
-{#E}SendPropertyList[OK, %propertyList_S1*⟨                               ⟩, ok¹.#[ok¹]] → {#E}#[OK];
-{#E}SendPropertyList[OK, %propertyList_S1*⟨ ; #propertyList_S1*           ⟩, ok¹.#[ok¹]] → {#E}SendPropertyList[#propertyList_S1*];
-{#E}SendPropertyList[OK, %propertyList_S1*⟨ ; #property #propertyList_S1* ⟩, ok¹.#[ok¹]] → {#E}SendProperty[#property, ok¹.SendPropertyList[ok¹, #propertyList_S1*, ok¹.#[ok¹]]];
+{#E}SendPropertyList[%propertyList_S1*⟨                               ⟩] → %n⟨⟩;
+{#E}SendPropertyList[%propertyList_S1*⟨ ; #propertyList_S1*           ⟩] → {#E}SendPropertyList[#propertyList_S1*];
+{#E}SendPropertyList[%propertyList_S1*⟨ ; #property #propertyList_S1* ⟩] → %n⟨«{#E}SendProperty[#property]»«{#E}SendPropertyList[#propertyList_S1*]»⟩;
 
-SendProperty[Crsx_property_sort, ok¹::OK_SORT.Text] :: Text;
+SendProperty[Crsx_property_sort] :: Text;
 
 {#E; "$sink": TEXT[#sink]}
-SendProperty[%property⟨ #METAVAR ⟩, ok¹.#[ok¹]] 
+SendProperty[%property⟨ #METAVAR ⟩] 
 →
-%n⟨¶«#sink».properties(«{#E}MetaVar[#METAVAR]»);«{#E}#[OK]»⟩;       
+%n⟨¶«#sink».properties(«{#E}MetaVar[#METAVAR]»);⟩;       
                           
-{#E}SendProperty[%property⟨ #METAVAR : #freeTerm  ⟩, ok¹.#[ok¹]] 
+{#E}SendProperty[%property⟨ #METAVAR : #freeTerm  ⟩] 
 → 
-{#E}SetFreeTerm[#freeTerm, ok¹ value.SendMetaProperty[ok¹, #METAVAR, value, ok¹.#[ok¹]]];                        
+{#E}SetFreeTerm[#freeTerm, ok¹ value.SendMetaProperty[ok¹, #METAVAR, value]];                        
 
-{#E}SendProperty[%property⟨ #VARIABLE : #freeTerm ⟩, ok¹.#[ok¹]] 
+{#E}SendProperty[%property⟨ #VARIABLE : #freeTerm ⟩] 
 → 
-{#E}SetFreeTerm[#freeTerm, ok¹ value.SendVariableProperty[ok¹, #VARIABLE, value, ok¹.#[ok¹]]];               
+{#E}SetFreeTerm[#freeTerm, ok¹ value.SendVariableProperty[ok¹, #VARIABLE, value]];               
                                
-{#E}SendProperty[%property⟨ #STRING : #freeTerm   ⟩, ok¹.#[ok¹]] 
+{#E}SendProperty[%property⟨ #STRING : #freeTerm   ⟩] 
 → 
-{#E}SetFreeTerm[#freeTerm, ok¹ value.SendNamedProperty[ok¹, #STRING, value, ok¹.#[ok¹]]];               
+{#E}SetFreeTerm[#freeTerm, ok¹ value.SendNamedProperty[ok¹, #STRING, value]];               
 
-{#E}SendProperty[%property⟨ ¬ #METAVAR            ⟩, ok¹.#[ok¹]] → $[Error, "Internal error: test for property absence not allowed in contraction"];
-{#E}SendProperty[%property⟨ #VARIABLE             ⟩, ok¹.#[ok¹]] → $[Error, "Internal error: test for variable presence not allowed in contraction"];                                               
-{#E}SendProperty[%property⟨ ¬ #VARIABLE           ⟩, ok¹.#[ok¹]] → $[Error, "Internal error: test for variable absence not allowed in contraction"];                                          
-{#E}SendProperty[%property⟨ #STRING               ⟩, ok¹.#[ok¹]] → $[Error, "Internal error: test for named property presence not allowed in contraction"];                                             
-{#E}SendProperty[%property⟨ ¬ #STRING             ⟩, ok¹.#[ok¹]] → $[Error, "Internal error: test for named property absence not allowed in contraction"];                                            
-{#E}SendProperty[%property⟨  #constructor : #freeTerm ⟩, ok¹.#[ok¹]] →  $[Error, "Internal error: sort set declaration not allowed in contraction"];                        
+{#E}SendProperty[%property⟨ ¬ #METAVAR            ⟩] → $[Error, "Internal error: test for property absence not allowed in contraction"];
+{#E}SendProperty[%property⟨ #VARIABLE             ⟩] → $[Error, "Internal error: test for variable presence not allowed in contraction"];                                               
+{#E}SendProperty[%property⟨ ¬ #VARIABLE           ⟩] → $[Error, "Internal error: test for variable absence not allowed in contraction"];                                          
+{#E}SendProperty[%property⟨ #STRING               ⟩] → $[Error, "Internal error: test for named property presence not allowed in contraction"];                                             
+{#E}SendProperty[%property⟨ ¬ #STRING             ⟩] → $[Error, "Internal error: test for named property absence not allowed in contraction"];                                            
+{#E}SendProperty[%property⟨  #constructor : #freeTerm ⟩] →  $[Error, "Internal error: sort set declaration not allowed in contraction"];                        
 
-SendMetaProperty[OK_SORT, $String, Text, ok¹::OK_SORT.Text] :: Text;
-
-{#E; "$sink": TEXT[#sink]}
-SendMetaProperty[OK, #METAVAR, #value, ok¹.#[ok¹]] 
-→
-%n⟨¶Sink.property(«#sink», «{#E}MetaVar[#METAVAR]», «#value»);«{#E}#[OK]»⟩;           
-
-SendVariableProperty[OK_SORT, $String, Text, ok¹::OK_SORT.Text] :: Text;
+SendMetaProperty[OK_SORT, $String, Text] :: Text;
 
 {#E; "$sink": TEXT[#sink]}
-SendVariableProperty[OK, #VARIABLE, #value, ok¹.#[ok¹]] 
+SendMetaProperty[OK, #METAVAR, #value] 
 →
-%n⟨¶«#sink».propertyVariable(«{#E}Variable[#VARIABLE]», «#value»);«{#E}#[OK]»⟩;           
+%n⟨¶Sink.property(«#sink», «{#E}MetaVar[#METAVAR]», «#value»);⟩;           
 
-SendNamedProperty[OK_SORT, $String, Text, ok¹::OK_SORT.Text] :: Text;
+SendVariableProperty[OK_SORT, $String, Text] :: Text;
 
 {#E; "$sink": TEXT[#sink]}
-SendNamedProperty[OK, #name, #value, ok¹.#[ok¹]] 
+SendVariableProperty[OK, #VARIABLE, #value] 
 →
-%n⟨¶«#sink».propertyNamed(†«#name», «#value»);«{#E}#[OK]»⟩;           
+%n⟨¶«#sink».propertyVariable(«{#E}Variable[#VARIABLE]», «#value»);⟩;           
+
+SendNamedProperty[OK_SORT, $String, Text] :: Text;
+
+{#E; "$sink": TEXT[#sink]}
+SendNamedProperty[OK, #name, #value] 
+→
+%n⟨¶«#sink».propertyNamed(†«#name», «#value»);⟩;           
 
 // --- SEND var
 
