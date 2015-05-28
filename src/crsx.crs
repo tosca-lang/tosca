@@ -6,28 +6,38 @@ Crsx[(
 
 $Use["state.crs"];
 $Use["normalizer.crs"];
+$Use["resolver.crs"];
 $Use["cg/cgjava.crs"];
 $Use["std/core.crs"];;
 $Use["std/list.crs"];
-
 
 // REVISIT: very limited. to revisit when crsx4 is stable enough to compile itself 
 
 // For now: normalize all modules, resolve global references and generate code.
 // The plan: load only stubs
 
-
 // Compile a CRSX system.
 Compile[$String] :: Text;  
 
 Compile[#filename] 
 →
-{"$modules":MODULES[()]; "$notloaded":MODULES[()]; "$normalized":MODULES[()]}AddModule[#filename, MAINMODULE, ok¹.NormalizeNextModule[ok¹]];
+{
+	"$modules"   : MODULES[()]; 
+	"$notloaded" : MODULES[()]; 
+	"$normalized": MODULES[()]
+}AddModule[#filename, MAINMODULE, ok¹.NormalizeNextModule[ok¹]];
+
+// --- Normalization. Load module, parse and register imports. 
+// --- Eventually: load only stub to avoid full normalization.
 
 {$String:$StringEntry}
 NormalizeNextModule[OK_SORT] :: Text; 
 
-{#E; "$notloaded":MODULES[()]}NormalizeNextModule[OK] → {#E}CompileNextModule[OK];  // TODO: global name resolution
+// All modules have been normalized.
+{#E; "$notloaded":MODULES[()]}NormalizeNextModule[OK]
+→
+{#E}Resolve[ok¹.             // Global name resolution
+    CompileNextModule[ok¹]]; // Generate code.
 
 {#E; "$notloaded":MODULES[(#module; #modules)]}NormalizeNextModule[OK] 
 → 
@@ -43,7 +53,7 @@ NormalizeModuleLoad[$StringEntry, ok¹::OK_SORT.Text] :: Text;
 // Module not loaded: load and normalize it.
 {#E}NormalizeModuleLoad[MODULE[#filename, #mode, NOTLOADED], ok¹.#[ok¹]]
 →
-{#E}NormalizedParsed[ModuleKey[#filename], #filename, #mode, $[ParseResource, "crsx", #filename], ok¹.#[ok¹]];
+{#E}NormalizeParsed[ModuleKey[#filename], #filename, #mode, $[ParseResource, "crsx", #filename], ok¹.#[ok¹]];
 
 // Module loaded: skip
 {#E}NormalizeModuleLoad[MODULE[#filename, {#M}LOADED], ok¹.#[ok¹]]
@@ -51,45 +61,32 @@ NormalizeModuleLoad[$StringEntry, ok¹::OK_SORT.Text] :: Text;
 {#E}#[OK];
 
 {$String:$StringEntry}
-NormalizedParsed[$String, Mode, Crsx_crsx_sort, ok¹::OK_SORT.Text] :: Text;
+NormalizeParsed[$String, $String, Mode, Crsx_crsx_sort, ok¹::OK_SORT.Text] :: Text;
 
 -[Data[#key]]:
-{#E; "$normalized":MODULES[#normalized]}
-NormalizedParsed[#key, #filename, #mode, #crsx, ok¹.#[ok¹]] 
+{#E}NormalizeParsed[#key, #filename, #mode, #crsx, ok¹.#[ok¹]] 
 → 
-{#E; "$normalized":MODULES[(#filename; #normalized)]; #key : MODULE[#filename, #mode, NormalizeToState[#crsx]]}#[OK];
+{#E}NormalizeDone[#key, #filename, #mode,  NormalizeToState[#filename, #crsx], ok¹.#[ok¹]];
 
 {$String:$StringEntry}
-CompileNormalized[$String, Mode, ContentEntry, ok¹::OK_SORT.Text] :: Text;
+NormalizeDone[$String, $String, Mode, ContentEntry, ok¹::OK_SORT.Text] :: Text;
 
-// Module has been laoded and normalized. Register module dependencies
-{#E}CompileNormalized[#filename, #mode, {#M; "$imported": IMPORTS[#imports]}LOADED, ok¹.#[ok¹]] 
+// Module has been loadded and normalized. Register module dependencies
+{#E;
+ 	"$normalized" : MODULES[#normalized]; 
+ 	"$modules"    : MODULES[#modules]
+}NormalizeDone[#key, #filename, #mode, {#M; "$imported": IMPORTS[#imports]}LOADED, ok¹.#[ok¹]] 
 → 
-{#E}SeqMap[name cont.AddImport[name, cont], #imports, ok¹.CompileCode[ok¹, #filename, #mode, {#M}LOADED, ok¹.#[ok¹]]];
+{#E;
+	"$normalized" : MODULES[Concat[#normalized, (#filename;)]]; // Keep it in order: main module needs to first. (REVISIT when save to different files)  
+     #key         : MODULE[#filename, #mode, {#M; "$imported": IMPORTS[#imports]}LOADED]
+}SeqMap[name cont.AddImport[name, cont], #imports, ok¹.#[ok¹]];
 
 {$String:$StringEntry}
 AddImport[$String, Continuation[Text]] :: Text;
 {#E}AddImport[#filename, CONTINUATION[ok¹.#[ok¹]]] → {#E}AddModule[#filename, SUBMODULE, ok¹.#[ok¹]];
 
-{$String:$StringEntry}
-CompileCode[OK_SORT, $String, Mode, ContentEntry, ok¹::OK_SORT.Text] :: Text;
-
-{#E}CompileCode[OK, #filename, #mode, {#M}LOADED, ok¹.#[ok¹]]
-→
-{#E}CompileSave[$[:, #filename, ".java"], GenerateJavaParsed[#filename, {#M}OutputCrsx[OK], #mode], ok¹.#[ok¹]];
-//{#E}CompileSave[$[:, #filename, ".java"], Crsx_Print_crsx[{#M}OutputCrsx[OK]], ok¹.#[ok¹]];
-
-{$String:$StringEntry}
-CompileSave[$String, Text, ok¹::OK_SORT.Text] :: $Numeric;
-
--[Data[#code, #filename]]:
-{#E}CompileSave[#filename, #code, ok¹.#[ok¹]]
-→
-%n⟨/* START MODULE †«#filename» */
-«#code»
-/* END MODULE «#filename» */
-«{#E}#[OK]»⟩;
-
+// --- Compile normalized module to target language (Java for now)
 
 {$String:$StringEntry}
 CompileNextModule[OK_SORT] :: Text; 
@@ -106,44 +103,13 @@ CompileModule[$String, ok¹::OK_SORT.Text] :: Text;
 -[Data[#key]]:
 {#E}CompileModule[#key, ok¹.#[ok¹]] 
 →
-{#E}CompileModuleLoad[$[{#E}Get, #key], ok¹.#[ok¹]]; 
+{#E}CompileNormalized[$[{#E}Get, #key], ok¹.#[ok¹]]; 
 
 {$String:$StringEntry}
-CompileModuleLoad[$StringEntry, ok¹::OK_SORT.Text] :: Text;
+CompileNormalized[ContentEntry, ok¹::OK_SORT.Text] :: Text;
 
-// Module not loaded: load and normalize it.
-{#E}CompileModuleLoad[MODULE[#filename, #mode, NOTLOADED], ok¹.#[ok¹]]
-→
-{#E}CompileParsed[#filename, #mode, $[ParseResource, "crsx", #filename], ok¹.#[ok¹]];
-
-// Module loaded: skip
-{#E}CompileModuleLoad[MODULE[#filename, {#M}LOADED], ok¹.#[ok¹]]
-→
-{#E}#[OK];
-
-{$String:$StringEntry}
-CompileParsed[$String, Mode, Crsx_crsx_sort, ok¹::OK_SORT.Text] :: Text;
-
-{#E}CompileParsed[#filename, #mode, #crsx, ok¹.#[ok¹]] 
-→ 
-{#E}CompileNormalized[#filename, #mode, NormalizeToState[#crsx], ok¹.#[ok¹]];
-
-{$String:$StringEntry}
-CompileNormalized[$String, Mode, ContentEntry, ok¹::OK_SORT.Text] :: Text;
-
-// Module has been laoded and normalized. Register module dependencies
-{#E}CompileNormalized[#filename, #mode, {#M; "$imported": IMPORTS[#imports]}LOADED, ok¹.#[ok¹]] 
-→ 
-{#E}SeqMap[name cont.AddImport[name, cont], #imports, ok¹.CompileCode[ok¹, #filename, #mode, {#M}LOADED, ok¹.#[ok¹]]];
-
-{$String:$StringEntry}
-AddImport[$String, Continuation[Text]] :: Text;
-{#E}AddImport[#filename, CONTINUATION[ok¹.#[ok¹]]] → {#E}AddModule[#filename, SUBMODULE, ok¹.#[ok¹]];
-
-{$String:$StringEntry}
-CompileCode[OK_SORT, $String, Mode, ContentEntry, ok¹::OK_SORT.Text] :: Text;
-
-{#E}CompileCode[OK, #filename, #mode, {#M}LOADED, ok¹.#[ok¹]]
+// Module has been loded and normalized. Register module dependencies
+{#E}CompileNormalized[MODULE[#filename, #mode, {#M}LOADED], ok¹.#[ok¹]] 
 →
 {#E}CompileSave[$[:, #filename, ".java"], GenerateJavaParsed[#filename, {#M}OutputCrsx[OK], #mode], ok¹.#[ok¹]];
 //{#E}CompileSave[$[:, #filename, ".java"], Crsx_Print_crsx[{#M}OutputCrsx[OK]], ok¹.#[ok¹]];

@@ -4,6 +4,10 @@
  */
 Path[(
 
+$Use["std/string.crs"];
 
+// Gets the base file name (no path, no extension)
+BaseName[$String] :: $String;
+BaseName[#path] → AfterLast[BeforeLast[#path, "."],  "/"];
 
 )]

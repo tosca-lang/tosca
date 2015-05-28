@@ -44,7 +44,16 @@ function test {
         echo "Filename given \"$1\" doesn't exist"
         exit
     fi
-       
+
+    
+  "grammar=('net.sf.crsx.text.Text';'org.crsx.parser.CrsxMetaParser';)" 
+rules=crsx.crs
+term=\"../samples/bool.crs\"
+wrapper=Compile
+output=../samples/java/samples/bool.java
+sink=net.sf.crsx.text.TextSink
+javapackage=samples
+omit-properties     
 }
 
 test

@@ -7,7 +7,7 @@
  * In particular:
  * - Gather rules with same constructor into a single rule. 
  * - Convert all patterns to be only meta-variables (including properties)
- * - Resolve qualified constructor (not implemented yet)
+ * - Qualify sort names and forms. 
  * - Create unique binder names (not implemented yet)
  *
  */
@@ -25,27 +25,28 @@ $Use["std/core.crs"];
 $Use["std/string.crs"];
 $Use["std/list.crs"];
 $Use["std/num.crs"];
+$Use["std/path.crs"];
 
 // ----- API
 
 // Normalize Crsx and produces a normalized Crsx
-NormalizeToCrsx[Crsx_crsx_sort] :: Crsx_crsx_sort;
-NormalizeToCrsx[%crsx⟨ #declarations ⟩] → N1Declarations[DesugarDeclarations[#declarations], ok¹.N2[ok¹, ok¹.OutputCrsx[ok¹]]];
+NormalizeToCrsx[$String, Crsx_crsx_sort] :: Crsx_crsx_sort;
+NormalizeToCrsx[#filename, %crsx⟨ #declarations ⟩] → N1Declarations[BaseName[#filename], DesugarDeclarations[#declarations], ok¹.N2[ok¹, ok¹.OutputCrsx[ok¹]]];
 
 // Normalize Crsx and produces a state
-NormalizeToState[Crsx_crsx_sort] :: ContentEntry;
-NormalizeToState[%crsx⟨ #declarations ⟩] → N1Declarations[DesugarDeclarations[#declarations], ok¹.N2[ok¹, ok¹.LOADED]];
+NormalizeToState[$String, Crsx_crsx_sort] :: ContentEntry;
+NormalizeToState[#filename, %crsx⟨ #declarations ⟩] → N1Declarations[BaseName[#filename], DesugarDeclarations[#declarations], ok¹.N2[ok¹, ok¹.LOADED]];
 
 // ----- Pass1
 //  
 // - Collect declarations into the environment (state).
 // - Collect imported module file names
 //
-N1Declarations[$List[Crsx_declarations_S1_sort], ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
+N1Declarations[$String, $List[Crsx_declarations_S1_sort], ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
 
-N1Declarations[#declarations, ok¹.#[ok¹]]
+N1Declarations[#qualifier, #declarations, ok¹.#[ok¹]]
 →
-{"$rulekeys": KEYS[()]; "$datakeys": KEYS[()]; "$funckeys": KEYS[()]; "$imported": IMPORTS[()]}
+{"$qualifier": STR[#qualifier]; "$rulekeys": KEYS[()]; "$datakeys": KEYS[()]; "$funckeys": KEYS[()]; "$imported": IMPORTS[()]}
 N1Declarations1[OK, #declarations, ok¹.#[ok¹]];
 
 //
@@ -76,14 +77,14 @@ $[If, IsDirectiveUnwrap[#constructor],
 //If[IsDirective[#constructor], 
 $[If, IsDirectiveUnwrap[#constructor], 
     {#E}N1DirectiveConstructor[#constructor, %directiveArguments?⟨ [( ⟨declarations: #declarations⟩ )] ⟩], // potential directive.
-    {#E}N1Declarations[DesugarDeclarations[#declarations], ok¹.#[ok¹]]]; // Crsx 3 module: no name mangling.
+    {#E}N1Declarations1[OK, DesugarDeclarations[#declarations], ok¹.#[ok¹]]]; // Crsx 3 module: no name mangling.
 
 {#E}N1Declaration[%declaration⟨ #directive ⟩, ok¹.#[ok¹]] 
 →
 {#E}N1Directive[#directive, ok¹.#[ok¹]];
 
 // Crsx 4 module: name mangling
-{#E}N1Declaration[%declaration⟨ module #STRING { #declarations } ⟩, ok¹.#[ok¹]] // TODO propagate module ID
+{#E}N1Declaration[%declaration⟨ module #CONSTRUCTOR { #declarations } ⟩, ok¹.#[ok¹]] 
 → 
 {#E}N1Declarations[DesugarDeclarations[#declarations], ok¹.#[ok¹]];
 
@@ -93,11 +94,11 @@ $[If, IsDirectiveUnwrap[#constructor],
 
 {#E}N1Declaration[%declaration⟨ #sortparams? #sortset #sortname ::= ( #forms ) ⟩, ok¹.#[ok¹]] 
 → 
-{#E}AddDataSort[DataSortKey[#sortname], %sortDeclaration⟨ #sortparams? #sortset #sortname ::= ( #forms ) ⟩, ok¹.#[ok¹]];
+{#E}AddDataSort[%sortDeclaration⟨ #sortparams? #sortset #sortname ::= ( #forms ) ⟩, ok¹.#[ok¹]];
 
 {#E}N1Declaration[%declaration⟨ #sortparams? #sortset #constructor #arguments? :: #sortname ⟩, ok¹.#[ok¹]] 
 → 
-{#E}AddFuncSort[FuncSortKey[#constructor], %sortDeclaration⟨ #sortparams? #sortset #constructor #arguments? :: #sortname ⟩, ok¹.#[ok¹]];
+{#E}AddFuncSort[%sortDeclaration⟨ #sortparams? #sortset #constructor #arguments? :: #sortname ⟩, ok¹.#[ok¹]];
 
 //
 ∀ a.{$String:ContentEntry} 
@@ -135,13 +136,11 @@ N1UseDirective[Crsx_directive_sort, ok¹::OK_SORT.$Sort[a]] :: a;
 
 {#E; "$imported": IMPORTS[#imported]}N1UseDirective[%directive⟨ #STRING ⟩, ok¹.#[ok¹]] 
 → 
-{#E; "$imported": IMPORTS[(UnString[#STRING]; #imported)]}#[OK];
+{#E; "$imported": IMPORTS[Concat[#imported, (UnString[#STRING];)]]}#[OK];
 
 {#E}N1UseDirective[#directive, ok¹.#[ok¹]] → $[Error, "Error: invalid argument in $Use directive."];
 
-
 // ----- Pass2: normalize/check.
-
 
 ∀ a.{$String:ContentEntry} 
 N2[OK_SORT, ok¹::OK_SORT.$Sort[a]] :: a;

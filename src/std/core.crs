@@ -11,6 +11,14 @@ $Lax;
 
 OK_SORT ::= ( OK; );
 
+// --- Optional value
+
+∀ a.Option[a] ::= ( SOME[a]; NONE; );
+
+∀ a.UnSOME[Option[a]] :: a;
+UnSOME[SOME[#]] → #;
+UnSOME[NONE]    → $[Error, "Error: no optional value."];
+
 // --- Boolean
 
 Boolean ::=( TRUE; FALSE; );

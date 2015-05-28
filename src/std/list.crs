@@ -44,9 +44,7 @@ Tail[()] → $[Error,"Tail of empty list"] ;
 Concat[(), #tail] → #tail ;
 Concat[(#1;#s), #tail] → (#1 ; Concat[#s, #tail]) ;
 
-//
 // Apply each item in list to function
-//
 ∀ a b . Map[x::a . $sort[b], $List[a]] :: $List[b] ;
 Map[x.#[x], ()] → () ;
 Map[x.#[x], (#1;#s)] → (#[#1]; Map[x.#[x], #s]) ;

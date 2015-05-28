@@ -77,7 +77,7 @@ public class Crsx
 			System.exit(0);
 		}
 
-		ConstructionDescriptor wrapper = context.lookupDescriptor("Main");
+		ConstructionDescriptor wrapper = context.lookupDescriptor("Test");
 
 		BufferSink buffer = context.makeBuffer();
 

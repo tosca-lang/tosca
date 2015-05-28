@@ -319,6 +319,16 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 */
 	void exitVarsort(CrsxTermParser.VarsortContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#concrete}.
+	 * @param ctx the parse tree
+	 */
+	void enterConcrete(CrsxTermParser.ConcreteContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#concrete}.
+	 * @param ctx the parse tree
+	 */
+	void exitConcrete(CrsxTermParser.ConcreteContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#dispatch}.
 	 * @param ctx the parse tree
 	 */
@@ -338,16 +348,6 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitDispatchTerm(CrsxTermParser.DispatchTermContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#dispatchTerm_S1}.
-	 * @param ctx the parse tree
-	 */
-	void enterDispatchTerm_S1(CrsxTermParser.DispatchTerm_S1Context ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#dispatchTerm_S1}.
-	 * @param ctx the parse tree
-	 */
-	void exitDispatchTerm_S1(CrsxTermParser.DispatchTerm_S1Context ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#dispatchCases}.
 	 * @param ctx the parse tree
@@ -558,6 +558,16 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitQualifier(CrsxTermParser.QualifierContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#reserved}.
+	 * @param ctx the parse tree
+	 */
+	void enterReserved(CrsxTermParser.ReservedContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#reserved}.
+	 * @param ctx the parse tree
+	 */
+	void exitReserved(CrsxTermParser.ReservedContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#directive}.
 	 * @param ctx the parse tree

@@ -87,6 +87,10 @@ SugarTerms[$List[Crsx_terms_S1_sort]] :: Crsx_terms_sort;
 SugarTerms[%terms_S1*⟨                    ⟩] → $[Error, "Internal error: cannot rewrite an empty list of terms to term"];
 SugarTerms[%terms_S1*⟨ , #term #terms_S1* ⟩] → %terms⟨ #term #terms_S1* ⟩; 
 
+SugarFreeTerms[$List[Crsx_freeTerms_S1_sort]] :: Crsx_freeTerms_sort;
+SugarFreeTerms[%freeTerms_S1*⟨                            ⟩] → $[Error, "Internal error: cannot rewrite an empty list of terms to term"];
+SugarFreeTerms[%freeTerms_S1*⟨ , #freeTerm #freeTerms_S1* ⟩] → %freeTerms⟨ #freeTerm #freeTerms_S1* ⟩; 
+
 SugarDispatchCases[$List[Crsx_dispatchCases_S1_ZOM_sort]] :: Crsx_dispatchCases_sort;
 SugarDispatchCases[%dispatchCases_S1*⟨                                    ⟩] → $[Error, "Assertion error: at least one dispatch case must be defined."]; 
 SugarDispatchCases[%dispatchCases_S1*⟨ ; #dispatchCase #dispatchCases_S1* ⟩] → %dispatchCases⟨ #dispatchCase #dispatchCases_S1* ⟩; 
@@ -99,6 +103,9 @@ DesugarDeclarations[%declarations⟨ #declaration #declarations_S1* ⟩] → %de
 DesugarTerms[Crsx_terms_sort] :: $List[Crsx_terms_S1_sort];
 DesugarTerms[%terms⟨ #term #terms_S1* ⟩] → %terms_S1*⟨ ,  #term #terms_S1* ⟩; 
 
+DesugarFreeTerms[Crsx_freeTerms_sort] :: $List[Crsx_freeTerms_S1_sort];
+DesugarFreeTerms[%freeTerms⟨ #freeTerm #freeTerms_S1* ⟩] → %freeTerms_S1*⟨ , #freeTerm #freeTerms_S1* ⟩; 
+
 DesugarTermList[Crsx_termList_sort] :: $List[Crsx_termList_S1_sort];
 DesugarTermList[%termList⟨ #term #termList_S1* ⟩] →  %termList_S1*⟨ ; #term #termList_S1* ⟩;
 
@@ -110,7 +117,8 @@ DesugarListTermList[$List[Crsx_termList_S1_sort]] :: Crsx_freeTerm_sort;
 DesugarListTermList[%termList_S1*⟨                                ⟩] → %freeTerm⟨ $Nil ⟩;
 DesugarListTermList[%termList_S1*⟨ ;                              ⟩] → %freeTerm⟨ $Nil ⟩;
 DesugarListTermList[%termList_S1*⟨ ; #freeTerm                    ⟩] → #freeTerm;
-DesugarListTermList[%termList_S1*⟨ ; #term ; #term2 #termList_S1* ⟩] → %freeTerm⟨ $Cons[ ⟨term: #term⟩, ⟨freeTerm: DesugarListTermList[%termList_S1*⟨ ; #term2 #termList_S1* ⟩] ⟩ ] ⟩;
+DesugarListTermList[%termList_S1*⟨ ; #term ;                      ⟩] → %freeTerm⟨ $Cons[ ⟨term: #term⟩, $Nil ] ⟩; 
+DesugarListTermList[%termList_S1*⟨ ; #term ; #term2 #termList_S1* ⟩] → %freeTerm⟨ $Cons[ ⟨term: #term⟩, ⟨freeTerm: DesugarListTermList[%termList_S1*⟨ ; #term2 #termList_S1* ⟩]⟩ ] ⟩;
 
 DesugarDispatchCases[Crsx_dispatchCases_sort] :: $List[Crsx_dispatchCases_S1_sort];
 DesugarDispatchCases[%dispatchCases⟨ #dispatchCase #dispatchCases_S1* ⟩] → %dispatchCases_S1*⟨ ; #dispatchCase #dispatchCases_S1* ⟩; 

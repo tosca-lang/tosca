@@ -67,4 +67,8 @@ StringToText[#] → %n⟪†«#»⟫ ;
 NumberToText[$Numeric] :: Text;
 -[Data[#n]]: NumberToText[#n] → %n⟪†«$[FormatNumber,#n]»⟫;
 
+TextToString[Text] :: $String ;
+TextToString[#] → $[Show, #]; // TODO.
+
+
 )]

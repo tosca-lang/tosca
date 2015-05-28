@@ -101,7 +101,7 @@ Declarations[$List[Crsx_declarations_S1_sort]] :: Text;
 // --- declarations
 
 // module
-{#E}Declaration[%declaration⟨ module #STRING { #declarations } ⟩] 
+{#E}Declaration[%declaration⟨ module #CONSTRUCTOR { #declarations } ⟩] 
 →
 {#E}Declarations[#declarations];
 
@@ -506,8 +506,6 @@ SendDispatch[Crsx_dispatch_sort] :: Text;
 {#E}SendDispatch[%dispatch⟨ dispatch #freeTerm #dispatchCases #delayCase? ⟩]
 →
 {#E}SendDispatchTopFreeTerm[#freeTerm, ok¹.SendDispatchCases[ok¹, DesugarDispatchCases[#dispatchCases]]];
-
--[Fallback]: {#E}SendDispatch[#dispatch] → $[Error, "Invalid CRSX core term: conjunctive dispatch expression not allowed."];
 
 // Process dispatch term: just record in the environment the meta-variable mappings
 
@@ -970,7 +968,7 @@ Registers[%declarations_S1*⟨ ; #declaration #declarations_S1* ⟩]
 // --- declarations
 
 // module
-Register[%declaration⟨ module #STRING { #declarations } ⟩] 
+Register[%declaration⟨ module #CONSTRUCTOR { #declarations } ⟩] 
 →
 Registers[#declarations];
 

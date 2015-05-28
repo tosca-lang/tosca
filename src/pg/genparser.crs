@@ -276,13 +276,13 @@ MakeTail[#RULE_REF, $True]     → %element*⟨ ({_tail();} ({_term();} ⟨TOKEN
 // Some utilities
 
 // Make the "enterAlt" action. If only 1 alternative, command takes no alternative number.
-MakeEnterAltAction[#Unique, #Count, $True]                      → %element⟨ {} ⟩;
+MakeEnterAltAction[#Unique, #Count, $True]                    → %element⟨ {} ⟩;
 MakeEnterAltAction[TRUE /* Unique */, #Count, $False]         → %element⟨ {_enterAlt();} ⟩;
 MakeEnterAltAction[FALSE /* Not Unique */, #Count, $False]    → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", $[FormatNumber, #Count], "\");}"]⟩ ⟩;
 
 // Make the "exitAlt" action
 MakeExitAltAction[$False] → %element⟨ {_exitAlt();} ⟩;
-MakeExitAltAction[$True] → %element⟨ {} ⟩;
+MakeExitAltAction[$True]  → %element⟨ {} ⟩;
    
 //----- Generate the _EOF rules.
 

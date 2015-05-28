@@ -1,0 +1,252 @@
+// Copyright (c) 2015 IBM Corporation.
+//
+// Resolve external names by fully qualified them.
+// 
+Resolver[(
+
+$Use["std/core.crs"];
+$Use["std/env.crs"];
+
+{$String:$StringEntry}Resolve[ok¹::OK_SORT.Text] :: Text;
+
+{#E; "$modules": MODULES[#modules]}Resolve[ok¹.#[ok¹]] → {#E}ResolveModules[OK, #modules, ok¹.#[ok¹]];
+
+{$String:$StringEntry}ResolveModules[OK_SORT, $List[$String], ok¹::OK_SORT.Text] :: Text;
+
+{#E}ResolveModules[OK, (                 ), ok¹.#[ok¹]] → {#E}#[OK];
+{#E}ResolveModules[OK, (#module; #modules), ok¹.#[ok¹]] → {#E}ResolveModule[#module, {#E}Get[#module], ok¹.ResolveModules[ok¹, #modules, ok¹.#[ok¹]]];
+
+{$String:$StringEntry}ResolveModule[$String, Option[$StringEntry], ok¹::OK_SORT.Text] :: Text;
+
+{#E}ResolveModule[#module, NONE, ok¹.#[ok¹]]           → $[Error, $[:, "Internal error: missing module string entry for ", #module]];
+{#E}ResolveModule[#module, SOME[#content], ok¹.#[ok¹]] → {#E; #module: {#E}ResolveModuleContent[#content]}#[OK];
+
+{$String:$StringEntry}ResolveModuleContent[$StringEntry] :: $StringEntry;
+
+{#E}ResolveModuleContent[MODULE[#name, #mode, {#M; "$rulekeys": KEYS[#rules]}LOADED]] 
+→ 
+MODULE[#name, #mode, {#E}ResolveRules[#rules, #name, {#M}LOADED]];
+
+{$String:$StringEntry}ResolveRules[$List[$String], $String, Content /* of current module */] :: Content;
+
+{#E}ResolveRules[(             ), #modname, #content] → #content; // TODO: continue resolving sorts
+
+{#E}ResolveRules[(#rule; #rules), #modname, {#M}#content] 
+→ 
+{#E}ResolveRules[#rules, #modname, {#M; ; #rule: RULES[{#E}ResolveRulesForConstructor[UnRULES[UnSOME[{#M}Get[#rule]]], #modname, #content]]}#content]; 
+
+{$String:$StringEntry}ResolveRulesForConstructor[$List[Crsx_ruleDeclaration_sort], $String, Content] :: $List[Crsx_ruleDeclaration_sort];
+
+{#E}ResolveRulesForConstructor[(             ), #modname, #content] → ();
+{#E}ResolveRulesForConstructor[(#rule; #rules), #modname, #content] → ({#E}ResolveRule[#rule, #modname, #content]; {#E}ResolveRulesForConstructor[#rules, #modname, #content]);
+
+{$String:$StringEntry}ResolveRule[Crsx_ruleDeclaration_sort, $String, Content] :: Crsx_ruleDeclaration_sort;
+
+// #pattern can be discarded as its contains only meta-variables (see normalization)
+{#E}ResolveRule[%ruleDeclaration⟨ #option? #pattern → #freeTerm ⟩, #modname, #content] 
+→ 
+%ruleDeclaration⟨ #option? #pattern → ⟨freeTerm: {#E}ResolveFreeTerm[#freeTerm, #modname, #content]⟩ ⟩;
+
+{$String:$StringEntry}ResolveTerm[Crsx_term_sort, $String, Content] :: Crsx_term_sort;
+
+{#E}ResolveTerm[%term⟨ #freeTerm           ⟩, #modname, #content] → %term⟨ ⟨freeTerm: {#E}ResolveFreeTerm[#freeTerm, #modname, #content]⟩ ⟩;
+{#E}ResolveTerm[%term⟨ #binder #nextBinder ⟩, #modname, #content] → %term⟨ #binder ⟨nextBinder: {#E}ResolveNextBinder[#nextBinder, #modname, #content]⟩ ⟩;
+
+{$String:$StringEntry}ResolveNextBinder[Crsx_nextBinder_sort, $String, Content] :: Crsx_nextBinder_sort;
+
+{#E}ResolveNextBinder[%nextBinder⟨ #binder #nextBinder ⟩, #modname, #content] → %nextBinder⟨ #binder ⟨nextBinder: {#E}ResolveNextBinder[#nextBinder, #modname, #content]⟩ ⟩;
+{#E}ResolveNextBinder[%nextBinder⟨ . #freeTerm         ⟩, #modname, #content] → %nextBinder⟨ . ⟨freeTerm: {#E}ResolveFreeTerm[#freeTerm, #modname, #content]⟩ ⟩;
+
+{$String:$StringEntry}ResolveFreeTerm[Crsx_freeTerm_sort, $String, Content] :: Crsx_freeTerm_sort;
+
+// Construction     
+{#E}ResolveFreeTerm[%freeTerm⟨ #annotations? #properties? #constructor #arguments? ⟩, #modname, #content] 
+→ 
+%freeTerm⟨ #annotations? ⟨properties?: {#E}ResolvePropertiesOpt[#properties?, #modname, #content]⟩ 
+                        ⟨constructor: {#E}ResolveConstructor[#constructor, #modname, #content]⟩ ⟨arguments?: {#E}ResolveArgumentsOpt[#arguments?, #modname, #content]⟩ ⟩;
+
+// Construction one argument     
+{#E}ResolveFreeTerm[%freeTerm⟨ #annotations? #properties? #constructor #term ⟩, #modname, #content] 
+→
+{#E}ResolveFreeTerm[%freeTerm⟨ #annotations? #properties? #constructor [ #term ] ⟩, #modname, #content];
+
+// Literal     
+{#E}ResolveFreeTerm[%freeTerm⟨ #annotations? #properties? #literal ⟩, #modname, #content] 
+→
+%freeTerm⟨ #annotations? ⟨properties?: {#E}ResolvePropertiesOpt[#properties?, #modname, #content]⟩ #literal ⟩;
+
+// List     
+{#E}ResolveFreeTerm[%freeTerm⟨ #annotations? #list ⟩, #modname, #content] 
+→ 
+{#E}ResolveFreeTerm[DesugarList[#list], #modname, #content]; 
+
+// variable     
+{#E}ResolveFreeTerm[%freeTerm⟨ #annotations? #VARIABLE #linear? #functional? #varsort? ⟩, #modname, #content] 
+→
+%freeTerm⟨ #annotations? #VARIABLE #linear? #functional? #varsort? ⟩;
+
+// struct     
+{#E}ResolveFreeTerm[%freeTerm⟨ #annotations? #properties ⟩, #modname, #content] 
+→
+$[Error, "Named data structure not implemented yet."];
+
+// meta     
+{#E}ResolveFreeTerm[%freeTerm⟨ #annotations? #properties? #METAVAR #freeArguments? ⟩, #modname, #content] 
+→
+%freeTerm⟨ #annotations? ⟨properties?: {#E}ResolvePropertiesOpt[#properties?, #modname, #content]⟩ #METAVAR 
+                         ⟨freeArguments?: {#E}ResolveFreeArgumentsOpt[#freeArguments?, #modname, #content]⟩ ⟩;
+
+// dispatch expression
+{#E}ResolveFreeTerm[%freeTerm⟨ #annotations? #properties? #dispatch ⟩, #modname, #content] 
+→
+%freeTerm⟨ #annotations? ⟨properties?: {#E}ResolvePropertiesOpt[#properties?, #modname, #content]⟩ ⟨dispatch: {#E}ResolveDispatch[#dispatch, #modname, #content]⟩ ⟩;
+
+{#E}ResolveFreeTerm[%freeTerm⟨ #annotations? #properties?  #expression ⟩, #modname, #content] 
+→
+$[Error, $[:, "Expression not implemented yet: ", #expression]]; 
+
+{$String:$StringEntry}ResolveDispatch[Crsx_dispatch_sort, $String, Content] :: Crsx_dispatch_sort;
+
+{#E}ResolveDispatch[%dispatch⟨ dispatch #freeTerm #dispatchCases #delayCase? ⟩, #modname, #content]
+→
+%dispatch⟨ dispatch ⟨freeTerm: {#E}ResolveFreeTerm[#freeTerm, #modname, #content]⟩ 
+              ⟨dispatchCases:  SugarDispatchCases[{#E}ResolveDispatchCases[DesugarDispatchCases[#dispatchCases], #modname, #content]]⟩ 
+              #delayCase? ⟩;
+
+{$String:$StringEntry}ResolveDispatchCases[$List[Crsx_dispatchCases_S1_sort], $String, Content] :: $List[Crsx_dispatchCases_S1_sort];
+
+{#E}ResolveDispatchCases[%dispatchCases_S1*⟨⟩, #modname, #content] → %dispatchCases_S1*⟨⟩;
+
+{#E}ResolveDispatchCases[%dispatchCases_S1*⟨ ; #ruleDeclaration #dispatchCases_S1* ⟩, #modname, #content] 
+→ 
+%dispatchCases_S1*⟨; ⟨ruleDeclaration: {#E}ResolveRule[#ruleDeclaration, #modname, #content]⟩
+       ⟨dispatchCases_S1*: {#E}ResolveDispatchCases[#dispatchCases_S1*, #modname, #content]⟩ ⟩;
+
+{$String:$StringEntry}ResolvePropertiesOpt[$List[Crsx_properties_sort], $String, Content] :: $List[Crsx_properties_sort];
+
+{#E}ResolvePropertiesOpt[%properties?⟨                   ⟩, #modname, #content] → %properties?⟨⟩;
+{#E}ResolvePropertiesOpt[%properties?⟨ {               } ⟩, #modname, #content] → %properties?⟨{}⟩;
+{#E}ResolvePropertiesOpt[%properties?⟨ { #propertyList } ⟩, #modname, #content] → %properties?⟨ { ⟨propertyList: {#E}ResolvePropertyList[DesugarPropertyList[#propertyList], #modname, #content]⟩ } ⟩;
+
+{$String:$StringEntry}ResolvePropertyList[$List[Crsx_propertyList_S1_sort], $String, Content] :: $List[Crsx_propertyList_S1_sort];
+
+{#E}ResolvePropertyList[%propertyList_S1*⟨                               ⟩, #modname, #content] → %propertyList_S1*⟨                               ⟩;
+{#E}ResolvePropertyList[%propertyList_S1*⟨ ; #propertyList_S1*           ⟩, #modname, #content] → %propertyList_S1*⟨ ; ⟨propertyList_S1*: {#E}ResolvePropertyList[#propertyList_S1*, #modname, #content]⟩ ⟩;
+
+{#E}ResolvePropertyList[%propertyList_S1*⟨ ; #property #propertyList_S1* ⟩, #modname, #content] 
+→ 
+%propertyList_S1*⟨ ; ⟨property: {#E}ResolveProperty[#property, #modname, #content]⟩ ⟨propertyList_S1*: {#E}ResolvePropertyList[#propertyList_S1*, #modname, #content]⟩ ⟩;
+
+{$String:$StringEntry}ResolveProperty[Crsx_property_sort, $String, Content] :: Crsx_property_sort;
+
+{#E}ResolveProperty[%property⟨ #METAVAR              ⟩, #modname, #content] → %property⟨ #METAVAR ⟩;
+{#E}ResolveProperty[%property⟨ #METAVAR : #freeTerm  ⟩, #modname, #content] → %property⟨ #METAVAR : ⟨freeTerm: {#E}ResolveFreeTerm[#freeTerm, #modname, #content]⟩ ⟩;                        
+{#E}ResolveProperty[%property⟨ #VARIABLE : #freeTerm ⟩, #modname, #content] → %property⟨ #VARIABLE : ⟨freeTerm: {#E}ResolveFreeTerm[#freeTerm, #modname, #content]⟩ ⟩;
+{#E}ResolveProperty[%property⟨ #STRING : #freeTerm   ⟩, #modname, #content] → %property⟨ #STRING : ⟨freeTerm: {#E}ResolveFreeTerm[#freeTerm, #modname, #content]⟩ ⟩;
+{#E}ResolveProperty[%property⟨ ¬ #METAVAR            ⟩, #modname, #content] → %property⟨ ¬ #METAVAR ⟩;
+{#E}ResolveProperty[%property⟨ #VARIABLE             ⟩, #modname, #content] → %property⟨ #VARIABLE             ⟩;                                               
+{#E}ResolveProperty[%property⟨ ¬ #VARIABLE           ⟩, #modname, #content] → %property⟨ ¬ #VARIABLE           ⟩;                                          
+{#E}ResolveProperty[%property⟨ #STRING               ⟩, #modname, #content] → %property⟨ #STRING               ⟩;
+{#E}ResolveProperty[%property⟨ ¬ #STRING             ⟩, #modname, #content] → %property⟨ ¬ #STRING             ⟩;
+{#E}ResolveProperty[%property⟨ #constructor : #freeTerm ⟩, #modname, #content] → %property⟨ ⟨constructor: {#E}ResolveConstructor[#constructor, #modname, #content]⟩ : ⟨freeTerm: {#E}ResolveFreeTerm[#freeTerm, #modname, #content]⟩ ⟩;
+
+{$String:$StringEntry}ResolveArgumentsOpt[$List[Crsx_arguments_sort], $String, Content] :: $List[Crsx_arguments_sort];
+
+{#E}ResolveArgumentsOpt[%arguments?⟨            ⟩, #modname, #content] → %arguments?⟨            ⟩;
+{#E}ResolveArgumentsOpt[%arguments?⟨ []         ⟩, #modname, #content] → %arguments?⟨ []         ⟩;
+{#E}ResolveArgumentsOpt[%arguments?⟨ [ #terms ] ⟩, #modname, #content] → %arguments?⟨ [ ⟨terms: SugarTerms[{#E}ResolveTerms[DesugarTerms[#terms], #modname, #content]]⟩ ] ⟩;
+
+{$String:$StringEntry}ResolveTerms[$List[Crsx_terms_S1_sort], $String, Content] :: $List[Crsx_terms_S1_sort];
+
+{#E}ResolveTerms[%terms_S1*⟨                    ⟩, #modname, #content] → %terms_S1*⟨                    ⟩;
+{#E}ResolveTerms[%terms_S1*⟨ , #term #terms_S1* ⟩, #modname, #content] → %terms_S1*⟨ , ⟨term: {#E}ResolveTerm[#term, #modname, #content]⟩ ⟨terms_S1*: {#E}ResolveTerms[#terms_S1*, #modname, #content]⟩ ⟩;
+
+{$String:$StringEntry}ResolveFreeArgumentsOpt[$List[Crsx_freeArguments_sort], $String, Content] :: $List[Crsx_freeArguments_sort];
+
+{#E}ResolveFreeArgumentsOpt[%freeArguments?⟨                ⟩, #modname, #content] → %freeArguments?⟨            ⟩;
+{#E}ResolveFreeArgumentsOpt[%freeArguments?⟨ [            ] ⟩, #modname, #content] → %freeArguments?⟨ [        ] ⟩;
+{#E}ResolveFreeArgumentsOpt[%freeArguments?⟨ [ #freeTerms ] ⟩, #modname, #content] → %freeArguments?⟨ [ ⟨freeTerms: SugarFreeTerms[{#E}ResolveFreeTerms[DesugarFreeTerms[#freeTerms], #modname, #content]]⟩ ] ⟩;
+
+{$String:$StringEntry}ResolveFreeTerms[$List[Crsx_freeTerms_S1_sort], $String, Content] :: $List[Crsx_freeTerms_S1_sort];
+
+{#E}ResolveFreeTerms[%freeTerms_S1*⟨                            ⟩, #modname, #content] → %freeTerms_S1*⟨⟩;
+
+{#E}ResolveFreeTerms[%freeTerms_S1*⟨ , #freeTerm #freeTerms_S1* ⟩, #modname, #content] 
+→ 
+%freeTerms_S1*⟨ , ⟨freeTerm: {#E}ResolveFreeTerm[#freeTerm, #modname, #content]⟩ ⟨freeTerms_S1*: {#E}ResolveFreeTerms[#freeTerms_S1*, #modname, #content]⟩ ⟩;
+
+// --- Resolve constructor
+//
+// This is the interesting bit. Constructor resolution works as follows:
+// 1. If the constructor is qualified, check data/function sort exists
+// 2. If the constructor is not qualified, look for a qualifier in this order: 
+// 2.1 Look for the constructor sort in the current module 
+// 2.2 If not found, look in the imported modules, in lexical order. (no recursion)
+// 2.3 If not found, error.
+
+{$String:$StringEntry}ResolveConstructor[Crsx_constructor_sort, $String, Content] :: Crsx_constructor_sort;
+
+{#E}ResolveConstructor[%constructor⟨ #CONSTRUCTOR ⟩, #modname, {#M; "$imported": IMPORTS[#imported]}LOADED] 
+→
+{#E}ResolveConstructorImported[(#modname; #imported), TRUE, #CONSTRUCTOR]; 
+
+{#E}ResolveConstructor[%constructor⟨ #CONSTRUCTOR . #qualifier #CONSTRUCTOR2 ⟩, #modname, #content] 
+→ 
+%constructor⟨ #CONSTRUCTOR . #qualifier #CONSTRUCTOR2 ⟩; // TODO: check exist
+
+{$String:$StringEntry}ResolveConstructorImported[$List[$String], Boolean /* Main module? */, $String] :: Crsx_constructor_sort;
+
+{#E}ResolveConstructorImported[(), #main, #CONSTRUCTOR]
+→
+$[Error, $[:, "Error: undefined constructor:", #CONSTRUCTOR]];
+
+{#E}ResolveConstructorImported[(#import; #imported), #main, #CONSTRUCTOR]
+→
+{#E}ResolveConstructorImport[UnSOME[{#E}LookupModule[#import]], #main, #imported, #CONSTRUCTOR];
+
+{$String:$StringEntry}ResolveConstructorImport[ContentEntry, Boolean, $List[$String], $String] :: Crsx_constructor_sort;
+
+{#E}ResolveConstructorImport[MODULE[#name, #mode, #content], #main, #imported, #CONTRUCTOR]
+→
+{#E}ResolveConstructorImport0[#content, #main, #imported, #CONTRUCTOR];
+
+{$String:$StringEntry}ResolveConstructorImport0[Content, $List[$String], Boolean, $String] :: Crsx_constructor_sort;
+
+{#E}ResolveConstructorImport0[{#M}LOADED, #main, #imported, #CONSTRUCTOR]
+→
+{#E}ResolveConstructorImport1[{#M}LookupSortByConstructor[%constructor⟨ #CONSTRUCTOR ⟩], #main, #imported, #CONSTRUCTOR];
+
+{$String:$StringEntry}ResolveConstructorImport1[Option[ContentEntry], Boolean, $List[$String], $String] :: Crsx_constructor_sort;
+
+// Not in this module -> continue with next module 
+{#E}ResolveConstructorImport1[NONE, #main, #imported, #CONSTRUCTOR]
+→
+{#E}ResolveConstructorImported[#imported, FALSE, #CONSTRUCTOR];
+
+// A local function sort. no need to qualify (REVISIT: qualify for target languages without module/namespace scoping (like C))
+{#E}ResolveConstructorImport1[SOME[FUNCSORT[#qualifier, #sort]], TRUE, #imported, #CONSTRUCTOR]
+→
+%constructor⟨ #CONSTRUCTOR ⟩;
+
+// An imported function sort: qualify
+{#E}ResolveConstructorImport1[SOME[FUNCSORT[#qualifier, #sort]], FALSE, #imported, #CONSTRUCTOR]
+→
+%constructor⟨ ⟨CONSTRUCTOR: #qualifier⟩ . #CONSTRUCTOR ⟩;
+
+// Only one data sort. no need to qualify (REVISIT: qualify for target languages without module/namespace scoping (like C))
+{#E}ResolveConstructorImport1[SOME[DATASORT[(#qsort;)]], TRUE, #imported, #CONSTRUCTOR]
+→
+%constructor⟨ #CONSTRUCTOR ⟩;
+
+// Imported data sort: qualify
+{#E}ResolveConstructorImport1[SOME[DATASORT[(QSORT[#qualifier, #sort];)]], FALSE, #imported, #CONSTRUCTOR]
+→
+%constructor⟨ ⟨CONSTRUCTOR: #qualifier⟩ . #CONSTRUCTOR ⟩;
+
+// The constructor is declared in one than more local data sorts... needs to qualify..
+{#E}ResolveConstructorImport1[SOME[DATASORT[(#qsort; #qsort2; #qsorts)]], #imported, #CONSTRUCTOR]
+→
+%constructor⟨ #CONSTRUCTOR ⟩;
+
+)]
+

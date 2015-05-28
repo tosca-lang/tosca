@@ -33,7 +33,7 @@ declaration
 
 // Inner module */
 moduleDeclaration    
-    : MODULE STRING LBRACE declarations RBRACE              /* [SUGAR] */
+    : MODULE CONSTRUCTOR LBRACE declarations RBRACE              /* [SUGAR] */
     ;
  
 /*  Rule declaration */    
@@ -76,6 +76,7 @@ freeTerm
     | annotations? variable                                 /* [CORE]  Variable construction */
     | annotations? properties                               /* [CORE]  Named data structure */
     | annotations? properties? METAVAR freeArguments?       /* [CORE]  Meta variable. */
+    | annotations? properties? concrete                     /* [SUGAR] Concrete syntax */
     | annotations? properties? expression                   /* [CORE]  Expression reducing to a term */
     ;
              
@@ -136,12 +137,16 @@ binder
 varsort
     : COLONCOLON sortname;   
     
+concrete
+    : PERCENT variable
+    ;    
+    
 dispatch
     : DISPATCH dispatchTerm dispatchCases delayCase?        /* [CORE: must be top-level expression when last case is DELAY]  */ 
     ;
     
 dispatchTerm
-    : freeTerm (AND freeTerm)*                              /* [CORE:  no conjunctive pattern. Rewritten as a single term pattern.] */
+    : freeTerm                                              /* [CORE] */
     ;
     
 dispatchCases
@@ -221,12 +226,18 @@ form
     
 constructor
     : qualifier CONSTRUCTOR
-    | COLON
+    | reserved
     ;
     
 qualifier
     : CONSTRUCTOR DOT qualifier
     |
+    ;
+    
+reserved
+    : COLON
+    | AT
+    | DOT 
     ;
     
 /* Directive */
@@ -275,31 +286,35 @@ LINEAR          : '¹';                                  /* [BC3]  Linear marker
 FUNCTIONAL      : 'ᵇ';                                  /* [CORE] Functional binder marker */ 
 AND             : '&';
 AT              : '@';
+PERCENT         : '%';
 
 
 CONSTRUCTOR     : StartConstructorChar ConstructorChar*;
 
-VARIABLE        : Lower (Lower|Digit|'-')*;
+VARIABLE        : Lower (Lower | Digit | '-')*;
 
-METAVAR         : '#' (Alpha | [$_] | Infix | Unicode)*;
+METAVAR         : '#' (Alpha | Digit | Symbol | Unicode)*;
 
 STRING          :  '\"' ('""'|~'"')* '\"';
 
 NUMBER          : Decimal;
 
-fragment StartConstructorChar : Upper | [$_] | Infix | Unicode; /* [INTERNAL '$'] */
-fragment ConstructorChar      : Alpha | Infix | Unicode;
+fragment StartConstructorChar : Upper | Symbol | Unicode;                 
+fragment ConstructorChar      : Alpha | Digit | Symbol | Unicode;
 
 fragment Digit   : [0-9];
-fragment Upper   : [A-Z];                                                /* [INTERNAL '$'] */
+fragment Upper   : [A-Z];                                                
 fragment Lower   : [a-z];       
-fragment Alpha   : [a-zA-Z0-9$_];
+fragment Alpha   : [a-zA-Z];
 fragment Decimal : [0-9]+ ('.' [0-9]+)? | '.' [0-9]+; 
-fragment Infix   : [+\-~`!*\%^|?];
+fragment Symbol  : [+\-~`!*\%^|?$_@];
 fragment Unicode : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
 
 WS               : [ \t\r\n\f]+ -> channel(HIDDEN) ;
 
+
+
 BLOCK_COMMENT    : '/*' .*? ('*/' | EOF)    -> channel(HIDDEN);
 LINE_COMMENT     : '//' ~[\r\n]*            -> channel(HIDDEN);
 XML_COMMENT      : '<!--' .*? ('-->' | EOF) -> channel(HIDDEN);               /* [BC3] */
+
