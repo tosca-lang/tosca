@@ -5,6 +5,7 @@ Boolean ::= ( True; False; );
 And[Boolean, Boolean] :: Boolean;
 
 And[False, #] → False; 
+And[True, #]  → #; 
 
 Or[Boolean, Boolean] :: Boolean;
 
