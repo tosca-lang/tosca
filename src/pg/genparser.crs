@@ -219,8 +219,6 @@ MakeRuleSpec2[$String, ANTLR_ruleBlock_sort, Mode] :: $List[ANTLR_ruleSpec_sort]
 
 MakeRuleSpec2[$False, #RULE_REF, #ruleBlock, #mode]  → ();
 MakeRuleSpec2[$True, #RULE_REF, #ruleBlock, #mode]   → (%ruleSpec⟨ #RULE_REF : ⟨ruleBlock: MakeRuleBlock[#ruleBlock, #RULE_REF, #mode]⟩ ; ⟩;);
-//MakeRuleSpec2[$True, $True, #RULE_REF, #ruleBlock, #mode]       → (%ruleSpec⟨ #RULE_REF : #ruleBlock ; ⟩;);
-
 
 //----- Parser Rule Block
 
@@ -324,7 +322,7 @@ MakeMetaAltList[#RULE_REF, METAPARSER]
 //
 // In addition, tokens are replaced by a grammar rule producing the token, to allow META and EMBED on tokens.
 // 
-// It's done in two passes, the first one rewrite the first rule, and the second one generate the new rules.
+// It's done in two passes, the first one rewrite the rule, and the second one generate the new rules.
 //
 // Only called when generating the meta-parser.
 //  
@@ -468,8 +466,7 @@ IsLexer[PARSER]      → $False;
 IsLexer[METAPARSER]  → $False;
 IsLexer[METALEXER]   → $True;
 
-
-// Where the rule is internal.
+// Whether the rule is internal.
 IsInternalRule[$String] :: $Boolean;
 
 IsInternalRule[#RuleRef] →

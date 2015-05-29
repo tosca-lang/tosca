@@ -26,14 +26,14 @@ declaration
     : moduleDeclaration                                     /* [SUGAR]  nested modules */
     | ruleDeclaration                                       /* [CORE]   rewrite rule */
     | sortDeclaration                                       /* [CORE]   type definitions */
-    | directive                                             /* [BC3]    directive : meta, data term, anonymous nested modules */
+    | directive                                             /* [BC3]    directive : meta, data term, anonymous nested modules (could be the cause of slow parsing) */
     ;
 
 /*  Module declaration */    
 
 // Inner module */
 moduleDeclaration    
-    : MODULE CONSTRUCTOR LBRACE declarations RBRACE              /* [SUGAR] */
+    : MODULE CONSTRUCTOR LBRACE declarations RBRACE         /* [SUGAR] */
     ;
  
 /*  Rule declaration */    
@@ -105,15 +105,15 @@ freeTerms
     : freeTerm (COMMA freeTerm)*                            /* [CORE] */
     ;
 
-list   
-    : LPAR termList? RPAR
+list                                                          
+    : LPAR termList? RPAR                                   /* [SUGAR] */
     ; 
     
-termList
-    : term (SEMI term?)*
+termList                                                    
+    : term (SEMI term?)*                                    /* [CORE] */
     ;
     
-variable
+variable                                                    /* [CORE] */
     : VARIABLE linear? functional? varsort?
     ;
     
@@ -138,7 +138,12 @@ varsort
     : COLONCOLON sortname;   
     
 concrete
-    : PERCENT variable
+    : CATEGORY CONCRETE                                    /* [BC3]   */
+    | CATEGORY CONCRETE2                                   /* [BC3]   */
+    | CATEGORY CONCRETE3                                   /* [BC3]   */
+    | CATEGORY CONCRETE4                                   /* [BC3]   */
+    | CATEGORY CONCRETE5                                   /* [BC3]   */
+    | CONCRETE                                             /* [SUGAR] */
     ;    
     
 dispatch
@@ -222,6 +227,7 @@ forms
     
 form 
     : constructor arguments?
+    | variable                                              
     ;
     
 constructor
@@ -246,6 +252,7 @@ directive
     : constructor directiveArguments?
     | directiveList
     | literal
+    | concrete
     ;
        
 directiveArguments 
@@ -286,8 +293,14 @@ LINEAR          : '¹';                                  /* [BC3]  Linear marker
 FUNCTIONAL      : 'ᵇ';                                  /* [CORE] Functional binder marker */ 
 AND             : '&';
 AT              : '@';
-PERCENT         : '%';
 
+CATEGORY        : '%' (Alpha | Digit)+ ('*' | '+' | '?')?;
+
+CONCRETE        : '\u27e6' (CONCRETE|.)*? '\u27e7';
+CONCRETE2       : '⟪' (CONCRETE2|.)*?'⟫';
+CONCRETE3       : '\u27EA' (CONCRETE3|.)*? '\u27EB';
+CONCRETE4       : '\u27E8' (CONCRETE4|.)*? '\u27E9';
+CONCRETE5       : '\u2983' (CONCRETE5|.)*? '\u2984';
 
 CONSTRUCTOR     : StartConstructorChar ConstructorChar*;
 
@@ -307,14 +320,11 @@ fragment Upper   : [A-Z];
 fragment Lower   : [a-z];       
 fragment Alpha   : [a-zA-Z];
 fragment Decimal : [0-9]+ ('.' [0-9]+)? | '.' [0-9]+; 
-fragment Symbol  : [+\-~`!*\%^|?$_@];
+fragment Symbol  : [+\-~`!*\^|?$_@];
 fragment Unicode : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
 
 WS               : [ \t\r\n\f]+ -> channel(HIDDEN) ;
 
-
-
 BLOCK_COMMENT    : '/*' .*? ('*/' | EOF)    -> channel(HIDDEN);
 LINE_COMMENT     : '//' ~[\r\n]*            -> channel(HIDDEN);
 XML_COMMENT      : '<!--' .*? ('-->' | EOF) -> channel(HIDDEN);               /* [BC3] */
-
