@@ -1,0 +1,270 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Language Reference &mdash; crsx 4.0.0-dev documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="crsx 4.0.0-dev documentation" href="index.html"/>
+        <link rel="next" title="ANTLR4 Grammar" href="syntax.html"/>
+        <link rel="prev" title="Introduction" href="intro.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="index.html" class="fa fa-home"> crsx</a>
+        
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="started.html#system-requirements">System requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="started.html#download">Download</a></li>
+<li class="toctree-l2"><a class="reference internal" href="started.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="started.html#running-a-sample">Running a sample</a></li>
+<li class="toctree-l2"><a class="reference internal" href="started.html#how-to-continue">How to continue</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Language Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#simple-terms">Simple Terms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#functions">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sorts">Sorts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module">Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#grammar">Grammar</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="syntax.html">ANTLR4 Grammar</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="syntax.html#rules">Rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="syntax.html#alternatives">Alternatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="syntax.html#elements">Elements</a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">crsx</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Language Reference</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <div class="section" id="language-reference">
+<h1>Language Reference<a class="headerlink" href="#language-reference" title="Permalink to this headline">¶</a></h1>
+<p>This section gives a description of all CRSX4 concepts, one per subsection.</p>
+<p>Most of the concepts are introducted in a semi-formal manner, to keep the section short and readeable.
+The exact lexical grammar is given in the See <a class="reference internal" href="#grammar">Grammar</a> subsection.</p>
+<div class="section" id="simple-terms">
+<h2>Simple Terms<a class="headerlink" href="#simple-terms" title="Permalink to this headline">¶</a></h2>
+<p>Every CRSX program is about rewriting <em>terms</em>. A term can take one of the following forms:</p>
+<ul>
+<li><p class="first">A <em>constructor</em> optionally followed by <em>arguments</em> separated by a comma. For instance:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Let</span><span class="p">[</span><span class="s">&quot;x&quot;</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="n">Variable</span><span class="p">[</span><span class="s">&quot;x&quot;</span><span class="p">]]</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>is a constructor term named <code class="code docutils literal"><span class="pre">Let</span></code> with three arguments. A constructor must start with an upper case character and must not contains the &#8216;$&#8217; symbol
+(see <a class="reference internal" href="#grammar">Grammar</a> for a precise definition).</p>
+<ul>
+<li><p class="first">A <em>literal</em>, either string or number. For instance:</p>
+<div class="highlight-python"><div class="highlight"><pre>15.34 // is a number literal
+&quot;x&quot;   // is a string literal
+</pre></div>
+</div>
+</li>
+<li><p class="first">A <em>variable</em>, which must start with a lower case character. For instance:</p>
+<div class="highlight-python"><div class="highlight"><pre>x  // is a variable
+</pre></div>
+</div>
+</li>
+</ul>
+<p>Constructors and literals optionally can have <em>properties</em> attached to them. For instance:</p>
+<div class="highlight-python"><div class="highlight"><pre>{&quot;line&quot;: 1}Let[&quot;x&quot;, 15, Variable[&quot;x&quot;]]
+</pre></div>
+</div>
+<p>defines a constructor <code class="code docutils literal"><span class="pre">Let</span></code> with a property named <code class="code docutils literal"><span class="pre">&quot;line&quot;</span></code> with the value <code class="code docutils literal"><span class="pre">1</span></code>. Alternatively, the property key can also be a variable.</p>
+<p>Lastly, a term can be <em>bound</em> by variables, like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">LetBinding</span><span class="p">[</span><span class="mi">15</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">VarRef</span><span class="p">[</span><span class="n">x</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>The second <code class="code docutils literal"><span class="pre">LetBinding</span></code> argument is a bound constructorm, and <code class="code docutils literal"><span class="pre">x</span></code> is called a <em>binder</em>. A term can be bound by multiple space-separated binders:</p>
+<div class="highlight-python"><div class="highlight"><pre>LetMultipleBinding[15, &quot;f&quot;, x y.VarRef[Number[x], String[y]]]
+</pre></div>
+</div>
+<p>This example also demonstrates that binders can occur anywhere in the arguments of the bound constructor, not only at the top level.</p>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="sorts">
+<h2>Sorts<a class="headerlink" href="#sorts" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module">
+<h2>Module<a class="headerlink" href="#module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="grammar">
+<h2>Grammar<a class="headerlink" href="#grammar" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-antlr"><div class="highlight"><pre><span class="nl">CONSTRUCTOR</span><span class="w">     </span><span class="p">::</span><span class="o">=</span><span class="w"> </span><span class="no">StartConstructorChar</span><span class="w"> </span><span class="no">ConstructorChar</span><span class="o">*</span><span class="p">;</span><span class="w"></span>
+
+<span class="nl">VARIABLE</span><span class="w">        </span><span class="p">:</span><span class="w"> </span><span class="no">Lower</span><span class="w"> </span><span class="o">(</span><span class="no">Lower</span><span class="o">|</span><span class="no">Digit</span><span class="o">|</span><span class="s">&#39;-&#39;</span><span class="o">)*</span><span class="p">;</span><span class="w"></span>
+
+<span class="nl">METAVAR</span><span class="w">         </span><span class="p">:</span><span class="w"> </span><span class="s">&#39;#&#39;</span><span class="w"> </span><span class="o">(</span><span class="no">Alpha</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="p">[</span><span class="x">$_</span><span class="p">]</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">Infix</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">Unicode</span><span class="o">)*</span><span class="p">;</span><span class="w"></span>
+
+<span class="nl">STRING</span><span class="w">          </span><span class="p">:</span><span class="w">  </span><span class="s">&#39;\&quot;&#39;</span><span class="w"> </span><span class="o">(</span><span class="s">&#39;&quot;&quot;&#39;</span><span class="o">|~</span><span class="s">&#39;&quot;&#39;</span><span class="o">)*</span><span class="w"> </span><span class="s">&#39;\&quot;&#39;</span><span class="p">;</span><span class="w"></span>
+
+<span class="nl">NUMBER</span><span class="w">          </span><span class="p">:</span><span class="w"> </span><span class="no">Decimal</span><span class="p">;</span><span class="w"></span>
+
+<span class="k">fragment</span><span class="w"> </span><span class="nl">StartConstructorChar</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="no">Upper</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="p">[</span><span class="x">$_</span><span class="p">]</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">Infix</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">Unicode</span><span class="p">;</span><span class="w"> </span><span class="c">/* [INTERNAL &#39;$&#39;] */</span><span class="w"></span>
+<span class="k">fragment</span><span class="w"> </span><span class="nl">ConstructorChar</span><span class="w">      </span><span class="p">:</span><span class="w"> </span><span class="no">Alpha</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">Infix</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="no">Unicode</span><span class="p">;</span><span class="w"></span>
+
+<span class="k">fragment</span><span class="w"> </span><span class="nl">Digit</span><span class="w">   </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="x">0-9</span><span class="p">];</span><span class="w"></span>
+<span class="k">fragment</span><span class="w"> </span><span class="nl">Upper</span><span class="w">   </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="x">A-Z</span><span class="p">];</span><span class="w">                                                </span><span class="c">/* [INTERNAL &#39;$&#39;] */</span><span class="w"></span>
+<span class="k">fragment</span><span class="w"> </span><span class="nl">Lower</span><span class="w">   </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="x">a-z</span><span class="p">];</span><span class="w"></span>
+<span class="k">fragment</span><span class="w"> </span><span class="nl">Alpha</span><span class="w">   </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="x">a-zA-Z0-9$_</span><span class="p">];</span><span class="w"></span>
+<span class="k">fragment</span><span class="w"> </span><span class="nl">Decimal</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="x">0-9</span><span class="p">]</span><span class="o">+</span><span class="w"> </span><span class="o">(</span><span class="s">&#39;.&#39;</span><span class="w"> </span><span class="p">[</span><span class="x">0-9</span><span class="p">]</span><span class="o">+)?</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s">&#39;.&#39;</span><span class="w"> </span><span class="p">[</span><span class="x">0-9</span><span class="p">]</span><span class="o">+</span><span class="p">;</span><span class="w"></span>
+<span class="k">fragment</span><span class="w"> </span><span class="nl">Infix</span><span class="w">   </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="x">+\-~`!*\%^|?</span><span class="p">];</span><span class="w"></span>
+<span class="k">fragment</span><span class="w"> </span><span class="nl">Unicode</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="o">~</span><span class="p">[</span><span class="x">\u0000-\u00FF\uD800-\uDBFF</span><span class="p">]</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="p">[</span><span class="x">\uD800-\uDBFF</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="x">\uDC00-\uDFFF</span><span class="p">];</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="syntax.html" class="btn btn-neutral float-right" title="ANTLR4 Grammar">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="intro.html" class="btn btn-neutral" title="Introduction"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Lionel Villard.
+      Last updated on Jun 01, 2015.
+    </p>
+  </div>
+
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'4.0.0-dev',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

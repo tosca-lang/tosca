@@ -1,0 +1,80 @@
+
+Language Reference
+******************
+
+This section gives a description of all CRSX4 concepts, one per subsection.
+
+Most of the concepts are introducted in a semi-formal manner, to keep the section short and readeable. 
+The exact lexical grammar is given in the See `Grammar`_ subsection. 
+
+Simple Terms
+------------
+
+Every CRSX program is about rewriting *terms*. A term can take one of the following forms:
+
+* A *constructor* optionally followed by *arguments* separated by a comma. For instance::
+
+   Let["x", 15, Variable["x"]]
+   
+is a constructor term named :code:`Let` with three arguments. A constructor must start with an upper case character and must not contains the '$' symbol 
+(see `Grammar`_ for a precise definition).
+
+* A *literal*, either string or number. For instance::
+
+   15.34 // is a number literal
+   "x"   // is a string literal
+
+* A *variable*, which must start with a lower case character. For instance::
+
+   x  // is a variable
+
+Constructors and literals optionally can have *properties* attached to them. For instance::
+
+   {"line": 1}Let["x", 15, Variable["x"]]
+
+defines a constructor :code:`Let` with a property named :code:`"line"` with the value :code:`1`. Alternatively, the property key can also be a variable.
+
+Lastly, a term can be *bound* by variables, like this::
+
+   LetBinding[15, x.VarRef[x]]
+
+The second :code:`LetBinding` argument is a bound constructorm, and :code:`x` is called a *binder*. A term can be bound by multiple space-separated binders::
+
+   LetMultipleBinding[15, "f", x y.VarRef[Number[x], String[y]]]
+
+This example also demonstrates that binders can occur anywhere in the arguments of the bound constructor, not only at the top level. 
+
+Functions
+---------
+
+Sorts
+-----
+
+Module
+------
+
+Grammar
+-------
+
+.. code-block:: antlr
+
+   CONSTRUCTOR     ::= StartConstructorChar ConstructorChar*;
+
+   VARIABLE        : Lower (Lower|Digit|'-')*;
+
+   METAVAR         : '#' (Alpha | [$_] | Infix | Unicode)*;
+
+   STRING          :  '\"' ('""'|~'"')* '\"';
+
+   NUMBER          : Decimal;
+
+   fragment StartConstructorChar : Upper | [$_] | Infix | Unicode; /* [INTERNAL '$'] */
+   fragment ConstructorChar      : Alpha | Infix | Unicode;
+   
+   fragment Digit   : [0-9];
+   fragment Upper   : [A-Z];                                                /* [INTERNAL '$'] */
+   fragment Lower   : [a-z];       
+   fragment Alpha   : [a-zA-Z0-9$_];
+   fragment Decimal : [0-9]+ ('.' [0-9]+)? | '.' [0-9]+; 
+   fragment Infix   : [+\-~`!*\%^|?];
+   fragment Unicode : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
