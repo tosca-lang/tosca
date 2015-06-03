@@ -5,6 +5,6 @@
 	<classpathentry kind="src" path="samples/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="lib" path="targets/java/lib/antlr-runtime-4.5.jar" sourcepath="targets/java/lib/antlr4-4.5.zip"/>
-	<classpathentry kind="lib" path="bin/lib/crsx.jar" sourcepath="/crsx"/>
+	<classpathentry kind="lib" path="targets/java/lib/crsx3.jar"/>
 	<classpathentry kind="output" path="targets/java/build"/>
 </classpath>

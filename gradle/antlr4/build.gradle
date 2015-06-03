@@ -1,0 +1,19 @@
+apply plugin: 'groovy'
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+}
+
+apply plugin: 'maven'
+
+group = 'org.crsx'
+version = '1.0'
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: uri('..'))
+        }
+    }
+}

@@ -1,11 +1,82 @@
 // Copyright (c) 2015 IBM Corporation.
 // CRSX Java target build file.
 
+// --- Script configuration
+
+buildscript {
+	repositories {
+		maven {
+			url uri('../../gradle')
+		}
+	}
+	dependencies {
+		classpath group: 'org.crsx', name: 'antlr4', version: '1.0'
+	}
+}
+
+// --- Generate ANLTR parsers
+
+apply plugin:'org.crsx.antlr4'
+
+ext {
+pgSrc       = file('../../src/pg').absolutePath                                   // PG source directory
+pgTgt       = file('../../targets/java/parsers/org/crsx/pg').absolutePath         // PG target directory
+crsxSrc     = file('../../src/parser').absolutePath                               // Crsx source directory
+crsxTgt     = file('../../targets/java/parsers/org/crsx/parser').absolutePath     // Crsx parsers target directory
+}
+
+task antlrArtifacts(type: org.crsx.Antlr4Task) {
+	description 'Generate Java ANTLR lexers and term parser'
+	pwd pgSrc
+	packageName 'org.crsx.pg'
+	inputs.files 'ANTLRTermLexer.g4', 'ANTLRTerm.g4', 'ANTLRMetaLexer.g4'
+	outputs.dir pgTgt
+}
+
+task buildAntlrParsers(type: org.crsx.Antlr4Task, dependsOn: antlrArtifacts) {
+	description 'Generate Java ANTLR term and meta parsers'
+	pwd pgSrc
+	superClass 'org.crsx.pg.Crsx3Parser'
+	packageName 'org.crsx.pg'
+	inputs.file 'ANTLRMeta.g4'
+	outputs.dir pgTgt
+}
+
+task crsxArtifacts(type: org.crsx.Antlr4Task) {
+	description 'Generate Java Crsx lexers and term parser'
+	pwd crsxSrc
+	packageName 'org.crsx.parser'
+	inputs.files 'CrsxMetaLexer.g4', 'CrsxTerm.g4'
+	outputs.dir crsxTgt
+}
+
+task buildCrsxParsers(type: org.crsx.Antlr4Task, dependsOn: crsxArtifacts) {
+	description 'Generate Java Crsx term and meta parsers'
+	pwd crsxSrc
+	superClass 'org.crsx.pg.Crsx3Parser'
+	packageName 'org.crsx.parser'
+	inputs.file 'CrsxMetaParser.g4'
+	outputs.dir crsxTgt
+}
+
+task buildParsers(dependsOn: [buildAntlrParsers, buildCrsxParsers]) 
+
+dependencies {
+	antlr4 'org.antlr:antlr4:4.5'
+}
+
+// --- Generate Crsx parsers
+
+ 
+// --- Java compilation/packaging
+
 apply plugin:'java'
 
 compileJava {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
+	
+	dependsOn buildParsers
 }
 
 version = '4.0.0-SNAPSHOT'
@@ -28,5 +99,13 @@ repositories {
 
 dependencies {
     compile fileTree(dir: 'lib', include: ['crsx3.jar'])
-    compile 'org.antlr:antlr4:4.5'
+	compile 'org.antlr:antlr4:4.5'
+}
+
+// ---- Distribution jar
+
+task dist(type: Copy, dependsOn: jar) {
+	description "Generate distribution jar."
+	from jar
+	into project.file('dist')
 }
