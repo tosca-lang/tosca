@@ -50,6 +50,8 @@ task crsxArtifacts(type: org.crsx.Antlr4Task) {
 	outputs.dir crsxTgt
 }
 
+// --- Generate Crsx parsers
+
 task buildCrsxParsers(type: org.crsx.Antlr4Task, dependsOn: crsxArtifacts) {
 	description 'Generate Java Crsx term and meta parsers'
 	pwd crsxSrc
@@ -65,9 +67,6 @@ dependencies {
 	antlr4 'org.antlr:antlr4:4.5'
 }
 
-// --- Generate Crsx parsers
-
- 
 // --- Java compilation/packaging
 
 apply plugin:'java'
@@ -78,6 +77,9 @@ compileJava {
 	
 	dependsOn buildParsers
 }
+
+clean.dependsOn cleanBuildCrsxParsers
+clean.dependsOn cleanBuildAntlrParsers
 
 version = '4.0.0-SNAPSHOT'
 
