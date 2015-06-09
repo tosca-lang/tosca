@@ -1,5 +1,7 @@
 // Copyright (c) 2015 IBM Corporation.
-// CRSX Java target build file.
+/*
+ *  CRSX Java target build file.
+ */
 
 // --- Script configuration
 
@@ -19,10 +21,10 @@ buildscript {
 apply plugin:'org.crsx.antlr4'
 
 ext {
-pgSrc       = file('../../src/pg').absolutePath                                   // PG source directory
-pgTgt       = file('../../targets/java/parsers/org/crsx/pg').absolutePath         // PG target directory
-crsxSrc     = file('../../src/parser').absolutePath                               // Crsx source directory
-crsxTgt     = file('../../targets/java/parsers/org/crsx/parser').absolutePath     // Crsx parsers target directory
+	pgSrc       = file('../../src/pg').absolutePath                                   // PG source directory
+	pgTgt       = file('../../targets/java/parsers/org/crsx/pg').absolutePath         // PG target directory
+	crsxSrc     = file('../../src/parser').absolutePath                               // Crsx source directory
+	crsxTgt     = file('../../targets/java/parsers/org/crsx/parser').absolutePath     // Crsx parsers target directory
 }
 
 task antlrArtifacts(type: org.crsx.Antlr4Task) {

@@ -76,7 +76,7 @@ freeTerm
     | annotations? variable                                 /* [CORE]  Variable construction */
     | annotations? properties                               /* [CORE]  Named data structure */
     | annotations? properties? METAVAR freeArguments?       /* [CORE]  Meta variable. */
-    | annotations? properties? concrete                     /* [SUGAR] Concrete syntax */
+    | annotations? concrete                                 /* [SUGAR] Concrete syntax */
     | annotations? properties? expression                   /* [CORE]  Expression reducing to a term */
     ;
              
@@ -142,8 +142,6 @@ concrete
     | CATEGORY CONCRETE2                                   /* [BC3]   */
     | CATEGORY CONCRETE3                                   /* [BC3]   */
     | CATEGORY CONCRETE4                                   /* [BC3]   */
-    | CATEGORY CONCRETE5                                   /* [BC3]   */
-    | CONCRETE                                             /* [SUGAR] */
     ;    
     
 dispatch
@@ -296,11 +294,11 @@ AT              : '@';
 
 CATEGORY        : '%' (Alpha | Digit)+ ('*' | '+' | '?')?;
 
+
 CONCRETE        : '\u27e6' (CONCRETE|.)*? '\u27e7';
 CONCRETE2       : '⟪' (CONCRETE2|.)*?'⟫';
 CONCRETE3       : '\u27EA' (CONCRETE3|.)*? '\u27EB';
-CONCRETE4       : '\u27E8' (CONCRETE4|.)*? '\u27E9';
-CONCRETE5       : '\u2983' (CONCRETE5|.)*? '\u2984';
+CONCRETE4       : '\u2983' (CONCRETE4|.)*? '\u2984';
 
 CONSTRUCTOR     : StartConstructorChar ConstructorChar*;
 

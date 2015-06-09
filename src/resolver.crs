@@ -126,7 +126,7 @@ $[Error, $[:, "Expression not implemented yet: ", #expression]];
 
 {#E}ResolvePropertiesOpt[%properties?⟨                   ⟩, #modname, #content] → %properties?⟨⟩;
 {#E}ResolvePropertiesOpt[%properties?⟨ {               } ⟩, #modname, #content] → %properties?⟨{}⟩;
-{#E}ResolvePropertiesOpt[%properties?⟨ { #propertyList } ⟩, #modname, #content] → %properties?⟨ { ⟨propertyList: {#E}ResolvePropertyList[DesugarPropertyList[#propertyList], #modname, #content]⟩ } ⟩;
+{#E}ResolvePropertiesOpt[%properties?⟨ { #propertyList } ⟩, #modname, #content] → %properties?⟨ { ⟨propertyList: SugarPropertyList[{#E}ResolvePropertyList[DesugarPropertyList[#propertyList], #modname, #content]]⟩ } ⟩;
 
 {$String:$StringEntry}ResolvePropertyList[$List[Crsx_propertyList_S1_sort], $String, Content] :: $List[Crsx_propertyList_S1_sort];
 

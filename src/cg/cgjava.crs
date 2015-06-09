@@ -401,12 +401,15 @@ SendProperty[%property⟨ #METAVAR ⟩]
 → 
 {#E}SetFreeTerm[#freeTerm, ok¹ value.SendNamedProperty[ok¹, #STRING, value]];               
 
+{#E}SendProperty[%property⟨ #CONSTRUCTOR : #freeTerm ⟩]                         
+→ 
+{#E}SetFreeTerm[#freeTerm, ok¹ value.SendNamedProperty[ok¹, #CONSTRUCTOR, value]];               
+
 {#E}SendProperty[%property⟨ ¬ #METAVAR            ⟩] → $[Error, "Internal error: test for property absence not allowed in contraction"];
 {#E}SendProperty[%property⟨ #VARIABLE             ⟩] → $[Error, "Internal error: test for variable presence not allowed in contraction"];                                               
 {#E}SendProperty[%property⟨ ¬ #VARIABLE           ⟩] → $[Error, "Internal error: test for variable absence not allowed in contraction"];                                          
 {#E}SendProperty[%property⟨ #STRING               ⟩] → $[Error, "Internal error: test for named property presence not allowed in contraction"];                                             
 {#E}SendProperty[%property⟨ ¬ #STRING             ⟩] → $[Error, "Internal error: test for named property absence not allowed in contraction"];                                            
-{#E}SendProperty[%property⟨  #constructor : #freeTerm ⟩] →  $[Error, "Internal error: sort set declaration not allowed in contraction"];                        
 
 SendMetaProperty[OK_SORT, $String, Text] :: Text;
 
@@ -427,7 +430,7 @@ SendNamedProperty[OK_SORT, $String, Text] :: Text;
 {#E; "$sink": TEXT[#sink]}
 SendNamedProperty[OK, #name, #value] 
 →
-%n⟨¶«#sink».propertyNamed(†«#name», «#value»);⟩;           
+%n⟨¶«#sink».propertyNamed(«Text-QuoteString[#name]», «#value»);⟩;           
 
 // --- SEND var
 

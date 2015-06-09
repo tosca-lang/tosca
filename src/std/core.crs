@@ -43,5 +43,10 @@ UnwrapBoolean[Boolean] :: $Boolean ;
 UnwrapBoolean[TRUE]  → $True;
 UnwrapBoolean[FALSE] → $False;
 
+// --- Debugging
+
+∀ a . Trace[a] :: a;
+-[Data[#]]: Trace[#] → $[Trace, #];
+
 
 )]

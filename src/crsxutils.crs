@@ -95,6 +95,10 @@ SugarDispatchCases[$List[Crsx_dispatchCases_S1_ZOM_sort]] :: Crsx_dispatchCases_
 SugarDispatchCases[%dispatchCases_S1*⟨                                    ⟩] → $[Error, "Assertion error: at least one dispatch case must be defined."]; 
 SugarDispatchCases[%dispatchCases_S1*⟨ ; #dispatchCase #dispatchCases_S1* ⟩] → %dispatchCases⟨ #dispatchCase #dispatchCases_S1* ⟩; 
 
+SugarPropertyList[$List[Crsx_propertyList_S1_sort]] :: Crsx_propertyList_sort;
+SugarPropertyList[%propertyList_S1*⟨                    ⟩]            → $[Error, "Internal error: cannot rewrite an empty list of properties."];
+SugarPropertyList[%propertyList_S1*⟨ ; #property #propertyList_S1* ⟩] → %propertyList⟨ #property #propertyList_S1* ⟩; 
+
 // Syntactic desugar helpers (temporary to alleviate pg4 limitations)
 
 DesugarDeclarations[Crsx_declarations_sort] :: $List[Crsx_declarations_S1_sort];
@@ -108,6 +112,10 @@ DesugarFreeTerms[%freeTerms⟨ #freeTerm #freeTerms_S1* ⟩] → %freeTerms_S1*�
 
 DesugarTermList[Crsx_termList_sort] :: $List[Crsx_termList_S1_sort];
 DesugarTermList[%termList⟨ #term #termList_S1* ⟩] →  %termList_S1*⟨ ; #term #termList_S1* ⟩;
+
+DesugarFreeTermList[Crsx_freeTerm_sort] :: Crsx_freeTerm_sort;
+DesugarList[%freeTerm⟨ #annotations? (           ) ⟩] → %freeTerm⟨ #annotations? $Nil ⟩;
+DesugarList[%freeTerm⟨ #annotations? ( #termList ) ⟩] → DesugarListTermList[DesugarTermList[#termList]]; // TODO: preserve annotations 
 
 DesugarList[Crsx_list_sort] :: Crsx_freeTerm_sort;
 DesugarList[%list⟨ (           ) ⟩] → %freeTerm⟨ $Nil ⟩;

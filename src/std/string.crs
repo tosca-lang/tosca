@@ -7,6 +7,7 @@ String[(
 
 $Use["std/core.crs"];
 
+// --- Testing
 
 StartsWith[$String /* string */, $String /* search string */] :: Boolean; /* extern */
 -[Data[#string, #search]]: StartsWith[#string, #search] → WrapBoolean[$[StartsWith, #string, #search]];
@@ -14,12 +15,30 @@ StartsWith[$String /* string */, $String /* search string */] :: Boolean; /* ext
 StringEqual[$String /* string */, $String /* other string */] :: Boolean; /* extern */
 -[Data[#string1, #string2]]: StringEqual[#string1, #string2] → WrapBoolean[$[Equal, #string1, #string2]];
 
+// --- Mutation
+
 UnString[$String] :: $String; 
 -[Data[#string]]: UnString[#string] → $[Rescape, #string] ;
 
-// Make sure the first character is upper case
+/*
+ * Make sure the given string first character is upper case
+ */
 UpCaseFirst[$String] :: $String;
 UpCaseFirst[#string] → $[:, $[UpCase, $[Substring, #string, 0, 1]], $[Substring, #string, 1]]; 
+
+/*
+ * Returns given string without its first character
+ */
+RemoveFirstChar[$String] :: $String; 
+-[Data[#string]]: RemoveFirstChar[#string] → $[Substring, #string, 1];
+
+
+/*
+ * Returns given string without its last character
+ */
+RemoveLastChar[$String] :: $String; 
+-[Data[#string]]: RemoveLastChar[#string] → $[Substring, #string, 0, $[Minus, $[Length, #string], 1]];
+
 
 AfterLast[$String, $String] :: $String;
 
@@ -33,7 +52,6 @@ $[If, $[Contains, #string, #sep],
 // Internal helper.
 -[Data[#string]]:
 AfterLast2[#string, #sep] → AfterLast[#string, #sep];
-
 
 BeforeLast[$String, $String] :: $String;
 
@@ -51,5 +69,19 @@ $[If, $[Equal, #After, ""],
     #Before,
     $[:, #Before, #Sep, #After]];
 
+
+// --- Parsing
+
+∀ a.ParseString[$String, $String] :: a;
+
+-[Data[#category, #string]]: 
+ParseString[#category, #string] → $[ParseText, #category, #string]; // TODO: line information.
+
+/*
+ * Serialize term as string
+ */
+∀ a.Show[a] :: $String;
+
+-[Data[#term]]: Show[#term] → $[Show, #term];
 
 )]

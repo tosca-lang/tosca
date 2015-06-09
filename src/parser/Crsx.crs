@@ -72,7 +72,7 @@ Crsx_Print_term[Crsx_term_sort] :: Text;
 Crsx_Print_term[Crsx_term_A1[#1]] → %n⟪«Crsx_Print_freeTerm[#1]»⟫;
 Crsx_Print_term[Crsx_term_A2[#1]] → %n⟪«Crsx_Print_boundTerm[#1]»⟫;
 
-Crsx_freeTerm_sort ::= (Crsx_freeTerm_A1[$List[Crsx_annotations_sort], $List[Crsx_properties_sort], Crsx_constructor_sort, $List[Crsx_arguments_sort]]; Crsx_freeTerm_A2[$List[Crsx_annotations_sort], $List[Crsx_properties_sort], Crsx_constructor_sort, Crsx_term_sort]; Crsx_freeTerm_A3[$List[Crsx_annotations_sort], $List[Crsx_properties_sort], Crsx_literal_sort]; Crsx_freeTerm_A4[$List[Crsx_annotations_sort], Crsx_list_sort]; Crsx_freeTerm_A5[$List[Crsx_annotations_sort], Crsx_variable_sort]; Crsx_freeTerm_A6[$List[Crsx_annotations_sort], Crsx_properties_sort]; Crsx_freeTerm_A7[$List[Crsx_annotations_sort], $List[Crsx_properties_sort], $String, $List[Crsx_freeArguments_sort]]; Crsx_freeTerm_A8[$List[Crsx_annotations_sort], $List[Crsx_properties_sort], Crsx_concrete_sort]; Crsx_freeTerm_A9[$List[Crsx_annotations_sort], $List[Crsx_properties_sort], Crsx_expression_sort]; );
+Crsx_freeTerm_sort ::= (Crsx_freeTerm_A1[$List[Crsx_annotations_sort], $List[Crsx_properties_sort], Crsx_constructor_sort, $List[Crsx_arguments_sort]]; Crsx_freeTerm_A2[$List[Crsx_annotations_sort], $List[Crsx_properties_sort], Crsx_constructor_sort, Crsx_term_sort]; Crsx_freeTerm_A3[$List[Crsx_annotations_sort], $List[Crsx_properties_sort], Crsx_literal_sort]; Crsx_freeTerm_A4[$List[Crsx_annotations_sort], Crsx_list_sort]; Crsx_freeTerm_A5[$List[Crsx_annotations_sort], Crsx_variable_sort]; Crsx_freeTerm_A6[$List[Crsx_annotations_sort], Crsx_properties_sort]; Crsx_freeTerm_A7[$List[Crsx_annotations_sort], $List[Crsx_properties_sort], $String, $List[Crsx_freeArguments_sort]]; Crsx_freeTerm_A8[$List[Crsx_annotations_sort], Crsx_concrete_sort]; Crsx_freeTerm_A9[$List[Crsx_annotations_sort], $List[Crsx_properties_sort], Crsx_expression_sort]; );
 
 Crsx_Print_freeTerm[Crsx_freeTerm_sort] :: Text;
 Crsx_Print_freeTerm[Crsx_freeTerm_A1[#1, #2, #3, #4]] → %n⟪«TextFold[Map[x.Crsx_Print_annotations[x], #1], %n⟪ ⟫]»«TextFold[Map[x.Crsx_Print_properties[x], #2], %n⟪ ⟫]»«Crsx_Print_constructor[#3]»«TextFold[Map[x.Crsx_Print_arguments[x], #4], %n⟪ ⟫]»⟫;
@@ -82,7 +82,7 @@ Crsx_Print_freeTerm[Crsx_freeTerm_A4[#1, #2]] → %n⟪«TextFold[Map[x.Crsx_Pri
 Crsx_Print_freeTerm[Crsx_freeTerm_A5[#1, #2]] → %n⟪«TextFold[Map[x.Crsx_Print_annotations[x], #1], %n⟪ ⟫]»«Crsx_Print_variable[#2]»⟫;
 Crsx_Print_freeTerm[Crsx_freeTerm_A6[#1, #2]] → %n⟪«TextFold[Map[x.Crsx_Print_annotations[x], #1], %n⟪ ⟫]»«Crsx_Print_properties[#2]»⟫;
 Crsx_Print_freeTerm[Crsx_freeTerm_A7[#1, #2, #3, #4]] → %n⟪«TextFold[Map[x.Crsx_Print_annotations[x], #1], %n⟪ ⟫]»«TextFold[Map[x.Crsx_Print_properties[x], #2], %n⟪ ⟫]»†«#3»«TextFold[Map[x.Crsx_Print_freeArguments[x], #4], %n⟪ ⟫]»⟫;
-Crsx_Print_freeTerm[Crsx_freeTerm_A8[#1, #2, #3]] → %n⟪«TextFold[Map[x.Crsx_Print_annotations[x], #1], %n⟪ ⟫]»«TextFold[Map[x.Crsx_Print_properties[x], #2], %n⟪ ⟫]»«Crsx_Print_concrete[#3]»⟫;
+Crsx_Print_freeTerm[Crsx_freeTerm_A8[#1, #2]] → %n⟪«TextFold[Map[x.Crsx_Print_annotations[x], #1], %n⟪ ⟫]»«Crsx_Print_concrete[#2]»⟫;
 Crsx_Print_freeTerm[Crsx_freeTerm_A9[#1, #2, #3]] → %n⟪«TextFold[Map[x.Crsx_Print_annotations[x], #1], %n⟪ ⟫]»«TextFold[Map[x.Crsx_Print_properties[x], #2], %n⟪ ⟫]»«Crsx_Print_expression[#3]»⟫;
 
 Crsx_boundTerm_sort ::= (Crsx_boundTerm[Crsx_binder_sort, Crsx_nextBinder_sort]; );
@@ -172,15 +172,13 @@ Crsx_varsort_sort ::= (Crsx_varsort[$String, Crsx_sortname_sort]; );
 Crsx_Print_varsort[Crsx_varsort_sort] :: Text;
 Crsx_Print_varsort[Crsx_varsort[#1, #2]] → %n⟪†«#1»«Crsx_Print_sortname[#2]»⟫;
 
-Crsx_concrete_sort ::= (Crsx_concrete_A1[$String, $String]; Crsx_concrete_A2[$String, $String]; Crsx_concrete_A3[$String, $String]; Crsx_concrete_A4[$String, $String]; Crsx_concrete_A5[$String, $String]; Crsx_concrete_A6[$String]; );
+Crsx_concrete_sort ::= (Crsx_concrete_A1[$String, $String]; Crsx_concrete_A2[$String, $String]; Crsx_concrete_A3[$String, $String]; Crsx_concrete_A4[$String, $String]; );
 
 Crsx_Print_concrete[Crsx_concrete_sort] :: Text;
 Crsx_Print_concrete[Crsx_concrete_A1[#1, #2]] → %n⟪†«#1»†«#2»⟫;
 Crsx_Print_concrete[Crsx_concrete_A2[#1, #2]] → %n⟪†«#1»†«#2»⟫;
 Crsx_Print_concrete[Crsx_concrete_A3[#1, #2]] → %n⟪†«#1»†«#2»⟫;
 Crsx_Print_concrete[Crsx_concrete_A4[#1, #2]] → %n⟪†«#1»†«#2»⟫;
-Crsx_Print_concrete[Crsx_concrete_A5[#1, #2]] → %n⟪†«#1»†«#2»⟫;
-Crsx_Print_concrete[Crsx_concrete_A6[#1]] → %n⟪†«#1»⟫;
 
 Crsx_dispatch_sort ::= (Crsx_dispatch[$String, Crsx_dispatchTerm_sort, Crsx_dispatchCases_sort, $List[Crsx_delayCase_sort]]; );
 

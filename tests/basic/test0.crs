@@ -7,6 +7,6 @@ $Use["fun.crs"];
 
 Main :: $List[Boolean];
 
-Main → Fun.Map[x.x, Fun.$Cons[ Bool.False, Fun.$Nil]];
+Main → Map[x.x, $Cons[False, $Nil]];
 
 )]

@@ -1,0 +1,76 @@
+// Copyright (c) 2015 IBM Corporation.
+
+// Main CRSX build file.
+
+// --- Build custom tasks
+
+// --- Custom tasks
+
+task antlrl4Task(type: GradleBuild) {
+	dir = 'gradle/antlr4';
+	tasks = ['upload']
+}
+
+task crsx3Task(type: GradleBuild) {
+	dir = 'gradle/crsx3';
+	tasks = ['upload']
+}
+
+task crsx4Task(type: GradleBuild) {
+	dir = 'gradle/crsx4';
+	tasks = ['upload']
+}
+
+task customTasks(dependsOn: [antlrl4Task, crsx3Task, crsx4Task]) {}
+ 
+
+// --- Java target
+
+task java(type: GradleBuild) {
+	description = "Generate CRSX Java distribution file.";
+	dir = 'targets/java';
+	tasks = ['dist']
+}
+
+// --- Bootstrapping
+
+buildscript {
+	repositories {
+		maven {
+			url uri('gradle')
+		}
+	}
+	dependencies {
+		classpath group: 'org.crsx', name: 'crsx4', version: '1.0'
+	}
+}
+
+apply plugin:'org.crsx.crsx4'
+
+repositories {
+//	flatDir {
+//		dirs "lib"
+//	}
+	mavenCentral()
+}
+
+dependencies {
+	crsx4 fileTree(dir: 'bootstrap', include: ['crsx3.jar'])
+	crsx4 fileTree(dir: 'bootstrap', include: ['crsx4.jar']) 
+	crsx4 'org.antlr:antlr4:4.5' 
+}
+
+crsx4 {
+	grammars {
+		main {
+			input = 'src/parser/Crsx.g4'
+		}
+	}
+}
+
+task updateBootstrap(type: Copy, dependsOn: java) {
+	description "Update bootstrapping crsx4."
+	from 'targets/java/dist/crsx-4.0.0-SNAPSHOT.jar'
+	into 'bootstrap'
+	rename { String fileName -> "crsx4.jar" }
+}
