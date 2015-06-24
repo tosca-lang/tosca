@@ -48,7 +48,7 @@ clean::
 pg: $(PGSRC)/bootstrap/ANTLR.crs
 
 $(PGSORT): $(PGSRC)/ANTLR.g4
-	@$(RUNJAVAPG) $< "$<.term"
+	$(RUNJAVAPG) $< "$<.term"
 	@cd src && $(RUNCRSX) "grammar=('net.sf.crsx.text.Text';'org.crsx.pg.ANTLRMeta';)" rules=pg/normalizer.crs input="pg/ANTLR.g4.term" wrapper=Normalize output="pg/ANTLR.g4.nterm"
 	@cd src && $(RUNCRSX) "grammar=('net.sf.crsx.text.Text';)" sink=net.sf.crsx.text.TextSink rules=pg/gensort.crs input="pg/ANTLR.g4.nterm" wrapper=MakePrinter output="pg/bootstrap/ANTLR.crs"
 	@rm "$<.term" "$<.nterm"

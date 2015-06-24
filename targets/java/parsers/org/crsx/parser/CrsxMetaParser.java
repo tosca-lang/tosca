@@ -1,4 +1,4 @@
-// Generated from /Users/villardl/Projects/crsx/crsx4/src/parser/CrsxMetaParser.g4 by ANTLR 4.5
+// Generated from CrsxMetaParser.g4 by ANTLR 4.5
 package org.crsx.parser;
 
 import org.crsx.pg.SinkAntlrListener;

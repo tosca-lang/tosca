@@ -35,16 +35,15 @@ task java(type: GradleBuild) {
 
 buildscript {
 	repositories {
-		maven {
-			url uri('gradle')
-		}
+		mavenLocal()
+                mavenCentral()
 	}
 	dependencies {
-		classpath group: 'org.crsx', name: 'crsx4', version: '1.0'
+		classpath group: 'org.crsx', name: 'crsx4gradle', version: '1.0'
 	}
 }
 
-apply plugin:'org.crsx.crsx4'
+apply plugin:'org.crsx.crsx4gradle'
 
 repositories {
 //	flatDir {

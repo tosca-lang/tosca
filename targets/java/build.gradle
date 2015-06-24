@@ -9,9 +9,7 @@ apply plugin:'maven'
 
 buildscript {
 	repositories {
-		maven {
-			url uri('../../gradle')
-		}
+		mavenLocal()
 	}
 	dependencies {
 		classpath group: 'org.crsx', name: 'antlr4', version: '1.0'
