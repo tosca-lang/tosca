@@ -11,6 +11,11 @@ $Lax;
 
 OK_SORT ::= ( OK; );
 
+// --- Builtin string entry
+
+$StringEntry ::= ( STRING[$String];);
+
+
 // --- Optional value
 
 ∀ a.Option[a] ::= ( SOME[a]; NONE; );
@@ -36,8 +41,7 @@ Or[TRUE, #]  → TRUE;
 Or[FALSE, #] → #;
 
 WrapBoolean[$Boolean] :: Boolean ;
-WrapBoolean[$True]  → TRUE;
-WrapBoolean[$False] → FALSE;
+-[Data[#]]: WrapBoolean[#]  → $[If, $[Equal, #, "$True"], TRUE, FALSE];
 
 UnwrapBoolean[Boolean] :: $Boolean ;
 UnwrapBoolean[TRUE]  → $True;

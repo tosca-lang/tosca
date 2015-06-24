@@ -153,7 +153,7 @@ ParserConstructs[#id, $True, #meta]     →
             $[If, #meta, "protected void _embed()    { fireEmbed(_parseListeners, _ctx); }\n", ""],
             $[If, #meta, "protected void _tail()     { fireTail(_parseListeners, _ctx); }\n", ""],
             $[If, #meta, "protected void _term()     { fireTerm(_parseListeners, _ctx); }\n", ""],
-            
+            $[If, #meta, $[:, "protected String _metachar() { return ", MetaChar["\""], ";}\n"], ""],
         "}"]⟩
     ⟩;
 
@@ -164,17 +164,17 @@ MakeModeSpec[#modeSpec*, METAPARSER]    → #modeSpec*;
 MakeModeSpec[#modeSpec*, METALEXER]     → 
     Concat[
         %modeSpec*⟨
-            mode Embed;
+            mode CrsxEmbed;
             
-            EMBED_END           : END_EMBED_CHAR            -> popMode;
-            EMBED_NESTED        : START_EMBED_CHAR          -> pushMode(NestedEmbed), more;
-            EMBEDDED            : .                         -> more;
+            CRSX_EMBED_END           : CRSX_END_EMBED_CHAR       -> popMode;
+            CRSX_EMBED_NESTED        : CRSX_START_EMBED_CHAR     -> pushMode(CrsxNestedEmbed), more;
+            CRSX_EMBEDDED            : .                         -> more;
                     
-            mode NestedEmbed;    
+            mode CrsxNestedEmbed;    
         
-            NESTED_EMBED_END    : END_EMBED_CHAR            -> popMode, more;
-            NESTED_EMBED_NESTED : START_EMBED_CHAR          -> pushMode(NestedEmbed), more;
-            NESTED_EMBEDDED     : .                         -> more;
+            CRSX_NESTED_EMBED_END    : CRSX_END_EMBED_CHAR       -> popMode, more;
+            CRSX_NESTED_EMBED_NESTED : CRSX_START_EMBED_CHAR     -> pushMode(CrsxNestedEmbed), more;
+            CRSX_NESTED_EMBEDDED     : .                         -> more;
         ⟩,
         #modeSpec*
     ];
@@ -188,15 +188,13 @@ MakeRules[{#L}%rules⟨ #ruleSpec* ⟩, #mode] → {#L}%rules⟨ ⟨ruleSpec*: M
 // 
 MakeRuleSpecs[$List[ANTLR_ruleSpec_sort], Mode] :: $List[ANTLR_ruleSpec_sort];
 
-// TODO: special characters should be configurable.
-
 MakeRuleSpecs[(), PARSER]       → ();
 MakeRuleSpecs[(), METAPARSER]   → ();
 MakeRuleSpecs[(), METALEXER]    → 
     %ruleSpec* ⟨
-        fragment META_CHAR        : '#'; 
-        fragment START_EMBED_CHAR : '⟨';  
-        fragment END_EMBED_CHAR   : '⟩';  
+        fragment CRSX_META_CHAR        : ⟨STRING_LITERAL: MetaChar["'"]⟩; 
+        fragment CRSX_START_EMBED_CHAR : '⟨';  
+        fragment CRSX_END_EMBED_CHAR   : '⟩';  
     ⟩;
 
 MakeRuleSpecs[(#ruleSpec; #ruleSpec*), #mode]  → Concat[MakeRuleSpec[#ruleSpec, #mode], MakeRuleSpecs[#ruleSpec*, #mode]];
@@ -267,7 +265,7 @@ WrapElement[{#L}#element, %ebnfSuffix⟨ + ⟩, #RULE_REF, #meta] → Concat[{#L
 MakeTail[$String, $Boolean] :: $List[ANTLR_element_sort];
 
 MakeTail[#RULE_REF, $False]    → %element*⟨ ⟩;
-MakeTail[#RULE_REF, $True]     → %element*⟨ ({_tail();} ({_term();} ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩ | {_embed();} ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩ EMBED_END))? ⟩;
+MakeTail[#RULE_REF, $True]     → %element*⟨ ({_tail();} ({_term();} ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩ | {_embed();} ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩ CRSX_EMBED_END))? ⟩;
 
 // ({tail();} ({term();} MT_ELEMENT_ZOM | {embed();} ET_ELEMENT_ZOM EMBED_END))?
 
@@ -295,8 +293,8 @@ MakeMetaRules[METAPARSER, #RULE_REF, #resolved]    →
 
 MakeMetaRules[METALEXER, #RULE_REF, #resolved]     →    
     ( 
-        %ruleSpec⟨ ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩  : META_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, "'"]⟩[0-9]* ; ⟩;
-        %ruleSpec⟨ ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩  : START_EMBED_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, ":'"]⟩  -> pushMode(Embed); ⟩;
+        %ruleSpec⟨ ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩  : CRSX_META_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, "'"]⟩[0-9]* ; ⟩;
+        %ruleSpec⟨ ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩  : CRSX_START_EMBED_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, ":'"]⟩  -> pushMode(CrsxEmbed); ⟩;
     );
 
 //----- Generate additional alternatives, for META and EMBED. Only for meta paresr
@@ -308,7 +306,7 @@ MakeMetaAltList[#RULE_REF, METALEXER]   → ();
 
 MakeMetaAltList[#RULE_REF, METAPARSER]  
 →
-%ruleAltList_S1*⟨ | {_term();} ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩ | {_embed();} ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩ EMBED_END ⟩; 
+%ruleAltList_S1*⟨ | {_term();} ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩ | {_embed();} ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩ CRSX_EMBED_END ⟩; 
 
 // 
 // LiftEbnfRules
@@ -475,4 +473,9 @@ IsInternalRule[#RuleRef] →
     $[If, $[EndsWith, #RuleRef, "_OOM"], $True,
     $[If, $[EndsWith, #RuleRef, "_TOK"], $True,
     $False]]]];
+
+
+// The meta sequence of characters
+MetaChar[$String] :: $String;
+MetaChar[#quote] → $[:, #quote, $[Get, "metaprefix", "#"], #quote];
 )]

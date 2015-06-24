@@ -54,14 +54,14 @@ public class CrsxParser
 
 			CrsxTermParser parser = new CrsxTermParser(input);
 			parser.setBuildParseTree(false);
-			//parser.setTrace(true);
+			parser.setTrace(true);
 			GenericFactory factory = new GenericFactory();
 			Buffer buffer = new Buffer(factory);
-			SinkAntlrListener listener = new SinkAntlrListener(factory, buffer.sink(), "Crsx_", parser);
+			SinkAntlrListener listener = new SinkAntlrListener(factory, buffer.sink(), "Crsx_", "##", parser);
 
 			parser.addParseListener(listener);
 			parser.crsx();
-
+            //parser.freeTerm();
 			GenericTerm term = (GenericTerm) buffer.term(true);
 
 			FileWriter w = new FileWriter(outputname);

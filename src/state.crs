@@ -31,7 +31,7 @@ ModuleKey[$String] :: $String;
 
 // Register module to compile. If module already registered, this does nothing. Add it to the $notloaded list
 ∀ a.{$String:$StringEntry}
-AddModule[$String /* filename */, Boolean, ok¹::OK_SORT.$Sort[a]] :: a;
+AddModule[$String /* filename */, Mode, ok¹::OK_SORT.$Sort[a]] :: a;
 {#E}AddModule[#filename, #main, ok¹.#[ok¹]] → {#E}AddModuleKey[ModuleKey[#filename], #filename, #main, ok¹.#[ok¹]]; 
 
 ∀ a.{$String:$StringEntry}
@@ -114,28 +114,28 @@ UnRULES[ContentEntry] :: $List[Crsx_ruleDeclaration_sort];
 UnRULES[RULES[#]] → #;
 
 RulesKey[Crsx_constructor_sort] :: $String;
-RulesKey[%constructor⟨ #CONSTRUCTOR ⟩] → $[:, "$rules$", #CONSTRUCTOR];
-RulesKey[%constructor⟨ :            ⟩] → "$rules$:";
+RulesKey[%constructor⟦ ##CONSTRUCTOR ⟧] → $[:, "$rules$", #CONSTRUCTOR];
+RulesKey[%constructor⟦ :             ⟧] → "$rules$:";
 
 DataSortKey[Crsx_sortname_sort] :: $String;
-DataSortKey[%sortname⟨ #CONSTRUCTOR #sortarguments? ⟩] → $[:, "$data$", #CONSTRUCTOR];
-DataSortKey[%sortname⟨ :            #sortarguments? ⟩] → "$data$:";
+DataSortKey[%sortname⟦ ##CONSTRUCTOR ##sortarguments? ⟧] → $[:, "$data$", #CONSTRUCTOR];
+DataSortKey[%sortname⟦ :             ##sortarguments? ⟧] → "$data$:";
 
 DataFormKey[Crsx_constructor_sort] :: $String;
-DataFormKey[%constructor⟨ #CONSTRUCTOR ⟩] → $[:, "$form$", #CONSTRUCTOR];
-DataFormKey[%constructor⟨ :            ⟩] → "$form$:";
+DataFormKey[%constructor⟦ ##CONSTRUCTOR ⟧] → $[:, "$form$", #CONSTRUCTOR];
+DataFormKey[%constructor⟦ :             ⟧] → "$form$:";
 
 FuncSortKey[Crsx_constructor_sort] :: $String;
-FuncSortKey[%constructor⟨ #CONSTRUCTOR ⟩] → $[:, "$func$", #CONSTRUCTOR];
-FuncSortKey[%constructor⟨ :            ⟩] → "$func$:";
+FuncSortKey[%constructor⟦ ##CONSTRUCTOR ⟧] → $[:, "$func$", #CONSTRUCTOR];
+FuncSortKey[%constructor⟦ :             ⟧] → "$func$:";
 
 SortnameToString[Crsx_sortname_sort] :: $String;
-SortnameToString[%sortname⟨ #CONSTRUCTOR #sortarguments? ⟩] → #CONSTRUCTOR;
-SortnameToString[%sortname⟨ :            #sortarguments? ⟩] → ":";
+SortnameToString[%sortname⟦ ##CONSTRUCTOR ##sortarguments? ⟧] → #CONSTRUCTOR;
+SortnameToString[%sortname⟦ :             ##sortarguments? ⟧] → ":";
 
 ConstructorToString[Crsx_constructor_sort] :: $String;
-ConstructorToString[%constructor⟨ #CONSTRUCTOR ⟩] → #CONSTRUCTOR;
-ConstructorToString[%constructor⟨ :            ⟩] → ":";
+ConstructorToString[%constructor⟦ ##CONSTRUCTOR ⟧] → #CONSTRUCTOR;
+ConstructorToString[%constructor⟦ :             ⟧] → ":";
 
 // --- State lookup.
 
@@ -177,10 +177,10 @@ AddRule2[#key, #ruleDeclaration, ok¹.#[ok¹]]
 ∀ a.{$String:$ContentEntry}
 AddDataSort[Crsx_sortDeclaration_sort, ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
 
-{#E}AddDataSort[%sortDeclaration⟨ #sortparams? #sortset #sortname ::= ( #forms_S1* ) ⟩, ok¹.#[ok¹]]
+{#E}AddDataSort[%sortDeclaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##forms_S1* ) ⟧, ok¹.#[ok¹]]
 →
-{#E}AddDataSort1[DataSortKey[#sortname], %sortDeclaration⟨ #sortparams? #sortset #sortname ::= ( #forms_S1* ) ⟩, ok¹.
-    SeqMap[form cont.AddDataForm[form, #sortname, %sortDeclaration⟨ #sortparams? #sortset #sortname ::= ( #forms_S1* ) ⟩, cont], #forms_S1*, ok¹.#[ok¹]]];
+{#E}AddDataSort1[DataSortKey[#sortname], %sortDeclaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##forms_S1* ) ⟧, ok¹.
+    SeqMap[form cont.AddDataForm[form, #sortname, %sortDeclaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##forms_S1* ) ⟧, cont], #forms_S1*, ok¹.#[ok¹]]];
 
 ∀ a.AddDataSort1[$String, Crsx_sortDeclaration_sort, ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
 
@@ -208,9 +208,14 @@ AddDataSort2[#key, #sortDeclaration, ok¹.#[ok¹]]
 ∀ a.{$String:$ContentEntry}
 AddDataForm[Crsx_forms_S1_sort, Crsx_sortname_sort, Crsx_sortDeclaration_sort, Continuation[a]] :: a;
 
-{#E}AddDataForm[%forms_S1⟨ #constructor #arguments? ; ⟩, #sortname, #sortdecl, #CONTINUATION]
+{#E}AddDataForm[%forms_S1⟦ ##constructor ##arguments? ; ⟧, #sortname, #sortdecl, #CONTINUATION]
 →
 {#E}AddDataForm1[DataFormKey[#constructor], #constructor, #sortname, #sortdecl, #CONTINUATION];
+
+// TODO: indicate syntactic variable allowed in data sort.
+{#E}AddDataForm[%forms_S1⟦ ##variable ; ⟧, #sortname, #sortdecl, CONTINUATION[ok¹.#[ok¹]]]
+→
+{#E}#[OK];
 
 ∀ a.{$String:$ContentEntry}
 AddDataForm1[$String, Crsx_constructor_sort, Crsx_sortname_sort, Crsx_sortDeclaration_sort, Continuation[a]] :: a;
@@ -224,7 +229,7 @@ AddDataForm1[$String, Crsx_constructor_sort, Crsx_sortname_sort, Crsx_sortDeclar
 AddDataForm2[$String, Crsx_constructor_sort, Crsx_sortname_sort, Crsx_sortDeclaration_sort, Continuation[a]] :: a;
 
 -[Data[#key]]: 
-{#E; #key: #exist}AddDataForm2[#key, %constructor⟨ #CONSTRUCTOR1 ⟩, %sortname⟨ #CONSTRUCTOR2 #sortarguments? ⟩, #sortdecl, #CONTINUATION]
+{#E; #key: #exist}AddDataForm2[#key, %constructor⟦ ##CONSTRUCTOR1 ⟧, %sortname⟦ ##CONSTRUCTOR2 ##sortarguments? ⟧, #sortdecl, #CONTINUATION]
 →
 $[Error, $[:, "Error: duplicate data form ", #CONSTRUCTOR1, " found in sort ", #CONSTRUCTOR2, "."]];
  
@@ -237,9 +242,9 @@ AddDataForm2[#key, #constructor, #sortname, #sortdecl, CONTINUATION[ok¹.#[ok¹]
 ∀ a.AddFuncSort[$String, Crsx_sortDeclaration_sort, ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
 
 // Crsx Interpreter does not like fetching a env entry and data at the same time.
-{#E}AddFuncSort[%sortDeclaration⟨ #sortparams? #sortset #constructor #arguments? :: #sortname ⟩, ok¹.#[ok¹]]
+{#E}AddFuncSort[%sortDeclaration⟦ ##sortparams? ##sortset ##constructor ##arguments? :: ##sortname ⟧, ok¹.#[ok¹]]
 →
-{#E}AddFuncSort1[FuncSortKey[#constructor], %sortDeclaration⟨ #sortparams? #sortset #constructor #arguments? :: #sortname ⟩, ok¹.#[ok¹]];
+{#E}AddFuncSort1[FuncSortKey[#constructor], %sortDeclaration⟦ ##sortparams? ##sortset ##constructor ##arguments? :: ##sortname ⟧, ok¹.#[ok¹]];
 
 ∀ a.AddFuncSort1[$String, Crsx_sortDeclaration_sort, ok¹::OK_SORT.$Sort[a]] :: $Sort[a];
 
@@ -252,7 +257,7 @@ AddDataForm2[#key, #constructor, #sortname, #sortdecl, CONTINUATION[ok¹.#[ok¹]
 
 -[Data[#key]]:
 {#E; #key: FUNCSORT[#qualifier, #sort]}
-AddFuncSort2[#key, %sortDeclaration⟨ #sortparams? #sortset #constructor #arguments? :: #sortname  ⟩, ok¹.#[ok¹]]
+AddFuncSort2[#key, %sortDeclaration⟦ ##sortparams? ##sortset ##constructor ##arguments? :: ##sortname  ⟧, ok¹.#[ok¹]]
 →
 $[Error, $[:, "Function sort already defined:", ConstructorToString[#constructor]]]; // TODO: locations, data 
 
@@ -273,16 +278,20 @@ AddFuncSort2[#key, #sortDeclaration, ok¹.#[ok¹]]
 {$String:ContentEntry}
 OutputCrsx[OK_SORT] :: Crsx_crsx_sort;
 
-{#E; "$datakeys": KEYS[#keys]}OutputCrsx[OK] 
+{#E; "$imported": IMPORTS[#imported]}OutputCrsx[OK] 
 →
-%crsx⟨ $Lax ⟨declarations_S1*: {#E}OutputDataDeclarations[#keys]⟩ ⟩;
+%crsx⟦ $Lax ⟨declarations_S1*: {#E}OutputImportDeclarations[#imported]⟩ ⟧;
 
 {$String:ContentEntry}
-OutputDeclarations[OK_SORT] :: Crsx_declarations_sort;
+OutputImportDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_sort];
 
-{#E; "$datakeys": KEYS[#keys]}OutputDeclarations[OK] 
+{#E; "$datakeys": KEYS[#keys]}OutputImportDeclarations[()]
 →
-%declarations⟨ $Lax ⟨declarations_S1*: {#E}OutputDataDeclarations[#keys]⟩ ⟩;
+{#E}OutputDataDeclarations[#keys];
+
+{#E}OutputImportDeclarations[(#import; #imports)]
+→
+%declarations_S1*⟦ ; import ⟨CONSTRUCTOR: #import⟩ ⟨declarations_S1*: {#E}OutputImportDeclarations[#imports]⟩ ⟧;
 
 {$String:ContentEntry}
 OutputDataDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_sort];
@@ -303,7 +312,7 @@ OutputDataDeclarationsForKey[$List[QualifiedSort], $List[$String]] :: $List[Crsx
 
 {#E}OutputDataDeclarationsForKey[(QSORT[#qualifier, #sort]; #qsorts), #keys]
 → 
-%declarations_S1*⟨ ; ⟨sortDeclaration: #sort⟩ ⟨declarations_S1*: {#E}OutputDataDeclarationsForKey[#qsorts, #keys]⟩ ⟩;
+%declarations_S1*⟦ ; ⟨sortDeclaration: #sort⟩ ⟨declarations_S1*: {#E}OutputDataDeclarationsForKey[#qsorts, #keys]⟩ ⟧;
 
 {$String:ContentEntry}
 OutputFuncDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_sort];
@@ -320,12 +329,12 @@ OutputFuncDeclaration[Crsx_sortDeclaration_sort, $List[$String]] :: $List[Crsx_d
 
 {#E}OutputFuncDeclaration[#sort, #keys]
 → 
-%declarations_S1*⟨ ; ⟨sortDeclaration: #sort⟩ ⟨declarations_S1*: {#E}OutputFuncDeclarations[#keys]⟩ ⟩;
+%declarations_S1*⟦ ; ⟨sortDeclaration: #sort⟩ ⟨declarations_S1*: {#E}OutputFuncDeclarations[#keys]⟩ ⟧;
 
 {$String:ContentEntry}
 OutputRuleDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_sort];
 
-{#E}OutputRuleDeclarations[(           )] → %declarations_S1*⟨ ⟩;
+{#E}OutputRuleDeclarations[(           )] → %declarations_S1*⟦ ⟧;
 
 {#E}OutputRuleDeclarations[(#key; #keys)] 
 → 
@@ -340,6 +349,6 @@ OutputRuleDeclarationsForKey[$List[Crsx_ruleDeclaration_sort], $List[$String]] :
 
 {#E}OutputRuleDeclarationsForKey[(#rule; #rules), #keys]
 → 
-%declarations_S1*⟨ ; ⟨ruleDeclaration: #rule⟩ ⟨declarations_S1*: {#E}OutputRuleDeclarationsForKey[#rules, #keys]⟩ ⟩;
+%declarations_S1*⟦ ; ⟨ruleDeclaration: #rule⟩ ⟨declarations_S1*: {#E}OutputRuleDeclarationsForKey[#rules, #keys]⟩ ⟧;
 
 )]

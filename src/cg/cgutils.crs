@@ -4,6 +4,8 @@
  */
 CgUtils[(
 
+$Use["std/text.crs"];
+
 // Print the meta variable identifier. 
 MetaVar[$String] :: Text;
 {#E}MetaVar[#] → {#E}MetaVar0[MetaKey[#]];
@@ -13,7 +15,7 @@ MetaVar0[$String] :: Text;
 
 // Gets property name for given meta-application
 MetaKey[$String] :: $String;
-MetaKey[#] → $[:, "$meta$", #];
+-[Data[#]]: MetaKey[#] → $[:, "$meta$", #];
 
 // Add metavar to the environment and call continuation
 AddMetaVar[$String, Text, Text, ok¹::OK_SORT.Text] :: Text;
@@ -50,11 +52,11 @@ DispatchedMetaVarBinder2[$String] :: Text;
 
 // Gets property name for given binder
 BinderKey[Crsx_binder_sort] :: $String;
-BinderKey[%binder⟨ #variable ⟩] → VarKey[#variable];
+BinderKey[%binder⟦ ##variable ⟧] → VarKey[#variable];
 
 // Gets property name for given variable
 VarKey[Crsx_variable_sort] :: $String;
-VarKey[%variable⟨ #VARIABLE #linear? #functional? #varsort? ⟩] → $[:, "$var$", #VARIABLE];
+VarKey[%variable⟦ ##VARIABLE ##linear? ##functional? ##varsort? ⟧] → $[:, "$var$", #VARIABLE];
 
 // Gets the text corresponding to the given variable
 Variable[$String] :: Text;
@@ -65,22 +67,31 @@ Variable0[$String] :: Text;
 
 // Print construction descriptor name
 Descriptor[Crsx_constructor_sort] :: Text;
-Descriptor[%constructor⟨ #qualifier #CONSTRUCTOR ⟩] → %n⟨«Qualifier[#qualifier]»«ToJavaIdString[#CONSTRUCTOR]»⟩;
-Descriptor[%constructor⟨ :                       ⟩] → %n⟨Colon⟩;
+Descriptor[%constructor⟦ ##qualifier ##CONSTRUCTOR ⟧] → %n⟦«Qualifier[#qualifier]»«ToJavaIdString[#CONSTRUCTOR]»⟧;
+Descriptor[%constructor⟦ :                       ⟧] → %n⟦Colon⟧;
 
 // Print construction descriptor qualifier name
 Qualifier[Crsx_qualifier_sort] :: Text;
-Qualifier[%qualifier⟨ #CONSTRUCTOR . ⟩] → %n⟨†«UpCaseFirst[#CONSTRUCTOR]».⟩;
-Qualifier[%qualifier⟨                ⟩] → %n⟨⟩;
+Qualifier[%qualifier⟦ ##CONSTRUCTOR . ⟧] → %n⟦†«UpCaseFirst[#CONSTRUCTOR]».⟧;
+Qualifier[%qualifier⟦                ⟧]  → %n⟦⟧;
 
 // Print quoted constructor
 QuotedConstructor[Crsx_constructor_sort] :: Text;
-QuotedConstructor[%constructor⟨ #CONSTRUCTOR ⟩] → Text-QuoteString[#CONSTRUCTOR];
-QuotedConstructor[%constructor⟨ : ⟩]            → %n⟨":"⟩;
+QuotedConstructor[%constructor⟦ ##CONSTRUCTOR ⟧] → Text-QuoteEscape[#CONSTRUCTOR];
+QuotedConstructor[%constructor⟦ : ⟧]             → %n⟦":"⟧;
 
 // Print literal as a java string
 Literal[Crsx_literal_sort] :: Text;
-Literal[%literal⟨ #STRING ⟩] → StringToText[#STRING];
-Literal[%literal⟨ #NUMBER ⟩] → StringToText[#NUMBER];
+Literal[%literal⟦ ##STRING ⟧] → StringToText[#STRING];
+Literal[%literal⟦ ##NUMBER ⟧] → StringToText[#NUMBER];
 
+
+// Convert constructor to legal Java ID
+ToJavaId[Crsx_constructor_sort] :: Text;
+ToJavaId[%constructor⟦ ##CONSTRUCTOR ⟧] → Text-Mangle[UpCaseFirst[#CONSTRUCTOR]]; 
+ToJavaId[%constructor⟦ : ⟧]            → %n⟦_M_Colon⟧;
+
+// Convert constructor to legal Java ID
+ToJavaIdString[$String] :: Text;
+ToJavaIdString[#name] → Text-Mangle[#name]; 
 )]

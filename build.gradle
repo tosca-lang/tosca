@@ -8,28 +8,27 @@
 
 task antlrl4Task(type: GradleBuild) {
 	dir = 'gradle/antlr4';
-	tasks = ['upload']
+	tasks = ['install']
 }
 
 task crsx3Task(type: GradleBuild) {
 	dir = 'gradle/crsx3';
-	tasks = ['upload']
+	tasks = ['install']
 }
 
 task crsx4Task(type: GradleBuild) {
 	dir = 'gradle/crsx4';
-	tasks = ['upload']
+	tasks = ['install']
 }
 
 task customTasks(dependsOn: [antlrl4Task, crsx3Task, crsx4Task]) {}
  
-
 // --- Java target
 
 task java(type: GradleBuild) {
 	description = "Generate CRSX Java distribution file.";
 	dir = 'targets/java';
-	tasks = ['dist']
+	tasks = ['install']
 }
 
 // --- Bootstrapping

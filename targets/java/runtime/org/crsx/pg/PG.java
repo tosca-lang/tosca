@@ -56,7 +56,7 @@ public class PG
 			// parser.setTrace(true);
 			GenericFactory factory = new GenericFactory();
 			Buffer buffer = new Buffer(factory);
-			SinkAntlrListener listener = new SinkAntlrListener(factory, buffer.sink(), "ANTLR_", parser);
+			SinkAntlrListener listener = new SinkAntlrListener(factory, buffer.sink(), "ANTLR_", "#", parser);
 
 			parser.addParseListener(listener);
 			parser.grammarSpec();

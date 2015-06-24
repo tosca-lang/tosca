@@ -1,71 +1,95 @@
 Text[(
 
+$Use["std/core.crs"];
+$Use["std/list.crs"];
+
+// Sorts using constructors from grammar.
+Text ::= ( $TextCons[Text-Part, Text] ; $TextNil ; ) ;
+
+Text-Part ::= (
+    $TextChars[$String] ;
+    $TextBreak[$String] ;
+    $TextSeparator ;
+    $TextGroup[Text] ;
+    $TextIndent[Text] ;
+    $TextEmbed[Text] ;
+    $TextString[Text];
+) ;
+
+
+∀ a . AsText[a] :: Text;
+AsText[#text] → #text ;
+
+
 // Fragment denoting term embedded in user language text.
 //
 Text-Embed[Text<!--Term-->] :: Text ;
-Text-Embed[#TermText] → %n⟪†«"\u00ab\u00ab"»« #TermText »†«"\u00bb\u00bb"»⟫ ;
+Text-Embed[#TermText] → %n⟦†«"\u00ab\u00ab"»« #TermText »†«"\u00bb\u00bb"»⟧ ;
 
 // Fragment denoting string embedded in user language text.
 //
 Text-String[Text<!--String-->] :: Text ;
-Text-String[#TermText] → %n⟪†«"\u2020\u2020"»†«"\u00ab\u00ab"»« #TermText »†«"\u00bb\u00bb"»⟫ ;
+Text-String[#TermText] → %n⟦†«"\u2020\u2020"»†«"\u00ab\u00ab"»« #TermText »†«"\u00bb\u00bb"»⟧ ;
 
 // Fragment to be parsed as generated text (to be printed).
 //
 Text-Text[Text] :: Text ;
 Text-Text[#content] → Text-User["n", #content] ;
 
+// Concat texts 
+Text-Concat[$List[Text]] :: Text;
+Text-Concat[#list] → Text-ConcatSep[#list, %n⟦⟧];
+
 // Concat texts with separator
 Text-ConcatSep[$List[Text], Text] :: Text;
-Text-ConcatSep[()             , #sep] → %n⟨⟩;
-Text-ConcatSep[(#t1;)         , #sep] → %n⟨«#t1»⟩;
-Text-ConcatSep[(#t1; #t2; #ts), #sep] → %n⟨«#t1»«#sep»«Text-ConcatSep[(#t2; #ts), #sep]»⟩;
-
+Text-ConcatSep[()             , #sep] → %n⟦⟧;
+Text-ConcatSep[(#t1;)         , #sep] → %n⟦«#t1»⟧;
+Text-ConcatSep[(#t1; #t2; #ts), #sep] → %n⟦«#t1»«#sep»«Text-ConcatSep[(#t2; #ts), #sep]»⟧;
 
 // Fragment to be parsed as user language text.
 //
 Text-User[$String<!--ParsePrefix-->, Text<!-- Unparsed -->] :: Text ;
-Text-User[#ParsePrefix, #Unparsed] →  %n⟪%†«#ParsePrefix»†«"\u27ea"»« #Unparsed »†«"\u27eb"»⟫ ;
+Text-User[#ParsePrefix, #Unparsed] →  %n⟦%†«#ParsePrefix»†«"\u27e6\u27e6"»« #Unparsed »†«"\u27e7\u27e7"»⟧ ;
 
 Text-Token[$String] :: Text;
--[Data[#t]] : Text-Token[#t] → %n⟪†« #t »⟫ ; 
+-[Data[#t]] : Text-Token[#t] → %n⟦†« #t »⟧ ; 
 
 Text-CommentToken[$String] :: Text;
--[Data[#t]] : Text-CommentToken[#t] → %n⟪†« $[Replace,#t,"*/","*_/"] »⟫ ; 
+-[Data[#t]] : Text-CommentToken[#t] → %n⟦†« $[Replace,#t,"*/","*_/"] »⟧ ; 
 
 Text-Comment[$String] :: Text;
--[Data[#t]] : Text-Comment[#t] → %n⟪†« $[:, "/*", $[Replace,#t,"*/","*_/"], "*/"] »⟫ ;
+-[Data[#t]] : Text-Comment[#t] → %n⟦†« $[:, "/*", $[Replace,#t,"*/","*_/"], "*/"] »⟧ ;
 
 Text-QuoteEscape[$String] :: Text;
--[Data[#t]] : Text-QuoteEscape[#t] → Text-QuoteString[$[Escape,#t]];
+-[Data[#t]] : Text-QuoteEscape[#t] → %n⟦†«$[Escape,#t]»⟧;
 
 Text-Integer[$Numeric] :: Text;
--[Data[#t]] : Text-Integer[#t] → %n⟪†« $[FormatNumber, #t] »⟫ ;
+-[Data[#t]] : Text-Integer[#t] → %n⟦†« $[FormatNumber, #t] »⟧ ;
 
 Text-Mangle[$String] :: Text;
--[Data[#t]] : Text-Mangle[#t] → %n⟪†« $[Mangle,#t] »⟫ ;
+-[Data[#t]] : Text-Mangle[#t] → %n⟦†« $[Mangle,#t] »⟧ ;
 
 
 TextFold[$List[Text], Text] :: Text;
--[Discard[#sep]]: TextFold[()     , #sep] → %n⟪⟫ ;
--               : TextFold[(#1;#s), #sep] → %n⟪« #sep »« #1 »« TextFold1[#s, #sep] »⟫ ;
+-[Discard[#sep]]: TextFold[()     , #sep] → %n⟦⟧ ;
+-               : TextFold[(#1;#s), #sep] → %n⟦« #sep »« #1 »« TextFold1[#s, #sep] »⟧ ;
 
 TextFold1[$List[Text], Text] :: Text;
--[Discard[#sep]]: TextFold1[()     , #sep] → %n⟪⟫ ;
--[Copy[#sep]]   : TextFold1[(#1;#s), #sep] → %n⟪« #sep »« #1 »« TextFold1[#s, #sep] »⟫ ;
+-[Discard[#sep]]: TextFold1[()     , #sep] → %n⟦⟧ ;
+-[Copy[#sep]]   : TextFold1[(#1;#s), #sep] → %n⟦« #sep »« #1 »« TextFold1[#s, #sep] »⟧ ;
 
 ReverseTextFold[$List[Text], Text] :: Text;
--[Discard[#sep]]: ReverseTextFold[()        , #sep] → %n⟪⟫ ;
--[Discard[#sep]]: ReverseTextFold[(#1;)     , #sep] → %n⟪« #1 »⟫ ;
--               : ReverseTextFold[(#1;#2;#s), #sep] → %n⟪« ReverseTextFold[(#2;#s), #sep] »« #sep »« #1 »⟫ ;
+-[Discard[#sep]]: ReverseTextFold[()        , #sep] → %n⟦⟧ ;
+-[Discard[#sep]]: ReverseTextFold[(#1;)     , #sep] → %n⟦« #1 »⟧ ;
+-               : ReverseTextFold[(#1;#2;#s), #sep] → %n⟦« ReverseTextFold[(#2;#s), #sep] »« #sep »« #1 »⟧ ;
 
 // -- Conversion
 
 StringToText[$String] :: Text ;
-StringToText[#] → %n⟪†«#»⟫ ;
+StringToText[#] → %n⟦†«#»⟧ ;
 
 NumberToText[$Numeric] :: Text;
--[Data[#n]]: NumberToText[#n] → %n⟪†«$[FormatNumber,#n]»⟫;
+-[Data[#n]]: NumberToText[#n] → %n⟦†«$[FormatNumber,#n]»⟧;
 
 TextToString[Text] :: $String ;
 TextToString[#] → $[Show, #]; // TODO.

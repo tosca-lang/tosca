@@ -105,12 +105,12 @@ $(PARSERSRC)/CrsxTerm.g4: $(PARSERSRC)/Crsx.g4 $(PARSERSRC)/CrsxTerm.g4.nterm  $
 # Generate CrsxMetaParser.g4,
 $(PARSERSRC)/CrsxMetaParser.g4: $(PARSERSRC)/Crsx.g4 $(PARSERSRC)/CrsxTerm.g4.nterm  $(PGSRC)/normalizer.crs
 	@echo Generate CRSX meta parser
-	@cd ../../src && $(RUNCRSX) sink=net.sf.crsx.text.TextSink "grammar=('net.sf.crsx.text.Text';'org.crsx.pg.ANTLRMeta';)" rules=pg/genparser.crs input="$<.nterm" wrapper=MakeMetaParser output="$@"
+	@cd ../../src && $(RUNCRSX) sink=net.sf.crsx.text.TextSink "grammar=('net.sf.crsx.text.Text';'org.crsx.pg.ANTLRMeta';)"  "metaprefix=##"  rules=pg/genparser.crs input="$<.nterm" wrapper=MakeMetaParser output="$@"
 
 # Generate CrsxMetaLexer.g4,
 $(PARSERSRC)/CrsxMetaLexer.g4: $(PARSERSRC)/Crsx.g4 $(PARSERSRC)/CrsxTerm.g4.nterm  $(PGSRC)/normalizer.crs
 	@echo Generate CRSX meta lexer
-	@cd ../../src && $(RUNCRSX) sink=net.sf.crsx.text.TextSink "grammar=('net.sf.crsx.text.Text';'org.crsx.pg.ANTLRMeta';)" rules=pg/genparser.crs input="$<.nterm" wrapper=MakeMetaLexer output="$@"
+	@cd ../../src && $(RUNCRSX) sink=net.sf.crsx.text.TextSink "grammar=('net.sf.crsx.text.Text';'org.crsx.pg.ANTLRMeta';)" "metaprefix=##" rules=pg/genparser.crs input="$<.nterm" wrapper=MakeMetaLexer output="$@"
 	
 # Generate Java CRSX parser 
 $(PARSERFILES): $(PARSERSRC)/CrsxTerm.g4 parserprereq

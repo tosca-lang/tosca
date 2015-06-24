@@ -112,6 +112,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	private MutableInt marker;
 	private Parser parser;
 	private String prefix;
+	private String metachar;
 	private boolean hide;
 	private boolean tail;
 	private TokenSort sort;
@@ -119,7 +120,15 @@ public class SinkAntlrListener implements ParseTreeListener
 	/** Listener state? */
 	private State state;
 
-	public SinkAntlrListener(GenericFactory factory, Sink sink, String prefix, Parser parser)
+	/**
+	 * 
+	 * @param factory
+	 * @param sink
+	 * @param prefix    Prefix to apply to constructor names
+	 * @param metachar  Language specific meta variable prefix
+	 * @param parser
+	 */
+	public SinkAntlrListener(GenericFactory factory, Sink sink, String prefix, String metachar, Parser parser)
 	{
 		this.factory = factory;
 		this.sink = sink;
@@ -131,6 +140,7 @@ public class SinkAntlrListener implements ParseTreeListener
 		this.marker = new MutableInt(-1);
 		this.parser = parser;
 		this.prefix = prefix;
+		this.metachar = metachar;
 		this.state = State.PARSE;
 		this.sort = TokenSort.STRING;
 	}
@@ -285,7 +295,11 @@ public class SinkAntlrListener implements ParseTreeListener
 							sink = sink.start(locate(context.getSymbol(), sink.makeLiteral(context.getText(), CRS.STRING_SORT))).end();
 							break;
 						case TERM :
-							sink = sink.startMetaApplication(context.getText()).endMetaApplication();
+							String metaname = context.getText();
+							if (metachar.length() > 1 || metachar.charAt(0) != metaname.charAt(0))
+								metaname = "#" + metaname.substring(metachar.length());
+							
+							sink = sink.startMetaApplication(metaname).endMetaApplication();
 							break;
 						default :
 							break;

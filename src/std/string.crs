@@ -9,6 +9,7 @@ $Use["std/core.crs"];
 
 // --- Testing
 
+
 StartsWith[$String /* string */, $String /* search string */] :: Boolean; /* extern */
 -[Data[#string, #search]]: StartsWith[#string, #search] → WrapBoolean[$[StartsWith, #string, #search]];
 
@@ -16,6 +17,9 @@ StringEqual[$String /* string */, $String /* other string */] :: Boolean; /* ext
 -[Data[#string1, #string2]]: StringEqual[#string1, #string2] → WrapBoolean[$[Equal, #string1, #string2]];
 
 // --- Mutation
+
+ConcatString[$String, $String] :: $String;
+-[Data[#string1, #string2]]: ConcatString[#string1, #string2] → $[:, #string1, #string2];
 
 UnString[$String] :: $String; 
 -[Data[#string]]: UnString[#string] → $[Rescape, #string] ;
@@ -39,6 +43,8 @@ RemoveFirstChar[$String] :: $String;
 RemoveLastChar[$String] :: $String; 
 -[Data[#string]]: RemoveLastChar[#string] → $[Substring, #string, 0, $[Minus, $[Length, #string], 1]];
 
+Replace[$String, $String, $String] :: $String;
+-[Data[#string, #old, #new]]: Replace[#string, #old, #new] → $[Replace, #string, #old, #new]; 
 
 AfterLast[$String, $String] :: $String;
 
@@ -48,6 +54,8 @@ AfterLast[#string, #sep]
 $[If, $[Contains, #string, #sep], 
     AfterLast2[$[AfterFirst, #string, #sep], #sep],
     #string];
+
+AfterLast2[$String, $String] :: $String;
 
 // Internal helper.
 -[Data[#string]]:
@@ -62,6 +70,9 @@ $[If, $[Contains, #String, #Sep],
     BeforeLast2[$[BeforeFirst, #String, #Sep], #Sep, BeforeLast[$[AfterFirst, #String, #Sep], #Sep]],
     ""];
 
+
+BeforeLast2[$String, $String, $String] :: $String;
+
 -[Data[#After]]:
 BeforeLast2[#Before, #Sep, #After]
 →
@@ -72,10 +83,16 @@ $[If, $[Equal, #After, ""],
 
 // --- Parsing
 
-∀ a.ParseString[$String, $String] :: a;
+∀ a.ParseToString[$String, $String] :: a;
 
 -[Data[#category, #string]]: 
-ParseString[#category, #string] → $[ParseText, #category, #string]; // TODO: line information.
+ParseToString[#category, #string] → $[Trace, $[:, "ParseToString: ", $[Show, $[ParseText, #category, #string]]]]; // TODO: line information.
+
+∀ a.ParseToTerm[$String, $String] :: a;
+
+-[Data[#category, #string]]: 
+ParseToTerm[#category, #string] →  $[ParseText, #category, #string]; // TODO: line information.
+
 
 /*
  * Serialize term as string

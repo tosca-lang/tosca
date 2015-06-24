@@ -24,6 +24,7 @@ declarations
         
 declaration 
     : moduleDeclaration                                     /* [SUGAR]  nested modules */
+    | importDeclaration                                     /* [CORE]   module import */
     | ruleDeclaration                                       /* [CORE]   rewrite rule */
     | sortDeclaration                                       /* [CORE]   type definitions */
     | directive                                             /* [BC3]    directive : meta, data term, anonymous nested modules (could be the cause of slow parsing) */
@@ -33,8 +34,14 @@ declaration
 
 // Inner module */
 moduleDeclaration    
-    : MODULE CONSTRUCTOR LBRACE declarations RBRACE         /* [SUGAR] */
+    : MODULE CONSTRUCTOR LBRACE declarations RBRACE         /* [SUGAR] */    
     ;
+    
+/*  Import declaration */    
+
+importDeclaration    
+    : IMPORT constructor                                   /* [CORE] */    
+    ;    
  
 /*  Rule declaration */    
     
@@ -114,7 +121,7 @@ termList
     ;
     
 variable                                                    /* [CORE] */
-    : VARIABLE linear? functional? varsort?
+    : linear? VARIABLE linear? functional? varsort?
     ;
     
 linear 
@@ -230,7 +237,7 @@ form
     
 constructor
     : qualifier CONSTRUCTOR
-    | reserved
+    | reserved                                              /* [BC3] */
     ;
     
 qualifier
@@ -238,10 +245,9 @@ qualifier
     |
     ;
     
-reserved
-    : COLON
-    | AT
-    | DOT 
+reserved                                                   /* [BC3] */
+    : COLON                                             
+    | AT 
     ;
     
 /* Directive */
@@ -269,6 +275,7 @@ directiveList
 // Lexer rules
 
 MODULE          : 'module';
+IMPORT          : 'import';
 DISPATCH        : 'dispatch';
 DELAY           : 'delay';
 
@@ -292,8 +299,7 @@ FUNCTIONAL      : 'ᵇ';                                  /* [CORE] Functional b
 AND             : '&';
 AT              : '@';
 
-CATEGORY        : '%' (Alpha | Digit)+ ('*' | '+' | '?')?;
-
+CATEGORY        : '%' (Alpha | Digit | '_')+ ('*' | '+' | '?')?;
 
 CONCRETE        : '\u27e6' (CONCRETE|.)*? '\u27e7';
 CONCRETE2       : '⟪' (CONCRETE2|.)*?'⟫';
@@ -302,23 +308,23 @@ CONCRETE4       : '\u2983' (CONCRETE4|.)*? '\u2984';
 
 CONSTRUCTOR     : StartConstructorChar ConstructorChar*;
 
-VARIABLE        : Lower (Lower | Digit | '-')*;
+VARIABLE        : Lower (Lower | Digit | '-' | '_')*;
 
-METAVAR         : '#' (Alpha | Digit | Symbol | Unicode)*;
+METAVAR         : '#' (Alpha | Digit | Other | Unicode)*;
 
-STRING          :  '\"' ('""'|~'"')* '\"';
+STRING          :  '"' ('\\"'|~'"')* '"';
 
 NUMBER          : Decimal;
 
-fragment StartConstructorChar : Upper | Symbol | Unicode;                 
-fragment ConstructorChar      : Alpha | Digit | Symbol | Unicode;
+fragment StartConstructorChar : Upper | Other | [\u00C0-\u00DE] | '\u0100' | '\u0102' | '\u0104' | '\u0106'; // TODO: all upper cases                 
+fragment ConstructorChar      : Alpha | Digit | Other | Unicode;
 
 fragment Digit   : [0-9];
 fragment Upper   : [A-Z];                                                
 fragment Lower   : [a-z];       
 fragment Alpha   : [a-zA-Z];
 fragment Decimal : [0-9]+ ('.' [0-9]+)? | '.' [0-9]+; 
-fragment Symbol  : [+\-~`!*\^|?$_@];
+fragment Other   : '-' | '$' | '_' | '*' | '?' | '+'; // TODO: remove '-'
 fragment Unicode : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
 
 WS               : [ \t\r\n\f]+ -> channel(HIDDEN) ;

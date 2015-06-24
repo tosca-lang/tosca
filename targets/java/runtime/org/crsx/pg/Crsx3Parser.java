@@ -17,10 +17,10 @@ import net.sf.crsx.Variable;
 import net.sf.crsx.generic.GenericFactory;
 import net.sf.crsx.util.ExtensibleMap;
 
-import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
@@ -35,7 +35,7 @@ import org.antlr.v4.runtime.dfa.DFA;
  * 
  * @author villardl
  */
-public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable, ANTLRErrorListener
+public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 {
 	// State
 
@@ -43,19 +43,22 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 	protected GenericFactory factory;
 
 	/** Had error? */
-	protected boolean error; 
-	
+	protected boolean error;
+
 	// Constructor
 
 	/** Constructor used by CRSX3 to gather information about categories */
 	protected Crsx3Parser()
 	{
 		super(null);
+		addErrorListener(new CrsxAntlrErrorListener());
+
 	}
 
 	protected Crsx3Parser(TokenStream input)
 	{
 		super(input);
+		addErrorListener(new CrsxAntlrErrorListener());
 	}
 
 	// Local methods overriden by generated parser
@@ -65,11 +68,17 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
 	/** Generated parser must override */
 	protected String _prefix()
 	{
 		throw new UnsupportedOperationException();
+	}
+
+	/** Generated parser must override if not '#' */
+	protected String _metachar()
+	{
+		return "#";
 	}
 
 	protected void initATN()
@@ -112,6 +121,7 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 		try
 		{
 			Crsx3Parser parser = (Crsx3Parser) clone();
+			parser.reset();
 			parser.factory = (GenericFactory) factory;
 			return parser;
 		}
@@ -133,10 +143,10 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 				category = category.substring(0, len - 1) + "_ZOM";
 				break;
 			case '?' :
-				category = category.substring(0, len - 1)  + "_OPT";
+				category = category.substring(0, len - 1) + "_OPT";
 				break;
 			case '+' :
-				category = category.substring(0, len - 1)  + "_OOM";
+				category = category.substring(0, len - 1) + "_OOM";
 				break;
 		}
 
@@ -146,20 +156,21 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 			throw new CRSException(getClass().getCanonicalName() + " parser cannot handle the category " + category);
 
 		CharStream stream = new ANTLRInputStream(reader);
-		
+
 		Lexer source = newLexer(stream);
 		source.setLine(line);
 		source.setCharPositionInLine(column);
 		TokenStream input = new CommonTokenStream(source);
-		
+
 		setInputStream(input);
 		initATN();
-		
+
 		setBuildParseTree(false);
-		SinkAntlrListener listener = new SinkAntlrListener(factory, sink, _prefix(), this);
+		SinkAntlrListener listener = new SinkAntlrListener(factory, sink, _prefix(), _metachar(), this);
 		//setTrace(true);
 		addParseListener(listener);
-		addErrorListener(this);
+
+		//addErrorListener(new DiagnosticErrorListener());
 		// Retrieve method to call.
 		String cateof = category + "_EOF";
 		try
@@ -175,10 +186,10 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 		{
 			throw new CRSException(e);
 		}
-		
+
 		if (error)
 			throw new CRSException("Parse error");
-		
+
 		return sink;
 	}
 
@@ -217,31 +228,39 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 	{
 		throw new UnsupportedOperationException();
 	}
-	
-	// Error listener
 
-	@Override
-	public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e)
+	class CrsxAntlrErrorListener extends ConsoleErrorListener
 	{
-		error = true;
-	}
 
-	@Override
-	public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex, int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs)
-	{
-		//error = true;
-	}
+		// Error listener
 
-	@Override
-	public void reportAttemptingFullContext(Parser recognizer, DFA dfa, int startIndex, int stopIndex, BitSet conflictingAlts, ATNConfigSet configs)
-	{
-//		error = true;
-	}
+		@Override
+		public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e)
+		{
+			error = true;
+			//		super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e);
+		}
 
-	@Override
-	public void reportContextSensitivity(Parser recognizer, DFA dfa, int startIndex, int stopIndex, int prediction, ATNConfigSet configs)
-	{
-	//	error = true;
+		@Override
+		public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex, int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs)
+		{
+			//System.out.println("reportAmbiguity");
+			//error = true;
+		}
+
+		@Override
+		public void reportAttemptingFullContext(Parser recognizer, DFA dfa, int startIndex, int stopIndex, BitSet conflictingAlts, ATNConfigSet configs)
+		{
+			//System.out.println("reportAttemptingFullContext");
+			//		error = true;
+		}
+
+		@Override
+		public void reportContextSensitivity(Parser recognizer, DFA dfa, int startIndex, int stopIndex, int prediction, ATNConfigSet configs)
+		{
+			//System.out.println("reportContextSensitivity");
+			//	error = true;
+		}
 	}
 
 }

@@ -13,30 +13,30 @@ $Use["std/core.crs"];
 // TRUE if list is empty
 ∀ a . IsEmpty[$List[a]] :: Boolean ;
 IsEmpty[()    ] → TRUE ;
-IsEmpty[(#;##)] → FALSE ;
+IsEmpty[(#;#s)] → FALSE ;
 
 
 ∀ a b . IfEmpty[$List[a], b, b] :: b ;
 IfEmpty[()    , #1, #2] → #1 ;
-IfEmpty[(#;##), #1, #2] → #2 ;
+IfEmpty[(#;#s), #1, #2] → #2 ;
 
 // TRUE is list is a singleton
 ∀ a. IsSingleton[$List[a]] :: Boolean ;
 IsSingleton[()    ] → FALSE ;
-IsSingleton[(#;##)] → IsEmpty[##] ;
+IsSingleton[(#;#s)] → IsEmpty[#s] ;
 
 ∀ a b . IfSingleton[$List[a], b, b] :: b ;
 IfSingleton[()    , #1, #2] → #2 ;
-IfSingleton[(#;##), #1, #2] → IfEmpty[##, #1, #2] ;
+IfSingleton[(#;#s), #1, #2] → IfEmpty[#s, #1, #2] ;
 
 // Head of the list
 ∀ a . Head[$List[a]] :: a ;
-Head[(#;##)] → # ;
+Head[(#;#s)] → # ;
 Head[()] → $[Error,"Head of empty list"] ;
 
 // Tail for the list
 ∀ a . Tail[$List[a]] :: $List[a] ;
-Tail[(#;##)] → ## ;
+Tail[(#;#s)] → #s ;
 Tail[()] → $[Error,"Tail of empty list"] ;
 
 // Concat the two list 

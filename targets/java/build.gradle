@@ -5,6 +5,8 @@
 
 // --- Script configuration
 
+apply plugin:'maven'
+
 buildscript {
 	repositories {
 		maven {
@@ -83,6 +85,7 @@ compileJava {
 clean.dependsOn cleanBuildCrsxParsers
 clean.dependsOn cleanBuildAntlrParsers
 
+group = 'org.crsx'
 version = '4.0.0-SNAPSHOT'
 
 sourceSets {

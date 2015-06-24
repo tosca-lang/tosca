@@ -14,5 +14,5 @@ Fact2[$Numeric, vᵇ::$Numeric.$Numeric] :: $Numeric;
 
 Times[$Numeric, $Numeric] :: $Numeric;
 -[Data[#v1, #v2]] : Times[#v1, #v2]    → $[Times,#v1,#v2];
-
+ 
 )]

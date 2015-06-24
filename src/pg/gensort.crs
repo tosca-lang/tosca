@@ -29,9 +29,9 @@ MakeGrammarId[#Id, ok¹.#[ok¹]] →
     %n⟨/* Generated File. */
 †«#Id»[(
 $CheckGrammar["net.sf.crsx.text.Text"];
-$Use["text/Text.crs"];
 $Use["std/text.crs"];
 $Use["std/core.crs"];
+$Use["std/list.crs"];
 
 «{#E; "@id": STRING[#Id]}#[OK]»↲)]⟩ // TODO: must match CRSX syntax
 ;

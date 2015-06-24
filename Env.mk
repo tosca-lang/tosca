@@ -22,7 +22,7 @@ JAR = jar
 endif
 
 SRC = $(CRSXHOME)/src
-CRSXLIB = $(CRSXHOME)/bootstrap/crsx3.jar
+CRSXLIB = $(CRSXHOME)/targets/java/lib/crsx3.jar
 RUNCRSX = $(JAVA) -Dfile.encoding=UTF-8 -Xss20000K -Xmx2000m -cp $(CRSXLIB):$(CRSXHOME)/targets/java/build:$(CRSXHOME)/targets/java/lib/antlr-runtime-4.5.jar net.sf.crsx.run.Crsx allow-unnamed-rules allow-missing-cases
 
 ANTLR = $(CRSXHOME)/bin/lib/antlr-4.5-complete.jar
