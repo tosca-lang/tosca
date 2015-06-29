@@ -21,7 +21,7 @@ public abstract class Term extends Reference
 	{
 		return term != null && term.isConstruction() && term.arity() == 0;
 	}
-	
+
 	// State
 
 	/** Whether this term is in normal form */
