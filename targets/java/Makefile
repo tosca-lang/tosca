@@ -123,10 +123,22 @@ $(METAPARSERLEXER): $(PARSERSRC)/CrsxMetaLexer.g4 parserprereq
 # Generate Java CRSX meta parser 
 $(METAPARSERPARSER): $(PARSERSRC)/CrsxMetaParser.g4 $(PARSERSRC)/CrsxMetaLexer.g4 $(METAPARSERLEXER) parserprereq
 	@$(RUNANTLR) $< -o $(PARSERTGT) -package $(PARSERPKG) -DsuperClass=org.crsx.pg.Crsx3Parser
+
+
+
+# Generate Java Text meta lexer 
+$(ANTLRTGT)/org/crsx/text/TextMetaLexer.java: $(SRC)/text/TextMetaLexer.g4 
+	@$(RUNANTLR) $< -o $(ANTLRTGT)/org/crsx/text -package org.crsx.text
+	
+# Generate Java Text meta parser 
+$(ANTLRTGT)/org/crsx/text/TextMetaParser.java: $(SRC)/text/TextMetaParser.g4 $(ANTLRTGT)/org/crsx/text/TextMetaLexer.java
+	@$(RUNANTLR) $< -o $(ANTLRTGT)/org/crsx/text -package org.crsx.text -DsuperClass=org.crsx.pg.Crsx3Parser
+
+.PHONY: text
+text: $(ANTLRTGT)/org/crsx/text/TextMetaParser.java
 	
 #
 # Generate Crsx4 runtime jar
 #
 
 jar: pg parser
-	

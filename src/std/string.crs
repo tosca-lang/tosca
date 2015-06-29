@@ -14,7 +14,7 @@ StartsWith[$String /* string */, $String /* search string */] :: Boolean; /* ext
 -[Data[#string, #search]]: StartsWith[#string, #search] → WrapBoolean[$[StartsWith, #string, #search]];
 
 StringEqual[$String /* string */, $String /* other string */] :: Boolean; /* extern */
--[Data[#string1, #string2]]: StringEqual[#string1, #string2] → WrapBoolean[$[Equal, #string1, #string2]];
+-[Data[#string1, #string2]]: StringEqual[#string1, #string2] → WrapBoolean[$[StringEqual, #string1, #string2]];
 
 // --- Mutation
 
@@ -76,7 +76,7 @@ BeforeLast2[$String, $String, $String] :: $String;
 -[Data[#After]]:
 BeforeLast2[#Before, #Sep, #After]
 →
-$[If, $[Equal, #After, ""], 
+$[If, $[StringEqual, #After, ""], 
     #Before,
     $[:, #Before, #Sep, #After]];
 
@@ -86,7 +86,7 @@ $[If, $[Equal, #After, ""],
 ∀ a.ParseToString[$String, $String] :: a;
 
 -[Data[#category, #string]]: 
-ParseToString[#category, #string] → $[Trace, $[:, "ParseToString: ", $[Show, $[ParseText, #category, #string]]]]; // TODO: line information.
+ParseToString[#category, #string] → $[Trace, $[Show, $[ParseText, #category, #string]]]; // TODO: line information.
 
 ∀ a.ParseToTerm[$String, $String] :: a;
 

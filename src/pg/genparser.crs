@@ -373,6 +373,9 @@ MakeMetaAltList[#RULE_REF, METAPARSER]
 → 
 {#L}%element*⟨ ⟨RULE_REF: TokenToRuleName[#TOKEN_REF]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
 
+{#E}LiftEbnfElements[{#L}%element*⟨ #STRING_LITERAL #element* ⟩]            
+→ 
+$[Error, $[:, "Invalid string literal ", #STRING_LITERAL, " in parser rule. It must be defined as a lexer rule (a token)."]];
 
 // --- Second  Pass: Generate new rules
 

@@ -1,4 +1,4 @@
-// Generated from ANTLRTermLexer.g4 by ANTLR 4.5
+// Generated from /Users/villardl/Projects/crsx/crsx4/src/pg/ANTLRTermLexer.g4 by ANTLR 4.5
 package org.crsx.pg;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;

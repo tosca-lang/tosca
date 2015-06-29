@@ -1,5 +1,4 @@
 // Copyright (c) 2014 IBM Corporation.
-
 package org.crsx.runtime;
 
 import java.util.ArrayDeque;
@@ -22,8 +21,8 @@ public class BufferSink extends Sink
 	/** Constructed term */
 	protected Term term;
 
-	/** Construction stack */
-	protected ArrayDeque<Construction> constructions;
+	/** Term stack */
+	protected ArrayDeque<Term> terms;
 
 	/** Subs stack */
 	protected ArrayDeque<ArrayList<Term>> subs;
@@ -37,13 +36,16 @@ public class BufferSink extends Sink
 	/** Properties to use for next sub */
 	protected Properties properties;
 
+	/** Whether properties needs to be extended before mutation */
+	protected boolean extend;
+
 	/* */
 	public BufferSink(Context context)
 	{
 		this.context = context;
-		constructions = new ArrayDeque<Construction>();
-		subs = new ArrayDeque<ArrayList<Term>>();
-		subbinders = new ArrayDeque<ArrayList<Variable[]>>();
+		terms = new ArrayDeque<>();
+		subs = new ArrayDeque<>();
+		subbinders = new ArrayDeque<>();
 	}
 
 	/**
@@ -58,7 +60,7 @@ public class BufferSink extends Sink
 	/** Add sub to current construction */
 	protected void addSub(Term sub)
 	{
-		assert binders == null || !constructions.isEmpty() : "Top level term cannot have binders";
+		assert binders == null || !terms.isEmpty() : "Top level term cannot have binders";
 
 		if (subs.isEmpty())
 		{
@@ -87,7 +89,7 @@ public class BufferSink extends Sink
 		addSub(c);
 		properties = null;
 
-		constructions.push(c);
+		terms.push(c);
 		subs.push(new ArrayList<>(5));
 		subbinders.push(new ArrayList<>(5));
 		return this;
@@ -96,22 +98,57 @@ public class BufferSink extends Sink
 	@Override
 	public BufferSink end()
 	{
-		Construction c = constructions.pop();
+		Term c = terms.pop();
 		ArrayList<Term> subs = this.subs.pop();
 		ArrayList<Variable[]> subbinders = this.subbinders.pop();
 
 		if (subs.size() > 0)
 		{
+			assert c instanceof Construction;
 			assert subs.get(subs.size() - 1) != null : "binders term event must precede start term event";
 
 			Term[] asub = new Term[subs.size()];
-			c.subs = subs.toArray(asub);
+			((Construction) c).subs = subs.toArray(asub);
 			Variable[][] abinders = new Variable[subs.size()][];
-			c.binders = subbinders.toArray(abinders);
+			((Construction) c).binders = subbinders.toArray(abinders);
 		}
 
-		if (constructions.isEmpty())
+		if (terms.isEmpty())
 			term = c;
+
+		return this;
+	}
+	
+	@Override
+	public Sink startMetaApplication(String name)
+	{
+		assert properties == null;
+		
+		MetaApplication meta = new MetaApplication(name);
+		addSub(meta);
+		
+		terms.push(meta);
+		subs.push(new ArrayList<>(5));
+		return this;
+	}
+
+	@Override
+	public Sink endMetaApplication()
+	{
+		Term meta = terms.pop();
+		ArrayList<Term> subs = this.subs.pop();
+		
+		if (subs.size() > 0)
+		{
+			assert meta instanceof MetaApplication;
+			assert subs.get(subs.size() - 1) != null : "binders term event must precede start term event";
+
+			Term[] asub = new Term[subs.size()];
+			((MetaApplication) meta).subs = subs.toArray(asub);
+		}
+	
+		if (terms.isEmpty())
+			term = meta;
 
 		return this;
 	}
@@ -152,6 +189,7 @@ public class BufferSink extends Sink
 	{
 		assert this.properties == null;
 		this.properties = properties;
+		extend = true; // To be safe for now.
 		return this;
 	}
 
@@ -160,7 +198,12 @@ public class BufferSink extends Sink
 	{
 		if (properties == null)
 			properties = new Properties(null);
-
+		else if (extend)
+		{
+			properties = properties.extend();
+			extend = false;
+		}
+		
 		properties.addNamedProperty(name, term);
 		return this;
 	}
@@ -170,7 +213,12 @@ public class BufferSink extends Sink
 	{
 		if (properties == null)
 			properties = new Properties(null);
-
+		else if (extend)
+		{
+			properties = properties.extend();
+			extend = false;
+		}
+		
 		properties.addVariableProperty(variable, term);
 		return this;
 	}
@@ -204,6 +252,7 @@ public class BufferSink extends Sink
 				((Construction) term).properties = properties; // transfer ref
 				properties = null;
 			}
+			addSub(term); // transfer ref
 		}
 		else
 		{

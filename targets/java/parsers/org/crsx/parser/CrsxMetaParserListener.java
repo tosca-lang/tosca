@@ -1,4 +1,4 @@
-// Generated from CrsxMetaParser.g4 by ANTLR 4.5
+// Generated from /Users/villardl/Projects/crsx/crsx4/src/parser/CrsxMetaParser.g4 by ANTLR 4.5
 package org.crsx.parser;
 
 import org.crsx.pg.SinkAntlrListener;
@@ -301,6 +301,26 @@ public interface CrsxMetaParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitImport_TOK_EOF(CrsxMetaParser.Import_TOK_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#grammar_TOK}.
+	 * @param ctx the parse tree
+	 */
+	void enterGrammar_TOK(CrsxMetaParser.Grammar_TOKContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#grammar_TOK}.
+	 * @param ctx the parse tree
+	 */
+	void exitGrammar_TOK(CrsxMetaParser.Grammar_TOKContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#grammar_TOK_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterGrammar_TOK_EOF(CrsxMetaParser.Grammar_TOK_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#grammar_TOK_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitGrammar_TOK_EOF(CrsxMetaParser.Grammar_TOK_EOFContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxMetaParser#ruleDeclaration}.
 	 * @param ctx the parse tree

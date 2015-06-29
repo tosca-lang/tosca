@@ -2,7 +2,9 @@
 
 package org.crsx.runtime;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -72,7 +74,6 @@ public class Properties extends Reference
 		return value;
 	}
 
-
 	/**
 	 * Lookup property value
 	 * @param key. Reference is not released.
@@ -82,7 +83,7 @@ public class Properties extends Reference
 	{
 		return key.isVariableUse() ? lookup(((VariableUse) key).variable) : lookup(key.symbol());
 	}
-	
+
 	@Override
 	public Properties ref()
 	{
@@ -216,21 +217,56 @@ public class Properties extends Reference
 		super.free();
 	}
 
+	/**
+	 * Print out properties. Eliminate duplicates.
+	 * @param out
+	 * @param names
+	 * @throws IOException 
+	 */
+	protected void print(Appendable out, HashSet<String> names, IdentityHashMap<Variable, Boolean> vars) throws IOException
+	{
+		if (variables != null)
+		{
+			for (Entry<Variable, Term> entry : variables.entrySet())
+			{
+				if (!vars.containsKey(entry.getKey()))
+				{
+					out.append(entry.getKey().name).append(":").append(entry.getValue().toString()).append(";");
+					vars.put(entry.getKey(), Boolean.TRUE);
+				}
+			}
+		}
+		if (named != null)
+		{
+			for (Entry<String, Term> entry : named.entrySet())
+			{
+				if (!names.contains(entry.getKey()))
+				{
+					out.append('"').append(entry.getKey()).append('"').append(":").append(entry.getValue().toString()).append(";");
+					names.add(entry.getKey());
+				}
+			}
+		}
+
+		if (parent != null)
+			parent.print(out, names, vars);
+	}
+
 	@Override
 	public String toString()
 	{
 		StringBuilder builder = new StringBuilder();
 		builder.append("{");
-		if (variables != null)
+
+		HashSet<String> names = new HashSet<>();
+		IdentityHashMap<Variable, Boolean> vars = new IdentityHashMap<Variable, Boolean>();
+
+		try
 		{
-			for (Entry<Variable, Term> entry : variables.entrySet())
-				builder.append(entry.getKey()).append(":").append(entry.getValue()).append(";");
+			print(builder, names, vars);
 		}
-		if (named != null)
-		{
-			for (Entry<String, Term> entry : named.entrySet())
-				builder.append('"').append(entry.getKey()).append('"').append(":").append(entry.getValue()).append(";");
-		}
+		catch (IOException e)
+		{}
 
 		return builder.append('}').toString();
 	}

@@ -54,13 +54,13 @@ Map[x.#[x], (#1;#s)] → (#[#1]; Map[x.#[x], #s]) ;
 // Apply each item in list to function, as a continuation, 
 // passing the environment along
 //
-∀ a.Continuation[a] ::= ( CONTINUATION[ok¹::OK_SORT.$Sort[a]];  );
+∀ a.Continuation[a] ::= ( CONTINUATION[ok¹::OK_SORT.$sort[a]];  );
 
-∀ a b. {$String:$Any}SeqMap[x::a c::Continuation[b]. $sort[b], $List[a], ok::OK_SORT.$Sort[b]] :: b ;
+∀ a b. {$String:$Any}SeqMap[x::a c::Continuation[b]. $sort[b], $List[a], ok::OK_SORT.$sort[b]] :: b ;
 
 {#E}SeqMap[x c.#[x, c], #list, ok¹.#done[ok¹]] → {#E}SeqMap1[OK, x c.#[x, c], #list, ok¹.#done[ok¹]];
 
-∀ a b. SeqMap1[OK_SORT, x::a c::Continuation[b]. $sort[b], $List[a], ok¹::OK_SORT.$sort[b]] :: $List[b] ;
+∀ a b. SeqMap1[OK_SORT, x::a c::Continuation[b]. $sort[b], $List[a], ok¹::OK_SORT.$sort[b]] :: b ;
 {#E}SeqMap1[OK, x c.#[x, c], ()     , ok¹.#done[ok¹]] → {#E}#done[OK];
 {#E}SeqMap1[OK, x c.#[x, c], (#1;#s), ok¹.#done[ok¹]] → {#E}#[#1, CONTINUATION[ok¹.SeqMap1[ok¹, x c.#[x, c], #s,  ok¹.#done[ok¹]]]];
 

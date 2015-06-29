@@ -4,7 +4,39 @@
  */
 CgUtils[(
 
+$Use["std/core.crs"];
 $Use["std/text.crs"];
+$Use["std/string.crs"];
+$Use["parser/Crsx.crs"];
+
+
+// ===== Sorts  
+
+STRING_ENTRY ::= ( 
+    TEXT[Text];  
+    META[Text, $List[Text]]; 
+    NO; YES; 
+    TEXTS[$List[Text]]; 
+    STRINGS[$List[$String]]; 
+    NOENTRY; 
+); //  STRING[$String]; (already defined)
+
+VARIABLE_ENTRY ::= ( BOUND; FRESH; );
+
+UnTEXT[STRING_ENTRY] :: Text;
+UnTEXT[TEXT[#]] → #;
+
+UnSTRING[STRING_ENTRY] :: $String;
+UnSTRING[STRING[#]] → #;
+
+UnMETA[STRING_ENTRY] :: Text;
+UnMETA[META[#1, #2]] → #1;
+
+UnMETABinders[STRING_ENTRY] :: $List[Text];
+UnMETABinders[META[#1, #2]] → #2;
+
+
+// ===== Utilities  
 
 // Print the meta variable identifier. 
 MetaVar[$String] :: Text;
@@ -18,13 +50,13 @@ MetaKey[$String] :: $String;
 -[Data[#]]: MetaKey[#] → $[:, "$meta$", #];
 
 // Add metavar to the environment and call continuation
-AddMetaVar[$String, Text, Text, ok¹::OK_SORT.Text] :: Text;
-{#E}AddMetaVar[#metavar, #javavar, #binders, ok¹.#[ok¹]]
+AddMetaVar[$String, Text, $List[Text], ok::OK_SORT.Text] :: Text;
+{#E}AddMetaVar[#metavar, #javavar, #binders, ok.#[ok]]
 →
-{#E}AddMetaVar0[MetaKey[#metavar], #javavar, #binders, ok¹.#[ok¹]];
+{#E}AddMetaVar0[MetaKey[#metavar], #javavar, #binders, ok.#[ok]];
 
-AddMetaVar0[$String, Text, Text, ok¹::OK_SORT.Text] :: Text;
--[Data[#key]]: {#E}AddMetaVar0[#key, #javavar, #binders, ok¹.#[ok¹]] → {#E; #key : META[#javavar, #binders]}#[OK];
+AddMetaVar0[$String, Text, $List[Text], ok::OK_SORT.Text] :: Text;
+-[Data[#key]]: {#E}AddMetaVar0[#key, #javavar, #binders, ok.#[ok]] → {#E; #key : META[#javavar, #binders]}#[OK];
 
 // Gets property name for dispatched metavariable
 MetaDispatchKey[$Numeric] :: $String;
@@ -41,13 +73,13 @@ DispatchedMetaVar2[$String] :: Text;
 -[Data[#key]]: {#E}DispatchedMetaVar2[#key] → UnMETA[$[{#E}Get, #key]];
 
 // Gets the binders of the dispatched metavar at the given position
-DispatchedMetaVarBinders[$Numeric] :: Text;
+DispatchedMetaVarBinders[$Numeric] :: $List[Text];
 {#E}DispatchedMetaVarBinders[#position] → {#E}DispatchedMetaVarBinders1[MetaDispatchKey[#position]];
 
-DispatchedMetaVarBinders1[$String] :: Text;
+DispatchedMetaVarBinders1[$String] :: $List[Text];
 -[Data[#key]]: {#E}DispatchedMetaVarBinders1[#key] → {#E}DispatchedMetaVarBinders2[UnSTRING[$[{#E}Get, #key]]];
 
-DispatchedMetaVarBinder2[$String] :: Text;
+DispatchedMetaVarBinders2[$String] :: $List[Text];
 -[Data[#key]]: {#E}DispatchedMetaVarBinders2[#key] → UnMETABinders[$[{#E}Get, #key]];
 
 // Gets property name for given binder
@@ -63,22 +95,27 @@ Variable[$String] :: Text;
 {#E}Variable[#var] → {#E}Variable0[$[:, "$var$", #var]];
 
 Variable0[$String] :: Text;
--[Data[#key]]: {#E}Variable[#key] → UnTEXT[$[{#E}Get, #key]];
+-[Data[#key]]: {#E}Variable0[#key] → UnTEXT[$[{#E}Get, #key]];
+
 
 // Print construction descriptor name
 Descriptor[Crsx_constructor_sort] :: Text;
 Descriptor[%constructor⟦ ##qualifier ##CONSTRUCTOR ⟧] → %n⟦«Qualifier[#qualifier]»«ToJavaIdString[#CONSTRUCTOR]»⟧;
-Descriptor[%constructor⟦ :                       ⟧] → %n⟦Colon⟧;
+Descriptor[%constructor⟦ ##reserved                ⟧] 
+→ 
+$[If, $[Equal, $[Show, #reserved], ":"], %n⟦ Colon ⟧, %n⟦⟧];
 
 // Print construction descriptor qualifier name
 Qualifier[Crsx_qualifier_sort] :: Text;
 Qualifier[%qualifier⟦ ##CONSTRUCTOR . ⟧] → %n⟦†«UpCaseFirst[#CONSTRUCTOR]».⟧;
-Qualifier[%qualifier⟦                ⟧]  → %n⟦⟧;
+Qualifier[%qualifier⟦                 ⟧]  → %n⟦⟧;
 
 // Print quoted constructor
 QuotedConstructor[Crsx_constructor_sort] :: Text;
 QuotedConstructor[%constructor⟦ ##CONSTRUCTOR ⟧] → Text-QuoteEscape[#CONSTRUCTOR];
-QuotedConstructor[%constructor⟦ : ⟧]             → %n⟦":"⟧;
+QuotedConstructor[%constructor⟦ ##reserved ⟧]             
+→ 
+$[If, $[Equal, $[Show, #reserved], ":"], %n⟦ Colon ⟧, %n⟦⟧];
 
 // Print literal as a java string
 Literal[Crsx_literal_sort] :: Text;
@@ -89,7 +126,9 @@ Literal[%literal⟦ ##NUMBER ⟧] → StringToText[#NUMBER];
 // Convert constructor to legal Java ID
 ToJavaId[Crsx_constructor_sort] :: Text;
 ToJavaId[%constructor⟦ ##CONSTRUCTOR ⟧] → Text-Mangle[UpCaseFirst[#CONSTRUCTOR]]; 
-ToJavaId[%constructor⟦ : ⟧]            → %n⟦_M_Colon⟧;
+ToJavaId[%constructor⟦ ##reserved ⟧]            
+→ 
+$[If, $[Equal, $[Show, #reserved], ":"], %n⟦ _M_Colon ⟧, %n⟦⟧];
 
 // Convert constructor to legal Java ID
 ToJavaIdString[$String] :: Text;

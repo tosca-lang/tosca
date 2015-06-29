@@ -7,7 +7,7 @@ Test :: $Numeric;
 Test → Fact[5];
 
 Fact[$Numeric] :: $Numeric;
-Fact[#v] → Fact2[#v, vᵇ.v];
+Fact[#v] → Fact2[#v, vᵇ.vᵇ];
 
 Fact2[$Numeric, vᵇ::$Numeric.$Numeric] :: $Numeric;
 -[Data[#v]]       : Fact2[#v, vᵇ.#[v]]  → $[If, $[Equal, #v, 1], #[#v], Fact2[$[Minus, #v, 1], vᵇ.Times[v, #[#v]]]];     

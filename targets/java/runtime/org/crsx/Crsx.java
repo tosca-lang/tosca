@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,8 +34,11 @@ public class Crsx
 	{
 		System.out.println("Usage: java org.crsx.Crsx [option[=value]]");
 		System.out.println("\nWhere option is:");
+		System.out.println("    string=string     input string value");
+		System.out.println("    term=term         input term");
 		System.out.println("    input=filename    input file");
 		System.out.println("    class=class       compiled CRSX program");
+		System.out.println("    wrapper=name      term wrapper");
 		System.exit(0);
 	}
 
@@ -43,7 +47,6 @@ public class Crsx
 	 */
 	public static void rewrite(Map<String, String> env)
 	{
-
 		Context context = new Context();
 
 		String name = env.get("class");
@@ -77,28 +80,59 @@ public class Crsx
 			System.exit(0);
 		}
 
-		ConstructionDescriptor wrapper = context.lookupDescriptor("Test");
+		ConstructionDescriptor wrapper = null;
+		String wrapperName = env.get("wrapper");
+		if (wrapperName != null)
+		{
+			wrapper = context.lookupDescriptor(wrapperName);
+			if (wrapper == null)
+				System.out.println("Warning: wrapper " + wrapperName + " not found.");
+		}
 
 		BufferSink buffer = context.makeBuffer();
 
 		if (wrapper != null)
 			buffer.start(wrapper);
 
-		// Parse input (if any)
-		String input = env.get("input");
-		if (input != null)
+		// string input (if any)
+		String inputString = env.get("string");
+		if (inputString != null)
 		{
-			// TODO: parser categories
-			try (Reader reader = new BufferedReader(new FileReader(input)))
+			buffer.literal(inputString);
+		}
+		else
+		{
+			// Parse term (if any)
+			String inputTerm = env.get("term");
+			if (inputTerm != null)
 			{
-				new CrsxLexer(reader).scanTerm(buffer, reader);
+				try (Reader reader = new StringReader(inputTerm))
+				{
+					new CrsxLexer(reader).scanTerm(buffer, reader);
+				}
+				catch (IOException e)
+				{
+					printUsage();
+				}
 			}
-			catch (IOException e)
+			else
 			{
-				printUsage();
+				// Parse input (if any)
+				String input = env.get("input");
+				if (input != null)
+				{
+					// TODO: parser categories
+					try (Reader reader = new BufferedReader(new FileReader(input)))
+					{
+						new CrsxLexer(reader).scanTerm(buffer, reader);
+					}
+					catch (IOException e)
+					{
+						printUsage();
+					}
+				}
 			}
 		}
-
 		if (wrapper != null)
 			buffer.end();
 

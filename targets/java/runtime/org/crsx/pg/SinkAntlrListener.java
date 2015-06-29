@@ -1,3 +1,4 @@
+// Copyright (c) 2015 IBM Corporation.
 
 package org.crsx.pg;
 
@@ -13,7 +14,6 @@ import net.sf.crsx.CRSException;
 import net.sf.crsx.Constructor;
 import net.sf.crsx.Sink;
 import net.sf.crsx.generic.GenericFactory;
-import net.sf.crsx.util.Util;
 
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -21,11 +21,14 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.crsx.runtime.Primitives;
 
 /**
  * Create CRSX term from ANTLR parse events.
  * 
- * @author villardl
+ * Support CRSX3 and CRSX4 sink.
+ * 
+ * @author Lionel Villard
  */
 public class SinkAntlrListener implements ParseTreeListener
 {
@@ -55,27 +58,27 @@ public class SinkAntlrListener implements ParseTreeListener
 	{
 		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).enterAlt(_ctx));
 	}
-	
+
 	public static void fireEnterAlt(List<ParseTreeListener> listeners, ParserRuleContext _ctx, String name)
 	{
 		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).enterAlt(_ctx, name));
 	}
-	
+
 	public static void fireExitAlt(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
 		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).exitAlt(_ctx));
 	}
-	
+
 	public static void fireHide(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
 		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).hide(_ctx));
 	}
-	
+
 	public static void fireTerm(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
 		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).term(_ctx));
 	}
-	
+
 	public static void fireTail(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
 		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).tail(_ctx));
@@ -85,6 +88,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	{
 		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).embed(_ctx));
 	}
+
 	private static void fire(List<ParseTreeListener> listeners, ParserRuleContext _ctx, Consumer<ParseTreeListener> apply)
 	{
 		if (listeners != null)
@@ -103,14 +107,24 @@ public class SinkAntlrListener implements ParseTreeListener
 
 	// The state.
 
+	/** The CRSX3 sink */
 	private Sink sink;
+
+	/** The CRSX3 list constructors */
+	private Constructor cons;
+	private Constructor nil;
+
+	/** The CRSX4 sink */
+	private org.crsx.runtime.Sink sink4;
+
 	private GenericFactory factory;
 	private ArrayDeque<MutableInt> consCount;
 	private ArrayDeque<ParserRuleContext> ruleContext;
-	private Constructor cons;
-	private Constructor nil;
 	private MutableInt marker;
+
+	/** The ANTLR4 parser */
 	private Parser parser;
+
 	private String prefix;
 	private String metachar;
 	private boolean hide;
@@ -121,7 +135,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	private State state;
 
 	/**
-	 * 
+	 * Create an crsx ANTLR listener for CRSX3
 	 * @param factory
 	 * @param sink
 	 * @param prefix    Prefix to apply to constructor names
@@ -146,13 +160,52 @@ public class SinkAntlrListener implements ParseTreeListener
 	}
 
 	/**
+	 * Create an crsx ANTLR listener for CRSX4
+	 * @param factory
+	 * @param sink
+	 * @param prefix    Prefix to apply to constructor names
+	 * @param metachar  Language specific meta variable prefix
+	 * @param parser
+	 */
+	public SinkAntlrListener(org.crsx.runtime.Sink sink, String prefix, String metachar, Parser parser)
+	{
+		this.sink4 = sink;
+		this.consCount = new ArrayDeque<>();
+		this.ruleContext = new ArrayDeque<>();
+
+		this.marker = new MutableInt(-1);
+		this.parser = parser;
+		this.prefix = prefix;
+		this.metachar = metachar;
+		this.state = State.PARSE;
+		this.sort = TokenSort.STRING;
+	}
+
+	/**
 	 *  Add location properties to constructor
 	 */
 	protected Constructor locate(Token token, Constructor c)
 	{
-		int column = token.getCharPositionInLine();
-		int line = token.getLine();
-		return Util.wrapWithLocation(sink, c, parser.getInputStream().getSourceName(), line, column);
+		return c;
+
+		// No location until crsx4 can compile crsx4
+
+		//		int column = token.getCharPositionInLine();
+		//		int line = token.getLine();
+		//		return Util.wrapWithLocation(sink, c, parser.getInputStream().getSourceName(), line, column);
+	}
+
+	/**
+	 *  Send location properties 
+	 */
+	protected void sendLocation(Token token)
+	{
+
+		// No location until crsx4 can compile crsx4
+
+		//		int column = token.getCharPositionInLine();
+		//		int line = token.getLine();
+		//		return Util.wrapWithLocation(sink, c, parser.getInputStream().getSourceName(), line, column);
 	}
 
 	/**
@@ -171,11 +224,25 @@ public class SinkAntlrListener implements ParseTreeListener
 	public void exitZOM(ParserRuleContext context)
 	{
 		if (!tail)
-			sink = sink.start(nil).end();
+		{
+			if (sink != null)
+				sink = sink.start(nil).end();
+			else
+				sink4 = sink4.start(Primitives._M__sNil).end();
+		}
+
 		int count = consCount.pop().v;
-		while (count-- > 0)
-			sink = sink.end();
-		
+
+		if (sink != null)
+		{
+			while (count-- > 0)
+				sink = sink.end();
+		}
+		else
+		{
+			while (count-- > 0)
+				sink4 = sink4.end();
+		}
 		tail = false;
 	}
 
@@ -194,7 +261,13 @@ public class SinkAntlrListener implements ParseTreeListener
 		ParserRuleContext parentCtx = ruleContext.peek();
 		String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
 
-		sink = sink.start(locate(parentCtx.getStart(), sink.makeConstructor(prefix + ruleName)));
+		if (sink != null)
+			sink = sink.start(locate(parentCtx.getStart(), sink.makeConstructor(prefix + ruleName)));
+		else
+		{
+			sendLocation(parentCtx.getStart());
+			sink4 = sink4.start(sink4.context().lookupDescriptor(prefix + ruleName));
+		}
 	}
 
 	public void enterAlt(ParserRuleContext context, String name)
@@ -202,12 +275,22 @@ public class SinkAntlrListener implements ParseTreeListener
 		ParserRuleContext parentCtx = ruleContext.peek();
 		String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
 
-		sink = sink.start(locate(parentCtx.getStart(), sink.makeConstructor(prefix + ruleName + "_A" + name)));
+		if (sink != null)
+			sink = sink.start(locate(parentCtx.getStart(), sink.makeConstructor(prefix + ruleName + "_A" + name)));
+		else
+		{
+			sendLocation(parentCtx.getStart());
+			sink4 = sink4.start(sink4.context().lookupDescriptor(prefix + ruleName + "_A" + name));
+		}
 	}
 
 	public void exitAlt(ParserRuleContext context)
 	{
-		sink = sink.end();
+		if (sink != null)
+			sink = sink.end();
+		else
+			sink4 = sink4.end();
+
 	}
 
 	public void embed(ParserRuleContext context)
@@ -246,7 +329,11 @@ public class SinkAntlrListener implements ParseTreeListener
 		{
 			if (!tail)
 			{
-				sink = sink.start(cons);
+				if (sink != null)
+					sink = sink.start(cons);
+				else
+					sink4 = sink4.start(Primitives._M__sCons);
+
 				consCount.peek().v++;
 			}
 			else
@@ -283,7 +370,11 @@ public class SinkAntlrListener implements ParseTreeListener
 					{
 						if (!tail)
 						{
-							sink = sink.start(cons);
+							if (sink != null)
+								sink = sink.start(cons);
+							else
+								sink4 = sink4.start(Primitives._M__sCons);
+
 							consCount.peek().v++;
 						}
 					}
@@ -292,14 +383,23 @@ public class SinkAntlrListener implements ParseTreeListener
 					{
 						case NUMERIC :
 						case STRING :
-							sink = sink.start(locate(context.getSymbol(), sink.makeLiteral(context.getText(), CRS.STRING_SORT))).end();
+							if (sink != null)
+								sink = sink.start(locate(context.getSymbol(), sink.makeLiteral(context.getText(), CRS.STRING_SORT))).end();
+							else
+							{
+								sendLocation(context.getSymbol());
+								sink4 = sink4.literal(context.getText());
+							}
 							break;
 						case TERM :
 							String metaname = context.getText();
 							if (metachar.length() > 1 || metachar.charAt(0) != metaname.charAt(0))
 								metaname = "#" + metaname.substring(metachar.length());
-							
-							sink = sink.startMetaApplication(metaname).endMetaApplication();
+
+							if (sink != null)
+								sink = sink.startMetaApplication(metaname).endMetaApplication();
+							else
+								sink4 = sink4.startMetaApplication(metaname).endMetaApplication();
 							break;
 						default :
 							break;
@@ -325,14 +425,24 @@ public class SinkAntlrListener implements ParseTreeListener
 					text = text.substring(0, text.length() - 1);
 
 					Reader reader = new StringReader(text);
-					try
+
+					if (sink != null)
 					{
-						sink = factory.parser(factory).parse(
-								sink, null, reader, "", token.getLine(), token.getCharPositionInLine(), null);
+						try
+						{
+							sink = factory.parser(factory).parse(
+									sink, null, reader, "", token.getLine(), token.getCharPositionInLine(), null);
+						}
+						catch (CRSException | IOException e)
+						{
+							throw new RuntimeException(e);
+						}
+
 					}
-					catch (CRSException | IOException e)
+					else
 					{
-						throw new RuntimeException(e);
+						sink4 = sink4.context().getParser("freeTerm").parse(
+								sink4, "freeTerm", reader, "", token.getLine(), token.getCharPositionInLine());
 					}
 				}
 				state = State.PARSE;
@@ -351,4 +461,5 @@ public class SinkAntlrListener implements ParseTreeListener
 			this.v = v;
 		}
 	}
+
 }
