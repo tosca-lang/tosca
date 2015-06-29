@@ -4,12 +4,14 @@
 // 
 Crsx[(
 
+$AddGrammar["org.crsx.parser.CrsxMetaParser"];
+
 $Use["state.crs"];
 $Use["normalizer.crs"];
-$Use["resolver.crs"];
 $Use["cg/cgjava.crs"];
 $Use["std/core.crs"];
 $Use["std/list.crs"];
+$Use["std/text.crs"];
 
 // REVISIT: very limited. to revisit when crsx4 is stable enough to compile itself 
 
@@ -65,7 +67,7 @@ NormalizeModuleLoad[$StringEntry, ok¹::OK_SORT.Text] :: Text;
 {#E}NormalizeParsed[ModuleKey[#filename], #filename, #mode, $[ParseResource, "crsx", #filename], ok¹.#[ok¹]];
 
 // Module loaded: skip
-{#E}NormalizeModuleLoad[MODULE[#filename, {#M}LOADED], ok¹.#[ok¹]]
+{#E}NormalizeModuleLoad[MODULE[#filename, #mode, {#M}LOADED], ok¹.#[ok¹]]
 →
 {#E}#[OK];
 
@@ -78,7 +80,7 @@ NormalizeParsed[$String, $String, Mode, Crsx_crsx_sort, ok¹::OK_SORT.Text] :: T
 {#E}NormalizeDone[#key, #filename, #mode,  NormalizeToState[#filename, #crsx], ok¹.#[ok¹]];
 
 {$String:$StringEntry}
-NormalizeDone[$String, $String, Mode, ContentEntry, ok¹::OK_SORT.Text] :: Text;
+NormalizeDone[$String, $String, Mode, Content, ok¹::OK_SORT.Text] :: Text;
 
 // Module has been loaded and normalized. Register module dependencies
 {#E}NormalizeDone[#key, #filename, #mode, {#M}LOADED, ok¹.#[ok¹]] 
@@ -86,7 +88,7 @@ NormalizeDone[$String, $String, Mode, ContentEntry, ok¹::OK_SORT.Text] :: Text;
 {#E}NormalizeDone1[$[{#E}Get, "$normalized"], $[{#E}Get, "$modules"], $[{#M}Get, "$imported"], #key, #filename, #mode, {#M}LOADED, ok¹.#[ok¹]];
 
 {$String:$StringEntry}
-NormalizeDone1[$StringEntry, $StringEntry, ContentEntry, $String, $String, Mode, ContentEntry, ok¹::OK_SORT.Text] :: Text;
+NormalizeDone1[$StringEntry, $StringEntry, ContentEntry, $String, $String, Mode, Content, ok¹::OK_SORT.Text] :: Text;
 
 {#E}NormalizeDone1[MODULES[#normalized], MODULES[#modules],  IMPORTS[#imports], #key, #filename, #mode, #content, ok¹.#[ok¹]]
 →
@@ -129,7 +131,7 @@ CompileModule[$String, ok¹::OK_SORT.Text] :: Text;
 {#E}CompileNormalized[$[{#E}Get, #key], ok¹.#[ok¹]]; 
 
 {$String:$StringEntry}
-CompileNormalized[ContentEntry, ok¹::OK_SORT.Text] :: Text;
+CompileNormalized[$StringEntry, ok¹::OK_SORT.Text] :: Text;
 
 // Module has been loded and normalized. Register module dependencies
 {#E}CompileNormalized[MODULE[#filename, #mode, {#M}LOADED], ok¹.#[ok¹]] 
@@ -138,7 +140,7 @@ CompileNormalized[ContentEntry, ok¹::OK_SORT.Text] :: Text;
 //{#E}CompileSave[$[:, #filename, ".java"], Crsx_Print_crsx[{#M}OutputCrsx[OK]], ok¹.#[ok¹]];
 
 {$String:$StringEntry}
-CompileSave[$String, Text, ok¹::OK_SORT.Text] :: $Numeric;
+CompileSave[$String, Text, ok¹::OK_SORT.Text] :: Text;
 
 -[Data[#code, #filename]]:
 {#E}CompileSave[#filename, #code, ok¹.#[ok¹]]

@@ -86,6 +86,77 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 		throw new UnsupportedOperationException();
 	}
 
+	/**
+	 * Return Crsx4 compatible parser 
+	 * @return
+	 */
+	public org.crsx.runtime.Parser asCrsx4Parser()
+	{
+		return new Crsx4ParserAdapter(this);
+	}
+
+	/**
+	 * @return Non null category if supported
+	 */
+	protected String supportCategory(String category)
+	{
+		int len = category.length();
+		char last = category.charAt(len - 1);
+		switch (last)
+		{
+			case '*' :
+				category = category.substring(0, len - 1) + "_ZOM";
+				break;
+			case '?' :
+				category = category.substring(0, len - 1) + "_OPT";
+				break;
+			case '+' :
+				category = category.substring(0, len - 1) + "_OOM";
+				break;
+		}
+
+		// Can it handle the category?
+		return getRuleIndex(category) >= 0 ? category : null;
+	}
+
+	/**
+	 * Setup input
+	 * @throws IOException 
+	 */
+	protected void setupInput(Reader reader, int line, int column) throws IOException
+	{
+		CharStream stream = new ANTLRInputStream(reader);
+
+		Lexer source = newLexer(stream);
+		source.setLine(line);
+		source.setCharPositionInLine(column);
+		TokenStream input = new CommonTokenStream(source);
+
+		setInputStream(input);
+		initATN();
+
+		setBuildParseTree(false);
+	}
+
+	/**
+	 * Real parsing occurring after setup
+	 */
+	protected void realParse(String category)
+	{
+		// Retrieve method to call.
+		String cateof = category + "_EOF";
+		try
+		{
+			Method method = getClass().getMethod(cateof);
+			method.invoke(this);
+		}
+		catch (Exception e)
+		{
+			throw new RuntimeException(e);
+		}
+
+	}
+
 	// Implements Parser
 
 	@Override
@@ -135,57 +206,29 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 	public Sink parse(Sink sink, String category, Reader reader, String unit, int line, int column, ExtensibleMap<String, Variable> bound)
 			throws CRSException, IOException
 	{
-		int len = category.length();
-		char last = category.charAt(len - 1);
-		switch (last)
-		{
-			case '*' :
-				category = category.substring(0, len - 1) + "_ZOM";
-				break;
-			case '?' :
-				category = category.substring(0, len - 1) + "_OPT";
-				break;
-			case '+' :
-				category = category.substring(0, len - 1) + "_OOM";
-				break;
-		}
-
-		// Can it handle the category?
-		int index = getRuleIndex(category);
-		if (index == -1)
+		category = supportCategory(category);
+		if (category == null)
 			throw new CRSException(getClass().getCanonicalName() + " parser cannot handle the category " + category);
 
-		CharStream stream = new ANTLRInputStream(reader);
+		setupInput(reader, line, column);
+		//		CharStream stream = new ANTLRInputStream(reader);
+		//
+		//		Lexer source = newLexer(stream);
+		//		source.setLine(line);
+		//		source.setCharPositionInLine(column);
+		//		TokenStream input = new CommonTokenStream(source);
+		//
+		//		setInputStream(input);
+		//		initATN();
+		//
+		//		setBuildParseTree(false);
 
-		Lexer source = newLexer(stream);
-		source.setLine(line);
-		source.setCharPositionInLine(column);
-		TokenStream input = new CommonTokenStream(source);
-
-		setInputStream(input);
-		initATN();
-
-		setBuildParseTree(false);
 		SinkAntlrListener listener = new SinkAntlrListener(factory, sink, _prefix(), _metachar(), this);
 		//setTrace(true);
 		addParseListener(listener);
 
-		//addErrorListener(new DiagnosticErrorListener());
 		// Retrieve method to call.
-		String cateof = category + "_EOF";
-		try
-		{
-			Method method = getClass().getMethod(cateof);
-			method.invoke(this);
-		}
-		catch (NoSuchMethodException e)
-		{
-			throw new CRSException("Parse error: couldn't find the category " + cateof);
-		}
-		catch (Exception e)
-		{
-			throw new CRSException(e);
-		}
+		realParse(category);
 
 		if (error)
 			throw new CRSException("Parse error");

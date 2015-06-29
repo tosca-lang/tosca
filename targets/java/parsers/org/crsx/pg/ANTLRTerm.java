@@ -1,4 +1,4 @@
-// Generated from ANTLRTerm.g4 by ANTLR 4.5
+// Generated from /Users/villardl/Projects/crsx/crsx4/src/pg/ANTLRTerm.g4 by ANTLR 4.5
 package org.crsx.pg;
 
     import org.crsx.pg.SinkAntlrListener;

@@ -11,6 +11,19 @@ import java.util.Map;
  */
 public abstract class Term extends Reference
 {
+	// Static utilities
+	
+	/**
+	 * Whether the term is a constant.
+	 * @param term
+	 */
+	public static boolean isConstant(Term term)
+	{
+		return term != null && term.isConstruction() && term.arity() == 0;
+	}
+
+	
+	
 	// State
 
 	/** Whether this term is in normal form */
@@ -81,6 +94,15 @@ public abstract class Term extends Reference
 		return false;
 	}
 
+	/**
+	 * @return true if this term is a literal
+	 */
+	public boolean isLiteral()
+	{
+		return false;
+	}
+
+	
 	/**
 	 * @return Term as a construction. Does not create a new reference.
 	 */

@@ -41,7 +41,7 @@ Or[TRUE, #]  → TRUE;
 Or[FALSE, #] → #;
 
 WrapBoolean[$Boolean] :: Boolean ;
--[Data[#]]: WrapBoolean[#]  → $[If, $[Equal, #, "$True"], TRUE, FALSE];
+-[Data[#]]: WrapBoolean[#]  → $[If, $[Equal, #, $True], TRUE, FALSE];
 
 UnwrapBoolean[Boolean] :: $Boolean ;
 UnwrapBoolean[TRUE]  → $True;

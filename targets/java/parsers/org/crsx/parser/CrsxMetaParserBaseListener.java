@@ -1,4 +1,4 @@
-// Generated from CrsxMetaParser.g4 by ANTLR 4.5
+// Generated from /Users/villardl/Projects/crsx/crsx4/src/parser/CrsxMetaParser.g4 by ANTLR 4.5
 package org.crsx.parser;
 
 import org.crsx.pg.SinkAntlrListener;
@@ -361,6 +361,30 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitImport_TOK_EOF(CrsxMetaParser.Import_TOK_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterGrammar_TOK(CrsxMetaParser.Grammar_TOKContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitGrammar_TOK(CrsxMetaParser.Grammar_TOKContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterGrammar_TOK_EOF(CrsxMetaParser.Grammar_TOK_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitGrammar_TOK_EOF(CrsxMetaParser.Grammar_TOK_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

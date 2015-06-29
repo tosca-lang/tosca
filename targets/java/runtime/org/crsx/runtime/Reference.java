@@ -24,6 +24,14 @@ public abstract class Reference
 	// Special value indicating the reference as been released and shouldn't be used anymore
 	final public static int RELEASED = Integer.MIN_VALUE; 
 	
+	/** Safe reference counting: check for null value */
+	@SuppressWarnings("unchecked")
+	final public static <T extends Reference> T safeRef(T ref)
+	{
+		return ref == null ? null : (T) ref.ref();
+	}
+		
+	
 	/**
 	 * Number of references to this instance.
 	 */
@@ -78,4 +86,5 @@ public abstract class Reference
 		return refcount;
 	}
 
+	
 }

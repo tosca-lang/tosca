@@ -40,7 +40,9 @@ moduleDeclaration
 /*  Import declaration */    
 
 importDeclaration    
-    : IMPORT constructor                                   /* [CORE] */    
+    : IMPORT constructor                                   /* [SUGAR: same as IMPORT MODULE] */
+    | IMPORT MODULE constructor                            /* [CORE] */    
+    | IMPORT GRAMMAR constructor                           /* [CORE] */    
     ;    
  
 /*  Rule declaration */    
@@ -278,6 +280,7 @@ MODULE          : 'module';
 IMPORT          : 'import';
 DISPATCH        : 'dispatch';
 DELAY           : 'delay';
+GRAMMAR         : 'grammar';
 
 COLON           : ':';
 ARROW           : '→';

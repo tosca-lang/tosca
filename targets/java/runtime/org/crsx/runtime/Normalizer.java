@@ -30,6 +30,7 @@ public class Normalizer
 	{
 		assert term.descriptor() != null;
 
+		System.out.println(term.symbol());
 		return term.descriptor().step(sink, term);
 	}
 
@@ -130,10 +131,10 @@ public class Normalizer
 	}
 
 	/**
-	 * Forces term evaluation until step fails.
+	 * Forces term evaluation until step fails. 
 	 * @param context
-	 * @param term 
-	 * @return a term
+	 * @param term A reference to a term. Consumed.
+	 * @return an reference to the evaluated term
 	 */
 	public static Term force(Context context, Term term)
 	{
@@ -157,7 +158,23 @@ public class Normalizer
 		}
 		return term;
 	}
-	
+
+	/**
+	 * Forces sub evaluation until step fails. Update parent with new sub.
+	 * @param context
+	 * @param parent the sub's parent term
+	 * @param i the sub index
+	 * @return a peek (not a reference) at the evaluated sub.
+	 */
+	public static Term forceSub(Context context, Term parent, int i)
+	{
+		assert parent.arity() > i : "Index out of bounds";
+
+		Term sub = force(context, parent.sub(i));
+		parent.setSub(i, sub);
+		return sub;
+	}
+
 	/**
 	 * Represents a subterm (Internal).
 	 */

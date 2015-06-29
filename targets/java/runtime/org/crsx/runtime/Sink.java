@@ -1,11 +1,10 @@
 // Copyright (c) 2014 IBM Corporation.
-
 package org.crsx.runtime;
 
 /**
  * Consumes Term events.
  * 
- * @author villardl
+ * @author Lionel Villard
  */
 public abstract class Sink
 {
@@ -87,6 +86,21 @@ public abstract class Sink
 	 */
 	public abstract Sink copy(Term term);
 
+	/**
+	 * Start a meta-application.
+	 * @param name of meta-variable to use
+	 * @return continuation sink to use for subsequent operation (never null)
+	 */
+	public abstract Sink startMetaApplication(String name);
+	
+	/**
+	 * End of previously started meta-application subterm.
+	 * @return continuation sink to use for subsequent operation
+	 *     - may return <b>null</b> if it does not make sense to send further events
+	 */
+	public abstract Sink endMetaApplication();
+	
+	
 	/**
 	 * Queue properties to be inserted either on a new construction or a term.
 	 * 

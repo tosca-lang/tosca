@@ -5,10 +5,11 @@
 CrsxUtil[(
 
 $Lax;
-$Use["parser/crsx.crs"];
+$Use["parser/Crsx.crs"];
 $Use["std/core.crs"];
 $Use["std/num.crs"];
 $Use["std/string.crs"];
+$Use["std/list.crs"];
 
 // Get data/function arity
 ArityArgumentsOpt[$List[Crsx_arguments_sort]] :: $Numeric;
@@ -22,7 +23,7 @@ ArityArguments[%arguments⟦ [ ##terms ] ⟧] → ArityTerms[#terms];
 ArityTerms[Crsx_terms_sort] :: $Numeric;
 ArityTerms[%terms⟦ ##term ##terms_S1*⟧] → NumberPlus[1, ArityTerms_S1_ZOM[#terms_S1*]];
 
-ArityTerms_S1_ZOM[Crsx_terms_S1_ZOM_sort] :: $Numeric;
+ArityTerms_S1_ZOM[$List[Crsx_terms_S1_sort]] :: $Numeric;
 ArityTerms_S1_ZOM[%terms_S1*⟦                    ⟧] → 0;
 ArityTerms_S1_ZOM[%terms_S1*⟦ , ##term ##terms_S1* ⟧] → NumberPlus[1, ArityTerms_S1_ZOM[#terms_S1*]];
 
@@ -39,9 +40,9 @@ IsDirectiveUnwrap[%constructor⟦ ##CONSTRUCTOR ⟧] → $[StartsWith, #CONSTRUC
 IsDirectiveUnwrap[%constructor⟦ :            ⟧] → $False;
 
 // Whether the constructor is a CRSX3 primitive (is $)
-IsPrimitive[Crsx_constructor_sort] :: $Boolean;
+IsPrimitive[Crsx_constructor_sort] :: Boolean;
 IsPrimitive[%constructor⟦ ##CONSTRUCTOR ⟧] → StringEqual[#CONSTRUCTOR, "$"];
-IsPrimitive[%constructor⟦ :             ⟧]  → FALSE;
+IsPrimitive[%constructor⟦ :             ⟧] → FALSE;
 // 
 // Whether all terms in pattern are meta. No argument means all meta.
 AllMetaInPatternRule[Crsx_ruleDeclaration_sort] :: Boolean;
@@ -58,7 +59,7 @@ AllMetaTerms[Crsx_terms_sort] :: Boolean;
 AllMetaTerms[%terms⟦ ##METAVAR ##terms_S1* ⟧] → AllMetaTerms_S1_ZOM[#terms_S1*];
 -[Fallback] : AllMetaTerms[#terms]         → FALSE;
 
-AllMetaTerms_S1_ZOM[Crsx_terms_S1_ZOM_sort] :: Boolean;
+AllMetaTerms_S1_ZOM[$List[Crsx_terms_S1_sort]] :: Boolean;
 AllMetaTerms_S1_ZOM[%terms_S1*⟦                       ⟧] → TRUE;
 AllMetaTerms_S1_ZOM[%terms_S1*⟦ , ##METAVAR ##terms_S1* ⟧] → AllMetaTerms_S1_ZOM[#terms_S1*];
 -[Fallback] : AllMetaTerms_S1_ZOM[#terms_S1_ZOM]        → FALSE;
@@ -71,12 +72,13 @@ Annotations ::= ( ANNOTATIONS; );
 // Index annotations
 IndexAnnotations[$List[Crsx_annotations_sort]] ::  Annotations;
 
-IndexAnnotations[%annotations?⟦              ⟧] → {}ANNOTATIONS;
+IndexAnnotations[%annotations?⟦               ⟧] → {}ANNOTATIONS;
 IndexAnnotations[%annotations?⟦ ##annotation+ ⟧] → {}SeqMap[anno cont.IndexAnnotation[anno, cont], #annotation+, ok¹.Then[ok¹]];
 
+Then[OK_SORT] ::  Annotations;
 {#E}Then[OK] → {#E}ANNOTATIONS; 
 
-IndexAnnotation[Crsx_annotations_sort, Continuation[Annotations]] ::  Annotations;
+IndexAnnotation[Crsx_annotation_sort, Continuation[Annotations]] ::  Annotations;
 
 {#A}IndexAnnotation[%annotation⟦ @ ##CONSTRUCTOR ##arguments? ⟧, CONTINUATION[ok¹.#[ok¹]]] → $[Trace, {#A; #CONSTRUCTOR: #arguments?}#[OK]];
 
@@ -94,7 +96,7 @@ SugarFreeTerms[$List[Crsx_freeTerms_S1_sort]] :: Crsx_freeTerms_sort;
 SugarFreeTerms[%freeTerms_S1*⟦                            ⟧] → $[Error, "Internal error: cannot rewrite an empty list of terms to term"];
 SugarFreeTerms[%freeTerms_S1*⟦ , ##freeTerm ##freeTerms_S1* ⟧] → %freeTerms⟦ ##freeTerm ##freeTerms_S1* ⟧; 
 
-SugarDispatchCases[$List[Crsx_dispatchCases_S1_ZOM_sort]] :: Crsx_dispatchCases_sort;
+SugarDispatchCases[$List[Crsx_dispatchCases_S1_sort]] :: Crsx_dispatchCases_sort;
 SugarDispatchCases[%dispatchCases_S1*⟦                                    ⟧] → $[Error, "Assertion error: at least one dispatch case must be defined."]; 
 SugarDispatchCases[%dispatchCases_S1*⟦ ; ##dispatchCase ##dispatchCases_S1* ⟧] → %dispatchCases⟦ ##dispatchCase ##dispatchCases_S1* ⟧; 
 
@@ -117,8 +119,8 @@ DesugarTermList[Crsx_termList_sort] :: $List[Crsx_termList_S1_sort];
 DesugarTermList[%termList⟦ ##term ##termList_S1* ⟧] →  %termList_S1*⟦ ; ##term ##termList_S1* ⟧;
 
 DesugarFreeTermList[Crsx_freeTerm_sort] :: Crsx_freeTerm_sort;
-DesugarList[%freeTerm⟦ ##annotations? (           ) ⟧] → %freeTerm⟦ ##annotations? $Nil ⟧;
-DesugarList[%freeTerm⟦ ##annotations? ( ##termList ) ⟧] → DesugarListTermList[DesugarTermList[#termList]]; // TODO: preserve annotations 
+DesugarFreeTermList[%freeTerm⟦ ##annotations? (           ) ⟧] → %freeTerm⟦ ##annotations? $Nil ⟧;
+DesugarFreeTermList[%freeTerm⟦ ##annotations? ( ##termList ) ⟧] → DesugarListTermList[DesugarTermList[#termList]]; // TODO: preserve annotations 
 
 DesugarList[Crsx_list_sort] :: Crsx_freeTerm_sort;
 DesugarList[%list⟦ (           ) ⟧] → %freeTerm⟦ $Nil ⟧;

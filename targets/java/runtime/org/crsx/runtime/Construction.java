@@ -153,7 +153,7 @@ public class Construction extends Term
 	{
 		// Apply substitution to properties
 		if (properties != null)
-			properties.substituteTo(sink, substitutes);
+			properties.ref().substituteTo(sink, substitutes);
 
 		sink.start(descriptor);
 
