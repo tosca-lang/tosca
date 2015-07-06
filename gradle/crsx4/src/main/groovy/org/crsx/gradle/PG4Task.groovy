@@ -1,0 +1,74 @@
+package org.crsx.gradle
+
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
+
+class PG4Task extends DefaultTask {
+	
+	@InputFile
+	File source 
+	
+	@OutputDirectory
+	File generatedFileDir = project.file("${project.buildDir}/pg4")
+	
+	@Input
+	@Optional
+	boolean sort = true
+	
+	@Input
+	@Optional
+	boolean parsers = true
+	
+	@TaskAction
+	def generate() {
+		if (sort || parsers)
+		{
+			// Configure PG runner
+			MainRunner pgrunner = new MainRunner(project.configurations.crsx4.files, "org.crsx.pg.PG")
+			
+			// Configure Crsx3 runner
+			MainRunner crsx3runner = new MainRunner(project.configurations.crsx4.files, "net.sf.crsx.run.Crsx")
+				
+			// Generate grammars.
+			String absname = source.absolutePath
+			String nameext = source.name
+			String name =  nameext.lastIndexOf('.').with {it != -1 ? nameext[0..<it] : nameext}
+			String basename = generatedFileDir.absolutePath + "/" + name
+			
+			// .g4 -> .term
+			String term = absname + '.term'   // grammar as term file
+			pgrunner.run([ absname, term ])
+			
+			// .term -> .nterm
+			String nterm = absname + '.nterm' // normalize grammar
+			crsx3runner.run([ 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/normalizer.crs', 'input=' + term, 'wrapper=Normalize', 'output=' + nterm ])
+
+			if (sort)
+			{	
+				// .nterm -> sort
+				String sortt = basename + '.crs' // generate sort
+				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakePrinter', 'output=' + sortt ])
+			}
+			
+			if (parsers)
+			{
+				// .nterm -> term lexer/parser
+				String termparser = basename + 'Term.g4'
+				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/genparser.crs', 'input=' + nterm, 'wrapper=MakeParser', 'output=' + termparser ])
+				
+				// .nterm -> meta lexer
+				String metalexer = basename + 'MetaLexer.g4' // generate meta lexer
+				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/genparser.crs', 'input=' + nterm, 'wrapper=MakeMetaLexer', 'output=' + metalexer ])
+				
+				// .nterm -> meta parser
+				String metaparser = basename + 'MetaParser.g4' // generate meta parser
+				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/genparser.crs', 'input=' + nterm, 'wrapper=MakeMetaParser', 'output=' + metaparser ])
+			}
+			// Cleanup
+			project.delete(term)
+			project.delete(nterm)
+		}	
+	}
+
+}

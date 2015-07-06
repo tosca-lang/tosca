@@ -1,4 +1,4 @@
-// Generated from /Users/villardl/Projects/crsx/crsx4/src/parser/CrsxTerm.g4 by ANTLR 4.5
+// Generated from /Users/villardl/Projects/crsx/crsx4/targets/java/build/pg4/CrsxTerm.g4 by ANTLR 4.5
 package org.crsx.parser;
 
 import org.crsx.pg.SinkAntlrListener;

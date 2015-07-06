@@ -1,17 +1,24 @@
 apply plugin: 'groovy'
-apply plugin: 'maven'
 
-repositories {
-	mavenLocal()
-	mavenCentral()
-}
+archivesBaseName = 'crsx4-gradle-plugin'
 
 dependencies {
     compile gradleApi()
     compile localGroovy()	
-	compile 'org.crsx:crsx:4.0.0-SNAPSHOT'
-	compile 'org.antlr:antlr4:4.5'
+	runtime 'org.crsx:crsx:4.+@jar'
+	runtime 'org.crsx:crsx3@jar'
+	runtime 'org.antlr:antlr4:4.5'
 }
 
-group = 'org.crsx'
-version = '1.0'
+group = 'org.crsx.gradle'
+version = '1.0-SNAPSHOT'
+
+task install(type: Copy, dependsOn: ['jar']) {
+	description "Install crsx4 gradle plugin."
+	from jar
+	into project.file('..')
+}
+
+task cleanInstall(overwrite: true) {
+	delete project.file("../${jar.archiveName}")
+}

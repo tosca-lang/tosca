@@ -29,7 +29,14 @@ public class VariableUse extends Term
 	{
 		return true;
 	}
- 	
+
+	@Override
+	public Kind kind()
+	{
+		return Kind.VARIABLE_USE;
+	}
+
+	
 	@Override
 	protected void substituteTo(Sink sink, Map<Variable, Term> substitutes)
 	{

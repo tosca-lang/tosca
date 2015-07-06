@@ -21,6 +21,7 @@ crsx
 declarations
     : declaration (SEMI declaration?)* 
     ;
+    
         
 declaration 
     : moduleDeclaration                                     /* [SUGAR]  nested modules */
@@ -33,7 +34,7 @@ declaration
 /*  Module declaration */    
 
 // Inner module */
-moduleDeclaration    
+moduleDeclaration
     : MODULE CONSTRUCTOR LBRACE declarations RBRACE         /* [SUGAR] */    
     ;
     

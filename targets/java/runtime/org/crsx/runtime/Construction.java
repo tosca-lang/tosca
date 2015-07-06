@@ -5,6 +5,8 @@ package org.crsx.runtime;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
+import org.crsx.runtime.Term.Kind;
+
 /**
  * A generic construction.
  * 
@@ -47,11 +49,17 @@ public class Construction extends Term
 	}
 
 	//  Overrides
-
+	
 	@Override
 	public String symbol()
 	{
 		return descriptor.symbol();
+	}
+
+	@Override
+	public Kind kind()
+	{
+		return Kind.CONSTRUCTION;
 	}
 
 	@Override

@@ -2,71 +2,75 @@
 /*
  *  CRSX Java target build file.
  */
+import org.crsx.gradle.*
+
 
 // --- Script configuration
-
-apply plugin:'maven'
+//
 
 buildscript {
+	repositories { flatDir { dirs '../../gradle/' } // to find crsx4-gradle-plugin.jar
+	}
+	dependencies { classpath 'org.crsx.gradle:crsx4-gradle-plugin:1.+' }
+}
+
+//
+project(':parsers')
+{
+	// Note: the current directory is now 'parsers'
+	
+	apply plugin:'org.crsx.gradle.crsx4'
+	
 	repositories {
-		mavenLocal()
+		flatDir { dirs '../dist' } // crsx4
+		flatDir { dirs '../lib' }  // crsx3
+		mavenCentral()
 	}
+	
 	dependencies {
-		classpath group: 'org.crsx', name: 'antlr4', version: '1.0'
+		crsx4 'org.crsx:crsx:4.0.0-ALPHA@jar'
+		crsx4 'org.crsx:crsx3@jar'
+		crsx4 'org.antlr:antlr4:4.5'
 	}
-}
+	
+	task crsxPG4(type: PG4Task) {
+		source = file('../../../src/parser/Crsx.g4')
+		generatedFileDir = file('../build/pg4')
+		sort = false
+	}
+	
+	task crsxMetaAntlr4(dependsOn: 'crsxPG4', type: Antlr4Task) {
+		lexer = file('../build/pg4/CrsxMetaLexer.g4')
+		grammar = file('../build/pg4/CrsxMetaParser.g4')
+		generatedFileDir = file('org/crsx/parser')
+		packageName = 'org.crsx.parser'
+		superClass = 'org.crsx.pg.Crsx3Parser'
+	}
+	
+	task crsxTermAntlr4(dependsOn: 'crsxPG4', type: Antlr4Task) {
+		grammar = file('../build/pg4/CrsxTerm.g4')
+		generatedFileDir = file('org/crsx/parser')
+		packageName = 'org.crsx.parser'
+	}
+	
+	task antlrAntlr4(type: Antlr4Task) {
+		lexer = file('../../../src/pg/ANTLRMetaLexer.g4')
+		grammar = file('../../../src/pg/ANTLRMeta.g4')
+		generatedFileDir = file('org/crsx/pg')
+		packageName = 'org.crsx.pg'
+		superClass = 'org.crsx.pg.Crsx3Parser'
+	}
+	
+	
+	task antlrTermAntlr4(type: Antlr4Task) {
+		lexer = file('../../../src/pg/ANTLRTermLexer.g4')
+		grammar = file('../../../src/pg/ANTLRTerm.g4')
+		generatedFileDir = file('org/crsx/pg')
+		packageName = 'org.crsx.pg'
+	}
+	
+	task buildParsers(dependsOn: ['antlrAntlr4', 'antlrTermAntlr4', 'crsxMetaAntlr4', 'crsxTermAntlr4'])
 
-// --- Generate ANLTR parsers
-
-apply plugin:'org.crsx.antlr4'
-
-ext {
-	pgSrc       = file('../../src/pg').absolutePath                                   // PG source directory
-	pgTgt       = file('../../targets/java/parsers/org/crsx/pg').absolutePath         // PG target directory
-	crsxSrc     = file('../../src/parser').absolutePath                               // Crsx source directory
-	crsxTgt     = file('../../targets/java/parsers/org/crsx/parser').absolutePath     // Crsx parsers target directory
-}
-
-task antlrArtifacts(type: org.crsx.Antlr4Task) {
-	description 'Generate Java ANTLR lexers and term parser'
-	pwd pgSrc
-	packageName 'org.crsx.pg'
-	inputs.files 'ANTLRTermLexer.g4', 'ANTLRTerm.g4', 'ANTLRMetaLexer.g4'
-	outputs.dir pgTgt
-}
-
-task buildAntlrParsers(type: org.crsx.Antlr4Task, dependsOn: antlrArtifacts) {
-	description 'Generate Java ANTLR term and meta parsers'
-	pwd pgSrc
-	superClass 'org.crsx.pg.Crsx3Parser'
-	packageName 'org.crsx.pg'
-	inputs.file 'ANTLRMeta.g4'
-	outputs.dir pgTgt
-}
-
-task crsxArtifacts(type: org.crsx.Antlr4Task) {
-	description 'Generate Java Crsx lexers and term parser'
-	pwd crsxSrc
-	packageName 'org.crsx.parser'
-	inputs.files 'CrsxMetaLexer.g4', 'CrsxTerm.g4'
-	outputs.dir crsxTgt
-}
-
-// --- Generate Crsx parsers
-
-task buildCrsxParsers(type: org.crsx.Antlr4Task, dependsOn: crsxArtifacts) {
-	description 'Generate Java Crsx term and meta parsers'
-	pwd crsxSrc
-	superClass 'org.crsx.pg.Crsx3Parser'
-	packageName 'org.crsx.parser'
-	inputs.file 'CrsxMetaParser.g4'
-	outputs.dir crsxTgt
-}
-
-task buildParsers(dependsOn: [buildAntlrParsers, buildCrsxParsers]) 
-
-dependencies {
-	antlr4 'org.antlr:antlr4:4.5'
 }
 
 // --- Java compilation/packaging
@@ -76,12 +80,12 @@ apply plugin:'java'
 compileJava {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
-	
-	dependsOn buildParsers
+
+	dependsOn ':parsers:buildParsers'
 }
 
-clean.dependsOn cleanBuildCrsxParsers
-clean.dependsOn cleanBuildAntlrParsers
+//clean.dependsOn cleanBuildCrsxParsers
+//clean.dependsOn cleanBuildAntlrParsers
 
 group = 'org.crsx'
 version = '4.0.0-SNAPSHOT'
@@ -90,20 +94,22 @@ sourceSets {
     main {
         java {
             srcDir 'runtime'
-            srcDir 'parsers'  
+            srcDir 'parsers'
         }
+		resources {
+			srcDir '../../src'
+			include '**/*.crs'
+		}
     }
 }
 
 repositories {
-    flatDir {
-        dirs "lib"
-    }
+    flatDir { dirs "lib"}
     mavenCentral()
 }
 
 dependencies {
-    compile fileTree(dir: 'lib', include: ['crsx3.jar'])
+    compile 'org.crsx:crsx3@jar'
 	compile 'org.antlr:antlr4:4.5'
 }
 

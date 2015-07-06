@@ -1,74 +1,66 @@
 // Copyright (c) 2015 IBM Corporation.
 
-// Main CRSX build file.
-
-// --- Build custom tasks
-
-// --- Custom tasks
-
-task antlrl4Task(type: GradleBuild) {
-	dir = 'gradle/antlr4';
-	tasks = ['install']
-}
-
-task crsx3Task(type: GradleBuild) {
-	dir = 'gradle/crsx3';
-	tasks = ['install']
-}
-
-task crsx4Task(type: GradleBuild) {
-	dir = 'gradle/crsx4';
-	tasks = ['install']
-}
-
-task customTasks(dependsOn: [antlrl4Task, crsx3Task, crsx4Task]) {}
+/*
+ *  Main CRSX build file.
+ */
  
-// --- Java target
+
+// --- Bootstrapping
+apply plugin:'base'
+
+buildscript {
+	repositories {
+		flatDir { dirs 'gradle' } // to find crsx4-gradle-plugin.jar
+	}
+	dependencies {
+		classpath 'org.crsx.gradle:crsx4-gradle-plugin:1.+'
+	}
+}
+
+apply plugin:'org.crsx.gradle.crsx4'
+
+repositories {
+	flatDir { dirs 'targets/java/dist' } // crsx4
+	flatDir { dirs 'targets/java/lib' }  // crsx3
+	mavenCentral() 
+}
+
+dependencies {
+	crsx4 'org.crsx:crsx:4.0+@jar'
+	crsx4 'org.crsx:crsx3@jar'
+	crsx4 'org.antlr:antlr4:4.5' 
+}
+
+pg4 {
+	source = file('src/parser/Crsx.g4')
+	generatedFileDir = file('src/parser')
+	parsers = false
+}
+
+task bootstrapCrsxSort(type: Copy, dependsOn: 'pg4') {
+	description "Update parser/Crsx.crs"
+	from 'build/pg4/Crsx.crs'
+	into 'src/parser'
+}
+
+task cleanBootstrapCrsxSort(overwrite : true) {
+	delete file('src/parser/Crsx.crs')
+} 
+
+task bootstrap(dependsOn: [ 'bootstrapCrsxSort' ]) {}
+
+// --- Shortcut to Java target
 
 task java(type: GradleBuild) {
 	description = "Generate CRSX Java distribution file.";
 	dir = 'targets/java';
-	tasks = ['install']
+	tasks = ['dist']
 }
 
-// --- Bootstrapping
 
-buildscript {
-	repositories {
-		mavenLocal()
-                mavenCentral()
-	}
-	dependencies {
-		classpath group: 'org.crsx', name: 'crsx4gradle', version: '1.0'
-	}
-}
-
-apply plugin:'org.crsx.crsx4gradle'
-
-repositories {
-//	flatDir {
-//		dirs "lib"
-//	}
-	mavenCentral()
-}
-
-dependencies {
-	crsx4 fileTree(dir: 'bootstrap', include: ['crsx3.jar'])
-	crsx4 fileTree(dir: 'bootstrap', include: ['crsx4.jar']) 
-	crsx4 'org.antlr:antlr4:4.5' 
-}
-
-crsx4 {
-	grammars {
-		main {
-			input = 'src/parser/Crsx.g4'
-		}
-	}
-}
-
-task updateBootstrap(type: Copy, dependsOn: java) {
-	description "Update bootstrapping crsx4."
-	from 'targets/java/dist/crsx-4.0.0-SNAPSHOT.jar'
-	into 'bootstrap'
-	rename { String fileName -> "crsx4.jar" }
-}
+//task updateBootstrap(type: Copy, dependsOn: java) {
+//	description "Update bootstrapping crsx4."
+//	from 'targets/java/dist/crsx-4.0.0-SNAPSHOT.jar'
+//	into 'bootstrap'
+//	rename { String fileName -> "crsx4.jar" }
+//}

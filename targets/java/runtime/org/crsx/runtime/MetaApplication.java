@@ -22,23 +22,27 @@ public class MetaApplication extends Term
 	public Term[] subs;
 
 	// Constructor
-	
+
 	public MetaApplication(String meta)
 	{
 		this.metaVariable = meta;
 	}
-	
+
 	// Overrides
-	
+
+	@Override
+	public Kind kind()
+	{
+		return Kind.META_APPLICATION;
+	}
+
 	@Override
 	protected void substituteTo(Sink sink, Map<Variable, Term> substitutes)
 	{
 		throw new UnsupportedOperationException();
 	}
 
-	
 	// Debugging
-	
 
 	@Override
 	public String toString()

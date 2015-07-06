@@ -11,8 +11,18 @@ import java.util.Map;
  */
 public abstract class Term extends Reference
 {
+	/* Kind of term */
+	public enum Kind {
+		/** Term is construction. */
+		CONSTRUCTION,
+		/** Term is a variable occurrence. */
+		VARIABLE_USE,
+		/** Term is a meta-application. */
+		META_APPLICATION
+	}
+
 	// Static utilities
-	
+
 	/**
 	 * Whether the term is a constant.
 	 * @param term
@@ -43,7 +53,7 @@ public abstract class Term extends Reference
 	{
 		return null;
 	}
-	
+
 	/** Normal form? */
 	public boolean isNf()
 	{
@@ -68,6 +78,11 @@ public abstract class Term extends Reference
 		this.nostep = nostep;
 	}
 
+	/**
+	 * Gets term's kind
+	 */
+	public abstract Kind kind();
+	
 	/**
 	 * @return true if this term represents a function
 	 */
@@ -100,7 +115,6 @@ public abstract class Term extends Reference
 		return false;
 	}
 
-	
 	/**
 	 * @return Term as a construction. Does not create a new reference.
 	 */
@@ -196,15 +210,14 @@ public abstract class Term extends Reference
 	final public Term substitute(Context context, Map<Variable, Term> substitutes)
 	{
 		//TODO: in place update
-		
+
 		BufferSink buffer = context.makeBuffer();
 		substituteTo(buffer, substitutes);
 		Term term = buffer.term();
 		//buffer.free(context);
 		return term;
-	}	
+	}
 
-	
 	/**
 	 * Apply substitution on this term and send result to sink. 
 	 * 
