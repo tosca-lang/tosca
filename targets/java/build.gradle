@@ -5,6 +5,8 @@
 import org.crsx.gradle.*
 
 
+defaultTasks 'dist'
+
 // --- Script configuration
 //
 
@@ -33,10 +35,11 @@ project(':parsers')
 		crsx4 'org.antlr:antlr4:4.5'
 	}
 	
-	task crsxPG4(type: PG4Task) {
+	task crsxPG4(dependsOn:'antlrAntlr4', type: PG4Task) {
 		source = file('../../../src/parser/Crsx.g4')
 		generatedFileDir = file('../build/pg4')
 		sort = false
+		metaPrefix = '##'
 	}
 	
 	task crsxMetaAntlr4(dependsOn: 'crsxPG4', type: Antlr4Task) {
@@ -73,6 +76,30 @@ project(':parsers')
 
 }
 
+project(':compiler')
+{
+	apply plugin:'org.crsx.gradle.crsx4'
+	
+	repositories {
+		flatDir { dirs '../dist' } // crsx4
+		flatDir { dirs '../lib' }  // crsx3
+		mavenCentral()
+	}
+	
+	dependencies {
+		crsx4 'org.crsx:crsx:4.0.0-ALPHA@jar'
+		crsx4 'org.crsx:crsx3@jar'
+		crsx4 'org.antlr:antlr4:4.5'
+	}
+	
+	crsx4 {
+		sources = fileTree(dir: '../../../src', include: '**/*.crs', exclude: ['resolver.crs', '**/pg/*.crs', 'text/*.crs'])
+		outputDir = file('org/crsx/compiler')
+		packageName = 'org.crsx.compiler'
+	}	
+}
+
+
 // --- Java compilation/packaging
 
 apply plugin:'java'
@@ -80,8 +107,9 @@ apply plugin:'java'
 compileJava {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
-
+	
 	dependsOn ':parsers:buildParsers'
+	dependsOn ':compiler:crsx4'
 }
 
 //clean.dependsOn cleanBuildCrsxParsers
@@ -95,7 +123,10 @@ sourceSets {
         java {
             srcDir 'runtime'
             srcDir 'parsers'
+            srcDir 'compiler'
         }
+		
+		// Include CRSX4 source code for interpreter mode.
 		resources {
 			srcDir '../../src'
 			include '**/*.crs'
@@ -120,3 +151,4 @@ task dist(type: Copy, dependsOn: jar) {
 	from jar
 	into project.file('dist')
 }
+task cleanDist(overwrite:true) {}

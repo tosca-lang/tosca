@@ -1,11 +1,6 @@
 // Copyright (c) 2015 IBM Corporation.
+defaultTasks 'bootstrap', 'java'
 
-/*
- *  Main CRSX build file.
- */
- 
-
-// --- Bootstrapping
 apply plugin:'base'
 
 buildscript {
@@ -37,17 +32,16 @@ pg4 {
 	parsers = false
 }
 
-task bootstrapCrsxSort(type: Copy, dependsOn: 'pg4') {
+task installCrsxSort(type: Copy, dependsOn: 'pg4') {
 	description "Update parser/Crsx.crs"
 	from 'build/pg4/Crsx.crs'
 	into 'src/parser'
 }
 
-task cleanBootstrapCrsxSort(overwrite : true) {
-	delete file('src/parser/Crsx.crs')
+task cleanInstallCrsxSort(overwrite : true) {
 } 
 
-task bootstrap(dependsOn: [ 'bootstrapCrsxSort' ]) {}
+task bootstrap(dependsOn: [ 'installCrsxSort' ]) {}
 
 // --- Shortcut to Java target
 
@@ -56,7 +50,6 @@ task java(type: GradleBuild) {
 	dir = 'targets/java';
 	tasks = ['dist']
 }
-
 
 //task updateBootstrap(type: Copy, dependsOn: java) {
 //	description "Update bootstrapping crsx4."

@@ -20,6 +20,10 @@ class PG4Task extends DefaultTask {
 	@Optional
 	boolean parsers = true
 	
+	@Input
+	@Optional
+	String metaPrefix = ""
+	
 	@TaskAction
 	def generate() {
 		if (sort || parsers)
@@ -43,7 +47,7 @@ class PG4Task extends DefaultTask {
 			// .term -> .nterm
 			String nterm = absname + '.nterm' // normalize grammar
 			crsx3runner.run([ 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/normalizer.crs', 'input=' + term, 'wrapper=Normalize', 'output=' + nterm ])
-
+			
 			if (sort)
 			{	
 				// .nterm -> sort
@@ -53,17 +57,37 @@ class PG4Task extends DefaultTask {
 			
 			if (parsers)
 			{
+				def commonargs = []
+				commonargs << 'sink=net.sf.crsx.text.TextSink'
+				commonargs << 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)'
+			
 				// .nterm -> term lexer/parser
 				String termparser = basename + 'Term.g4'
 				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/genparser.crs', 'input=' + nterm, 'wrapper=MakeParser', 'output=' + termparser ])
-				
+					
 				// .nterm -> meta lexer
 				String metalexer = basename + 'MetaLexer.g4' // generate meta lexer
-				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/genparser.crs', 'input=' + nterm, 'wrapper=MakeMetaLexer', 'output=' + metalexer ])
+				def args = commonargs.collect()
+				args << 'rules=pg/genparser.crs'
+				args << "input=${nterm}"
+				args << 'wrapper=MakeMetaLexer'
+				args << "output=${metalexer}"
+				if (!"".equals(metaPrefix))
+					args << "metaprefix=${metaPrefix}"
+					
+				crsx3runner.run(args)
 				
 				// .nterm -> meta parser
 				String metaparser = basename + 'MetaParser.g4' // generate meta parser
-				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/genparser.crs', 'input=' + nterm, 'wrapper=MakeMetaParser', 'output=' + metaparser ])
+				args = commonargs.collect()
+				args << 'rules=pg/genparser.crs'
+				args << "input=${nterm}"
+				args << 'wrapper=MakeMetaParser'
+				args << "output=${metaparser}"
+				if (!"".equals(metaPrefix))
+					args << "metaprefix=${metaPrefix}"
+					
+				crsx3runner.run(args)
 			}
 			// Cleanup
 			project.delete(term)

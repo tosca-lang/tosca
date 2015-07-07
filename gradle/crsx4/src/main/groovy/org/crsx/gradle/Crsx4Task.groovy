@@ -1,49 +1,76 @@
 package org.crsx.gradle
 
+import java.io.File;
+import java.util.Optional;
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 
 
 class Crsx4Task extends DefaultTask {
-	
+
+	@InputFiles
+	def sources
+
+	@OutputDirectory
+	File outputDir = project.buildDir
+
+	@Input
+	String packageName = ""
+
 	@TaskAction
-	def generate() {
-//		// Configure PG runner
-//		MainRunner pgrunner = new MainRunner(project.configurations.crsx4.files, "org.crsx.pg.PG")
-//		
-//		// Configure Crsx3 runner
-//		MainRunner crsx3runner = new MainRunner(project.configurations.crsx4.files, "net.sf.crsx.run.Crsx")
-//		
-//		// Generate grammars.
-//		project.crsx4.grammars.each { grammar ->
-//			String absname = project.file(grammar.input).absolutePath
-//			String basename = absname.lastIndexOf('.').with {it != -1 ? absname[0..<it] : absname}
-//			
-//			// .g4 -> .term
-//			String term = absname + '.term'   // grammar as term file
-//			pgrunner.run([ absname, term ]) 		
-//			
-//			// .term -> .nterm
-//			String nterm = absname + '.nterm' // normalize grammar
-//			crsx3runner.run([ 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/normalizer.crs', 'input=' + term, 'wrapper=Normalize', 'output=' + nterm ])
-//
-//			// .nterm -> sort
-//			String sortt = basename + '.crs' // generate sort
-//			crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakePrinter', 'output=' + sortt ])
-//			
-//			// .nterm -> term lexer/parser
-//			String termparser = basename + 'TermParser.g4' 
-//			crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/genparser.crs', 'input=' + nterm, 'wrapper=MakeParser', 'output=' + termparser ])
-//				
-//			// .nterm -> meta lexer
-//			String metalexer = basename + 'MetaLexer.g4'  
-//			crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/genparser.crs', 'input=' + nterm, 'wrapper=MakeMetaLexer', 'output=' + metalexer ])
-//			
-//			
-//			// .nterm -> meta parser
-//			String metaparser = basename + 'MetaParser.g4'  
-//			crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/genparser.crs', 'input=' + nterm, 'wrapper=MakeMetaParser', 'output=' + metaparser ])
-//		
-//		}
+	def generate(IncrementalTaskInputs inputs) {
+		// Configure Crsx3 runner
+		MainRunner crsx3runner = new MainRunner(project.configurations.crsx4.files, "net.sf.crsx.run.Crsx")
+		
+		inputs.outOfDate { change ->
+
+			def source = change.file
+			println "compile ${source}"
+
+			def dest = computeDestination(source)
+			def args = []
+			args << 'sink=net.sf.crsx.text.TextSink'
+			args << 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.parser.CrsxMetaParser\';)'
+			args << 'rules=crsx.crs'
+			args << "term=\"${source}\""
+			args << "output=${dest}"
+			args << "wrapper=Compile"
+			args << "verbose=3"
+			if (!"".equals(packageName))
+			{
+				args << "javabasepackage=${packageName}"
+
+				// Compute subpackage name
+				String subpackage = source.parentFile.absolutePath.replace("${sources.dir}", '').replace('/', '.')
+				if (!"".equals(subpackage))
+				{
+					subpackage = subpackage.replaceFirst('.', '')
+					args << "javapackage=${subpackage}"
+				}
+			}
+			//println args
+			crsx3runner.run(args)
+		}
+		
+		inputs.removed { change ->
+			def source = change.file
+			println "removed: ${source}"
+			def dest = file(computeDestination(source))
+			delete dest
+		}
 	}
+	
+	def computeDestination(File source) { 
+		def dest = source.absolutePath.replace((String) sources.dir, (String) outputDir).replace(".crs", ".java");
+		def lastSlash = dest.lastIndexOf('/');
+		if (lastSlash != -1)
+			dest = dest[0..lastSlash] + dest[lastSlash + 1].toUpperCase() + dest[lastSlash + 2..-1]
+		else
+			dest = dest[0].toUpperCase() + dest[1..-1]
+		dest
+	}
+	 
 }

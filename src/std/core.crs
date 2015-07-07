@@ -6,15 +6,11 @@ Core[(
 
 $Lax;
 
-// Top sort
-//$Any ::= ( ANY; );
-
 OK_SORT ::= ( OK; );
 
 // --- Builtin string entry
 
 $StringEntry ::= ( STRING[$String];);
-
 
 // --- Optional value
 
@@ -51,6 +47,5 @@ UnwrapBoolean[FALSE] → $False;
 
 ∀ a . Trace[a] :: a;
 -[Data[#]]: Trace[#] → $[Trace, #];
-
 
 )]

@@ -144,10 +144,10 @@ ConstructorToString[%constructor⟦ :             ⟧] → ":";
 // --- State lookup.
 
 {$String:$StringEntry}LookupModule[$String] :: Option[Content];
-{#E}LookupModule[#filename] → {#E}Get[ModuleKey[#filename]];
+{#E}LookupModule[#filename] → {#E}GetSome[ModuleKey[#filename]];
 
 {$String:$ContentEntry}LookupSortByConstructor[Crsx_constructor_sort] :: Option[ContentEntry];
-{#E}LookupSortByConstructor[#constructor] → LookupSortByConstructor1[{#E}Get[FuncSortKey[#constructor]], {#E}Get[DataFormKey[#constructor]]];
+{#E}LookupSortByConstructor[#constructor] → LookupSortByConstructor1[{#E}GetSome[FuncSortKey[#constructor]], {#E}GetSome[DataFormKey[#constructor]]];
 
 LookupSortByConstructor1[Option[ContentEntry], Option[ContentEntry]] :: Option[ContentEntry];
 LookupSortByConstructor1[SOME[#1], #2] → SOME[#1];
