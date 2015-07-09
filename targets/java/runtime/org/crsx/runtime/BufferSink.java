@@ -1,4 +1,5 @@
 // Copyright (c) 2014 IBM Corporation.
+
 package org.crsx.runtime;
 
 import java.util.ArrayDeque;
@@ -118,15 +119,15 @@ public class BufferSink extends Sink
 
 		return this;
 	}
-	
+
 	@Override
 	public Sink startMetaApplication(String name)
 	{
 		assert properties == null;
-		
+
 		MetaApplication meta = new MetaApplication(name);
 		addSub(meta);
-		
+
 		terms.push(meta);
 		subs.push(new ArrayList<>(5));
 		return this;
@@ -137,7 +138,7 @@ public class BufferSink extends Sink
 	{
 		Term meta = terms.pop();
 		ArrayList<Term> subs = this.subs.pop();
-		
+
 		if (subs.size() > 0)
 		{
 			assert meta instanceof MetaApplication;
@@ -146,7 +147,7 @@ public class BufferSink extends Sink
 			Term[] asub = new Term[subs.size()];
 			((MetaApplication) meta).subs = subs.toArray(asub);
 		}
-	
+
 		if (terms.isEmpty())
 			term = meta;
 
@@ -203,7 +204,7 @@ public class BufferSink extends Sink
 			properties = properties.extend();
 			extend = false;
 		}
-		
+
 		properties.addNamedProperty(name, term);
 		return this;
 	}
@@ -218,7 +219,7 @@ public class BufferSink extends Sink
 			properties = properties.extend();
 			extend = false;
 		}
-		
+
 		properties.addVariableProperty(variable, term);
 		return this;
 	}
@@ -269,27 +270,5 @@ public class BufferSink extends Sink
 	{
 		return (BufferSink) super.substitute(term, variable, substitute);
 	}
-
-	@Override
-	public BufferSink substitute(Term term, Variable[] binders, Term[] substitutes)
-	{
-		assert binders.length == substitutes.length;
-
-		// binders are all the original term binders
-		// this.binders are the binders that have been renamed.
-
-		IdentityHashMap<Variable, Term> map = new IdentityHashMap<>();
-		for (int i = binders.length - 1; i >= 0; i--)
-			map.put(binders[i], substitutes[i]);
-		Term newterm = term.substitute(context, map); // uses term reference.
-		term = newterm;
-
-		copy(term);
-
-		// Release substitute references
-		for (int i = 0; i < substitutes.length; ++i)
-			substitutes[i].release();
-
-		return this;
-	}
+ 
 }

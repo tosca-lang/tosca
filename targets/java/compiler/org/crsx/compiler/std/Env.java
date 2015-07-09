@@ -14,58 +14,58 @@ public class Env
 {
   final public static DynamicFunctionDescriptor _M_GetStringEntryThen = makeFunction("GetStringEntryThen", Env.class, "_M_GetStringEntryThen");
   final public static DynamicFunctionDescriptor _M_AddStringEntry = makeFunction("AddStringEntry", Env.class, "_M_AddStringEntry");
-  final public static DynamicFunctionDescriptor _M_GetSome = makeFunction("GetSome", Env.class, "_M_GetSome");final public static boolean _M_GetStringEntryThen(Sink sink, int shared, int depth, Properties props, Term term, Term term_55, Variable var, Term term_94) {
+  final public static DynamicFunctionDescriptor _M_GetSome = makeFunction("GetSome", Env.class, "_M_GetSome");final public static boolean _M_GetStringEntryThen(Sink sink, int shared, int depth, Properties props, Term term, Term term_59, Variable var, Term term_43) {
     if (depth < 2000) {
       label: {
         /* #key=term */
         /* #default=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props));Term term_97;
+        /* #=term *//*Contract*/sink.properties(safeRef(props));Term term_86;
         {
           BufferSink buf = sink.context().makeBuffer();
           buf.start(_M__s);buf.properties(safeRef(props));
           buf.start(_M_Builtin_sGet);
-          buf.end(); buf.copy(term.ref()); buf.copy(term_55.ref());
+          buf.end(); buf.copy(term.ref()); buf.copy(term_59.ref());
           buf.end();
-          term_97 = buf.term();
+          term_86 = buf.term();
         }
-        sink.substitute(term_94.ref(), new Variable[] { var }, new Term[] {term_97}); return true;
+        sink.substitute(term_43.ref(), new Variable[] { var }, new Term[] {term_86}); return true;
       }
     }
-    return thunk(sink, _M_GetStringEntryThen, props, term, term_55, var, term_94);
-  }    final public static boolean _M_AddStringEntry(Sink sink, int shared, int depth, Properties props_34, Term term_39, Term term_11, Variable var_74, Term term_5) {
+    return thunk(sink, _M_GetStringEntryThen, props, term, term_59, var, term_43);
+  }    final public static boolean _M_AddStringEntry(Sink sink, int shared, int depth, Properties props_47, Term term_69, Term term_40, Variable var_97, Term term_14) {
     if (depth < 2000) {
-      label_91: {
+      label_42: {
         /* #key=term */
         /* #value=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_34));Term term_9;
+        /* #=term *//*Contract*/sink.properties(safeRef(props_47));Term term_76;
         {
-          BufferSink buf_17 = sink.context().makeBuffer(); buf_17.copy(term_11.ref());
-          term_9 = buf_17.term();
+          BufferSink buf_73 = sink.context().makeBuffer(); buf_73.copy(term_40.ref());
+          term_76 = buf_73.term();
         }
-        term_39 = force(sink.context(), term_39);
-        Sink.property(sink, term_39, term_9);Term term_37;
+        term_69 = force(sink.context(), term_69);
+        Sink.property(sink, term_69, term_76);Term term_29;
         {
-          BufferSink buf_52 = sink.context().makeBuffer(); buf_52.start(_M_OK); buf_52.end();
-          term_37 = buf_52.term();
+          BufferSink buf_54 = sink.context().makeBuffer(); buf_54.start(_M_OK); buf_54.end();
+          term_29 = buf_54.term();
         }
-        sink.substitute(term_5.ref(), new Variable[] { var_74 }, new Term[] {term_37}); return true;
+        sink.substitute(term_14.ref(), new Variable[] { var_97 }, new Term[] {term_29}); return true;
       }
     }
-    return thunk(sink, _M_AddStringEntry, props_34, term_39, term_11, var_74, term_5);
-  }    final public static boolean _M_GetSome(Sink sink, int shared, int depth, Properties props_47, Term term_26) {
+    return thunk(sink, _M_AddStringEntry, props_47, term_69, term_40, var_97, term_14);
+  }    final public static boolean _M_GetSome(Sink sink, int shared, int depth, Properties props_39, Term term_79) {
     if (depth < 2000) {
-      sink.start(_M__s);sink.properties(safeRef(props_47));
+      sink.start(_M__s);sink.properties(safeRef(props_39));
       sink.start(_M_Builtin_sIfDef);
-      sink.end(); sink.copy(term_26.ref());
+      sink.end(); sink.copy(term_79.ref());
       sink.start(_M_SOME);
-      sink.start(_M__s);sink.properties(safeRef(props_47));
+      sink.start(_M__s);sink.properties(safeRef(props_39));
       sink.start(_M_Builtin_sGet);
-      sink.end(); sink.copy(term_26.ref());
+      sink.end(); sink.copy(term_79.ref());
       sink.end();
       sink.end(); sink.start(_M_NONE); sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_GetSome, props_47, term_26);
+    return thunk(sink, _M_GetSome, props_39, term_79);
   } 
   private static boolean initialized = false;
   public static void init(Context context)

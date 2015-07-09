@@ -1,4 +1,5 @@
 // Copyright (c) 2014 IBM Corporation.
+
 package org.crsx.runtime;
 
 import java.util.Map;
@@ -36,7 +37,14 @@ public class VariableUse extends Term
 		return Kind.VARIABLE_USE;
 	}
 
-	
+	@Override
+	public void copy(Sink sink, boolean discard)
+	{
+		sink.use(variable); // use will call .use
+		if (discard)
+			release();
+	}
+
 	@Override
 	protected void substituteTo(Sink sink, Map<Variable, Term> substitutes)
 	{
@@ -44,21 +52,30 @@ public class VariableUse extends Term
 		if (substitute != null)
 		{
 			sink.copy(substitute.ref());
-			
-			release(); 
+
+			release();
 			return;
 		}
-		
+
 		// This is a free variable: just echo
 		sink.copy(this); // Transfer reference
 	}
 
 	@Override
-	public void free()
+	protected void free()
 	{
 		variable.unuse(this);
-		
+
 		super.free();
+	}
+
+	@Override
+	protected boolean deepEquals(Term other, Map<Variable, Variable> renamings)
+	{
+		if (other.kind() != Kind.VARIABLE_USE)
+			return false;
+		Variable mapped = renamings.get(variable);
+		return (mapped != null ? mapped : variable).equals(((VariableUse) other).variable);
 	}
 
 	@Override

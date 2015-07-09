@@ -26,11 +26,13 @@ public class Normalizer
 	 * @param term
 	 * @return
 	 */
-	final public static boolean step(Sink sink, Construction term)
+	final public static boolean step(Context context, Sink sink, Construction term)
 	{
 		assert term.descriptor() != null;
 
-		System.out.println(term.symbol());
+		if (context.verbose >= 1)
+			System.out.println(term.symbol());
+		
 		return term.descriptor().step(sink, term);
 	}
 
@@ -86,7 +88,7 @@ public class Normalizer
 			else if (term.isFunction() && !term.nostep())
 			{
 				BufferSink sink = context.makeBuffer();
-				if (step(sink, (Construction) term)) // Reference is transferred and always consumed 
+				if (step(context, sink, (Construction) term)) // Reference is transferred and always consumed 
 				{
 					// (4) If term is a function invocation that is not marked as nostep and that we can in fact step then do so and
 					// update term to the result.
@@ -143,7 +145,7 @@ public class Normalizer
 			while (term.isFunction())
 			{
 				BufferSink sink = context.makeBuffer();
-				if (!step(sink, (Construction) term)) // Reference is transferred and always consumed            
+				if (!step(context, sink, (Construction) term)) // Reference is transferred and always consumed            
 				{
 
 					term = sink.term();

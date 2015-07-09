@@ -102,6 +102,55 @@ public class Properties extends Reference
 	}
 
 	/**
+	 * Deep copy these properties to a sink 
+	 *
+	 * @param sink to copy to 
+	 * @param discard whether to discard these properties
+	 */
+	public void copy(Sink sink, boolean discard)
+	{
+		copy(sink, discard, new HashSet<>(), new IdentityHashMap<>());
+	}
+
+	/**
+	 * Deep copy these properties to a sink 
+	 *
+	 * @param sink to copy to 
+	 * @param discard whether to discard these properties
+	 */
+	protected void copy(Sink sink, boolean discard, HashSet<String> names, IdentityHashMap<Variable, Boolean> vars)
+	{
+		if (variables != null)
+		{
+			for (Entry<Variable, Term> entry : variables.entrySet())
+			{
+				if (!vars.containsKey(entry.getKey()))
+				{
+					sink.propertyVariable(entry.getKey(), entry.getValue().ref());
+					vars.put(entry.getKey(), true);
+				}
+			}
+		}
+		if (named != null)
+		{
+			for (Entry<String, Term> entry : named.entrySet())
+			{
+				if (!names.contains(entry.getKey()))
+				{
+					sink.propertyNamed(entry.getKey(), entry.getValue().ref());
+					names.add(entry.getKey());
+				}
+			}
+		}
+
+		if (parent != null)
+			parent.ref().copy(sink, discard, names, vars);
+		
+		if (discard)
+			release();
+	}
+
+	/**
 	 * Apply substitution to all properties and send result to sink
 	 * 
 	 * <p>Consumes 'this' reference
@@ -232,7 +281,7 @@ public class Properties extends Reference
 				if (!vars.containsKey(entry.getKey()))
 				{
 					out.append(entry.getKey().name).append(":").append(entry.getValue().toString()).append(";");
-					vars.put(entry.getKey(), Boolean.TRUE);
+					vars.put(entry.getKey(), true);
 				}
 			}
 		}

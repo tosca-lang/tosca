@@ -2,11 +2,11 @@ Test0[(
 
 $Lax;
 
-$Use["bool.crs"];
-$Use["fun.crs"];
+$Use["std/core.crs"];
+$Use["std/list.crs"];
 
 Main :: $List[Boolean];
 
-Main → Map[x.x, $Cons[False, $Nil]];
+Main → Map[x.x, (FALSE; TRUE;)];
 
 )]

@@ -100,7 +100,6 @@ public abstract class Sink
 	 */
 	public abstract Sink endMetaApplication();
 	
-	
 	/**
 	 * Queue properties to be inserted either on a new construction or a term.
 	 * 
@@ -155,7 +154,10 @@ public abstract class Sink
 	 * @param substitutes. The references are *NOT* used by this method.
 	 * @return continuation sink to use for subsequent operation
 	 */
-	public abstract Sink substitute(Term term, Variable[] binders, Term[] substitutes);
+	final public Sink substitute(Term term, Variable[] binders, Term[] substitutes)
+	{
+		return term.substitute(this, binders, substitutes);
+	}
 
 	/**
 	 * @return the context

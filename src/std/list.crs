@@ -49,6 +49,9 @@ Concat[(#1;#s), #tail] → (#1 ; Concat[#s, #tail]) ;
 Map[x.#[x], ()] → () ;
 Map[x.#[x], (#1;#s)] → (#[#1]; Map[x.#[x], #s]) ;
 
+∀ a b . Fold[x::a y::b.$sort[a], a, $List[b]] :: a;
+Fold[x y.#[x, y], #x, ()]       → #x ;
+Fold[x y.#[x, y], #x, (#1; #s)] → Fold[x y.#[x, y], #[#x, #1], #s];
 
 //
 // Apply each item in list to function, as a continuation, 

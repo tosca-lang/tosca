@@ -29,94 +29,96 @@ public class Core
       sink.end(); return true;
     }
     return thunk(sink, _M_Trace, term);
-  } final public static boolean _M_UnwrapBoolean(Sink sink, int shared, int depth, Term term_53) {
+  } final public static boolean _M_UnwrapBoolean(Sink sink, int shared, int depth, Term term_4) {
     if (depth < 2000) {
       label: {
-        if (term_53.descriptor() != _M_TRUE)
+        if (term_4.descriptor() != _M_TRUE)
         {   break label;
         }/*Contract*/ sink.start(_M__sTrue); sink.end(); return true;
       }
-      label_3: {
-        if (term_53.descriptor() != _M_FALSE)
-        {   break label_3;
+      label_43: {
+        if (term_4.descriptor() != _M_FALSE)
+        {   break label_43;
         }/*Contract*/ sink.start(_M__sFalse); sink.end(); return true;
       }
     }
-    return thunk(sink, _M_UnwrapBoolean, term_53);
-  } final public static boolean _M_WrapBoolean(Sink sink, int shared, int depth, Term term_37) {
+    return thunk(sink, _M_UnwrapBoolean, term_4);
+  } final public static boolean _M_WrapBoolean(Sink sink, int shared, int depth, Term term_47) {
     if (depth < 2000) {
       sink.start(_M__s); sink.start(_M_Builtin_sIf); sink.end();
-      sink.start(_M__s); sink.start(_M_Builtin_sEqual); sink.end(); sink.copy(term_37.ref()); sink.start(_M__sTrue); sink.end();
+      sink.start(_M__s); sink.start(_M_Builtin_sDeepEqual); sink.end();
+      sink.start(_M__s); sink.start(_M_Builtin_sShow); sink.end(); sink.copy(term_47.ref());
+      sink.end(); sink.literal("$True");
       sink.end(); sink.start(_M_TRUE); sink.end(); sink.start(_M_FALSE); sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_WrapBoolean, term_37);
-  } final public static boolean _M_Or(Sink sink, int shared, int depth, Term term_1, Term term_97) {
+    return thunk(sink, _M_WrapBoolean, term_47);
+  } final public static boolean _M_Or(Sink sink, int shared, int depth, Term term_45, Term term_66) {
     if (depth < 2000) {
-      label_17: {
-        if (term_1.descriptor() != _M_TRUE)
-        {   break label_17;
+      label_72: {
+        if (term_45.descriptor() != _M_TRUE)
+        {   break label_72;
         }
         /* #=term *//*Contract*/ sink.start(_M_TRUE); sink.end(); return true;
       }
-      label_94: {
-        if (term_1.descriptor() != _M_FALSE)
-        {   break label_94;
+      label_66: {
+        if (term_45.descriptor() != _M_FALSE)
+        {   break label_66;
         }
-        /* #=term *//*Contract*/ sink.copy(term_97.ref()); return true;
+        /* #=term *//*Contract*/ sink.copy(term_66.ref()); return true;
       }
     }
-    return thunk(sink, _M_Or, term_1, term_97);
-  }  final public static boolean _M_And(Sink sink, int shared, int depth, Term term_20, Term term_12) {
+    return thunk(sink, _M_Or, term_45, term_66);
+  }  final public static boolean _M_And(Sink sink, int shared, int depth, Term term_74, Term term_115) {
     if (depth < 2000) {
-      label_77: {
-        if (term_20.descriptor() != _M_TRUE)
-        {   break label_77;
+      label_54: {
+        if (term_74.descriptor() != _M_TRUE)
+        {   break label_54;
         }
-        /* #=term *//*Contract*/ sink.copy(term_12.ref()); return true;
+        /* #=term *//*Contract*/ sink.copy(term_115.ref()); return true;
       }
-      label_91: {
-        if (term_20.descriptor() != _M_FALSE)
-        {   break label_91;
+      label_31: {
+        if (term_74.descriptor() != _M_FALSE)
+        {   break label_31;
         }
         /* #=term *//*Contract*/ sink.start(_M_FALSE); sink.end(); return true;
       }
     }
-    return thunk(sink, _M_And, term_20, term_12);
-  }  final public static boolean _M_If(Sink sink, int shared, int depth, Term term_31, Term term_47, Term term_83) {
+    return thunk(sink, _M_And, term_74, term_115);
+  }  final public static boolean _M_If(Sink sink, int shared, int depth, Term term_60, Term term_95, Term term_61) {
     if (depth < 2000) {
-      label_42: {
-        if (term_31.descriptor() != _M_TRUE)
-        {   break label_42;
+      label_39: {
+        if (term_60.descriptor() != _M_TRUE)
+        {   break label_39;
         }
         /* #1=term */
-        /* #2=term *//*Contract*/ sink.copy(term_47.ref()); return true;
+        /* #2=term *//*Contract*/ sink.copy(term_95.ref()); return true;
       }
-      label_25: {
-        if (term_31.descriptor() != _M_FALSE)
-        {   break label_25;
+      label_56: {
+        if (term_60.descriptor() != _M_FALSE)
+        {   break label_56;
         }
         /* #1=term */
-        /* #2=term *//*Contract*/ sink.copy(term_83.ref()); return true;
+        /* #2=term *//*Contract*/ sink.copy(term_61.ref()); return true;
       }
     }
-    return thunk(sink, _M_If, term_31, term_47, term_83);
-  }   final public static boolean _M_UnSOME(Sink sink, int shared, int depth, Term term_29) {
+    return thunk(sink, _M_If, term_60, term_95, term_61);
+  }   final public static boolean _M_UnSOME(Sink sink, int shared, int depth, Term term_76) {
     if (depth < 2000) {
-      label_84: {
-        if (term_29.descriptor() != _M_SOME)
-        {   break label_84;
-        }Term sub = term_29.sub(0).ref(); /* #=sub *//*Contract*/ sink.copy(sub.ref()); return true;
+      label_73: {
+        if (term_76.descriptor() != _M_SOME)
+        {   break label_73;
+        }Term sub = term_76.sub(0).ref(); /* #=sub *//*Contract*/ sink.copy(sub.ref()); return true;
       }
-      label_1: {
-        if (term_29.descriptor() != _M_NONE)
-        {   break label_1;
+      label_81: {
+        if (term_76.descriptor() != _M_NONE)
+        {   break label_81;
         }/*Contract*/
         sink.start(_M__s); sink.start(_M_Builtin_sError); sink.end(); sink.literal("Error: no optional value.");
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_UnSOME, term_29);
+    return thunk(sink, _M_UnSOME, term_76);
   } 
   private static boolean initialized = false;
   public static void init(Context context)

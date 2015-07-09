@@ -35,7 +35,7 @@ NormalizeToCrsx[#filename, %crsx⟦ ##declarations ⟧] → N1DeclarationsInit[B
 
 // Normalize Crsx and produces a state
 NormalizeToState[$String, Crsx_crsx_sort] :: Content;
-NormalizeToState[#filename, %crsx⟦ ##declarations ⟧] → $[Trace, $[:, "Normalize ", #filename], N1DeclarationsInit[BaseName[#filename], DesugarDeclarations[#declarations], ok¹.N2[ok¹, ok¹.LOADED]]];
+NormalizeToState[#filename, %crsx⟦ ##declarations ⟧] → N1DeclarationsInit[BaseName[#filename], DesugarDeclarations[#declarations], ok¹.N2[ok¹, ok¹.LOADED]];
 
 // ----- Pass1
 //  
@@ -319,8 +319,7 @@ NormalizeRuleKey1[ContentEntry, $String /* Rule key */, ok¹::OK_SORT.$sort[a]] 
 
 {#E}NormalizeRuleKey1[RULES[#rules], #key, ok¹.#[ok¹]] 
 → 
-$[Trace, $[:, "Normalize rules: ", #key],
-{#E; #key: RULES[{#E}NormalizeRules[#rules]]}#[OK]];
+{#E; #key: RULES[{#E}NormalizeRules[#rules]]}#[OK];
 
 {$String:ContentEntry} 
 NormalizeRules[$List[Crsx_ruleDeclaration_sort]] :: $List[Crsx_ruleDeclaration_sort];
@@ -463,7 +462,7 @@ NormalizeConcrete[Crsx_concrete_sort] :: Crsx_freeTerm_sort;
 
 {#E}NormalizeConcrete[%concrete⟦ ##CATEGORY ##CONCRETE ⟧]    
 → // TODO: Optimize!
-$[Trace, $[:, "Parse concrete1 ", #CONCRETE], {#E}NormalizeFreeTerm[ParseToTerm["freeTerm", ParseToString[RemoveFirstChar[#CATEGORY], RemoveFirstChar[RemoveLastChar[#CONCRETE]]]]]];
+{#E}NormalizeFreeTerm[ParseToTerm["freeTerm", ParseToString[RemoveFirstChar[#CATEGORY], RemoveFirstChar[RemoveLastChar[#CONCRETE]]]]];
 //{#E}NormalizeFreeTerm[ParseString["freeTerm", Show[ParseString[RemoveFirstChar[#CATEGORY], RemoveFirstChar[RemoveLastChar[#CONCRETE]]]]]];
 //
 //{#E}NormalizeConcrete[%concrete⟦ ##CATEGORY ##CONCRETE2 ⟧] 

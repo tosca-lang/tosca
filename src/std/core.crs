@@ -36,8 +36,9 @@ Or[Boolean, Boolean] :: Boolean ;
 Or[TRUE, #]  → TRUE;
 Or[FALSE, #] → #;
 
+// Weird rule because crsx3 interpreter does not handle boolean equality properly
 WrapBoolean[$Boolean] :: Boolean ;
--[Data[#]]: WrapBoolean[#]  → $[If, $[Equal, #, $True], TRUE, FALSE];
+-[Data[#]]: WrapBoolean[#]  → $[If, $[DeepEqual, $[Show, #], "$True"], TRUE, FALSE];
 
 UnwrapBoolean[Boolean] :: $Boolean ;
 UnwrapBoolean[TRUE]  → $True;

@@ -17,7 +17,6 @@ import org.crsx.runtime.ConstructionDescriptor.Step;
  */
 final public class Context
 {
-
 	/**
 	 * Timestamp.
 	 */
@@ -28,6 +27,12 @@ final public class Context
 	 */
 	public long sd = 0;
 
+	/**
+	 * Verbosity level
+	 */
+	public int verbose = 0;
+
+	
 	/**
 	 * Construction descriptors, indexed by qualified name
 	 */

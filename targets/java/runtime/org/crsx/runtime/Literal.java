@@ -38,6 +38,18 @@ public class Literal extends Construction
 	{
 		return true;
 	}
+	
+	@Override
+	public void copy(Sink sink, boolean discard)
+	{
+		if (properties != null)
+			properties.ref().copy(sink, discard);
+
+		sink.literal(value);
+		
+		if (discard)
+			release();
+	}
 
 	@Override
 	protected void substituteTo(Sink sink, Map<Variable, Term> substitutes)

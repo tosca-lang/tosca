@@ -1,0 +1,8 @@
+#!/bin/bash
+# Copyright (c) 2015 IBM Corporation.
+# Minimal java wrapper for CRSX
+
+DIR="$(dirname $0)"
+JARFILE="$DIR/../targets/java/dist/crsx-4.0.0-ALPHA.jar"
+
+exec java -jar "$JARFILE" "$@"

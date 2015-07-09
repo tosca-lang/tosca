@@ -4,8 +4,6 @@
 // 
 Crsx[(
 
-$AddGrammar["org.crsx.parser.CrsxMetaParser"];
-
 $Use["state.crs"];
 $Use["normalizer.crs"];
 $Use["cg/cgjava.crs"];

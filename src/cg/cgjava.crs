@@ -1169,8 +1169,8 @@ Register[%declaration⟦ import module ##constructor ⟧]
 // TODO: unify path resolution
 Register[%declaration⟦ import grammar ##CONSTRUCTOR ⟧] 
 →
-%n⟦
-context.registerParser(«Text-QuoteEscape[Replace[#CONSTRUCTOR, "/", "."]]»);⟧;
+%n⟦⟧;
+//context.registerParser(«Text-QuoteEscape[Replace[#CONSTRUCTOR, "/", "."]]»);⟧;
 
 // rule
 Register[%declaration⟦ ##option? ##pattern → ##contractum ⟧] 
@@ -1220,7 +1220,10 @@ $[If, $[StringEqual, $[Trim, #sub], ""], %n⟦⟧, %n⟦†«#sep»†«#sub»�
 
 // Print java import
 PathToImport[Crsx_constructor_sort] :: Text;
-PathToImport[%constructor⟦ ##CONSTRUCTOR ⟧] → PathToImport2[$[Get, "javabasepackage", ""], PathToDot[#CONSTRUCTOR]];
+
+PathToImport[%constructor⟦ ##CONSTRUCTOR ⟧] 
+→ 
+PathToImport2[$[If, $[StartsWith, #CONSTRUCTOR, "std/"], "org.crsx.compiler", $[Get, "javabasepackage", ""]], PathToDot[#CONSTRUCTOR]];
 
 PathToImport2[$String, $String] :: Text;
 

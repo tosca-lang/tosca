@@ -2,7 +2,9 @@
 
 package org.crsx.runtime;
 
+import java.util.IdentityHashMap;
 import java.util.Map;
+ 
 
 /**
  * A Term.
@@ -194,6 +196,50 @@ public abstract class Term extends Reference
 	}
 
 	/**
+	 * Deep copy this term to a sink 
+	 *
+	 * @param sink to copy to 
+	 * @param discard whether to discard this term
+	 */
+	public abstract void copy(Sink sink, boolean discard);
+
+	
+	/**
+	 * Apply substitution on this term and send result to sink
+	 * 
+	 * <p>
+	 * Either update this term or copy it, depending if it is shared or not.
+	 * 
+	 * <p>
+	 * When this method is called, it owns a reference to itself.
+	 * 
+	 * @param sink where to send result
+	 * @param binders term original binders.
+	 * @param substitutes
+	 * @return sink.
+	 */
+	
+	public Sink substitute(Sink sink, Variable[] binders, Term[] substitutes)
+	{
+		assert binders.length == substitutes.length;
+
+		// binders are all the original term binders
+		// this.binders are the binders that have been renamed.
+
+		IdentityHashMap<Variable, Term> map = new IdentityHashMap<>();
+		for (int i = binders.length - 1; i >= 0; i--)
+			map.put(binders[i], substitutes[i]);
+		
+		sink.copy(substitute(sink.context(), map)); // uses term reference.
+		
+		// Release substitute references
+		for (int i = 0; i < substitutes.length; ++i)
+			substitutes[i].release();
+
+		return sink;
+	}
+	
+	/**
 	 * Apply substitution on this term. 
 	 * 
 	 * <p>
@@ -227,5 +273,25 @@ public abstract class Term extends Reference
 	 * @return a lone substituted term reference .
 	 */
 	protected abstract void substituteTo(Sink sink, Map<Variable, Term> substitutes);
+
+	/**
+	 * Whether this and that term are equal except for specific variables in this being renamed to variables in that.
+	 * @param other other term to compare to
+	 * 
+	 * @return true if terms are equals
+	 */
+	final public boolean deepEquals(Term other)
+	{
+		return deepEquals(other, new IdentityHashMap<>());
+	}
+	
+	/**
+	 * Whether this and that term are equal except for specific variables in this being renamed to variables in that.
+	 * @param other other term to compare to
+	 * @param renamings of variables in this to variables in other
+	 * 
+	 * @return true if terms are equals
+	 */
+	protected abstract boolean deepEquals(Term other, Map<Variable, Variable> renamings);
 
 }

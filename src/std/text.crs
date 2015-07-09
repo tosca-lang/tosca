@@ -7,19 +7,15 @@ $Use["std/list.crs"];
 Text ::= ( $TextCons[Text-Part, Text] ; $TextNil ; ) ;
 
 Text-Part ::= (
-    $TextChars[$String] ;
-    $TextBreak[$String] ;
-    $TextSeparator ;
-    $TextGroup[Text] ;
-    $TextIndent[Text] ;
-    $TextEmbed[Text] ;
-    $TextString[Text];
+    $TextChars[$String]; // text characters, as is
+    $TextBreak[$String]; // '¶' output a newline
+    $TextIndent[Text];   // '⟦' ... '⟧' indent text
+    $TextEmbed[Text];    // '«' ... '»' embedded term
+    $TextString[Text];   // '†' cast embedded term as string
 ) ;
-
 
 ∀ a . AsText[a] :: Text;
 AsText[#text] → #text ;
-
 
 // Fragment denoting term embedded in user language text.
 //

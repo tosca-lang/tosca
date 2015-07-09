@@ -7,10 +7,13 @@ import org.crsx.runtime.primitives.AfterFirstDescriptor;
 import org.crsx.runtime.primitives.BeforeFirstDescriptor;
 import org.crsx.runtime.primitives.ColonDescriptor;
 import org.crsx.runtime.primitives.ContainsDescriptor;
+import org.crsx.runtime.primitives.DeepEqualDescriptor;
 import org.crsx.runtime.primitives.DollarDescriptor;
+import org.crsx.runtime.primitives.EscapeDescriptor;
 import org.crsx.runtime.primitives.GetDescriptor;
 import org.crsx.runtime.primitives.IfDefDescriptor;
 import org.crsx.runtime.primitives.IfDescriptor;
+import org.crsx.runtime.primitives.MangleDescriptor;
 import org.crsx.runtime.primitives.ParseResourceDescriptor;
 import org.crsx.runtime.primitives.ReplaceDescriptor;
 import org.crsx.runtime.primitives.RescapeDescriptor;
@@ -43,6 +46,7 @@ public class Primitives
 	final public static ConstructionDescriptor _M_Builtin_sTrace = new TraceDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sError = makeData("Error");
 	final public static ConstructionDescriptor _M_Builtin_sEqual = makeData("Equal");
+	final public static ConstructionDescriptor _M_Builtin_sDeepEqual = new DeepEqualDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sIf = new IfDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sIfDef = new IfDefDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sShow = makeData("Show");
@@ -64,8 +68,8 @@ public class Primitives
 	final public static ConstructionDescriptor _M_Builtin_sReplace = new ReplaceDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sStartsWith = new StartsWithDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sFormatNumber = makeData("FormatNumber");
-	final public static ConstructionDescriptor _M_Builtin_sMangle = makeData("Mangle");
-	final public static ConstructionDescriptor _M_Builtin_sEscape = makeData("Escape");
+	final public static ConstructionDescriptor _M_Builtin_sMangle = new MangleDescriptor();
+	final public static ConstructionDescriptor _M_Builtin_sEscape =new EscapeDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sTrim = new TrimDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sStringEqual = new StringEqualDescriptor();
 		

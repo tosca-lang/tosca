@@ -1,10 +1,11 @@
+// Copyright (c) 2015 IBM Corporation.
 package org.crsx.gradle
 
-import java.io.File;
-import java.util.Optional;
+import java.io.File; 
+
+import javax.swing.text.InternationalFormatter.IncrementAction;
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 
@@ -15,18 +16,23 @@ class Crsx4Task extends DefaultTask {
 	def sources
 
 	@OutputDirectory
+	@Optional
 	File outputDir = project.buildDir
 
 	@Input
+	@Optional
 	String packageName = ""
 
+	@Input
+	@Optional
+	boolean usecompiler = false
+
+	
 	@TaskAction
 	def generate(IncrementalTaskInputs inputs) {
-		// Configure Crsx3 runner
-		MainRunner crsx3runner = new MainRunner(project.configurations.crsx4.files, "net.sf.crsx.run.Crsx")
+		MainRunner crsxrunner = new MainRunner(project.configurations.crsx4.files, usecompiler ? "org.crsx.Crsx": "net.sf.crsx.run.Crsx")
 		
 		inputs.outOfDate { change ->
-
 			def source = change.file
 			println "compile ${source}"
 
@@ -34,11 +40,16 @@ class Crsx4Task extends DefaultTask {
 			def args = []
 			args << 'sink=net.sf.crsx.text.TextSink'
 			args << 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.parser.CrsxMetaParser\';)'
-			args << 'rules=crsx.crs'
+			
+			if (usecompiler)
+				args << 'class=org.crsx.compiler.Crsx'
+			else
+				args << 'rules=crsx.crs'
+			
 			args << "term=\"${source}\""
 			args << "output=${dest}"
 			args << "wrapper=Compile"
-			args << "verbose=3"
+		 
 			if (!"".equals(packageName))
 			{
 				args << "javabasepackage=${packageName}"
@@ -52,7 +63,7 @@ class Crsx4Task extends DefaultTask {
 				}
 			}
 			//println args
-			crsx3runner.run(args)
+			crsxrunner.run(args)
 		}
 		
 		inputs.removed { change ->
@@ -61,8 +72,10 @@ class Crsx4Task extends DefaultTask {
 			def dest = file(computeDestination(source))
 			delete dest
 		}
+
 	}
-	
+		
+	/** Compute the name of the generated java file */
 	def computeDestination(File source) { 
 		def dest = source.absolutePath.replace((String) sources.dir, (String) outputDir).replace(".crs", ".java");
 		def lastSlash = dest.lastIndexOf('/');

@@ -2,12 +2,11 @@ Test1[(
 
 $Lax;
 
-$Use["bool.crs"];
-$Use["fun.crs"];
+$Use["std/core.crs"];
+$Use["std/list.crs"];
 
-Test :: Boolean;
+Main :: Boolean;
 
-Test → Fold[x y.And[x, y], True, (True; True; False;)];
-
+Main → Fold[x y.And[x, y], TRUE, (TRUE; TRUE; FALSE;)];
 
 )]

@@ -69,7 +69,9 @@ public abstract class Reference
 	}
 
 	/**
-	 * Free this reference
+	 * Free this reference. 
+	 * 
+	 * Should not be called directly. Instead call {@link Reference#release()}
 	 */
 	protected void free()
 	{

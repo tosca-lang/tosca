@@ -32,128 +32,128 @@ public class String
       sink.end(); return true;
     }
     return thunk(sink, _M_Show, term);
-  } final public static boolean _M_ParseToTerm(Sink sink, int shared, int depth, Term term_67, Term term_12) {
+  } final public static boolean _M_ParseToTerm(Sink sink, int shared, int depth, Term term_66, Term term_71) {
     if (depth < 2000) {
-      sink.start(_M__s); sink.start(_M_Builtin_sParseText); sink.end(); sink.copy(term_67.ref()); sink.copy(term_12.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sParseText); sink.end(); sink.copy(term_66.ref()); sink.copy(term_71.ref());
       sink.end(); return true;
     }
-    return thunk(sink, _M_ParseToTerm, term_67, term_12);
-  }  final public static boolean _M_ParseToString(Sink sink, int shared, int depth, Term term_47, Term term_96) {
+    return thunk(sink, _M_ParseToTerm, term_66, term_71);
+  }  final public static boolean _M_ParseToString(Sink sink, int shared, int depth, Term term_93, Term term_64) {
     if (depth < 2000) {
       sink.start(_M__s); sink.start(_M_Builtin_sTrace); sink.end();
       sink.start(_M__s); sink.start(_M_Builtin_sShow); sink.end();
-      sink.start(_M__s); sink.start(_M_Builtin_sParseText); sink.end(); sink.copy(term_47.ref()); sink.copy(term_96.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sParseText); sink.end(); sink.copy(term_93.ref()); sink.copy(term_64.ref());
       sink.end();
       sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_ParseToString, term_47, term_96);
-  }  final public static boolean _M_BeforeLast2(Sink sink, int shared, int depth, Term term_2, Term term_97, Term term_30) {
+    return thunk(sink, _M_ParseToString, term_93, term_64);
+  }  final public static boolean _M_BeforeLast2(Sink sink, int shared, int depth, Term term_2, Term term_186, Term term_56) {
     if (depth < 2000) {
       sink.start(_M__s); sink.start(_M_Builtin_sIf); sink.end();
-      sink.start(_M__s); sink.start(_M_Builtin_sStringEqual); sink.end(); sink.copy(term_30.ref()); sink.literal("");
+      sink.start(_M__s); sink.start(_M_Builtin_sStringEqual); sink.end(); sink.copy(term_56.ref()); sink.literal("");
       sink.end(); sink.copy(term_2.ref());
-      sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.copy(term_2.ref()); sink.copy(term_97.ref()); sink.copy(term_30.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.copy(term_2.ref()); sink.copy(term_186.ref()); sink.copy(term_56.ref());
       sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_BeforeLast2, term_2, term_97, term_30);
-  }   final public static boolean _M_BeforeLast(Sink sink, int shared, int depth, Term term_44, Term term_70) {
+    return thunk(sink, _M_BeforeLast2, term_2, term_186, term_56);
+  }   final public static boolean _M_BeforeLast(Sink sink, int shared, int depth, Term term_78, Term term_36) {
     if (depth < 2000) {
       sink.start(_M__s); sink.start(_M_Builtin_sIf); sink.end();
-      sink.start(_M__s); sink.start(_M_Builtin_sContains); sink.end(); sink.copy(term_44.ref()); sink.copy(term_70.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sContains); sink.end(); sink.copy(term_78.ref()); sink.copy(term_36.ref());
       sink.end();
       sink.start(_M_BeforeLast2);
-      sink.start(_M__s); sink.start(_M_Builtin_sBeforeFirst); sink.end(); sink.copy(term_44.ref()); sink.copy(term_70.ref());
-      sink.end(); sink.copy(term_70.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sBeforeFirst); sink.end(); sink.copy(term_78.ref()); sink.copy(term_36.ref());
+      sink.end(); sink.copy(term_36.ref());
       sink.start(_M_BeforeLast);
-      sink.start(_M__s); sink.start(_M_Builtin_sAfterFirst); sink.end(); sink.copy(term_44.ref()); sink.copy(term_70.ref());
-      sink.end(); sink.copy(term_70.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sAfterFirst); sink.end(); sink.copy(term_78.ref()); sink.copy(term_36.ref());
+      sink.end(); sink.copy(term_36.ref());
       sink.end();
       sink.end(); sink.literal("");
       sink.end(); return true;
     }
-    return thunk(sink, _M_BeforeLast, term_44, term_70);
-  }  final public static boolean _M_AfterLast2(Sink sink, int shared, int depth, Term term_87, Term term_74) {
+    return thunk(sink, _M_BeforeLast, term_78, term_36);
+  }  final public static boolean _M_AfterLast2(Sink sink, int shared, int depth, Term term_77, Term term_55) {
     if (depth < 2000) {
-      sink.start(_M_AfterLast); sink.copy(term_87.ref()); sink.copy(term_74.ref());
+      sink.start(_M_AfterLast); sink.copy(term_77.ref()); sink.copy(term_55.ref());
       sink.end(); return true;
     }
-    return thunk(sink, _M_AfterLast2, term_87, term_74);
-  }  final public static boolean _M_AfterLast(Sink sink, int shared, int depth, Term term_23, Term term_52) {
+    return thunk(sink, _M_AfterLast2, term_77, term_55);
+  }  final public static boolean _M_AfterLast(Sink sink, int shared, int depth, Term term_58, Term term_43) {
     if (depth < 2000) {
       sink.start(_M__s); sink.start(_M_Builtin_sIf); sink.end();
-      sink.start(_M__s); sink.start(_M_Builtin_sContains); sink.end(); sink.copy(term_23.ref()); sink.copy(term_52.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sContains); sink.end(); sink.copy(term_58.ref()); sink.copy(term_43.ref());
       sink.end();
       sink.start(_M_AfterLast2);
-      sink.start(_M__s); sink.start(_M_Builtin_sAfterFirst); sink.end(); sink.copy(term_23.ref()); sink.copy(term_52.ref());
-      sink.end(); sink.copy(term_52.ref());
-      sink.end(); sink.copy(term_23.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sAfterFirst); sink.end(); sink.copy(term_58.ref()); sink.copy(term_43.ref());
+      sink.end(); sink.copy(term_43.ref());
+      sink.end(); sink.copy(term_58.ref());
       sink.end(); return true;
     }
-    return thunk(sink, _M_AfterLast, term_23, term_52);
-  }  final public static boolean _M_Replace(Sink sink, int shared, int depth, Term term_94, Term term_49, Term term_1) {
+    return thunk(sink, _M_AfterLast, term_58, term_43);
+  }  final public static boolean _M_Replace(Sink sink, int shared, int depth, Term term_97, Term term_37, Term term_69) {
     if (depth < 2000) {
-      sink.start(_M__s); sink.start(_M_Builtin_sReplace); sink.end(); sink.copy(term_94.ref()); sink.copy(term_49.ref()); sink.copy(term_1.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sReplace); sink.end(); sink.copy(term_97.ref()); sink.copy(term_37.ref()); sink.copy(term_69.ref());
       sink.end(); return true;
     }
-    return thunk(sink, _M_Replace, term_94, term_49, term_1);
-  }   final public static boolean _M_RemoveLastChar(Sink sink, int shared, int depth, Term term_95) {
+    return thunk(sink, _M_Replace, term_97, term_37, term_69);
+  }   final public static boolean _M_RemoveLastChar(Sink sink, int shared, int depth, Term term_52) {
     if (depth < 2000) {
-      sink.start(_M__s); sink.start(_M_Builtin_sSubstring); sink.end(); sink.copy(term_95.ref()); sink.literal(0);
+      sink.start(_M__s); sink.start(_M_Builtin_sSubstring); sink.end(); sink.copy(term_52.ref()); sink.literal(0);
       sink.start(_M__s); sink.start(_M_Builtin_sMinus); sink.end();
-      sink.start(_M__s); sink.start(_M_Builtin_sLength); sink.end(); sink.copy(term_95.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sLength); sink.end(); sink.copy(term_52.ref());
       sink.end(); sink.literal(1);
       sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_RemoveLastChar, term_95);
-  } final public static boolean _M_RemoveFirstChar(Sink sink, int shared, int depth, Term term_64) {
+    return thunk(sink, _M_RemoveLastChar, term_52);
+  } final public static boolean _M_RemoveFirstChar(Sink sink, int shared, int depth, Term term_25) {
     if (depth < 2000) {
-      sink.start(_M__s); sink.start(_M_Builtin_sSubstring); sink.end(); sink.copy(term_64.ref()); sink.literal(1);
+      sink.start(_M__s); sink.start(_M_Builtin_sSubstring); sink.end(); sink.copy(term_25.ref()); sink.literal(1);
       sink.end(); return true;
     }
-    return thunk(sink, _M_RemoveFirstChar, term_64);
-  } final public static boolean _M_UpCaseFirst(Sink sink, int shared, int depth, Term term_88) {
+    return thunk(sink, _M_RemoveFirstChar, term_25);
+  } final public static boolean _M_UpCaseFirst(Sink sink, int shared, int depth, Term term_53) {
     if (depth < 2000) {
       sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end();
       sink.start(_M__s); sink.start(_M_Builtin_sUpCase); sink.end();
-      sink.start(_M__s); sink.start(_M_Builtin_sSubstring); sink.end(); sink.copy(term_88.ref()); sink.literal(0); sink.literal(1);
+      sink.start(_M__s); sink.start(_M_Builtin_sSubstring); sink.end(); sink.copy(term_53.ref()); sink.literal(0); sink.literal(1);
       sink.end();
       sink.end();
-      sink.start(_M__s); sink.start(_M_Builtin_sSubstring); sink.end(); sink.copy(term_88.ref()); sink.literal(1);
+      sink.start(_M__s); sink.start(_M_Builtin_sSubstring); sink.end(); sink.copy(term_53.ref()); sink.literal(1);
       sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_UpCaseFirst, term_88);
-  } final public static boolean _M_UnString(Sink sink, int shared, int depth, Term term_36) {
+    return thunk(sink, _M_UpCaseFirst, term_53);
+  } final public static boolean _M_UnString(Sink sink, int shared, int depth, Term term_94) {
     if (depth < 2000) {
-      sink.start(_M__s); sink.start(_M_Builtin_sRescape); sink.end(); sink.copy(term_36.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sRescape); sink.end(); sink.copy(term_94.ref());
       sink.end(); return true;
     }
-    return thunk(sink, _M_UnString, term_36);
-  } final public static boolean _M_ConcatString(Sink sink, int shared, int depth, Term term_29, Term term_21) {
+    return thunk(sink, _M_UnString, term_94);
+  } final public static boolean _M_ConcatString(Sink sink, int shared, int depth, Term term_185, Term term_63) {
     if (depth < 2000) {
-      sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.copy(term_29.ref()); sink.copy(term_21.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.copy(term_185.ref()); sink.copy(term_63.ref());
       sink.end(); return true;
     }
-    return thunk(sink, _M_ConcatString, term_29, term_21);
-  }  final public static boolean _M_StringEqual(Sink sink, int shared, int depth, Term term_27, Term term_8) {
-    if (depth < 2000) {
-      sink.start(_M_WrapBoolean);
-      sink.start(_M__s); sink.start(_M_Builtin_sStringEqual); sink.end(); sink.copy(term_27.ref()); sink.copy(term_8.ref());
-      sink.end();
-      sink.end(); return true;
-    }
-    return thunk(sink, _M_StringEqual, term_27, term_8);
-  }  final public static boolean _M_StartsWith(Sink sink, int shared, int depth, Term term_71, Term term_55) {
+    return thunk(sink, _M_ConcatString, term_185, term_63);
+  }  final public static boolean _M_StringEqual(Sink sink, int shared, int depth, Term term_15, Term term_29) {
     if (depth < 2000) {
       sink.start(_M_WrapBoolean);
-      sink.start(_M__s); sink.start(_M_Builtin_sStartsWith); sink.end(); sink.copy(term_71.ref()); sink.copy(term_55.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sStringEqual); sink.end(); sink.copy(term_15.ref()); sink.copy(term_29.ref());
       sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_StartsWith, term_71, term_55);
+    return thunk(sink, _M_StringEqual, term_15, term_29);
+  }  final public static boolean _M_StartsWith(Sink sink, int shared, int depth, Term term_22, Term term_7) {
+    if (depth < 2000) {
+      sink.start(_M_WrapBoolean);
+      sink.start(_M__s); sink.start(_M_Builtin_sStartsWith); sink.end(); sink.copy(term_22.ref()); sink.copy(term_7.ref());
+      sink.end();
+      sink.end(); return true;
+    }
+    return thunk(sink, _M_StartsWith, term_22, term_7);
   }  
   private static boolean initialized = false;
   public static void init(Context context)

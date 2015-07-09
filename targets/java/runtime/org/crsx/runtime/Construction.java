@@ -2,10 +2,7 @@
 
 package org.crsx.runtime;
 
-import java.util.IdentityHashMap;
 import java.util.Map;
-
-import org.crsx.runtime.Term.Kind;
 
 /**
  * A generic construction.
@@ -27,7 +24,7 @@ public class Construction extends Term
 
 	/** Sub binders */
 	public Variable[][] binders;
-	
+
 	/** Environment/Attributes */
 	protected Properties properties; // TODO: to deprecate
 
@@ -48,8 +45,61 @@ public class Construction extends Term
 		return descriptor;
 	}
 
+	//	/**
+	//	 * Copy this construction, sharing the subterms (if any).
+	//	 * 
+	//	 * @return A lone construction reference.
+	//	 */
+	//	public Construction copy(Context context)
+	//	{
+	//		Properties props = null;
+	//		if (properties != null)
+	//			props = properties.ref();
+	//
+	//		Construction cons = new Construction(descriptor, props);
+	//
+	//		if (subs != null)
+	//		{
+	//			Term[] newsubs = cons.subs = new Term[subs.length];
+	//			Variable[][] newsubbinders = cons.binders = new Variable[subs.length][];
+	//
+	//			for (int i = 0; i < subs.length; i++)
+	//			{
+	//				Term sub = subs[i];
+	//				Variable[] subbinders = binders[i];
+	//				
+	//				if (subbinders == null)
+	//				{
+	//					newsubs[i] = sub.ref();
+	//					newsubbinders[i] = null;
+	//				}
+	//				else
+	//				{
+	//					// REVISIT: is renaming needed?
+	//					IdentityHashMap<Variable, Term> renamings = new IdentityHashMap<>();
+	//					
+	//					final Variable[] newbinders = newsubbinders[i] = new Variable[subbinders.length];
+	//
+	//					for (int j = 0; j < subbinders.length; j++)
+	//					{
+	//						newbinders[j] = context.makeVariable(subbinders[j].name);
+	//						renamings.put(subbinders[j], newbinders[j].use()); // renamings owns a reference of the new binders
+	//					}
+	//
+	//					newsubs[i]= sub.substitute(context, renamings);
+	//
+	//					for (int j = 0; j < binders.length; j++)
+	//							renamings.remove(binders[j]).release();  // release new binders reference
+	//				}
+	//			}
+	//		}
+	//
+	//		return cons;
+	//	}
+	//	
+
 	//  Overrides
-	
+
 	@Override
 	public String symbol()
 	{
@@ -104,56 +154,27 @@ public class Construction extends Term
 		return descriptor.isFunction();
 	}
 
-	/**
-	 * Copy this construction, sharing the subterms (if any).
-	 * 
-	 * @return A lone construction reference.
-	 */
-	public Construction copy(Context context)
+	@Override
+	public void copy(Sink sink, boolean discard)
 	{
-		Properties props = null;
 		if (properties != null)
-			props = properties.ref();
+			properties.ref().copy(sink, discard);
 
-		Construction cons = new Construction(descriptor, props);
+		sink.start(descriptor);
 
-		if (subs != null)
+		for (int i = 0; i < arity(); i++)
 		{
-			Term[] newsubs = cons.subs = new Term[subs.length];
-			Variable[][] newsubbinders = cons.binders = new Variable[subs.length][];
+			Variable[] subbinders = binders(i);
+			if (subbinders != null)
+				sink.binds(subbinders);
 
-			for (int i = 0; i < subs.length; i++)
-			{
-				Term sub = subs[i];
-				Variable[] subbinders = binders[i];
-				
-				if (subbinders == null)
-				{
-					newsubs[i] = sub.ref();
-					newsubbinders[i] = null;
-				}
-				else
-				{
-					// REVISIT: is renaming needed?
-					IdentityHashMap<Variable, Term> renamings = new IdentityHashMap<>();
-					
-					final Variable[] newbinders = newsubbinders[i] = new Variable[subbinders.length];
-
-					for (int j = 0; j < subbinders.length; j++)
-					{
-						newbinders[j] = context.makeVariable(subbinders[j].name);
-						renamings.put(subbinders[j], newbinders[j].use()); // renamings owns a reference of the new binders
-					}
-
-					newsubs[i]= sub.substitute(context, renamings);
-
-					for (int j = 0; j < binders.length; j++)
-							renamings.remove(binders[j]).release();  // release new binders reference
-				}
-			}
+			subs[i].ref().copy(sink, discard);
 		}
 
-		return cons;
+		sink.end();
+
+		if (discard)
+			release();
 	}
 
 	@Override
@@ -181,10 +202,10 @@ public class Construction extends Term
 			else
 			{
 				// -- i'th subterm with binders, second and following copy: add new binders to substitution!
-				
+
 				// Create new subbinders
 				Variable[] subbinders = new Variable[oldbinders.length];
-				
+
 				for (int j = 0; j < oldbinders.length; j++)
 				{
 					Variable oldbinder = oldbinders[j];
@@ -192,12 +213,12 @@ public class Construction extends Term
 					substitutes.put(oldbinder, subbinder.use());
 					subbinders[j] = subbinder;
 				}
-				
+
 				// Send and substitute
 				sink.binds(subbinders);
-				
+
 				sub(i).ref().substituteTo(sink, substitutes);
-				
+
 				// Cleanup
 				for (int j = 0; j < oldbinders.length; j++)
 					substitutes.remove(oldbinders[j]).release();
@@ -210,15 +231,49 @@ public class Construction extends Term
 	}
 
 	@Override
+	protected boolean deepEquals(Term other, Map<Variable, Variable> renamings)
+	{
+		if (other.kind() != Kind.CONSTRUCTION)
+			return false;
+
+		final int arity = arity();
+		if (arity != other.arity())
+			return false;
+
+		if (!symbol().equals(other.symbol()))
+			return false;
+
+		for (int i = 0; i < arity; ++i)
+		{
+			final Variable[] thisBinders = binders(i);
+			final Variable[] otherBinders = other.binders(i);
+
+			if (thisBinders.length != otherBinders.length)
+				return false;
+
+			for (int b = 0; b < thisBinders.length; ++b)
+				renamings.put(thisBinders[b], otherBinders[b]);
+
+			if (!sub(i).deepEquals(other.sub(i), renamings))
+				return false;
+
+			for (int b = 0; b < thisBinders.length; ++b)
+				renamings.remove(thisBinders[b]);
+		}
+		return true;
+	}
+
+	@Override
 	public void free()
 	{
+		if (properties != null)
+			properties.release();
+
 		if (subs != null)
 		{
 			for (int i = subs.length - 1; i >= 0; i--)
 				subs[i].release();
 		}
-		if (properties != null)
-			properties.release();
 
 		super.free();
 	}

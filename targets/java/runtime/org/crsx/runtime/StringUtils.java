@@ -136,4 +136,147 @@ public class StringUtils
 		return b.toString();
 	}
 
+	/** 
+	 * Convert string to Java/C identifier form with leading _M_ 
+	 * (reversible and idempotent, suspicious characters are replaced with hex form). 
+	 */
+	public static String mangle(String s)
+	{
+		if (s.startsWith("_M_"))
+			return s; // already mangled!
+		StringBuilder b = new StringBuilder();
+		b.append("_M_");
+		final int n = s.length();
+		for (int i = 0; i < n; ++i)
+		{
+			char c = s.charAt(i);
+			switch (c)
+			{
+				case '-' : {
+					if (i + 1 >= s.length() || ('A' <= s.charAt(i + 1) && s.charAt(i + 1) <= 'Z'))
+						b.append("_");
+					else
+						b.append("__");
+					break;
+				}
+				case '_' :
+					b.append("_x");
+					break;
+				case '~' :
+					b.append("_w");
+					break;
+				case '$' :
+					b.append("_s");
+					break;
+				case '#' :
+					b.append("_h");
+					break;
+				default :
+					if (c <= '~')
+					{
+						if (Character.isJavaIdentifierPart(c))
+							b.append(c);
+						else
+							b.append("_" + hex(c, "00").toLowerCase());
+					}
+					else
+						b.append("_u" + hex(c, "0000").toLowerCase());
+			}
+		}
+		return b.toString();
+	}
+
+	/** 
+	 * Convert string to Java-compatible source form. 
+	 * */
+	public static String quoteJava(String s)
+	{
+		StringBuilder b = new StringBuilder();
+		b.append('"');
+		quoteJavaContent(s, b);
+		b.append('"');
+		return b.toString();
+	}
+
+	/** 
+	 * Convert string to Java-compatible source form. 
+	 */
+	public static void quoteJavaContent(String s, StringBuilder b)
+	{
+		for (int i = 0; i < s.length(); ++i)
+		{
+			char c = s.charAt(i);
+			if (Character.isHighSurrogate(c))
+			{
+				int codepoint = Character.codePointAt(s, i++);
+				if (codepoint < 0xFFFF)
+					b.append("\\u" + hex(codepoint, "0000"));
+				else
+					b.append("\\U" + hex(codepoint, "00000000"));
+			}
+			else
+				quotedJavaChar(c, b);
+		}
+	}
+
+	/**
+	 * Convert character to Java-compatible source form for use in a string.
+	 * @param c character
+	 * @param b stream to append to
+	 */
+	public static void quotedJavaChar(char c, StringBuilder b)
+	{
+		switch (c)
+		{
+			case '\b' :
+				b.append("\\b");
+				break;
+			case '\t' :
+				b.append("\\t");
+				break;
+			case '\n' :
+				b.append("\\n");
+				break;
+			case '\f' :
+				b.append("\\f");
+				break;
+			case '\r' :
+				b.append("\\r");
+				break;
+			case '\'' :
+				b.append("\\'");
+				break;
+			case '\"' :
+				b.append("\\\"");
+				break;
+			case '\\' :
+				b.append("\\\\");
+				break;
+			default :
+				if (Character.isISOControl(c))
+					b.append("\\" + octal((int) c, "000"));
+				else if (c <= '~')
+					b.append(c);
+				else
+					b.append("\\u" + hex((int) c, "0000"));
+		}
+	}
+
+	/** 
+	 * Return hex string for character inserted right adjusted in template. 
+	 */
+	public static String hex(int c, String template)
+	{
+		String s = Integer.toHexString(c);
+		return template.substring(s.length()) + s;
+	}
+
+	/**
+	 *  Return octal string for character inserted right adjusted in template. 
+	 */
+	public static String octal(int c, String template)
+	{
+		String s = Integer.toOctalString(c);
+		return template.substring(s.length()) + s;
+	}
 }

@@ -32,7 +32,6 @@ public class DollarDescriptor extends ConstructionDescriptor
 		
 		Term name = data.sub(0);
 		ConstructionDescriptor desc = name.descriptor();
-		System.out.println(desc.symbol());
 		return desc.step(sink, data);
 	}
 }

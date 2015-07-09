@@ -87,7 +87,7 @@ project(':compiler')
 	}
 	
 	dependencies {
-		crsx4 'org.crsx:crsx:4.0.0-ALPHA@jar'
+		crsx4 'org.crsx:crsx:4.0.0-SNAPSHOT@jar'
 		crsx4 'org.crsx:crsx3@jar'
 		crsx4 'org.antlr:antlr4:4.5'
 	}
@@ -98,7 +98,6 @@ project(':compiler')
 		packageName = 'org.crsx.compiler'
 	}	
 }
-
 
 // --- Java compilation/packaging
 
@@ -142,6 +141,12 @@ repositories {
 dependencies {
     compile 'org.crsx:crsx3@jar'
 	compile 'org.antlr:antlr4:4.5'
+}
+
+jar {
+	manifest {
+		attributes("Main-Class" : "org.crsx.Crsx", "Class-Path" : "../lib/crsx3.jar ../lib/antlr-runtime-4.5.jar")
+	}
 }
 
 // ---- Distribution jar
