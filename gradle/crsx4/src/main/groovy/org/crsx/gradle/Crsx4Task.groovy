@@ -30,6 +30,7 @@ class Crsx4Task extends DefaultTask {
 	
 	@TaskAction
 	def generate(IncrementalTaskInputs inputs) {
+		logger.info("crsx4 classpath: ${project.configurations.crsx4.files}")
 		MainRunner crsxrunner = new MainRunner(project.configurations.crsx4.files, usecompiler ? "org.crsx.Crsx": "net.sf.crsx.run.Crsx")
 		
 		inputs.outOfDate { change ->

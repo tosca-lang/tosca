@@ -9,12 +9,17 @@ import org.crsx.runtime.primitives.ColonDescriptor;
 import org.crsx.runtime.primitives.ContainsDescriptor;
 import org.crsx.runtime.primitives.DeepEqualDescriptor;
 import org.crsx.runtime.primitives.DollarDescriptor;
+import org.crsx.runtime.primitives.ErrorDescriptor;
 import org.crsx.runtime.primitives.EscapeDescriptor;
+import org.crsx.runtime.primitives.FormatNumberDescriptor;
 import org.crsx.runtime.primitives.GetDescriptor;
 import org.crsx.runtime.primitives.IfDefDescriptor;
 import org.crsx.runtime.primitives.IfDescriptor;
+import org.crsx.runtime.primitives.LengthDescriptor;
 import org.crsx.runtime.primitives.MangleDescriptor;
+import org.crsx.runtime.primitives.MinusDescriptor;
 import org.crsx.runtime.primitives.ParseResourceDescriptor;
+import org.crsx.runtime.primitives.PlusDescriptor;
 import org.crsx.runtime.primitives.ReplaceDescriptor;
 import org.crsx.runtime.primitives.RescapeDescriptor;
 import org.crsx.runtime.primitives.StartsWithDescriptor;
@@ -44,7 +49,7 @@ public class Primitives
 	
 	// All primitives
 	final public static ConstructionDescriptor _M_Builtin_sTrace = new TraceDescriptor();
-	final public static ConstructionDescriptor _M_Builtin_sError = makeData("Error");
+	final public static ConstructionDescriptor _M_Builtin_sError = new ErrorDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sEqual = makeData("Equal");
 	final public static ConstructionDescriptor _M_Builtin_sDeepEqual = new DeepEqualDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sIf = new IfDescriptor();
@@ -60,21 +65,21 @@ public class Primitives
 
 	final public static ConstructionDescriptor _M_Builtin_sSubstring = new SubstringDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sUpCase = new UpCaseDescriptor();
-	final public static ConstructionDescriptor _M_Builtin_sLength = makeData("Length");
+	final public static ConstructionDescriptor _M_Builtin_sLength = new LengthDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sRescape = new RescapeDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sContains = new ContainsDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sAfterFirst = new AfterFirstDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sBeforeFirst = new BeforeFirstDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sReplace = new ReplaceDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sStartsWith = new StartsWithDescriptor();
-	final public static ConstructionDescriptor _M_Builtin_sFormatNumber = makeData("FormatNumber");
+	final public static ConstructionDescriptor _M_Builtin_sFormatNumber = new FormatNumberDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sMangle = new MangleDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sEscape =new EscapeDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sTrim = new TrimDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sStringEqual = new StringEqualDescriptor();
 		
-	final public static ConstructionDescriptor _M_Builtin_sMinus = makeData("Minus");
-	final public static ConstructionDescriptor _M_Builtin_sPlus = makeData("Plus");
+	final public static ConstructionDescriptor _M_Builtin_sMinus = new MinusDescriptor();
+	final public static ConstructionDescriptor _M_Builtin_sPlus = new PlusDescriptor();
 		
 	final public static DollarDescriptor _M__s = new DollarDescriptor();
 	

@@ -5,6 +5,7 @@ package org.crsx.runtime;
 import java.util.ArrayDeque;
 
 import org.crsx.runtime.ConstructionDescriptor.DynamicFunctionDescriptor;
+import org.crsx.runtime.Term.Kind;
 
 /**
  * Rewrite engine.
@@ -85,7 +86,7 @@ public class Normalizer
 				}
 
 			}
-			else if (term.isFunction() && !term.nostep())
+			else if (Term.isFunction(term) && !term.nostep())
 			{
 				BufferSink sink = context.makeBuffer();
 				if (step(context, sink, (Construction) term)) // Reference is transferred and always consumed 
@@ -113,8 +114,8 @@ public class Normalizer
 				{
 					// (6) If term is a non-nf data term or a nostep function application with a non-nf child then clear nostep if it
 					// is a function, push term, and switch to that child.
-					if (term.isConstruction())
-						term.asConstruction().setNostep(false);
+					if (term.kind() == Kind.CONSTRUCTION)
+						((Construction) term).setNostep(false);
 
 					stack.push(new SubTerm(term.ref(), index));
 					term.release(); // TODO: really just reference transfer from term to stack
@@ -142,7 +143,7 @@ public class Normalizer
 	{
 		if (!term.nostep())
 		{
-			while (term.isFunction())
+			while (Term.isFunction(term))
 			{
 				BufferSink sink = context.makeBuffer();
 				if (!step(context, sink, (Construction) term)) // Reference is transferred and always consumed            

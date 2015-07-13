@@ -247,7 +247,7 @@ public abstract class ConstructionDescriptor
 				args[argp++] = term.sub(i).ref();
 			}
 
-			assert argp == method.getParameterCount();
+			assert argp == method.getParameterCount() : method.getName() + " not fully bound.";
 
 			term.release(); // done with the thunk
 
@@ -281,6 +281,35 @@ public abstract class ConstructionDescriptor
 		 * @return true is evaluation succeeded, false otherwise. 
 		 */
 		public abstract boolean run(Sink sink, Term term);
+	}
+
+	/**
+	 * Represent a literal construction.
+	 */
+	protected static class LiteralDescriptor extends ConstructionDescriptor
+	{
+		protected static LiteralDescriptor singleton = new LiteralDescriptor();
+	
+		private LiteralDescriptor()
+		{}
+	
+		@Override
+		public String symbol()
+		{
+			return "$Literal";
+		}
+	
+		@Override
+		public boolean isFunction()
+		{
+			return false;
+		}
+	
+		@Override
+		public boolean step(Sink sink, Term data)
+		{
+			throw new RuntimeException("Literals do not  have step function");
+		}
 	}
 
 }

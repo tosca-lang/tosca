@@ -8,7 +8,9 @@ import java.util.ArrayDeque;
 import org.crsx.compiler.std.Text;
 import org.crsx.runtime.ConstructionDescriptor;
 import org.crsx.runtime.Context;
+import org.crsx.runtime.FormattingAppendable;
 import org.crsx.runtime.Properties;
+import org.crsx.runtime.SimpleTermSink;
 import org.crsx.runtime.Sink;
 import org.crsx.runtime.Term;
 import org.crsx.runtime.Variable;
@@ -37,6 +39,12 @@ public class TextSink extends Sink
 	/** Descriptors stack */
 	protected ArrayDeque<ConstructionDescriptor> descriptors;
 
+	/** Whether outputting text or crsx. When empty, default to inside text. */
+	protected ArrayDeque<Boolean> inText;
+
+	/** Simple term sink helper */
+	protected SimpleTermSink termSink;
+
 	// Constructor
 
 	public TextSink(Context context, Appendable output)
@@ -45,6 +53,51 @@ public class TextSink extends Sink
 		this.output = output;
 		this.indent = 0;
 		this.descriptors = new ArrayDeque<>();
+		this.inText = new ArrayDeque<>();
+		this.termSink = new SimpleTermSink(context, FormattingAppendable.format(output, 120, 0, 80));
+	}
+
+	// Local
+
+	/** Output some characters */
+	final protected TextSink print(String chars)
+	{
+		try
+		{
+			output.append(chars);
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
+		return this;
+	}
+
+	/** Output some characters, applying indentation to new lines */
+	final protected TextSink printIndent(String chars)
+	{
+		if (indent > 0)
+		{
+			// Search for new line to apply indentation level.
+			chars = chars.replaceAll("\n", "\n" + SPACES.substring(0, indent < SPACES.length() ? indent : SPACES.length()));
+		}
+		print(chars);
+
+		return this;
+	}
+
+	/** Whether currently outputting text */
+	final protected boolean inText()
+	{
+		return inText.isEmpty() || inText.peek();
+	}
+
+	/** Whether given constructor descriptor is a text one */
+	final protected boolean isTextDescriptor(ConstructionDescriptor desc)
+	{
+		return desc == Text._M__sTextChars
+				|| desc == Text._M__sTextBreak || desc == Text._M__sTextIndent || desc == Text._M__sTextEmbed
+				|| desc == Text._M__sTextString || desc == Text._M__sTextCons || desc == Text._M__sTextNil;
 	}
 
 	// Overrides Sink
@@ -52,103 +105,129 @@ public class TextSink extends Sink
 	@Override
 	public Sink start(ConstructionDescriptor descriptor)
 	{
-		//try
+		final boolean isText = isTextDescriptor(descriptor);
+
+		if (inText())
 		{
-			if (descriptor == Text._M__sTextChars)
-			{}
-			else if (descriptor == Text._M__sTextBreak)
-			{}
-			else if (descriptor == Text._M__sTextIndent)
+			if (isText)
 			{
-				indent += 2;
-			}
-			else if (descriptor == Text._M__sTextEmbed)
-			{
-				//output.append("«");
-			}
-			else if (descriptor == Text._M__sTextString)
-			{
+				// outputting text and receiving text. 
 
+				if (descriptor == Text._M__sTextIndent)
+				{
+					indent += 2;
+				}
 			}
-			else if (descriptor == Text._M__sTextCons)
+			else
 			{
+				// outputting text and but not receiving text. This is the beginning of a cookie. Switch to term mode.
+				print("« ");
 
+				termSink.start(descriptor);;
 			}
-			else if (descriptor == Text._M__sTextNil)
-			{
-
-			}
-			descriptors.push(descriptor);
-			return this;
 		}
-//		catch (IOException e)
-//		{
-//			throw new RuntimeException(e);
-//		}
+		else
+		{
+			if (isText)
+			{
+				// outputting term and receiving text. Switch to embedded text mode
+				printIndent("%n⟦");
+			}
+			else
+			{
+				// outputting term and receiving term. This is a sub.
+				termSink.start(descriptor);
+			}
+		}
+
+		descriptors.push(descriptor);
+		inText.push(isText);
+
+		return this;
 	}
 
 	@Override
 	public Sink end()
 	{
-		//try
-		{
-			ConstructionDescriptor descriptor = descriptors.pop();
-			if (descriptor == Text._M__sTextIndent)
-			{
-				indent -= 2;
-			}
-//			else if (descriptor == Text._M__sTextEmbed)
-//			{
-//			//	output.append("»");
-//			}
-			return this;
-		}
+		final ConstructionDescriptor descriptor = descriptors.pop();
+		final boolean isText = isTextDescriptor(descriptor);
+		inText.pop();
 
-//		catch (IOException e)
-//		{
-//			throw new RuntimeException(e);
-//		}
+		if (inText())
+		{
+			if (isText)
+			{
+				// outputting text and receiving text. 
+				if (descriptor == Text._M__sTextIndent)
+				{
+					indent -= 2;
+				}
+			}
+			else
+			{
+				// outputting text and but not receiving text. This is the end of a cookie. Switch to text mode.
+				print("» ");
+			}
+		}
+		else
+		{
+			if (isText)
+			{
+				// outputting term and receiving text. Terminate embedded text mode
+				print("⟧");
+			}
+			else
+			{
+				// outputting term and receiving term. Terminate sub.
+				termSink.end();
+			}
+		}
+		return this;
 	}
 
 	@Override
 	public Sink binds(Variable[] binders)
 	{
-		throw new UnsupportedOperationException();
+		if (inText())
+		{
+			// This is really bad as the term is even not inside the sort value space.
+			// Switch to term mode
+			print("« ");
+
+			inText.pop();
+			inText.push(false);
+
+			assert !inText.isEmpty() : "Can't have to-level binders";
+		}
+
+		termSink.binds(binders);
+
+		return this;
 	}
 
 	@Override
 	public Sink use(Variable variable)
 	{
-		try
-		{
-			output.append(variable.toString()); // TODO: quote variable
-			return this;
-		}
-		catch (IOException e)
-		{
-			throw new RuntimeException(e);
-		}
+		if (inText())
+			print(variable.name());
+		else
+			termSink.use(variable);
+		
+		return this;
 	}
 
 	@Override
 	public Sink literal(Object literal)
 	{
-		try
+		if (inText())
 		{
-			String str = literal.toString();
-			if (indent > 0)
-			{
-				// Search for new line to apply indentation level.
-				str = str.replaceAll("\n", "\n" + SPACES.substring(0, indent));
-			}
-			
-			output.append(str);
-			return this;
+			printIndent(literal.toString());
 		}
-		catch (IOException e)
+		else
 		{
-			throw new RuntimeException(e);
+			termSink.literal(literal);
 		}
+		return this;
 	}
 
 	@Override
@@ -161,40 +240,55 @@ public class TextSink extends Sink
 	@Override
 	public Sink startMetaApplication(String name)
 	{
-		// Meta application should not appear.
+		if (inText())
+		{
+			// in text mode -> switch to term mode.
+			print("« ");
 
-		try
-		{
-			output.append(name);
-			return this;
+			inText.pop();
+			inText.push(false);
 		}
-		catch (IOException e)
-		{
-			throw new RuntimeException(e);
-		}
+		
+		termSink.startMetaApplication(name);
+		
+		return this;
 	}
 
 	@Override
 	public Sink endMetaApplication()
 	{
+		descriptors.pop();
+		inText.pop();
+		
+		termSink.endMetaApplication();
+
+		if (inText())
+		{
+			// were in text mode -> terminate term mode.
+			print("»");
+		}
+
 		return this;
 	}
 
 	@Override
 	public Sink properties(Properties properties)
 	{
+		// TODO
 		return this;
 	}
 
 	@Override
 	public Sink propertyNamed(String name, Term term)
 	{
+		// TODO:
 		return this;
 	}
 
 	@Override
 	public Sink propertyVariable(Variable variable, Term term)
 	{
+		// TODO
 		return this;
 	}
 

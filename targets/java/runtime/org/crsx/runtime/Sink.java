@@ -1,6 +1,8 @@
 // Copyright (c) 2014 IBM Corporation.
 package org.crsx.runtime;
 
+import org.crsx.runtime.Term.Kind;
+
 /**
  * Consumes Term events.
  * 
@@ -17,7 +19,7 @@ public abstract class Sink
 	 */
 	public static Sink property(Sink sink, Term key, Term value)
 	{
-		return key.isVariableUse() ? sink.propertyVariable(((VariableUse) key).variable, value) : sink.propertyNamed(
+		return key.kind() == Kind.VARIABLE_USE ? sink.propertyVariable(((VariableUse) key).variable, value) : sink.propertyNamed(
 				key.symbol(), value);
 	}
 

@@ -6,6 +6,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 
+import org.crsx.runtime.Term.Kind;
+
 /**
  * Dynamic term construction.
  * 
@@ -86,7 +88,7 @@ public class BufferSink extends Sink
 	@Override
 	public BufferSink start(ConstructionDescriptor desc)
 	{
-		Construction c = new Construction(desc, properties);
+		Construction c = new FixedConstruction(desc, properties);
 		addSub(c);
 		properties = null;
 
@@ -109,9 +111,9 @@ public class BufferSink extends Sink
 			assert subs.get(subs.size() - 1) != null : "binders term event must precede start term event";
 
 			Term[] asub = new Term[subs.size()];
-			((Construction) c).subs = subs.toArray(asub);
+			((FixedConstruction) c).subs = subs.toArray(asub);
 			Variable[][] abinders = new Variable[subs.size()][];
-			((Construction) c).binders = subbinders.toArray(abinders);
+			((FixedConstruction) c).binders = subbinders.toArray(abinders);
 		}
 
 		if (terms.isEmpty())
@@ -228,7 +230,7 @@ public class BufferSink extends Sink
 	public BufferSink copy(Term term)
 	{
 		// If identical properties then just share!
-		if (term.isVariableUse() || properties == term.properties())
+		if (term.kind() == Kind.VARIABLE_USE || properties == term.properties())
 		{
 			if (properties != null)
 			{

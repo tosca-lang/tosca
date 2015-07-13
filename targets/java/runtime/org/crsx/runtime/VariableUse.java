@@ -9,7 +9,7 @@ import java.util.Map;
  * 
  * @author villardl
  */
-public class VariableUse extends Term
+final public class VariableUse extends Term
 {
 
 	/** The variable being used */
@@ -23,12 +23,6 @@ public class VariableUse extends Term
 	protected VariableUse(Variable variable)
 	{
 		this.variable = variable;
-	}
-
-	@Override
-	public boolean isVariableUse()
-	{
-		return true;
 	}
 
 	@Override

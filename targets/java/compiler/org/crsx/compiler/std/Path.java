@@ -4,6 +4,7 @@ import static org.crsx.runtime.ConstructionDescriptor.makeData;
 import static org.crsx.runtime.ConstructionDescriptor.makeFunction;
 import static org.crsx.runtime.Normalizer.thunk;
 import static org.crsx.runtime.Normalizer.force;
+import static org.crsx.runtime.Normalizer.forceSub;
 import static org.crsx.runtime.Reference.safeRef;
 
 import org.crsx.runtime.*;

@@ -87,7 +87,7 @@ public class Crsx
 	/* Build and run a crsx system */
 	static void run(Map<String, String> env)
 	{
-		Map<String, String> buildEnv = new HashMap<>(System.getenv());
+		Map<String, String> buildEnv = new HashMap<>(env);
 
 		String rules = env.get("rules");
 		String buildir = env.get("build-dir");
@@ -139,7 +139,7 @@ public class Crsx
 		String dest = env.get("build-dir");
 		String output = targetJavaFilename(rules, dest, true);
 
-		Map<String, String> buildEnv = new HashMap<>(System.getenv());
+		Map<String, String> buildEnv = new HashMap<>(env);
 
 		// Produce java source file.
 		buildEnv.put("class", "org.crsx.compiler.Crsx");

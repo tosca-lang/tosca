@@ -9,6 +9,8 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.crsx.runtime.Term.Kind;
+
 /**
  * Properties are:
  * 
@@ -81,7 +83,7 @@ public class Properties extends Reference
 	 */
 	public Term lookup(Term key)
 	{
-		return key.isVariableUse() ? lookup(((VariableUse) key).variable) : lookup(key.symbol());
+		return key.kind() == Kind.VARIABLE_USE ? lookup(((VariableUse) key).variable) : lookup(key.symbol());
 	}
 
 	@Override
@@ -185,7 +187,7 @@ public class Properties extends Reference
 					Term substitute = substitutes.get(var);
 					if (substitute != null)
 					{
-						if (substitute.isVariableUse())
+						if (substitute.kind() == Kind.VARIABLE_USE)
 						{
 							// This is a substitution of a variable for a variable!
 							key = ((VariableUse) substitute).variable;

@@ -4,6 +4,7 @@ import static org.crsx.runtime.ConstructionDescriptor.makeData;
 import static org.crsx.runtime.ConstructionDescriptor.makeFunction;
 import static org.crsx.runtime.Normalizer.thunk;
 import static org.crsx.runtime.Normalizer.force;
+import static org.crsx.runtime.Normalizer.forceSub;
 import static org.crsx.runtime.Reference.safeRef;
 
 import org.crsx.runtime.*;
@@ -12,28 +13,30 @@ import static org.crsx.runtime.Primitives.*;
 
 public class Function
 {
-  final public static DynamicFunctionDescriptor _M_ApplyIf = makeFunction("ApplyIf", Function.class, "_M_ApplyIf");final public static boolean _M_ApplyIf(Sink sink, int shared, int depth, Term term, Term term_2, Variable var, Term term_46) {
+  final public static DynamicFunctionDescriptor _M_ApplyIf = makeFunction("ApplyIf", Function.class, "_M_ApplyIf");final public static boolean _M_ApplyIf(Sink sink, int shared, int depth, Term term, Term term_97, Variable var, Term term_11) {
     if (depth < 2000) {
       label: {
         /* #value=term */
-        if (term_2.descriptor() != _M__sTrue)
+        term_97 = force(sink.context(), term_97);
+        if (term_97.descriptor() != _M__sTrue)
         {   break label;
         }
-        /* #=term *//*Contract*/Term term_11;
+        /* #=term *//*Contract*/Term term_55;
         {
           BufferSink buf = sink.context().makeBuffer(); buf.copy(term.ref());
-          term_11 = buf.term();
+          term_55 = buf.term();
         }
-        sink.substitute(term_46.ref(), new Variable[] { var }, new Term[] {term_11}); return true;
+        sink.substitute(term_11.ref(), new Variable[] { var }, new Term[] {term_55}); return true;
       }
-      label_74: {
+      label_26: {
         /* #value=term */
-        if (term_2.descriptor() != _M__sFalse)
-        {   break label_74;
+        term_97 = force(sink.context(), term_97);
+        if (term_97.descriptor() != _M__sFalse)
+        {   break label_26;
         } /* #=term *//*Contract*/ sink.copy(term.ref()); return true;
       }
     }
-    return thunk(sink, _M_ApplyIf, term, term_2, var, term_46);
+    return thunk(sink, _M_ApplyIf, term, term_97, var, term_11);
   }    
   private static boolean initialized = false;
   public static void init(Context context)
