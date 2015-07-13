@@ -26,14 +26,35 @@ public abstract class Term extends Reference
 	// Static utilities
 
 	/**
-	 * Whether the term is a constant.
+	 * Whether the given term is a constant: a construction with no argument. 
+	 * 
 	 * @param term
 	 */
 	public static boolean isConstant(Term term)
 	{
-		return term != null && term.isConstruction() && term.arity() == 0;
+		return term.kind() == Kind.CONSTRUCTION && term.arity() == 0;
 	}
 
+	/**
+	 * Whether the given term is a function 
+	 * 
+	 * @param term
+	 */
+	public static boolean isFunction(Term term)
+	{
+		return term.kind() == Kind.CONSTRUCTION && ((Construction) term).descriptor().isFunction();
+	}
+	
+	/**
+	 * Whether the given term is a literal 
+	 * 
+	 * @param term
+	 */
+	public static boolean isLiteral(Term term)
+	{
+		return term.kind() == Kind.CONSTRUCTION && ((Construction) term).descriptor() == ConstructionDescriptor.LiteralDescriptor.singleton;
+	}
+	
 	// State
 
 	/** Whether this term is in normal form */
@@ -86,49 +107,9 @@ public abstract class Term extends Reference
 	public abstract Kind kind();
 	
 	/**
-	 * @return true if this term represents a function
-	 */
-	public boolean isFunction()
-	{
-		return false;
-	}
-
-	/**
-	 * @return true if this term is a variable use
-	 */
-	public boolean isVariableUse()
-	{
-		return false;
-	}
-
-	/**
-	 * @return true if this term is a construction
-	 */
-	public boolean isConstruction()
-	{
-		return false;
-	}
-
-	/**
-	 * @return true if this term is a literal
-	 */
-	public boolean isLiteral()
-	{
-		return false;
-	}
-
-	/**
-	 * @return Term as a construction. Does not create a new reference.
-	 */
-	final public Construction asConstruction()
-	{
-		return (Construction) this;
-	}
-
-	/**
-	 * Gets the term symbol
+	 * Gets the construction symbol.
 	 * 
-	 * @return Term symbol (always interned).
+	 * @return symbol of the construction, or null if not a construction.
 	 */
 	public String symbol()
 	{

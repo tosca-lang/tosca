@@ -5,25 +5,13 @@ package org.crsx.runtime;
 import java.util.Map;
 
 /**
- * A generic construction.
- * 
- * <p>
- * A construction is a term with 0 or more subterms, and properties
- * 
+ * Base class for construction.
+ *  
  * @author villardl
  */
-public class Construction extends Term
+public abstract class Construction extends Term
 {
 	// State
-
-	/** Construction type */
-	protected ConstructionDescriptor descriptor;
-
-	/** Sub terms */
-	public Term[] subs;
-
-	/** Sub binders */
-	public Variable[][] binders;
 
 	/** Environment/Attributes */
 	protected Properties properties; // TODO: to deprecate
@@ -33,134 +21,33 @@ public class Construction extends Term
 	/**
 	 * @param properties A properties reference used by this constructor
 	 */
-	protected Construction(ConstructionDescriptor descriptor, Properties properties)
-	{
-		this.descriptor = descriptor;
-		this.properties = properties;
-	}
+	protected Construction()
+	{}
 
 	/** Gets construction descriptor */
-	public ConstructionDescriptor descriptor()
-	{
-		return descriptor;
-	}
-
-	//	/**
-	//	 * Copy this construction, sharing the subterms (if any).
-	//	 * 
-	//	 * @return A lone construction reference.
-	//	 */
-	//	public Construction copy(Context context)
-	//	{
-	//		Properties props = null;
-	//		if (properties != null)
-	//			props = properties.ref();
-	//
-	//		Construction cons = new Construction(descriptor, props);
-	//
-	//		if (subs != null)
-	//		{
-	//			Term[] newsubs = cons.subs = new Term[subs.length];
-	//			Variable[][] newsubbinders = cons.binders = new Variable[subs.length][];
-	//
-	//			for (int i = 0; i < subs.length; i++)
-	//			{
-	//				Term sub = subs[i];
-	//				Variable[] subbinders = binders[i];
-	//				
-	//				if (subbinders == null)
-	//				{
-	//					newsubs[i] = sub.ref();
-	//					newsubbinders[i] = null;
-	//				}
-	//				else
-	//				{
-	//					// REVISIT: is renaming needed?
-	//					IdentityHashMap<Variable, Term> renamings = new IdentityHashMap<>();
-	//					
-	//					final Variable[] newbinders = newsubbinders[i] = new Variable[subbinders.length];
-	//
-	//					for (int j = 0; j < subbinders.length; j++)
-	//					{
-	//						newbinders[j] = context.makeVariable(subbinders[j].name);
-	//						renamings.put(subbinders[j], newbinders[j].use()); // renamings owns a reference of the new binders
-	//					}
-	//
-	//					newsubs[i]= sub.substitute(context, renamings);
-	//
-	//					for (int j = 0; j < binders.length; j++)
-	//							renamings.remove(binders[j]).release();  // release new binders reference
-	//				}
-	//			}
-	//		}
-	//
-	//		return cons;
-	//	}
-	//	
+	public abstract ConstructionDescriptor descriptor();
 
 	//  Overrides
 
 	@Override
-	public String symbol()
-	{
-		return descriptor.symbol();
-	}
-
-	@Override
-	public Kind kind()
+	final public Kind kind()
 	{
 		return Kind.CONSTRUCTION;
 	}
-
+	
 	@Override
-	final public Term sub(int i)
-	{
-		return subs[i];
-	}
-
-	@Override
-	final public Variable[] binders(int i)
-	{
-		return binders[i];
-	}
-
-	@Override
-	public Properties properties()
+	final public Properties properties()
 	{
 		return properties;
 	}
-
-	@Override
-	public void setSub(int index, Term term)
-	{
-		subs[index] = term;
-	}
-
-	@Override
-	final public int arity()
-	{
-		return subs == null ? 0 : subs.length;
-	}
-
-	@Override
-	final public boolean isConstruction()
-	{
-		return true;
-	}
-
-	@Override
-	public boolean isFunction()
-	{
-		return descriptor.isFunction();
-	}
-
+	
 	@Override
 	public void copy(Sink sink, boolean discard)
 	{
-		if (properties != null)
-			properties.ref().copy(sink, discard);
+		if (properties() != null)
+			properties().ref().copy(sink, discard);
 
-		sink.start(descriptor);
+		sink.start(descriptor());
 
 		for (int i = 0; i < arity(); i++)
 		{
@@ -168,7 +55,7 @@ public class Construction extends Term
 			if (subbinders != null)
 				sink.binds(subbinders);
 
-			subs[i].ref().copy(sink, discard);
+			sub(i).ref().copy(sink, discard);
 		}
 
 		sink.end();
@@ -181,10 +68,10 @@ public class Construction extends Term
 	protected void substituteTo(Sink sink, Map<Variable, Term> substitutes)
 	{
 		// Apply substitution to properties
-		if (properties != null)
-			properties.ref().substituteTo(sink, substitutes);
+		if (properties() != null)
+			properties().ref().substituteTo(sink, substitutes);
 
-		sink.start(descriptor);
+		sink.start(descriptor());
 
 		final Context context = sink.context();
 		final int arity = arity();
@@ -264,37 +151,23 @@ public class Construction extends Term
 	}
 
 	@Override
-	public void free()
-	{
-		if (properties != null)
-			properties.release();
-
-		if (subs != null)
-		{
-			for (int i = subs.length - 1; i >= 0; i--)
-				subs[i].release();
-		}
-
-		super.free();
-	}
-
-	@Override
 	public String toString()
 	{
 		StringBuilder builder = new StringBuilder();
-		if (properties != null)
-			builder.append(properties);
-		builder.append(descriptor.symbol());
-		if (subs != null && subs.length > 0)
+		if (properties() != null)
+			builder.append(properties());
+		builder.append(descriptor().symbol());
+		final int arity = arity();
+		if (arity > 0)
 		{
 			builder.append("[");
-			for (int i = 0; i < subs.length; i++)
+			for (int i = 0; i < arity; i++)
 			{
 				if (i != 0)
 					builder.append(", ");
 
-				Term sub = subs[i];
-				Variable[] subbinders = binders[i];
+				Term sub = sub(i);
+				Variable[] subbinders = binders(i);
 				if (subbinders != null)
 				{
 					boolean hasBinders = false;
@@ -315,5 +188,4 @@ public class Construction extends Term
 		}
 		return builder.toString();
 	}
-
 }

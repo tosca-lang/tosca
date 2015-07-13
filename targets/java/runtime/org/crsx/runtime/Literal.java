@@ -5,48 +5,57 @@ package org.crsx.runtime;
 import java.util.Map;
 
 /**
- * A Untyped literal
+ * An untyped literal.
+ * 
+ * <p>A Literal is a special construction with no argument.
  * 
  * @author villardl
  */
 public class Literal extends Construction
 {
+	// Static
+	
 	/** Make a literal */
 	public static Literal make(Object literal)
 	{
 		return new Literal(literal);
 	}
 
+	// State
+	
 	/** The value */
 	protected Object value;
 
+	// Constructor
+	
 	/** Constructs a literal term */
 	public Literal(Object literal)
 	{
-		super(LiteralDescriptor.singleton, null);
 		this.value = literal;
 	}
 
+	// Overrides
+	
 	@Override
 	public String symbol()
 	{
 		return value.toString();
 	}
-	
+
 	@Override
-	public boolean isLiteral()
+	public ConstructionDescriptor descriptor()
 	{
-		return true;
+		return ConstructionDescriptor.LiteralDescriptor.singleton;
 	}
-	
+
 	@Override
 	public void copy(Sink sink, boolean discard)
 	{
-		if (properties != null)
-			properties.ref().copy(sink, discard);
+		if (properties() != null)
+			properties().ref().copy(sink, discard);
 
 		sink.literal(value);
-		
+
 		if (discard)
 			release();
 	}
@@ -61,36 +70,6 @@ public class Literal extends Construction
 	public String toString()
 	{
 		return '"' + value.toString() + '"';
-	}
-
-	/**
-	 * Represent a literal construction.
-	 */
-	protected static class LiteralDescriptor extends ConstructionDescriptor
-	{
-		protected static LiteralDescriptor singleton = new LiteralDescriptor();
-
-		private LiteralDescriptor()
-		{}
-
-		@Override
-		public String symbol()
-		{
-			return "$Literal";
-		}
-
-		@Override
-		public boolean isFunction()
-		{
-			return false;
-		}
-
-
-		@Override
-		public boolean step(Sink sink, Term data)
-		{
-			throw new RuntimeException("Literals do not  have step function");
-		}
 	}
 
 }

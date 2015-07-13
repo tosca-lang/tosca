@@ -61,6 +61,7 @@ import static org.crsx.runtime.ConstructionDescriptor.makeData;
 import static org.crsx.runtime.ConstructionDescriptor.makeFunction;
 import static org.crsx.runtime.Normalizer.thunk;
 import static org.crsx.runtime.Normalizer.force;
+import static org.crsx.runtime.Normalizer.forceSub;
 import static org.crsx.runtime.Reference.safeRef;
 
 import org.crsx.runtime.*;
@@ -742,29 +743,22 @@ SendMatchNextBinder[%nextBinder⟦ ##binder ##nextBinder⟧, SOME[#parent], #ter
 {$String:STRING_ENTRY}
 SendMatchFreeTerm[Crsx_freeTerm_sort, Text /* Current term */, ok::OK_SORT.Text] :: Text;
 
+// TODO: force only of has Data annotation!
 {#E; "$caselabel":TEXT[#label]}
 SendMatchFreeTerm[%freeTerm⟦ ##annotations? ##properties? ##constructor ##arguments? ⟧, #term, ok.#[ok]] 
 →
-%n⟦¶if («#term».descriptor() != «Descriptor[#constructor]»)
+%n⟦¶«#term» = force(sink.context(), «#term»);
+if («#term».descriptor() != «Descriptor[#constructor]»)
 {⟦
   break «#label»;⟧
 }«{#E}SendMatchMaybeProperties[#properties?, #term, ok.SendMatchMaybeArguments[ok, #arguments?, #term, ok.#[ok]]]»⟧;
 //
-//// Just desuagar single arg construction. 
-//{#E}SendMatchFreeTerm[%freeTerm⟦ ##annotations? ##properties? ##constructor ##term ⟧, #cterm, ok.#[ok]] 
-//→
-//{#E}SendMatchFreeTerm[%freeTerm⟦ ##annotations? ##properties? ##constructor [ ##term ] ⟧,  #cterm, ok.#[ok]];
 
 // Match Literal
 {#E}SendMatchFreeTerm[%freeTerm⟦ ##annotations? ##properties? ##literal ⟧, #term, ok.#[ok]] 
 →
 {#E}#[OK]; // Ignore for now 
 //$[Error, $[:, "Internal error: literals cannot appear in patterns, not yet... (", #literal, ")"]];
-
-//// Desugar list
-//{#E}SendMatchFreeTerm[%freeTerm⟦ ##annotations? ##list ⟧, #term, ok.#[ok]] 
-//→
-//{#E}SendMatchFreeTerm[DesugarList[#list], #term, ok.#[ok]];
 
 // Metavariable matches all terms. Just record name in the environment.
 -[Data[#term]]:
@@ -922,10 +916,11 @@ SendMatchSubTerms[OK_SORT, $List[Crsx_terms_S1_sort], Text, $Numeric, ok::OK_SOR
 
 SendMatchSubTerm[Crsx_term_sort, Text, $Numeric, ok::OK_SORT.Text] :: Text;
 
+// TODO: force only when have Data annotation.
 -[Fresh[sub::Text]]:
 {#E}SendMatchSubTerm[#sub, #parent, #subpos, ok.#[ok]]
 →
-%n⟦Term «sub» = «#parent».sub(«NumberToText[#subpos]»).ref();«{#E}SendMatchTerm[#sub, SOME[#parent], sub, #subpos, ok.#[ok]]»⟧;
+%n⟦Term «sub» = forceSub(sink.context(), «#parent», «NumberToText[#subpos]»).ref();«{#E}SendMatchTerm[#sub, SOME[#parent], sub, #subpos, ok.#[ok]]»⟧;
 
 SendMatchNextBinder[Crsx_nextBinder_sort, Option[Text], Text /* Current term */, $Numeric, $Numeric, ok::OK_SORT.Text] :: Text;
 

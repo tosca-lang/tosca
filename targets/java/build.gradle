@@ -87,7 +87,8 @@ project(':compiler')
 	}
 	
 	dependencies {
-		crsx4 'org.crsx:crsx:4.0.0-SNAPSHOT@jar'
+		crsx4 files('../../../src')   // the interpreter always uses the development rules
+		crsx4 'org.crsx:crsx:4.0.0-ALPHA@jar' // but currenly with the stable CRSX parser. This will have to change
 		crsx4 'org.crsx:crsx3@jar'
 		crsx4 'org.antlr:antlr4:4.5'
 	}
@@ -108,7 +109,7 @@ compileJava {
     targetCompatibility = 1.8
 	
 	dependsOn ':parsers:buildParsers'
-	dependsOn ':compiler:crsx4'
+	//dependsOn ':compiler:crsx4'
 }
 
 //clean.dependsOn cleanBuildCrsxParsers

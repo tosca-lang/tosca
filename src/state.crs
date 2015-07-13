@@ -189,7 +189,7 @@ AddDataSort[Crsx_sortDeclaration_sort, ok¹::OK_SORT.$sort[a]] :: a;
 {#E}AddDataSort[%sortDeclaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##forms_S1* ) ⟧, ok¹.#[ok¹]]
 →
 {#E}AddDataSort1[DataSortKey[#sortname], %sortDeclaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##forms_S1* ) ⟧, ok¹.
-    SeqMap[form cont.AddDataForm[form, #sortname, %sortDeclaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##forms_S1* ) ⟧, cont], #forms_S1*, ok¹.#[ok¹]]];
+    ThenSeqMap[ok¹, form cont.AddDataForm[form, #sortname, %sortDeclaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##forms_S1* ) ⟧, cont], #forms_S1*, ok¹.#[ok¹]]];
 
 ∀ a.AddDataSort1[$String, Crsx_sortDeclaration_sort, ok¹::OK_SORT.$sort[a]] :: a;
 
