@@ -57,4 +57,9 @@ UnwrapBoolean[FALSE] → $False;
 ∀ a . Trace[a] :: a;
 -[Data[#]]: Trace[#] → $[Trace, #];
 
+// -- Error
+∀ a . Error[$String] :: a;
+Error[#X] → $[Error, #X];
+
+
 )]

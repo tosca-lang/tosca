@@ -1,0 +1,75 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *
+ * @author : m schett
+ * @date   : 08/05/2015
+ */
+
+
+/* Unwraps a Crsx_Subterm_sort to a 
+   * Crsx_term_sort, or, $List[Crsx_term_sort],
+   * Crsx_variable_sort, or, $List[Crsx_variable_sort] 
+*/
+
+Unwrap[(
+
+$Use["std/string.crs"];
+
+/*  UnwrapArguments
+    @param `args` list of arguments
+    @return `ts`  list of terms 
+    transforms a list of arguments `args` to an equvivalent lsit of terms `t` 
+    @throws error if applied to something which is not of Crsx_arguments_sort
+*/
+UnwrapArguments[$List[Crsx_arguments_sort]] :: $List[Crsx_term_sort];
+UnwrapArguments[%arguments?⟦             ⟧] → ();
+UnwrapArguments[%arguments?⟦ [         ] ⟧] → ();
+UnwrapArguments[%arguments?⟦ [ ##terms ] ⟧] → Map[x.UnwrapArgumentsHelper[x], DesugarTerms[#terms]];
+-[Fallback] :
+UnwrapArguments[ # ] → Error[ConcatString["UnwrapArguments: The argument is not of sort Crsx_arguments_sort: ", Show[#]]];
+
+UnwrapArgumentsHelper[Crsx_terms_S1_sort] :: Crsx_term_sort;
+UnwrapArgumentsHelper[%terms_S1⟦ , ##term ⟧ ] → #term;
+
+
+/* UnwrapMetaVariableArguments
+   @param `args`  a list of freeArguments
+   @return `vars` a list of variables
+   transforms the arguments of a meta variable to a list of variables
+   @note TODO: should throw an error, when an argument is *not* a variable
+*/
+UnwrapMetaVariableArguments[$List[Crsx_freeArguments_sort]] :: $List[Crsx_variable_sort];
+UnwrapMetaVariableArguments[%freeArguments?⟦                 ⟧] → ();
+UnwrapMetaVariableArguments[%freeArguments?⟦ [             ] ⟧] → ();
+UnwrapMetaVariableArguments[%freeArguments?⟦ [ ##freeTerms ] ⟧] 
+→  
+Map[x.UnwrapMetaVariableArgumentsHelper[x], DesugarFreeTerms[#freeTerms]];
+
+UnwrapMetaVariableArgumentsHelper[%freeTerms_S1⟦ , ##annotations? ##variable ⟧] → #variable;
+//TODO: Somehow assert fails if this is present... 
+//-[Fallback] :
+//UnwrapMetaVariableArgumentsHelper[#] → 
+//Error[StringConcat["UnwrapMetaVariableArguments: The argument of a meta variable was not a variable: ",Show[#]]];
+
+
+/*  UnwrapNextBinder
+    @param `t`   :: Crsx_nextBinder_sort
+    @return `t'` :: Crsx_term_sort 
+    transforms `t` of sort Crsx_nextBinder_sort to an equvivalent `t'` of sort Crsx_term_sort
+    @throws error if applied to something which is not of Crsx_next_Binder_sort
+*/
+UnwrapNextBinder[Crsx_nextBinder_sort] :: Crsx_term_sort;
+UnwrapNextBinder[%nextBinder⟦ . ##freeTerm          ⟧] → %term ⟦ ##freeTerm ⟧;
+UnwrapNextBinder[%nextBinder⟦ ##binder ##nextBinder ⟧] → %term ⟦ ##binder ##nextBinder ⟧;
+-[Fallback] :
+UnwrapNextBinder[#] → Error[ConcatString["UnwrapNextBinder: The argument is not of Crsx_nextBinder_sort: ", Show[#]]];
+
+/*
+How to deal systematically with options, e.g., #args?
+
+UnWrap[$List[args_sort]] :: ____;
+UnWrap[ %args? ⟦ ⟧             ] → ____;
+UnWrap[ %args? ⟦ ##args ⟧] → #args (:: args_sort) ;
+*/
+
+)]

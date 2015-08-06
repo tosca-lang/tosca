@@ -1,0 +1,26 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 07/31/2015
+ */
+
+(
+
+Assert[ () ,
+          UnwrapMetaVariableArguments[ %freeArguments?⟦  ⟧] 
+      ];
+
+
+Assert[ () ,
+          UnwrapMetaVariableArguments[ %freeArguments?⟦ [] ⟧] 
+      ];
+
+Assert[ ( %variable ⟦ x ⟧ ; %variable ⟦ y ⟧ ;) ,
+          UnwrapMetaVariableArguments[ %freeArguments?⟦ [ x , y ] ⟧] 
+      ];
+
+
+
+)

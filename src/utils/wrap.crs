@@ -1,0 +1,135 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *
+ * @author : m schett
+ * @date   : 08/05/2015
+ */
+
+
+/* Wraps a 
+   * Crsx_term_sort, or, $List[Crsx_term_sort],
+   * Crsx_variable_sort, or, $List[Crsx_variable_sort] 
+   * or a combination of those
+   to an adequate Crsx_Subterm_sort 
+*/
+
+Wrap[(
+
+$Use["std/string.crs"];
+$Use["std/list.crs"];
+$Use["std/core.crs"];
+
+
+/* WrapArguments
+   @param `ts`    a list of terms
+   @return `args` a (singleton) list of arguments
+   transforms a list of terms `ts` into arguments `args` 
+*/
+WrapArguments[$List[Crsx_term_sort]] :: $List[Crsx_arguments_sort];
+WrapArguments[ () ]        → ();
+WrapArguments[ (#term;) ]  → (%arguments ⟦ [ ##term ] ⟧;); 
+WrapArguments[ (#term;#terms) ] → 
+( %arguments⟦ [ ⟨terms: %terms⟦ ##term ⟨terms_S1*: Map[x.WrapArgumentsHelper[x], #terms]⟩ ⟧ ⟩ ] ⟧ ; );
+
+WrapArgumentsHelper[ Crsx_term_sort] :: Crsx_terms_S1_sort;
+WrapArgumentsHelper[ #term ] → %terms_S1⟦ , ##term⟧ ;
+
+
+/* WrapFreeArguments
+   @param `ts`    a list of freeTerms
+   @return `args` a (singleton) list of arguments
+   transforms a list of freeTerms `ts` into Freearguments `args` 
+*/
+WrapFreeArguments[$List[Crsx_freeTerm_sort]] :: $List[Crsx_freeArguments_sort]; 
+WrapFreeArguments[()]            →  ();
+WrapFreeArguments[(#freeTerm ;)] → (%freeArguments⟦ [ ##freeTerm ] ⟧;); 
+WrapFreeArguments[(#freeTerm;#freeTerms)] 
+→ 
+(%freeArguments⟦ [ ⟨freeTerms: %freeTerms⟦ ##freeTerm  ⟨freeTerms_S1*: Map[ x.WrapFreeArgumentsHelper[x], #freeTerms]⟩ ⟧ ⟩ ] ⟧ ;);
+
+WrapFreeArgumentsHelper[ Crsx_freeTerm_sort] :: Crsx_freeTerms_S1_sort;
+WrapFreeArgumentsHelper[ #freeTerm ] → %freeTerms_S1 ⟦ , ##freeTerm⟧ ;
+
+
+/*  WrapBoundTerm
+    @param  `vs`     list of variables
+    @param  `t`      a term
+    @return `vs . t` term 
+    adds the variables `vs` = `v1 ... vn` to `t`, i.e., `v1 ... vn . t`
+    @throws error if applied to something which is not of Crsx_term_sort
+*/
+WrapBoundTerm[$List[Crsx_variable_sort], Crsx_term_sort] :: Crsx_term_sort; 
+WrapBoundTerm[ (),  #term] → #term;                 //required because of "."
+WrapBoundTerm[#vs, %term⟦ ##binder ##nextBinder ⟧]  //required because of "."
+→ 
+UnwrapNextBinder[Foldr[x y. WrapNextBinder[x,y], %nextBinder⟦ ##binder ##nextBinder ⟧ , #vs]];
+WrapBoundTerm[#vs, %term⟦ ##freeTerm ⟧] 
+→ 
+UnwrapNextBinder[Foldr[x y. WrapNextBinder[x,y], %nextBinder ⟦ . ##freeTerm ⟧ , #vs]];
+- [Fallback] :
+WrapBoundTerm[#vs, #t] → Error[Foldr[ x y. ConcatString[x,y], "", 
+                               ("WrapBoundTerm: The first argument is not a list of variables: "; 
+                               Show[#vs]; " or the second argument is not a term: "; Show[#t];)]];
+
+
+/*  WrapNextBinder
+    @param `v`     a variable
+    @param `nb`    a nextBinder
+    @return `v nb` a nextBinder
+    adds the variable `v` to the nextBinder `nb`
+*/
+WrapNextBinder[Crsx_variable_sort, Crsx_nextBinder_sort ] :: Crsx_nextBinder_sort;
+WrapNextBinder[#variable, #nextBinder] 
+→ 
+%nextBinder⟦ ⟨binder: WrapBinder[#variable]⟩ ##nextBinder ⟧ ;
+
+
+/*  WrapBinder
+    @param  `v`  a variable
+    @return `b`  a binder
+    transforms the variable `v` to the binder `b`
+*/
+WrapBinder[Crsx_variable_sort] :: Crsx_binder_sort;
+WrapBinder[#variable] → %binder ⟦ ##variable ⟧ ;
+
+
+/*  WrapNextBinder
+    @param `t`   :: Crsx_term_sort 
+    @return `t'` :: Crsx_nextBinder_sort
+    transforms `t` of sort Crsx_term_sort to an equvivalent `t'` of sort Crsx_binder_sort
+    @throws error if applied to something which is not of Crsx_term_sort
+*/
+WrapNextBinder[Crsx_term_sort] :: Crsx_nextBinder_sort;
+WrapNextBinder[%term⟦ ##freeTerm           ⟧] → %nextBinder⟦ . ##freeTerm ⟧;
+WrapNextBinder[%term⟦ ##binder ##nextBinder⟧] → %nextBinder⟦ ##binder ##nextBinder⟧;
+-[Fallback] :
+WrapNextBinder[ # ] → 
+Error[ConcatString["WrapNextBinder: The argument cannot be wrapped to a nextBinder: ", Show[#]]];
+
+
+/* WrapMetaVariableArguments
+*/
+WrapMetaVariableArguments[$List[Crsx_variable_sort]] :: $List[Crsx_freeArguments_sort];
+WrapMetaVariableArguments[#vars] →  WrapFreeArguments[Map[x.WrapMetaVariableArgumentsHelper[x], #vars]];
+
+WrapMetaVariableArgumentsHelper[Crsx_variable_sort] :: Crsx_freeTerm_sort;
+WrapMetaVariableArgumentsHelper[#variable] → %freeTerm⟦ ##variable ⟧;
+
+
+/* WrapSubstitute
+   @param  `xs` a list of variables
+   @param  `X`   a meta variable
+   @param  `ys` a list of variables
+   @return `xs.X [ys]` 
+   transforms the given variables `xs` = `x1 ... xn`, the meta variable `X` 
+   and the given variables `ys` = `y1 ... ym` to `x1 ... xn . X [y1 ... ym`] `
+ */
+WrapSubstitute[$List[Crsx_variable_sort], $String, $List[Crsx_variable_sort]] :: Crsx_term_sort;
+WrapSubstitute[#vars, #METAVAR,#freeArgs] 
+→ 
+WrapBoundTerm[#vars, %term⟦ ##METAVAR ⟨freeArguments?: WrapMetaVariableArguments[#freeArgs]⟩ ⟧];
+
+
+)]
+
+

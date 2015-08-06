@@ -1,0 +1,34 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 07/31/2015
+ */
+
+(
+Assert[  %term⟦ F[x] ⟧  ,
+          WrapBoundTerm[ () , %term⟦ F[x]⟧ ] 
+      ];
+
+
+Assert[  %term⟦ x.F[x] ⟧  ,
+          WrapBoundTerm[ (%variable⟦ x ⟧;) , %term⟦ F[x]⟧ ] 
+      ];
+
+Assert[  %term⟦ x y z.F[x] ⟧  ,
+          WrapBoundTerm[ (%variable⟦ x ⟧; %variable⟦ y ⟧;  %variable⟦ z ⟧;) , %term⟦ F[x]⟧ ] 
+      ];
+
+Assert[  %term⟦ x y z w.F[w] ⟧  ,
+          WrapBoundTerm[ (%variable⟦ x ⟧; %variable⟦ y ⟧;  %variable⟦ z ⟧;) , %term⟦ w.F[w]⟧ ] 
+      ];
+
+/* Expected Error
+Assert[  Error  ,
+          WrapBoundTerm[ (%variable⟦ x ⟧;) , %pattern⟦ F[x]⟧ ] 
+      ];
+*/
+)
+
+

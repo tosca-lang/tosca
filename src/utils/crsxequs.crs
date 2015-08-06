@@ -1,0 +1,54 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *
+ * Implements equality functions for some crsx constructs
+ *
+ * @author : m schett
+ * @date   : 08/02/2015
+ */
+
+CrsxEqus[( 
+
+$Use["std/string.crs"];
+$Use["crsxutils.crs"]; //has to be used for correct sorting...
+
+/* ConstructorEqual 
+  @param  constructor `c1` 
+  @param  constructor `c2`
+  @return TRUE, iff the constructor symbol `c1` is the same as the constructor symbol `c2`, 
+          FALSE otherwise   
+  @note   ignores qualifiers 
+*/
+ConstructorEqual[Crsx_constructor_sort, Crsx_constructor_sort] :: Boolean;
+-[Discard[#qualifier, #qualifier2]] :
+ConstructorEqual[%constructor ⟦ ##qualifier ##CONSTRUCTOR ⟧, %constructor ⟦ ##qualifier2 ##CONSTRUCTOR2 ⟧]
+→
+StringEqual[#CONSTRUCTOR, #CONSTRUCTOR2];
+
+/* BinderEqual 
+  @param  constructor `b1` 
+  @param  constructor `b2`
+  @return TRUE, iff the binder `b1` is the same as the binder `b2`, 
+          FALSE otherwise   
+  @note   ignores annotations
+*/
+BinderEqual[Crsx_binder_sort, Crsx_binder_sort] :: Boolean;
+-[Discard[#annotations?, #annotations?2]] :
+BinderEqual[%binder ⟦ ##annotations? ##variable ⟧, %binder ⟦ ##annotations?2 ##variable2 ⟧]
+→
+VariableEqual[#variable, #variable2];
+
+/* BinderEqual 
+  @param  constructor `v1` 
+  @param  constructor `v2`
+  @return TRUE, iff the variable `v1` is the same as the variable `v2`, 
+          FALSE otherwise   
+  @note   ignores linear, functional and varsort option
+*/
+VariableEqual[Crsx_variable_sort, Crsx_variable_sort] :: Boolean;
+VariableEqual[%variable ⟦ ##VARIABLE ##linear? ##functional? ##varsort?⟧, %variable ⟦ ##VARIABLE2 ##linear?2 ##functional?2 ##varsort?2⟧  ] 
+→ 
+StringEqual[#VARIABLE, #VARIABLE2];
+
+
+)]
