@@ -1,0 +1,50 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 08/02/2015
+ */
+
+
+(
+/*
+
+Assert[ Mgu[()],
+        Proj[(), Mgu[()], %term⟦ A ⟧]
+      ]; 
+
+
+Assert[ Mgu[()],
+        Proj[(),  Mgu[()], %term⟦ x.F[x] ⟧]
+      ]; 
+
+Assert[ FAIL,
+        Proj[(),  Mgu[()], %term⟦ x.F[y] ⟧]
+      ]; 
+
+
+// TODO: this test assumes the value of the fresh meta var!
+Assert[ Mgu[(PairCons["#F", %term⟦ #x ⟧];)] ,
+        Proj[(%variable ⟦ x ⟧ ;), Mgu[()], %term⟦ #F ⟧]
+      ];
+
+// TODO: this test assumes the value of the fresh meta var!
+Assert[ Mgu[(PairCons["#F", %term⟦ x.#x ⟧];)] ,
+        Proj[(), Mgu[()], %term⟦ #F[x] ⟧]
+      ];
+
+*/
+
+// TODO: this test assumes the value of the fresh meta var!
+Assert[ Mgu[(PairCons["#F", %term⟦ x.#x[x] ⟧];)] ,
+        Proj[(%variable ⟦ x ⟧ ; ), Mgu[()], %term⟦ #F[x] ⟧]
+      ]; 
+
+// TODO: this test assumes the value of the fresh meta var!
+Assert[ Mgu[(PairCons["#F", %term⟦ x.#x[x] ⟧];)] ,
+        Proj[(), Mgu[()], %term⟦ x.#F[x] ⟧]
+      ]; 
+
+
+)

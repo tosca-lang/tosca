@@ -1,0 +1,32 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 08/02/2015
+ */
+
+
+(
+
+Assert[ FAIL,
+        Circ[FAIL, %term ⟦ #X ⟧ , %term⟦ A ⟧]
+      ]; 
+
+Assert[ Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )],
+        Circ[(), "#X" , %term⟦ A ⟧]
+      ];
+
+Assert[ Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧];)],
+        Circ[(), "#X" , %term⟦ F[A,B] ⟧]
+      ];
+
+Assert[ Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧];  PairCons[ "#Y",  %term⟦ F[A] ⟧];)],
+        Circ[Circ[(), "#Y" , %term⟦ F[A] ⟧], "#X" , %term⟦ F[A,B] ⟧]
+      ];
+
+Assert[ FAIL,
+        Circ[Circ[FAIL, "#Y" , %term⟦ F[A] ⟧], "#X" , %term⟦ F[A,B] ⟧]
+      ];
+
+)

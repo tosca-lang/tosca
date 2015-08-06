@@ -1,0 +1,64 @@
+/*
+ * Copyright Mgu[(c)] 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 08/02/2015
+ */
+
+
+(
+
+Assert[ Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )],
+        Unify[Mgu[()], PairCons[ %term ⟦ #X ⟧ , %term⟦ A ⟧]]
+      ]; 
+
+Assert[ Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧]; )],
+        Unify[Mgu[()], PairCons[ %term ⟦ #X ⟧ , %term⟦ F[A,B] ⟧]]
+      ];
+
+Assert[ Mgu[( PairCons[ "#X",  %term⟦ x.F[x] ⟧]; )],
+        Unify[Mgu[()], PairCons[ %term ⟦ #X[x] ⟧ ,%term⟦ F[x] ⟧]]
+      ]; 
+
+Assert[ Mgu[( PairCons[ "#X",  %term⟦ x y.F[x] ⟧]; )],
+        Unify[Mgu[()], PairCons[ %term ⟦ #X[x,y] ⟧ ,%term⟦ F[x] ⟧]]
+      ]; 
+
+Assert[ Mgu[( PairCons[ "#X",  %term⟦ x y .F[y,x] ⟧]; )],
+        Unify[Mgu[()], PairCons[ %term ⟦ #X[x,y] ⟧ , %term⟦ F[y,x] ⟧]]
+      ]; 
+
+Assert[ FAIL,
+        Unify[Mgu[()], PairCons[ %term ⟦ x y.#X[x,y] ⟧ , %term⟦ Plus[0,0] ⟧]]
+      ]; 
+
+// bound terms
+
+Assert[ FAIL, //figure out solution
+        Unify[Mgu[()], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  x .#G[x]  ⟧]]
+      ]; 
+
+Assert[ FAIL, //figure out solution
+        Unify[Mgu[()], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  y .#G[y]  ⟧]]
+      ]; 
+
+Assert[ FAIL, //figure out solution
+        Unify[Mgu[()], PairCons[ %term ⟦ x y.#F[x,y] ⟧ , %term⟦  y x.#G[y,x]  ⟧]]
+      ]; 
+
+Assert[ Mgu[(PairCons["#F", %term ⟦ y.#G[x] ⟧ ];)] , //figure out solution
+        Unify[Mgu[()], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  x y.#G[x]  ⟧]]
+      ]; 
+
+// Nipkows Bsp
+Assert[ //TRUE,
+        Let[Unify[ %term⟦ x y .#F[x] ⟧, %term⟦ x y.C[#G[y,x]] ⟧],
+        mgu. Eq[ ApplySubst[mgu,%term ⟦ x y .#F[x] ⟧], ApplySubst[mgu, %term⟦ x y .C[#G[y,x]] ⟧ ]] ] 
+       ];
+
+// renaming
+Assert[ FAIL, // here we do not have distinct meta variables!
+       Unify[ Mgu[()], PairCons[%term⟦ F[#X,#Y] ⟧, %term⟦ F[#Y,#X] ⟧] ]
+      ]; 
+)

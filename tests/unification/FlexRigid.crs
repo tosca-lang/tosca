@@ -1,0 +1,32 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 07/31/2015
+ */
+
+
+(
+
+Assert[ Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )],
+        FlexRigid[Mgu[()], "#X" ,(), %term⟦ A ⟧]
+      ]; 
+
+Assert[ Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧]; )],
+        FlexRigid[Mgu[()], "#X" ,(), %term⟦ F[A,B] ⟧]
+      ]; 
+
+Assert[ Mgu[( PairCons[ "#X",  %term⟦ x.F[A] ⟧]; )],
+        FlexRigid[Mgu[()], "#X" ,(%variable⟦ x ⟧;), %term⟦ F[A] ⟧]
+      ]; 
+
+Assert[ Mgu[( PairCons[ "#X",  %term⟦ x.F[A,B] ⟧]; )],
+        FlexRigid[Mgu[()], "#X" ,(%variable⟦ x ⟧;), %term⟦ F[A,B] ⟧]
+      ]; 
+
+Assert[ Mgu[( PairCons[ "#X",  %term⟦ x y .F[y,x] ⟧]; )],
+        FlexRigid[Mgu[()], "#X" ,(%variable⟦ x ⟧; %variable⟦ y ⟧;), %term⟦ F[y,x] ⟧]
+      ]; 
+
+)

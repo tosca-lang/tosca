@@ -1,0 +1,39 @@
+/*
+ * Copyright Mgu[(c)] 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 08/05/2015
+ */
+(
+Assert[ %term⟦ A ⟧,
+        ApplyVarSubst[ PairCons[ %variable⟦ x ⟧,  %variable⟦ y ⟧] , %term⟦ A ⟧ ] 
+      ];
+
+Assert[ %term⟦ y ⟧,
+        ApplyVarSubst[ PairCons[ %variable⟦ x ⟧,  %variable⟦ y ⟧] , %term⟦ x ⟧ ] 
+      ];
+
+Assert[ %term⟦ F[y,y] ⟧,
+        ApplyVarSubst[ PairCons[ %variable⟦ x ⟧,  %variable⟦ y ⟧] , %term⟦ F[x,x] ⟧ ] 
+      ];
+
+Assert[ %term⟦ y.F[y] ⟧,
+        ApplyVarSubst[ PairCons[ %variable⟦ x ⟧,  %variable⟦ y ⟧] , %term⟦ x.F[x] ⟧ ] 
+      ];
+
+Assert[ %term⟦ z y.F[y,z] ⟧,
+        ApplyVarSubst[ PairCons[ %variable⟦ x ⟧,  %variable⟦ y ⟧] , %term⟦ z x.F[x,z] ⟧ ] 
+      ];
+
+Assert[ %term⟦ z y.#F[y,z] ⟧,
+        ApplyVarSubst[ PairCons[ %variable⟦ x ⟧,  %variable⟦ y ⟧] , %term⟦ z x.#F[x,z] ⟧ ] 
+      ];
+
+Assert[ %term⟦ y y.G[#F[y,y],y] ⟧,
+        ApplyVarSubst[ PairCons[ %variable⟦ x ⟧,  %variable⟦ y ⟧] , %term⟦  x y.G[#F[x,y],x] ⟧ ] 
+      ];
+
+
+
+)

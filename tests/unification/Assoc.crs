@@ -1,0 +1,24 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 08/02/2015
+ */
+
+
+(
+
+Assert[ SOME[%term⟦ A ⟧],
+        Assoc["#X" , Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )]]
+      ];
+
+Assert[ SOME[%term⟦ F[A] ⟧] ,
+        Assoc["#Y" , Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧];  PairCons[ "#Y",  %term⟦ F[A] ⟧];)]]
+      ];
+
+Assert[ SOME[%term⟦ F[A,B] ⟧],
+        Assoc["#X" , Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧];  PairCons[ "#Y",  %term⟦ F[A] ⟧];)]]
+      ];
+
+)

@@ -1,0 +1,52 @@
+/*
+ * Copyright 2015 IBM Corporation.
+ *  
+ * @author : m schett
+ * @date   : 08/04/2015
+ */
+
+
+(
+
+Assert[ %term⟦ A ⟧,
+        ApplySubst[ Mgu[()], %term⟦ A ⟧ ] 
+      ]; 
+
+Assert[ %term⟦ A ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )], %term⟦ #X ⟧ ] 
+      ]; 
+
+Assert[ %term⟦ #X ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#Y",  %term⟦ A ⟧]; )], %term⟦ #X ⟧ ] 
+      ]; 
+
+
+Assert[ %term⟦ x ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )], %term⟦ x ⟧ ] 
+      ]; 
+
+
+Assert[ %term⟦ F[A,B] ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; PairCons[ "#Y",  %term⟦ B ⟧]; )], %term⟦ F[#X,#Y] ⟧ ] 
+      ]; 
+
+
+Assert[ %term⟦ F[x.C[x]] ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ x.C[x] ⟧]; )], %term⟦ F[#X] ⟧ ] 
+      ]; 
+
+Assert[ %term⟦ x.F[G[x,#Y]] ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ #Y ⟧]; )], %term⟦ x.F[G[x,#Y]] ⟧ ] 
+      ]; 
+
+Assert[ %term⟦ F[#Y] ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ #Y ⟧]; )], %term⟦ F[#X] ⟧ ] 
+      ]; 
+
+Assert[ %term⟦ F[x.#Y[x]] ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ y.#Y[y] ⟧]; )], %term⟦ F[x.#X[x]] ⟧ ] 
+      ]; 
+
+
+
+)

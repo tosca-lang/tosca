@@ -1,0 +1,121 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ * @author : m schett
+ * @date   : 08/04/2015
+ */
+
+Mgu [(
+
+$Use["std/core.crs"];
+$Use["std/list.crs"];
+$Use["std/pair.crs"];
+$Use["unification/extension.crs"];
+
+
+/*  */
+Mgu ::=  ( Mgu[$List[Pair[$String,Crsx_term_sort]]]; FAIL; );
+
+/* Circ
+   @param  `θ` mgu 
+   @param  `t1`
+   @param  `t2`
+   @return `FAIL` iff `θ`= `FAIL`, insert `Pair[t1,t2]` in the mgu `θ` otherwise
+*/
+Circ[Mgu,$String /* Crsx_METAVAR_sort */,Crsx_term_sort] :: Mgu ;
+Circ[FAIL,   #s, #t ] → FAIL;
+-[Fallback] : 
+Circ[Mgu[#theta], #s, #t ] →  Mgu[Insert[PairCons[#s,#t], #theta]]; 
+
+
+/* Assoc
+   @param  `#X` a meta variable 
+   @param  `θ`  a mgu
+   @return SOME[`t`], i.e., the term `t` the meta variable `#X` has been mapped to, or 
+           NONE, if no value was found.
+   @throws error, if `#X` is mapped to two terms        
+*/
+Assoc[$String,Mgu] :: Option[Crsx_term_sort];
+Assoc[#METAVAR, Mgu[#MGU] ] → AssocHelper[LookUp[#METAVAR,#MGU]];
+
+AssocHelper[$List[Crsx_term_sort]] :: Option[Crsx_term_sort];
+AssocHelper[()]    → NONE;
+AssocHelper[(#t;)] → SOME[#t]; 
+-[Fallback] : // LookUp returned a list, thus there was more than one value for the meta variable
+AssocHelper[#XS] → $[Error,"Mgu.A meta variable has been mapped to two values!"];
+
+
+
+/* ApplySubst
+   @param  `θ` mgu 
+   @param  `t` 
+   @return if `θ` is `FAIL` or empty, i.e., `()` it returns `t` unchanged
+           otherwise it applies the substitution `θ` to `t`
+*/
+
+ApplySubst[Mgu,Crsx_term_sort] :: Crsx_term_sort;
+ApplySubst[FAIL,    #t] → #t; // no mgu which can be applied on #t
+ApplySubst[Mgu[()], #t] → #t; // the mgu is empty
+
+// case: constructor, apply recursively to arguments
+ApplySubst[#theta, %term⟦ ##annotations? ##properties? ##constructor ##arguments? ⟧ ] 
+→ 
+%term⟦ ##annotations? ##properties? ##constructor 
+       ⟨arguments?: WrapArguments[Map[x.ApplySubst[#theta,x], UnwrapArguments[#arguments?]]] ⟩ 
+     ⟧ ;
+
+//TODO CHECK THIS CASE!!!
+// case: bound term, 
+ApplySubst[#theta, %term⟦ ##binder ##nextBinder ⟧ ] 
+→ 
+%term⟦ ##binder ⟨nextBinder: WrapNextBinder[ApplySubst[#theta,UnwrapNextBinder[#nextBinder]]] ⟩ ⟧;
+
+// case: meta variable, look up 
+ApplySubst[#theta, %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧ ] 
+→ 
+MatchMetavar[Assoc[#METAVAR,#theta], %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧];
+
+MatchMetavar[Option[Crsx_term_sort], Crsx_term_sort ] :: Crsx_term_sort;
+MatchMetavar[NONE,          #t] → #t;
+MatchMetavar[SOME[#subst], %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧] 
+→ 
+//TODO define what should happen with annotations? properties?
+//ignored at the moment!
+Beta[#subst, UnwrapMetaVariableArguments[#freeArguments?]]; 
+
+// case: variable
+ApplySubst[ #theta, %term⟦ ##annotations? ##variable ⟧ ] → %term⟦ ##annotations? ##variable ⟧ ;
+
+
+Beta[Crsx_term_sort, $List[Crsx_variable_sort]] :: Crsx_term_sort;
+Beta[%term⟦ ##annotations? ##variable ##nextBinder ⟧, (#a;#args) ] → 
+Beta[ ApplyVarSubst[PairCons[#a,#variable], UnwrapNextBinder[#nextBinder]], #args ];
+
+Beta[ #t, () ] → #t;
+
+
+/*
+CAREFUL REPLACES ALL VARIABLES WITHOUT THINKING
+*/
+ApplyVarSubst[Pair[Crsx_variable_sort, Crsx_variable_sort], Crsx_term_sort] :: Crsx_term_sort;
+ApplyVarSubst[#varsubst, #t] → MapVar[ x . Replace[x,#varsubst],  #t];
+
+Replace[ Crsx_variable_sort, Pair[Crsx_variable_sort, Crsx_variable_sort]] ::Crsx_variable_sort;
+Replace[#x, PairCons[#v1,#v2]] → If[VariableEqual[#x,#v1], #v2, #x ];
+
+MapVar[ x :: Crsx_variable_sort . Crsx_variable_sort, Crsx_term_sort] :: Crsx_term_sort;
+MapVar[ x.#VarF[x], %term⟦ ##annotations? ##properties? ##constructor ##arguments? ⟧ ]  
+→ 
+%term⟦ ##annotations? ##properties? ##constructor ⟨arguments?: WrapArguments[Map[t.MapVar[ x.#VarF[x],t], UnwrapArguments[#arguments?]]] ⟩ ⟧ ;
+
+MapVar[ x.#VarF[x], %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧ ]
+→ 
+%term⟦ ##annotations? ##properties? ##METAVAR ⟨freeArguments?: WrapMetaVariableArguments[Map[v.#VarF[v], UnwrapMetaVariableArguments[#freeArguments?]]] ⟩⟧ ; 
+
+MapVar[  x.#VarF[x], %term⟦ ##annotations? ##variable ##nextBinder ⟧ ] → 
+%term⟦ ##annotations? ⟨variable: #VarF[#variable] ⟩ ⟨nextBinder: WrapNextBinder[MapVar[x.#VarF[x],UnwrapNextBinder[#nextBinder]]] ⟩ ⟧;
+
+MapVar[ x.#VarF[x], %term⟦ ##annotations? ##variable ⟧ ] → %term⟦ ##annotations? ⟨variable: #VarF[#variable] ⟩ ⟧ ;
+
+
+)]

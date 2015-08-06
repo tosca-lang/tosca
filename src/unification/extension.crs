@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *
+ * @author : m schett
+ * @date   : 07/06/2015
+ */
+
+Extension[(
+$Lax;
+
+$Use["std/list.crs"];
+$Use["crsxutils.crs"];
+$Use["utils/crsxequs.crs"];
+
+$Use["utils/wrap.crs"];
+$Use["utils/unwrap.crs"];
+
+
+∀ a b . Let[ a , x :: a . $sort[b]] :: b;
+-[Copy[#X]] :
+Let[#X,x.#F[x]] → #F[#X];
+
+FRESH_METAVAR :: $String;
+-[Fresh[x :: $String ]] : FRESH_METAVAR → $[:,"#",$[Show,x]];
+
+// renames #t1 wrt #t2 s.t. MetaVar(t1) disjoint MetaVar(t2)
+Rename [ Pair[Crsx_term_sort, Crsx_term_sort]] :: Crsx_term_sort;
+-[Discard[#t1]] :
+Rename [ PairCons[#t1, #t2] ] → #t2;
+
+)]
