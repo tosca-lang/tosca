@@ -182,6 +182,7 @@ Foldl [x y. #F[x,y], #Z, (#H; #T)] → Foldl[x y.#F[x,y], #F[#H,#Z], #T];
 /* 
   @note `InterpreterWrap` for `FoldP` enforcing computation of argument list `#XS` 
 */
+∀ a b . IWrapFoldlP[x :: a  y :: b . $sort[b], b, $List[a]] :: b;
 -[Data[#XS]] : IWrapFoldlP[x y.#F[x,y], #Z, #XS] → FoldlP[x y.#F[x,y], #Z, #XS];
 
 /* `FoldlP[x y.#F[x,y], #Z, #XS]`
@@ -221,7 +222,7 @@ Fold[x y.#[x, y], #x, (#1; #s)] → Fold[x y.#[x, y], #[#x, #1], #s];
 
 {#E}SeqMap[x c.#[x, c], #list, ok¹.#done[ok¹]] → {#E}SeqMap1[OK, x c.#[x, c], #list, ok¹.#done[ok¹]];
 
-∀ a b. SeqMap1[OK_SORT, x::a c::Continuation[b]. $sort[b], $List[a], ok¹::OK_SORT.$sort[b]] :: b ;
+∀ a b. {$String:$StringEntrySort} SeqMap1[OK_SORT, x::a c::Continuation[b]. $sort[b], $List[a], ok¹::OK_SORT.$sort[b]] :: b ;
 {#E}SeqMap1[OK, x c.#[x, c], ()     , ok¹.#done[ok¹]] → {#E}#done[OK];
 {#E}SeqMap1[OK, x c.#[x, c], (#1;#s), ok¹.#done[ok¹]] → {#E}#[#1, CONTINUATION[ok¹.SeqMap1[ok¹, x c.#[x, c], #s,  ok¹.#done[ok¹]]]];
 
