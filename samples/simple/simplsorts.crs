@@ -1,0 +1,38 @@
+/* Generated File. */
+Simpl[(
+$CheckGrammar["net.sf.crsx.text.Text"];
+$Use["std/text.crs"];
+$Use["std/core.crs"];
+$Use["std/list.crs"];
+
+
+
+Simpl_simpl_sort ::= (Simpl_simpl[Simpl_assign_sort, Simpl_exp_sort]; );
+
+Simpl_Print_simpl[Simpl_simpl_sort] :: Text;
+Simpl_Print_simpl[Simpl_simpl[#1, #2]] → %n⟦ «Simpl_Print_assign[#1]» «Simpl_Print_exp[#2]»⟧;
+
+Simpl_assign_sort ::= (Simpl_assign[$String, Simpl_assign_S1_sort]; );
+
+Simpl_Print_assign[Simpl_assign_sort] :: Text;
+Simpl_Print_assign[Simpl_assign[#1, #2]] → %n⟦ †«#1» «Simpl_Print_assign_S1[#2]»⟧;
+
+Simpl_assign_S1_sort ::= (Simpl_assign_S1[$String, Simpl_number_sort]; );
+
+Simpl_Print_assign_S1[Simpl_assign_S1_sort] :: Text;
+Simpl_Print_assign_S1[Simpl_assign_S1[#1, #2]] → %n⟦ †«#1» «Simpl_Print_number[#2]»⟧;
+
+Simpl_exp_sort ::= (Simpl_exp_A1[Simpl_number_sort, $String, Simpl_exp_sort]; Simpl_exp_A2[$String, $String, Simpl_exp_sort]; Simpl_exp_A3[$String]; Simpl_exp_A4[Simpl_number_sort]; );
+
+Simpl_Print_exp[Simpl_exp_sort] :: Text;
+Simpl_Print_exp[Simpl_exp_A1[#1, #2, #3]] → %n⟦ «Simpl_Print_number[#1]» †«#2» «Simpl_Print_exp[#3]»⟧;
+Simpl_Print_exp[Simpl_exp_A2[#1, #2, #3]] → %n⟦ †«#1» †«#2» «Simpl_Print_exp[#3]»⟧;
+Simpl_Print_exp[Simpl_exp_A3[#1]] → %n⟦ †«#1»⟧;
+Simpl_Print_exp[Simpl_exp_A4[#1]] → %n⟦ «Simpl_Print_number[#1]»⟧;
+
+Simpl_number_sort ::= (Simpl_number_A1[$String]; Simpl_number_A2[$String]; );
+
+Simpl_Print_number[Simpl_number_sort] :: Text;
+Simpl_Print_number[Simpl_number_A1[#1]] → %n⟦ †«#1»⟧;
+Simpl_Print_number[Simpl_number_A2[#1]] → %n⟦ †«#1»⟧;
+)]

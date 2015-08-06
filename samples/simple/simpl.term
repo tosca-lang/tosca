@@ -1,0 +1,196 @@
+ANTLR_grammarSpec[
+ (),
+ ANTLR_grammarType[ANTLR_grammarType_S1_A3["grammar"]],
+ ANTLR_id_A2["Simpl"],
+ ";",
+ (),
+ ANTLR_rules[(
+   ANTLR_ruleSpec_A1[
+     ANTLR_parserRuleSpec[
+      (),
+      (),
+      "simpl",
+      (),
+      (),
+      (),
+      (),
+      (),
+      ":",
+      ANTLR_ruleBlock[
+       ANTLR_ruleAltList[
+        ANTLR_labeledAlt[
+         ANTLR_alternative[
+          (),
+          (
+           ANTLR_element_A2[ANTLR_atom_A3[ANTLR_ruleref["assign", (), ()]], ANTLR_element_A2_S1_A2];
+           ANTLR_element_A2[ANTLR_atom_A3[ANTLR_ruleref["exp", (), ()]], ANTLR_element_A2_S1_A2];
+          )],
+         ()],
+        ()]],
+      ";",
+      ANTLR_exceptionGroup[(), ()]]];
+   ANTLR_ruleSpec_A1[
+     ANTLR_parserRuleSpec[
+      (),
+      (),
+      "assign",
+      (),
+      (),
+      (),
+      (),
+      (),
+      ":",
+      ANTLR_ruleBlock[
+       ANTLR_ruleAltList[
+        ANTLR_labeledAlt[
+         ANTLR_alternative[
+          (),
+          (
+           ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["VAR", ()]], ANTLR_element_A2_S1_A2];
+           ANTLR_element_A3[
+             ANTLR_ebnf[
+              ANTLR_block[
+               "(",
+               (),
+               ANTLR_altList[
+                ANTLR_alternative[
+                 (),
+                 (
+                  ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["ASS", ()]], ANTLR_element_A2_S1_A2];
+                  ANTLR_element_A2[ANTLR_atom_A3[ANTLR_ruleref["number", (), ()]], ANTLR_element_A2_S1_A2];
+                 )],
+                ()],
+               ")"],
+              ()]];
+           )],
+         ()],
+        ()]],
+      ";",
+      ANTLR_exceptionGroup[(), ()]]];
+   ANTLR_ruleSpec_A1[
+     ANTLR_parserRuleSpec[
+      (),
+      (),
+      "exp",
+      (),
+      (),
+      (),
+      (),
+      (),
+      ":",
+      ANTLR_ruleBlock[
+       ANTLR_ruleAltList[
+        ANTLR_labeledAlt[
+         ANTLR_alternative[
+          (),
+          (
+           ANTLR_element_A2[ANTLR_atom_A3[ANTLR_ruleref["number", (), ()]], ANTLR_element_A2_S1_A2];
+           ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["PLUS", ()]], ANTLR_element_A2_S1_A2];
+           ANTLR_element_A2[ANTLR_atom_A3[ANTLR_ruleref["exp", (), ()]], ANTLR_element_A2_S1_A2];
+          )],
+         ()],
+        (
+         ANTLR_ruleAltList_S1[
+           "|",
+           ANTLR_labeledAlt[
+            ANTLR_alternative[
+             (),
+             (
+              ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["VAR", ()]], ANTLR_element_A2_S1_A2];
+              ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["PLUS", ()]], ANTLR_element_A2_S1_A2];
+              ANTLR_element_A2[ANTLR_atom_A3[ANTLR_ruleref["exp", (), ()]], ANTLR_element_A2_S1_A2];
+             )],
+            ()]];
+         ANTLR_ruleAltList_S1[
+           "|",
+           ANTLR_labeledAlt[
+            ANTLR_alternative[(), (ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["VAR", ()]], ANTLR_element_A2_S1_A2]; )],
+            ()]];
+         ANTLR_ruleAltList_S1[
+           "|",
+           ANTLR_labeledAlt[
+            ANTLR_alternative[(), (ANTLR_element_A2[ANTLR_atom_A3[ANTLR_ruleref["number", (), ()]], ANTLR_element_A2_S1_A2]; )],
+            ()]];
+         )]],
+      ";",
+      ANTLR_exceptionGroup[(), ()]]];
+   ANTLR_ruleSpec_A1[
+     ANTLR_parserRuleSpec[
+      (),
+      (),
+      "number",
+      (),
+      (),
+      (),
+      (),
+      (),
+      ":",
+      ANTLR_ruleBlock[
+       ANTLR_ruleAltList[
+        ANTLR_labeledAlt[
+         ANTLR_alternative[(), (ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["ONE", ()]], ANTLR_element_A2_S1_A2]; )],
+         ()],
+        (
+         ANTLR_ruleAltList_S1[
+           "|",
+           ANTLR_labeledAlt[
+            ANTLR_alternative[(), (ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["ZERO", ()]], ANTLR_element_A2_S1_A2]; )],
+            ()]];
+         )]],
+      ";",
+      ANTLR_exceptionGroup[(), ()]]];
+   ANTLR_ruleSpec_A2[
+     ANTLR_lexerRule[
+      (),
+      (),
+      "ASS",
+      ":",
+      ANTLR_lexerRuleBlock[
+       ANTLR_lexerAltList[
+        ANTLR_lexerAlt_A1[ANTLR_lexerElements[(ANTLR_lexerElement_A2[ANTLR_lexerAtom_A2[ANTLR_terminal_A2["\':=\'", ()]], ()]; )], ()],
+        ()]],
+      ";"]];
+   ANTLR_ruleSpec_A2[
+     ANTLR_lexerRule[
+      (),
+      (),
+      "PLUS",
+      ":",
+      ANTLR_lexerRuleBlock[
+       ANTLR_lexerAltList[
+        ANTLR_lexerAlt_A1[ANTLR_lexerElements[(ANTLR_lexerElement_A2[ANTLR_lexerAtom_A2[ANTLR_terminal_A2["\'+\'", ()]], ()]; )], ()],
+        ()]],
+      ";"]];
+   ANTLR_ruleSpec_A2[
+     ANTLR_lexerRule[
+      (),
+      (),
+      "VAR",
+      ":",
+      ANTLR_lexerRuleBlock[
+       ANTLR_lexerAltList[ANTLR_lexerAlt_A1[ANTLR_lexerElements[(ANTLR_lexerElement_A2[ANTLR_lexerAtom_A5["[a-z]"], ()]; )], ()], ()]],
+      ";"]];
+   ANTLR_ruleSpec_A2[
+     ANTLR_lexerRule[
+      (),
+      (),
+      "ONE",
+      ":",
+      ANTLR_lexerRuleBlock[
+       ANTLR_lexerAltList[
+        ANTLR_lexerAlt_A1[ANTLR_lexerElements[(ANTLR_lexerElement_A2[ANTLR_lexerAtom_A2[ANTLR_terminal_A2["\'1\'", ()]], ()]; )], ()],
+        ()]],
+      ";"]];
+   ANTLR_ruleSpec_A2[
+     ANTLR_lexerRule[
+      (),
+      (),
+      "ZERO",
+      ":",
+      ANTLR_lexerRuleBlock[
+       ANTLR_lexerAltList[
+        ANTLR_lexerAlt_A1[ANTLR_lexerElements[(ANTLR_lexerElement_A2[ANTLR_lexerAtom_A2[ANTLR_terminal_A2["\'0\'", ()]], ()]; )], ()],
+        ()]],
+      ";"]];
+   )],
+ ()]

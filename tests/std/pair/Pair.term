@@ -1,0 +1,43 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ * 
+ * Tests for Pair
+ *
+ * @author : m schett
+ * @date   : 07/06/2015
+ */
+
+(
+
+Assert[ Pair[1,2], 
+        Pair[1,2]
+      ];
+
+//Boolean
+Assert[ TRUE,
+        Fst[PairCons[TRUE,FALSE]]
+      ];
+
+Assert[ FALSE,
+        Snd[PairCons[TRUE,FALSE]]
+      ];
+
+//Strings
+Assert[ a,
+        Fst[PairCons[a,b]]
+       ]; 
+
+Assert[ b,
+        Snd[PairCons[a,b]]
+      ]; 
+
+//Nested 
+Assert[ PairCons[a,b],
+        Fst[PairCons[PairCons[a,b],(1;2;)]]
+      ]; 
+
+Assert[ (1;2;),
+        Snd[PairCons[PairCons[a,b],(1;2;)]]
+      ]; 
+
+)

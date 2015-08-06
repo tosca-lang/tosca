@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ * 
+ * Tests for Unique Insert
+ *
+ * @author : m schett
+ * @date   : 07/06/2015
+ */
+
+(
+
+Assert[ (1;1;2;),
+        Insert[1,(1;2;)]
+      ];
+
+Assert[ (3;1;2;),
+        Insert[3,(1;2;)]
+      ];
+
+Assert[ (3;),
+        Insert[3,()]
+      ];
+
+Assert[ ((1;);(2;);),
+         Insert[(1;),((2;);)]
+       ];
+
+Assert[ (PairCons[1,a];),
+        Insert[PairCons[1,a],()]
+      ];
+)

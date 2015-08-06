@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ * 
+ * Tests for Map2
+ *
+ * @author : m schett
+ * @date   : 07/09/2015
+ */
+
+(
+
+//Map2 over empty list changes nothing;
+Assert[ (), 
+        Map2[x.Not[x],()]
+      ];
+
+// Map2 'Not' 
+Assert[ (Not[TRUE];Not[TRUE];Not[FALSE];), 
+         Map2[x.Not[x],(TRUE;TRUE;FALSE;)]
+      ];
+
+// Map2 'Not' twice to arrive at original list
+Assert[ (TRUE;FALSE;),
+        Map2[x.Not[x],Map2[x.Not[x],(TRUE;FALSE;)]]
+      ];
+
+// Map2 the First argument of a Zip on the same list, i.e., identity
+Assert[ (1;1;2;3;),
+         Map2[x.Fst[x],Zip[(1;1;2;3;),(1;1;2;3;)]]
+      ];
+
+// *** NOT WORKING
+// get the arguments equal to one
+Assert[ (TRUE;TRUE;FALSE;FALSE;),
+         Map2[x.Eq[x,1],(1;1;2;3;)]
+      ];
+
+// get the arguments equal to one
+Assert[ (2;2;3;4;),
+         Map2[x.NumberPlus[x,1],(1;1;2;3;)]
+      ];
+
+
+)

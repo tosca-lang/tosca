@@ -1,0 +1,37 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ * 
+ * Tests for Foldl*
+ *
+ * @author : m schett
+ * @date   : 07/06/2015
+ */
+
+(
+
+Assert[ TRUE,
+        FoldlP[x y.And[x,y],TRUE,(TRUE;TRUE;)] 
+	  ];
+
+Assert[ FALSE,
+        FoldlP[x y.And[x,y],FALSE,(TRUE;TRUE;)] 
+	  ];
+
+
+Assert[4,
+        FoldlP[x y.NumberPlus[x,y],0,(1;1;1;1;)] 
+	  ];
+
+Assert[0,
+       FoldlP[x y.NumberPlus[x,y],0,()] 
+	  ];
+
+Assert[(d;c;b;a;),
+       FoldlP[x y.Insert[x,y],(),(a;b;c;d;)] 
+	  ];
+
+Assert[(b;a;),
+       FoldlP[x y.Insert[Fst[x],y],(),Zip[(a;b;),(c;d;)]] 
+	  ];
+
+)

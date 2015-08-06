@@ -1,0 +1,51 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *
+ * Based on the grammar simpl.g4 and the automatically created sorts in Simp.crs
+ * a tiny compiler is created 
+ *
+ * @author : m schett
+ * @date   : 06/27/2015
+ * @see    : simpl.g4
+ */
+
+SimplC [(
+
+$Lax;
+
+// include the sorts, generated automatically based on simpl.g4 
+$Use["../samples/simple/simplsorts.crs"];
+
+// starting point
+Compile[Simpl_simpl_sort] :: $Numeric;
+Compile[%simpl⟦#VAR#ASS#number#exp⟧ ] → Eval[#VAR, #number, #exp];
+
+// Evaluate exp
+Eval[$String, $String, Simpl_exp_sort] :: $Numeric;
+
+//case exp is a number
+Eval[#VAR_NAME, #VAR_VALUE, %exp⟦#number⟧] → NumberToNumeric[#number];
+
+//case expr is a variable
+Eval[#VAR_NAME, #VAR_VALUE, %exp⟦#VAR⟧] → GetVarValue[#VAR_NAME, #VAR_VALUE, #VAR]; 
+
+//case exp is an addition of number to exp
+Eval[#VAR_NAME, #VAR_VALUE, %exp⟦#number#PLUS#exp⟧] → 
+  Plus[Eval[#VAR_NAME, #VAR_VALUE, #exp], NumberToNumeric[#number]];
+
+//case exp is an addition of variable to exp
+Eval[#VAR_NAME, #VAR_VALUE, %exp⟦#VAR#PLUS#exp⟧] → 
+  Plus[Eval[#VAR_NAME, #VAR_VALUE, #exp], GetVarValue[#VAR_NAME, #VAR_VALUE, #VAR]];
+
+// helper function to convert $String to $Numeric 1 or 0
+NumberToNumeric[$String] :: $Numeric;
+-[Data[#number]]: NumberToNumeric[#number] → $[If,$[Equal,#number, 1], 1, 0];
+
+// get variable value, returns -10 if variable is undefined
+GetVarValue[$String, $String, $String] :: $Numeric;
+-[Data[#VAR_VALUE]]: GetVarValue[#VAR_NAME, #VAR_VALUE, #VAR] → $[If, $[Equal, #VAR_NAME, #VAR], NumberToNumeric[#VAR_VALUE], 10];
+
+Plus[$Numeric, $Numeric] :: $Numeric;
+-[Data[#1, #2]]: Plus[#1, #2] → $[Plus, #1, #2];
+
+)]

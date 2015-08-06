@@ -1,0 +1,32 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ * 
+ * Tests for Null
+ *
+ * @author : m schett
+ * @date   : 07/07/2015
+ */
+
+(
+
+Assert[ TRUE,
+        Null[()]
+      ];
+
+Assert[ FALSE,
+        Null[(1;)]
+      ];
+
+Assert[ FALSE,
+        Null[Insert[1,()]]
+      ];
+
+Assert[ TRUE,
+        Null[LookUp[c,Zip[(a;b;),(1;2;)]]]
+      ];
+
+Assert[TRUE,
+       Null[Foldr[x y.ConditionalInsert[FALSE,x,y],(),(1;2;)]]
+       ];
+
+)

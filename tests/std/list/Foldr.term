@@ -1,0 +1,41 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ * 
+ * Tests for Foldr
+ *
+ * @author : m schett
+ * @date   : 07/06/2015
+ */
+
+(
+
+Assert[ TRUE,
+        Foldr[x y.And[x,y],TRUE,(TRUE;TRUE;)] 
+	  ];
+
+Assert[ FALSE,
+        Foldr[x y.And[x,y],FALSE,(TRUE;TRUE;)] 
+	  ];
+
+
+Assert[4,
+        Foldr[x y.NumberPlus[x,y],0,(1;1;1;1;)] 
+	  ];
+
+Assert[0,
+       Foldr[x y.NumberPlus[x,y],0,()] 
+	  ];
+
+Assert[(a;b;c;d;),
+       Foldr[x y.Insert[x,y],(),(a;b;c;d;)] 
+	  ];
+
+Assert[(a;b;c;d;),
+       Foldr[x y.Insert[Fst[x],y],(),Zip[(a;b;c;d;),(1;2;3;4;)]] 
+	  ];
+
+Assert[(),
+       Foldr[x y.ConditionalInsert[FALSE,x,y],(),(1;2;)] 
+	  ];
+
+)
