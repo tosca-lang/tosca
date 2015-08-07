@@ -51,18 +51,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDeclarations_S1(CrsxTermParser.Declarations_S1Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDeclarations_S1(CrsxTermParser.Declarations_S1Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterDeclaration(CrsxTermParser.DeclarationContext ctx) { }
 	/**
 	 * {@inheritDoc}

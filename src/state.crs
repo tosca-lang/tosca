@@ -283,17 +283,17 @@ AddFuncSort2[NOCONTENTENTRY, #key, #sortDeclaration, ok¹.#[ok¹]]
 // TODO: copy from normalizer.
 
 
-// --- Convert state to CRSX (debugging only)
-
+/* Convert state back to CRSX syntax (debugging only) */
 {$String:ContentEntry}
 OutputCrsx[OK_SORT] :: Crsx_crsx_sort;
 
 {#E; "$imported": IMPORTS[#imported]}OutputCrsx[OK] 
 →
-%crsx⟦ $Lax ⟨declarations_S1*: {#E}OutputImportDeclarations[#imported]⟩ ⟧;
+%crsx⟦ $Lax ⟨declaration*: {#E}OutputImportDeclarations[#imported]⟩ ⟧;
 
+/* Convert import declarations */
 {$String:ContentEntry}
-OutputImportDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_sort];
+OutputImportDeclarations[$List[$String]] :: $List[Crsx_declaration_sort];
 
 {#E; "$grammars": IMPORTS[#imported]}OutputImportDeclarations[()]
 →
@@ -301,10 +301,11 @@ OutputImportDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_sort];
 
 {#E}OutputImportDeclarations[(#import; #imports)]
 →
-%declarations_S1*⟦ ; import module ⟨CONSTRUCTOR: #import⟩ ⟨declarations_S1*: {#E}OutputImportDeclarations[#imports]⟩ ⟧;
+%declaration*⟦ import module ⟨CONSTRUCTOR: #import⟩ ; ⟨declarations*: {#E}OutputImportDeclarations[#imports]⟩ ⟧;
 
+/* Convert import grammar declarations */
 {$String:ContentEntry}
-OutputImportGrammarDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_sort];
+OutputImportGrammarDeclarations[$List[$String]] :: $List[Crsx_declaration_sort];
 
 {#E; "$datakeys": KEYS[#keys]}OutputImportGrammarDeclarations[()]
 →
@@ -312,31 +313,31 @@ OutputImportGrammarDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_so
 
 {#E}OutputImportGrammarDeclarations[(#import; #imports)]
 →
-%declarations_S1*⟦ ; import grammar ⟨CONSTRUCTOR: #import⟩ ⟨declarations_S1*: {#E}OutputImportGrammarDeclarations[#imports]⟩ ⟧;
+%declaration*⟦ import grammar ⟨CONSTRUCTOR: #import⟩ ; ⟨declarations*: {#E}OutputImportGrammarDeclarations[#imports]⟩ ⟧;
 
 {$String:ContentEntry}
-OutputDataDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_sort];
+OutputDataDeclarations[$List[$String]] :: $List[Crsx_declarations_sort];
 
 {#E; "$funckeys": KEYS[#keys]}
-OutputDataDeclarations[(           )] →  {#E}OutputFuncDeclarations[#keys];
+OutputDataDeclarations[()] →  {#E}OutputFuncDeclarations[#keys];
 
 {#E}OutputDataDeclarations[(#key; #keys)] 
 → 
 {#E}OutputDataDeclarationsForKey[UnDATASORT[$[{#E}Get, #key]], #keys];
 
 {$String:ContentEntry}
-OutputDataDeclarationsForKey[$List[QualifiedSort], $List[$String]] :: $List[Crsx_declarations_S1_sort];
+OutputDataDeclarationsForKey[$List[QualifiedSort], $List[$String]] :: $List[Crsx_declaration_sort];
 
-{#E}OutputDataDeclarationsForKey[(             ), #keys] 
+{#E}OutputDataDeclarationsForKey[(), #keys] 
 → 
 {#E}OutputDataDeclarations[#keys];
 
 {#E}OutputDataDeclarationsForKey[(QSORT[#qualifier, #sort]; #qsorts), #keys]
 → 
-%declarations_S1*⟦ ; ⟨sortDeclaration: #sort⟩ ⟨declarations_S1*: {#E}OutputDataDeclarationsForKey[#qsorts, #keys]⟩ ⟧;
+%declaration*⟦ ⟨sortDeclaration: #sort⟩ ⟨declaration*: {#E}OutputDataDeclarationsForKey[#qsorts, #keys]⟩ ⟧;
 
 {$String:ContentEntry}
-OutputFuncDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_sort];
+OutputFuncDeclarations[$List[$String]] :: $List[Crsx_declaration_sort];
 
 {#E; "$rulekeys": KEYS[#keys]}
 OutputFuncDeclarations[()] →  {#E}OutputRuleDeclarations[#keys];
@@ -350,12 +351,12 @@ OutputFuncDeclaration[Crsx_sortDeclaration_sort, $List[$String]] :: $List[Crsx_d
 
 {#E}OutputFuncDeclaration[#sort, #keys]
 → 
-%declarations_S1*⟦ ; ⟨sortDeclaration: #sort⟩ ⟨declarations_S1*: {#E}OutputFuncDeclarations[#keys]⟩ ⟧;
+%declaration*⟦ ⟨sortDeclaration: #sort⟩ ⟨declaration*: {#E}OutputFuncDeclarations[#keys]⟩ ⟧;
 
 {$String:ContentEntry}
 OutputRuleDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_sort];
 
-{#E}OutputRuleDeclarations[(           )] → %declarations_S1*⟦ ⟧;
+{#E}OutputRuleDeclarations[(           )] → %declaration*⟦ ⟧;
 
 {#E}OutputRuleDeclarations[(#key; #keys)] 
 → 
@@ -370,6 +371,6 @@ OutputRuleDeclarationsForKey[$List[Crsx_ruleDeclaration_sort], $List[$String]] :
 
 {#E}OutputRuleDeclarationsForKey[(#rule; #rules), #keys]
 → 
-%declarations_S1*⟦ ; ⟨ruleDeclaration: #rule⟩ ⟨declarations_S1*: {#E}OutputRuleDeclarationsForKey[#rules, #keys]⟩ ⟧;
+%declaration*⟦ ⟨ruleDeclaration: #rule⟩ ⟨declaration*: {#E}OutputRuleDeclarationsForKey[#rules, #keys]⟩ ⟧;
 
 )]

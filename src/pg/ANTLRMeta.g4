@@ -321,7 +321,7 @@ ruleSpec_ZOM_EOF
     ;
 	
 ruleSpec_ZOM
-    : {enterZOM();} ruleSpec* {exitZOM();} 
+    : {enterZOM();} ruleSpec* ({tail();} ({term();} MT_RULESPEC_ZOM | {embed();} ET_RULESPEC_ZOM EMBED_END))? {exitZOM();} 
     | {term();} MT_RULESPEC_ZOM 
     | {embed();} ET_RULESPEC_ZOM EMBED_END
     ; 
@@ -509,9 +509,7 @@ lexerAltList_EOF
     ; 
 
 lexerAltList
-	:  {enterAlt();} lexerAlt 
-	       ({enterZOM();} lexerAltList_S1* {exitZOM();} | {term();} MT_LEXERALTLIST_S1_ZOM | {embed();} ET_LEXERALTLIST_S1_ZOM EMBED_END)
-	   {exitAlt();} 
+	:  {enterAlt();} lexerAlt lexerAltList_S1_ZOM {exitAlt();} 
 	|  {term();} MT_LEXERALTLIST
     |  {embed();} MT_LEXERALTLIST EMBED_END  
 	;
@@ -519,6 +517,16 @@ lexerAltList
 lexerAltList_S1_EOF
     : lexerAltList_S1 EOF
     ;
+
+
+lexerAltList_S1_ZOM_EOF
+    :   lexerAltList_S1_ZOM EOF
+    ;
+        
+lexerAltList_S1_ZOM
+    : {enterZOM();} lexerAltList_S1* ({tail();} ({term();} MT_LEXERALTLIST_S1_ZOM | {embed();} ET_LEXERALTLIST_S1_ZOM EMBED_END))? {exitZOM();}
+    ;
+
 
 lexerAltList_S1
     :  {enterAlt();} OR lexerAlt {exitAlt();}
@@ -544,50 +552,62 @@ lexerElements_EOF
     ;
 
 lexerElements
-	:	{enterAlt();} 
-	           ({enterOOM();} lexerElement+ {exitOOM();} | {term();} MT_LEXERELEMENT_OOM | {embed();} ET_LEXERELEMENT_OOM EMBED_END)
-	    {exitAlt();}
+	:	{enterAlt();} lexerElement_OOM {exitAlt();}
 	|  {term();} MT_LEXERELEMENTS
     |  {embed();} MT_LEXERELEMENTS EMBED_END 
 	;
+	
+lexerElement_OOM_EOF
+    : lexerElement_OOM EOF
+    ;
+
+lexerElement_OOM
+    : {enterOOM();} lexerElement+ ({tail();} ({term();} MT_LEXERELEMENT_OOM | {embed();} ET_LEXERELEMENT_OOM EMBED_END))? {exitOOM();} 
+    | {term();} MT_LEXERELEMENT_OOM
+    | {embed();} ET_LEXERELEMENT_OOM EMBED_END
+    ;
 
 lexerElement_EOF
     : lexerElement EOF
     ;
     
 lexerElement
-	:	{enterAlt("1");} labeledLexerElement
-	        ({enterOPT();} ebnfSuffix? {exitOPT();}  | {term();} MT_EBNFSUFFIX_OPT | {embed();} ET_EBNFSUFFIX_OPT EMBED_END)
-	    {exitAlt();}
-	|	{enterAlt("2");} lexerAtom 
-	      ({enterOPT();} ebnfSuffix? {exitOPT();}  | {term();} MT_EBNFSUFFIX_OPT | {embed();} ET_EBNFSUFFIX_OPT EMBED_END)
-	    {exitAlt();}
-	|	{enterAlt("3");} lexerBlock 
-	       ({enterOPT();} ebnfSuffix? {exitOPT();}  | {term();} MT_EBNFSUFFIX_OPT | {embed();} ET_EBNFSUFFIX_OPT EMBED_END)
-	    {exitAlt();}
-	|	{enterAlt("4");} ACTION 
-	       ({enterOPT();} QUESTION? {exitOPT();}  | {term();} MT_QUESTION_OPT | {embed();} ET_QUESTION_OPT EMBED_END) 
-	    {exitAlt();} // actions only allowed at end of outer alt actually but preds can be anywhere
-	|  {term();} MT_LEXERELEMENT
+	:	{enterAlt("1");} labeledLexerElement ebnfSuffix_OPT {exitAlt();}
+	|	{enterAlt("2");} lexerAtom ebnfSuffix_OPT  {exitAlt();}
+	|	{enterAlt("3");} lexerBlock ebnfSuffix_OPT {exitAlt();}
+	|   {enterAlt("4");} action_TOKEN ({enterOPT();} QUESTION? {exitOPT();} | {term();} MT_QUESTION_OPT | {embed();} ET_QUESTION_OPT EMBED_END){exitAlt();} // actions only allowed at end of outer alt actually but preds can be anywhere
+    |  {term();} MT_LEXERELEMENT
     |  {embed();} MT_LEXERELEMENT EMBED_END 
 	;
+	
+	
+labeledLexerElement_EOF
+    : labeledLexerElement EOF
+    ;
 
 labeledLexerElement
-	:	{enterAlt();} id labeledLexerElement_S1 labeledLexerElement_S2 {exitAlt();}
+	: {enterAlt();} id labeledLexerElement_S1 labeledLexerElement_S2 {exitAlt();}
+	| {term();} MT_LABELEDLEXERELEMENT
+    | {embed();} ET_LABELEDLEXERELEMENT EMBED_END
 	;
 
 labeledLexerElement_S1
-    :   {enterAlt("1");} ASSIGN  {exitAlt();}
-    |   {enterAlt("2");} PLUS_ASSIGN {exitAlt();}
+    : {enterAlt("1");} ASSIGN  {exitAlt();}
+    | {enterAlt("2");} PLUS_ASSIGN {exitAlt();}
+    | {term();} MT_LABELEDLEXERELEMENT_S1
+    | {embed();} ET_LABELEDLEXERELEMENT_S1 EMBED_END
     ;
     
 labeledLexerElement_S2
     :   {enterAlt("1");} lexerAtom  {exitAlt();}
-    |   {enterAlt("2");} block      {exitAlt();} 
+    |   {enterAlt("2");} lexerBlock      {exitAlt();} 
     ; 
     
 lexerBlock
-	:	{enterAlt();} LPAREN lexerAltList RPAREN {exitAlt();}
+	: {enterAlt();} LPAREN lexerAltList RPAREN {exitAlt();}
+	| {term();} MT_LEXERBLOCK
+    | {embed();} ET_LEXERBLOCK EMBED_END
+    
 	;
 
 // E.g., channel(HIDDEN), skip, more, mode(INSIDE), push(INSIDE), pop
@@ -641,11 +661,22 @@ altList_EOF
 altList
 	:  {enterAlt();} 
 	       alternative 
-	       ({enterZOM();} altList_S1* {exitZOM();} | {term();} MT_ALTLIST_S1_ZOM | {embed();} ET_ALTLIST_S1_ZOM EMBED_END)
+	       altList_S1_ZOM
 	   {exitAlt();}
-    |   {term();} MT_ALTLIST
-    |   {embed();} ET_ALTLIST EMBED_END  
+    |  {term();} MT_ALTLIST
+    |  {embed();} ET_ALTLIST EMBED_END  
 	;
+
+altList_S1_ZOM_EOF
+    : altList_S1_ZOM EOF
+    ;
+
+altList_S1_ZOM
+    : {enterZOM();} altList_S1* ({tail();} ({term();} MT_ALTLIST_S1_ZOM | {embed();} ET_ALTLIST_S1_ZOM EMBED_END))? {exitZOM();} 
+    | {term();} MT_ALTLIST_S1_ZOM
+    | {embed();} ET_ALTLIST_S1_ZOM EMBED_END  
+    ;
+
 
 altList_S1_EOF
     :   altList_S1 EOF
@@ -656,6 +687,7 @@ altList_S1
     |  {term();} MT_ALTLIST_S1
     |  {embed();} ET_ALTLIST_S1 EMBED_END
     ;
+
 alternative_EOF
     :   alternative EOF
     ;
@@ -675,6 +707,8 @@ element_ZOM_EOF
 
 element_ZOM
     : {enterZOM();} element* ({tail();} ({term();} MT_ELEMENT_ZOM | {embed();} ET_ELEMENT_ZOM EMBED_END))? {exitZOM();} 
+    | {term();} MT_ELEMENT_ZOM
+    | {embed();} ET_ELEMENT_ZOM EMBED_END
 	;
 
 element_EOF
@@ -763,10 +797,21 @@ blockSuffix
     |   {embed();} ET_BLOCKSUFFIX EMBED_END
 	;
 
+
+ebnfSuffix_OPT_EOF
+    : ebnfSuffix_OPT EOF
+    ;
+
+ebnfSuffix_OPT
+    : {enterOPT();} ebnfSuffix? ({tail();} ({term();} MT_EBNFSUFFIX_OPT | {embed();} ET_EBNFSUFFIX_OPT EMBED_END))? {exitZOM();} 
+    | {term();} MT_EBNFSUFFIX_OPT
+    | {embed();} ET_EBNFSUFFIX_OPT EMBED_END  
+    ;
+
 ebnfSuffix_EOF
     : ebnfSuffix EOF
     ;
-
+    
 ebnfSuffix
 	:	{ enterAlt("1"); } QUESTION ({enterOPT();} QUESTION? { exitOPT(); }| {term();} MT_QUESTION_OPT | {embed();} ET_QUESTION_OPT EMBED_END){exitAlt();}
   	|	{ enterAlt("2"); } STAR ({ enterOPT(); } QUESTION? { exitOPT(); }| {term();} MT_QUESTION_OPT | {embed();} ET_QUESTION_OPT EMBED_END){exitAlt();}
@@ -775,14 +820,49 @@ ebnfSuffix
     |   {embed();} ET_EBNFSUFFIX EMBED_END
 	;
 
+lexerAtom_EOF
+    : lexerAtom EOF
+    ;
+    
 lexerAtom
 	:	{ enterAlt("1"); } range {exitAlt();}
 	|	{ enterAlt("2"); } terminal {exitAlt();}
-	|	{ enterAlt("3"); } RULE_REF {exitAlt();}
+	|	{ enterAlt("3"); } ruleref {exitAlt();}
 	|	{ enterAlt("4"); } notSet {exitAlt();}
-	|	{ enterAlt("5"); } LEXER_CHAR_SET {exitAlt();}
-	|	{ enterAlt("6"); } DOT {enterOPT();} elementOptions? { exitOPT(); }{exitAlt();}
-	;
+	|	{ enterAlt("5"); } lexer_char_set_TOKEN {exitAlt();}
+	|	{ enterAlt("6"); } DOT elementOptions_OPT {exitAlt();}
+	|   {term();} MT_LEXERATOM
+    |   {embed();} ET_LEXERATOM EMBED_END
+    ;
+
+elementOptions_OPT
+    : {enterOPT();} elementOptions? 
+    (
+        {tail();}
+
+        (
+            {term();}
+
+            MT_ELEMENTOPTIONS_OPT
+            |
+            {embed();}
+
+            ET_ELEMENTOPTIONS_OPT EMBED_END
+        )
+    )?
+    {exitOPT();}
+
+    {}
+
+    |
+    {term();}
+
+    MT_ELEMENTOPTIONS_OPT
+    |
+    {embed();}
+
+    ET_ELEMENTOPTIONS_OPT EMBED_END
+    ;
 
 atom_EOF 
     :   atom EOF
@@ -793,7 +873,7 @@ atom
 	|	{enterAlt("2");} terminal {exitAlt();}
 	|	{enterAlt("3");} ruleref {exitAlt();}
 	|   {enterAlt("4");} notSet {exitAlt();}
-	|	{enterAlt("5");} DOT {enterOPT();} elementOptions? {exitOPT();}{exitAlt();}
+	|	{enterAlt("5");} DOT elementOptions_OPT {exitAlt();}
 	|   {term();} MT_ATOM
     |   {embed();} ET_ATOM EMBED_END
 	;
@@ -801,6 +881,8 @@ atom
 notSet
 	:	{enterAlt("1");} NOT setElement {exitAlt();}
 	|	{enterAlt("2");} NOT blockSet {exitAlt();}
+	|   {term();} MT_NOTSET
+    |   {embed();} ET_NOTSET EMBED_END
 	;
 
 blockSet
@@ -812,20 +894,52 @@ blockSet_S1
     ;
 
 setElement
-	:	{enterAlt("1");} TOKEN_REF {enterOPT();} elementOptions? {exitOPT();} {exitAlt();}
-	|	{enterAlt("2");} STRING_LITERAL {enterOPT();}  elementOptions? {exitOPT();} {exitAlt();}
+	:	{enterAlt("1");} TOKEN_REF elementOptions_OPT {exitAlt();}
+	|	{enterAlt("2");} STRING_LITERAL elementOptions_OPT {exitAlt();}
 	|	{enterAlt("3");} range {exitAlt();}
 	|	{enterAlt("4");} LEXER_CHAR_SET {exitAlt();}
 	;
 
+block_EOF
+    : block EOF
+    ;
+
+
 block
 	:	{enterAlt();} LPAREN
-		{enterOPT();} block_S1? {exitOPT();}
+		block_S1_OPT
 		altList
 		RPAREN {exitAlt();} 
 	|   {term();} MT_BLOCK
     |   {embed();} ET_BLOCK EMBED_END
 	;
+	
+block_S1_OPT
+    : {enterOPT();} block_S1? 
+    (
+        {tail();}
+
+        (
+            {term();}
+
+            MT_BLOCK_S1_OPT
+            |
+            {embed();}
+
+            ET_BLOCK_S1_OPT EMBED_END
+        )
+    )?
+    {exitOPT();}
+
+    {}
+
+    |
+    {term();}
+
+    MT_BLOCK_S1_OPT
+    |
+    {embed();}    ET_BLOCK_S1_OPT EMBED_END
+    ;
 	
 block_S1
     :   {enterAlt();}{enterOPT();} optionsSpec? {exitOPT();}{enterZOM();} ruleAction* {exitZOM();} COLON {exitAlt();}
@@ -837,18 +951,56 @@ ruleref_EOF
     
 ruleref
 	:  {enterAlt();} rule_ref_TOKEN 
-	       {enterOPT();} ARG_ACTION? {exitOPT();}{enterOPT();} elementOptions? {exitOPT();}{exitAlt();}
+	       arg_action_OPT elementOptions_OPT {exitAlt();}
 	|   {term();} MT_RULEREF
     |   {embed();} ET_RULEREF EMBED_END
 	;
+	
+	
+lexer_char_set_TOKEN
+    : LEXER_CHAR_SET 
+    | {term();} MT_LEXER_CHAR_SET
+    | {embed();} ET_LEXER_CHAR_SET EMBED_END
+    ;
+	
+arg_action_OPT
+    : {enterOPT();} ARG_ACTION? 
+    (
+        {tail();}
+
+        (
+            {term();}
+
+            MT_ARG_ACTION_OPT
+            |
+            {embed();}
+
+            ET_ARG_ACTION_OPT EMBED_END
+        )
+    )?
+    {exitOPT();}
+
+    {}
+
+    |
+    {term();}
+
+    MT_ARG_ACTION_OPT
+    |
+    {embed();}
+
+    ET_ARG_ACTION_OPT EMBED_END
+    ;
 
 range
 	:  {enterAlt();} STRING_LITERAL RANGE STRING_LITERAL {exitAlt();}
-	;
+	|  {term();} MT_RANGE
+    |  {embed();} ET_RANGE EMBED_END
+    ;
 
 terminal
-	:  {enterAlt("1");} token_ref_TOKEN {enterOPT();} elementOptions? {exitOPT();}{exitAlt();}
-	|  {enterAlt("2");} string_literal_TOKEN {enterOPT();} elementOptions? {exitOPT();}{exitAlt();}
+	:  {enterAlt("1");} token_ref_TOKEN elementOptions_OPT {exitAlt();}
+	|  {enterAlt("2");} string_literal_TOKEN elementOptions_OPT {exitAlt();}
 	;
 
 // Terminals may be adorned with certain options when

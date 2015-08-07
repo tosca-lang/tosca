@@ -64,7 +64,6 @@ project(':parsers')
 		superClass = 'org.crsx.pg.Crsx3Parser'
 	}
 	
-	
 	task antlrTermAntlr4(type: Antlr4Task) {
 		lexer = file('../../../src/pg/ANTLRTermLexer.g4')
 		grammar = file('../../../src/pg/ANTLRTerm.g4')
@@ -88,7 +87,8 @@ project(':compiler')
 	
 	dependencies {
 		crsx4 files('../../../src')   // the interpreter always uses the development rules
-		crsx4 'org.crsx:crsx:4.0.0-ALPHA@jar' // but currenly with the stable CRSX parser. This will have to change
+		crsx4 files('../build')   // with the current parser. 
+	//	crsx4 'org.crsx:crsx:4.0.0-ALPHA@jar' 
 		crsx4 'org.crsx:crsx3@jar'
 		crsx4 'org.antlr:antlr4:4.5'
 	}

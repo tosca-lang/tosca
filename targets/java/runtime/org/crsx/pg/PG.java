@@ -2,6 +2,7 @@
 
 package org.crsx.pg;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -63,6 +64,9 @@ public class PG
 
 			GenericTerm term = (GenericTerm) buffer.term(true);
 
+			File outfile = new File(outputname);
+			outfile.getParentFile().mkdirs();
+			
 			FileWriter w = new FileWriter(outputname);
 			FormattingAppendable f = FormattingAppendable.format(w, 120, 0, Integer.MAX_VALUE);
 			Map<Variable, String> variableNames = new HashMap<Variable, String>();

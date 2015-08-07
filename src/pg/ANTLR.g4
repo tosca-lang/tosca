@@ -225,7 +225,7 @@ lexerElement
 labeledLexerElement
     :   id (ASSIGN|PLUS_ASSIGN)
         (   lexerAtom
-        |   block
+        |   lexerBlock
         )
     ;
 

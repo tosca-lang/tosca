@@ -19,16 +19,16 @@ crsx
     ;   
     
 declarations
-    : declaration (SEMI declaration?)* 
+    : declaration* 
     ;
-    
         
 declaration 
-    : moduleDeclaration                                     /* [SUGAR]  nested modules */
-    | importDeclaration                                     /* [CORE]   module import */
-    | ruleDeclaration                                       /* [CORE]   rewrite rule */
-    | sortDeclaration                                       /* [CORE]   type definitions */
-    | directive                                             /* [BC3]    directive : meta, data term, anonymous nested modules (could be the cause of slow parsing) */
+    : moduleDeclaration SEMI                                /* [SUGAR]  nested modules */
+    | importDeclaration SEMI                                /* [CORE]   module import */
+    | ruleDeclaration SEMI                                  /* [CORE]   rewrite rule */
+    | sortDeclaration SEMI                                  /* [CORE]   type definitions */
+    | directive SEMI                                        /* [BC3]    directive : meta, data term, anonymous nested modules (could be the cause of slow parsing) */
+    | SEMI                                                  /* [SUGAR]  empty declarations */
     ;
 
 /*  Module declaration */    
@@ -41,9 +41,9 @@ moduleDeclaration
 /*  Import declaration */    
 
 importDeclaration    
-    : IMPORT constructor                                   /* [SUGAR: same as IMPORT MODULE] */
-    | IMPORT MODULE constructor                            /* [CORE] */    
-    | IMPORT GRAMMAR constructor                           /* [CORE] */    
+    : IMPORT constructor                                    /* [SUGAR: same as IMPORT MODULE] */
+    | IMPORT MODULE constructor                             /* [CORE] */    
+    | IMPORT GRAMMAR constructor                            /* [CORE] */    
     ;    
  
 /*  Rule declaration */    
@@ -93,7 +93,7 @@ freeTerm
 boundTerm
     : binder nextBinder                                     /* [CORE]  Binder */       /* TODO: binder should really be a CRSX binder when PG4 supports it. */
     ;
-    
+
 nextBinder
     : binder nextBinder                                     /* [CORE] */
     | DOT freeTerm
@@ -104,9 +104,9 @@ arguments
     ;
     
 terms
-    : term (COMMA term)*                                    /* [CORE] */
+    : term (COMMA term)*                                   /* [CORE] */
     ;
-
+    
 freeArguments 
     : LSQUARE freeTerms? RSQUARE                            /* [CORE] */  
     ;
@@ -120,7 +120,11 @@ list
     ; 
     
 termList                                                    
-    : term (SEMI term?)*                                    /* [CORE] */
+    : listItem (SEMI listItem)* SEMI?                       /* [CORE] */
+    ;
+    
+listItem
+    : term    
     ;
     
 variable                                                    /* [CORE] */
@@ -271,7 +275,7 @@ directives
     ;
     
 directiveList 
-    : LPAR declarations? RPAR
+    : LPAR declarations RPAR
     ; 
     
     

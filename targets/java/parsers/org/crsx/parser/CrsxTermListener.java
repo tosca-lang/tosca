@@ -39,16 +39,6 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 */
 	void exitDeclarations(CrsxTermParser.DeclarationsContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#declarations_S1}.
-	 * @param ctx the parse tree
-	 */
-	void enterDeclarations_S1(CrsxTermParser.Declarations_S1Context ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#declarations_S1}.
-	 * @param ctx the parse tree
-	 */
-	void exitDeclarations_S1(CrsxTermParser.Declarations_S1Context ctx);
-	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#declaration}.
 	 * @param ctx the parse tree
 	 */

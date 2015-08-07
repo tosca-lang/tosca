@@ -197,13 +197,13 @@ ET_LABELEDALT           : START_EMBED_CHAR 'labeledAlt:'            -> pushMode(
 MT_LABELEDALT_S1        : META_CHAR 'labeledAlt_S1' [0-9]*;
 ET_LABELEDALT_S1        : START_EMBED_CHAR 'labeledAlt_S1:'         -> pushMode(Embed);
 
-MT_ALTLIST_S1_ZOM       : META_CHAR 'altlist_S1*' [0-9]*;
+MT_ALTLIST_S1_ZOM       : META_CHAR 'altList_S1*' [0-9]*;
 ET_ALTLIST_S1_ZOM       : START_EMBED_CHAR 'altList_S1*:'           -> pushMode(Embed);
 
-MT_ALTLIST              : META_CHAR 'altlist' [0-9]*;
+MT_ALTLIST              : META_CHAR 'altList' [0-9]*;
 ET_ALTLIST              : START_EMBED_CHAR 'altList:'               -> pushMode(Embed);
 
-MT_ALTLIST_S1           : META_CHAR 'altlist_S1' [0-9]*;
+MT_ALTLIST_S1           : META_CHAR 'altList_S1' [0-9]*;
 ET_ALTLIST_S1           : START_EMBED_CHAR 'altList_S1:'            -> pushMode(Embed);
 
 MT_ELEMENTOPTIONS_OPT   : META_CHAR 'elementOptions?' [0-9]*;
@@ -230,6 +230,13 @@ ET_ELEMENT_A2_S1         : START_EMBED_CHAR 'element_A2_S1:'       -> pushMode(E
 MT_LABELEDELEMENT       : META_CHAR 'labeledElement' [0-9]*;
 ET_LABELEDELEMENT       : START_EMBED_CHAR 'labeledElement:'       -> pushMode(Embed);
 
+MT_LABELEDLEXERELEMENT       : META_CHAR 'labeledLexerElement' [0-9]*;
+ET_LABELEDLEXERELEMENT       : START_EMBED_CHAR 'labeledLexerElement:'       -> pushMode(Embed);
+
+MT_LABELEDLEXERELEMENT_S1       : META_CHAR 'labeledLexerElement_S1' [0-9]*;
+ET_LABELEDLEXERELEMENT_S1       : START_EMBED_CHAR 'labeledLexerElement_S1:'       -> pushMode(Embed);
+
+
 MT_LABELEDELEMENT_S1      : META_CHAR 'labeledElement_S1' [0-9]*;
 ET_LABELEDELEMENT_S1       : START_EMBED_CHAR 'labeledElement_S1:'       -> pushMode(Embed);
 
@@ -248,9 +255,15 @@ ET_EBNFSUFFIX     : START_EMBED_CHAR 'ebnfSuffix:'       -> pushMode(Embed);
 MT_EBNFSUFFIX_OPT       : META_CHAR 'ebnfSuffix?' [0-9]*;
 ET_EBNFSUFFIX_OPT     : START_EMBED_CHAR 'ebnfSuffix?:'       -> pushMode(Embed);
 
-
 MT_ATOM       : META_CHAR 'atom' [0-9]*;
 ET_ATOM     : START_EMBED_CHAR 'atom:'       -> pushMode(Embed);
+
+MT_LEXERATOM       : META_CHAR 'lexerAtom' [0-9]*;
+ET_LEXERATOM     : START_EMBED_CHAR 'lexerAtom:'       -> pushMode(Embed);
+
+MT_LEXERBLOCK       : META_CHAR 'lexerBlock' [0-9]*;
+ET_LEXERBLOCK    : START_EMBED_CHAR 'lexerBlock:'       -> pushMode(Embed);
+
 
 MT_FRAGMENT_OPT       : META_CHAR 'FRAGMENT?' [0-9]*;
 ET_FRAGMENT_OPT     : START_EMBED_CHAR 'FRAGMENT:'       -> pushMode(Embed);
@@ -300,6 +313,16 @@ ET_LEXERCOMMANDS_S1     : START_EMBED_CHAR 'lexerCommands_S1:'       -> pushMode
 MT_RULEREF       : META_CHAR 'ruleref' [0-9]*;
 ET_RULEREF      : START_EMBED_CHAR 'ruleref:'       -> pushMode(Embed);
 
+MT_RANGE       : META_CHAR 'range' [0-9]*;
+ET_RANGE       : START_EMBED_CHAR 'range:'       -> pushMode(Embed);
+
+MT_NOTSET       : META_CHAR 'notSet' [0-9]*;
+ET_NOTSET       : START_EMBED_CHAR 'notSet:'       -> pushMode(Embed);
+
+
+MT_BLOCK_S1_OPT       : META_CHAR 'block_S1?' [0-9]*;
+ET_BLOCK_S1_OPT       : START_EMBED_CHAR 'block_S1?:'       -> pushMode(Embed);
+
 MT_BLOCK       : META_CHAR 'block' [0-9]*;
 ET_BLOCK      : START_EMBED_CHAR 'block:'       -> pushMode(Embed);
 
@@ -308,6 +331,10 @@ ET_ACTION     : START_EMBED_CHAR 'ACTION:'       -> pushMode(Embed);
 
 MT_STRING_LITERAL : META_CHAR 'STRING_LITERAL' [0-9]*;
 ET_STRING_LITERAL : START_EMBED_CHAR 'STRING_LITERAL:'  -> pushMode(Embed);
+
+MT_LEXER_CHAR_SET : META_CHAR 'LEXER_CHAR_SET' [0-9]*;
+ET_LEXER_CHAR_SET : START_EMBED_CHAR 'LEXER_CHAR_SET:'  -> pushMode(Embed);
+
 
 DOC_COMMENT
 	:	'/**' .*? ('*/' | EOF)

@@ -106,9 +106,6 @@ SugarPropertyList[%propertyList_S1*⟦ ; ##property ##propertyList_S1* ⟧] → 
 
 // Syntactic desugar helpers (temporary to alleviate pg4 limitations)
 
-DesugarDeclarations[Crsx_declarations_sort] :: $List[Crsx_declarations_S1_sort];
-DesugarDeclarations[%declarations⟦ ##declaration ##declarations_S1* ⟧] → %declarations_S1*⟦ ; ##declaration ##declarations_S1* ⟧; 
-
 DesugarTerms[Crsx_terms_sort] :: $List[Crsx_terms_S1_sort];
 DesugarTerms[%terms⟦ ##term ##terms_S1* ⟧] → %terms_S1*⟦ ,  ##term ##terms_S1* ⟧; 
 

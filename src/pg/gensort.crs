@@ -1,5 +1,7 @@
 /*
- * Generates sorts and printer from normalized ANTLR grammar.
+ * Copyright (c) 2015 IBM Corporation.
+ *
+ * Generates sorts and basic printer from normalized ANTLR grammar.
  * 
  * Bootstrapping version: since we don't have a antlr v4 meta parser, use term syntax.
  */
@@ -14,48 +16,44 @@ $Use["std/text.crs"];
 $Use["std/list.crs"];
 $Use["pg/util.crs"];
 
-MakePrinter[#] → 
-    {}MakeGrammarSpec[#]
-;
+MakePrinter[#] 
+→ 
+{}MakeGrammarSpec[#];
 
-{#E}
-MakeGrammarSpec[{#L}ANTLR_grammarSpec[#DocComment?, #GrammarType, #Id, #Semi, #PrequelConstructs, {#L2}ANTLR_rules[#ruleSpec*], #ModeSpec*]] → 
-    MakeGrammarId[UnwrapId[#Id], ok¹.MakeRuleSpecs[ok¹, #ruleSpec*, o2¹.%n⟨⟩]]
-;
+{#E}MakeGrammarSpec[{#L}ANTLR_grammarSpec[#DocComment?, #GrammarType, #Id, #Semi, #PrequelConstructs, {#L2}ANTLR_rules[#ruleSpec*], #ModeSpec*]] 
+→ 
+MakeGrammarId[UnwrapId[#Id], ok¹.MakeRuleSpecs[ok¹, #ruleSpec*, o2¹.%n⟨⟩]];
 
 // 
-{#E}
-MakeGrammarId[#Id, ok¹.#[ok¹]] →
-    %n⟨/* Generated File. */
+{#E}MakeGrammarId[#Id, ok¹.#[ok¹]] 
+→
+%n⟨/* Generated File. */
 †«#Id»[(
 $CheckGrammar["net.sf.crsx.text.Text"];
 $Use["std/text.crs"];
 $Use["std/core.crs"];
 $Use["std/list.crs"];
 
-«{#E; "@id": STRING[#Id]}#[OK]»↲)]⟩ // TODO: must match CRSX syntax
-;
+«{#E; "@id": STRING[#Id]}#[OK]»↲)]⟩; // TODO: must match CRSX syntax
 
 //
-{#E} 
-MakeRuleSpecs[OK, (), ok¹.#[ok¹]] →
-    {#E}#[OK];
+{#E}MakeRuleSpecs[OK, (), ok¹.#[ok¹]] 
+→
+{#E}#[OK];
 
-{#E}
-MakeRuleSpecs[OK, (#ruleSpec; #ruleSpec*), ok¹.#[ok¹]] →
-    {#E}MakeRuleSpec[#ruleSpec, ok¹.MakeRuleSpecs[ok¹, #ruleSpec*, ok¹.#[ok¹]]];
+{#E}MakeRuleSpecs[OK, (#ruleSpec; #ruleSpec*), ok¹.#[ok¹]] 
+→
+{#E}MakeRuleSpec[#ruleSpec, ok¹.MakeRuleSpecs[ok¹, #ruleSpec*, ok¹.#[ok¹]]];
 
 //
-{#E} 
-MakeRuleSpec[{#L}ANTLR_ruleSpec_A1[{#L2}ANTLR_parserRuleSpec[#DocComment?, #RuleModifiers?, #RuleRef, #ArgAction?, #RuleReturns?, #ThrowsSpec?, #LocalsSpec?,
-                                  #RulePrequel*, #Colon, #RuleBlock, #Semi, #exceptionGroup]], ok¹.#[ok¹]] →
-    {#E; "@ruleRef": STRING[#RuleRef]}MakeSort[#RuleBlock, ok¹.#[ok¹]]
-;
+{#E}MakeRuleSpec[{#L}ANTLR_ruleSpec_A1[{#L2}ANTLR_parserRuleSpec[#DocComment?, #RuleModifiers?, #RuleRef, #ArgAction?, #RuleReturns?, #ThrowsSpec?, #LocalsSpec?,
+                                  #RulePrequel*, #Colon, #RuleBlock, #Semi, #exceptionGroup]], ok¹.#[ok¹]] 
+→
+{#E; "@ruleRef": STRING[#RuleRef]}MakeSort[#RuleBlock, ok¹.#[ok¹]];
 
-{#E} 
-MakeRuleSpec[{#L}ANTLR_ruleSpec_A2[{#L2}ANTLR_lexerRule[#DocComment?, #Fragment?, #TokenRef, #Colon, #lexerRuleBlock, #SEMI]], ok¹.#[ok¹]] →
-     {#E}#[OK]
-;
+{#E}MakeRuleSpec[{#L}ANTLR_ruleSpec_A2[{#L2}ANTLR_lexerRule[#DocComment?, #Fragment?, #TokenRef, #Colon, #lexerRuleBlock, #SEMI]], ok¹.#[ok¹]] 
+→
+{#E}#[OK];
 
 <!--―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――
 
@@ -64,56 +62,50 @@ MakeRuleSpec[{#L}ANTLR_ruleSpec_A2[{#L2}ANTLR_lexerRule[#DocComment?, #Fragment?
 ――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――-->
 
 // 
-{#E}
-MakeSort[#RuleBlock, ok¹.#[ok¹]] →
-    %n⟨↲↲«{#E}MakeSortName» ::= («{#E; 
-                                        "@sort": TEXT[{#E}MakeSortName]; 
-                                        "@pt-name": TEXT[{#E}MakePrinterName]; 
-                                        "@pt-rules": TEXT[%n⟪⟫];
-                                }MakeForms[#RuleBlock, ok¹.MakeCloseSort[ok¹, o2¹.#[o2¹]]]»⟩
-
-;
+{#E}MakeSort[#RuleBlock, ok¹.#[ok¹]] 
+→
+%n⟨¶¶«{#E}MakeSortName» ::= («
+   {#E; "@sort"     : TEXT[{#E}MakeSortName]; 
+        "@pt-name"  : TEXT[{#E}MakePrinterName]; 
+        "@pt-rules" : TEXT[%n⟪⟫];
+   }MakeForms[#RuleBlock, ok¹.MakeCloseSort[ok¹, o2¹.#[o2¹]]]»⟩;
 
 {#E;
-    "@sort": TEXT[#SortName]; 
+    "@sort"    : TEXT[#SortName]; 
     "@pt-name" : TEXT[#PrinterName];    
     "@pt-rules": TEXT[#PrinterRules]
 }
-MakeCloseSort[OK, ok¹.#[ok¹]] →
-    %n⟨);↲↲«#PrinterName»[«#SortName»] :: Text;«#PrinterRules»«{#E}#[OK]»⟩
-;
+MakeCloseSort[OK, ok¹.#[ok¹]] 
+→
+%n⟨);¶¶«#PrinterName»[«#SortName»] :: Text;«#PrinterRules»«{#E}#[OK]»⟩;
 
 //
-{#E}
-MakeForms[{#L}ANTLR_ruleBlock[{#L2}ANTLR_ruleAltList[#labeledAlt, #ruleAltList_S1*]], ok¹.#[ok¹]] →
-    {#E}MakeForm[#labeledAlt, 1, IsEmpty[#ruleAltList_S1*], ok¹ count¹.MakeRuleAltList_S1s[ok¹, count¹, #ruleAltList_S1*, o2¹.#[o2¹]]]
-;
+{#E}MakeForms[{#L}ANTLR_ruleBlock[{#L2}ANTLR_ruleAltList[#labeledAlt, #ruleAltList_S1*]], ok¹.#[ok¹]] 
+→
+{#E}MakeForm[#labeledAlt, 1, IsEmpty[#ruleAltList_S1*], ok¹ count¹.MakeRuleAltList_S1s[ok¹, count¹, #ruleAltList_S1*, o2¹.#[o2¹]]];
 
 //
-{#E}
-MakeRuleAltList_S1s[OK, #count, (), ok¹.#[ok¹]] →
-    {#E}#[OK]
-;
+{#E}MakeRuleAltList_S1s[OK, #count, (), ok¹.#[ok¹]] 
+→
+{#E}#[OK];
 
-{#E}
-MakeRuleAltList_S1s[OK, #count, (ANTLR_ruleAltList_S1[#OR, #labeledAlt]; #ruleAltList_S1*), ok¹.#[ok¹]] →
-    {#E}MakeForm[#labeledAlt, #count, FALSE, ok¹ count¹.MakeRuleAltList_S1s[ok¹, count¹, #ruleAltList_S1*, o2¹.#[o2¹]]]
-;
+{#E}MakeRuleAltList_S1s[OK, #count, (ANTLR_ruleAltList_S1[#OR, #labeledAlt]; #ruleAltList_S1*), ok¹.#[ok¹]] 
+→
+{#E}MakeForm[#labeledAlt, #count, FALSE, ok¹ count¹.MakeRuleAltList_S1s[ok¹, count¹, #ruleAltList_S1*, o2¹.#[o2¹]]];
 
 //
-{#E}
-MakeForm[{#L}ANTLR_labeledAlt[#alternative, #labeledAlt_S1?], #Count, #Unique, ok¹ count¹.#[ok¹, count¹]] →
-    {#E}MakeForm2[#alternative, #Count, #Unique, ok¹ count¹.#[ok¹, count¹]]
-;
+{#E}MakeForm[{#L}ANTLR_labeledAlt[#alternative, #labeledAlt_S1?], #Count, #Unique, ok¹ count¹.#[ok¹, count¹]] 
+→
+{#E}MakeForm2[#alternative, #Count, #Unique, ok¹ count¹.#[ok¹, count¹]];
 
 //
-{#E}
-MakeForm2[{#L}ANTLR_alternative[#elementOptions?, #element*], #Count, #Unique, ok¹ count¹.#[ok¹, count¹]] →
-    %n⟨«{#E}MakeAlternativeName[#Count, #Unique]»«{#E;
-                "@plhs": TEXTS[()];   // Printer rule lhs arguments
-                "@prhs": TEXTS[()];   // Printer rule rhs  
-            }MakeArguments[#element*, ok¹.MakePrinter[ok¹, {#E}MakeAlternativeName[#Count, #Unique], o2¹.#[o2¹, $[Plus, #Count, 1]]]]»⟩
-;
+{#E}MakeForm2[{#L}ANTLR_alternative[#elementOptions?, #element*], #Count, #Unique, ok¹ count¹.#[ok¹, count¹]] 
+→
+%n⟨«{#E}MakeAlternativeName[#Count, #Unique]»«
+    {#E;
+        "@plhs": TEXTS[()];   // Printer rule lhs arguments
+        "@prhs": TEXTS[()];   // Printer rule rhs  
+    }MakeArguments[#element*, ok¹.MakePrinter[ok¹, {#E}MakeAlternativeName[#Count, #Unique], o2¹.#[o2¹, $[Plus, #Count, 1]]]]»⟩;
 
 //
 {#E;
@@ -121,92 +113,85 @@ MakeForm2[{#L}ANTLR_alternative[#elementOptions?, #element*], #Count, #Unique, o
     "@pt-name"  : TEXT[#PrinterName];
     "@plhs"     : TEXTS[#PrinterRuleLHS];    
     "@prhs"     : TEXTS[#PrinterRuleRHS];       
-       
 }
-MakePrinter[OK, #AltName, ok¹.#[ok¹]] →
-    {#E; 
-        "@pt-rules" : TEXT[%n⟨«#PrinterRules»↲«#PrinterName»[«#AltName»[«ReverseTextFold[#PrinterRuleLHS, %n⟪, ⟫]»]] → «Text-Text[Text-ReverseConcat[#PrinterRuleRHS]]»;⟩]; 
-    }
-    #[OK]
-;
+MakePrinter[OK, #AltName, ok¹.#[ok¹]] 
+→
+{#E; 
+    "@pt-rules" : TEXT[%n⟨«#PrinterRules»¶«#PrinterName»[«#AltName»[«ReverseTextFold[#PrinterRuleLHS, %n⟪, ⟫]»]] → «Text-Text[Text-ReverseConcat[#PrinterRuleRHS]]»;⟩]; 
+}
+#[OK];
 
 //
-{#E}
-MakeArguments[(), ok¹.#[ok¹]] →
-    %n⟨; «{#E}#[OK]»⟩
-;
+{#E}MakeArguments[(), ok¹.#[ok¹]] 
+→
+%n⟨; «{#E}#[OK]»⟩;
 
-{#E}
-MakeArguments[(#element; #elements), ok¹.#[ok¹]] →
-    %n⟨[«{#E}MakeFirstArgument[#element, #elements, ok¹.MakeCloseArguments[ok¹, o2¹.#[o2¹]]]»⟩
-;
+{#E}MakeArguments[(#element; #elements), ok¹.#[ok¹]] 
+→
+%n⟨[«{#E}MakeFirstArgument[#element, #elements, ok¹.MakeCloseArguments[ok¹, o2¹.#[o2¹]]]»⟩;
 
 //
-{#E}
-MakeCloseArguments[OK, o2¹.#[o2¹]] →
-    %n⟨]; «{#E}#[OK]»⟩
-;
+{#E}MakeCloseArguments[OK, o2¹.#[o2¹]] 
+→
+%n⟨]; «{#E}#[OK]»⟩;
 
 //
-{#E}
-MakeFirstArgument[#element, #elements, ok¹.#[ok¹]] →
-    {#E}MakeArgument[#element, 1, ok¹.MakeNextArguments[ok¹, 1, #elements, o2¹.#[o2¹]]] 
-;
+{#E}MakeFirstArgument[#element, #elements, ok¹.#[ok¹]] 
+→
+{#E}MakeArgument[#element, 1, ok¹.MakeNextArguments[ok¹, 1, #elements, o2¹.#[o2¹]]];
 
 // 
-{#E}
-MakeNextArguments[OK, #Count, (), ok¹.#[ok¹]] →
-     {#E}#[OK]
-;
+{#E}MakeNextArguments[OK, #Count, (), ok¹.#[ok¹]] 
+→
+{#E}#[OK];
 
-{#E;}
-MakeNextArguments[OK, #Count, (#element; #elements), ok¹.#[ok¹]] →
-     %n⟨, «{#E}MakeArgument[#element, $[Plus, #Count, 1], ok¹.MakeNextArguments[ok¹, $[Plus, #Count, 1], #elements, o2¹.#[o2¹]]]»⟩
-;
+{#E}MakeNextArguments[OK, #Count, (#element; #elements), ok¹.#[ok¹]] 
+→
+%n⟨, «{#E}MakeArgument[#element, $[Plus, #Count, 1], ok¹.MakeNextArguments[ok¹, $[Plus, #Count, 1], #elements, o2¹.#[o2¹]]]»⟩;
 
 // labeled element with optional ebnf suffix
 {#E; "@plhs": TEXTS[#PrinterLHS]}
-MakeArgument[{#L}ANTLR_element_A1[#labeledElement, #element_A1_S1], #Count, ok¹.#[ok¹]] →
-    {#E;"@plhs": TEXTS[(MakeMetaVar[#Count]; #PrinterLHS)]}MakeArgFromAtom[UnwrapAtom[#labeledElement], MapToList1[#element_A1_S1], #Count, ok¹.#[ok¹]]
-;
+MakeArgument[{#L}ANTLR_element_A1[#labeledElement, #element_A1_S1], #Count, ok¹.#[ok¹]] 
+→
+{#E;"@plhs": TEXTS[(MakeMetaVar[#Count]; #PrinterLHS)]}MakeArgFromAtom[UnwrapAtom[#labeledElement], MapToList1[#element_A1_S1], #Count, ok¹.#[ok¹]];
 
 // atom with optional ebnf
 {#E; "@plhs": TEXTS[#PrinterLHS]}
-MakeArgument[{#L}ANTLR_element_A2[#atom, #element_A2_S1_A1], #Count, ok¹.#[ok¹]] →
-    {#E;"@plhs": TEXTS[(MakeMetaVar[#Count]; #PrinterLHS)]}MakeArgFromAtom[#atom, MapToList2[#element_A2_S1_A1], #Count, ok¹.#[ok¹]]
-;
+MakeArgument[{#L}ANTLR_element_A2[#atom, #element_A2_S1_A1], #Count, ok¹.#[ok¹]] 
+→
+{#E;"@plhs": TEXTS[(MakeMetaVar[#Count]; #PrinterLHS)]}
+MakeArgFromAtom[#atom, MapToList2[#element_A2_S1_A1], #Count, ok¹.#[ok¹]];
 
 // Just ebnf: this is a subrule that shouldn't be there.
-{#E}
-MakeArgument[{#L}ANTLR_element_A3[#ebnf], #Count, ok¹.#[ok¹]] →
-    {#L}Special_error[%n⟨The normalized ANTLR grammar can not contains subrules.⟩]
-;
+{#E}MakeArgument[{#L}ANTLR_element_A3[#ebnf], #Count, ok¹.#[ok¹]] 
+→
+{#L}Special_error[%n⟨The normalized ANTLR grammar can not contains subrules.⟩];
 
-{#E}
-MakeArgument[{#L}ANTLR_element_A4[#ACTION, #QUESTION?], #Count, ok¹.#[ok¹]] →
-    {#L}Special_error[%n⟨The normalized ANTLR grammar can not contains actions.⟩] // TODO:
-;
+{#E}MakeArgument[{#L}ANTLR_element_A4[#ACTION, #QUESTION?], #Count, ok¹.#[ok¹]] 
+→
+{#L}Special_error[%n⟨The normalized ANTLR grammar can not contains actions.⟩];
+
 
 //  
 {#E; "@prhs": TEXTS[#PrinterRHS]}
-MakeArgFromAtom[{#L}ANTLR_atom_A2[#terminal], TRUE, #Count, ok¹.#[ok¹]] →
-    %n⟨$List[$String]«{#E; "@prhs": TEXTS[(MakeTerminalText[#Count, TRUE]; #PrinterRHS)]}#[OK]»⟩
-;
+MakeArgFromAtom[{#L}ANTLR_atom_A2[#terminal], TRUE, #Count, ok¹.#[ok¹]] 
+→
+%n⟨$List[$String]«{#E; "@prhs": TEXTS[(MakeTerminalText[#Count, TRUE]; #PrinterRHS)]}#[OK]»⟩;
  
 {#E; "@prhs": TEXTS[#PrinterRHS]}
-MakeArgFromAtom[{#L}ANTLR_atom_A2[#terminal], FALSE, #Count, ok¹.#[ok¹]] →
-    %n⟨$String«{#E; "@prhs": TEXTS[(MakeTerminalText[#Count, FALSE]; #PrinterRHS)]}#[OK]»⟩
-;
+MakeArgFromAtom[{#L}ANTLR_atom_A2[#terminal], FALSE, #Count, ok¹.#[ok¹]] 
+→
+%n⟨$String«{#E; "@prhs": TEXTS[(MakeTerminalText[#Count, FALSE]; #PrinterRHS)]}#[OK]»⟩;
 
 {#E; "@prhs": TEXTS[#PrinterRHS]}
-MakeArgFromAtom[{#L}ANTLR_atom_A3[#ruleRef], TRUE, #Count, ok¹.#[ok¹]] →
-    %n⟨$List[«MakeSortName2[{#E}EnvString["@id"], UnwrapRuleref[#ruleRef]]»]«{#E; "@prhs": TEXTS[({#E}MakeRulerefText[UnwrapRuleref[#ruleRef], #Count, TRUE]; #PrinterRHS)]}#[OK]»⟩
-;
+MakeArgFromAtom[{#L}ANTLR_atom_A3[#ruleRef], TRUE, #Count, ok¹.#[ok¹]] 
+→
+%n⟨$List[«MakeSortName2[{#E}EnvString["@id"], UnwrapRuleref[#ruleRef]]»]«{#E; "@prhs": TEXTS[({#E}MakeRulerefText[UnwrapRuleref[#ruleRef], #Count, TRUE]; #PrinterRHS)]}#[OK]»⟩;
 
 {#E; "@prhs": TEXTS[#PrinterRHS]}
-MakeArgFromAtom[{#L}ANTLR_atom_A3[#ruleRef], FALSE, #Count, ok¹.#[ok¹]] →
-    %n⟨«MakeSortName2[{#E}EnvString["@id"], UnwrapRuleref[#ruleRef]]»«{#E; "@prhs": TEXTS[({#E}MakeRulerefText[UnwrapRuleref[#ruleRef], #Count, FALSE]; #PrinterRHS)]}#[OK]»⟩
-;
+MakeArgFromAtom[{#L}ANTLR_atom_A3[#ruleRef], FALSE, #Count, ok¹.#[ok¹]] 
+→
+%n⟨«MakeSortName2[{#E}EnvString["@id"], UnwrapRuleref[#ruleRef]]»«{#E; "@prhs": TEXTS[({#E}MakeRulerefText[UnwrapRuleref[#ruleRef], #Count, FALSE]; #PrinterRHS)]}#[OK]»⟩;
 
 // Helpers
 
@@ -219,58 +204,54 @@ MapToList2[ANTLR_element_A2_S1_A1[#enbfSuffix]] → TRUE;
 MapToList2[ANTLR_element_A2_S1_A2]              → FALSE;
 
 //
-UnwrapRuleref[ANTLR_ruleref[#RULE_REF, #ARG_ACTION?, #elementOptions?]] →
-    #RULE_REF
-;
+UnwrapRuleref[ANTLR_ruleref[#RULE_REF, #ARG_ACTION?, #elementOptions?]] 
+→
+#RULE_REF;
 
 //
-UnwrapAtom[{#L}ANTLR_labeledElement[#id, #labeledElement_S1, {#L2}ANTLR_labelElement_S2_A1[#atom]]] →
-    #atom
-;
+UnwrapAtom[{#L}ANTLR_labeledElement[#id, #labeledElement_S1, {#L2}ANTLR_labelElement_S2_A1[#atom]]] 
+→
+#atom;
 
-UnwrapAtom[{#L}ANTLR_labeledElement[#id, #labeledElement_S1, {#L2}ANTLR_labelElement_S2_A2[#block]]] →
-    {#L2}Special_error[%n⟨Subrules are not allowed.⟩];
-;
+UnwrapAtom[{#L}ANTLR_labeledElement[#id, #labeledElement_S1, {#L2}ANTLR_labelElement_S2_A2[#block]]] 
+→
+{#L2}Special_error[%n⟨Subrules are not allowed.⟩];
+
 
 //
-{#E}
-EnvString[#key] →
-    EnvString2[$[{#E}Get, #key, STRING[""]]]
-;
+{#E}EnvString[#key] → EnvString2[$[{#E}Get, #key, STRING[""]]];
 
-EnvString2[STRING[#value]] →
-    #value
-;
+EnvString2[STRING[#value]] →#value;
  
 //
 -[Data[#ruleRef, #id]]
 :
 {#E; "@id": STRING[#id]; "@ruleRef": STRING[#ruleRef]}
-MakeSortName →
-    StringToText[$[:, #id, "_", #ruleRef, "_sort"]]
-;
+MakeSortName 
+→
+StringToText[$[:, #id, "_", #ruleRef, "_sort"]];
 
 //
 -[Data[#ruleRef, #id]]
 :
-MakeSortName2[#id, #ruleRef] →
-    StringToText[$[:, #id, "_", #ruleRef, "_sort"]]
-;
+MakeSortName2[#id, #ruleRef] 
+→
+StringToText[$[:, #id, "_", #ruleRef, "_sort"]];
 
 
 -[Data[#ruleRef, #id]]
 :
 {#E; "@id": STRING[#id]; "@ruleRef": STRING[#ruleRef]}
-MakeAlternativeName[#Count, FALSE] →
-    StringToText[$[:, #id, "_", #ruleRef, "_A", $[FormatNumber, #Count]]]
-;
+MakeAlternativeName[#Count, FALSE] 
+→
+StringToText[$[:, #id, "_", #ruleRef, "_A", $[FormatNumber, #Count]]];
 
 -[Data[#ruleRef, #id]]
 :
 {#E; "@id": STRING[#id]; "@ruleRef": STRING[#ruleRef]}
-MakeAlternativeName[#Count, TRUE] →
-    StringToText[$[:, #id, "_", #ruleRef]]
-;
+MakeAlternativeName[#Count, TRUE] 
+→
+StringToText[$[:, #id, "_", #ruleRef]];
 
 <!--―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――
 
@@ -278,35 +259,32 @@ MakeAlternativeName[#Count, TRUE] →
 
 ――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――-->
 
-
 -[Data[#ruleRef, #id]]
 :
 {#E; "@id": STRING[#id]; "@ruleRef": STRING[#ruleRef]}
-MakePrinterName →
-    StringToText[$[:, #id, "_Print_", #ruleRef]]
-;
+MakePrinterName 
+→
+StringToText[$[:, #id, "_Print_", #ruleRef]];
 
-MakeMetaVar[#Count] →
-    %n⟨#«NumberToText[#Count]»⟩
-;
+MakeMetaVar[#Count] 
+→
+%n⟨#«NumberToText[#Count]»⟩;
 
 //
-MakeTerminalText[#Count, FALSE] →
-    Text-String[MakeMetaVar[#Count]]
-;
+MakeTerminalText[#Count, FALSE] 
+→
+Text-String[MakeMetaVar[#Count]];
 
-MakeTerminalText[#Count, TRUE] →
-    Text-Embed[%n⟨TextFold[Map[x.StringToText[x], «MakeMetaVar[#Count]»], «Text-Text[%n⟪ ⟫]»]⟩]
-;
+MakeTerminalText[#Count, TRUE] 
+→
+Text-Embed[%n⟨TextFold[Map[x.StringToText[x], «MakeMetaVar[#Count]»], «Text-Text[%n⟪ ⟫]»]⟩];
 
-{#E}
-MakeRulerefText[#Ruleref, #Count, FALSE] →
-    Text-Embed[%n⟨«{#E; "@ruleRef": STRING[#Ruleref]}MakePrinterName»[«MakeMetaVar[#Count]»]⟩]
-;
+{#E}MakeRulerefText[#Ruleref, #Count, FALSE] 
+→
+Text-Embed[%n⟨«{#E; "@ruleRef": STRING[#Ruleref]}MakePrinterName»[«MakeMetaVar[#Count]»]⟩];
 
-{#E}
-MakeRulerefText[#Ruleref, #Count, TRUE] →
-    Text-Embed[%n⟨TextFold[Map[x.«{#E; "@ruleRef": STRING[#Ruleref]}MakePrinterName»[x], «MakeMetaVar[#Count]»], «Text-Text[%n⟪ ⟫]»]⟩]
-;
+{#E}MakeRulerefText[#Ruleref, #Count, TRUE] 
+→
+Text-Embed[%n⟨TextFold[Map[x.«{#E; "@ruleRef": STRING[#Ruleref]}MakePrinterName»[x], «MakeMetaVar[#Count]»], «Text-Text[%n⟪ ⟫]»]⟩];
 
 )]

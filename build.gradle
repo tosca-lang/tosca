@@ -17,7 +17,7 @@ apply plugin:'org.crsx.gradle.crsx4'
 repositories {
 	flatDir { dirs 'targets/java/dist' } // crsx4
 	flatDir { dirs 'targets/java/lib' }  // crsx3
-	mavenCentral() 
+	mavenCentral() // ANTLR runtime 
 }
 
 dependencies {
@@ -38,22 +38,6 @@ task installCrsxSort(type: Copy, dependsOn: 'pg4') {
 	into 'src/parser'
 }
 
-task cleanInstallCrsxSort(overwrite : true) {
-} 
+task cleanInstallCrsxSort(overwrite : true) {} 
 
 task bootstrap(dependsOn: [ 'installCrsxSort' ]) {}
-
-// --- Shortcut to Java target
-
-task java(type: GradleBuild) {
-	description = "Generate CRSX Java distribution file.";
-	dir = 'targets/java';
-	tasks = ['dist']
-}
-
-//task updateBootstrap(type: Copy, dependsOn: java) {
-//	description "Update bootstrapping crsx4."
-//	from 'targets/java/dist/crsx-4.0.0-SNAPSHOT.jar'
-//	into 'bootstrap'
-//	rename { String fileName -> "crsx4.jar" }
-//}
