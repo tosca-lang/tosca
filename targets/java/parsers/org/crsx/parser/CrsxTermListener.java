@@ -1,4 +1,4 @@
-// Generated from /Users/villardl/Projects/crsx/crsx4/targets/java/build/pg4/CrsxTerm.g4 by ANTLR 4.5
+// Generated from CrsxTerm.g4 by ANTLR 4.5
 package org.crsx.parser;
 
 import org.crsx.pg.SinkAntlrListener;
@@ -189,16 +189,6 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 */
 	void exitTerms(CrsxTermParser.TermsContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#terms_S1}.
-	 * @param ctx the parse tree
-	 */
-	void enterTerms_S1(CrsxTermParser.Terms_S1Context ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#terms_S1}.
-	 * @param ctx the parse tree
-	 */
-	void exitTerms_S1(CrsxTermParser.Terms_S1Context ctx);
-	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#freeArguments}.
 	 * @param ctx the parse tree
 	 */
@@ -218,16 +208,6 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFreeTerms(CrsxTermParser.FreeTermsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#freeTerms_S1}.
-	 * @param ctx the parse tree
-	 */
-	void enterFreeTerms_S1(CrsxTermParser.FreeTerms_S1Context ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#freeTerms_S1}.
-	 * @param ctx the parse tree
-	 */
-	void exitFreeTerms_S1(CrsxTermParser.FreeTerms_S1Context ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#list}.
 	 * @param ctx the parse tree
@@ -249,15 +229,15 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 */
 	void exitTermList(CrsxTermParser.TermListContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#termList_S1}.
+	 * Enter a parse tree produced by {@link CrsxTermParser#listItem}.
 	 * @param ctx the parse tree
 	 */
-	void enterTermList_S1(CrsxTermParser.TermList_S1Context ctx);
+	void enterListItem(CrsxTermParser.ListItemContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#termList_S1}.
+	 * Exit a parse tree produced by {@link CrsxTermParser#listItem}.
 	 * @param ctx the parse tree
 	 */
-	void exitTermList_S1(CrsxTermParser.TermList_S1Context ctx);
+	void exitListItem(CrsxTermParser.ListItemContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#variable}.
 	 * @param ctx the parse tree
@@ -359,16 +339,6 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 */
 	void exitDispatchCases(CrsxTermParser.DispatchCasesContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#dispatchCases_S1}.
-	 * @param ctx the parse tree
-	 */
-	void enterDispatchCases_S1(CrsxTermParser.DispatchCases_S1Context ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#dispatchCases_S1}.
-	 * @param ctx the parse tree
-	 */
-	void exitDispatchCases_S1(CrsxTermParser.DispatchCases_S1Context ctx);
-	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#dispatchCase}.
 	 * @param ctx the parse tree
 	 */
@@ -408,16 +378,6 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitPropertyList(CrsxTermParser.PropertyListContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#propertyList_S1}.
-	 * @param ctx the parse tree
-	 */
-	void enterPropertyList_S1(CrsxTermParser.PropertyList_S1Context ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#propertyList_S1}.
-	 * @param ctx the parse tree
-	 */
-	void exitPropertyList_S1(CrsxTermParser.PropertyList_S1Context ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#property}.
 	 * @param ctx the parse tree
@@ -479,16 +439,6 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 */
 	void exitSortnames(CrsxTermParser.SortnamesContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#sortnames_S1}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortnames_S1(CrsxTermParser.Sortnames_S1Context ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#sortnames_S1}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortnames_S1(CrsxTermParser.Sortnames_S1Context ctx);
-	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#sortname}.
 	 * @param ctx the parse tree
 	 */
@@ -518,16 +468,6 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitForms(CrsxTermParser.FormsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#forms_S1}.
-	 * @param ctx the parse tree
-	 */
-	void enterForms_S1(CrsxTermParser.Forms_S1Context ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#forms_S1}.
-	 * @param ctx the parse tree
-	 */
-	void exitForms_S1(CrsxTermParser.Forms_S1Context ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#form}.
 	 * @param ctx the parse tree
@@ -598,16 +538,6 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitDirectives(CrsxTermParser.DirectivesContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#directives_S1}.
-	 * @param ctx the parse tree
-	 */
-	void enterDirectives_S1(CrsxTermParser.Directives_S1Context ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#directives_S1}.
-	 * @param ctx the parse tree
-	 */
-	void exitDirectives_S1(CrsxTermParser.Directives_S1Context ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#directiveList}.
 	 * @param ctx the parse tree

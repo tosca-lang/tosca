@@ -1,4 +1,4 @@
-// Generated from /Users/villardl/Projects/crsx/crsx4/targets/java/build/pg4/CrsxTerm.g4 by ANTLR 4.5
+// Generated from CrsxTerm.g4 by ANTLR 4.5
 package org.crsx.parser;
 
 import org.crsx.pg.SinkAntlrListener;
@@ -231,18 +231,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterTerms_S1(CrsxTermParser.Terms_S1Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitTerms_S1(CrsxTermParser.Terms_S1Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterFreeArguments(CrsxTermParser.FreeArgumentsContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -262,18 +250,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitFreeTerms(CrsxTermParser.FreeTermsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterFreeTerms_S1(CrsxTermParser.FreeTerms_S1Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitFreeTerms_S1(CrsxTermParser.FreeTerms_S1Context ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -303,13 +279,13 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterTermList_S1(CrsxTermParser.TermList_S1Context ctx) { }
+	@Override public void enterListItem(CrsxTermParser.ListItemContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitTermList_S1(CrsxTermParser.TermList_S1Context ctx) { }
+	@Override public void exitListItem(CrsxTermParser.ListItemContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -435,18 +411,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDispatchCases_S1(CrsxTermParser.DispatchCases_S1Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDispatchCases_S1(CrsxTermParser.DispatchCases_S1Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterDispatchCase(CrsxTermParser.DispatchCaseContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -490,18 +454,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitPropertyList(CrsxTermParser.PropertyListContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterPropertyList_S1(CrsxTermParser.PropertyList_S1Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitPropertyList_S1(CrsxTermParser.PropertyList_S1Context ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -579,18 +531,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSortnames_S1(CrsxTermParser.Sortnames_S1Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSortnames_S1(CrsxTermParser.Sortnames_S1Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterSortname(CrsxTermParser.SortnameContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -622,18 +562,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitForms(CrsxTermParser.FormsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterForms_S1(CrsxTermParser.Forms_S1Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitForms_S1(CrsxTermParser.Forms_S1Context ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -718,18 +646,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitDirectives(CrsxTermParser.DirectivesContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirectives_S1(CrsxTermParser.Directives_S1Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirectives_S1(CrsxTermParser.Directives_S1Context ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

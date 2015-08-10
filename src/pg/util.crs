@@ -47,8 +47,9 @@ IndexRules2[#ruleSpec*, {#I; #TOKEN_REF : %ruleSpec⟦ #DOC_COMMENT? #FRAGMENT?
  * Test whether the given element can be fused with the next element.
  *
  * A element can be fused with the next element if they both references the same rule or token, 
- * modulo constant element, and one of them is a list.
+ * modulo constant element, and the first one is a single production and the second one a list.
  * 
+ * TODO: formal description.
  */
 IsFused[ANTLR_element_sort, $List[ANTLR_element_sort], RuleIndex] :: Boolean;
 
@@ -59,15 +60,26 @@ IsFused2[Option[$String], Option[ANTLR_ebnfSuffix_sort], Option[$String], Option
 
 IsFused2[SOME[#ref1], #ebnfSuffix1, SOME[#ref2], #ebnfSuffix2] 
 → 
-$[If, $[Equal, #ref1, #ref2], HasSuffix[#ebnfSuffix1, #ebnfSuffix2], FALSE];
+$[If, $[Equal, #ref1, #ref2], IsFuseSuffix[#ebnfSuffix1, #ebnfSuffix2], FALSE];
 
 -[Fallback]: IsFused2[#ref1, #ebnfSuffix1, #ref2, #ebnfSuffix2] → FALSE; 
 
-HasSuffix[Option[ANTLR_ebnfSuffix_sort], Option[ANTLR_ebnfSuffix_sort]] :: Boolean;
+IsFuseSuffix[Option[ANTLR_ebnfSuffix_sort], Option[ANTLR_ebnfSuffix_sort]] :: Boolean;
 
-HasSuffix[NONE, NONE] → FALSE;
+// t1 t2: don't fuse
+IsFuseSuffix[NONE, NONE] → FALSE;
 
--[Fallback]: HasSuffix[#1, #2] → TRUE;
+// Don't fuse if second is optional
+IsFuseSuffix[NONE, SOME[%ebnfSuffix⟨ ? ⟩]] → FALSE;
+
+// fuse if second is * 
+IsFuseSuffix[NONE, SOME[%ebnfSuffix⟨ * ⟩]] → TRUE;
+
+// fuse if second is + 
+IsFuseSuffix[NONE, SOME[%ebnfSuffix⟨ + ⟩]] → TRUE;
+
+// don't fuse if first has suffix 
+IsFuseSuffix[SOME[#1], #2] → FALSE;
 
 // ---  Extract rule/token reference name. Returns the first non-constant reference found.
  
@@ -140,6 +152,41 @@ GetEbnfSuffixElement[%element⟨ #block #ebnfSuffix ⟩]          → SOME[#ebnf
 
 {#I}IsConstantMaybeRuleSpec[SOME[#ruleSpec]] → {#I}IsConstantRuleSpec[#ruleSpec]; 
 
+{$String: ANTLR_ruleSpec_sort}IsConstantElement[ANTLR_element_sort] :: Boolean;
+
+// Labeled element with no ebnf suffix. Continue..
+{#I}IsConstantElement[%element⟦ #labeledElement ⟧] → {#I}IsConstantLabeledElement[#labeledElement];
+
+// Labeled element with an ebnf suffix. Can't be constant (unless labeledElement always matched the empty string. ANTLR complains about it)
+{#I}IsConstantElement[%element⟦ #labeledElement #ebnfSuffix ⟧] → FALSE;
+
+// Atom with no ebnfSuffix. Continue
+{#I}IsConstantElement[%element⟦ #atom ⟧] → {#I}IsConstantAtom[#atom];
+
+// Atom with ebnfSuffix. Not constant
+{#I}IsConstantElement[%element⟦ #atom #ebnfSuffix ⟧] → FALSE;
+
+// Block without suffix. Continue
+{#I}IsConstantElement[%element⟦ #block ⟧] → {#I}IsConstantBlock[#block];
+
+// Block with suffix. No constant
+{#I}IsConstantElement[%element⟦ #block #blockSuffix ⟧] → FALSE;
+
+// Actions match no value. 
+{#I}IsConstantElement[%element⟦ #ACTION #QUESTION? ⟧] → TRUE;
+
+{$String: ANTLR_ruleSpec_sort}IsConstantLabeledElement[ANTLR_labeledElement_sort] :: Boolean;
+
+// Extract atom and recurse
+{#I}IsConstantLabeledElement[%labeledElement⟦ #id #labeledElement_S1 #atom ⟧]
+→
+{#I}IsConstantAtom[#atom];
+
+// Extract block and recurse
+{#I}IsConstantLabeledElement[%labeledElement⟦ #id #labeledElement_S1 #block ⟧]
+→
+{#I}IsConstantBlock[#block];
+
 {$String: ANTLR_ruleSpec_sort}IsConstantAtom[ANTLR_atom_sort] :: Boolean;
 
 // Assume range are not constant. In theory ['a'..'a'] is trivial but not commonly written this way 
@@ -169,8 +216,7 @@ GetEbnfSuffixElement[%element⟨ #block #ebnfSuffix ⟩]          → SOME[#ebnf
 {$String: ANTLR_ruleSpec_sort}IsConstantRuleSpec[ANTLR_ruleSpec_sort] :: Boolean;
 
 {#I}IsConstantRuleSpec[%ruleSpec⟦ #DOC_COMMENT? #FRAGMENT? #TOKEN_REF : #lexerAltList ; ⟧]
-→
-{#I}IsConstantLexerAltList[#lexerAltList];
+→ {#I}IsConstantLexerAltList[#lexerAltList];
 
 // Lexer alternatives
 {$String: ANTLR_ruleSpec_sort}IsConstantLexerAltList[ANTLR_lexerAltList_sort] :: Boolean;
@@ -244,9 +290,157 @@ If[{#I}IsConstantLexerElement[#lexerElement], {#I}IsConstantLexerElements[#lexer
 // most commonly not rivial
 {#I}IsConstantLexerAtom[%lexerAtom⟦ #LEXER_CHAR_SET ⟧] → FALSE;
 
+// --- Extract constant token as string value
+
+{$String: ANTLR_ruleSpec_sort}GetConstantMaybeRuleSpec[Option[$String]] :: Option[$String];
+
+// Rule is missing. Shouldn't occur. 
+{#I}GetConstantMaybeRuleSpec[NONE]            → NONE; 
+{#I}GetConstantMaybeRuleSpec[SOME[#ruleSpec]] → {#I}GetConstantRuleSpec[#ruleSpec]; 
+
+{$String: ANTLR_ruleSpec_sort}GetConstantElement[ANTLR_element_sort] :: Option[$String];
+
+// Labeled element with no ebnf suffix. Continue..
+{#I}GetConstantElement[%element⟦ #labeledElement ⟧] → {#I}GetConstantLabeledElement[#labeledElement];
+
+// Labeled element with an ebnf suffix. Can't be constant (unless labeledElement always matched the empty string. ANTLR complains about it)
+{#I}GetConstantElement[%element⟦ #labeledElement #ebnfSuffix ⟧] → NONE;
+
+// Atom with no ebnfSuffix. Continue
+{#I}GetConstantElement[%element⟦ #atom ⟧] → {#I}GetConstantAtom[#atom];
+
+// Atom with ebnfSuffix. Not constant
+{#I}GetConstantElement[%element⟦ #atom #ebnfSuffix ⟧] → NONE;
+
+// Block without suffix. Continue
+{#I}GetConstantElement[%element⟦ #block ⟧] → {#I}GetConstantBlock[#block];
+
+// Block with suffix. No constant
+{#I}GetConstantElement[%element⟦ #block #blockSuffix ⟧] → NONE;
+
+// Actions match no value. 
+{#I}GetConstantElement[%element⟦ #ACTION #QUESTION? ⟧] → NONE;
+
+{$String: ANTLR_ruleSpec_sort}GetConstantLabeledElement[ANTLR_labeledElement_sort] :: Option[$String];
+
+// Extract atom and recurse
+{#I}GetConstantLabeledElement[%labeledElement⟦ #id #labeledElement_S1 #atom ⟧] → {#I}GetConstantAtom[#atom];
+
+// Extract block and recurse
+{#I}GetConstantLabeledElement[%labeledElement⟦ #id #labeledElement_S1 #block ⟧] → {#I}GetConstantBlock[#block];
+
+{$String: ANTLR_ruleSpec_sort}GetConstantAtom[ANTLR_atom_sort] :: Option[$String];
+
+// Assume range are not constant. In theory ['a'..'a'] is trivial but not commonly written this way 
+{#I}GetConstantAtom[%atom⟦ #range ⟧] → NONE;
+
+// Token ref: dereference and analyze lexer rule (TODO: cache lexer rule analysis)
+{#I}GetConstantAtom[%atom⟦ #TOKEN_REF #elementOptions? ⟧] → {#I}GetConstantTokenRef[#TOKEN_REF];
+
+// string literal: this is constant!
+{#I}GetConstantAtom[%atom⟦ #STRING_LITERAL #elementOptions? ⟧] → SOME[#STRING_LITERAL];
+
+// Reference to a rule. Dereference and analyze parser rule. 
+// 
+// here an example of a constant rule:
+//   A : ( B )
+//   B : 'a'
+// For now approximate: NON CONSTANT
+{#I}GetConstantAtom[%atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧] → NONE; //{#I}GetConstantMaybeRuleSpec[{#I}GetSome[#RULE_REF]];
+
+// notSet is most of the time non-constant
+{#I}GetConstantAtom[%atom⟦ #notSet ⟧] → NONE;
+
+// '.' is most of the time non-constant.
+{#I}GetConstantAtom[%atom⟦ . #elementOptions? ⟧] → NONE;
+
+// Lexer rule
+{$String: ANTLR_ruleSpec_sort}GetConstantRuleSpec[ANTLR_ruleSpec_sort] :: Option[$String];
+
+{#I}GetConstantRuleSpec[%ruleSpec⟦ #DOC_COMMENT? #FRAGMENT? #TOKEN_REF : #lexerAltList ; ⟧]
+→ {#I}GetConstantLexerAltList[#lexerAltList];
+
+// Lexer alternatives
+{$String: ANTLR_ruleSpec_sort}GetConstantLexerAltList[ANTLR_lexerAltList_sort] :: Option[$String];
+
+// Only one alternative: continue
+{#I}GetConstantLexerAltList[%lexerAltList⟦ #lexerElement+ #lexerCommands? ⟧] → {#I}GetConstantLexerElements[#lexerElement+]; 
+
+// More than one: commonly non-constant.
+{#I}GetConstantLexerAltList[%lexerAltList⟦ #lexerAlt1 | #lexerAlt2 #lexerAltList_S1*  ⟧] → NONE;
+
+// Sequence of lexer elements must all be constant
+{$String: ANTLR_ruleSpec_sort}GetConstantLexerElements[$List[ANTLR_lexerElement_sort]] :: Option[$String];
+
+{#I}GetConstantLexerElements[%lexerElement+⟦ #lexerElement  ⟧] → {#I}GetConstantLexerElement[#lexerElement];
+
+{#I}GetConstantLexerElements[%lexerElement+⟦ #lexerElement #lexerElement+ ⟧]  
+→
+ConcatSome[{#I}GetConstantLexerElement[#lexerElement], {#I}GetConstantLexerElements[#lexerElement+]];
+
+{$String: ANTLR_ruleSpec_sort}GetConstantLexerElement[ANTLR_lexerElement_sort] :: Option[$String];
+
+// Labeled lexer element with no ebnf suffix. Continue..
+{#I}GetConstantLexerElement[%lexerElement⟦ #labeledLexerElement ⟧] → {#I}GetConstantLabeledLexerElement[#labeledLexerElement];
+
+// Labeled lexer element with an ebnf suffix. Can't be trivial (unless labeledElement always matched the empty string. ANTLR complains about it)
+{#I}GetConstantLexerElement[%lexerElement⟦ #labeledLexerElement #ebnfSuffix ⟧] → NONE;
+
+// Lexer atom with no ebnfSuffix. Continue
+{#I}GetConstantLexerElement[%lexerElement⟦ #lexerAtom ⟧] → {#I}GetConstantLexerAtom[#lexerAtom];
+
+// Atom with ebnfSuffix. Can't be trivial
+{#I}GetConstantLexerElement[%lexerElement⟦ #lexerAtom #ebnfSuffix ⟧] → NONE;
+
+// Block without suffix. Continue
+{#I}GetConstantLexerElement[%lexerElement⟦ #lexerBlock ⟧] → {#I}GetConstantLexerBlock[#lexerBlock];
+
+// Block with suffix. Can't be trivial
+{#I}GetConstantLexerElement[%lexerElement⟦ #lexerBlock #ebnfSuffix ⟧] → NONE;
+
+// Actions match no value (so constant)
+{#I}GetConstantLexerElement[%lexerElement⟦ #ACTION #QUESTION? ⟧] → NONE;
+
+{$String: ANTLR_ruleSpec_sort}GetConstantLabeledLexerElement[ANTLR_labeledLexerElement_sort] :: Option[$String];
+
+// Extract atom and recurse
+{#I}GetConstantLabeledLexerElement[%labeledLexerElement⟦ #id #labeledLexerElement_S1 #lexerAtom ⟧] → {#I}GetConstantLexerAtom[#lexerAtom];
+
+// Extract block and recurse
+{#I}GetConstantLabeledLexerElement[%labeledLexerElement⟦ #id #labeledLexerElement_S1 #block ⟧] → {#I}GetConstantLexerBlock[#block];
+
+{$String: ANTLR_ruleSpec_sort}GetConstantLexerAtom[ANTLR_lexerAtom_sort] :: Option[$String];
+
+// Assume range are not trivial. In theory ['a'..'a'] is trivial but not commonly written this way 
+{#I}GetConstantLexerAtom[%lexerAtom⟦ #range ⟧] → NONE;
+
+// Token ref: dereference and analyze lexer rule (TODO: cache lexer rule analysis)
+{#I}GetConstantLexerAtom[%lexerAtom⟦ #TOKEN_REF #elementOptions? ⟧] → {#I}GetConstantTokenRef[#TOKEN_REF];
+
+// string literal: this is trivial!
+{#I}GetConstantLexerAtom[%lexerAtom⟦ #STRING_LITERAL #elementOptions? ⟧] → SOME[#STRING_LITERAL];
+
+// Reference to a rule. Should not occur
+{#I}GetConstantLexerAtom[%lexerAtom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧] → NONE;
+
+// notSet is most of the time non-trivial. 
+{#I}GetConstantLexerAtom[%lexerAtom⟦ #notSet ⟧] → NONE;
+
+// '.' is most of the time non-trivial.
+{#I}GetConstantLexerAtom[%lexerAtom⟦ . #elementOptions? ⟧] → NONE;
+
+// most commonly not rivial
+{#I}GetConstantLexerAtom[%lexerAtom⟦ #LEXER_CHAR_SET ⟧] → NONE;
+
+{$String: ANTLR_ruleSpec_sort}GetConstantTokenRef[$String] :: Option[$String];
+
+// Token ref: dereference 
+{#I}GetConstantTokenRef[#tokenRef] → {#I}GetConstantMaybeRuleSpec[{#I}GetSome[#tokenRef]];
+
 // --- Misc...
 
 // Unwrap Grammar Id
+UnwrapId[ANTLT_id_sort] :: $String;
 UnwrapId[ANTLR_id_A1[#id]] → #id;
 UnwrapId[ANTLR_id_A2[#id]] → #id;
 

@@ -96,9 +96,9 @@ NormalizeDone1[$StringEntry, $StringEntry, ContentEntry, $String, $String, Mode,
 }SeqMap[name cont.AddImport[name, cont], #imports, ok¹.#[ok¹]];
 
 {$String:$StringEntry}
-AddImport[$String, Continuation[Text]] :: Text;
+AddImport[$String, Cont[Text]] :: Text;
 
-{#E}AddImport[#filename, CONTINUATION[ok¹.#[ok¹]]] 
+{#E}AddImport[#filename, CONT[ok¹.#[ok¹]]] 
 → 
 // Do nothing. Have each module compile independently for now.
 {#E}#[OK];
@@ -134,8 +134,9 @@ CompileNormalized[$StringEntry, ok¹::OK_SORT.Text] :: Text;
 // Module has been loded and normalized. Register module dependencies
 {#E}CompileNormalized[MODULE[#filename, #mode, {#M}LOADED], ok¹.#[ok¹]] 
 →
-{#E}CompileSave[$[:, #filename, ".java"], GenerateJavaParsed[#filename, {#M}OutputCrsx[OK], #mode], ok¹.#[ok¹]];
-//{#E}CompileSave[$[:, #filename, ".java"], Crsx_Print_crsx[{#M}OutputCrsx[OK]], ok¹.#[ok¹]];
+//{#E}CompileSave[$[:, #filename, ".java"], GenerateJavaParsed[#filename, {#M}OutputCrsx[OK], #mode], ok¹.#[ok¹]];
+{#E}CompileSave[$[:, #filename, ".java"], Crsx_Print_crsx[{#M}OutputCrsx[OK]], ok¹.#[ok¹]];
+//{#E}CompileSave[$[:, #filename, ".java"], {#M}OutputCrsx[OK], ok¹.#[ok¹]];
 
 {$String:$StringEntry}
 CompileSave[$String, Text, ok¹::OK_SORT.Text] :: Text;

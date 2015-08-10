@@ -299,7 +299,7 @@ MaybeHideAtom[{#I}IsConstantAtom[#atom], {#L}%element*⟨ #atom ⟩];
 
 {#E}MakeElement[{#L}%element⟨ #block #ebnfSuffix ⟩, #fused, #RULE_REF, #meta]  
 → 
-WrapElement[{#L}%element⟨ ⟨block: {#E}HideConstBlock[#block]⟩ ⟩, #ebnfSuffix, #fused, #RULE_REF, #meta];
+WrapElement[{#L}%element⟨ ⟨block: {#E}HideConstBlock[#block]⟩ #ebnfSuffix ⟩, #ebnfSuffix, #fused, #RULE_REF, #meta];
 
 {#E}MakeElement[{#L}%element⟨ #block ⟩, (), #RULE_REF, #meta]             
 → 
@@ -374,16 +374,28 @@ MakeMetaRules[Mode, $String /* RULE_REF */, $String /* Resolved rule ref */] :: 
 
 MakeMetaRules[PARSER, #RULE_REF, #resolved]        → ();
 
-MakeMetaRules[METAPARSER, #RULE_REF, #resolved]    →
-    (
-        %ruleSpec⟨ ⟨RULE_REF: $[:, #RULE_REF, "_EOF"]⟩ : #RULE_REF EOF ; ⟩; 
-    );
-
+MakeMetaRules[METAPARSER, #RULE_REF, #resolved]    → MakeMetaRulesMetaParser[IsList[#RULE_REF], #RULE_REF]; 
+ 
 MakeMetaRules[METALEXER, #RULE_REF, #resolved]     →    
     ( 
         %ruleSpec⟨ ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩  : CRSX_META_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, "'"]⟩[0-9]* ; ⟩;
         %ruleSpec⟨ ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩  : CRSX_START_EMBED_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, ":'"]⟩  -> pushMode(CrsxEmbed); ⟩;
     );
+
+MakeMetaRulesMetaParser[Boolean, $String /* RULE_REF */] :: $List[ANTLR_ruleSpec_sort];
+
+MakeMetaRulesMetaParser[TRUE, #RULE_REF]
+→
+(
+    %ruleSpec⟨ ⟨RULE_REF: $[:, #RULE_REF, "_EOF"]⟩ : (#RULE_REF|{_enterZOM();}{_exitZOM();}) EOF ; ⟩; 
+);
+
+MakeMetaRulesMetaParser[FALSE, #RULE_REF]
+→
+(
+    %ruleSpec⟨ ⟨RULE_REF: $[:, #RULE_REF, "_EOF"]⟩ : #RULE_REF EOF ; ⟩; 
+);
+
 
 //----- Generate additional alternatives, for META and EMBED. Only for meta parser
 
@@ -472,15 +484,15 @@ LiftEbnfMaybeFusedElement[Boolean, ANTLR_element_sort, $List[ANTLR_element_sort]
 // Lift no-fused element
 LiftEbnfElement[ANTLR_element_sort, $List[ANTLR_element_sort]] :: $List[ANTLR_element_sort];
 
-// labeled single atom: keep it unchanged.
+// labeled single atom: maybe lift.
 {#E}LiftEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #atom ⟩, #element*]            
 → 
-{#L}%element*⟨ #id #labeledElement_S1 #atom ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+{#L}%element*⟨ #id #labeledElement_S1 ⟨atom: {#E}LiftEbnfAtom[#atom]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
 
 // labeled suffixed atom: lift
 {#E}LiftEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #atom #ebnfSuffix ⟩, #element*]
 →
-{#L}%element*⟨ ⟨RULE_REF: LiftedRuleNameAtom[#atom, #ebnfSuffix]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+{#L}%element*⟨ ⟨RULE_REF: LiftedRuleNameAtom[#atom, SOME[#ebnfSuffix]]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
 
 // labeled single trivial (after normalization) block: keep it unchanged
 {#E}LiftEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #block ⟩, #element*]   
@@ -490,17 +502,17 @@ LiftEbnfElement[ANTLR_element_sort, $List[ANTLR_element_sort]] :: $List[ANTLR_el
 // labeled suffixed trivial (after normalization) block: lift
 {#E}LiftEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #block #ebnfSuffix ⟩, #element*]   
 →
-{#L}%element*⟨ ⟨RULE_REF: {#E}LiftedRuleNameBlock[#block, #ebnfSuffix]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+{#L}%element*⟨ ⟨RULE_REF: {#E}LiftedRuleNameBlock[#block, SOME[#ebnfSuffix]]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
 
-// Single atom element
+// Single atom element: maybe lift
 {#E}LiftEbnfElement[{#L}%element⟨ #atom ⟩, #element*]                        
 → 
-{#L}%element*⟨ #atom ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+{#L}%element*⟨ ⟨atom: {#E}LiftEbnfAtom[#atom]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
 
 // Suffixed atom element
 {#E}LiftEbnfElement[{#L}%element⟨ #atom #ebnfSuffix ⟩, #element*]                        
 → 
-{#L}%element*⟨ ⟨RULE_REF: LiftedRuleNameAtom[#atom, #ebnfSuffix]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+{#L}%element*⟨ ⟨RULE_REF: LiftedRuleNameAtom[#atom, SOME[#ebnfSuffix]]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
 
 // Single trivial block
 {#E}LiftEbnfElement[{#L}%element⟨ #block  ⟩, #element*]                        
@@ -510,7 +522,22 @@ LiftEbnfElement[ANTLR_element_sort, $List[ANTLR_element_sort]] :: $List[ANTLR_el
 // Suffixed trivial block
 {#E}LiftEbnfElement[{#L}%element⟨ #block #ebnfSuffix ⟩, #element*]                        
 → 
-{#L}%element*⟨ ⟨RULE_REF: {#E}LiftedRuleNameBlock[#block, #ebnfSuffix]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+{#L}%element*⟨ ⟨RULE_REF: {#E}LiftedRuleNameBlock[#block, SOME[#ebnfSuffix]]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+
+// Lift atom if not constant
+LiftEbnfAtom[ANTLR_atom_sort] :: ANTLR_atom_sort;
+
+{#E; "$index": INDEX[{#I}RULEINDEX]}LiftEbnfAtom[#atom]                        
+→
+{#E}LiftEbnfAtom2[{#I}IsConstantAtom[#atom], #atom];                        
+
+LiftEbnfAtom2[Boolean, ANTLR_atom_sort] :: ANTLR_atom_sort;
+
+// Constant atom: skip
+{#E}LiftEbnfAtom2[TRUE , #atom] → #atom;
+
+// Not constant: lift
+{#E}LiftEbnfAtom2[FALSE, #atom] → %atom⟦ ⟨RULE_REF: LiftedRuleNameAtom[#atom, NONE]⟩ ⟧;                  
 
 // --- Second  Pass: Generate new rules
 
@@ -546,15 +573,15 @@ MakeEbnfMaybeFusedElements[Boolean, $List[ANTLR_element_sort], $List[ANTLR_eleme
 
 MakeEbnfElement[ANTLR_element_sort, $List[ANTLR_element_sort],  $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
 
-// labeled single atom: skip. #fused must be empty (guaranteed by IsFused)
+// labeled single atom: lift to allow metavar. #fused must be empty (guaranteed by IsFused)
 {#E}MakeEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #atom ⟩, #element*, (), ok.#[ok]]            
 → 
-{#E}MakeEbnfElements[#element*, (), ok.#[ok]];
+{#E}MakeEbnfAtom[#atom, NONE, {#L}%element⟦ #id #labeledElement_S1 #atom ⟧, #element*, (), ok.#[ok]];
 
 // labeled suffixed atom: lift
 {#E}MakeEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #atom #ebnfSuffix ⟩, #element*, #fused, ok.#[ok]]
 →
-{#E}MakeEbnfAtom[#atom, #ebnfSuffix, {#L}%element⟦ #id #labeledElement_S1 #atom #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]];
+{#E}MakeEbnfAtom[#atom, SOME[#ebnfSuffix], {#L}%element⟦ #id #labeledElement_S1 #atom #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]];
 
 // labeled single trivial (after normalization) block: skip. #fused must be empty (guaranteed by IsFused)
 {#E}MakeEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #block ⟩, #element*, (), ok.#[ok]]   
@@ -564,17 +591,17 @@ MakeEbnfElement[ANTLR_element_sort, $List[ANTLR_element_sort],  $List[ANTLR_elem
 // labeled suffixed trivial (after normalization) block: lift
 {#E}MakeEbnfElement[{#L}%element⟦ #id #labeledElement_S1 #block #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]]   
 →
-{#E}MakeLiftedRule[{#E}LiftedRuleNameBlock[#block, #ebnfSuffix], {#L}%element⟦ #id #labeledElement_S1 #block #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]];
+{#E}MakeLiftedRule[{#E}LiftedRuleNameBlock[#block, SOME[#ebnfSuffix]], {#L}%element⟦ #id #labeledElement_S1 #block #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]];
 
-// Single atom element: skip. #fused must be empty (guaranteed by IsFused)
+// Single atom element: lift to allow metavar. #fused must be empty (guaranteed by IsFused)
 {#E}MakeEbnfElement[{#L}%element⟨ #atom ⟩, #element*, (), ok.#[ok]]                        
 → 
-{#E}MakeEbnfElements[#element*, (), ok.#[ok]];
+{#E}MakeEbnfAtom[#atom, NONE, {#L}%element⟨ #atom ⟩, #element*, (), ok.#[ok]];
 
 // Suffixed atom element: lift
 {#E}MakeEbnfElement[{#L}%element⟨ #atom #ebnfSuffix ⟩, #element*, #fused, ok.#[ok]]                        
 → 
-{#E}MakeEbnfAtom[#atom, #ebnfSuffix, {#L}%element⟨ #atom #ebnfSuffix ⟩, #element*, #fused, ok.#[ok]];
+{#E}MakeEbnfAtom[#atom, SOME[#ebnfSuffix], {#L}%element⟨ #atom #ebnfSuffix ⟩, #element*, #fused, ok.#[ok]];
 
 // Single trivial block: skip. #fused must be empty (guaranteed by IsFused)
 {#E}MakeEbnfElement[{#L}%element⟨ #block ⟩, #element*, (), ok.#[ok]]                        
@@ -584,17 +611,38 @@ MakeEbnfElement[ANTLR_element_sort, $List[ANTLR_element_sort],  $List[ANTLR_elem
 // Suffixed trivial block: lift
 {#E}MakeEbnfElement[{#L}%element⟨ #block #ebnfSuffix ⟩, #element*, #fused, ok.#[ok]]                        
 → 
-{#E}MakeLiftedRule[{#E}LiftedRuleNameBlock[#block, #ebnfSuffix], {#L}%element⟦ #block #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]];
+{#E}MakeLiftedRule[{#E}LiftedRuleNameBlock[#block, SOME[#ebnfSuffix]], {#L}%element⟦ #block #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]];
 
-MakeEbnfAtom[ANTLR_atom_sort, ANTLR_ebnfSuffix_sort, ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
+MakeEbnfAtom[ANTLR_atom_sort, Option[ANTLR_ebnfSuffix_sort], ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
 
-{#E}MakeEbnfAtom[{#L}%atom⟦ #RULE_REF ⟧, #ebnfSuffix, #element, #element*, #fused, ok.#[ok]] 
+{#E}MakeEbnfAtom[{#L}%atom⟦ #RULE_REF ⟧, NONE, #element, #element*, #fused, ok.#[ok]] 
 →
-{#E}MakeLiftedRule[LiftedRuleNameRuleRef[#RULE_REF, #ebnfSuffix], #element, #element*, #fused, ok.#[ok]];
+{#E}MakeEbnfElements[#element*, #fused, ok.#[ok]];
 
-{#E}MakeEbnfAtom[{#L}%atom⟦ #TOKEN_REF ⟧, #ebnfSuffix, #element, #element*, #fused, ok.#[ok]] 
+{#E}MakeEbnfAtom[{#L}%atom⟦ #RULE_REF ⟧, SOME[#ebnfSuffix], #element, #element*, #fused, ok.#[ok]] 
 →
-{#E}MakeLiftedRule[LiftedRuleNameTokenRef[#TOKEN_REF, #ebnfSuffix], #element, #element*, #fused, ok.#[ok]];
+{#E}MakeLiftedRule[LiftedRuleNameRuleRef[#RULE_REF, SOME[#ebnfSuffix]], #element, #element*, #fused, ok.#[ok]];
+
+// Test is atom is constant, which in this case don't lift token
+{#E; "$index": INDEX[{#I}RULEINDEX]}MakeEbnfAtom[{#L}%atom⟦ #TOKEN_REF ⟧, NONE, #element, #element*, #fused, ok.#[ok]] 
+→
+{#E}MakeEbnfSingleToken[{#I}IsConstantAtom[{#L}%atom⟦ #TOKEN_REF ⟧], {#L}%atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, ok.#[ok]];
+
+{#E}MakeEbnfAtom[{#L}%atom⟦ #TOKEN_REF ⟧, SOME[#ebnfSuffix], #element, #element*, #fused, ok.#[ok]] 
+→
+{#E}MakeLiftedRule[LiftedRuleNameTokenRef[#TOKEN_REF, SOME[#ebnfSuffix]], #element, #element*, #fused, ok.#[ok]];
+
+MakeEbnfSingleToken[Boolean, ANTLR_atom_sort, ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
+
+// Not a constant token: lift it to allow metavariable
+{#E}MakeEbnfSingleToken[FALSE, {#L}%atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, ok.#[ok]]
+→
+{#E}MakeLiftedRule[LiftedRuleNameTokenRef[#TOKEN_REF, NONE], #element, #element*, #fused, ok.#[ok]];
+
+// Constant token: skip
+{#E}MakeEbnfSingleToken[TRUE, {#L}%atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, ok.#[ok]]
+→
+{#E}MakeEbnfElements[#element*, #fused, ok.#[ok]];
  
 MakeLiftedRule[$String, ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
 
@@ -603,12 +651,12 @@ MakeLiftedRule[$String, ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANT
 →
 $[{#E}IfDef, #key, 
     {#E}MakeEbnfElements[#element*, (), ok.#[ok]],
-   (%ruleSpec⟨ ⟨RULE_REF: #key⟩ : ⟨element*: Concat[#fused, (#element;)]⟩ ; ⟩ ; {#E; #key: DEFINED}MakeEbnfElements[#element*, (), ok.#[ok]])];
+    (%ruleSpec⟨ ⟨RULE_REF: #key⟩ : ⟨element*: Concat[#fused, (#element;)]⟩ ; ⟩ ; {#E; #key: DEFINED}MakeEbnfElements[#element*, (), ok.#[ok]])];
 
 // -- Helpers
 
 // Generate lifted rule name from trivial block. Extract the non-constant atom
-LiftedRuleNameBlock[ANTLR_block_sort, ANTLR_ebnfSuffix_sort] :: $String;
+LiftedRuleNameBlock[ANTLR_block_sort, Option[ANTLR_ebnfSuffix_sort]] :: $String;
 
 {#E; "$index": INDEX[#index]}LiftedRuleNameBlock[#block, #ebnfSuffix]
 →
@@ -616,7 +664,7 @@ LiftedRuleNameRuleRef[UnSOME[GetRefBlock[#block, (), #index]], #ebnfSuffix];
 
 
 // Generate lifted rule name from atom
-LiftedRuleNameAtom[ANTLR_atom_sort, ANTLR_ebnfSuffix_sort] :: $String;
+LiftedRuleNameAtom[ANTLR_atom_sort, Option[ANTLR_ebnfSuffix_sort]] :: $String;
 
 //LiftedRuleNameAtom[{#L}%atom⟨ #range ⟩, #ebnfSuffix] → $[Error, $[:, "Invalid range ", #range, " in parser rule. It must be defined as a lexer rule (a token)."]];
 LiftedRuleNameAtom[{#L}%atom⟨ #STRING_LITERAL #elementOptions? ⟩, #ebnfSuffix] → $[Error, $[:, "Invalid string literal ", #STRING_LITERAL, " in parser rule. It must be defined as a lexer rule (a token)."]];
@@ -627,15 +675,16 @@ LiftedRuleNameAtom[{#L}%atom⟨ #RULE_REF #ARG_ACTION? #elementOptions? ⟩, #eb
 //// TODO: other cases...
 
 // Generate lifted rule name from torken ref
-LiftedRuleNameTokenRef[$String, ANTLR_ebnfSuffix_sort] :: $String;
+LiftedRuleNameTokenRef[$String, Option[ANTLR_ebnfSuffix_sort]] :: $String;
 LiftedRuleNameTokenRef[#tokenref, #ebnfSuffix] → LiftedRuleNameRuleRef[TokenToRuleName[#tokenref], #ebnfSuffix];
 
 // Generate lifted rule name from ruleref
-LiftedRuleNameRuleRef[$String, ANTLR_ebnfSuffix_sort] :: $String;
+LiftedRuleNameRuleRef[$String, Option[ANTLR_ebnfSuffix_sort]] :: $String;
 
--[Data[#ruleref]]: LiftedRuleNameRuleRef[#ruleref, %ebnfSuffix⟨ * ⟩] → $[:, #ruleref, "_ZOM"];
--[Data[#ruleref]]: LiftedRuleNameRuleRef[#ruleref, %ebnfSuffix⟨ ? ⟩] → $[:, #ruleref, "_OPT"];
--[Data[#ruleref]]: LiftedRuleNameRuleRef[#ruleref, %ebnfSuffix⟨ + ⟩] → $[:, #ruleref, "_OOM"];  
+-[Data[#ruleref]]: LiftedRuleNameRuleRef[#ruleref, SOME[%ebnfSuffix⟨ * ⟩]] → $[:, #ruleref, "_ZOM"];
+-[Data[#ruleref]]: LiftedRuleNameRuleRef[#ruleref, SOME[%ebnfSuffix⟨ ? ⟩]] → $[:, #ruleref, "_OPT"];
+-[Data[#ruleref]]: LiftedRuleNameRuleRef[#ruleref, SOME[%ebnfSuffix⟨ + ⟩]] → $[:, #ruleref, "_OOM"];  
+-[Data[#ruleref]]: LiftedRuleNameRuleRef[#ruleref, NONE]                   → #ruleref;  
 
 // Convert token name to rule name (for non-lifted token).
 TokenToRuleName[$String] :: $String;
@@ -682,6 +731,16 @@ IsInternalRule[#RuleRef] →
     $[If, $[EndsWith, #RuleRef, "_OOM"], $True,
     $[If, $[EndsWith, #RuleRef, "_TOK"], $True,
     $False]]]];
+
+
+// Whether the rule produces a  list
+IsList[$String] :: Boolean;
+
+IsList[#RuleRef] →
+    $[If, $[EndsWith, #RuleRef, "_ZOM"], TRUE,
+    $[If, $[EndsWith, #RuleRef, "_OOM"], TRUE,
+    FALSE]];
+
 
 // The meta sequence of characters
 MetaChar[$String] :: $String;

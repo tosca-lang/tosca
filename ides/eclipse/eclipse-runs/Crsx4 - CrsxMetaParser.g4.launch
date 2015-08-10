@@ -14,7 +14,7 @@
 </listAttribute>
 <booleanAttribute key="org.eclipse.jdt.launching.DEFAULT_CLASSPATH" value="false"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="net.sf.crsx.run.Crsx"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="sink=net.sf.crsx.text.TextSink&#10;grammar=&quot;('net.sf.crsx.text.Text';'org.crsx.pg.ANTLRMeta')&quot;&#10;rules=pg/genparser.crs&#10;input=targets/java/build/pg4/Crsx.nterm&#10;output=targets/java/build/pg4/CrsxMetaParser.g4&#10;wrapper=MakeMetaParser&#10;omit-properties"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="sink=net.sf.crsx.text.TextSink&#10;grammar=&quot;('net.sf.crsx.text.Text';'org.crsx.pg.ANTLRMeta')&quot;&#10;rules=pg/genparser.crs&#10;input=src/parser/Crsx.nterm&#10;output=src/parser/CrsxMetaParser.g4&#10;wrapper=MakeMetaParser&#10;omit-properties&#10;metaprefix=##"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="crsx4"/>
 <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:crsx4}"/>
 </launchConfiguration>

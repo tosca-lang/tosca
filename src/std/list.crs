@@ -15,11 +15,14 @@ $Use["std/pair.crs"];
  * Basic List Operations  
  */
 
-// TRUE if list is empty
+/* @return `TRUE` if list is empty
+ */
 ∀ a . IsEmpty[$List[a]] :: Boolean ;
 IsEmpty[()    ] → TRUE ;
 IsEmpty[(#;#s)] → FALSE ;
 
+/* TRUE if list is empty
+ */
 ∀ a b . IfEmpty[$List[a], b, b] :: b ;
 IfEmpty[()    , #1, #2] → #1 ;
 IfEmpty[(#;#s), #1, #2] → #2 ;
@@ -29,7 +32,7 @@ IfEmpty[(#;#s), #1, #2] → #2 ;
    @return `TRUE`  if  #XS is the empty list
            `FALSE` otherwise 
 */ 
-∀ a . Null[ $List[a] ] :: Boolean;
+∀ a . Null[$List[a]] :: Boolean;
 Null[ () ]      → TRUE;
 Null[ (#H;#T) ] → FALSE;
 
@@ -38,11 +41,12 @@ Null[ (#H;#T) ] → FALSE;
 IsSingleton[()    ] → FALSE ;
 IsSingleton[(#;#s)] → IsEmpty[#s] ;
 
+// 
 ∀ a b . IfSingleton[$List[a], b, b] :: b ;
 IfSingleton[()    , #1, #2] → #2 ;
 IfSingleton[(#;#s), #1, #2] → IfEmpty[#s, #1, #2] ;
 
-// Head of the list
+/* @return head of the list */
 ∀ a . Head[$List[a]] :: a ;
 Head[(#;#s)] → # ;
 Head[()] → $[Error,"Head of empty list"] ;
@@ -200,6 +204,32 @@ Map[x.#[x], (#1;#s)] → (#[#1]; Map[x.#[x], #s]) ;
 ∀ a b. Map2[ x :: a . $sort[b] , $List[a]] :: $List[b];
 Map2[x.#F[x], #XS] → Foldr[y ys.Insert[#F[y],ys],(),#XS];
 
+// 
+∀ a.Cont[a] ::= ( CONT[ok¹::OK_SORT.$sort[a]];  );
+
+/* `{#}ApplyCont[#cont]`
+   @param #cont continutation to apply
+ */
+∀ a. ApplyCont[Cont[a]] :: a;
+{#E}ApplyCont[CONT[ok¹.#[ok¹]]] → {#E}#[OK];
+
+/* `SeqMap[x c.#[x,c], #L, ok.#D[ok]]`
+    Apply each item in list #L to function #, as a continuation, passing the environment along
+ */
+∀ a b. {$String:$Any}SeqMap[x::a c::Continuation[b]. $sort[b], $List[a], ok::OK_SORT.$sort[b]] :: b ;
+{#E}SeqMap[x c.#[x, c], #list, ok¹.#done[ok¹]] → {#E}SeqMap1[OK, x c.#[x, c], #list, ok¹.#done[ok¹]];
+
+// Internal
+∀ a b. {$String:$StringEntrySort} SeqMap1[OK_SORT, x::a c::Cont[b]. $sort[b], $List[a], ok¹::OK_SORT.$sort[b]] :: b ;
+{#E}SeqMap1[OK, x c.#[x, c], ()     , ok¹.#done[ok¹]] → {#E}#done[OK];
+{#E}SeqMap1[OK, x c.#[x, c], (#1;#s), ok¹.#done[ok¹]] → {#E}#[#1, CONT[ok¹.SeqMap1[ok¹, x c.#[x, c], #s,  ok¹.#done[ok¹]]]];
+
+/* `ThenSeqMap[ok, x c.#[x,c], #L, ok.#D[ok]]`
+   Delay variant of `SeqMap`
+ */
+∀ a b. {$String:$Any}ThenSeqMap[OK_SORT, x::a c::Cont[b]. $sort[b], $List[a], ok::OK_SORT.$sort[b]] :: b ;
+{#E}ThenSeqMap[OK, x c.#[x, c], #list, ok¹.#done[ok¹]] → {#E}SeqMap[x c.#[x, c], #list, ok¹.#done[ok¹]];
+
 /* 
  * Filter 
  */
@@ -256,29 +286,8 @@ Foldr [x y. #F[x,y], #Z, ()] → #Z;
 Foldr [x y. #F[x,y], #Z, (#H; #T)] → #F[#H,Foldr[x y. #F[x,y], #Z, #T]];
 
 
-∀ a b . Fold[x::a y::b.$sort[a], a, $List[b]] :: a;
-Fold[x y.#[x, y], #x, ()]       → #x ;
-Fold[x y.#[x, y], #x, (#1; #s)] → Fold[x y.#[x, y], #[#x, #1], #s];
-
-
-∀ a.Continuation[a] ::= ( CONTINUATION[ok¹::OK_SORT.$sort[a]];  );
-
-/*
- * Sequential map: apply each item in list to function, as a continuation, 
- * passing the environment along
- */
-∀ a b. {$String:$Any}SeqMap[x::a c::Continuation[b]. $sort[b], $List[a], ok::OK_SORT.$sort[b]] :: b ;
-
-{#E}SeqMap[x c.#[x, c], #list, ok¹.#done[ok¹]] → {#E}SeqMap1[OK, x c.#[x, c], #list, ok¹.#done[ok¹]];
-
-∀ a b. {$String:$StringEntrySort} SeqMap1[OK_SORT, x::a c::Continuation[b]. $sort[b], $List[a], ok¹::OK_SORT.$sort[b]] :: b ;
-{#E}SeqMap1[OK, x c.#[x, c], ()     , ok¹.#done[ok¹]] → {#E}#done[OK];
-{#E}SeqMap1[OK, x c.#[x, c], (#1;#s), ok¹.#done[ok¹]] → {#E}#[#1, CONTINUATION[ok¹.SeqMap1[ok¹, x c.#[x, c], #s,  ok¹.#done[ok¹]]]];
-
-
-∀ a b. {$String:$Any}ThenSeqMap[OK_SORT, x::a c::Continuation[b]. $sort[b], $List[a], ok::OK_SORT.$sort[b]] :: b ;
-{#E}ThenSeqMap[OK, x c.#[x, c], #list, ok¹.#done[ok¹]] → {#E}SeqMap[x c.#[x, c], #list, ok¹.#done[ok¹]];
-
-
+//∀ a b . Fold[x::a y::b.$sort[a], a, $List[b]] :: a;
+//Fold[x y.#[x, y], #x, ()]       → #x ;
+//Fold[x y.#[x, y], #x, (#1; #s)] → Fold[x y.#[x, y], #[#x, #1], #s];
 
 )]

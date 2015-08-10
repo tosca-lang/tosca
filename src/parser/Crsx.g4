@@ -95,7 +95,7 @@ boundTerm
     ;
 
 nextBinder
-    : binder nextBinder                                     /* [CORE] */
+    : binder {openscope("x");}nextBinder<inscope='x'>{closescope("x")}                        /* [CORE] */
     | DOT freeTerm
     ;                                               
     
@@ -128,7 +128,7 @@ listItem
     ;
     
 variable                                                    /* [CORE] */
-    : linear? VARIABLE linear? functional? varsort?
+    : linear? VARIABLE<binder='x'> linear? functional? varsort?
     ;
     
 linear 

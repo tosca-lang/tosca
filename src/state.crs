@@ -186,10 +186,10 @@ AddRule3[NOCONTENTENTRY, #key, #ruleDeclaration, ok¹.#[ok¹]]
 ∀ a.{$String:$ContentEntry}
 AddDataSort[Crsx_sortDeclaration_sort, ok¹::OK_SORT.$sort[a]] :: a;
 
-{#E}AddDataSort[%sortDeclaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##forms_S1* ) ⟧, ok¹.#[ok¹]]
+{#E}AddDataSort[%sortDeclaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##form* ) ⟧, ok¹.#[ok¹]]
 →
-{#E}AddDataSort1[DataSortKey[#sortname], %sortDeclaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##forms_S1* ) ⟧, ok¹.
-    ThenSeqMap[ok¹, form cont.AddDataForm[form, #sortname, %sortDeclaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##forms_S1* ) ⟧, cont], #forms_S1*, ok¹.#[ok¹]]];
+{#E}AddDataSort1[DataSortKey[#sortname], %sortDeclaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##form* ) ⟧, ok¹.
+    ThenSeqMap[ok¹, form cont.AddDataForm[form, #sortname, %sortDeclaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##form* ) ⟧, cont], #form*, ok¹.#[ok¹]]];
 
 ∀ a.AddDataSort1[$String, Crsx_sortDeclaration_sort, ok¹::OK_SORT.$sort[a]] :: a;
 
@@ -221,34 +221,34 @@ AddDataSort3[NOCONTENTENTRY, #key, #sortDeclaration, ok¹.#[ok¹]]
 
 
 ∀ a.{$String:$ContentEntry}
-AddDataForm[Crsx_forms_S1_sort, Crsx_sortname_sort, Crsx_sortDeclaration_sort, Continuation[a]] :: a;
+AddDataForm[Crsx_form_sort, Crsx_sortname_sort, Crsx_sortDeclaration_sort, Cont[a]] :: a;
 
-{#E}AddDataForm[%forms_S1⟦ ##constructor ##arguments? ; ⟧, #sortname, #sortdecl, #CONTINUATION]
+{#E}AddDataForm[%form⟦ ##constructor ##arguments? ⟧, #sortname, #sortdecl, #CONT]
 →
-{#E}AddDataForm1[DataFormKey[#constructor], #constructor, #sortname, #sortdecl, #CONTINUATION];
+{#E}AddDataForm1[DataFormKey[#constructor], #constructor, #sortname, #sortdecl, #CONT];
 
 // TODO: indicate syntactic variable allowed in data sort.
-{#E}AddDataForm[%forms_S1⟦ ##variable ; ⟧, #sortname, #sortdecl, CONTINUATION[ok¹.#[ok¹]]]
+{#E}AddDataForm[%form⟦ ##variable ⟧, #sortname, #sortdecl, CONT[ok¹.#[ok¹]]]
 →
 {#E}#[OK];
 
 ∀ a.{$String:$ContentEntry}
-AddDataForm1[$String, Crsx_constructor_sort, Crsx_sortname_sort, Crsx_sortDeclaration_sort, Continuation[a]] :: a;
+AddDataForm1[$String, Crsx_constructor_sort, Crsx_sortname_sort, Crsx_sortDeclaration_sort, Cont[a]] :: a;
 
 -[Data[#key]]: 
-{#E}AddDataForm1[#key, #constructor, #sortname, #sortdecl, #CONTINUATION]
+{#E}AddDataForm1[#key, #constructor, #sortname, #sortdecl, #CONT]
 →
-{#E}AddDataForm2[$[{#E}Get, #key, NOCONTENTENTRY], #key, #constructor, #sortname, #sortdecl, #CONTINUATION];
+{#E}AddDataForm2[$[{#E}Get, #key, NOCONTENTENTRY], #key, #constructor, #sortname, #sortdecl, #CONT];
 
 ∀ a.{$String:$ContentEntry}
-AddDataForm2[ContentEntry, $String, Crsx_constructor_sort, Crsx_sortname_sort, Crsx_sortDeclaration_sort, Continuation[a]] :: a;
+AddDataForm2[ContentEntry, $String, Crsx_constructor_sort, Crsx_sortname_sort, Crsx_sortDeclaration_sort, Cont[a]] :: a;
 
-{#E}AddDataForm2[DATASORT[#sort], #key, %constructor⟦ ##CONSTRUCTOR1 ⟧, %sortname⟦ ##CONSTRUCTOR2 ##sortarguments? ⟧, #sortdecl, #CONTINUATION]
+{#E}AddDataForm2[DATASORT[#sort], #key, %constructor⟦ ##CONSTRUCTOR1 ⟧, %sortname⟦ ##CONSTRUCTOR2 ##sortarguments? ⟧, #sortdecl, #CONT]
 →
 $[Error, $[:, "Error: duplicate data form ", #CONSTRUCTOR1, " found in sort ", #CONSTRUCTOR2, "."]];
   
 {#E; "$qualifier":STR[#qualifier]}
-AddDataForm2[NOCONTENTENTRY, #key, #constructor, #sortname, #sortdecl, CONTINUATION[ok¹.#[ok¹]]]
+AddDataForm2[NOCONTENTENTRY, #key, #constructor, #sortname, #sortdecl, CONT[ok¹.#[ok¹]]]
 →
 {#E; #key: DATASORT[(QSORT[#qualifier, #sortdecl];)]}#[OK];
 
@@ -289,7 +289,7 @@ OutputCrsx[OK_SORT] :: Crsx_crsx_sort;
 
 {#E; "$imported": IMPORTS[#imported]}OutputCrsx[OK] 
 →
-%crsx⟦ $Lax ⟨declaration*: {#E}OutputImportDeclarations[#imported]⟩ ⟧;
+%crsx⟦ ⟨declaration*: {#E}OutputImportDeclarations[#imported]⟩ ⟧;
 
 /* Convert import declarations */
 {$String:ContentEntry}
@@ -301,7 +301,7 @@ OutputImportDeclarations[$List[$String]] :: $List[Crsx_declaration_sort];
 
 {#E}OutputImportDeclarations[(#import; #imports)]
 →
-%declaration*⟦ import module ⟨CONSTRUCTOR: #import⟩ ; ⟨declarations*: {#E}OutputImportDeclarations[#imports]⟩ ⟧;
+%declaration*⟦ import module ⟨CONSTRUCTOR: #import⟩ ; ⟨declaration*: {#E}OutputImportDeclarations[#imports]⟩ ⟧;
 
 /* Convert import grammar declarations */
 {$String:ContentEntry}
@@ -313,7 +313,7 @@ OutputImportGrammarDeclarations[$List[$String]] :: $List[Crsx_declaration_sort];
 
 {#E}OutputImportGrammarDeclarations[(#import; #imports)]
 →
-%declaration*⟦ import grammar ⟨CONSTRUCTOR: #import⟩ ; ⟨declarations*: {#E}OutputImportGrammarDeclarations[#imports]⟩ ⟧;
+%declaration*⟦ import grammar ⟨CONSTRUCTOR: #import⟩ ; ⟨declaration*: {#E}OutputImportGrammarDeclarations[#imports]⟩ ⟧;
 
 {$String:ContentEntry}
 OutputDataDeclarations[$List[$String]] :: $List[Crsx_declarations_sort];
@@ -334,7 +334,7 @@ OutputDataDeclarationsForKey[$List[QualifiedSort], $List[$String]] :: $List[Crsx
 
 {#E}OutputDataDeclarationsForKey[(QSORT[#qualifier, #sort]; #qsorts), #keys]
 → 
-%declaration*⟦ ⟨sortDeclaration: #sort⟩ ⟨declaration*: {#E}OutputDataDeclarationsForKey[#qsorts, #keys]⟩ ⟧;
+%declaration*⟦ ⟨sortDeclaration: #sort⟩ ; ⟨declaration*: {#E}OutputDataDeclarationsForKey[#qsorts, #keys]⟩ ⟧;
 
 {$String:ContentEntry}
 OutputFuncDeclarations[$List[$String]] :: $List[Crsx_declaration_sort];
@@ -351,7 +351,7 @@ OutputFuncDeclaration[Crsx_sortDeclaration_sort, $List[$String]] :: $List[Crsx_d
 
 {#E}OutputFuncDeclaration[#sort, #keys]
 → 
-%declaration*⟦ ⟨sortDeclaration: #sort⟩ ⟨declaration*: {#E}OutputFuncDeclarations[#keys]⟩ ⟧;
+%declaration*⟦ ⟨sortDeclaration: #sort⟩ ; ⟨declaration*: {#E}OutputFuncDeclarations[#keys]⟩ ⟧;
 
 {$String:ContentEntry}
 OutputRuleDeclarations[$List[$String]] :: $List[Crsx_declarations_S1_sort];
@@ -371,6 +371,6 @@ OutputRuleDeclarationsForKey[$List[Crsx_ruleDeclaration_sort], $List[$String]] :
 
 {#E}OutputRuleDeclarationsForKey[(#rule; #rules), #keys]
 → 
-%declaration*⟦ ⟨ruleDeclaration: #rule⟩ ⟨declaration*: {#E}OutputRuleDeclarationsForKey[#rules, #keys]⟩ ⟧;
+%declaration*⟦ ⟨ruleDeclaration: #rule⟩ ; ⟨declaration*: {#E}OutputRuleDeclarationsForKey[#rules, #keys]⟩ ⟧;
 
 )]
