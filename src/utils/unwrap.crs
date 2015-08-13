@@ -32,6 +32,22 @@ UnwrapArgumentsHelper[Crsx_terms_S1_sort] :: Crsx_term_sort;
 UnwrapArgumentsHelper[%terms_S1⟦ , ##term ⟧ ] → #term;
 
 
+/* UnwrapFreeArguments
+   @param `args`  a list of freeArguments
+   @return `ts` a list of terms
+   transforms the arguments of a meta variable to a list of terms
+*/
+UnwrapFreeArguments[$List[Crsx_freeArguments_sort]] :: $List[Crsx_term_sort];
+UnwrapFreeArguments[%freeArguments?⟦                 ⟧] → ();
+UnwrapFreeArguments[%freeArguments?⟦ [             ] ⟧] → ();
+UnwrapFreeArguments[%freeArguments?⟦ [ ##freeTerms ] ⟧] 
+→  
+Map[x.UnwrapFreeArgumentsHelper[x], DesugarFreeTerms[#freeTerms]];
+
+UnwrapFreeArgumentsHelper[Crsx_freeTerms_S1_sort] :: Crsx_term_sort; 
+UnwrapFreeArgumentsHelper[%freeTerms_S1⟦ , ##freeTerm ⟧] → %term⟦ ##freeTerm ⟧;
+
+
 /* UnwrapMetaVariableArguments
    @param `args`  a list of freeArguments
    @return `vars` a list of variables
@@ -45,6 +61,7 @@ UnwrapMetaVariableArguments[%freeArguments?⟦ [ ##freeTerms ] ⟧]
 →  
 Map[x.UnwrapMetaVariableArgumentsHelper[x], DesugarFreeTerms[#freeTerms]];
 
+UnwrapMetaVariableArgumentsHelper[Crsx_freeTerms_S1_sort] :: Crsx_variable_sort; 
 UnwrapMetaVariableArgumentsHelper[%freeTerms_S1⟦ , ##annotations? ##variable ⟧] → #variable;
 //TODO: Somehow assert fails if this is present... 
 //-[Fallback] :

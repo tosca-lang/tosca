@@ -9,24 +9,31 @@
 
 (
 
-Assert[ Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )],
-        FlexRigid[Mgu[()], "#X" ,(), %term⟦ A ⟧]
+Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )],0],
+        FlexRigid[State[Mgu[()],0], "#X" ,(), %term⟦ A ⟧]
       ]; 
 
-Assert[ Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧]; )],
-        FlexRigid[Mgu[()], "#X" ,(), %term⟦ F[A,B] ⟧]
+Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧]; )],0],
+        FlexRigid[State[Mgu[()],0], "#X" ,(), %term⟦ F[A,B] ⟧]
       ]; 
 
-Assert[ Mgu[( PairCons[ "#X",  %term⟦ x.F[A] ⟧]; )],
-        FlexRigid[Mgu[()], "#X" ,(%variable⟦ x ⟧;), %term⟦ F[A] ⟧]
+Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ x.F[A] ⟧]; )],0],
+        FlexRigid[State[Mgu[()],0], "#X" ,(%variable⟦ x ⟧;), %term⟦ F[A] ⟧]
       ]; 
 
-Assert[ Mgu[( PairCons[ "#X",  %term⟦ x.F[A,B] ⟧]; )],
-        FlexRigid[Mgu[()], "#X" ,(%variable⟦ x ⟧;), %term⟦ F[A,B] ⟧]
+Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ x.F[A,B] ⟧]; )],0],
+        FlexRigid[State[Mgu[()],0], "#X" ,(%variable⟦ x ⟧;), %term⟦ F[A,B] ⟧]
       ]; 
 
-Assert[ Mgu[( PairCons[ "#X",  %term⟦ x y .F[y,x] ⟧]; )],
-        FlexRigid[Mgu[()], "#X" ,(%variable⟦ x ⟧; %variable⟦ y ⟧;), %term⟦ F[y,x] ⟧]
+Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ x y .F[y,x] ⟧]; )],0],
+        FlexRigid[State[Mgu[()],0], "#X" ,(%variable⟦ x ⟧; %variable⟦ y ⟧;), %term⟦ F[y,x] ⟧]
       ]; 
 
+Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ x y .F[y,x] ⟧]; )],0],
+        FlexRigid[State[Mgu[()],0], "#X" ,(%variable⟦ x ⟧; %variable⟦ y ⟧;), %term⟦ F[y,x] ⟧]
+      ]; 
+
+Assert[ State[Mgu[( PairCons[ "#G",  %term⟦ y x . #1[x] ⟧]; PairCons[ "#0", %term⟦ x.#1[x] ⟧];  PairCons[ "#F",  %term⟦ x . C[#1[x]] ⟧]; )], 2],
+        FlexRigid[State[Mgu[()], 0], "#F" ,(%variable⟦ x ⟧; ), %term⟦ C[#G[y,x]] ⟧]
+      ]; 
 )

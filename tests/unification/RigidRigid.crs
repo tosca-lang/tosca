@@ -8,20 +8,20 @@
 
 (
 
-Assert[ FAIL,
-        RigidRigid[ Mgu[()], %constructor ⟦ A ⟧, (), %constructor ⟦ B ⟧, ()]
+Assert[ State[FAIL,0],
+        RigidRigid[ State[Mgu[()],0], %constructor ⟦ A ⟧, (), %constructor ⟦ B ⟧, ()]
 ];
 
-Assert[ FAIL,
-        RigidRigid[ Mgu[()], %constructor ⟦ F ⟧, (%term ⟦ A ⟧;), %constructor ⟦ F ⟧, (%term ⟦ B ⟧;)]
+Assert[ State[FAIL,0],
+        RigidRigid[ State[Mgu[()],0], %constructor ⟦ F ⟧, (%term ⟦ A ⟧;), %constructor ⟦ F ⟧, (%term ⟦ B ⟧;)]
 ];
 
-Assert[ FAIL,
-        RigidRigid[ Mgu[()], %constructor ⟦ F ⟧, (%term ⟦ A ⟧;%term ⟦ B ⟧;), %constructor ⟦ F ⟧, (%term ⟦ B ⟧;%term ⟦ A ⟧;)]
+Assert[ State[FAIL,0],
+        RigidRigid[ State[Mgu[()],0], %constructor ⟦ F ⟧, (%term ⟦ A ⟧;%term ⟦ B ⟧;), %constructor ⟦ F ⟧, (%term ⟦ B ⟧;%term ⟦ A ⟧;)]
 ];
 
-Assert[ FAIL,
-        RigidRigid[ Mgu[()], %constructor ⟦ F ⟧, (%term ⟦ A ⟧;), %constructor ⟦ A ⟧, ()]
+Assert[ State[FAIL,0],
+        RigidRigid[ State[Mgu[()],0], %constructor ⟦ F ⟧, (%term ⟦ A ⟧;), %constructor ⟦ A ⟧, ()]
 ];
 
 

@@ -11,17 +11,35 @@ $Lax;
 $Use["std/list.crs"];
 $Use["crsxutils.crs"];
 $Use["utils/crsxequs.crs"];
-
 $Use["utils/wrap.crs"];
 $Use["utils/unwrap.crs"];
 
 
-∀ a b . Let[ a , x :: a . $sort[b]] :: b;
--[Copy[#X]] :
-Let[#X,x.#F[x]] → #F[#X];
+STATE ::= ( State[ Mgu, $Numeric]; );
 
-FRESH_METAVAR :: $String;
--[Fresh[x :: $String ]] : FRESH_METAVAR → $[:,"#",$[Show,x]];
+INIT_STATE :: STATE;
+INIT_STATE → State[Mgu[()] ,0];
+
+GetCounter[STATE] :: $Numeric;
+GetCounter[ State[#mgu, #c] ] → #c;
+
+IncreaseCounter[STATE] :: STATE;
+IncreaseCounter[State[#mgu, #c]]  → State[#mgu, NumberPlus[#c,1]];
+
+GetMgu[STATE] :: Mgu;
+GetMgu[ State[#mgu, #c] ] → #mgu;
+
+UpdateMgu[STATE,  x :: Mgu . Mgu ] :: STATE; 
+UpdateMgu[ State[ #theta, #c ] , x.#F[x]] → State[ #F[#theta], #c] ;
+
+//∀ a b . Let[ a , x :: a . $sort[b]] :: b;
+//-[Copy[#X]] :
+//Let[#X,x.#F[x]] → #F[#X];
+
+FRESH_METAVAR[STATE] :: Pair[STATE, $String];
+FRESH_METAVAR[ #state ] 
+→ 
+PairCons[IncreaseCounter[#state],ConcatString["#",Show[GetCounter[#state]]]];
 
 // renames #t1 wrt #t2 s.t. MetaVar(t1) disjoint MetaVar(t2)
 Rename [ Pair[Crsx_term_sort, Crsx_term_sort]] :: Crsx_term_sort;

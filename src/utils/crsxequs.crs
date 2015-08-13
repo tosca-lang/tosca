@@ -50,5 +50,4 @@ VariableEqual[%variable ⟦ ##VARIABLE ##linear? ##functional? ##varsort?⟧, %v
 → 
 StringEqual[#VARIABLE, #VARIABLE2];
 
-
 )]

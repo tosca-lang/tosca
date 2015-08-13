@@ -9,56 +9,71 @@
 
 (
 
-Assert[ Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )],
-        Unify[Mgu[()], PairCons[ %term ⟦ #X ⟧ , %term⟦ A ⟧]]
+Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )],0],
+        Unify[State[Mgu[()],0], PairCons[ %term ⟦ #X ⟧ , %term⟦ A ⟧]]
       ]; 
 
-Assert[ Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧]; )],
-        Unify[Mgu[()], PairCons[ %term ⟦ #X ⟧ , %term⟦ F[A,B] ⟧]]
+Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧]; )],0],
+        Unify[State[Mgu[()],0], PairCons[ %term ⟦ #X ⟧ , %term⟦ F[A,B] ⟧]]
       ];
 
-Assert[ Mgu[( PairCons[ "#X",  %term⟦ x.F[x] ⟧]; )],
-        Unify[Mgu[()], PairCons[ %term ⟦ #X[x] ⟧ ,%term⟦ F[x] ⟧]]
+Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ x.F[x] ⟧]; )],0],
+        Unify[State[Mgu[()],0], PairCons[ %term ⟦ #X[x] ⟧ ,%term⟦ F[x] ⟧]]
       ]; 
 
-Assert[ Mgu[( PairCons[ "#X",  %term⟦ x y.F[x] ⟧]; )],
-        Unify[Mgu[()], PairCons[ %term ⟦ #X[x,y] ⟧ ,%term⟦ F[x] ⟧]]
+Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ x y.F[x] ⟧]; )],0],
+        Unify[State[Mgu[()],0], PairCons[ %term ⟦ #X[x,y] ⟧ ,%term⟦ F[x] ⟧]]
       ]; 
 
-Assert[ Mgu[( PairCons[ "#X",  %term⟦ x y .F[y,x] ⟧]; )],
-        Unify[Mgu[()], PairCons[ %term ⟦ #X[x,y] ⟧ , %term⟦ F[y,x] ⟧]]
+Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ x y .F[y,x] ⟧]; )],0],
+        Unify[State[Mgu[()],0], PairCons[ %term ⟦ #X[x,y] ⟧ , %term⟦ F[y,x] ⟧]]
       ]; 
 
-Assert[ FAIL,
-        Unify[Mgu[()], PairCons[ %term ⟦ x y.#X[x,y] ⟧ , %term⟦ Plus[0,0] ⟧]]
+Assert[ State[FAIL,0],
+        Unify[State[Mgu[()],0], PairCons[ %term ⟦ x y.#X[x,y] ⟧ , %term⟦ Plus[0,0] ⟧]]
+      ]; 
+
+Assert[ State[FAIL,0],
+        Unify[State[Mgu[()],0], PairCons[ %term ⟦ #X[x,y] ⟧ , %term⟦ x.Plus[0,0] ⟧]]
       ]; 
 
 // bound terms
 
-Assert[ FAIL, //figure out solution
-        Unify[Mgu[()], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  x .#G[x]  ⟧]]
+Assert[ TRUE,
+        Let[ GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x. #F[x] ⟧ , %term⟦  x . #G[x]  ⟧]]], 
+             mgu. Cons[ ApplySubst[mgu,%term ⟦ x .#F[x] ⟧], ApplySubst[mgu, %term⟦ x. #G[x] ⟧]]] 
       ]; 
 
-Assert[ FAIL, //figure out solution
-        Unify[Mgu[()], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  y .#G[y]  ⟧]]
+Assert[ TRUE, 
+        Let[GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x y.#F[x,y] ⟧ , %term⟦  x y.#G[y,x]  ⟧]]],
+            mgu. F[ ApplySubst[mgu,%term ⟦ x y.#F[x,y] ⟧] , ApplySubst[mgu, %term⟦  x y.#G[y,x]  ⟧] ]]
       ]; 
 
-Assert[ FAIL, //figure out solution
-        Unify[Mgu[()], PairCons[ %term ⟦ x y.#F[x,y] ⟧ , %term⟦  y x.#G[y,x]  ⟧]]
+
+/*
+//alpha equv...
+Assert[ TRUE, 
+        Let[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  y .#G[y]  ⟧]],
+            mgu. Eq[ ApplySubst[mgu,%term ⟦ x .#F[x] ⟧], ApplySubst[mgu, %term⟦ y. #G[y] ⟧]] 
+            ]
       ]; 
 
-Assert[ Mgu[(PairCons["#F", %term ⟦ y.#G[x] ⟧ ];)] , //figure out solution
-        Unify[Mgu[()], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  x y.#G[x]  ⟧]]
-      ]; 
 
 // Nipkows Bsp
-Assert[ //TRUE,
-        Let[Unify[ %term⟦ x y .#F[x] ⟧, %term⟦ x y.C[#G[y,x]] ⟧],
-        mgu. Eq[ ApplySubst[mgu,%term ⟦ x y .#F[x] ⟧], ApplySubst[mgu, %term⟦ x y .C[#G[y,x]] ⟧ ]] ] 
-       ];
 
-// renaming
+Assert[ State[ ( PairCons["#G", %term⟦ y x.#1[x] ⟧]; PairCons["#0", %term⟦ x.#1[x] ⟧]; PairCons["#F", %term⟦ x.C[#1[x]] ⟧];),2] ,
+        Unify[State[Mgu[()],0], PairCons[ %term⟦ x y . #F[x] ⟧, %term⟦ x y. C[#G[y,x]] ⟧ ]]  ];
+
+
+
+
+
+// renaming 
+/*
 Assert[ FAIL, // here we do not have distinct meta variables!
-       Unify[ Mgu[()], PairCons[%term⟦ F[#X,#Y] ⟧, %term⟦ F[#Y,#X] ⟧] ]
+       Unify[ State[Mgu[()],0], PairCons[%term⟦ F[#X,#Y] ⟧, %term⟦ F[#Y,#X] ⟧] ]
       ]; 
+
+*/
+ 
 )

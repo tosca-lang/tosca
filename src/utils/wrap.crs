@@ -35,22 +35,6 @@ WrapArgumentsHelper[ Crsx_term_sort] :: Crsx_terms_S1_sort;
 WrapArgumentsHelper[ #term ] → %terms_S1⟦ , ##term⟧ ;
 
 
-/* WrapFreeArguments
-   @param `ts`    a list of freeTerms
-   @return `args` a (singleton) list of arguments
-   transforms a list of freeTerms `ts` into Freearguments `args` 
-*/
-WrapFreeArguments[$List[Crsx_freeTerm_sort]] :: $List[Crsx_freeArguments_sort]; 
-WrapFreeArguments[()]            →  ();
-WrapFreeArguments[(#freeTerm ;)] → (%freeArguments⟦ [ ##freeTerm ] ⟧;); 
-WrapFreeArguments[(#freeTerm;#freeTerms)] 
-→ 
-(%freeArguments⟦ [ ⟨freeTerms: %freeTerms⟦ ##freeTerm  ⟨freeTerms_S1*: Map[ x.WrapFreeArgumentsHelper[x], #freeTerms]⟩ ⟧ ⟩ ] ⟧ ;);
-
-WrapFreeArgumentsHelper[ Crsx_freeTerm_sort] :: Crsx_freeTerms_S1_sort;
-WrapFreeArgumentsHelper[ #freeTerm ] → %freeTerms_S1 ⟦ , ##freeTerm⟧ ;
-
-
 /*  WrapBoundTerm
     @param  `vs`     list of variables
     @param  `t`      a term
@@ -91,6 +75,36 @@ WrapNextBinder[#variable, #nextBinder]
 */
 WrapBinder[Crsx_variable_sort] :: Crsx_binder_sort;
 WrapBinder[#variable] → %binder ⟦ ##variable ⟧ ;
+
+
+
+/* WrapFreeArguments
+   @param `ts`    a list of freeTerms
+   @return `args` a (singleton) list of arguments
+   transforms a list of freeTerms `ts` into freeArguments `args` 
+*/
+WrapFreeArguments[$List[Crsx_freeTerm_sort]] :: $List[Crsx_freeArguments_sort]; 
+WrapFreeArguments[()]            →  ();
+WrapFreeArguments[(#freeTerm ;)] → (%freeArguments⟦ [ ##freeTerm ] ⟧;); 
+WrapFreeArguments[(#freeTerm;#freeTerms)] 
+→ 
+(%freeArguments⟦ [ ⟨freeTerms: %freeTerms⟦ ##freeTerm  ⟨freeTerms_S1*: Map[ x.WrapFreeArgumentsHelper[x], #freeTerms]⟩ ⟧ ⟩ ] ⟧ ;);
+
+WrapFreeArgumentsHelper[ Crsx_freeTerm_sort] :: Crsx_freeTerms_S1_sort;
+WrapFreeArgumentsHelper[ #freeTerm ] → %freeTerms_S1 ⟦ , ##freeTerm⟧ ;
+
+//todo
+
+WrapFreeArguments2[$List[Crsx_term_sort]] :: $List[Crsx_freeArguments_sort]; 
+WrapFreeArguments2[()]            →  ();
+WrapFreeArguments2[( %term⟦ ##freeTerm ⟧ ;)] → (%freeArguments⟦ [ ##freeTerm ] ⟧;); 
+WrapFreeArguments2[( %term⟦ ##freeTerm ⟧ ;#freeTerms)] 
+→ 
+(%freeArguments⟦ [ ⟨freeTerms: %freeTerms⟦ ##freeTerm  ⟨freeTerms_S1*: Map[ x.WrapFreeArgumentsHelper2[x], #freeTerms]⟩ ⟧ ⟩ ] ⟧ ;);
+
+WrapFreeArgumentsHelper2[ Crsx_term_sort] :: Crsx_freeTerms_S1_sort;
+WrapFreeArgumentsHelper2[ %term⟦ ##freeTerm ⟧ ] → %freeTerms_S1 ⟦ , ##freeTerm⟧ ;
+
 
 
 /*  WrapNextBinder
