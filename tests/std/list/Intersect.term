@@ -17,15 +17,28 @@ Assert[ (),
         Intersect[(5;),(1;2;)]
       ];
 
-Assert[ (a;),
+Assert[ (a;a;),
         Intersect[(a;a;),(a;b;)]
       ];
 
-Assert[ (a;),
+Assert[ (a;a;),
         Intersect[(a;a;),(a;a;b;)]
       ];
 
-Assert[ (a;),
+Assert[ (a;a;),
         Intersect[(a;a;),(a;a;)]
       ];
+
+Assert[ (x; y;),
+        Intersect[(x;y;),(y;x;)]
+      ];
+
+Assert[ (x; y;),
+        Intersect[(x;y;),(y;x;)]
+      ];
+
+Assert[ (x; y;),
+        Intersect[(x;y;),(y;y;x;)]
+      ];
+
 )

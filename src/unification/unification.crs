@@ -185,6 +185,8 @@ FlexRigid[#state, #F, #xs, #t]
    @param  metavariable `#G`  = root(`t2`) ∈ METAVARS
    @param  arguments    `#ys` = args(`t2`)
    @return a state with an updated mgu `θ'`
+   @note   careful, the order of the arguments depend on 
+           the definition of Intersect
 */
 FlexFlex[STATE, $String /* Crsx_METAVAR_sort */, $List[Crsx_variable_sort], $String /* Crsx_METAVAR_sort */, $List[Crsx_variable_sort]] :: STATE;
 FlexFlex[#state, #F, #xs, #G, #ys ] 

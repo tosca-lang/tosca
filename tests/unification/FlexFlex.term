@@ -23,6 +23,8 @@ Assert[ State[ Mgu[(PairCons["#G", %term⟦ y x.#1[x] ⟧]; PairCons["#0", %term
                ]
       ];
 
-
+Assert[ State[Mgu[( PairCons["#G", %term⟦ y x.#0[x,y] ⟧]; PairCons["#F", %term⟦ x y.#0[x,y] ⟧]; )],1],
+        FlexFlex[State[Mgu[()] ,0],"#F", ( %variable⟦ x ⟧ ; %variable⟦ y ⟧ ;), "#G", ( %variable⟦ y ⟧ ; %variable⟦ x ⟧ ;) ]
+      ];
 
 )

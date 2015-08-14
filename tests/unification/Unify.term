@@ -46,7 +46,7 @@ Assert[ TRUE,
 
 Assert[ TRUE, 
         Let[GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x y.#F[x,y] ⟧ , %term⟦  x y.#G[y,x]  ⟧]]],
-            mgu. F[ ApplySubst[mgu,%term ⟦ x y.#F[x,y] ⟧] , ApplySubst[mgu, %term⟦  x y.#G[y,x]  ⟧] ]]
+            mgu. Cons[ ApplySubst[mgu,%term ⟦ x y.#F[x,y] ⟧] , ApplySubst[mgu, %term⟦  x y.#G[y,x]  ⟧] ]]
       ]; 
 
 

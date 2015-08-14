@@ -65,7 +65,7 @@ Assert[ State[Mgu[(PairCons["#F", %term⟦ x y.#0[x] ⟧];)], 1] ,
 
 
 Assert[ State[Mgu[(PairCons["#F", %term⟦ x y.#0[x,y] ⟧];)], 1] ,
-        Proj[State[Mgu[()] ,0], ( %variable⟦ y ⟧; %variable⟦ x ⟧;  ), %term⟦ #F[x,y] ⟧]
+        Proj[State[Mgu[()] ,0], ( %variable⟦ x ⟧; %variable⟦ y ⟧;  ), %term⟦ #F[x,y] ⟧]
       ];
 
 )

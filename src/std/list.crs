@@ -106,10 +106,11 @@ Length[#XS] → IWrapFoldlP[x y.NumberPlus[1,y],0,#XS];
    @param  `#XS` list
    @param  `#YS` list
    @return the intersection of `#XS` and `#YS`
-   @note   treats lists as sets, and removes duplicate values.
+   @note   if the first list contains duplicates, the resulting list will as well
+           but not vice versa
 */
 ∀ a . Intersect[$List[a], $List[a]] :: $List[a];
-Intersect[#xs, #ys] → FoldlP[x y.ConditionalInsert[And[Elem[x,#ys], Not[Elem[x,y]]],x,y],(),#xs] ;
+Intersect[#xs, #ys] → Foldr[x zs.ConditionalInsert[Elem[x,#ys],x,zs],(),#xs] ;
 
 /* 
  * Zip
