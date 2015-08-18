@@ -7,13 +7,13 @@
 
 Unification [(
 
-//$Lax;
-
 $Use["std/core.crs"];
 $Use["std/list.crs"];
 $Use["std/pair.crs"];
-$Use["unification/extension.crs"];
+
 $Use["unification/mgu.crs"];
+$Use["unification/state.crs"];
+$Use["utils/termops.crs"];
 
 
 /* UnifyPattern 
@@ -26,10 +26,15 @@ $Use["unification/mgu.crs"];
           because a pattern is not a term
           to surpass a potentially futile UnwrapArguments, the equality of the 
           constructors is checked immediately.
+  @note   due to renaming the name of the meta variables will change, meaning
+          that the original patterns will not have the same meta variable names 
+          as the computed mgu. 
+          Fixes: 
+          * apply rename *function* to term
+          * compute a renaming mgu and apply it on the computed mgu 
   @note   Assumptions
           Assumption 1: alpha equivalent, e.g., x.x ≈ y.y 
           Assumption 2: linear patterns
-          Assumption 3: meta variable disjoint
 */
 UnifyPattern[Crsx_pattern_sort, Crsx_pattern_sort] :: STATE;
 -[Discard[#properties?, #properties?2]] :
@@ -44,8 +49,13 @@ MatchUnifyPattern[ConstructorEqual[#constructor,#constructor2], #constructor, #a
 
   MatchUnifyPattern[TRUE,  #constructor, #arguments?, #constructor2, #arguments?2 ] 
   →
+  UnifyPreproc[ Rename["_1", %term⟦  ##constructor  ##arguments?  ⟧],
+                Rename["_2", %term⟦  ##constructor2 ##arguments?2 ⟧]];
+  UnifyPreproc[ Crsx_term_sort, Crsx_term_sort] :: STATE;
+  UnifyPreproc[ %term⟦ ##constructor  ##arguments?  ⟧,
+                %term⟦ ##constructor2 ##arguments?2 ⟧
+              ] →
   RigidRigid[INIT_STATE, #constructor , UnwrapArguments[#arguments?], #constructor2, UnwrapArguments[#arguments?2]];
-
 
 /* Unify 
   @param  a state with an mgu `θ`
@@ -141,6 +151,23 @@ MatchVariableCase[VariableEqual[#variable, #variable2], #state];
   MatchVariableCase[TRUE,  #state] → #state;
   MatchVariableCase[FALSE, #state] → UpdateMgu[#state, x.FAIL];
 
+/* cases due to CRSX grammar */
+
+/* case literal, number or string       */
+/* literals are treated as constructors */
+Cases[#state, %term⟦##annotations?  ##properties?  ##NUMBER  ⟧,
+              %term⟦##annotations?2 ##properties?2 ##NUMBER2 ⟧]
+→ 
+MatchLiteral[StringEqual[#NUMBER, #NUMBER2],#state];
+
+Cases[#state, %term⟦##annotations?  ##properties?  ##STRING  ⟧,
+              %term⟦##annotations?2 ##properties?2 ##STRING2 ⟧]
+→ 
+MatchLiteral[StringEqual[#STRING, #STRING2], #state];
+  MatchLiteral[Boolean, STATE] :: STATE;
+  MatchLiteral[TRUE,  #state] → #state;
+  MatchLiteral[FALSE, #state] → UpdateMgu[#state, x.FAIL];
+
 
 /* *********************************************************** */
 
@@ -189,6 +216,7 @@ FlexRigid[#state, #F, #xs, #t]
            the definition of Intersect
 */
 FlexFlex[STATE, $String /* Crsx_METAVAR_sort */, $List[Crsx_variable_sort], $String /* Crsx_METAVAR_sort */, $List[Crsx_variable_sort]] :: STATE;
+-[Data[#xs, #ys]]: //intersect
 FlexFlex[#state, #F, #xs, #G, #ys ] 
 →  /* If[Eq[#F,#G], FlexFlex1[...], ... linear */
   FlexFlex2[#state, #F, #xs, #G, #ys];
@@ -230,6 +258,6 @@ Case[#state,#V, %term⟦ ##annotations? ##variable ⟧]
 Case[#state,#V, %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧]
 → CaseHelper[FRESH_METAVAR[#state], #V, #METAVAR, UnwrapMetaVariableArguments[#freeArguments?]];
   CaseHelper[Pair[STATE, $String /* Crsx_METAVAR */],  $List[Crsx_variable_sort], $String /* Crsx_METAVAR */, $List[Crsx_variable_sort]] :: STATE;
-  CaseHelper[PairCons[#state, #fresh], #V, #METAVAR, #ys] → Circ[#state, #METAVAR, WrapSubstitute[ #ys, #fresh, Intersect[#V,#ys]]];
+  CaseHelper[PairCons[#state, #fresh], #V, #METAVAR, #ys] → Circ[#state, #METAVAR, WrapSubstitute[ #ys, #fresh, Intersect[#ys,#V]]];
 
 )]

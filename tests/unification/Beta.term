@@ -7,34 +7,34 @@
 
 (
 Assert[ %term⟦ x ⟧,
-        Beta[ %term⟦ x ⟧, () ] 
+        BetaDev[ %term⟦ x ⟧, () ] 
       ]; 
 
 Assert[ %term⟦ F[y] ⟧,
-        Beta[ %term⟦ x.F[x] ⟧, ( %variable ⟦ y ⟧ ;) ] 
+        BetaDev[ %term⟦ x.F[x] ⟧, ( %variable ⟦ y ⟧ ;) ] 
       ]; 
 
 Assert[ %term⟦ F[x,y] ⟧,
-        Beta[ %term⟦ x y.F[x,y] ⟧, ( %variable ⟦ x ⟧ ; %variable ⟦ y ⟧ ;) ] 
+        BetaDev[ %term⟦ x y.F[x,y] ⟧, ( %variable ⟦ x ⟧ ; %variable ⟦ y ⟧ ;) ] 
       ]; 
 
 Assert[ %term⟦ F[y,x] ⟧,
-        Beta[ %term⟦ x y.F[x,y] ⟧, ( %variable ⟦ y ⟧ ; %variable ⟦ x ⟧ ;) ] 
+        BetaDev[ %term⟦ x y.F[x,y] ⟧, ( %variable ⟦ y ⟧ ; %variable ⟦ x ⟧ ;) ] 
       ]; 
 
 Assert[ %term⟦ y. #X[z] ⟧,
-        Beta[ %term⟦ x y.#X[x] ⟧, ( %variable ⟦ z ⟧ ;) ] 
+        BetaDev[ %term⟦ x y.#X[x] ⟧, ( %variable ⟦ z ⟧ ;) ] 
       ]; 
 
 /* Expected Error
 Assert[ Error,
-        Beta[ %term⟦ #X[x] ⟧, ( %variable ⟦ z ⟧ ;) ] 
+        BetaDev[ %term⟦ #X[x] ⟧, ( %variable ⟦ z ⟧ ;) ] 
 ];
 */
 
 /* Expected Error
 Assert[ Error,
-        Beta[ %term⟦ x. #X[x] ⟧, ( %variable ⟦ z ⟧ ; %variable ⟦ y ⟧ ;) ] 
+        BetaDev[ %term⟦ x. #X[x] ⟧, ( %variable ⟦ z ⟧ ; %variable ⟦ y ⟧ ;) ] 
 ];
 */
 

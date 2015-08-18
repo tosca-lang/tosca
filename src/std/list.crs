@@ -136,6 +136,15 @@ Zip[(#X;#XS), (#Y;#YS) ] → ( PairCons[#X,#Y] ; Zip[#XS,#YS]);
 ∀ a b. LookUp[a, $List[Pair[a,b]]] :: $List[b];
 LookUp[ #Key, #KeyValueList] → Map[ x.Snd[x], Filter[pair.Eq[#Key, Fst[pair]], #KeyValueList]];
 
+/* DelEntry
+   @param  `#Key`          of the key-value pairs to delete
+   @param  #KeyValueList` the key-value pairs
+   @return a list of `#KeyValueList`, where all entries with `#Key` are deleted
+ */
+∀ a b . DelEntry[ a , $List[Pair[a,b]] ] ::  $List[Pair[a,b]] ;
+DelEntry[#Key, #KeyValueList] → Filter[ pair. Not[Eq[Fst[pair], #Key]], #KeyValueList];
+
+
 /* 
  * Map  
  */

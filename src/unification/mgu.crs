@@ -10,33 +10,54 @@ Mgu [(
 $Use["std/core.crs"];
 $Use["std/list.crs"];
 $Use["std/pair.crs"];
-$Use["unification/extension.crs"];
+
+$Use["unification/state.crs"];
+$Use["utils/termops.crs"];
 
 
-/*  */
-Mgu ::=  ( Mgu[$List[Pair[$String,Crsx_term_sort]]]; FAIL; );
+/* Mgu
+   is either a most general unifier, or, FAIL, if no mgu can be found
+ */
+Mgu ::=  ( Mgu[ $List[ Pair[ $String, /* Crsx_METAVAR_sort */
+                             Crsx_term_sort   
+                           ]]]; 
+           FAIL; );
 
 /* Circ
-   @param  `θ` mgu 
-   @param  `t1`
-   @param  `t2`
-   @return `FAIL` iff `θ`= `FAIL`, inserts `Pair[t1,t2]` in the mgu `θ` otherwise
+   @param  `θ`     a mgu 
+   @param  `#X`    a meta variable
+   @param  `#term` a term
+   @return `FAIL` iff `θ`= `FAIL`, 
+            updates `θ`  by inserting `Pair[#X,term]`
+            and applying `Mgu[(Pair[#X,term];)]` on the codomain of `θ` 
 */
 Circ[STATE, $String /* Crsx_METAVAR_sort */,Crsx_term_sort] :: STATE ;
-Circ[#state, #X, #t ] → UpdateMgu[#state, x.CircHelper[x,#X,#t]];
+Circ[#state, #X, #term] → UpdateMgu[ UpdateMgu[#state, mgu.ApplyOnCodomains[ Mgu[(PairCons[#X, #term];)], mgu]], 
+                                     mgu.MguInsert[PairCons[#X, #term], mgu]];
 
-CircHelper[Mgu , $String, Crsx_term_sort] :: Mgu;
-CircHelper[FAIL, #X, #t] → FAIL;
-CircHelper[Mgu[#theta], #X, #t] → Mgu[ApplyOnRHSandInsert[ PairCons[#X,#t], #theta]]; 
+  /* ApplyOnRHSs
+     @param  `ψ` a mgu 
+     @param  `θ` a mgu
+     @return  a new mgu `θ'` where `ψ` has been applied to the codomain of `θ`
+  */
+  ApplyOnCodomains[Mgu, Mgu] :: Mgu; 
+  ApplyOnCodomains[#_ ,      FAIL ]       → FAIL;
+  ApplyOnCodomains[#psi, Mgu[#theta]] →  Mgu[ Map[ mguItem . ApplyOnCodomain[#psi, mguItem], #theta]]; 
+    /* application on single entry of codomain */
+    ApplyOnCodomain[Mgu, Pair[$String /* Crsx_METAVAR_sort */, Crsx_term_sort]] :: Pair[$String /* Crsx_METAVAR_sort */, Crsx_term_sort];
+    ApplyOnCodomain[#newPairMgu, PairCons[#X,#RHS]] →  PairCons[#X, ApplySubst[#newPairMgu,#RHS]];
 
-ApplyOnRHSandInsert[Pair[$String /* Crsx_METAVAR_sort */,Crsx_term_sort], $List[Pair[$String /* Crsx_METAVAR_sort */,Crsx_term_sort]]] :: $List[Pair[$String /* Crsx_METAVAR_sort */,Crsx_term_sort]]; 
-ApplyOnRHSandInsert[ #newThing, #theta] → Insert[#newThing, ApplyOnRHS[#newThing, #theta]];
+  /* MguInsert
+     @param  `#pair` a pair of meta variable and term
+     @param  `θ`    a mgu
+     @return a new mgu `θ'` where `#pair` has been inserted 
+  */
+  MguInsert[Pair[$String /* Crsx_METAVAR_sort */, Crsx_term_sort], Mgu] :: Mgu;
+  MguInsert[ #_     , FAIL       ] → FAIL;
+  MguInsert[#pair, Mgu[#theta]] → Mgu[Insert[ #pair ,#theta]];
 
-ApplyOnRHS[Pair[$String /* Crsx_METAVAR_sort */,Crsx_term_sort], $List[Pair[$String /* Crsx_METAVAR_sort */,Crsx_term_sort]]] :: $List[Pair[$String /* Crsx_METAVAR_sort */,Crsx_term_sort]];
-ApplyOnRHS[ #newThing, #theta ] → Map[ x . ApplyOnRHSHelper[x,Mgu[(#newThing;)]], #theta]; 
 
-ApplyOnRHSHelper[Pair[$String /* Crsx_METAVAR_sort */,Crsx_term_sort], Mgu] :: Pair[$String /* Crsx_METAVAR_sort */,Crsx_term_sort];
-ApplyOnRHSHelper[ PairCons[#x,#t], #subst ] →  PairCons[ #x, ApplySubst[#subst,#t]];
+/* *********************************************************** */
 
 
 /* Assoc
@@ -46,109 +67,117 @@ ApplyOnRHSHelper[ PairCons[#x,#t], #subst ] →  PairCons[ #x, ApplySubst[#subst
            NONE, if no value was found.
    @throws error, if `#X` is mapped to two terms        
 */
-Assoc[$String,Mgu] :: Option[Crsx_term_sort];
-Assoc[#METAVAR, Mgu[#MGU] ] → AssocHelper[LookUp[#METAVAR,#MGU]];
+Assoc[$String /* Crsx_METAVAR_sort */, Mgu] :: Option[Crsx_term_sort];
+Assoc[#METAVAR, Mgu[#mgu]] → AssocHelper[LookUp[#METAVAR,#mgu]];
+  AssocHelper[$List[Crsx_term_sort]] :: Option[Crsx_term_sort];
+  AssocHelper[()]       → NONE;
+  AssocHelper[(#t;)]    → SOME[#t]; 
+  AssocHelper[(#t;#ts)] → Error["Mgu.A meta variable has been mapped to two values!"];
 
-AssocHelper[$List[Crsx_term_sort]] :: Option[Crsx_term_sort];
-AssocHelper[()]    → NONE;
-AssocHelper[(#t;)] → SOME[#t]; 
--[Fallback] : // LookUp returned a list, thus there was more than one value for the meta variable
-AssocHelper[#XS] → $[Error,"Mgu.A meta variable has been mapped to two values!"];
+
+/* *********************************************************** */
 
 
 /* ApplySubst
    @param  `θ` mgu 
-   @param  `t` 
-   @return if `θ` is `FAIL` or empty, i.e., `()` it returns `t` unchanged
-           otherwise it applies the substitution `θ` to `t`
+   @param  `t` a term 
+   @return applies the mgu `θ` to `t`
+   @throw  error if `θ` is `FAIL`
+   @note   careful, #annotations and #properties of the meta variables in `t` are discarded
 */
-ApplySubst[Mgu,Crsx_term_sort] :: Crsx_term_sort;
-ApplySubst[FAIL,    #t] → #t; // no mgu which can be applied on #t
-ApplySubst[Mgu[()], #t] → #t; // the mgu is empty
+ApplySubst[Mgu, Crsx_term_sort] :: Crsx_term_sort;
 
-// case: constructor, apply recursively to arguments
+/* case: constructor */
 ApplySubst[#theta, %term⟦ ##annotations? ##properties? ##constructor ##arguments? ⟧ ] 
-→ 
-%term⟦ ##annotations? ##properties? ##constructor 
-       ⟨arguments?: WrapArguments[Map[x.ApplySubst[#theta,x], UnwrapArguments[#arguments?]]] ⟩ 
-     ⟧ ;
+→ %term⟦ ##annotations? ##properties? ##constructor 
+         ⟨arguments?: WrapArguments[Map[x.ApplySubst[#theta,x], UnwrapArguments[#arguments?]]] ⟩ ⟧ ;
 
-// case: bound term, 
-ApplySubst[#theta, %term⟦ ##binder ##nextBinder ⟧ ] 
-→ 
-%term⟦ ##binder ⟨nextBinder: WrapNextBinder[ApplySubst[#theta,UnwrapNextBinder[#nextBinder]]] ⟩ ⟧;
-
-// case: meta variable, look up 
+/* case: meta variable */
 ApplySubst[#theta, %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧ ] 
-→ 
-MatchMetavar[Assoc[#METAVAR,#theta], %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧];
+→ MatchMetavar[Assoc[#METAVAR,#theta], %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧];
 
-MatchMetavar[Option[Crsx_term_sort], Crsx_term_sort ] :: Crsx_term_sort;
-MatchMetavar[NONE,         #t] → #t;
-MatchMetavar[SOME[#subst], %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧] 
-→ 
-//TODO define what should happen with annotations? properties?
-//ignored at the moment!
-Beta[#subst, UnwrapMetaVariableArguments[#freeArguments?]]; 
+  MatchMetavar[Option[Crsx_term_sort], Crsx_term_sort ] :: Crsx_term_sort;
+  MatchMetavar[NONE,              #term] → #term;
+  //define what should happen with #annotations? #properties?, ignored at the moment
+  MatchMetavar[SOME[#substitute], %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧] 
+  → BetaDev[#substitute, UnwrapFreeArguments[#freeArguments?]]; 
 
-// case: variable
-ApplySubst[ #theta, %term⟦ ##annotations? ##variable ⟧ ] → %term⟦ ##annotations? ##variable ⟧ ;
+/* case: bound term/abstraction */
+ApplySubst[#theta, %term⟦ ##binder ##nextBinder ⟧ ] 
+→ %term⟦ ##binder ⟨nextBinder: WrapNextBinder[ApplySubst[#theta,UnwrapNextBinder[#nextBinder]]] ⟩ ⟧;
 
-/* Beta
-   @param `t`  a term
-   @param `xs` a list of variables
-   @return for `t` = `y1 ... yn . t'`, and xs = `x1, ... xm` it returns `t''`
-           where yi is replaced by xi.
+/* case: variable */
+ApplySubst[#theta, %term⟦ ##annotations? ##variable ⟧ ] → %term⟦ ##annotations? ##variable ⟧ ;
+
+/* case: #theta is acutally FAIL */
+ApplySubst[FAIL, #term] 
+→  Error[ConcatString["ApplySubst: A substitution, which has FAILed, was applied to: \n", Show[#term]] ];
+
+
+/* *********************************************************** */
+
+
+/* BetaDev
+   @param `s`  a term
+   @param `ts` a list of terms
+   @return for `s` = `y1 ... yn . s'`, and ts = `t1, ... tm` it returns `s''`
+           where yi is replaced by ti.
    @error  if m > n
 */
-Beta[Crsx_term_sort, $List[Crsx_variable_sort]] :: Crsx_term_sort;
-Beta[ #t, ()] → #t;
-Beta[ %term⟦ ##annotations? ##variable ##nextBinder ⟧, (#x;#xs) ] 
-→ 
-BetaHelper[ #nextBinder, #xs, (PairCons[#variable, #x];) ]; 
-/* error, there are too many variables to substitute for too few binders */
-Beta[ %term⟦ ##freeTerm ⟧ , (#x;#xs)] 
-→ Error[ConcatString[
-        ConcatString["Beta: Too many arguments", Show[(#x;#xs)]], 
-        ConcatString["to apply to", Show[#freeTerm]]]];
-
-BetaHelper[Crsx_nextBinder_sort, $List[Crsx_variable_sort], $List[Pair[Crsx_variable_sort,Crsx_variable_sort]]] :: Crsx_term_sort ;
-/* all binders are collected */
-BetaHelper[ #t , (), #subst]  
-→ 
-ApplyVarSubst[#subst, UnwrapNextBinder[#t]]; 
-/* more binders to collect */
-BetaHelper[ %nextBinder⟦ ##annotations? ##variable ##nextBinder ⟧, (#x;#xs), #subst  ]
-→
-BetaHelper[#nextBinder, #xs, Insert[PairCons[#variable,#x],#subst]];
-/* error, as above, there are too many variables to substitute for too few binders */
-BetaHelper[ %nextBinder⟦ . ##freeTerm ⟧, (#x;#xs), #subst  ] 
-→ Error[ConcatString[
-        ConcatString["BetaHelper: Too many arguments", Show[(#x;#xs)]], 
-        ConcatString["to apply to", Show[#freeTerm]]]];
+BetaDev[Crsx_term_sort, $List[Crsx_term_sort]] :: Crsx_term_sort;
+BetaDev[ #s, #ts ] → BetaDevHelper[ #s, #ts, (), ()];
+  /* */
+  BetaDevHelper[Crsx_term_sort, $List[Crsx_term_sort], $List[Pair[Crsx_variable_sort,Crsx_term_sort]], $List[Crsx_variable_sort]] :: Crsx_term_sort;
+  BetaDevHelper[#s, (), #varSubst, #FVs] → ApplyVarSubst[#varSubst, #s, #FVs];
+ 
+  BetaDevHelper[%term⟦ ##annotations? ##variable ##nextBinder ⟧, (#t;#ts), #varSubst, #FVs] 
+  → BetaDevHelper[UnwrapNextBinder[#nextBinder], #ts, Insert[PairCons[#variable,#t], #varSubst], Concat[FreeVariables[#t], #FVs]];
+ 
+  BetaDevHelper[%term⟦ ##freeTerm ⟧ , (#t;#ts), #varSubst, #FVs] 
+  → Error[ConcatString[ /* too many arguments to substitute for too few abstractions (binders) */
+          ConcatString["BuildVarSubst: Too many arguments", Show[(#t;#ts)]], 
+          ConcatString["to apply to", Show[#freeTerm]]]];
 
 
-
-ApplyVarSubst[$List[Pair[Crsx_variable_sort, Crsx_variable_sort]], Crsx_term_sort] :: Crsx_term_sort;
-
-ApplyVarSubst[#subst, %term⟦ ##annotations? ##properties? ##constructor ##arguments? ⟧ ]  
-→ 
-%term⟦ ##annotations? ##properties? ##constructor ⟨arguments?: WrapArguments[Map[t.ApplyVarSubst[#subst,t], UnwrapArguments[#arguments?]]] ⟩ ⟧ ;
-
-ApplyVarSubst[#subst, %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧ ]
-→ 
-%term⟦ ##annotations? ##properties? ##METAVAR ⟨freeArguments?: WrapFreeArguments2[Map[t.ApplyVarSubst[#subst,t], UnwrapFreeArguments[#freeArguments?]]] ⟩ ⟧ ;
-
-ApplyVarSubst[#subst, %term⟦ ##annotations? ##variable ##nextBinder ⟧ ] → 
-%term⟦ ##annotations? ⟨variable: ApplyVarSubstHelper[#variable,LookUp[#variable,#subst]]⟩ ⟨nextBinder: WrapNextBinder[ApplyVarSubst[#subst,UnwrapNextBinder[#nextBinder]]] ⟩ ⟧;
-
-ApplyVarSubst[ #subst, %term⟦ ##annotations? ##variable ⟧ ] → 
-%term⟦ ##annotations? ⟨variable: ApplyVarSubstHelper[#variable,LookUp[#variable,#subst]] ⟩ ⟧ ;
+/* *********************************************************** */
 
 
-ApplyVarSubstHelper[Crsx_variable_sort, $List[Crsx_variable_sort]] :: Crsx_variable_sort;
-ApplyVarSubstHelper[ #x, () ]   → #x ;
-ApplyVarSubstHelper[ #x, (#y;)] → #y ;
-ApplyVarSubstHelper[ #x, (#y;#ys)] → Error["Too many vars"];
+ApplyVarSubst[ $List[Pair[Crsx_variable_sort, Crsx_term_sort]], Crsx_term_sort, $List[Crsx_variable_sort]] :: Crsx_term_sort;
+/* case: constructor */
+ApplyVarSubst[#varSubst, %term⟦ ##annotations? ##properties? ##constructor ##arguments? ⟧, #FVs ]  
+→ %term⟦ ##annotations? ##properties? ##constructor 
+         ⟨arguments?: WrapArguments[Map[arg.ApplyVarSubst[#varSubst,arg,#FVs], UnwrapArguments[#arguments?]]]⟩⟧ ;
+
+/* case: meta varialbe */
+ApplyVarSubst[#varSubst, %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧, #FVs ]
+→ %term⟦ ##annotations? ##properties? ##METAVAR 
+         ⟨freeArguments?: WrapFreeArguments2[Map[t.ApplyVarSubst[#varSubst,t,#FVs], UnwrapFreeArguments[#freeArguments?]]]⟩⟧ ;
+
+/* case: abstraction/binder */
+ApplyVarSubst[#varSubst, %term⟦ ##annotations? ##variable ##nextBinder ⟧, #FVs] 
+→ ApplyVarSubstMatch[ Elem[#variable, #FVs], #varSubst, #annotations?, #variable, UnwrapNextBinder[#nextBinder], #FVs ];
+  
+  /* checks whether #variable occurs as free variable in the codomain of #varSubst, i.e., #FVs */
+  ApplyVarSubstMatch[Boolean, $List[Pair[Crsx_variable_sort, Crsx_term_sort]], $List[Crsx_annotations_sort], Crsx_variable_sort, Crsx_term_sort, $List[Crsx_variable_sort]] :: Crsx_term_sort;
+  
+  ApplyVarSubstMatch[FALSE, #varSubst, #annotations?, #variable, #term, #FVs] → 
+  %term⟦ ##annotations? ##variable ⟨nextBinder: WrapNextBinder[ 
+         ApplyVarSubst[ /* to avoid renaming a bound variables, e.g., F[x.x,x] with [x |-> y] */
+                         DelEntry[#variable,#varSubst], #term, #FVs]] ⟩ ⟧;
+ 
+  ApplyVarSubstMatch[TRUE, #varSubst, #_, #variable, #term, #FVs] 
+  →  Error[ConcatString["ApplyVarSubst: The following variable \n",
+           ConcatString[Show[#variable],
+           ConcatString["\n will be captured in \n",
+                        Show[#term]]]]];
+
+  /* case: variable */
+  ApplyVarSubst[#subst, %term⟦ ##annotations? ##variable ⟧, #FVs] 
+  → MatchVarLookUp[#variable, %term⟦ ##annotations? ##variable ⟧, LookUp[#variable,#subst]];  
+    /*  */
+    MatchVarLookUp[Crsx_variable_sort, Crsx_term_sort ,$List[Crsx_term_sort]] :: Crsx_term_sort;
+    MatchVarLookUp[#variable,  #t, () ]        → #t;
+    MatchVarLookUp[ #variable, #t, (#tP;)]     → #tP;
+    MatchVarLookUp[ #variable, #t, (#tP;#tsP)] → Error[ConcatString["ApplyVarSubst: The following variable was mapped to more than one term:", Show[#variable]]];
 
 )]

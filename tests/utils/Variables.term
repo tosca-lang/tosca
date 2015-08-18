@@ -1,0 +1,47 @@
+/*
+ * Copyright Mgu[(c)] 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 08/17/2015
+ */
+
+(
+Assert[  VARS[(),(),()] ,
+        Variables[%term⟦ A ⟧]
+      ];
+
+Assert[  VARS[(),(),( %variable⟦ x ⟧; )] ,
+        Variables[%term⟦ x ⟧]
+      ];
+
+Assert[  VARS[(),( %variable⟦ x ⟧; ), ()] ,
+        Variables[%term⟦ x.x ⟧]
+      ];
+
+Assert[  VARS[(),( %variable⟦ x ⟧; ), ( %variable⟦ x ⟧; )] ,
+        Variables[%term⟦ F[x, x.x] ⟧]
+      ];
+
+Assert[ VARS[(),( %variable⟦ x ⟧; ), ( %variable⟦ x ⟧; )] ,
+        Variables[%term⟦ F[x.x, x] ⟧]
+      ];
+
+Assert[  VARS[( "#"; ),( %variable⟦ x ⟧; ), ( %variable⟦ x ⟧; )] ,
+        Variables[%term⟦ F[x, x.#[x]] ⟧]
+      ];
+
+
+Assert[ ( %variable⟦ z ⟧; %variable⟦ y ⟧; %variable⟦ x ⟧; ) ,
+        FreeVariables[%term⟦ F[x, x.#[x], y, G[z]] ⟧]
+      ];
+
+Assert[ VARS[("#";),( %variable⟦ x ⟧; %variable⟦ x ⟧; ), ( %variable⟦ z ⟧; )] ,
+        Variables[%term⟦ F[x.#[x], x.x, z] ⟧]
+      ];
+
+Assert[ VARS[(),( %variable⟦ x ⟧; %variable⟦ x ⟧; ), ()] ,
+        Variables[%term⟦ F[x.G[x. H[x]]] ⟧]
+      ];
+
+)

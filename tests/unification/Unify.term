@@ -39,33 +39,23 @@ Assert[ State[FAIL,0],
 
 // bound terms
 
-Assert[ TRUE,
-        Let[ GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x. #F[x] ⟧ , %term⟦  x . #G[x]  ⟧]]], 
-             mgu. Cons[ ApplySubst[mgu,%term ⟦ x .#F[x] ⟧], ApplySubst[mgu, %term⟦ x. #G[x] ⟧]]] 
-      ]; 
+Assert[ Mgu[ (PairCons["#G", %term⟦ x.#0[x] ⟧]; PairCons["#F", %term⟦ x.#0[x] ⟧];) ],
+        GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x. #F[x] ⟧ , %term⟦  x . #G[x]  ⟧]]]
+       ];
+ 
 
-Assert[ TRUE, 
-        Let[GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x y.#F[x,y] ⟧ , %term⟦  x y.#G[y,x]  ⟧]]],
-            mgu. Cons[ ApplySubst[mgu,%term ⟦ x y.#F[x,y] ⟧] , ApplySubst[mgu, %term⟦  x y.#G[y,x]  ⟧] ]]
-      ]; 
+Assert[ State[Mgu[( PairCons[ "#G",  %term⟦ y x . #0[x] ⟧];  PairCons[ "#F",  %term⟦ x . C[#0[x]] ⟧]; )], 1],
+        Unify[State[Mgu[()],0], PairCons[ %term⟦ x y . #F[x] ⟧, %term⟦ x y. C[#G[y,x]] ⟧ ]]  ];
 
 
 /*
+
 //alpha equv...
 Assert[ TRUE, 
         Let[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  y .#G[y]  ⟧]],
             mgu. Eq[ ApplySubst[mgu,%term ⟦ x .#F[x] ⟧], ApplySubst[mgu, %term⟦ y. #G[y] ⟧]] 
             ]
       ]; 
-
-
-// Nipkows Bsp
-
-Assert[ State[ ( PairCons["#G", %term⟦ y x.#1[x] ⟧]; PairCons["#0", %term⟦ x.#1[x] ⟧]; PairCons["#F", %term⟦ x.C[#1[x]] ⟧];),2] ,
-        Unify[State[Mgu[()],0], PairCons[ %term⟦ x y . #F[x] ⟧, %term⟦ x y. C[#G[y,x]] ⟧ ]]  ];
-
-
-
 
 
 // renaming 

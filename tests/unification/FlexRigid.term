@@ -33,7 +33,7 @@ Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ x y .F[y,x] ⟧]; )],0],
         FlexRigid[State[Mgu[()],0], "#X" ,(%variable⟦ x ⟧; %variable⟦ y ⟧;), %term⟦ F[y,x] ⟧]
       ]; 
 
-Assert[ State[Mgu[( PairCons[ "#G",  %term⟦ y x . #1[x] ⟧]; PairCons[ "#0", %term⟦ x.#1[x] ⟧];  PairCons[ "#F",  %term⟦ x . C[#1[x]] ⟧]; )], 1],
+Assert[ State[Mgu[( PairCons[ "#G",  %term⟦ y x . #0[x] ⟧];  PairCons[ "#F",  %term⟦ x . C[#0[x]] ⟧]; )], 1],
         FlexRigid[State[Mgu[()], 0], "#F" ,(%variable⟦ x ⟧; ), %term⟦ C[#G[y,x]] ⟧]
       ]; 
 )

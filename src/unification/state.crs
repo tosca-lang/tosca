@@ -1,0 +1,74 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *
+ * @author : m schett
+ * @date   : 08/18/2015
+ */
+
+State[(
+
+$Use["std/core.crs"];
+$Use["std/string.crs"];
+$Use["std/pair.crs"];
+
+$Use["unification/mgu.crs"];
+
+
+/* STATE of the program */
+STATE ::= ( State[ Mgu,      /* computed mgu */
+                   $Numeric  /* global counter for meta var */
+                  ];);
+
+/* INIT_STATE
+   @return constant for initial state
+*/
+INIT_STATE :: STATE;
+INIT_STATE → State[Mgu[()] ,0];
+
+/* GetMgu
+   @param  a `state`
+   @return the mgu of `state`
+*/
+GetMgu[STATE] :: Mgu;
+GetMgu[State[#mgu, #counter]] → #mgu;
+
+/* UpdateMgu
+   @param  a `state`
+   @param  a function `mgu.#F[mgu]` to update a mgu
+   @return a new state, where `#F` has been applied to its mgu 
+*/
+UpdateMgu[STATE,  x :: Mgu . Mgu ] :: STATE; 
+UpdateMgu[State[#theta, #counter] , mgu.#F[mgu]] → State[ #F[#theta], #counter] ;
+
+/* FRESH_METAVAR
+   @param  a `state`
+   @return a pair, where the `Fst` component is an updated `state`, i.e., 
+           the `counter` is increased, and the `Snd` component is 
+           a meta variable of the shape, `#n`, where n ≥ 0
+   @note   careful, the meta variable is only fresh, if there is no 
+           meta variable of the shape `#m`, m ≥ 0 
+*/
+FRESH_METAVAR[STATE] :: Pair[STATE, $String];
+FRESH_METAVAR[ #state ] 
+→ PairCons[ UpdateCounter[#state, counter.NumberPlus[counter, 1]],
+            ConcatString["#", Show[GetCounter[#state]]]
+          ];
+
+/* GetCounter
+   @param  a `state`
+   @return the counter of the state  
+*/
+GetCounter[STATE] :: $Numeric;
+GetCounter[State[#mgu, #counter]] → #counter;
+
+/* UpdateCounter
+   @param  a `state`
+   @param  a function `counter.#F[counter]` to update the counter
+   @return a new state, where `#F` has been applied to its counter 
+*/
+UpdateCounter[STATE, x :: $Numeric . $Numeric] :: STATE;
+UpdateCounter[State[#mgu, #counter], counter.#F[counter]] → State[#mgu, #F[#counter]];
+
+
+
+)]

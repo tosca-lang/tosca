@@ -61,5 +61,8 @@ UnwrapBoolean[FALSE] → $False;
 ∀ a . Error[$String] :: a;
 Error[#X] → $[Error, #X];
 
+∀ a . TextError[Text] :: a;
+-[ Data[#X] ] : 
+TextError[#X] → $[Error, TextToString[#X]] ; //TextToString not working
 
 )]
