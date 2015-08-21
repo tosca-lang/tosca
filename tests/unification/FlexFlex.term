@@ -1,0 +1,34 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 08/05/2015
+ */
+
+(
+
+Assert[ State[ Mgu[( PairCons["#Y", %term⟦ #0 ⟧]; PairCons["#X", %term⟦ #0 ⟧];)] ,1] ,
+        FlexFlex[ State[Mgu[()],0], "#X", (), "#Y",()]
+         
+       ];
+
+Assert[ State[Mgu[ (PairCons["#2",%term⟦ #42 ⟧]; PairCons["#1",%term⟦ #42 ⟧];)],43],
+        MatchFlexFlex2[FRESH_METAVAR[ State[Mgu[()],42] ], (), "#1",(), "#2", ()]
+      ];
+
+Assert[ State[ Mgu[(PairCons["#G", %term⟦ y x.#1[x] ⟧]; PairCons["#0", %term⟦ x.#1[x] ⟧];  PairCons["#F", %term⟦ x.C[ #1[x]] ⟧];)],2],
+       FlexFlex[  State[ Mgu[(PairCons["#F", %term⟦ x.C[ #0[x]] ⟧];)],1],      //state 
+                 "#0", ( %variable⟦ x ⟧ ;), "#G",  (  %variable⟦ y ⟧ ; %variable⟦ x ⟧ ;)
+               ]
+      ];
+
+Assert[ State[Mgu[( PairCons["#G", %term⟦ y x.#0[x,y] ⟧]; PairCons["#F", %term⟦ x y.#0[x,y] ⟧]; )],1],
+        FlexFlex[State[Mgu[()] ,0],"#F", ( %variable⟦ x ⟧ ; %variable⟦ y ⟧ ;), "#G", ( %variable⟦ y ⟧ ; %variable⟦ x ⟧ ;) ]
+      ];
+
+Assert[ State[Mgu[( PairCons["#G", %term⟦ x.#0[x] ⟧]; PairCons["#F", %term⟦ x.#0[x] ⟧]; )],1],
+        FlexFlex[State[Mgu[()] ,0],"#F", ( %variable⟦ x ⟧ ; ), "#G", ( %variable⟦ x ⟧ ;) ]
+      ];
+
+)

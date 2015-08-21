@@ -1,0 +1,137 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *
+ * @author : m schett
+ * @date   : 08/18/2015
+ */
+
+TermOps[(
+
+$Use["std/list.crs"];
+$Use["std/string.crs"];
+
+/* ***************************************************** */
+/*  RENAMING                                             */
+/* ***************************************************** */
+
+/* Rename
+   @param `suffix` a string, which serves as suffix for the meta variables
+   @param `term`   a term in which the meta variables will be renamed
+   @return `term'` in which all meta variables `#X` are renamed to
+                   `#Xsuffix` 
+   @throws error if it encounters a nested bound variable with the same name
+           e.g., x.F[ x.G[x]]
+   @note   prefixing with a $String did not work
+ */
+Rename[$String, Crsx_term_sort] :: Crsx_term_sort;
+Rename[#suffix, #term] → RenameHelper[#suffix, (), #term];
+  /* case: constructor */
+  RenameHelper[$String, $List[Crsx_variable_sort], Crsx_term_sort] :: Crsx_term_sort;
+  RenameHelper[#suffix, #BVs, 
+               %term⟦ ##annotations? ##properties? ##constructor ##arguments? ⟧ ] 
+  → 
+  %term⟦ ##annotations? ##properties? ##constructor 
+         ⟨arguments?: WrapArguments[Map[t.RenameHelper[#suffix, #BVs, t], UnwrapArguments[#arguments?]]] ⟩ ⟧ ;
+  /* case: meta var */
+  RenameHelper[#suffix, #BVs, 
+               %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧ ]
+  → 
+  %term⟦ ##annotations? ##properties? 
+         ⟨METAVAR: ConcatString[#METAVAR,#suffix]⟩ 
+         ⟨freeArguments?: WrapFreeArguments2[Map[t.RenameHelper[#suffix, #BVs, t], UnwrapFreeArguments[#freeArguments?]]] ⟩ ⟧ ;
+  /* case: abstraction/binder */
+  RenameHelper[#suffix, #BVs, %term⟦ ##variable ##nextBinder ⟧ ] 
+  → 
+  DetectNestedBinders[Elem[#variable, #BVs], #suffix, #BVs, #variable, UnwrapNextBinder[#nextBinder]];
+    /* according to Nipkow93, Sec. 5, nested binders with the same name are a problem */
+    DetectNestedBinders[Boolean, $String, $List[Crsx_variable_sort], Crsx_variable_sort, Crsx_term_sort] :: Crsx_term_sort;
+    DetectNestedBinders[FALSE, #suffix, #BVs, #variable, #term] 
+    → %term⟦ ##variable ⟨nextBinder: WrapNextBinder[RenameHelper[#suffix, Insert[#variable, #BVs], #term]] ⟩ ⟧ ;
+    DetectNestedBinders[TRUE, #suffix, #BVs, #variable, #t] 
+    → Error[ConcatString["Rename: The term contains nested abstractions, e.g., x.C[x.x]. The offending variable is: ", Show[#variable]] ]; 
+
+  /* case: variable */
+  RenameHelper[ #suffix, #BVs, %term⟦ ##annotations? ##variable ⟧ ] 
+  → 
+  %term⟦ ##annotations? ##variable ⟧ ;
+
+
+
+/* ***************************************************** */
+/*  VARIABLES                                            */
+/* ***************************************************** */
+
+/* FreeVariables
+   @param  `t` a term 
+   @return the list of free variables in `t`
+   @note   contains duplicates, if variable occurs more than once
+*/
+FreeVariables[Crsx_term_sort] :: $List[Crsx_variable_sort];
+FreeVariables[ #t ] → MatchFreeVariables[ Variables[#t] ];
+  MatchFreeVariables[VARS] :: $List[Crsx_variable_sort];
+  MatchFreeVariables[Vars[#M, #BV, #FV]] → #FV;
+
+/* VARS
+  data sort to hold meta variables, bound variables, and free variables
+ */
+VARS ::= ( Vars[ $List[$String],              /* meta variables  */ 
+                 $List[Crsx_variable_sort],   /* bound variables */ 
+                 $List[Crsx_variable_sort] ]; /* free Variables  */ );
+/* Variables
+   @param  `t` a term
+   @return `VARS` which hold in  
+           1. component: meta variables of `t`
+           2. component: bound variables of `t`  
+           3. component: free variables of `t`
+   @note that the components may contain duplicates, in particular if `t` is not linear
+*/
+Variables[Crsx_term_sort] :: VARS;
+Variables[ #term ] →  VariablesHelperBoundVar[(), #term ];
+  /* needed to carry the bound variables throughout the computation */
+  VariablesHelperBoundVar[$List[Crsx_variable_sort], Crsx_term_sort] :: VARS;
+  VariablesHelperBoundVar[#BV, #t] →
+  VariablesHelper[Vars[(),(),()], #BV, #t];
+
+  /* case: constructor */
+  VariablesHelper[VARS, $List[Crsx_variable_sort], Crsx_term_sort] :: VARS;
+  VariablesHelper[Vars[#M, #BV, #FV], #_,
+                  %term⟦ ##annotations? ##properties? ##constructor ##arguments? ⟧ ]  
+  →    
+       ConcatVars[Vars[#M, #BV, #FV],           
+                  Map[t .VariablesHelperBoundVar[#BV,t], UnwrapArguments[#arguments?]]];
+  /* case: meta variable */
+  VariablesHelper[Vars[#M, #BV, #FV], #_,
+                 %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧ ]
+  →    
+       ConcatVars[Vars[Insert[#METAVAR,#M], #BV, #FV],
+                  Map[t . VariablesHelperBoundVar[#BV,t], UnwrapFreeArguments[#freeArguments?]]];
+  /* case: abstraction/binder */
+  VariablesHelper[Vars[#M, #BV, #FV], #currBV, 
+                  %term⟦ ##annotations? ##variable ##nextBinder ⟧] 
+  → 
+  VariablesHelper[Vars[#M, Insert[#variable, #BV], #FV], Insert[#variable, #currBV], 
+                  UnwrapNextBinder[#nextBinder]];
+  /* case: variable */
+  VariablesHelper[#VARS, #currBV, 
+                  %term⟦ ##annotations? ##variable ⟧] 
+  → 
+    MatchVariablesHelper[Elem[#variable, #currBV], #variable, #VARS];
+    /* match whether variable is bound in this branch or not */
+      MatchVariablesHelper[Boolean, Crsx_variable_sort, VARS ] :: VARS; 
+      MatchVariablesHelper[TRUE,  #variable, #VARS             ] → #VARS;
+      MatchVariablesHelper[FALSE, #variable, Vars[#M, #BV, #FV]] → Vars[#M, #BV, Insert[#variable,#FV]]; 
+
+/* ConcatVARS
+   @param  `VARS`  an accumulator of VARS
+   @param  `VARSs` an list of VARS
+   @return the component-wise concatenation of each `VARS'` in `VARSs` to `VAR` 
+*/
+ConcatVars[VARS, $List[VARS] ] :: VARS;
+ConcatVars[#VARS, #VARSs] → FoldlP[ vars varsAcc . ConcatVARSHelper[vars, varsAcc], #VARS, #VARSs];
+  ConcatVARSHelper[VARS, VARS] :: VARS;
+  ConcatVARSHelper[Vars[#M, #BV, #FV], Vars[#M2, #BV2, #FV2]] 
+  → Vars[Concat[#M, #M2],Concat[#BV, #BV2],Concat[#FV, #FV2]];
+
+
+
+)]

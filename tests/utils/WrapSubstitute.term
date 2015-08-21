@@ -1,0 +1,37 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 08/02/2015
+ */
+
+
+(
+
+Assert[ %term⟦ #X ⟧,
+        WrapSubstitute[(), "#X" , ()]
+      ];
+
+Assert[ %term⟦ x y. #X ⟧,
+        WrapSubstitute[(%variable ⟦ x ⟧;  %variable ⟦ y ⟧; ), "#X" , ( )]
+      ];
+
+Assert[ %term⟦ #X[x] ⟧,
+        WrapSubstitute[(), "#X" , ( %variable ⟦ x ⟧;)]
+      ];
+
+Assert[ %term⟦ #X[x,y,z] ⟧,
+        WrapSubstitute[(), "#X" , ( %variable ⟦ x ⟧; %variable ⟦ y ⟧; %variable ⟦ z ⟧; )]
+      ];
+
+
+Assert[ %term⟦ #X[x,y,z] ⟧,
+        WrapSubstitute[(), "#X" , ( %variable ⟦ x ⟧; %variable ⟦ y ⟧; %variable ⟦ z ⟧; )]
+      ];
+
+Assert[ %term⟦ x y z . #X[x,y,z] ⟧,
+        WrapSubstitute[(%variable ⟦ x ⟧; %variable ⟦ y ⟧; %variable ⟦ z ⟧;), "#X" , ( %variable ⟦ x ⟧; %variable ⟦ y ⟧; %variable ⟦ z ⟧; )]
+      ];
+)
+

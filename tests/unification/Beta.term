@@ -1,0 +1,41 @@
+/*
+ * Copyright 2015 IBM Corporation.
+ *  
+ * @author : m schett
+ * @date   : 08/07/2015
+ */
+
+(
+Assert[ %term⟦ x ⟧,
+        BetaDev[ %term⟦ x ⟧, () ] 
+      ]; 
+
+Assert[ %term⟦ F[y] ⟧,
+        BetaDev[ %term⟦ x.F[x] ⟧, ( %variable ⟦ y ⟧ ;) ] 
+      ]; 
+
+Assert[ %term⟦ F[x,y] ⟧,
+        BetaDev[ %term⟦ x y.F[x,y] ⟧, ( %variable ⟦ x ⟧ ; %variable ⟦ y ⟧ ;) ] 
+      ]; 
+
+Assert[ %term⟦ F[y,x] ⟧,
+        BetaDev[ %term⟦ x y.F[x,y] ⟧, ( %variable ⟦ y ⟧ ; %variable ⟦ x ⟧ ;) ] 
+      ]; 
+
+Assert[ %term⟦ y. #X[z] ⟧,
+        BetaDev[ %term⟦ x y.#X[x] ⟧, ( %variable ⟦ z ⟧ ;) ] 
+      ]; 
+
+/* Expected Error
+Assert[ Error,
+        BetaDev[ %term⟦ #X[x] ⟧, ( %variable ⟦ z ⟧ ;) ] 
+];
+*/
+
+/* Expected Error
+Assert[ Error,
+        BetaDev[ %term⟦ x. #X[x] ⟧, ( %variable ⟦ z ⟧ ; %variable ⟦ y ⟧ ;) ] 
+];
+*/
+
+)

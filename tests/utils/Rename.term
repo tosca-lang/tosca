@@ -1,0 +1,46 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ * @author : m schett
+ * @date   : 08/15/2015
+ */
+
+(
+Assert[ %term⟦ A ⟧,
+        Rename[ "t1_", %term⟦ A ⟧ ]
+      ];
+
+
+Assert[ %term⟦ F[#X_1] ⟧,
+        Rename[ "_1", %term⟦ F[#X] ⟧ ]
+      ];
+
+Assert[ %term⟦ F[#X_1, #Y_1] ⟧,
+        Rename[ "_1", %term⟦ F[#X,#Y] ⟧ ]
+      ];
+
+/* Expected Error
+Assert[ Error,
+        RenameHelper[ "_1", ( %variable⟦ x ⟧ ;), %term⟦ x .F[x,y]⟧ ]
+      ];
+*/
+
+/* Expected Error 
+Assert[ Error,
+        RenameHelper[ "_1", ( ), %term⟦ x . C[x . F[x]]⟧ ]
+      ];
+*/
+
+/* Expected Error 
+Assert[ Error,
+        RenameHelper[ "_1", ( ), %term⟦ y y . F[x] ⟧ ]
+      ];
+*/
+
+/* Expected Error 
+Assert[ Error,
+        RenameHelper[ "_1", ( ), %term⟦ x z z . F[z]⟧ ]
+      ];
+*/
+
+)

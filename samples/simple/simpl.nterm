@@ -1,0 +1,225 @@
+{$LineLocation : STRING[37]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[23]}ANTLR_grammarSpec[
+ (),
+ ANTLR_grammarType[ANTLR_grammarType_S1_A3["grammar"]],
+ ANTLR_id_A2["Simpl"],
+ {$LineLocation : STRING[37]; $ColumnLocation : STRING[40]; $FileLocation : STRING["<unknown>"]}";",
+ (),
+ {$LineLocation : STRING[62]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[55]}ANTLR_rules[(
+   {$LineLocation : STRING[191]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[41]}ANTLR_ruleSpec_A1[
+     {$LineLocation : STRING[77]; $ColumnLocation : STRING[24]; $FileLocation : STRING["<unknown>"]}ANTLR_parserRuleSpec[
+      (),
+      (),
+      "simpl",
+      (),
+      (),
+      (),
+      (),
+      (),
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[34]; $FileLocation : STRING["<unknown>"]}":",
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[36]; $FileLocation : STRING["<unknown>"]}ANTLR_ruleBlock[
+       {$LineLocation : STRING[93]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[8]}ANTLR_ruleAltList[
+        {$LineLocation : STRING[111]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[22]}ANTLR_labeledAlt[
+         {$LineLocation : STRING[116]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[23]}ANTLR_alternative[
+          (),
+          (
+           {$LineLocation : STRING[130]; $ColumnLocation : STRING[20]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[ANTLR_atom_A3[ANTLR_ruleref["assign", (), ()]], ANTLR_element_A2_S1_A2];
+           {$LineLocation : STRING[130]; $ColumnLocation : STRING[20]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[ANTLR_atom_A3[ANTLR_ruleref["exp", (), ()]], ANTLR_element_A2_S1_A2];
+           )],
+         ()],
+        ()]],
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[112]; $FileLocation : STRING["<unknown>"]}";",
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[114]; $FileLocation : STRING["<unknown>"]}ANTLR_exceptionGroup[(), ()]]];
+   {$LineLocation : STRING[191]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[41]}ANTLR_ruleSpec_A1[
+     {$LineLocation : STRING[77]; $ColumnLocation : STRING[24]; $FileLocation : STRING["<unknown>"]}ANTLR_parserRuleSpec[
+      (),
+      (),
+      "assign",
+      (),
+      (),
+      (),
+      (),
+      (),
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[34]; $FileLocation : STRING["<unknown>"]}":",
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[36]; $FileLocation : STRING["<unknown>"]}ANTLR_ruleBlock[
+       {$LineLocation : STRING[93]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[8]}ANTLR_ruleAltList[
+        {$LineLocation : STRING[111]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[22]}ANTLR_labeledAlt[
+         {$LineLocation : STRING[116]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[23]}ANTLR_alternative[
+          (),
+          (
+           {$LineLocation : STRING[130]; $ColumnLocation : STRING[20]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["VAR", ()]], ANTLR_element_A2_S1_A2];
+           {$LineLocation : STRING[137]; $ColumnLocation : STRING[8]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[
+             {$LineLocation : STRING[202]; $ColumnLocation : STRING[23]; $FileLocation : STRING["<unknown>"]}ANTLR_atom_A3[
+              {$LineLocation : STRING[202]; $ColumnLocation : STRING[23]; $FileLocation : STRING["<unknown>"]}ANTLR_ruleref["assign_S1", (), ()]],
+             ANTLR_element_A2_S1_A2];
+           )],
+         ()],
+        ()]],
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[112]; $FileLocation : STRING["<unknown>"]}";",
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[114]; $FileLocation : STRING["<unknown>"]}ANTLR_exceptionGroup[(), ()]]];
+   {$LineLocation : STRING[191]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[41]}ANTLR_ruleSpec_A1[
+     {$LineLocation : STRING[77]; $ColumnLocation : STRING[24]; $FileLocation : STRING["<unknown>"]}ANTLR_parserRuleSpec[
+      (),
+      (),
+      "assign_S1",
+      (),
+      (),
+      (),
+      (),
+      (),
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[34]; $FileLocation : STRING["<unknown>"]}":",
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[36]; $FileLocation : STRING["<unknown>"]}ANTLR_ruleBlock[
+       {$LineLocation : STRING[93]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[8]}ANTLR_ruleAltList[
+        {$LineLocation : STRING[111]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[22]}ANTLR_labeledAlt[
+         {$LineLocation : STRING[116]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[23]}ANTLR_alternative[
+          (),
+          (
+           {$LineLocation : STRING[130]; $ColumnLocation : STRING[20]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["ASS", ()]], ANTLR_element_A2_S1_A2];
+           {$LineLocation : STRING[130]; $ColumnLocation : STRING[20]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[ANTLR_atom_A3[ANTLR_ruleref["number", (), ()]], ANTLR_element_A2_S1_A2];
+           )],
+         ()],
+        ()]],
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[112]; $FileLocation : STRING["<unknown>"]}";",
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[114]; $FileLocation : STRING["<unknown>"]}ANTLR_exceptionGroup[(), ()]]];
+   {$LineLocation : STRING[191]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[41]}ANTLR_ruleSpec_A1[
+     {$LineLocation : STRING[77]; $ColumnLocation : STRING[24]; $FileLocation : STRING["<unknown>"]}ANTLR_parserRuleSpec[
+      (),
+      (),
+      "exp",
+      (),
+      (),
+      (),
+      (),
+      (),
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[34]; $FileLocation : STRING["<unknown>"]}":",
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[36]; $FileLocation : STRING["<unknown>"]}ANTLR_ruleBlock[
+       {$LineLocation : STRING[93]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[8]}ANTLR_ruleAltList[
+        {$LineLocation : STRING[111]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[22]}ANTLR_labeledAlt[
+         {$LineLocation : STRING[116]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[23]}ANTLR_alternative[
+          (),
+          (
+           {$LineLocation : STRING[130]; $ColumnLocation : STRING[20]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[ANTLR_atom_A3[ANTLR_ruleref["number", (), ()]], ANTLR_element_A2_S1_A2];
+           {$LineLocation : STRING[130]; $ColumnLocation : STRING[20]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["PLUS", ()]], ANTLR_element_A2_S1_A2];
+           {$LineLocation : STRING[130]; $ColumnLocation : STRING[20]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[ANTLR_atom_A3[ANTLR_ruleref["exp", (), ()]], ANTLR_element_A2_S1_A2];
+           )],
+         ()],
+        (
+         {$LineLocation : STRING[104]; $ColumnLocation : STRING[8]; $FileLocation : STRING["<unknown>"]}ANTLR_ruleAltList_S1[
+           {$LineLocation : STRING[104]; $ColumnLocation : STRING[8]; $FileLocation : STRING["<unknown>"]}"|",
+           {$LineLocation : STRING[111]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[22]}ANTLR_labeledAlt[
+            {$LineLocation : STRING[116]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[23]}ANTLR_alternative[
+             (),
+             (
+              {$LineLocation : STRING[130]; $ColumnLocation : STRING[20]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["VAR", ()]], ANTLR_element_A2_S1_A2];
+              {$LineLocation : STRING[130]; $ColumnLocation : STRING[20]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["PLUS", ()]], ANTLR_element_A2_S1_A2];
+              {$LineLocation : STRING[130]; $ColumnLocation : STRING[20]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[ANTLR_atom_A3[ANTLR_ruleref["exp", (), ()]], ANTLR_element_A2_S1_A2];
+              )],
+            ()]];
+         {$LineLocation : STRING[104]; $ColumnLocation : STRING[8]; $FileLocation : STRING["<unknown>"]}ANTLR_ruleAltList_S1[
+           {$LineLocation : STRING[104]; $ColumnLocation : STRING[8]; $FileLocation : STRING["<unknown>"]}"|",
+           {$LineLocation : STRING[111]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[22]}ANTLR_labeledAlt[
+            {$LineLocation : STRING[116]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[23]}ANTLR_alternative[
+             (),
+             (
+              {$LineLocation : STRING[130]; $ColumnLocation : STRING[20]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["VAR", ()]], ANTLR_element_A2_S1_A2];
+              )],
+            ()]];
+         {$LineLocation : STRING[104]; $ColumnLocation : STRING[8]; $FileLocation : STRING["<unknown>"]}ANTLR_ruleAltList_S1[
+           {$LineLocation : STRING[104]; $ColumnLocation : STRING[8]; $FileLocation : STRING["<unknown>"]}"|",
+           {$LineLocation : STRING[111]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[22]}ANTLR_labeledAlt[
+            {$LineLocation : STRING[116]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[23]}ANTLR_alternative[
+             (),
+             (
+              {$LineLocation : STRING[130]; $ColumnLocation : STRING[20]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[ANTLR_atom_A3[ANTLR_ruleref["number", (), ()]], ANTLR_element_A2_S1_A2];
+              )],
+            ()]];
+         )]],
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[112]; $FileLocation : STRING["<unknown>"]}";",
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[114]; $FileLocation : STRING["<unknown>"]}ANTLR_exceptionGroup[(), ()]]];
+   {$LineLocation : STRING[191]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[41]}ANTLR_ruleSpec_A1[
+     {$LineLocation : STRING[77]; $ColumnLocation : STRING[24]; $FileLocation : STRING["<unknown>"]}ANTLR_parserRuleSpec[
+      (),
+      (),
+      "number",
+      (),
+      (),
+      (),
+      (),
+      (),
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[34]; $FileLocation : STRING["<unknown>"]}":",
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[36]; $FileLocation : STRING["<unknown>"]}ANTLR_ruleBlock[
+       {$LineLocation : STRING[93]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[8]}ANTLR_ruleAltList[
+        {$LineLocation : STRING[111]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[22]}ANTLR_labeledAlt[
+         {$LineLocation : STRING[116]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[23]}ANTLR_alternative[
+          (),
+          (
+           {$LineLocation : STRING[130]; $ColumnLocation : STRING[20]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["ONE", ()]], ANTLR_element_A2_S1_A2];
+           )],
+         ()],
+        (
+         {$LineLocation : STRING[104]; $ColumnLocation : STRING[8]; $FileLocation : STRING["<unknown>"]}ANTLR_ruleAltList_S1[
+           {$LineLocation : STRING[104]; $ColumnLocation : STRING[8]; $FileLocation : STRING["<unknown>"]}"|",
+           {$LineLocation : STRING[111]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[22]}ANTLR_labeledAlt[
+            {$LineLocation : STRING[116]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[23]}ANTLR_alternative[
+             (),
+             (
+              {$LineLocation : STRING[130]; $ColumnLocation : STRING[20]; $FileLocation : STRING["<unknown>"]}ANTLR_element_A2[ANTLR_atom_A2[ANTLR_terminal_A1["ZERO", ()]], ANTLR_element_A2_S1_A2];
+              )],
+            ()]];
+         )]],
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[112]; $FileLocation : STRING["<unknown>"]}";",
+      {$LineLocation : STRING[77]; $ColumnLocation : STRING[114]; $FileLocation : STRING["<unknown>"]}ANTLR_exceptionGroup[(), ()]]];
+   {$LineLocation : STRING[81]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[66]}ANTLR_ruleSpec_A2[
+     ANTLR_lexerRule[
+      (),
+      (),
+      "ASS",
+      ":",
+      ANTLR_lexerRuleBlock[
+       ANTLR_lexerAltList[
+        ANTLR_lexerAlt_A1[ANTLR_lexerElements[(ANTLR_lexerElement_A2[ANTLR_lexerAtom_A2[ANTLR_terminal_A2["\':=\'", ()]], ()]; )], ()],
+        ()]],
+      ";"]];
+   {$LineLocation : STRING[81]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[66]}ANTLR_ruleSpec_A2[
+     ANTLR_lexerRule[
+      (),
+      (),
+      "PLUS",
+      ":",
+      ANTLR_lexerRuleBlock[
+       ANTLR_lexerAltList[
+        ANTLR_lexerAlt_A1[ANTLR_lexerElements[(ANTLR_lexerElement_A2[ANTLR_lexerAtom_A2[ANTLR_terminal_A2["\'+\'", ()]], ()]; )], ()],
+        ()]],
+      ";"]];
+   {$LineLocation : STRING[81]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[66]}ANTLR_ruleSpec_A2[
+     ANTLR_lexerRule[
+      (),
+      (),
+      "VAR",
+      ":",
+      ANTLR_lexerRuleBlock[
+       ANTLR_lexerAltList[ANTLR_lexerAlt_A1[ANTLR_lexerElements[(ANTLR_lexerElement_A2[ANTLR_lexerAtom_A5["[a-z]"], ()]; )], ()], ()]],
+      ";"]];
+   {$LineLocation : STRING[81]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[66]}ANTLR_ruleSpec_A2[
+     ANTLR_lexerRule[
+      (),
+      (),
+      "ONE",
+      ":",
+      ANTLR_lexerRuleBlock[
+       ANTLR_lexerAltList[
+        ANTLR_lexerAlt_A1[ANTLR_lexerElements[(ANTLR_lexerElement_A2[ANTLR_lexerAtom_A2[ANTLR_terminal_A2["\'1\'", ()]], ()]; )], ()],
+        ()]],
+      ";"]];
+   {$LineLocation : STRING[81]; $FileLocation : STRING["<unknown>"]; $ColumnLocation : STRING[66]}ANTLR_ruleSpec_A2[
+     ANTLR_lexerRule[
+      (),
+      (),
+      "ZERO",
+      ":",
+      ANTLR_lexerRuleBlock[
+       ANTLR_lexerAltList[
+        ANTLR_lexerAlt_A1[ANTLR_lexerElements[(ANTLR_lexerElement_A2[ANTLR_lexerAtom_A2[ANTLR_terminal_A2["\'0\'", ()]], ()]; )], ()],
+        ()]],
+      ";"]];
+   )],
+ ()]

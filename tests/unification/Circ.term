@@ -1,0 +1,49 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 08/02/2015
+ */
+
+
+(
+
+Assert[ State[FAIL,0],
+        Circ[State[FAIL,0], %term ⟦ #X ⟧ , %term⟦ A ⟧]
+      ]; 
+
+Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )],0],
+        Circ[State[Mgu[()],0] , "#X" , %term⟦ A ⟧]
+      ];
+
+
+
+Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧];)],0],
+        Circ[State[Mgu[()],0], "#X" , %term⟦ F[A,B] ⟧]
+      ];
+
+Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧];  PairCons[ "#Y",  %term⟦ F[A] ⟧];)],0],
+        Circ[Circ[State[Mgu[()],0], "#Y" , %term⟦ F[A] ⟧], "#X" , %term⟦ F[A,B] ⟧]
+      ];
+
+Assert[ State[FAIL,0],
+        Circ[Circ[State[FAIL,0], "#Y" , %term⟦ F[A] ⟧], "#X" , %term⟦ F[A,B] ⟧]
+      ];
+
+Assert[ State[Mgu[ ( PairCons[ "#Y",  %term⟦ A ⟧]; PairCons[ "#X",  %term⟦ A ⟧];) ],0],
+        Circ[Circ[State[Mgu[()],0], "#X" , %term⟦ #Y ⟧], "#Y" , %term⟦ A ⟧]
+      ];
+
+Assert[ State[Mgu[ ( PairCons[ "#Y",  %term⟦ F[A,B] ⟧]; PairCons[ "#X",  %term⟦ F[F[A,B]] ⟧];) ],0],
+        Circ[Circ[State[Mgu[()],0], "#X" , %term⟦ F[#Y] ⟧], "#Y" , %term⟦ F[A,B] ⟧]
+      ];
+
+Assert[ State[Mgu[ ( PairCons[ "#Y",  %term⟦ F[A,B] ⟧]; PairCons[ "#X",  %term⟦ x.F[x,F[A,B]] ⟧];) ],0],
+        Circ[Circ[State[Mgu[()],0], "#X" , %term⟦ x.F[x,#Y] ⟧], "#Y" , %term⟦ F[A,B] ⟧]
+      ];
+
+Assert[ State[Mgu[ ( PairCons[ "#Z",  %term⟦ C ⟧]; PairCons[ "#Y",  %term⟦ F[A,B] ⟧]; PairCons[ "#X",  %term⟦ C ⟧];) ],0],
+        Circ[Circ[Circ[State[Mgu[()],0], "#X" , %term⟦ #Z ⟧], "#Y" , %term⟦ F[A,B] ⟧], "#Z", %term⟦ C ⟧]
+      ];
+)

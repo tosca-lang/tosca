@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ * 
+ * Tests for Filter
+ *
+ * @author : m schett
+ * @date   : 07/06/2015
+ */
+
+(
+
+Assert[ (1;),
+        Filter[x.Eq[x,1],(1;)]
+      ];
+
+Assert[ (),
+        Filter[x.Eq[x,1],(2;2;)]
+      ];
+
+Assert[ (1;),
+        Filter[x.Eq[x,1],(1;2;)]
+      ];
+
+Assert[ (TRUE;),
+        Filter[x.And[x,TRUE],(TRUE;FALSE;)]
+      ];
+
+Assert[ (PairCons[1,b];PairCons[1,a];),
+        Filter[pair.EqFst[1,pair], (PairCons[1,a];PairCons[1,b];PairCons[2,a];)] 
+      ];
+
+Assert[ (TRUE;TRUE;),
+        Filter[x.And[x,TRUE], (TRUE;Not[FALSE];)] 
+      ];
+)

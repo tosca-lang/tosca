@@ -1,0 +1,27 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ * 
+ * Tests for Length
+ *
+ * @author : m schett
+ * @date   : 07/10/2015
+ */
+
+(
+
+Assert[ 2,
+        Length[(1;2;)]
+      ];
+
+Assert[ 3,
+        Length[Insert[3,(1;2;)]]
+      ];
+
+Assert[ 0,
+        Length[()]
+      ];
+
+Assert[ 2,
+        Length[Zip[(1;2;),(1;2;)]]
+      ];
+)

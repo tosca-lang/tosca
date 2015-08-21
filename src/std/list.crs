@@ -6,19 +6,32 @@
 List[(
 
 $Use["std/core.crs"];
+$Use["std/pair.crs"];
 
 // Sort list definition.
 //∀ a.$List ::= ( $Cons[a, $List[a]]; $Nil; );
+
+/* 
+ * Basic List Operations  
+ */
 
 // TRUE if list is empty
 ∀ a . IsEmpty[$List[a]] :: Boolean ;
 IsEmpty[()    ] → TRUE ;
 IsEmpty[(#;#s)] → FALSE ;
 
-
 ∀ a b . IfEmpty[$List[a], b, b] :: b ;
 IfEmpty[()    , #1, #2] → #1 ;
 IfEmpty[(#;#s), #1, #2] → #2 ;
+
+/* `Null[#XS]`
+   @param `#XS` list
+   @return `TRUE`  if  #XS is the empty list
+           `FALSE` otherwise 
+*/ 
+∀ a . Null[ $List[a] ] :: Boolean;
+Null[ () ]      → TRUE;
+Null[ (#H;#T) ] → FALSE;
 
 // TRUE is list is a singleton
 ∀ a. IsSingleton[$List[a]] :: Boolean ;
@@ -44,10 +57,166 @@ Tail[()] → $[Error,"Tail of empty list"] ;
 Concat[(), #tail] → #tail ;
 Concat[(#1;#s), #tail] → (#1 ; Concat[#s, #tail]) ;
 
+/* `Elem[#X,#XS]`
+   @param  `#X`  element
+   @param  `#XS` list
+   @return `TRUE`  if `#X` is element of `#XS`, i.e., occurs at least once, 
+           `FALSE` otherwise 
+   @note   read "#X is element of #XS to remember the order of the parameters"
+*/
+∀ a . Elem[ a , $List[a] ] :: Boolean;
+Elem[#X,#XS] → Foldr[x y.Or[Eq[#X,x],y], FALSE, #XS];
+
+/* `Insert[#X, #XS]`
+   @param  `#X`  element
+   @param  `#XS` list
+   @return a new list, where `#X` is inserted at the head of `#XS`
+   @note   read "insert #X in #XS to remember the order of the parameters"
+*/
+∀ a . Insert[a,$List[a]] :: $List[a];
+Insert[#X,#XS] → (#X;#XS);
+
+/* `ConditionalInsert[#Condition, #X, #XS]`
+   @param  `#Condition` condition for inserting the element
+   @param  `#X`         element
+   @param  `#XS`        list
+   @return if `#Condition` evaluates to TRUE it calls Insert[`#X`,`#XS`]  
+           otherwise `#XS`
+*/
+∀ a . ConditionalInsert[Boolean,a,$List[a]] :: $List[a] ;
+ConditionalInsert[TRUE, #X,#XS] → Insert[#X,#XS];
+ConditionalInsert[FALSE,#X,#XS] → #XS;
+
+/* `ContainsDuplicates[#XS]`
+   @param `#XS`   list
+   @return `TRUE` if `#XS` contains duplicate elements, `FALSE` otherwise 
+*/
+∀ a . ContainsDuplicates[$List[a]] :: Boolean;
+ContainsDuplicates[ ()     ] → FALSE;
+ContainsDuplicates[ (#H;#T)] → Or[Elem[#H,#T],ContainsDuplicates[#T]];
+
+/* `Length[#XS]`
+   @param  `#XS` list
+   @return length of `#XS` 
+*/
+∀ a . Length[$List[a]] :: $Numeric;
+Length[#XS] → IWrapFoldlP[x y.NumberPlus[1,y],0,#XS];
+
+/* `Intersect[#XS, #YS]`
+   @param  `#XS` list
+   @param  `#YS` list
+   @return the intersection of `#XS` and `#YS`
+   @note   if the first list contains duplicates, the resulting list will as well
+           but not vice versa
+*/
+∀ a . Intersect[$List[a], $List[a]] :: $List[a];
+Intersect[#xs, #ys] → Foldr[x zs.ConditionalInsert[Elem[x,#ys],x,zs],(),#xs] ;
+
+/* 
+ * Zip
+ */
+
+/* `Zip[#XS,#YS]`
+   @param  `#XS` list
+   @param  `#YS` list
+   @return a list of Pairs where the first argument is taken from `#XS` and the second argument from `#YS`. 
+   @error: if `Length[#XS] != Length[#YS]`
+*/
+∀ a b . Zip[$List[a], $List[b]] :: $List[Pair[a,b]];
+Zip[() ,      () ]       → ();
+Zip[() ,      #  ]       → $[Error,"ListExtension.Zip: second argument list was longer"];
+Zip[ # ,      () ]       → $[Error,"ListExtension.Zip: first argument list was longer"];
+Zip[(#X;#XS), (#Y;#YS) ] → ( PairCons[#X,#Y] ; Zip[#XS,#YS]);
+
+/* `LookUp[ #Key, #KeyValueList]`
+    @param `#Key`          a key
+    @param `#KeyValueList` a list of key-value pairs
+    @return a list of values associated to the `#Key` in `#KeyValueList` and returns the empty list, if `#Key` was not found  
+*/
+∀ a b. LookUp[a, $List[Pair[a,b]]] :: $List[b];
+LookUp[ #Key, #KeyValueList] → Map[ x.Snd[x], Filter[pair.Eq[#Key, Fst[pair]], #KeyValueList]];
+
+/* DelEntry
+   @param  `#Key`          of the key-value pairs to delete
+   @param  #KeyValueList` the key-value pairs
+   @return a list of `#KeyValueList`, where all entries with `#Key` are deleted
+ */
+∀ a b . DelEntry[ a , $List[Pair[a,b]] ] ::  $List[Pair[a,b]] ;
+DelEntry[#Key, #KeyValueList] → Filter[ pair. Not[Eq[Fst[pair], #Key]], #KeyValueList];
+
+
+/* 
+ * Map  
+ */
+
 // Apply each item in list to function
 ∀ a b . Map[x::a . $sort[b], $List[a]] :: $List[b] ;
 Map[x.#[x], ()] → () ;
 Map[x.#[x], (#1;#s)] → (#[#1]; Map[x.#[x], #s]) ;
+
+/* `Map2[x.#F[x], #XS]`
+   @param   `x.#F[x]` a function which takes one element of the list as input
+   @param   `#XS`     a list of elements
+   @returns a list where the function `#F` is applied to all elements `#X` in `#XS`
+   @note    alternative implementation to `Map` based on `Foldr`
+*/
+∀ a b. Map2[ x :: a . $sort[b] , $List[a]] :: $List[b];
+Map2[x.#F[x], #XS] → Foldr[y ys.Insert[#F[y],ys],(),#XS];
+
+/* 
+ * Filter 
+ */
+
+/* `Filter[x.#C[x], #XS]`
+    @param  `x.#C[x]` a function which takes an element of the list as input and returns a `Boolean` 
+    @param  `#XS`     a list
+    @return a list, where with only those `#X` in `#XS` where condition `#C[#X]` evaluates to `TRUE`
+*/
+∀ a . Filter[ x :: a . Boolean, $List[a]] :: $List[a];
+Filter[ x.#C[x], #XS] → IWrapFoldlP[ x y . ConditionalInsert[#C[x],x,y] ,(),#XS];
+
+/* 
+ * Folds 
+ */
+
+/* `Foldl[x y.#F[x,y], #Z, #XS]`
+    @param  `x y.#F[x, y]` a function which takes as first argument an element of `#XS` and `#Z` as a second.
+    @param  `#Z`           the starting value of the accumulator
+    @param  `#XS`          a list   
+    @return a list, where the the function `#F` is applied left associatively to all `#X` in `#XS` starting from the accumulator `#Z`
+*/
+∀ a b . Foldl[x :: a  y :: b . $sort[b], b, $List[a]] :: b;
+Foldl [x y. #F[x,y], #Z, ()] → #Z;
+Foldl [x y. #F[x,y], #Z, (#H; #T)] → Foldl[x y.#F[x,y], #F[#H,#Z], #T];
+
+/* 
+  @note `InterpreterWrap` for `FoldP` enforcing computation of argument list `#XS` 
+*/
+∀ a b . IWrapFoldlP[x :: a  y :: b . $sort[b], b, $List[a]] :: b;
+-[Data[#XS]] : IWrapFoldlP[x y.#F[x,y], #Z, #XS] → FoldlP[x y.#F[x,y], #Z, #XS];
+
+/* `FoldlP[x y.#F[x,y], #Z, #XS]`
+    @param  `x y.#F[x, y]` a function which takes as first argument an element of `#XS` and `#Z` as a second.
+    @param  `#Z`           the starting value of the accumulator
+    @param  `#XS`          a list   
+    @return  a list, where the the function `#F` is applied left associatively to all `#X` in `#XS` starting from the accumulator `#Z`, which is evaluated at each intermediate step
+    @note    as `Foldl` but forces intermediate data computation 
+*/
+∀ a b . FoldlP [x :: a  y :: b . $sort[b], b, $List[a]] :: b;
+-[Data[#Z]] : FoldlP [x y. #F[x,y], #Z, ()] → #Z;
+-[Data[#Z]] : FoldlP [x y. #F[x,y], #Z, (#H; #T)] → FoldlP[x y.#F[x,y], #F[#H,#Z], #T];
+
+
+/* `Foldr[x y.#F[x,y], #Z, #XS]: 
+    @param  `x y.#F[x, y]` a function which takes as first argument an element of `#XS` and `#Z` as a second.
+    @param  `#Z`           the starting value of the accumulator
+    @param  `#XS`          a list   
+    @return a list, where the the function `#F` is applied right associatively to all `#X` in `#XS` starting from the accumulator `#Z`
+    @note like Foldl, but right associative 
+*/
+∀ a b . Foldr[x :: a  y :: b . $sort[b], b, $List[a]] :: b;
+Foldr [x y. #F[x,y], #Z, ()] → #Z;
+Foldr [x y. #F[x,y], #Z, (#H; #T)] → #F[#H,Foldr[x y. #F[x,y], #Z, #T]];
 
 ∀ a b . Fold[x::a y::b.$sort[a], a, $List[b]] :: a;
 Fold[x y.#[x, y], #x, ()]       → #x ;
@@ -64,7 +233,7 @@ Fold[x y.#[x, y], #x, (#1; #s)] → Fold[x y.#[x, y], #[#x, #1], #s];
 
 {#E}SeqMap[x c.#[x, c], #list, ok¹.#done[ok¹]] → {#E}SeqMap1[OK, x c.#[x, c], #list, ok¹.#done[ok¹]];
 
-∀ a b. SeqMap1[OK_SORT, x::a c::Continuation[b]. $sort[b], $List[a], ok¹::OK_SORT.$sort[b]] :: b ;
+∀ a b. {$String:$StringEntrySort} SeqMap1[OK_SORT, x::a c::Continuation[b]. $sort[b], $List[a], ok¹::OK_SORT.$sort[b]] :: b ;
 {#E}SeqMap1[OK, x c.#[x, c], ()     , ok¹.#done[ok¹]] → {#E}#done[OK];
 {#E}SeqMap1[OK, x c.#[x, c], (#1;#s), ok¹.#done[ok¹]] → {#E}#[#1, CONTINUATION[ok¹.SeqMap1[ok¹, x c.#[x, c], #s,  ok¹.#done[ok¹]]]];
 

@@ -1,0 +1,25 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 08/04/2015
+ */
+
+
+(
+
+Assert[ (),
+        WrapArguments[()]
+      ];
+
+Assert[ (%arguments⟦ [A] ⟧;),
+        WrapArguments[( %term ⟦ A ⟧ ;)]
+      ];
+
+Assert[ (%arguments⟦ [A,B] ⟧;),
+        WrapArguments[( %term ⟦ A ⟧ ; %term ⟦ B ⟧ ;)]
+      ];
+
+)
+

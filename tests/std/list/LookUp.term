@@ -1,0 +1,39 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ * 
+ * Tests for LookUp
+ *
+ * @author : m schett
+ * @date   : 07/09/2015
+ */
+
+(
+Assert[ (a;),
+         LookUp[1,(PairCons[1,a];)]
+	  ];		
+
+Assert[ (),
+        LookUp[2,(PairCons[1,a];)]
+	  ];	
+
+Assert[ (1;),
+        LookUp[a,Zip[(a;b;),(1;2;)]]
+      ];
+
+Assert[ (),
+        LookUp[c,Zip[(a;b;),(1;2;)]]
+      ];
+
+Assert[ (b;a;),
+        LookUp[2,Zip[(1;2;2;),(a;a;b;)]]
+      ];
+
+Assert[ (PairCons[1,a];),
+        LookUp[1,Zip[(1;2;),Zip[(1;2;),(a;b;)]]]
+      ];
+
+Assert[ (PairCons[1,a];),
+        LookUp[2,Zip[Map[x.NumberPlus[x,1],(1;2;)],Zip[(1;2;),(a;b;)]]]
+      ];
+
+)

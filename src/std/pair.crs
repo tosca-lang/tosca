@@ -1,0 +1,33 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ * 
+ * Basic Functionality for Pairs
+ * 
+ * @author : m schett
+ * @date   : 07/06/2015
+ */
+
+Pair [(
+
+/*
+parametrically polymorphic sort for a Pair
+*/
+∀ a b . Pair[a,b] ::= ( PairCons[a,b]; );
+
+/*
+  `Fst[#P]` 
+  @param  `#P` Pair
+  @return returns the first component of the given pair `#P`
+*/
+∀ a b . Fst[Pair[a,b]] :: a;
+-[Discard[#Y]] : Fst[PairCons[#X,#Y]] → #X;
+
+/*
+  `Fst[#P]` 
+  @param  `#P` Pair
+  @return returns the second component of the given pair `#P`
+*/
+∀ a b . Snd[Pair[a,b]] :: b;
+-[Discard[#X]] : Snd[PairCons[#X,#Y]] → #Y;
+
+)]

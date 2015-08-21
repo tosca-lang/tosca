@@ -36,6 +36,14 @@ Or[Boolean, Boolean] :: Boolean ;
 Or[TRUE, #]  → TRUE;
 Or[FALSE, #] → #;
 
+Not[Boolean] :: Boolean;
+Not[TRUE]  → FALSE;
+Not[FALSE] → TRUE;
+
+// forces evaluation of the arguments
+∀ a. Eq[a,a] :: Boolean;
+-[Data[#X, #Y]] : Eq[#X,#Y] → $[If, $[Equal,#X,#Y], TRUE, FALSE];
+
 // Weird rule because crsx3 interpreter does not handle boolean equality properly
 WrapBoolean[$Boolean] :: Boolean ;
 -[Data[#]]: WrapBoolean[#]  → $[If, $[DeepEqual, $[Show, #], "$True"], TRUE, FALSE];
@@ -48,5 +56,13 @@ UnwrapBoolean[FALSE] → $False;
 
 ∀ a . Trace[a] :: a;
 -[Data[#]]: Trace[#] → $[Trace, #];
+
+// -- Error
+∀ a . Error[$String] :: a;
+Error[#X] → $[Error, #X];
+
+∀ a . TextError[Text] :: a;
+-[ Data[#X] ] : 
+TextError[#X] → $[Error, TextToString[#X]] ; //TextToString not working
 
 )]

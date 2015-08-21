@@ -1,0 +1,17 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 08/11/2015
+ */
+
+(
+Assert[ ConcatString["#",GetCounter[INIT_STATE]],
+        Snd[FRESH_METAVAR[INIT_STATE]]
+      ];
+
+Assert[ "#1", 
+        Snd[FRESH_METAVAR[Fst[FRESH_METAVAR[INIT_STATE]]]]] ;
+
+)

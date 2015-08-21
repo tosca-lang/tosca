@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ * 
+ * Tests for Intersect
+ *
+ * @author : m schett
+ * @date   : 07/15/2015
+ */
+
+(
+
+Assert[ (1;),
+        Intersect[(1;),(1;2;)]
+      ];
+
+Assert[ (),
+        Intersect[(5;),(1;2;)]
+      ];
+
+Assert[ (a;a;),
+        Intersect[(a;a;),(a;b;)]
+      ];
+
+Assert[ (a;a;),
+        Intersect[(a;a;),(a;a;b;)]
+      ];
+
+Assert[ (a;a;),
+        Intersect[(a;a;),(a;a;)]
+      ];
+
+Assert[ (x; y;),
+        Intersect[(x;y;),(y;x;)]
+      ];
+
+Assert[ (x; y;),
+        Intersect[(x;y;),(y;x;)]
+      ];
+
+Assert[ (x; y;),
+        Intersect[(x;y;),(y;y;x;)]
+      ];
+
+)

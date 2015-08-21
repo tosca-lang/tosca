@@ -1,0 +1,36 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 07/30/2015
+ */
+
+(
+
+Assert[ %term ⟦ F[x] ⟧  ,
+        UnwrapNextBinder[ %nextBinder ⟦ . F[x] ⟧ ] 
+      ];
+
+Assert[ %term ⟦ x . F[x] ⟧  ,
+        UnwrapNextBinder[ %nextBinder ⟦ x .F[x] ⟧ ] 
+      ];
+
+
+Assert[ %term ⟦ x y . F[x] ⟧  ,
+        UnwrapNextBinder[ %nextBinder ⟦ x y .F[x] ⟧ ] 
+      ];
+
+Assert[ %nextBinder ⟦ x y .F[x] ⟧  ,
+        WrapNextBinder[UnwrapNextBinder[ %nextBinder ⟦ x y .F[x] ⟧ ]]
+      ];
+
+/* Expected to cause an error.
+Assert[ Error ,
+       UnwrapNextBinder[ %term ⟦ x y .F[x] ⟧ ]
+      ];
+*/
+
+)
+
+

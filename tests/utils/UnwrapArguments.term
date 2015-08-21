@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 07/30/2015
+ */
+
+(
+
+Assert[ ( %term ⟦ A ⟧ ; %term ⟦ B ⟧ ;) ,
+          UnwrapArguments[ %arguments? ⟦ [ A, B] ⟧ ] 
+      ];
+
+
+Assert[ () ,
+          UnwrapArguments[ %arguments? ⟦ [] ⟧ ] 
+      ];
+
+Assert[ () ,
+          UnwrapArguments[ %arguments? ⟦  ⟧ ] 
+      ];
+
+Assert[ ( PairCons[%term ⟦ A ⟧, %term ⟦ B ⟧]; PairCons[%term ⟦ A ⟧, %term ⟦ B ⟧]; ) ,
+        Zip[UnwrapArguments[%arguments? ⟦ [ A, A] ⟧ ], UnwrapArguments[%arguments? ⟦ [ B, B] ⟧ ]]
+      ];
+
+/* Expected error
+Assert[ Error,
+        UnwrapArguments [ %term⟦ F[A] ⟧ ]
+      ]; 
+*/
+)
+
+

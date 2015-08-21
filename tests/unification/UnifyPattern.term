@@ -1,0 +1,63 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 07/17/2015
+ */
+
+(
+
+//different roots
+Assert[ State[FAIL,0],
+        UnifyPattern[ %pattern⟦ B ⟧ ,%pattern⟦ A ⟧]
+      ];
+
+// different roots, same arity, meta variable
+Assert[ State[FAIL,0],
+        UnifyPattern[ %pattern⟦ F[A] ⟧ ,%pattern⟦ G[#X] ⟧]
+      ];
+
+//different roots and arity
+Assert[ State[FAIL,0],
+        UnifyPattern[ %pattern⟦ G[A,B] ⟧ ,%pattern⟦ F[A] ⟧]
+      ];
+
+// same term syntactic var
+Assert[ State[Mgu[()],0],
+        UnifyPattern[ %pattern⟦ F[x,A,B] ⟧ ,%pattern⟦ F[x,A,B] ⟧]
+      ]; 
+
+// simple meta var map
+Assert[ State[Mgu[(PairCons[ "#X_1",  %term⟦ A ⟧]; )],0],
+        UnifyPattern[ %pattern⟦ F[#X] ⟧ ,%pattern⟦ F[A] ⟧]
+      ]; 
+
+// simple meta var map other direction
+Assert[ State[Mgu[(PairCons[ "#X_2",  %term⟦ B ⟧]; )],0],
+        UnifyPattern[ %pattern⟦ F[B] ⟧ ,%pattern⟦ F[#X] ⟧]
+      ]; 
+// same term with bound var
+Assert[ State[Mgu[()],0],
+        UnifyPattern[ %pattern⟦ F[x.G[x]] ⟧ ,%pattern⟦ F[x.G[x]] ⟧]
+      ]; 
+
+// same term with different bound var
+Assert[ State[FAIL,0],
+        UnifyPattern[ %pattern⟦ F[x.G[x]] ⟧ ,%pattern⟦ F[x.G[y]] ⟧]
+      ]; 
+
+// meta var is mapped to another meta var, i.e., both meta var a mapped to the same fresh one
+Assert[ Assoc["#Y",GetMgu[UnifyPattern[ %pattern⟦ F[#X] ⟧ ,%pattern⟦ F[#Y] ⟧]]],
+        Assoc["#X",GetMgu[UnifyPattern[ %pattern⟦ F[#X] ⟧ ,%pattern⟦ F[#Y] ⟧]]]
+       ];
+      
+// meta var is mapped to another meta var
+Assert[ Assoc["#Y_2",GetMgu[UnifyPattern[ %pattern⟦ F[#X[x]] ⟧ ,%pattern⟦ F[#Y[x]] ⟧]]],
+        Assoc["#X_1",GetMgu[UnifyPattern[ %pattern⟦ F[#X[x]] ⟧ ,%pattern⟦ F[#Y[x]] ⟧]]]
+       ];
+
+)
+
+
+

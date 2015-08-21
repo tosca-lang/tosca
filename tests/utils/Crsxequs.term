@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 07/30/2015
+ */
+
+(
+
+/* **Constructor Equality** */
+
+Assert[ TRUE,
+        ConstructorEqual[ %constructor ⟦ ##qualifier B ⟧ ,%constructor ⟦ ##qualifier B ⟧]
+      ];
+
+Assert[ FALSE,
+        ConstructorEqual[ %constructor ⟦ ##qualifier A ⟧ ,%constructor ⟦ ##qualifier B ⟧]
+      ];
+
+/* **Binder Equality** */
+
+Assert[ TRUE,
+        BinderEqual[%binder ⟦ ##annotations? x ⟧, %binder ⟦ ##annotations? x ⟧]
+      ];
+
+Assert[ FALSE,
+        BinderEqual[%binder ⟦ ##annotations? x ⟧, %binder ⟦ ##annotations? y ⟧]
+      ];
+
+Assert[ FALSE,
+        BinderEqual[%binder ⟦ ##annotations? xi ⟧, %binder ⟦ ##annotations? xj ⟧]
+      ];
+
+)

@@ -1,0 +1,28 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ *
+ * @author : m schett
+ * @date   : 08/05/2015
+ */
+
+(
+
+Assert[ State[FAIL,0],
+        RigidRigid[ State[Mgu[()],0], %constructor ⟦ A ⟧, (), %constructor ⟦ B ⟧, ()]
+];
+
+Assert[ State[FAIL,0],
+        RigidRigid[ State[Mgu[()],0], %constructor ⟦ F ⟧, (%term ⟦ A ⟧;), %constructor ⟦ F ⟧, (%term ⟦ B ⟧;)]
+];
+
+Assert[ State[FAIL,0],
+        RigidRigid[ State[Mgu[()],0], %constructor ⟦ F ⟧, (%term ⟦ A ⟧;%term ⟦ B ⟧;), %constructor ⟦ F ⟧, (%term ⟦ B ⟧;%term ⟦ A ⟧;)]
+];
+
+Assert[ State[FAIL,0],
+        RigidRigid[ State[Mgu[()],0], %constructor ⟦ F ⟧, (%term ⟦ A ⟧;), %constructor ⟦ A ⟧, ()]
+];
+
+
+)

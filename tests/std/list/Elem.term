@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ * 
+ * Tests for Element
+ *
+ * @author : m schett
+ * @date   : 07/06/2015
+ */
+
+(
+Assert[ TRUE,
+        Elem[TRUE,(TRUE;TRUE;FALSE;)]
+      ];
+
+Assert[ FALSE,
+        Elem[5, (3;2;1;)]
+      ];
+
+Assert[ FALSE,
+        Elem[5, ()]
+      ];
+
+Assert[ TRUE,
+        Elem[a, (b;a;c;)]
+      ];
+
+Assert[ TRUE,
+        Elem[(1;),((1;);(2;3;);)]
+      ];		
+
+)
