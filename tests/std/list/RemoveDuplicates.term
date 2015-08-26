@@ -1,0 +1,33 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *
+ * @author : m schett
+ * @date   : 08/25/2015
+ */
+
+(
+
+Assert[ (1;2;),
+        RemoveDuplicates[(1;2;2;1;)]
+      ];
+
+Assert[ (1;2;3;4;),
+        RemoveDuplicates[(1;2;3;4;)]
+      ];
+
+Assert[ (), 
+        RemoveDuplicates[()]
+      ]; 
+
+Assert[ (FALSE;), 
+        RemoveDuplicates[(FALSE;FALSE;)]
+      ]; 
+
+Assert[ (();), 
+        RemoveDuplicates[(();();)]
+      ]; 
+
+Assert[ ((1;);), 
+        RemoveDuplicates[((1;);(1;);)]
+      ]; 
+)
