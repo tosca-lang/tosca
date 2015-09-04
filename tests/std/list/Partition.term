@@ -1,0 +1,30 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ * 
+ * @author : m schett
+ * @date   : 26/08/2015
+ */
+
+(
+
+Assert[ PairCons[ (2;2;), (1;1;)],
+        Partition[ x.Eq[x,2], (1;2;2;1;)]
+      ];
+
+Assert[ PairCons[ (1;2;3;4;), ()],
+        Partition[x.TRUE,(1;2;3;4;)]
+      ];
+
+Assert[ PairCons[(), (1;2;3;4;)],
+        Partition[x.FALSE,(1;2;3;4;)]
+      ];
+
+Assert[ PairCons[(),()], 
+        Partition[x.FALSE, ()]
+      ]; 
+
+Assert[ PairCons[ (1;3;), (2;4;)],
+        Partition[x.Or[Eq[x,1], Eq[x,3]],(1;2;3;4;)]
+      ];
+
+)

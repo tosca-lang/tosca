@@ -95,6 +95,14 @@ ConditionalInsert[FALSE,#X,#XS] → #XS;
 ContainsDuplicates[ ()     ] → FALSE;
 ContainsDuplicates[ (#H;#T)] → Or[Elem[#H,#T],ContainsDuplicates[#T]];
 
+/* `RemoveDuplicates[#XS]`
+   @param  `#XS` list
+   @return a duplicate free version of `#XS`
+*/
+∀ a . RemoveDuplicates[ $List[a]] :: $List[a];
+RemoveDuplicates[ () ] → ();
+RemoveDuplicates[ (#X;#XS) ] → Insert[ #X, RemoveDuplicates[Filter[ x.Not[Eq[x,#X]], #XS]]];
+
 /* `Length[#XS]`
    @param  `#XS` list
    @return length of `#XS` 
@@ -110,7 +118,16 @@ Length[#XS] → IWrapFoldlP[x y.NumberPlus[1,y],0,#XS];
            but not vice versa
 */
 ∀ a . Intersect[$List[a], $List[a]] :: $List[a];
-Intersect[#xs, #ys] → Foldr[x zs.ConditionalInsert[Elem[x,#ys],x,zs],(),#xs] ;
+Intersect[#XS, #YS] → Foldr[x zs.ConditionalInsert[Elem[x,#YS],x,zs],(),#XS] ;
+
+
+/* `Union[#XS, #YS]`
+   @param  `#XS` list
+   @param  `#YS` list
+   @return the union of `#XS` and `#YS`, in particular the duplicates are removed
+*/
+∀ a . Union[$List[a], $List[a]] :: $List[a];
+Union[#XS, #YS] → RemoveDuplicates[Concat[#XS,#YS]];
 
 /* 
  * Zip
@@ -146,6 +163,26 @@ DelEntry[#Key, #KeyValueList] → Filter[ pair. Not[Eq[Fst[pair], #Key]], #KeyVa
 
 
 /* 
+ * Partition
+ */
+
+/* `Partition[x.#C[x], #XS]`
+    @param `x.#C[x]` a condition to partition
+    @param `XS`      the list to partition
+    @return a pair `PairCons[#Ts, #Fs]`, where the first component `#Ts` holds all 
+           elements of `#XS` for which `#C` evaluates to `TRUE` and the second compoent `#Fs`
+           holds all elements for `#C` evaluates to `FALSE` 
+*/
+
+∀ a . Partition[ x :: a . Boolean, $List[a]] :: Pair[$List[a],$List[a]];
+Partition[x.#C[x], #XS] → Foldr[ x res . MatchPartition[#C[x], x, res ], PairCons[(),()], #XS];
+
+∀ a . MatchPartition[Boolean, a, Pair[$List[a],$List[a]]] :: Pair[$List[a],$List[a]];
+MatchPartition[TRUE,  #X, PairCons[#TS, #FS]] → PairCons[Insert[#X,#TS], #FS];
+MatchPartition[FALSE, #X, PairCons[#TS, #FS]] → PairCons[#TS, Insert[#X,#FS]];
+
+
+/* 
  * Map  
  */
 
@@ -173,7 +210,7 @@ Map2[x.#F[x], #XS] → Foldr[y ys.Insert[#F[y],ys],(),#XS];
     @return a list, where with only those `#X` in `#XS` where condition `#C[#X]` evaluates to `TRUE`
 */
 ∀ a . Filter[ x :: a . Boolean, $List[a]] :: $List[a];
-Filter[ x.#C[x], #XS] → IWrapFoldlP[ x y . ConditionalInsert[#C[x],x,y] ,(),#XS];
+Filter[ x.#C[x], #XS] → Foldr[ x y . ConditionalInsert[#C[x],x,y] ,(),#XS];
 
 /* 
  * Folds 
@@ -217,6 +254,7 @@ Foldl [x y. #F[x,y], #Z, (#H; #T)] → Foldl[x y.#F[x,y], #F[#H,#Z], #T];
 ∀ a b . Foldr[x :: a  y :: b . $sort[b], b, $List[a]] :: b;
 Foldr [x y. #F[x,y], #Z, ()] → #Z;
 Foldr [x y. #F[x,y], #Z, (#H; #T)] → #F[#H,Foldr[x y. #F[x,y], #Z, #T]];
+
 
 ∀ a b . Fold[x::a y::b.$sort[a], a, $List[b]] :: a;
 Fold[x y.#[x, y], #x, ()]       → #x ;

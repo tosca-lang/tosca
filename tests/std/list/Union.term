@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ * 
+ * Tests for Union
+ *
+ * @author : m schett
+ * @date   : 08/25/2015
+ */
+
+(
+
+Assert[ (1;2;),
+        Union[(1;),(1;2;)]
+      ];
+
+Assert[ (5;1;2;),
+        Union[(5;),(1;2;)]
+      ];
+
+Assert[ (a;b;),
+        Union[(a;a;),(a;b;)]
+      ];
+
+Assert[ (a;b;),
+        Union[(a;a;),(a;a;b;)]
+      ];
+
+Assert[ (a;),
+        Union[(a;a;),(a;a;)]
+      ];
+
+Assert[ (x; y;),
+        Union[(x;y;),(y;x;)]
+      ];
+
+Assert[ (x; y;),
+        Union[(x;y;),(y;x;)]
+      ];
+
+Assert[ (x; y;),
+        Union[(x;y;),(y;y;x;)]
+      ];
+
+)
