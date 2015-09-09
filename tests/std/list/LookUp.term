@@ -24,7 +24,7 @@ Assert[ (),
         LookUp[c,Zip[(a;b;),(1;2;)]]
       ];
 
-Assert[ (b;a;),
+Assert[ (a;b;),
         LookUp[2,Zip[(1;2;2;),(a;a;b;)]]
       ];
 

@@ -25,8 +25,8 @@ Assert[ (TRUE;),
         Filter[x.And[x,TRUE],(TRUE;FALSE;)]
       ];
 
-Assert[ (PairCons[1,b];PairCons[1,a];),
-        Filter[pair.EqFst[1,pair], (PairCons[1,a];PairCons[1,b];PairCons[2,a];)] 
+Assert[ (PairCons[1,a];PairCons[1,b];),
+        Filter[pair.Eq[1,Fst[pair]], (PairCons[1,a];PairCons[1,b];PairCons[2,a];)] 
       ];
 
 Assert[ (TRUE;TRUE;),

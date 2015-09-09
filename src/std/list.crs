@@ -76,6 +76,19 @@ Elem[#X,#XS] → Foldr[x y.Or[Eq[#X,x],y], FALSE, #XS];
 ∀ a . Insert[a,$List[a]] :: $List[a];
 Insert[#X,#XS] → (#X;#XS);
 
+/* `ListEqual[x y.#C[x,y], #XS, #YS]`
+   @param  `#C`  a condition to check for equality 
+   @param  `#XS` list
+   @param  `#YS` list
+   @return `TRUE` if the elements of `#XS` are equal to the elements of `#YS` 
+           wrt the supplied condition for equality `#C`
+*/
+∀ a b. ListEqual[ x:: a y :: b . Boolean, $List[a], $List[b] ] :: Boolean;
+ListEqual[ x y.#C[x,y], (),       ()] → TRUE;
+ListEqual[ x y.#C[x,y], (#x;#xs), ()] → FALSE;
+ListEqual[ x y.#C[x,y], (), (#y;#ys)] → FALSE;
+ListEqual[ x y.#C[x,y], (#x;#xs), (#y;#ys)] → And[ #C[#x,#y], ListEqual[ x y.#C[x,y], #xs, #ys]] ;
+
 /* `ConditionalInsert[#Condition, #X, #XS]`
    @param  `#Condition` condition for inserting the element
    @param  `#X`         element
@@ -120,7 +133,6 @@ Length[#XS] → IWrapFoldlP[x y.NumberPlus[1,y],0,#XS];
 ∀ a . Intersect[$List[a], $List[a]] :: $List[a];
 Intersect[#XS, #YS] → Foldr[x zs.ConditionalInsert[Elem[x,#YS],x,zs],(),#XS] ;
 
-
 /* `Union[#XS, #YS]`
    @param  `#XS` list
    @param  `#YS` list
@@ -128,6 +140,13 @@ Intersect[#XS, #YS] → Foldr[x zs.ConditionalInsert[Elem[x,#YS],x,zs],(),#XS] ;
 */
 ∀ a . Union[$List[a], $List[a]] :: $List[a];
 Union[#XS, #YS] → RemoveDuplicates[Concat[#XS,#YS]];
+
+/* `Reverse[#XS]`
+   @param  `#XS` list
+   @return the reverse list of `#XS` 
+*/
+∀ a . Reverse[$List[a]] :: $List[a];
+Reverse[#XS] → Foldl[ x xs. Insert[x,xs], (), #XS];
 
 /* 
  * Zip
@@ -151,6 +170,7 @@ Zip[(#X;#XS), (#Y;#YS) ] → ( PairCons[#X,#Y] ; Zip[#XS,#YS]);
     @return a list of values associated to the `#Key` in `#KeyValueList` and returns the empty list, if `#Key` was not found  
 */
 ∀ a b. LookUp[a, $List[Pair[a,b]]] :: $List[b];
+-[ Data[#KeyValueList] ] :
 LookUp[ #Key, #KeyValueList] → Map[ x.Snd[x], Filter[pair.Eq[#Key, Fst[pair]], #KeyValueList]];
 
 /* DelEntry
