@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *
+ * @author : m schett
+ * @date   : 08/18/2015
+ */
+
+(
+
+Assert[ TRUE, 
+        TermFoldl[ v. TRUE,  b t.TRUE, m xs. TRUE, c bs. TRUE, %term⟦ F[#X] ⟧]
+      ]; 
+
+Assert[ FALSE, 
+        TermFoldl[ v. TRUE,  b t.TRUE, m xs. TRUE, c bs. FALSE, %term⟦ F[#X] ⟧]
+      ]; 
+
+Assert[ TRUE, 
+        TermFoldl[ v. TRUE,  b t.TRUE, m xs. TRUE, c bs. FALSE, %term⟦ #X[x] ⟧]
+      ]; 
+
+//Fun[ #variable ] →  %term⟦ S[##variable] ⟧;
+Assert[ %term⟦ F[S[x],S[x]] ⟧, 
+    TermFoldl[ v. Fun[v], b t.BVar[b,t], m xs. Meta[m,xs], c bs. Const[c,bs], %term⟦ F[x,x] ⟧]
+      ];
+
+Assert[ %term⟦ F[x,F[A,#X_1[x]]] ⟧,
+         TermFoldl[x.Var[x], b t . BVar[b,t], m xs.MetaR[m,xs], c ts.Const[c,ts], %term⟦ F[x,F[A,#X[x]]] ⟧]
+       ];
+
+)

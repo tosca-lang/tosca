@@ -77,6 +77,14 @@ WrapBinder[Crsx_variable_sort] :: Crsx_binder_sort;
 WrapBinder[#variable] → %binder ⟦ ##variable ⟧ ;
 
 
+/*  WrapContractum
+    @param  `t`  a term
+    @return `c`  a contractum 
+    transforms the term `t` to the contractum `c`
+*/
+WrapContractum[Crsx_term_sort] :: Crsx_contractum_sort;
+WrapContractum[ %term⟦ ##freeTerm ⟧] →  %contractum⟦ ##freeTerm ⟧;
+
 
 /* WrapFreeArguments
    @param `ts`    a list of freeTerms
@@ -116,9 +124,9 @@ WrapFreeArgumentsHelper2[ %term⟦ ##freeTerm ⟧ ] → %freeTerms_S1 ⟦ , ##fr
 WrapNextBinder[Crsx_term_sort] :: Crsx_nextBinder_sort;
 WrapNextBinder[%term⟦ ##freeTerm           ⟧] → %nextBinder⟦ . ##freeTerm ⟧;
 WrapNextBinder[%term⟦ ##binder ##nextBinder⟧] → %nextBinder⟦ ##binder ##nextBinder⟧;
--[Fallback] :
-WrapNextBinder[ # ] → 
-Error[ConcatString["WrapNextBinder: The argument cannot be wrapped to a nextBinder: ", Show[#]]];
+//-[Fallback] :
+//WrapNextBinder[ # ] → 
+//Error[ConcatString["WrapNextBinder: The argument cannot be wrapped to a nextBinder: ", Show[#]]];
 
 
 /* WrapMetaVariableArguments
@@ -128,6 +136,12 @@ WrapMetaVariableArguments[#vars] →  WrapFreeArguments[Map[x.WrapMetaVariableAr
 
 WrapMetaVariableArgumentsHelper[Crsx_variable_sort] :: Crsx_freeTerm_sort;
 WrapMetaVariableArgumentsHelper[#variable] → %freeTerm⟦ ##variable ⟧;
+
+/* WrapPattern
+*/
+WrapPattern[ Crsx_term_sort ] :: Crsx_pattern_sort;
+WrapPattern[ %term⟦ ##properties? ##constructor ##arguments? ⟧ ] → %pattern⟦ ##properties? ##constructor ##arguments?⟧;
+
 
 
 /* WrapSubstitute

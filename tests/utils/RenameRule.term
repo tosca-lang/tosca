@@ -1,0 +1,23 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ * @author : m schett
+ * @date   : 08/26/2015
+ */
+
+(
+
+Assert[ %ruleDeclaration⟦ F[#X_1] → #X_1  ⟧,
+        RenameRule[ "_1", %ruleDeclaration⟦ F[#X] → #X ⟧ ]
+      ];
+
+Assert[ %ruleDeclaration⟦ F[#X_1, #Y_1] → #X_1  ⟧,
+        RenameRule[ "_1", %ruleDeclaration⟦ F[#X,#Y] → #X ⟧ ]
+      ];
+
+Assert[ %ruleDeclaration⟦ G[x.F[#X_1]] → H[#X_1]  ⟧,
+        RenameRule[ "_1", %ruleDeclaration⟦ G[x.F[#X]] → H[#X] ⟧ ]
+      ];
+
+
+)

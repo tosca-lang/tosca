@@ -38,6 +38,13 @@ BinderEqual[%binder ⟦ ##annotations? ##variable ⟧, %binder ⟦ ##annotations
 →
 VariableEqual[#variable, #variable2];
 
+
+METAVAREqual[$String /* Crsx_METAVAR_sort */, $String /* Crsx_METAVAR_sort */] :: Boolean;
+METAVAREqual[#METAVAR, #METAVAR2] 
+→ 
+StringEqual[#METAVAR, #METAVAR2];
+
+
 /* BinderEqual 
   @param  constructor `v1` 
   @param  constructor `v2`

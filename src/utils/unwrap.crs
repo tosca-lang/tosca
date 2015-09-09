@@ -18,7 +18,7 @@ $Use["std/string.crs"];
 /*  UnwrapArguments
     @param `args` list of arguments
     @return `ts`  list of terms 
-    transforms a list of arguments `args` to an equvivalent lsit of terms `t` 
+    transforms a list of arguments `args` to an equvivalent list of terms `t` 
     @throws error if applied to something which is not of Crsx_arguments_sort
 */
 UnwrapArguments[$List[Crsx_arguments_sort]] :: $List[Crsx_term_sort];
@@ -31,6 +31,13 @@ UnwrapArguments[ # ] → Error[ConcatString["UnwrapArguments: The argument is no
 UnwrapArgumentsHelper[Crsx_terms_S1_sort] :: Crsx_term_sort;
 UnwrapArgumentsHelper[%terms_S1⟦ , ##term ⟧ ] → #term;
 
+/*  UnwrapContractum
+    @param `c` a contractum
+    @return `t`  term
+    returns a term `t` equvivalent to the contractum `c`
+*/
+UnwrapContractum[ Crsx_contractum_sort] :: Crsx_term_sort;
+UnwrapContractum[ %contractum⟦ ##freeTerm ⟧ ] → %term⟦ ##freeTerm ⟧;
 
 /* UnwrapFreeArguments
    @param `args`  a list of freeArguments
@@ -76,10 +83,21 @@ UnwrapMetaVariableArgumentsHelper[%freeTerms_S1⟦ , ##annotations? ##variable �
     @throws error if applied to something which is not of Crsx_next_Binder_sort
 */
 UnwrapNextBinder[Crsx_nextBinder_sort] :: Crsx_term_sort;
-UnwrapNextBinder[%nextBinder⟦ . ##freeTerm          ⟧] → %term ⟦ ##freeTerm ⟧;
-UnwrapNextBinder[%nextBinder⟦ ##binder ##nextBinder ⟧] → %term ⟦ ##binder ##nextBinder ⟧;
+UnwrapNextBinder[%nextBinder⟦ . ##freeTerm          ⟧] → %term⟦ ##freeTerm ⟧;
+UnwrapNextBinder[%nextBinder⟦ ##binder ##nextBinder ⟧] → %term⟦ ##binder ##nextBinder ⟧;
 -[Fallback] :
 UnwrapNextBinder[#] → Error[ConcatString["UnwrapNextBinder: The argument is not of Crsx_nextBinder_sort: ", Show[#]]];
+
+
+/*  UnwrapPattern
+    @param `p` a pattern
+    @return `t`  term
+    returns a term `t` equvivalent to the pattern `p`
+*/
+UnwrapPattern[ Crsx_pattern_sort] :: Crsx_term_sort; 
+UnwrapPattern[ %pattern⟦ ##properties? ##constructor ##arguments? ⟧ ] → %term⟦ ##properties? ##constructor ##arguments? ⟧;
+
+
 
 /*
 How to deal systematically with options, e.g., #args?

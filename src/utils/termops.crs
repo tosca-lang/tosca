@@ -11,6 +11,20 @@ $Use["std/list.crs"];
 $Use["std/string.crs"];
 
 /* ***************************************************** */
+/*  MISC                                                 */
+/* ***************************************************** */
+
+/* Lhs
+   @param `rule` a rule declaration
+   @return `lhs` the **term** `lhs` which is the left-hand side of the rule
+*/
+Lhs[Crsx_ruleDeclaration_sort] :: Crsx_term_sort;
+Lhs[%ruleDeclaration⟦ ##option? ##constructor ##arguments? → ##contractum ⟧] 
+→ 
+%term⟦ ##constructor ##arguments? ⟧;
+
+
+/* ***************************************************** */
 /*  RENAMING                                             */
 /* ***************************************************** */
 
@@ -55,7 +69,79 @@ Rename[#suffix, #term] → RenameHelper[#suffix, (), #term];
   → 
   %term⟦ ##annotations? ##variable ⟧ ;
 
+/* RenameRule
+   @param `suffix` a string, which serves as suffix for all meta variables
+   @param `rule`   a rule in which the meta variables will be renamed
+   @return `rule'` in which all meta variables `#X` are renamed to `#Xsuffix` 
+   @note   see [Rename] 
+ */
+RenameRule[$String, Crsx_ruleDeclaration_sort] :: Crsx_ruleDeclaration_sort;
+RenameRule[#suff, %ruleDeclaration⟦ ##option? ##pattern → ##contractum ⟧] 
+→ %ruleDeclaration⟦ ##option? ⟨pattern: WrapPattern[Rename[#suff,UnwrapPattern[#pattern]]]⟩ 
+                   → ⟨contractum: WrapContractum[Rename[#suff, UnwrapContractum[#contractum]]]⟩ ⟧;
+ 
+/* RenameRules 
+   @param  `rules`    a list of rules in which the meta variables will be renamed
+   @return `rules'`  in which all meta variables `#X` are renamed to `#X_n`, whereby `n` in `1..Length[rules]`
+   @note   see [RenameRule] 
+ */
+RenameRules[$List[Crsx_ruleDeclaration_sort]] :: $List[Crsx_ruleDeclaration_sort];
+RenameRules[#rules] → RenameRulesHelper[1, #rules];
+  RenameRulesHelper[$Numeric, $List[Crsx_ruleDeclaration_sort]] ::  $List[Crsx_ruleDeclaration_sort];
+  RenameRulesHelper[#_, ()] → ();
+  RenameRulesHelper[#n, (#r;#rules)] → Insert[ RenameRule[ConcatString["_", Show[#n]],#r], RenameRulesHelper[NumberPlus[#n,1], #rules]];
 
+
+
+/* ***************************************************** */
+/* Blue Print                                            */
+/* ***************************************************** */
+
+/* BluePrint
+   @param `#sortDecl`  a sort declaration
+   @return a term, which is a "blue print" for this sort, i.e., the `Fallback` for this term,
+           i.e., the most general version of this term
+           Example: F[ x :: Nat y :: Boolean . Nat, Nat ] :: Nat 
+                     transforms to 
+                     F[ x_0 x_1 . #0_[x_0, x_1], #1_]
+   @note the definition of `form` is very permissive (`arguments?`)
+          TODO: refine grammar
+          for the moment, it is assumed, that `#freeTerm` indicates Data at this position,
+          for a `#boundTerm`, the amount of consecutive binders indicates the amount of arguments
+          Example Update: F[ x :: Nat y :: Boolean . Nat, Nat ] :: Nat actually looks like
+                          F[ x y . Nat, Nat] :: Nat, whereby Nat is a Crsx_term
+   @throw Error, if applied to Data sort
+*/
+BluePrint[ Crsx_sortDeclaration_sort] :: Crsx_term_sort;
+BluePrint[ %sortDeclaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##forms ) ⟧] 
+  → Error[ ConcatString[ "BluePrintPattern is tried on data sort  \n", Show[#sortname]]];
+BluePrint[ %sortDeclaration⟦ ##sortparams? ##sortset ##constructor ##arguments? :: ##sortname ⟧] 
+  → %term⟦ ##constructor ⟨arguments?: WrapArguments[BluePrintArgs[UnwrapArguments[#arguments?], 0]]⟩ ⟧;
+
+// Numeric, #n = Number of argument
+BluePrintArgs[$List[Crsx_term_sort], $Numeric] :: $List[Crsx_term_sort];
+BluePrintArgs[(), #n] → ();
+BluePrintArgs[(%term⟦ ##freeTerm ⟧; #args), #n ] 
+  /* meta variables of the shape `#n_` */
+  → ( %term⟦ ⟨METAVAR: ConcatString[ConcatString["#", Show[#n]], "_"] ⟩ ⟧ 
+      ; BluePrintArgs[#args, NumberPlus[#n,1]] );
+
+BluePrintArgs[ (%term⟦ ##boundTerm ⟧; #args), #n ]
+  /* case position has bound variables */ 
+  → ( BluePrintArgsHelper[ ConcatString[ConcatString["#", Show[#n]], "_"], 
+                           Reverse[BluePrintBoundVars[%term⟦ ##boundTerm ⟧, (), 0]]]
+      ; BluePrintArgs[#args, NumberPlus[#n,1]]);
+
+  BluePrintArgsHelper[$String, $List[Crsx_variable_sort]] :: Crsx_term_sort;
+  BluePrintArgsHelper[#METAVAR, #args] → WrapBoundTerm[ #args, %term⟦ ##METAVAR ⟨freeArguments?: WrapMetaVariableArguments[#args] ⟩ ⟧];
+
+  BluePrintBoundVars[ Crsx_term_sort, $List[Crsx_variable_sort], $Numeric] :: $List[Crsx_variable_sort];
+  BluePrintBoundVars[ %term⟦ ##freeTerm ⟧, #args, #x ] 
+  → #args;
+  BluePrintBoundVars[ %term⟦ ##variable ##nextBinder ⟧, #args, #x ] 
+  → BluePrintBoundVars[ UnwrapNextBinder[#nextBinder], (BluePrintBoundVarsHelper[ ConcatString["x_", Show[#x]]]; #args), NumberPlus[#x,1] ];
+     BluePrintBoundVarsHelper[$String] :: Crsx_variable_sort;
+     BluePrintBoundVarsHelper[ #VARIABLE ] → %variable⟦ ##VARIABLE ⟧;
 
 /* ***************************************************** */
 /*  VARIABLES                                            */
@@ -70,6 +156,12 @@ FreeVariables[Crsx_term_sort] :: $List[Crsx_variable_sort];
 FreeVariables[ #t ] → MatchFreeVariables[ Variables[#t] ];
   MatchFreeVariables[VARS] :: $List[Crsx_variable_sort];
   MatchFreeVariables[Vars[#M, #BV, #FV]] → #FV;
+
+
+MetaVariables[Crsx_term_sort] :: $List[$String /* Crsx_METAVAR_sort */];
+MetaVariables[ #t ] → MatchMetaVariables[ Variables[#t] ];
+  MatchMetaVariables[VARS] :: $List[ $String /* Crsx_METAVAR_sort */ ];
+  MatchMetaVariables[Vars[#M, #BV, #FV]] → #M;
 
 /* VARS
   data sort to hold meta variables, bound variables, and free variables
@@ -132,6 +224,55 @@ ConcatVars[#VARS, #VARSs] → FoldlP[ vars varsAcc . ConcatVARSHelper[vars, vars
   ConcatVARSHelper[Vars[#M, #BV, #FV], Vars[#M2, #BV2, #FV2]] 
   → Vars[Concat[#M, #M2],Concat[#BV, #BV2],Concat[#FV, #FV2]];
 
+
+/* ***************************************************** */
+/*  Experimental Foldl                                   */
+/* ***************************************************** */
+
+// experimental/work in progress to fold over a term 
+
+∀ a . TermFoldl[ v :: Crsx_variable_sort . $sort[a],
+                 b :: Crsx_binder_sort t :: a. $sort[a], 
+                 m :: $String  vs :: $List[a] . $sort[a],
+                 c :: Crsx_constructor_sort ts :: $List[a] . $sort[a], Crsx_term_sort ] :: a;
+
+ TermFoldl[v.#V[v], b t.#B[b, t], m xs.#M[m,xs], c ts.#F[c,ts], %term⟦ ##annotations? ##properties? ##constructor ##arguments? ⟧ ] 
+ → 
+ #F[#constructor, Map[ t. TermFoldl[ v.#V[v], b t . #B[b,t], m xs.#M[m,xs], c ts.#F[c,ts], t] , UnwrapArguments[#arguments?]]];
+  
+  /* case: meta var */
+  TermFoldl[v.#V[v], b t . #B[b,t], m xs.#M[m,xs], c ts.#F[c,ts], %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧ ]
+ → #M[#METAVAR, Map[ t. TermFoldl[v.#V[v], b t . #B[b,t], m xs.#M[m,xs], c ts.#F[c,ts], t], UnwrapFreeArguments[#freeArguments?]]  ];
+
+  /* case: abstraction/binder */
+ TermFoldl[v.#V[v], b t . #B[b,t], m xs.#M[m,xs], c ts.#F[c,ts],  %term⟦ ##binder ##nextBinder ⟧]
+  → #B[#binder, TermFoldl[v.#V[v], b t . #B[b,t], m xs.#M[m,xs], c ts.#F[c,ts], UnwrapNextBinder[#nextBinder]]];
+
+  /* case: variable */
+ TermFoldl[v.#V[v], b t . #B[b,t], m xs.#M[m,xs], c ts.#F[c,ts], %term⟦ ##annotations? ##variable ⟧ ] 
+  → #V[#variable] ;
+
+// to use for Termfoldl with i.e.,
+// TermFoldl[ x . Var[x], b t. BVar[b,t], x ys . Meta[x,ys], c bs. Const[c,bs],  #term] == #term
+Var[ Crsx_variable_sort ] :: Crsx_term_sort;
+Var[ #variable ] → %term⟦ ##variable ⟧;
+
+BVar[ Crsx_binder_sort, Crsx_term_sort] :: Crsx_term_sort;
+BVar[ #binder, #term]  → %term⟦ ##binder ⟨nextBinder: WrapNextBinder[#term]⟩ ⟧;
+
+Meta[ $String, $List[Crsx_term_sort] ] :: Crsx_term_sort;
+-[Data[#METAVAR]] :
+Meta[#METAVAR, #args] → %term⟦ ##METAVAR  ⟨freeArguments?: WrapFreeArguments2[#args] ⟩ ⟧;
+ 
+Const[ Crsx_constructor_sort, $List[Crsx_term_sort]] :: Crsx_term_sort;
+Const[ #constructor, #args ] → %term⟦ ##constructor ⟨arguments?: WrapArguments[#args] ⟩ ⟧;
+
+
+/*
+MetaR[ $String, $List[Crsx_term_sort] ] :: Crsx_term_sort;
+-[ Free[x] ]:
+MetaR[$[NotMatch,x,#METAVAR], #args] → Meta[ConcatString[#METAVAR, "_1"], #args];
+*/
 
 
 )]
