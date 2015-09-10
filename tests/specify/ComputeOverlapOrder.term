@@ -1,0 +1,43 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ * @author : m schett
+ * @date   : 08/28/2015
+ */
+
+(
+Assert[ INCOMPARABLE,
+        ComputeOverlapOrder[ %term⟦ A ⟧, %term⟦ B ⟧]
+	  ];
+
+Assert[ INCOMPARABLE,
+        ComputeOverlapOrder[ %term⟦ F[A] ⟧, %term⟦ F[B] ⟧]
+	  ];
+
+Assert[ IsGeneralization[ %term⟦ F[#X] ⟧, Mgu[(PairCons["#X",%term⟦ A ⟧];)], %term⟦ F[A] ⟧],
+        ComputeOverlapOrder[ %term⟦ F[#X] ⟧, %term⟦ F[A] ⟧]
+	  ];
+
+
+Assert[ IsInstance[ %term⟦ F[y.A[y]] ⟧, Mgu[(PairCons["#X",%term⟦ y.A[y] ⟧];)], %term⟦ F[x.#X[x]] ⟧],
+        ComputeOverlapOrder[ %term⟦ F[y.A[y]] ⟧, %term⟦ F[x.#X[x]]  ⟧]
+	  ];
+
+/* no idea why this doesn't compute   */
+Assert[ RENAMING,
+        ComputeOverlapOrder[ %term⟦ #X ⟧, %term⟦ #Y⟧]
+	  ];
+
+/* no idea why this doesn't compute   */
+Assert[ RENAMING,
+        ComputeOverlapOrder[ %term⟦ F[#X] ⟧, %term⟦ F[#Y] ⟧]
+	  ];
+	
+Assert[ IsInstance[ %term⟦ F[B, #Y1] ⟧,
+                    Mgu[(PairCons["#Y1",%term⟦ B ⟧];)] ,
+                    %term⟦ F[#X2, #Y2] ⟧
+                   ],
+        ComputeOverlapOrder[%term⟦ F[B, #Y1] ⟧ , %term⟦ F[#X2, #Y2] ⟧ ]
+       ];
+
+)

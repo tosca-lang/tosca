@@ -1,0 +1,55 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ * @author : m schett
+ * @date   : 08/28/2015
+ */
+
+(
+Assert[ Branch[ %ruleDeclaration⟦ F[#0_, #1_] → F_LLBACK ⟧ ,
+                ( PairCons[ Mgu[( PairCons["#1_", %term⟦ B ⟧];
+                                  PairCons["#0_", %term⟦ A ⟧];
+                		        )],
+                           Branch[ %ruleDeclaration⟦ F[A,  B] → A ⟧ ,
+                                   () ]
+                          ];
+                )
+               ],          
+        ComputeInstanceOrder[ %sortDeclaration⟦ F[ Data, Data] :: Data ⟧, 
+                           (  %ruleDeclaration⟦ F[A,  B] → A ⟧ ;)]
+	  ];
+
+
+Assert[ Branch[ %ruleDeclaration⟦ F[#X] → #X ⟧ , ()],          
+        ComputeInstanceOrder[ %sortDeclaration⟦ F[Data] :: Data ⟧, 
+                           (  %ruleDeclaration⟦ F[#X] → #X ⟧ ;) ]
+	  ];
+
+/* Expected Error: Ambigious 
+Assert[ Error ,
+        ComputeInstanceOrder[( %ruleDeclaration⟦ F[#X,A] → 1 ⟧ ; %ruleDeclaration⟦ F[A,#Y] → 1 ⟧ ; )]
+	  ];
+
+
+Assert[                ( Leaf[ %ruleDeclaration⟦ F[A,  #Y1] → 1 ⟧ ];
+                         Leaf[ %ruleDeclaration⟦ F[B,  #Y2] → 1 ⟧ ];
+		               ) ,
+        ComputeInstanceOrder[( %ruleDeclaration⟦ F[A,  #Y1] → 1 ⟧ ;
+                               %ruleDeclaration⟦ F[B,  #Y2] → 1 ⟧ ;)]
+        		
+	  ];
+
+
+
+Assert[  ( Branch[ %ruleDeclaration⟦ F[#X2, #Y2] → 1 ⟧, 
+                                 (PairCons[ Mgu[ ( PairCons["#Y2", %term⟦ #0 ⟧]; PairCons["#X1", %term⟦ B ⟧];) ], 
+                                            Leaf[%ruleDeclaration⟦ F[B,   #Y2] → 1 ⟧]
+                                           ];)
+                  ];),
+        ComputeInstanceOrder[( %ruleDeclaration⟦ F[B, #Y1] → 1 ⟧ ;
+                               %ruleDeclaration⟦ F[#X2, #Y2] → 1 ⟧ ;)]
+
+];
+
+*/
+)
