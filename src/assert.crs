@@ -1,0 +1,46 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ * 
+ * Basic Functionality for Asserting
+ *
+ * @author : m schett
+ * @date   : 07/06/2015
+ */
+
+Assert[(
+
+$Lax;
+
+
+//$Use["std/text.crs"];
+$Use["std/core.crs"];
+$Use["std/list.crs"];
+$Use["std/num.crs"];
+$Use["std/pair.crs"];
+
+$Use["unification/unification.crs"];
+$Use["unification/state.crs"];
+
+$Use["utils/crsxequs.crs"];
+$Use["utils/termops.crs"];
+
+$Use["utils/wrap.crs"];
+$Use["utils/unwrap.crs"];
+
+$Use["specify/specify.crs"];
+
+
+Main[$List[$Boolean]] :: $List[$Boolean];
+-[Data[#]] : Main[#] → #;
+
+
+∀ a . Assert[a,a] :: Boolean;
+-[Data[#Expected,#Computed]] : 
+Assert[#Expected,#Computed] → Eq[$[Trace,#Expected],$[Trace,#Computed]];
+
+// forces evaluation of the arguments
+∀ a. Eq[a,a] :: Boolean;
+-[Data[#X, #Y]] : Eq[#X,#Y] → $[If, $[Equal,#X,#Y], TRUE, FALSE];
+
+
+)]
