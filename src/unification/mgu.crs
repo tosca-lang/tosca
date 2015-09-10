@@ -175,9 +175,64 @@ ApplyVarSubst[#varSubst, %term⟦ ##annotations? ##variable ##nextBinder ⟧, #F
   ApplyVarSubst[#subst, %term⟦ ##annotations? ##variable ⟧, #FVs] 
   → MatchVarLookUp[#variable, %term⟦ ##annotations? ##variable ⟧, LookUp[#variable,#subst]];  
     /*  */
-    MatchVarLookUp[Crsx_variable_sort, Crsx_term_sort ,$List[Crsx_term_sort]] :: Crsx_term_sort;
+    MatchVarLookUp[Crsx_variable_sort, Crsx_term_sort, $List[Crsx_term_sort]] :: Crsx_term_sort;
     MatchVarLookUp[#variable,  #t, () ]        → #t;
     MatchVarLookUp[ #variable, #t, (#tP;)]     → #tP;
     MatchVarLookUp[ #variable, #t, (#tP;#tsP)] → Error[ConcatString["ApplyVarSubst: The following variable was mapped to more than one term:", Show[#variable]]];
 
+
+/* *********************************************************** */
+
+/* IsRenaming
+   @param `θ`  a mgu 
+   @return `TRUE` iff `θ` contains only images of shape `x1 ... xn.#X[ x1, ..., xn]`
+   @note   **in general** not sufficient to check whether an mgu `θ` for `t1` and `t2` is a renaming, 
+           but sufficient for variable disjoint and linear `t1` and `t2`
+*/
+
+IsRenaming[Mgu] :: Boolean;
+IsRenaming[FAIL]        → FALSE;
+IsRenaming[Mgu[#theta]] → FoldlP[ pair z. And[IsRenamingHelper[(), Snd[pair]], z], TRUE, #theta]; 
+   
+  IsRenamingHelper[$List[Crsx_variable_sort], Crsx_term_sort] :: Boolean;
+  /* collect binders x1 ... xn */
+  IsRenamingHelper[#binders, %term⟦ ##variable ##nextBinder ⟧] 
+  → IsRenamingHelper[Insert[#variable,#binders], UnwrapNextBinder[#nextBinder]]; 
+  /* until meta variable is reached */
+  IsRenamingHelper[#binders, %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧] → 
+  ListEqual[ x y . VariableEqual[x,y], Reverse[#binders], UnwrapMetaVariableArguments[#freeArguments?]];
+  /* if something else it is encountered it is not a renaming */
+  -[Fallback] :  IsRenamingHelper[ #_, #term ] → FALSE; 
+
+
+/* RestrictDomain
+   @param  `θ`   a mgu 
+   @param  `#t`  a term
+   @return SOME[mgu `σ`] which is a a restriction of `θ` to `MetaVariables[#t]`
+           the domain of `θ` is partitioned with respect to the meta variables of `#t`, i.e.,
+            `θ = σ1 ∪ σ2` where `domain[σ1] == MetaVariables[#t]`
+            if `σ2` is a renaming, the restriction is possible, otherwise
+            NONE               
+*/
+RestrictDomain[Mgu, Crsx_term_sort] :: Option[Mgu];
+RestrictDomain[#mgu, #t] → CheckRestrictability[PartitionMgu[#mgu, MetaVariables[#t]]];
+  /* checks whether second component the partition is a renaming */
+  CheckRestrictability[Pair[Mgu,Mgu]] :: Option[Mgu];
+  CheckRestrictability[PairCons[#sigma1,#sigma2]] → MatchIsRestrictable[IsRenaming[#sigma2], #sigma1];
+  MatchIsRestrictable[Boolean, Mgu] :: Option[Mgu];
+  MatchIsRestrictable[FALSE, #_     ] → NONE;
+  MatchIsRestrictable[TRUE,  #sigma1] → SOME[#sigma1];
+
+/* PartitionMgu
+   @param `θ`  a mgu 
+   @param `Ms` a list of meta variables
+   @return `Pair[σ1,σ2]` partitions `θ` where `Domain[σ1]` is a subset of `Ms`
+*/
+PartitionMgu[Mgu, $List[$String /* Crsx_METAVAR_sort */]] :: Pair[Mgu,Mgu];
+PartitionMgu[Mgu[#theta], #Ms] 
+  → PartitionMguHelper[Partition[ pair. IWrapFoldlP[ v acc. Or[METAVAREqual[Fst[pair],v], acc] , FALSE, #Ms], #theta]];
+  PartitionMguHelper[ Pair[$List[Pair[$String /* Crsx_METAVAR_sort */, Crsx_term_sort]],  $List[Pair[$String /* Crsx_METAVAR_sort */, Crsx_term_sort]]]] :: Pair[Mgu,Mgu];
+  PartitionMguHelper[PairCons[#sigma1, #sigma2]] → PairCons[Mgu[#sigma1], Mgu[#sigma2]];
+    
+ 
 )]

@@ -48,14 +48,26 @@ Assert[ State[Mgu[( PairCons[ "#G",  %term⟦ y x . #0[x] ⟧];  PairCons[ "#F",
         Unify[State[Mgu[()],0], PairCons[ %term⟦ x y . #F[x] ⟧, %term⟦ x y. C[#G[y,x]] ⟧ ]]  ];
 
 
-/*
-
-//alpha equv...
-Assert[ TRUE, 
-        Let[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  y .#G[y]  ⟧]],
-            mgu. Eq[ ApplySubst[mgu,%term ⟦ x .#F[x] ⟧], ApplySubst[mgu, %term⟦ y. #G[y] ⟧]] 
-            ]
+//alpha equv 
+Assert[ Assoc[ "#G", GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  y .#G[y]  ⟧]]]],
+        Assoc[ "#F", GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  y .#G[y]  ⟧]]]]
       ]; 
+
+//alpha equv 2
+Assert[ Assoc[ "#G", GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  y .#G[y]  ⟧]]]],
+        Assoc[ "#F", GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  x .#G[x]  ⟧]]]]
+      ]; 
+
+
+/* Expected Error
+Assert[ Error,
+      GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x y.#F[x,y] ⟧ , %term⟦  y x .#G[y,x]  ⟧]]]
+    ]; 
+*/
+
+Assert[ Mgu[ (PairCons["#X", %term⟦ Zero ⟧]; PairCons["#G", %term⟦ y x.#0[x] ⟧]; PairCons["#F", %term⟦ x.#0[x] ⟧];) ],
+        GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ Div[x y. #F[x],#X] ⟧ , %term⟦  Div[x y. #G[y,x], Zero]  ⟧]]]
+       ];
 
 
 // renaming 

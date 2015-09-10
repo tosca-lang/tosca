@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *
+ * @author : m schett
+ * @date   : 08/26/2015
+ */
+
+(
+		
+Assert[ TRUE, 
+        IsRenaming[ Mgu[ () ] ] ];
+		
+Assert[ TRUE, 
+        IsRenaming[ Mgu[ ( PairCons["#X", %term⟦ #Y ⟧]; PairCons["#V", %term⟦ #Z ⟧]; ) ] ] ];
+
+Assert[ FALSE, 
+        IsRenaming[ Mgu[ ( PairCons["#X", %term⟦ F[A,B] ⟧]; ) ] ] ];
+
+Assert[ TRUE, 
+        IsRenaming[ Mgu[ ( PairCons["#X", %term⟦ x.#F[x] ⟧]; ) ] ] ];
+
+Assert[ TRUE, 
+        IsRenaming[ Mgu[ ( PairCons["#X", %term⟦ x y z.#F[x,y,z] ⟧]; ) ] ] ];
+
+Assert[ FALSE, 
+        IsRenaming[ Mgu[ ( PairCons["#X", %term⟦ x y z.#F[x,z,y] ⟧]; ) ] ] ];
+
+Assert[ FALSE, 
+        IsRenaming[ Mgu[ ( PairCons["#X", %term⟦ x y z.#F[x,y] ⟧]; ) ] ] ];
+
+)

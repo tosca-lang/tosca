@@ -10,31 +10,35 @@ Assert[ %term⟦ x ⟧,
         BetaDev[ %term⟦ x ⟧, () ] 
       ]; 
 
+
 Assert[ %term⟦ F[y] ⟧,
-        BetaDev[ %term⟦ x.F[x] ⟧, ( %variable ⟦ y ⟧ ;) ] 
+        BetaDev[ %term⟦ x.F[x] ⟧, ( %term⟦ y ⟧ ;) ] 
       ]; 
+
+
 
 Assert[ %term⟦ F[x,y] ⟧,
-        BetaDev[ %term⟦ x y.F[x,y] ⟧, ( %variable ⟦ x ⟧ ; %variable ⟦ y ⟧ ;) ] 
+        BetaDev[ %term⟦ x y.F[x,y] ⟧, ( %term⟦ x ⟧ ; %term⟦ y ⟧ ;) ] 
       ]; 
 
+
 Assert[ %term⟦ F[y,x] ⟧,
-        BetaDev[ %term⟦ x y.F[x,y] ⟧, ( %variable ⟦ y ⟧ ; %variable ⟦ x ⟧ ;) ] 
+        BetaDev[ %term⟦ x y.F[x,y] ⟧, ( %term⟦ y ⟧ ; %term⟦ x ⟧ ;) ] 
       ]; 
 
 Assert[ %term⟦ y. #X[z] ⟧,
-        BetaDev[ %term⟦ x y.#X[x] ⟧, ( %variable ⟦ z ⟧ ;) ] 
+        BetaDev[ %term⟦ x y.#X[x] ⟧, ( %term⟦ z ⟧ ;) ] 
       ]; 
 
 /* Expected Error
 Assert[ Error,
-        BetaDev[ %term⟦ #X[x] ⟧, ( %variable ⟦ z ⟧ ;) ] 
+        BetaDev[ %term⟦ #X[x] ⟧, ( %term⟦ z ⟧ ;) ] 
 ];
 */
 
-/* Expected Error
+/* Expected Error 
 Assert[ Error,
-        BetaDev[ %term⟦ x. #X[x] ⟧, ( %variable ⟦ z ⟧ ; %variable ⟦ y ⟧ ;) ] 
+        BetaDev[ %term⟦ x. #X[x] ⟧, ( %term⟦ z ⟧ ; %term⟦ y ⟧ ;) ] 
 ];
 */
 

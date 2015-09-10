@@ -1,0 +1,29 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ * @author : m schett
+ * @date   : 08/27/2015
+ */
+
+(
+		
+/* no variables */		
+Assert[ PairCons[ Mgu[()], Mgu[ (PairCons["#Y", %term⟦ B⟧];
+                                 PairCons["#X", %term⟦ #Y ⟧];)] ],
+        PartitionMgu[ Mgu[ (PairCons[ "#Y", %term⟦ B⟧];
+                            PairCons[ "#X", %term⟦ #Y ⟧];)], () ]
+	  ];
+
+/* all variables */
+Assert[ PairCons[ Mgu[ (PairCons["#Y", %term⟦ B⟧];
+                        PairCons["#X", %term⟦ #Y ⟧];)], Mgu[()] ],
+        PartitionMgu[ Mgu[ (PairCons[ "#Y", %term⟦ B⟧];
+                            PairCons[ "#X", %term⟦ #Y ⟧];)], ("#X";"#Y";) ]
+];
+
+Assert[ PairCons[ Mgu[(PairCons["#X", %term⟦ #Y ⟧];)], 
+                  Mgu[(PairCons["#Y", %term⟦ B  ⟧];)]],
+        PartitionMgu[Mgu[(PairCons["#Y", %term⟦ B ⟧]; 
+                          PairCons["#X", %term⟦ #Y ⟧];)], ("#X";)]
+      ];
+)

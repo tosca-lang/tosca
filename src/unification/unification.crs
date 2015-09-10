@@ -16,6 +16,11 @@ $Use["unification/state.crs"];
 $Use["utils/termops.crs"];
 
 
+UnifyTerms[Crsx_term_sort,Crsx_term_sort] :: Mgu;
+UnifyTerms[#t1, #t2] → GetMgu[Unify[INIT_STATE, PairCons[#t1,#t2]]];
+
+////////////////////////////////////////////////////////////////////////
+
 /* UnifyPattern 
   @param  pattern `p1` 
   @param  pattern `p2`
@@ -35,6 +40,7 @@ $Use["utils/termops.crs"];
   @note   Assumptions
           Assumption 1: alpha equivalent, e.g., x.x ≈ y.y 
           Assumption 2: linear patterns
+          Assumption 3: variable disjoint
 */
 UnifyPattern[Crsx_pattern_sort, Crsx_pattern_sort] :: STATE;
 -[Discard[#properties?, #properties?2]] :
@@ -49,12 +55,6 @@ MatchUnifyPattern[ConstructorEqual[#constructor,#constructor2], #constructor, #a
 
   MatchUnifyPattern[TRUE,  #constructor, #arguments?, #constructor2, #arguments?2 ] 
   →
-  UnifyPreproc[ Rename["_1", %term⟦  ##constructor  ##arguments?  ⟧],
-                Rename["_2", %term⟦  ##constructor2 ##arguments?2 ⟧]];
-  UnifyPreproc[ Crsx_term_sort, Crsx_term_sort] :: STATE;
-  UnifyPreproc[ %term⟦ ##constructor  ##arguments?  ⟧,
-                %term⟦ ##constructor2 ##arguments?2 ⟧
-              ] →
   RigidRigid[INIT_STATE, #constructor , UnwrapArguments[#arguments?], #constructor2, UnwrapArguments[#arguments?2]];
 
 /* Unify 
@@ -69,20 +69,19 @@ Unify[STATE, Pair[Crsx_term_sort, Crsx_term_sort]] :: STATE;
 /* term `t1 = x.t1'` and term `t2 = x.t2'` */
 -[Discard[#annotations?, #annotations?2]] :
 Unify[#state, PairCons[ %term⟦ ##annotations?  ##variable  ##nextBinder  ⟧, 
-                        %term⟦ ##annotations?2 ##variable2 ##nextBinder2 ⟧] ]
-→  Unify[#state, PairCons[UnwrapNextBinder[#nextBinder], 
-                          UnwrapNextBinder[#nextBinder2]]];
-/*
-// for when alpha equv is dropped
-   Let[
-                       $[If,
-                         UnwrapBoolean[VariableEqual[#variable, #variable2]], 
-                         UnwrapNextBinder[#nextBinder2],
-                         ApplyVarSubst[ (PairCons[#variable, #variable2];), UnwrapNextBinder[#nextBinder2]]
-                       ],
-         t2.Unify[#theta, PairCons[UnwrapNextBinder[#nextBinder], t2]]
-      ]; 
-*/
+                        %term⟦ ##annotations?2 ##variable2 ##nextBinder2 ⟧]]
+→ MatchAlphaEq[VariableEqual[#variable, #variable2], #state, 
+                        %term⟦ ##annotations?  ##variable  ##nextBinder  ⟧,
+                        %term⟦ ##annotations?2 ##variable2 ##nextBinder2 ⟧];  
+
+  MatchAlphaEq[Boolean, STATE, Crsx_term_sort, Crsx_term_sort] :: STATE;
+  MatchAlphaEq[TRUE,  #state, %term⟦ ##annotations?  ##variable  ##nextBinder  ⟧, 
+                              %term⟦ ##annotations?2 ##variable2 ##nextBinder2 ⟧] 
+  → Unify[#state, PairCons[UnwrapNextBinder[#nextBinder], UnwrapNextBinder[#nextBinder2]]];
+  MatchAlphaEq[FALSE, #state, %term⟦ ##annotations? ##variable ##nextBinder ⟧,  
+                              #term2] 
+  → Unify[#state, PairCons[UnwrapNextBinder[#nextBinder], BetaDev[#term2, (%term⟦ ##variable ⟧;)]]];
+
 
 /* term `t1 = x.t1'` but term `t2 ≠ x.t2'`  */
 Unify[#state, PairCons[ %term⟦ ##boundTerm ⟧, %term⟦ ##freeTerm ⟧ ] ] 

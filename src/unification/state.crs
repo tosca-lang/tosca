@@ -10,6 +10,7 @@ State[(
 $Use["std/core.crs"];
 $Use["std/string.crs"];
 $Use["std/pair.crs"];
+$Use["std/num.crs"];
 
 $Use["unification/mgu.crs"];
 
@@ -49,6 +50,7 @@ UpdateMgu[State[#theta, #counter] , mgu.#F[mgu]] → State[ #F[#theta], #counter
            meta variable of the shape `#m`, m ≥ 0 
 */
 FRESH_METAVAR[STATE] :: Pair[STATE, $String];
+-[ Data[#state]] : //to force computation of number plus...
 FRESH_METAVAR[ #state ] 
 → PairCons[ UpdateCounter[#state, counter.NumberPlus[counter, 1]],
             ConcatString["#", Show[GetCounter[#state]]]
@@ -68,7 +70,5 @@ GetCounter[State[#mgu, #counter]] → #counter;
 */
 UpdateCounter[STATE, x :: $Numeric . $Numeric] :: STATE;
 UpdateCounter[State[#mgu, #counter], counter.#F[counter]] → State[#mgu, #F[#counter]];
-
-
 
 )]

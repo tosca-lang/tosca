@@ -6,6 +6,7 @@
  * @date   : 08/05/2015
  */
 (
+
 Assert[ %term⟦ A ⟧,
         ApplyVarSubst[ PairCons[ %variable⟦ x ⟧,  %term⟦ y ⟧] , %term⟦ A ⟧ , ()] 
       ];
@@ -26,8 +27,9 @@ Assert[ %term⟦ C[x.F[x],y] ⟧,
         ApplyVarSubst[ (PairCons[ %variable⟦ x ⟧,  %term⟦ y ⟧];) , %term⟦ C[x.F[x], x] ⟧ , (%variable⟦ y ⟧;)] 
       ];
 
-Assert[ %term⟦ z.y ⟧,
+/* Expected Error
+Assert[ Error,
         ApplyVarSubst[ (PairCons[ %variable⟦ x ⟧,  %term⟦ y ⟧];) , %term⟦ y.x ⟧ , (%variable⟦ y ⟧;)] 
       ];
-
+*/
 )

@@ -29,14 +29,15 @@ Assert[ State[Mgu[()],0],
       ]; 
 
 // simple meta var map
-Assert[ State[Mgu[(PairCons[ "#X_1",  %term⟦ A ⟧]; )],0],
+Assert[ State[Mgu[(PairCons[ "#X",  %term⟦ A ⟧]; )],0],
         UnifyPattern[ %pattern⟦ F[#X] ⟧ ,%pattern⟦ F[A] ⟧]
       ]; 
 
 // simple meta var map other direction
-Assert[ State[Mgu[(PairCons[ "#X_2",  %term⟦ B ⟧]; )],0],
+Assert[ State[Mgu[(PairCons[ "#X",  %term⟦ B ⟧]; )],0],
         UnifyPattern[ %pattern⟦ F[B] ⟧ ,%pattern⟦ F[#X] ⟧]
       ]; 
+
 // same term with bound var
 Assert[ State[Mgu[()],0],
         UnifyPattern[ %pattern⟦ F[x.G[x]] ⟧ ,%pattern⟦ F[x.G[x]] ⟧]
