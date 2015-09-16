@@ -34,7 +34,7 @@
  *     rule : R1?  → rule : {_enterOPT();} R1? {_exitOPT();}  
  *
  * Fusing element
- * --------------------
+ * --------------
  *
  * Identical consecutive rule elements are fused to form only one list argument 
  *
@@ -45,6 +45,10 @@
  *     rule : R1 (',' R1)*  →  rule : {_enterOOM();} R1 ({_hide()} ',' R1)* {_exitOOM();}
  *
  * TODO: add <fuse> option to control mapping
+ *
+ * Scoping
+ * -------
+ *
  *
  * Meta Parser
  * -----------
@@ -143,6 +147,11 @@ ParserConstructs[#id, $True, #meta]     →
              "import static org.crsx.pg.SinkAntlrListener.fireEnterAlt;\n",
              "import static org.crsx.pg.SinkAntlrListener.fireExitAlt;\n",
              "import static org.crsx.pg.SinkAntlrListener.fireHide;\n",
+             "import static org.crsx.pg.SinkAntlrListener.fireEnterName;\n",
+             "import static org.crsx.pg.SinkAntlrListener.fireExitName;\n",
+             "import static org.crsx.pg.SinkAntlrListener.fireBinder;\n",
+             "import static org.crsx.pg.SinkAntlrListener.fireEnterBinds;\n",
+             "import static org.crsx.pg.SinkAntlrListener.fireExitBinds;\n",
              $[If, #meta, "import static org.crsx.pg.SinkAntlrListener.fireTail;\n", ""],
              $[If, #meta, "import static org.crsx.pg.SinkAntlrListener.fireTerm;\n", ""],
              $[If, #meta, "import static org.crsx.pg.SinkAntlrListener.fireEmbed;\n", ""],
@@ -166,6 +175,11 @@ ParserConstructs[#id, $True, #meta]     →
             "protected void _enterAlt() { fireEnterAlt(_parseListeners, _ctx); }\n",
             "protected void _exitAlt()  { fireExitAlt(_parseListeners, _ctx); }\n",
             "protected void _hide()     { fireHide(_parseListeners, _ctx); }\n",
+            "protected void _enterName(String name)  { fireEnterName(_parseListeners, _ctx, name); }\n",
+            "protected void _exitName()     { fireExitName(_parseListeners, _ctx); }\n",
+            "protected void _binder()     { fireBinder(_parseListeners, _ctx); }\n",
+            "protected void _enterBinds(String names) { fireEnterBinds(_parseListeners, _ctx, names); }\n",
+            "protected void _exitBinds()  { fireExitBinds(_parseListeners, _ctx); }\n",
             $[If, #meta, "protected void _embed()    { fireEmbed(_parseListeners, _ctx); }\n", ""],
             $[If, #meta, "protected void _tail()     { fireTail(_parseListeners, _ctx); }\n", ""],
             $[If, #meta, "protected void _term()     { fireTerm(_parseListeners, _ctx); }\n", ""],
@@ -304,6 +318,11 @@ WrapElement[{#L}%element⟨ ⟨block: {#E}HideConstBlock[#block]⟩ #ebnfSuffix 
 {#E}MakeElement[{#L}%element⟨ #block ⟩, (), #RULE_REF, #meta]             
 → 
 {#L}%element*⟨ ⟨block: {#E}HideConstBlock[#block] ⟩ ⟩;
+
+{#E}MakeElement[{#L}%element⟦ #ACTION #QUESTION? ⟧, (), #RULE_REF, #meta]             
+→ 
+{#L}%element*⟨ #ACTION #QUESTION? ⟩;
+
 
 // TODO: other kinds of element.....
 

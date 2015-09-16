@@ -135,12 +135,13 @@ GetRefElements[#element*, #index];
 
 GetEbnfSuffixElement[ANTLR_element_sort] :: Option[ANTLR_ebnfSuffix_sort]; 
 
-GetEbnfSuffixElement[%element⟨ #labeledElement ⟩]             → NONE;
-GetEbnfSuffixElement[%element⟨ #labeledElement #ebnfSuffix ⟩] → SOME[#ebnfSuffix]; 
-GetEbnfSuffixElement[%element⟨ #atom ⟩]                       → NONE;
-GetEbnfSuffixElement[%element⟨ #atom #ebnfSuffix ⟩]           → SOME[#ebnfSuffix]; 
-GetEbnfSuffixElement[%element⟨ #block ⟩]                      → NONE;  
-GetEbnfSuffixElement[%element⟨ #block #ebnfSuffix ⟩]          → SOME[#ebnfSuffix]; 
+GetEbnfSuffixElement[%element⟦ #labeledElement ⟧]             → NONE;
+GetEbnfSuffixElement[%element⟦ #labeledElement #ebnfSuffix ⟧] → SOME[#ebnfSuffix]; 
+GetEbnfSuffixElement[%element⟦ #atom ⟧]                       → NONE;
+GetEbnfSuffixElement[%element⟦ #atom #ebnfSuffix ⟧]           → SOME[#ebnfSuffix]; 
+GetEbnfSuffixElement[%element⟦ #block ⟧]                      → NONE;  
+GetEbnfSuffixElement[%element⟦ #block #ebnfSuffix ⟧]          → SOME[#ebnfSuffix]; 
+GetEbnfSuffixElement[%element⟦ #ACTION #QUESTION? ⟧]          → NONE; 
  
 // --- Test whether a production is constant
 

@@ -91,11 +91,11 @@ freeTerm
     ;
              
 boundTerm
-    : binder nextBinder                                     /* [CORE]  Binder */       /* TODO: binder should really be a CRSX binder when PG4 supports it. */
+    : binder {_enterBinds("x");}nextBinder<binds=x>{_exitBinds();}                                 /* [CORE]  Binder */       /* TODO: binder should really be a CRSX binder when PG4 supports it. */
     ;
 
 nextBinder
-    : binder {openscope("x");}nextBinder<inscope='x'>{closescope("x")}                        /* [CORE] */
+    : binder {_enterBinds("x");}nextBinder<binds=x>{_exitBinds();}                        /* [CORE] */
     | DOT freeTerm
     ;                                               
     
@@ -128,7 +128,7 @@ listItem
     ;
     
 variable                                                    /* [CORE] */
-    : linear? VARIABLE<binder='x'> linear? functional? varsort?
+    : linear? {_enterName("x");}VARIABLE<name=x>{_exitName();} linear? functional? varsort?
     ;
     
 linear 
@@ -145,7 +145,7 @@ literal
     ;
     
 binder
-    : annotations? variable
+    : annotations? {_binder();} variable<binder>
     ;
     
 varsort

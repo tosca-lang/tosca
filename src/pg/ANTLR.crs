@@ -445,17 +445,17 @@ ANTLR_elementOptions_S1_sort ::= (ANTLR_elementOptions_S1[$String, ANTLR_element
 ANTLR_Print_elementOptions_S1[ANTLR_elementOptions_S1_sort] :: Text;
 ANTLR_Print_elementOptions_S1[ANTLR_elementOptions_S1[#1, #2]] → %n⟪ †«#1» «ANTLR_Print_elementOption[#2]»⟫;
 
-ANTLR_elementOption_sort ::= (ANTLR_elementOption_A1[ANTLR_id_sort]; ANTLR_elementOption_A2[ANTLR_id_sort, $String, ANTLR_elementOption_A2_S1_sort]; );
+ANTLR_elementOption_sort ::= (ANTLR_elementOption_A1[ANTLR_id_sort]; ANTLR_elementOption_A2[ANTLR_id_sort, $String, ANTLR_elementOption_S1_sort]; );
 
 ANTLR_Print_elementOption[ANTLR_elementOption_sort] :: Text;
 ANTLR_Print_elementOption[ANTLR_elementOption_A1[#1]] → %n⟪ «ANTLR_Print_id[#1]»⟫;
-ANTLR_Print_elementOption[ANTLR_elementOption_A2[#1, #2, #3]] → %n⟪ «ANTLR_Print_id[#1]» †«#2» «ANTLR_Print_elementOption_A2_S1[#3]»⟫;
+ANTLR_Print_elementOption[ANTLR_elementOption_A2[#1, #2, #3]] → %n⟪ «ANTLR_Print_id[#1]» †«#2» «ANTLR_Print_elementOption_S1[#3]»⟫;
 
-ANTLR_elementOption_A2_S1_sort ::= (ANTLR_elementOption_A2_S1_A1[ANTLR_id_sort]; ANTLR_elementOption_A2_S1_A2[$String]; );
+ANTLR_elementOption_S1_sort ::= (ANTLR_elementOption_S1_A1[ANTLR_id_sort]; ANTLR_elementOption_S1_A2[$String]; );
 
-ANTLR_Print_elementOption_A2_S1[ANTLR_elementOption_A2_S1_sort] :: Text;
-ANTLR_Print_elementOption_A2_S1[ANTLR_elementOption_A2_S1_A1[#1]] → %n⟪ «ANTLR_Print_id[#1]»⟫;
-ANTLR_Print_elementOption_A2_S1[ANTLR_elementOption_A2_S1_A2[#1]] → %n⟪ †«#1»⟫;
+ANTLR_Print_elementOption_S1[ANTLR_elementOption_S1_sort] :: Text;
+ANTLR_Print_elementOption_S1[ANTLR_elementOption_S1_A1[#1]] → %n⟪ «ANTLR_Print_id[#1]»⟫;
+ANTLR_Print_elementOption_S1[ANTLR_elementOption_S1_A2[#1]] → %n⟪ †«#1»⟫;
 
 ANTLR_id_sort ::= (ANTLR_id_A1[$String]; ANTLR_id_A2[$String]; );
 

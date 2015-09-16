@@ -2,6 +2,7 @@
 
 package org.crsx.parser;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -10,18 +11,18 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import net.sf.crsx.Variable;
-import net.sf.crsx.generic.GenericFactory;
-import net.sf.crsx.generic.GenericTerm;
-import net.sf.crsx.util.Buffer;
-import net.sf.crsx.util.FormattingAppendable;
-
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenSource;
 import org.antlr.v4.runtime.TokenStream;
 import org.crsx.pg.SinkAntlrListener;
+
+import net.sf.crsx.Variable;
+import net.sf.crsx.generic.GenericFactory;
+import net.sf.crsx.generic.GenericTerm;
+import net.sf.crsx.util.Buffer;
+import net.sf.crsx.util.FormattingAppendable;
 
 /**
  * Simple utility to invoke the CRSX parser from the command line.
@@ -64,7 +65,9 @@ public class CrsxParser
             //parser.freeTerm();
 			GenericTerm term = (GenericTerm) buffer.term(true);
 
-			FileWriter w = new FileWriter(outputname);
+			File outputFile = new File(outputname);
+			outputFile.getParentFile().mkdirs();
+			FileWriter w = new FileWriter(outputFile);
 			FormattingAppendable f = FormattingAppendable.format(w, 120, 0, Integer.MAX_VALUE);
 			Map<Variable, String> variableNames = new HashMap<Variable, String>();
 			term.appendTermTo(

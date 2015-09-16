@@ -9,6 +9,11 @@ import static org.crsx.pg.SinkAntlrListener.fireExitOPT;
 import static org.crsx.pg.SinkAntlrListener.fireEnterAlt;
 import static org.crsx.pg.SinkAntlrListener.fireExitAlt;
 import static org.crsx.pg.SinkAntlrListener.fireHide;
+import static org.crsx.pg.SinkAntlrListener.fireEnterName;
+import static org.crsx.pg.SinkAntlrListener.fireExitName;
+import static org.crsx.pg.SinkAntlrListener.fireBinder;
+import static org.crsx.pg.SinkAntlrListener.fireEnterBinds;
+import static org.crsx.pg.SinkAntlrListener.fireExitBinds;
 
 
 import org.antlr.v4.runtime.ParserRuleContext;
