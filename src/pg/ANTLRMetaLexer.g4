@@ -1,5 +1,5 @@
 /*
- * [The "BSD license"]
+ELEMENTOPTIONS * [The "BSD license"]
  *  Copyright (c) 2014 Terence Parr
  *  Copyright (c) 2014 Sam Harwell
  *  All rights reserved.
@@ -155,6 +155,9 @@ ET_RULEMODIFIERS_OPT    : START_EMBED_CHAR 'ruleModifiers?:'        -> pushMode(
 MT_ARG_ACTION_OPT       : META_CHAR 'ARG_ACTION?' [0-9]*;
 ET_ARG_ACTION_OPT       : START_EMBED_CHAR 'ARG_ACTION?:'           -> pushMode(Embed);
 
+MT_ARG_ACTION           : META_CHAR 'ARG_ACTION' [0-9]*;
+ET_ARG_ACTION           : START_EMBED_CHAR 'ARG_ACTION:'           -> pushMode(Embed);
+
 MT_RULERETURNS_OPT      : META_CHAR 'ruleReturns?' [0-9]*;
 ET_RULERETURNS_OPT      : START_EMBED_CHAR 'ruleReturns?:'          -> pushMode(Embed);
 
@@ -208,6 +211,21 @@ ET_ALTLIST_S1           : START_EMBED_CHAR 'altList_S1:'            -> pushMode(
 
 MT_ELEMENTOPTIONS_OPT   : META_CHAR 'elementOptions?' [0-9]*;
 ET_ELEMENTOPTIONS_OPT   : START_EMBED_CHAR 'elementOptions?:'       -> pushMode(Embed);
+
+MT_ELEMENTOPTIONS_S1   : META_CHAR 'elementOptions_S1' [0-9]*;
+ET_ELEMENTOPTIONS_S1  : START_EMBED_CHAR 'elementOptions_S1:'       -> pushMode(Embed);
+
+MT_ELEMENTOPTION_S1   : META_CHAR 'elementOption_S1' [0-9]*;
+ET_ELEMENTOPTION_S1  : START_EMBED_CHAR 'elementOption_S1:'       -> pushMode(Embed);
+
+MT_ELEMENTOPTIONS_S1_ZOM   : META_CHAR 'elementOptions_S1*' [0-9]*;
+ET_ELEMENTOPTIONS_S1_ZOM  : START_EMBED_CHAR 'elementOptions_S1*:'       -> pushMode(Embed);
+
+MT_ELEMENTOPTIONS   : META_CHAR 'elementOptions' [0-9]*;
+ET_ELEMENTOPTIONS  : START_EMBED_CHAR 'elementOptions:'       -> pushMode(Embed);
+
+MT_ELEMENTOPTION   : META_CHAR 'elementOption' [0-9]*;
+ET_ELEMENTOPTION  : START_EMBED_CHAR 'elementOption:'       -> pushMode(Embed);
 
 MT_ELEMENT_ZOM          : META_CHAR 'element*' [0-9]*;
 ET_ELEMENT_ZOM          : START_EMBED_CHAR 'element*:'              -> pushMode(Embed);

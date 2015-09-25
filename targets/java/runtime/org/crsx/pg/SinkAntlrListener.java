@@ -92,21 +92,26 @@ public class SinkAntlrListener implements ParseTreeListener
 		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).embed(_ctx));
 	}
 
-	public static void fireEnterName(List<ParseTreeListener> listeners, ParserRuleContext _ctx, String name)
+	public static void fireEnterSymbol(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).enterName(_ctx, name));
+		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).enterSymbol(_ctx));
 	}
 
-	public static void fireExitName(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
+	public static void fireExitSymbol(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).exitName(_ctx));
+		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).exitSymbol(_ctx));
 	}
 
-	public static void fireBinder(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
+	public static void fireEnterBinder(List<ParseTreeListener> listeners, ParserRuleContext _ctx, String name)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).binder(_ctx));
+		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).enterBinder(_ctx, name));
 	}
 
+	public static void fireExitBinder(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
+	{
+		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).exitBinder(_ctx));
+	}
+	
 	public static void fireEnterBinds(List<ParseTreeListener> listeners, ParserRuleContext _ctx, String names)
 	{
 		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).enterBinds(_ctx, names));
@@ -129,7 +134,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	// Some enums
 
 	enum State {
-		PARSE, START_EMBED, PARSE_EMBED, BINDER
+		PARSE, START_EMBED, PARSE_EMBED, NAME, SKIP
 	}
 
 	enum TokenSort {
@@ -162,10 +167,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	/** Language specific meta variable prefix */
 	private String metachar;
 
-	/** Whether to skip the next token */
-	private boolean hide;
-
-	/** */
+	/** Whether the next token represent the tail of a list. */
 	private boolean tail;
 
 	/** */
@@ -374,83 +376,90 @@ public class SinkAntlrListener implements ParseTreeListener
 	 */
 	public void hide(ParserRuleContext context)
 	{
-		hide = true;
+		state = State.SKIP;
 	}
 
 	/**
-	 *  Receive the notification the next name is a binder
+	 * Receive the notification the next tokens are part of a binder name
 	 * @param context
+	 * @param name to associate to the binder
 	 */
-	public void binder(ParserRuleContext context)
+	public void enterBinder(ParserRuleContext context, String name)
 	{
 		assert!tail : "Cannot declare a binder is a list tail";
 		assert binderId == null : "Cannot nest binders";
 
-		binder = true;
+		state = State.NAME;
+		binderId = name.trim();
+		binderName = "";
 	}
 
+	/**
+	 * Receive the notification the binder name is complete
+	 * @param context
+	 */
+	public void exitBinder(ParserRuleContext context)
+	{
+		assert state == State.NAME;
+		assert !tail : "Cannot declare a binder is a list tail";
+		assert binderId != null : "Missing enterBinder notification";
+
+		binderNames.put(binderId, binderName);
+		binderId = null;
+		binderName = null;
+		state = State.PARSE;
+	}
+
+	
 	/**
 	 * Receive the notification the next tokens declare a binder
 	 * @param context
-	 * @param id binder identifier 
 	 */
-	public void enterName(ParserRuleContext context, String id)
+	public void enterSymbol(ParserRuleContext context)
 	{
 		assert!tail : "Cannot declare a binder is a list tail";
 		assert binderId == null : "Cannot nest binders";
 
-		binderId = id;
 		binderName = "";
-		state = State.BINDER;
+		state = State.NAME;
 	}
 
 	/**
 	 * Receive the notification all tokens parts of a binder name have been received
 	 * @param context
 	 */
-	public void exitName(ParserRuleContext context)
+	public void exitSymbol(ParserRuleContext context)
 	{
-		assert state == State.BINDER;
-		assert!tail : "Cannot declare a binder is a list tail";
-		assert binderId != null : "Missing enterBinder notification";
+		assert state == State.NAME;
+		assert !tail : "Cannot declare a name is a list tail";
+		
+		// This is a binder occurrence. Resolve and emit
+		Optional<Object> variable = bounds.stream().filter(var -> {
+			if (var == MARKER)
+				return false;
 
-		if (binder)
+			if (sink == null)
+				return ((Variable) var).name().equals(binderName);
+			else
+				return ((net.sf.crsx.Variable) var).name().equals(binderName);
+		}).findFirst();
+
+		if (variable.isPresent())
 		{
-			// This is a binder. Just record association. 
-			binderNames.put(binderId, binderName);
-			binder = false;
+			// Binder exists -> emit variable use
+			if (sink == null)
+				sink4 = sink4.use((Variable) variable.get());
+			else
+				sink = sink.use((net.sf.crsx.Variable) variable.get());
 		}
 		else
 		{
-			// This is a binder occurrence. Resolve and emit
-			Optional<Object> variable = bounds.stream().filter(var -> {
-				if (var == MARKER)
-					return false;
-
-				if (sink == null)
-					return ((Variable) var).name().equals(binderName);
-				else
-					return ((net.sf.crsx.Variable) var).name().equals(binderName);
-			}).findFirst();
-
-			if (variable.isPresent())
-			{
-				// Binder exists -> emit variable use
-				if (sink == null)
-					sink4 = sink4.use((Variable) variable.get());
-				else
-					sink = sink.use((net.sf.crsx.Variable) variable.get());
-			}
+			// Binder does not exists: emit fresh variable.
+			if (sink == null)
+				sink4 = sink4.use(new Variable(binderName));
 			else
-			{
-				// Binder does not exists: emit fresh variable.
-				if (sink == null)
-					sink4 = sink4.use(new Variable(binderName));
-				else
-					sink = sink.use(factory.makeVariable(binderName, false));
-			}
+				sink = sink.use(factory.makeVariable(binderName, false));
 		}
-		binderId = null;
 		state = State.PARSE;
 	}
 
@@ -461,7 +470,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	 */
 	public void enterBinds(ParserRuleContext context, String names)
 	{
-		String[] snames = names.split(" ");
+		String[] snames = names.trim().split(" ");
 		Object[] binders = sink == null ? new Variable[snames.length] : new net.sf.crsx.Variable[snames.length];
 
 		bounds.add(MARKER);
@@ -539,11 +548,12 @@ public class SinkAntlrListener implements ParseTreeListener
 	{
 		switch (state)
 		{
+			case SKIP:
+				state = State.PARSE;
+				break;
 			case PARSE :
-				// Skipping token takes precedence on all other states.
-				if (!hide && context.getSymbol().getType() != -1)
+				if (context.getSymbol().getType() != -1)
 				{
-
 					// Is that a terminal part of a list?
 					if (!consCount.isEmpty() && consCount.peek() != marker)
 					{
@@ -589,7 +599,6 @@ public class SinkAntlrListener implements ParseTreeListener
 					sort = TokenSort.STRING;
 
 				}
-				hide = false;
 				break;
 			case START_EMBED :
 				// Just the category/sort name. Ignore
@@ -618,7 +627,6 @@ public class SinkAntlrListener implements ParseTreeListener
 						{
 							throw new RuntimeException(e);
 						}
-
 					}
 					else
 					{
@@ -629,11 +637,11 @@ public class SinkAntlrListener implements ParseTreeListener
 				state = State.PARSE;
 				break;
 
-			case BINDER :
-				assert binderId != null;
+			case NAME :
 				assert sort == TokenSort.STRING || sort == TokenSort.NUMERIC : "Embedded terms cannot be part of a binder name";
 				binderName += context.getText().trim();
 				break;
+			
 			default :
 				break;
 		}

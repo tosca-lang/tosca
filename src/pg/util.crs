@@ -12,6 +12,7 @@ Util[(
 
 $Use["std/core.crs"];
 $Use["std/env.crs"];
+$Use["std/list.crs"];
 
 $Lax;
 
@@ -21,35 +22,33 @@ $Lax;
 
 IndexGrammar[ANTLR_grammarSpec_sort] :: RuleIndex;
 IndexGrammar[{#L}%grammarSpec⟦ #DOC_COMMENT? #grammarType #id ; #prequelConstruct* #ruleSpec* #modeSpec* ⟧]
-→
-IndexRules[#ruleSpec*];
+→ IndexRules[#ruleSpec*];
 
 IndexRules[$List[ANTLR_ruleSpec_sort]] :: RuleIndex;
 IndexRules[#ruleSpec*] → IndexRules2[#ruleSpec*, {}RULEINDEX];
 
 IndexRules2[$List[ANTLR_ruleSpec_sort], RuleIndex] :: RuleIndex;
 
-IndexRules2[{#L}%ruleSpec*⟦ ⟧, #Index] → #Index; 
+IndexRules2[{#L}%ruleSpec*⟦ ⟧, #Index] 
+→ #Index; 
 
 IndexRules2[{#L}%ruleSpec*⟦ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec? 
                            #rulePrequel* : #ruleAltList ; #exceptionHandler* #finallyClause? #ruleSpec* ⟧, {#I}#Index]
-→
-IndexRules2[#ruleSpec*, {#I; #RULE_REF : %ruleSpec⟦ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec? 
+→ IndexRules2[#ruleSpec*, {#I; #RULE_REF : %ruleSpec⟦ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec? 
                            #rulePrequel* : #ruleAltList ; #exceptionHandler* #finallyClause? ⟧}#Index];
 
 IndexRules2[{#L}%ruleSpec*⟦ #DOC_COMMENT? #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; #ruleSpec* ⟧, {#I}#Index]
-→
-IndexRules2[#ruleSpec*, {#I; #TOKEN_REF : %ruleSpec⟦ #DOC_COMMENT? #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟧}#Index];
+→ IndexRules2[#ruleSpec*, {#I; #TOKEN_REF : %ruleSpec⟦ #DOC_COMMENT? #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟧}#Index];
 
 // --- Element fusion
 
 /*
- * Test whether the given element can be fused with the next element.
- *
- * A element can be fused with the next element if they both references the same rule or token, 
- * modulo constant element, and the first one is a single production and the second one a list.
- * 
- * TODO: formal description.
+  Test whether the given element can be fused with the next element.
+ 
+  A element can be fused with the next element if they both references the same rule or token, 
+  modulo constant element, and the first one is a single production and the second one a list.
+  
+  TODO: formal description.
  */
 IsFused[ANTLR_element_sort, $List[ANTLR_element_sort], RuleIndex] :: Boolean;
 
@@ -81,7 +80,7 @@ IsFuseSuffix[NONE, SOME[%ebnfSuffix⟨ + ⟩]] → TRUE;
 // don't fuse if first has suffix 
 IsFuseSuffix[SOME[#1], #2] → FALSE;
 
-// ---  Extract rule/token reference name. Returns the first non-constant reference found.
+// ---  Extract rule/token reference name. Returns the first non-sugar reference found.
  
 // Extract ref name from trivial block 
 GetRefBlock[ANTLR_block_sort, $List[ANTLR_element_sort], RuleIndex] :: Option[$String];
@@ -97,8 +96,7 @@ GetRefAltList[{#L}%altList⟨ #alternative | #alternative2 #altList_S1* ⟩, #el
 GetRefAlternative[ANTLR_alternative_sort, $List[ANTLR_element_sort], RuleIndex] :: Option[$String];
 
 GetRefAlternative[{#L}%alternative⟨ #elementOptions? #element* ⟩, #element*2, #index] 
-→
-GetRefElements[Concat[#element*, #element*2], #index]; 
+→ GetRefElements[Concat[#element*, #element*2], #index]; 
 
 GetRefElements[$List[ANTLR_element_sort], RuleIndex] :: Option[$String];
 
@@ -109,27 +107,23 @@ GetRefElement[ANTLR_element_sort, $List[ANTLR_element_sort], RuleIndex] :: Optio
 
 // This is a labeled block: look inside
 GetRefElement[{#L}%element⟦ #id #labeledElement_S1 #block #element_A1_S1  ⟧, #element*, #index] 
-→
-GetRefBlock[#block, #element*, #index];
+→ GetRefBlock[#block, #element*, #index];
 
 // This is a block: look inside
 GetRefElement[{#L}%element⟦ #block #blockSuffix? ⟧, #element*, #index] 
-→
-GetRefBlock[#block, #element*, #index];
+→ GetRefBlock[#block, #element*, #index];
 
 // This is a rule ref: must be the no-constant element (not always true but see normalizer for approximation rules)
 GetRefElement[{#L}%element⟦ #RULE_REF #ARG_ACTION? #elementOptions? #element_A2_S1 ⟧, #element*, #index] 
-→
-SOME[#RULE_REF];
+→ SOME[#RULE_REF];
 
 // This is a token ref: skip it only if constant 
 GetRefElement[{#L}%element⟦ #TOKEN_REF #elementOptions? ⟧, #element*, {#I}RULEINDEX] 
-→
-If[{#I}IsConstantRuleSpec[UnSOME[{#I}GetSome[#TOKEN_REF]]], GetRefElements[#element*, {#I}RULEINDEX], SOME[#TOKEN_REF]];
+→ If[{#I}IsConstantRuleSpec[UnSOME[{#I}GetSome[#TOKEN_REF]]], GetRefElements[#element*, {#I}RULEINDEX], SOME[#TOKEN_REF]];
 
+-[Fallback]:
 GetRefElement[#element, #element*, #index] 
-→
-GetRefElements[#element*, #index];
+→ GetRefElements[#element*, #index];
 
 // ---  Extract ebnfSuffix 
 
@@ -264,9 +258,9 @@ If[{#I}IsConstantLexerElement[#lexerElement], {#I}IsConstantLexerElements[#lexer
 
 // Extract atom and recurse
 {#I}IsConstantLabeledLexerElement[%labeledLexerElement⟦ #id #labeledLexerElement_S1 #lexerAtom ⟧] → {#I}IsConstantLexerAtom[#lexerAtom];
-
-// Extract block and recurse
-{#I}IsConstantLabeledLexerElement[%labeledLexerElement⟦ #id #labeledLexerElement_S1 #block ⟧] → {#I}IsConstantLexerBlock[#block];
+//
+//// Extract block and recurse
+//{#I}IsConstantLabeledLexerElement[%labeledLexerElement⟦ #id #labeledLexerElement_S1 #block ⟧] → {#I}IsConstantLexerBlock[#block];
 
 {$String: ANTLR_ruleSpec_sort}IsConstantLexerAtom[ANTLR_lexerAtom_sort] :: Boolean;
 
@@ -406,9 +400,9 @@ ConcatSome[{#I}GetConstantLexerElement[#lexerElement], {#I}GetConstantLexerEleme
 
 // Extract atom and recurse
 {#I}GetConstantLabeledLexerElement[%labeledLexerElement⟦ #id #labeledLexerElement_S1 #lexerAtom ⟧] → {#I}GetConstantLexerAtom[#lexerAtom];
-
-// Extract block and recurse
-{#I}GetConstantLabeledLexerElement[%labeledLexerElement⟦ #id #labeledLexerElement_S1 #block ⟧] → {#I}GetConstantLexerBlock[#block];
+//
+//// Extract block and recurse
+//{#I}GetConstantLabeledLexerElement[%labeledLexerElement⟦ #id #labeledLexerElement_S1 #block ⟧] → {#I}GetConstantLexerBlock[#block];
 
 {$String: ANTLR_ruleSpec_sort}GetConstantLexerAtom[ANTLR_lexerAtom_sort] :: Option[$String];
 
@@ -438,12 +432,91 @@ ConcatSome[{#I}GetConstantLexerElement[#lexerElement], {#I}GetConstantLexerEleme
 // Token ref: dereference 
 {#I}GetConstantTokenRef[#tokenRef] → {#I}GetConstantMaybeRuleSpec[{#I}GetSome[#tokenRef]];
 
+// --- Element option extraction
+
+ElementOption ::= ( SUGAR; SYMBOL; BINDER[$String]; BINDS[$String]; UNKOWN; );
+
+// Extract the given element option from element
+GetElementOptionElement[ANTLR_element_sort, $String] :: $list[ElementOption];
+
+GetElementOptionElement[%element⟦ #id #labeledElement_S1 #atom #element_A1_S1  ⟧, #optionId] → GetElementOptionAtom[#atom, #optionId];
+GetElementOptionElement[%element⟦ #id #labeledElement_S1 #block #element_A1_S1 ⟧, #optionId] → ();  
+GetElementOptionElement[%element⟦ #atom #element_A2_S1                         ⟧, #optionId] → GetElementOptionAtom[#atom, #optionId];
+GetElementOptionElement[%element⟦ #block #blockSuffix?                         ⟧, #optionId] → ();
+GetElementOptionElement[%element⟦ #ACTION #QUESTION?                           ⟧, #optionId] → ();
+
+// Extract the given element option from atom
+GetElementOptionAtom[ANTLR_atom_sort, $String] :: $List[ElementOption];
+
+GetElementOptionAtom[%atom⟦ #range                          ⟧, #optionId] → ();
+GetElementOptionAtom[%atom⟦ #TOKEN_REF                      ⟧, #optionId] → ();
+GetElementOptionAtom[%atom⟦ #TOKEN_REF #elementOptions      ⟧, #optionId] → GetElementOptionOptions[#elementOptions, #optionId];
+GetElementOptionAtom[%atom⟦ #STRING_LITERAL                 ⟧, #optionId] → ();
+GetElementOptionAtom[%atom⟦ #STRING_LITERAL #elementOptions ⟧, #optionId] → GetElementOptionOptions[#elementOptions, #optionId];
+GetElementOptionAtom[%atom⟦ #RULE_REF #ARG_ACTION?          ⟧, #optionId] → ();
+GetElementOptionAtom[%atom⟦ #RULE_REF #ARG_ACTION? #elementOptions ⟧, #optionId] → GetElementOptionOptions[#elementOptions, #optionId];
+GetElementOptionAtom[%atom⟦ #notSet                         ⟧, #optionId] → ();
+GetElementOptionAtom[%atom⟦ .                               ⟧, #optionId] → ();
+GetElementOptionAtom[%atom⟦ . #elementOptions               ⟧, #optionId] → GetElementOptionOptions[#elementOptions, #optionId];
+
+// Extract the given element option from element options
+GetElementOptionOptions[ANTLR_elementOptions_sort, $String] :: $List[ElementOption];
+GetElementOptionOptions[%elementOptions⟦ < #elementOption #elementOptions_S1* > ⟧, #optionId] 
+→ GetElementOptionOption[#elementOption, #elementOptions_S1*, #optionId];
+
+// Extract the given element option from element options
+GetElementOptionOption[ANTLR_elementOption_sort, $List[ANTLR_elementOptions_S1_sort], $String] :: $List[ElementOption];
+GetElementOptionOption[%elementOption⟦ #id ⟧, #elementOptions_S1*, #optionId] 
+→ If[StringEqual[UnwrapId[#id], #optionId], 
+    (ToElementOption[#optionId, NONE]; GetElementOptionOptions_S1_ZOM[#elementOptions_S1*, #optionId]),
+    GetElementOptionOptions_S1_ZOM[#elementOptions_S1*, #optionId]];
+
+GetElementOptionOption[%elementOption⟦ #id = #elementOption_S1 ⟧, #elementOptions_S1*, #optionId] 
+→ If[StringEqual[UnwrapId[#id], #optionId], 
+    (ToElementOption[#optionId, SOME[#elementOption_S1]]; GetElementOptionOptions_S1_ZOM[#elementOptions_S1*, #optionId]),
+    GetElementOptionOptions_S1_ZOM[#elementOptions_S1*, #optionId]];
+
+// Extract the given element option from rest of element options
+GetElementOptionOptions_S1_ZOM[$List[ANTLR_elementOptions_sort], $String] :: $List[ElementOption];
+GetElementOptionOptions_S1_ZOM[%elementOptions_S1*⟦⟧, #optionId] 
+→ ();
+
+GetElementOptionOptions_S1_ZOM[%elementOptions_S1*⟦, #elementOption #elementOptions_S1* ⟧, #optionId]  
+→ GetElementOptionOption[#elementOption, #elementOptions_S1*, #optionId];
+
+// Convert option $String to ElementOption
+∀ a .ToElementOption[$String, Option[a]] :: ElementOption;
+ToElementOption[#id, #value] 
+→ $[If, $[Equal, #id, "sugar"], SUGAR, 
+  $[If, $[Equal, #id, "symbol"], SYMBOL, 
+  $[If, $[Equal, #id, "binder"], BINDER[UnwrapOptionValue[UnSOME[#value]]], 
+  $[If, $[Equal, #id, "binds"], BINDS[UnwrapOptionValue[UnSOME[#value]]], 
+  UNKOWN]]]];
+
+// --- Sugar: a constant or as the option <sugar>
+
+// Is element sugar?
+{$String: ANTLR_ruleSpec_sort}IsSugarElement[ANTLR_element_sort] :: Boolean;
+{#I}IsSugarElement[#element] → Or[{#I}IsConstantElement[#element], IsNotEmpty[GetElementOptionElement[#element, "sugar"]]];
+
+// Is atom sugar?
+{$String: ANTLR_ruleSpec_sort}IsSugarAtom[ANTLR_atom_sort] :: Boolean;
+{#I}IsSugarAtom[#atom] → Or[{#I}IsConstantAtom[#atom], IsNotEmpty[GetElementOptionAtom[#atom, "sugar"]]];
+
 // --- Misc...
 
+// Unwrap element option value
+UnwrapOptionValue[ANTLR_elementOption_S1_sort] :: $String;
+UnwrapOptionValue[%elementOption_S1⟦ #id             ⟧] → UnwrapId[#id];
+UnwrapOptionValue[%elementOption_S1⟦ #STRING_LITERAL ⟧] → #STRING_LITERAL;
+
+
 // Unwrap Grammar Id
-UnwrapId[ANTLT_id_sort] :: $String;
+UnwrapId[ANTLR_id_sort] :: $String;
 UnwrapId[ANTLR_id_A1[#id]] → #id;
 UnwrapId[ANTLR_id_A2[#id]] → #id;
 
+UnBINDS[ElementOption] :: $String;
+UnBINDS[BINDS[#]] → #;
 
 )]

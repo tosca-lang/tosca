@@ -3,7 +3,10 @@
  *
  * Determine rule triviality 
  *
- * Definition: a parser rule/block or lexer rule/block is trivial iff it contains at most one non-constant production.  
+ * Definition: a parser rule/block or lexer rule/block is trivial iff 
+ * it contains at most one non-sugared element. 
+ *
+ * A sugared element is either a constant element or an element with the option <sugar>
  *
  * Compute safe approximation: a trivial rule might in non-common cases be identified as non-trivial.
  */
@@ -72,39 +75,25 @@ TrivialNextState[MORE, FALSE] → MORE;
 {$String: ANTLR_ruleSpec_sort}TrivialElement[ANTLR_element_sort] :: Boolean;
 
 // Labeled element with no ebnf suffix. Continue..
-{#I}TrivialElement[%element⟦ #labeledElement ⟧]
-→
-{#I}TrivialLabeledElement[#labeledElement];
+{#I}TrivialElement[%element⟦ #labeledElement ⟧] → {#I}TrivialLabeledElement[#labeledElement];
 
 // Labeled element with an ebnf suffix. Can't be trivial (unless labeledElement always matched the empty string. ANTLR complains about it)
-{#I}TrivialElement[%element⟦ #labeledElement #ebnfSuffix ⟧]
-→
-FALSE;
+{#I}TrivialElement[%element⟦ #labeledElement #ebnfSuffix ⟧] → FALSE;
 
 // Atom with no ebnfSuffix. Continue
-{#I}TrivialElement[%element⟦ #atom ⟧]
-→
-{#I}TrivialAtom[#atom];
+{#I}TrivialElement[%element⟦ #atom ⟧] → {#I}TrivialAtom[#atom];
 
-// Atom with ebnfSuffix. Can't be trivial
-{#I}TrivialElement[%element⟦ #atom #ebnfSuffix ⟧]
-→
-FALSE;
+// Atom with ebnfSuffix. Can't be trivial unless marked as <sugar>
+{#I}TrivialElement[%element⟦ #atom #ebnfSuffix ⟧] → {#I}IsSugarAtom[#atom];
 
 // Block without suffix. Continue
-{#I}TrivialElement[%element⟦ #block ⟧]
-→
-{#I}TrivialBlock[#block];
+{#I}TrivialElement[%element⟦ #block ⟧] → {#I}TrivialBlock[#block];
 
-// Block with suffix. Can't be trivial
-{#I}TrivialElement[%element⟦ #block #blockSuffix ⟧]
-→
-FALSE;
+// Block with suffix. Can't be trivial. (even though sub-element can be marked <sugar>)
+{#I}TrivialElement[%element⟦ #block #blockSuffix ⟧] → FALSE;
 
 // Actions match no value. 
-{#I}TrivialElement[%element⟦ #ACTION #QUESTION? ⟧]
-→
-TRUE;
+{#I}TrivialElement[%element⟦ #ACTION #QUESTION? ⟧] → TRUE;
 
 {$String: ANTLR_ruleSpec_sort}TrivialLabeledElement[ANTLR_labeledElement_sort] :: Boolean;
 

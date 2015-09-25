@@ -16,12 +16,11 @@
  *      A    : A_S1 | D; 
  *      A_S1 : B | C;
  *
- * - Subrule containing only one production, after eliminating trivial elements, are not promoted. Such subrules are called "trivial".
- *    For instance:
+ * - Subrule containing only one production, after eliminating trivial elements, 
+ *   are not promoted. Such subrules are called "trivial". For instance:
  *
  *      A : B (',' B)*  is not rewritten.
- *
- * - 
+ * 
  */
 Normalizer[(
 
@@ -243,7 +242,6 @@ NSR-Alternative[{#L}%alternative⟨ #elementOptions? #element*⟩]
 {#E}NSR-Elements[{#L}%element*⟨ #ACTION #QUESTION? #element*⟩] 
 →
 {#E}NSR-Elements[#element*];
-
 
 // Trivial block. Don't generate lifted rule
 {#E}NSR-Block[TRUE, #LOC, #block, #blockSuffix?, #element*]

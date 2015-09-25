@@ -19,16 +19,16 @@ crsx
     ;   
     
 declarations
-    : declaration* 
+    : declaration (SEMI declaration)*
     ;
         
 declaration 
-    : moduleDeclaration SEMI                                /* [SUGAR]  nested modules */
-    | importDeclaration SEMI                                /* [CORE]   module import */
-    | ruleDeclaration SEMI                                  /* [CORE]   rewrite rule */
-    | sortDeclaration SEMI                                  /* [CORE]   type definitions */
-    | directive SEMI                                        /* [BC3]    directive : meta, data term, anonymous nested modules (could be the cause of slow parsing) */
-    | SEMI                                                  /* [SUGAR]  empty declarations */
+    : moduleDeclaration                                 /* [SUGAR]  nested modules */
+    | importDeclaration                                 /* [CORE]   module import */
+    | ruleDeclaration                                   /* [CORE]   rewrite rule */
+    | sortDeclaration                                   /* [CORE]   type definitions */
+    | directive                                         /* [BC3]    directive : meta, data term, anonymous nested modules (could be the cause of slow parsing) */
+    |                                                   /* [SUGAR]  empty declarations */
     ;
 
 /*  Module declaration */    
@@ -74,30 +74,35 @@ annotation
     ;
     
 term
-    : freeTerm                                              /* [CORE]  Term without binders */
-    | boundTerm                                             /* [CORE]  Term with binders */
-    ;    
+    : binders? annotations? properties? freeTerm                                              /* [CORE]  Term without binders */
+   // | boundTerm                                             /* [CORE]  Term with binders */
+    ;
         
 freeTerm 
-    : annotations? properties? constructor arguments?       /* [CORE]  Construction with zero or more arguments */  
-    | annotations? properties? constructor term             /* [SUGAR] One argument construction (suffix operator)*/  
-    | annotations? properties? literal                      /* [CORE]  Literal construction */
-    | annotations? list                                     /* [SUGAR] List construction */ 
-    | annotations? variable                                 /* [CORE]  Variable construction */
-    | annotations? properties                               /* [CORE]  Named data structure */
-    | annotations? properties? METAVAR freeArguments?       /* [CORE]  Meta variable. */
-    | annotations? concrete                                 /* [SUGAR] Concrete syntax */
-    | annotations? properties? expression                   /* [CORE]  Expression reducing to a term */
+    : constructor arguments?       /* [CORE]  Construction with zero or more arguments */  
+    | constructor term             /* [SUGAR] One argument construction (suffix operator)*/  
+    | literal                      /* [CORE]  Literal construction */
+    | list                         /* [SUGAR] List construction */ 
+    | variable                     /* [CORE]  Variable construction */
+    | properties                   /* [CORE]  Named data structure */
+    | METAVAR freeArguments?       /* [CORE]  Meta variable. */
+    | concrete                     /* [SUGAR] Concrete syntax */
+    | expression                   /* [CORE]  Expression reducing to a term */
+    ;
+   
+binders
+    : annotations? VARIABLE<binder=x> linear? functional? varsort? binders<binds=x>
+    | DOT     
     ;
              
-boundTerm
-    : binder {_enterBinds("x");}nextBinder<binds=x>{_exitBinds();}                                 /* [CORE]  Binder */       /* TODO: binder should really be a CRSX binder when PG4 supports it. */
-    ;
-
-nextBinder
-    : binder {_enterBinds("x");}nextBinder<binds=x>{_exitBinds();}                        /* [CORE] */
-    | DOT freeTerm
-    ;                                               
+//boundTerm
+//    : binder {_enterBinds("x");}nextBinder<binds=x>{_exitBinds();}                                 /* [CORE]  Binder */       /* TODO: binder should really be a CRSX binder when PG4 supports it. */
+//    ;
+//
+//nextBinder
+//    : binder {_enterBinds("x");}nextBinder<binds=x>{_exitBinds();}                        /* [CORE] */
+//    | DOT freeTerm
+//    ;                                               
     
 arguments 
     : LSQUARE terms? RSQUARE                                /* [CORE] */  
@@ -128,7 +133,7 @@ listItem
     ;
     
 variable                                                    /* [CORE] */
-    : linear? {_enterName("x");}VARIABLE<name=x>{_exitName();} linear? functional? varsort?
+    : VARIABLE<symbol> linear? functional? varsort?
     ;
     
 linear 
@@ -142,10 +147,6 @@ functional
 literal
     : STRING                                                /* [CORE] */        
     | NUMBER                                                /* [CORE] */
-    ;
-    
-binder
-    : annotations? {_binder();} variable<binder>
     ;
     
 varsort
@@ -183,7 +184,7 @@ properties
     ;
     
 propertyList
-    : property (SEMI property?)*
+    : property (SEMI property)*
     ;
     
 // REVISIT: could split this up as not all properties are allowed everywhere.

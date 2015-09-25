@@ -20,8 +20,20 @@
 <stringAttribute key="org.eclipse.cdt.launch.launchGroup.4.enabled" value="true"/>
 <stringAttribute key="org.eclipse.cdt.launch.launchGroup.4.mode" value="run"/>
 <stringAttribute key="org.eclipse.cdt.launch.launchGroup.4.name" value="Crsx4 - CrsxMetaLexer.g4"/>
-<stringAttribute key="org.eclipse.cdt.launch.launchGroup.5.action" value="NONE"/>
+<stringAttribute key="org.eclipse.cdt.launch.launchGroup.5.action" value="WAIT_FOR_TERMINATION"/>
 <stringAttribute key="org.eclipse.cdt.launch.launchGroup.5.enabled" value="true"/>
 <stringAttribute key="org.eclipse.cdt.launch.launchGroup.5.mode" value="run"/>
 <stringAttribute key="org.eclipse.cdt.launch.launchGroup.5.name" value="Crsx4 - CrsxMetaParser.g4"/>
+<stringAttribute key="org.eclipse.cdt.launch.launchGroup.6.action" value="NONE"/>
+<stringAttribute key="org.eclipse.cdt.launch.launchGroup.6.enabled" value="true"/>
+<stringAttribute key="org.eclipse.cdt.launch.launchGroup.6.mode" value="run"/>
+<stringAttribute key="org.eclipse.cdt.launch.launchGroup.6.name" value="ANTLR - CrsxTerm.g4"/>
+<stringAttribute key="org.eclipse.cdt.launch.launchGroup.7.action" value="WAIT_FOR_TERMINATION"/>
+<stringAttribute key="org.eclipse.cdt.launch.launchGroup.7.enabled" value="true"/>
+<stringAttribute key="org.eclipse.cdt.launch.launchGroup.7.mode" value="run"/>
+<stringAttribute key="org.eclipse.cdt.launch.launchGroup.7.name" value="ANTLR - CrsxMetaLexer.g4"/>
+<stringAttribute key="org.eclipse.cdt.launch.launchGroup.8.action" value="NONE"/>
+<stringAttribute key="org.eclipse.cdt.launch.launchGroup.8.enabled" value="true"/>
+<stringAttribute key="org.eclipse.cdt.launch.launchGroup.8.mode" value="run"/>
+<stringAttribute key="org.eclipse.cdt.launch.launchGroup.8.name" value="ANTLR - CrsxMetaParser.g4"/>
 </launchConfiguration>

@@ -21,6 +21,13 @@ $Use["std/pair.crs"];
 IsEmpty[()    ] → TRUE ;
 IsEmpty[(#;#s)] → FALSE ;
 
+/* @return `TRUE` if list is not empty
+ */
+∀ a . IsNotEmpty[$List[a]] :: Boolean ;
+IsNotEmpty[()    ] → FALSE ;
+IsNotEmpty[(#;#s)] → TRUE ;
+
+
 /* TRUE if list is empty
  */
 ∀ a b . IfEmpty[$List[a], b, b] :: b ;
@@ -250,7 +257,7 @@ Filter[ x.#C[x], #XS] → Foldr[ x y . ConditionalInsert[#C[x],x,y] ,(),#XS];
     @param  `x y.#F[x, y]` a function which takes as first argument an element of `#XS` and `#Z` as a second.
     @param  `#Z`           the starting value of the accumulator
     @param  `#XS`          a list   
-    @return a list, where the the function `#F` is applied left associatively to all `#X` in `#XS` starting from the accumulator `#Z`
+    @return a value, where the the function `#F` is applied left associatively to all `#X` in `#XS` starting from the accumulator `#Z`
 */
 ∀ a b . Foldl[x :: a  y :: b . $sort[b], b, $List[a]] :: b;
 Foldl [x y. #F[x,y], #Z, ()] → #Z;

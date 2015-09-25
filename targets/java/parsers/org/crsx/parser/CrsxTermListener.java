@@ -9,9 +9,10 @@ import static org.crsx.pg.SinkAntlrListener.fireExitOPT;
 import static org.crsx.pg.SinkAntlrListener.fireEnterAlt;
 import static org.crsx.pg.SinkAntlrListener.fireExitAlt;
 import static org.crsx.pg.SinkAntlrListener.fireHide;
-import static org.crsx.pg.SinkAntlrListener.fireEnterName;
-import static org.crsx.pg.SinkAntlrListener.fireExitName;
-import static org.crsx.pg.SinkAntlrListener.fireBinder;
+import static org.crsx.pg.SinkAntlrListener.fireEnterSymbol;
+import static org.crsx.pg.SinkAntlrListener.fireExitSymbol;
+import static org.crsx.pg.SinkAntlrListener.fireEnterBinder;
+import static org.crsx.pg.SinkAntlrListener.fireExitBinder;
 import static org.crsx.pg.SinkAntlrListener.fireEnterBinds;
 import static org.crsx.pg.SinkAntlrListener.fireExitBinds;
 
@@ -154,25 +155,15 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 */
 	void exitFreeTerm(CrsxTermParser.FreeTermContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#boundTerm}.
+	 * Enter a parse tree produced by {@link CrsxTermParser#binders}.
 	 * @param ctx the parse tree
 	 */
-	void enterBoundTerm(CrsxTermParser.BoundTermContext ctx);
+	void enterBinders(CrsxTermParser.BindersContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#boundTerm}.
+	 * Exit a parse tree produced by {@link CrsxTermParser#binders}.
 	 * @param ctx the parse tree
 	 */
-	void exitBoundTerm(CrsxTermParser.BoundTermContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#nextBinder}.
-	 * @param ctx the parse tree
-	 */
-	void enterNextBinder(CrsxTermParser.NextBinderContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#nextBinder}.
-	 * @param ctx the parse tree
-	 */
-	void exitNextBinder(CrsxTermParser.NextBinderContext ctx);
+	void exitBinders(CrsxTermParser.BindersContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#arguments}.
 	 * @param ctx the parse tree
@@ -283,16 +274,6 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitLiteral(CrsxTermParser.LiteralContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#binder}.
-	 * @param ctx the parse tree
-	 */
-	void enterBinder(CrsxTermParser.BinderContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#binder}.
-	 * @param ctx the parse tree
-	 */
-	void exitBinder(CrsxTermParser.BinderContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#varsort}.
 	 * @param ctx the parse tree

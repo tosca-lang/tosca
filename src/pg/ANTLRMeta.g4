@@ -600,7 +600,7 @@ labeledLexerElement_S1
     
 labeledLexerElement_S2
     :   {enterAlt("1");} lexerAtom  {exitAlt();}
-    |   {enterAlt("2");} lexerBlock      {exitAlt();} 
+    |   {enterAlt("2");} lexerBlock {exitAlt();} 
     ; 
     
 lexerBlock
@@ -1005,27 +1005,57 @@ terminal
 
 // Terminals may be adorned with certain options when
 // reference in the grammar: TOK<,,,>
+elementOptions_EOF
+    : elementOptions EOF;
+
 elementOptions
-	:	{enterAlt();} LT elementOption {enterZOM();} elementOptions_S1* {exitZOM();} GT {exitAlt();}
+	:	{enterAlt();} LT elementOption elementOptions_S1_ZOM GT {exitAlt();}
+	| {term();} MT_ELEMENTOPTIONS
+    | {embed();} ET_ELEMENTOPTIONS EMBED_END  
 	;
 
-elementOptions_S1
-    :   {enterAlt();} COMMA elementOption {exitAlt();}
+elementOptions_S1_ZOM_EOF
+    : elementOptions_S1_ZOM EOF
     ;
+
+elementOptions_S1_ZOM
+    : {enterZOM();} elementOptions_S1* ({tail();} ({term();} MT_ELEMENTOPTIONS_S1_ZOM | {embed();} ET_ELEMENTOPTIONS_S1_ZOM EMBED_END))? {exitZOM();} 
+    | {term();} MT_ELEMENTOPTIONS_S1_ZOM
+    | {embed();} ET_ELEMENTOPTIONS_S1_ZOM EMBED_END  
+    ;
+
+
+elementOptions_S1
+    : {enterAlt();} COMMA elementOption {exitAlt();}
+    | {term();} MT_ELEMENTOPTIONS_S1
+    | {embed();} ET_ELEMENTOPTIONS_S1 EMBED_END  
+    ;
+
+elementOption_EOF
+    : elementOption EOF;
 
 elementOption
 	:	// This format indicates the default node option
 		{enterAlt("1");} id {exitAlt();}
 	|	// This format indicates option assignment 
 		{enterAlt("2");} id ASSIGN elementOption_S1 {exitAlt();}
+    | {term();} MT_ELEMENTOPTION
+    | {embed();} ET_ELEMENTOPTION EMBED_END  
 	;
+
+elementOption_S1_EOF
+    : elementOption_S1 EOF;
 
 elementOption_S1
     :   {enterAlt("1");} id {exitAlt();}
-    |   {enterAlt("2");} STRING_LITERAL {exitAlt();}
+    |   {enterAlt("2");} string_literal_TOKEN {exitAlt();}
+    | {term();} MT_ELEMENTOPTION_S1
+    | {embed();} ET_ELEMENTOPTION_S1 EMBED_END 
     ;
 
-id_EOF: id EOF;
+id_EOF
+    : id EOF
+    ;
 
 id	:	{enterAlt("1");} rule_ref_TOKEN {exitAlt();}
 	|	{enterAlt("2");} token_ref_TOKEN {exitAlt();}
@@ -1036,6 +1066,7 @@ id	:	{enterAlt("1");} rule_ref_TOKEN {exitAlt();}
 rule_ref_TOKEN
     : RULE_REF | {term();} MT_RULE_REF | {embed();} ET_RULE_REF EMBED_END
     ;
+    
     
 token_ref_TOKEN
     : (TOKEN_REF | {term();} MT_TOKEN_REF | {embed();} ET_TOKEN_REF EMBED_END)
@@ -1052,4 +1083,12 @@ action_TOKEN
     | {term();} MT_ACTION 
     | {embed();} ET_ACTION EMBED_END
     ;
+    
+    
+arg_action_TOKEN
+    :  ARG_ACTION 
+    | {term();} MT_ARG_ACTION 
+    | {embed();} ET_ARG_ACTION EMBED_END
+    ;
+    
     

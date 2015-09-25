@@ -9,9 +9,10 @@ import static org.crsx.pg.SinkAntlrListener.fireExitOPT;
 import static org.crsx.pg.SinkAntlrListener.fireEnterAlt;
 import static org.crsx.pg.SinkAntlrListener.fireExitAlt;
 import static org.crsx.pg.SinkAntlrListener.fireHide;
-import static org.crsx.pg.SinkAntlrListener.fireEnterName;
-import static org.crsx.pg.SinkAntlrListener.fireExitName;
-import static org.crsx.pg.SinkAntlrListener.fireBinder;
+import static org.crsx.pg.SinkAntlrListener.fireEnterSymbol;
+import static org.crsx.pg.SinkAntlrListener.fireExitSymbol;
+import static org.crsx.pg.SinkAntlrListener.fireEnterBinder;
+import static org.crsx.pg.SinkAntlrListener.fireExitBinder;
 import static org.crsx.pg.SinkAntlrListener.fireEnterBinds;
 import static org.crsx.pg.SinkAntlrListener.fireExitBinds;
 
@@ -188,25 +189,13 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterBoundTerm(CrsxTermParser.BoundTermContext ctx) { }
+	@Override public void enterBinders(CrsxTermParser.BindersContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitBoundTerm(CrsxTermParser.BoundTermContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterNextBinder(CrsxTermParser.NextBinderContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitNextBinder(CrsxTermParser.NextBinderContext ctx) { }
+	@Override public void exitBinders(CrsxTermParser.BindersContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -339,18 +328,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitLiteral(CrsxTermParser.LiteralContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterBinder(CrsxTermParser.BinderContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitBinder(CrsxTermParser.BinderContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
