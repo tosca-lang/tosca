@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -14,8 +15,16 @@ import java.util.Map;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ConsoleErrorListener;
+import org.antlr.v4.runtime.DiagnosticErrorListener;
+import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.TokenSource;
 import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.atn.ATNConfigSet;
+import org.antlr.v4.runtime.dfa.DFA;
+import org.crsx.pg.Crsx3Parser;
 import org.crsx.pg.SinkAntlrListener;
 
 import net.sf.crsx.Variable;
@@ -55,12 +64,13 @@ public class CrsxParser
 
 			CrsxTermParser parser = new CrsxTermParser(input);
 			parser.setBuildParseTree(false);
-			parser.setTrace(true);
+			//parser.setTrace(true);
 			GenericFactory factory = new GenericFactory();
 			Buffer buffer = new Buffer(factory);
 			SinkAntlrListener listener = new SinkAntlrListener(factory, buffer.sink(), "Crsx_", "##", parser);
 
 			parser.addParseListener(listener);
+			parser.addErrorListener(new DiagnosticErrorListener(true));
 			parser.crsx();
             //parser.freeTerm();
 			GenericTerm term = (GenericTerm) buffer.term(true);
@@ -83,6 +93,39 @@ public class CrsxParser
 		catch (IOException e)
 		{
 			e.printStackTrace();
+		}
+	}
+	
+	static class CrsxErrorListener extends ConsoleErrorListener
+	{
+
+		// Error listener
+
+		@Override
+		public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e)
+		{ 
+			//super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e);
+		}
+
+		@Override
+		public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex, int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs)
+		{
+			System.out.println("reportAmbiguity");
+			//error = true;
+		}
+
+		@Override
+		public void reportAttemptingFullContext(Parser recognizer, DFA dfa, int startIndex, int stopIndex, BitSet conflictingAlts, ATNConfigSet configs)
+		{
+			System.out.println("reportAttemptingFullContext");
+			//		error = true;
+		}
+
+		@Override
+		public void reportContextSensitivity(Parser recognizer, DFA dfa, int startIndex, int stopIndex, int prediction, ATNConfigSet configs)
+		{
+			System.out.println("reportContextSensitivity");
+			//	error = true;
 		}
 	}
 }

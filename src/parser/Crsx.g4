@@ -15,176 +15,129 @@ grammar Crsx;
  
 // A CRSX file is just a list of declarations
 crsx      
-    : declarations                                          /* [CORE] */
+    : decls                                          /* [CORE] */
     ;   
     
-declarations
-    : declaration (SEMI declaration)*
+decls
+    : decl (SEMI decl)*
     ;
         
-declaration 
-    : moduleDeclaration                                 /* [SUGAR]  nested modules */
-    | importDeclaration                                 /* [CORE]   module import */
-    | ruleDeclaration                                   /* [CORE]   rewrite rule */
-    | sortDeclaration                                   /* [CORE]   type definitions */
-    | directive                                         /* [BC3]    directive : meta, data term, anonymous nested modules (could be the cause of slow parsing) */
-    |                                                   /* [SUGAR]  empty declarations */
-    ;
-
-/*  Module declaration */    
-
-// Inner module */
-moduleDeclaration
-    : MODULE CONSTRUCTOR LBRACE declarations RBRACE         /* [SUGAR] */    
+decl
+    : moduleDecl                                     
+    | importDecl
+    | sortDecl    
+    | termDecl                                      
+    |                                                /* [SUGAR] empty declarations */
     ;
     
-/*  Import declaration */    
-
-importDeclaration    
-    : IMPORT constructor                                    /* [SUGAR: same as IMPORT MODULE] */
-    | IMPORT MODULE constructor                             /* [CORE] */    
-    | IMPORT GRAMMAR constructor                            /* [CORE] */    
-    ;    
- 
-/*  Rule declaration */    
+moduleDecl
+    :  MODULE CONSTRUCTOR LBRACE decls RBRACE        /* [SUGAR]  nested modules */  
+    ;
     
-ruleDeclaration    
-    : option? pattern ARROW contractum                      /* [CORE only one rule per constructor] */
+importDecl
+    : IMPORT constructor                             /* [SUGAR: same as IMPORT MODULE] */
+    | IMPORT MODULE constructor                      /* [CORE] */    
+    | IMPORT GRAMMAR constructor                     /* [CORE] */
+    ;
+  
+sortDecl
+    : sortparams? sortset sortname DATASORT LPAR forms RPAR  /* [CORE] Data sort declaration */ 
+    | sortparams? sortset form COLONCOLON sortname           /* [CORE] Function sort declaration */ 
+    ;
+  
+termDecl
+    : option? term contractum?                       /* [CORE]  term expression  */ 
     ;
     
 option
-    : constructor arguments? COLON                          /* [BC3]  */
-    | annotations                                           /* [CORE] */
+    : constructor args? COLON                        /* [BC3]  Annotation using term-syntax */
     ;
         
-pattern
-    : properties? constructor arguments?                    /* [CORE pattern arguments must be all meta] */
+annotation
+    : AT constructor args?                           /* [CORE] Annotation */
+    ;
+        
+contractum
+    : ARROW term                                     /* [CORE] Rewrite rule */
+    ;
+       
+term
+    : constructor sargs?                             /* [CORE]  Construction with zero or more args */    
+    | literal                                        /* [CORE]  Literal construction */
+    | list                                           /* [SUGAR] List construction */ 
+    | variable                                       /* [CORE]  Variable */
+    | properties term                                /* [BC3]   Properties */
+ //   | properties                                     /* [CORE]  Named data structure */
+    | concrete                                       /* [SUGAR] Concrete syntax */
+    | annotation+ term                               /* [CORE]  Annotated term */
+    | METAVAR args?                                  /* [CORE]  Meta variable. */ 
+    | dispatch                                       /* [CORE]  dispatch expression */ 
     ;
 
-contractum
-    : freeTerm                                              /* [CORE] */
+scope
+    : binders                                        /* [CORE]  Scoped term  */ 
+    | term                                           /* [CORE]  No-scoped term */
     ;
-    
-annotations
-    : annotation+
-    ;
-     
-annotation
-    : AT constructor arguments?
-    ;
-    
-term
-    : binders? annotations? properties? freeTerm                                              /* [CORE]  Term without binders */
-   // | boundTerm                                             /* [CORE]  Term with binders */
-    ;
-        
-freeTerm 
-    : constructor arguments?       /* [CORE]  Construction with zero or more arguments */  
-    | constructor term             /* [SUGAR] One argument construction (suffix operator)*/  
-    | literal                      /* [CORE]  Literal construction */
-    | list                         /* [SUGAR] List construction */ 
-    | variable                     /* [CORE]  Variable construction */
-    | properties                   /* [CORE]  Named data structure */
-    | METAVAR freeArguments?       /* [CORE]  Meta variable. */
-    | concrete                     /* [SUGAR] Concrete syntax */
-    | expression                   /* [CORE]  Expression reducing to a term */
-    ;
-   
+       
 binders
-    : annotations? VARIABLE<binder=x> linear? functional? varsort? binders<binds=x>
-    | DOT     
+    : annotation* VARIABLE<binder=x> LINEAR? FUNCTIONAL? varsort? binders<binds=x>
+    | DOT term
     ;
-             
-//boundTerm
-//    : binder {_enterBinds("x");}nextBinder<binds=x>{_exitBinds();}                                 /* [CORE]  Binder */       /* TODO: binder should really be a CRSX binder when PG4 supports it. */
-//    ;
-//
-//nextBinder
-//    : binder {_enterBinds("x");}nextBinder<binds=x>{_exitBinds();}                        /* [CORE] */
-//    | DOT freeTerm
-//    ;                                               
-    
-arguments 
-    : LSQUARE terms? RSQUARE                                /* [CORE] */  
+               
+args 
+    : LSQUARE terms? RSQUARE                         /* [BC3] */  
+    | LPAR terms? RPAR                               /* [CORE] */  
     ;
     
 terms
-    : term (COMMA term)*                                   /* [CORE] */
+    : term (COMMA term)*                             /* [CORE] */
     ;
     
-freeArguments 
-    : LSQUARE freeTerms? RSQUARE                            /* [CORE] */  
+sargs 
+    : LSQUARE scopes? RSQUARE                        /* [BC3] */  
+    | LPAR scopes? RPAR                              /* [CORE] */  
     ;
     
-freeTerms
-    : freeTerm (COMMA freeTerm)*                            /* [CORE] */
+scopes
+    : scope (COMMA scope)*                           /* [CORE] */
     ;
 
 list                                                          
-    : LPAR termList? RPAR                                   /* [SUGAR] */
+    : LPAR decls /* [BC3] should be term */ RPAR    /* [SUGAR] */
     ; 
     
-termList                                                    
-    : listItem (SEMI listItem)* SEMI?                       /* [CORE] */
-    ;
-    
-listItem
-    : term    
-    ;
-    
-variable                                                    /* [CORE] */
-    : VARIABLE<symbol> linear? functional? varsort?
-    ;
-    
-linear 
-    : LINEAR
-    ;
-    
-functional
-    : FUNCTIONAL
+variable                                            /* [CORE] */
+    : VARIABLE<symbol> LINEAR? FUNCTIONAL? varsort?
     ;
     
 literal
-    : STRING                                                /* [CORE] */        
-    | NUMBER                                                /* [CORE] */
+    : STRING                                        /* [CORE] */        
+    | NUMBER                                        /* [CORE] */
     ;
-    
 varsort
     : COLONCOLON sortname;   
     
 concrete
-    : CATEGORY CONCRETE                                    /* [BC3]   */
-    | CATEGORY CONCRETE2                                   /* [BC3]   */
-    | CATEGORY CONCRETE3                                   /* [BC3]   */
-    | CATEGORY CONCRETE4                                   /* [BC3]   */
+    : CATEGORY CONCRETE                             /* [CORE]   */
+    | CATEGORY CONCRETE2                            /* [BC3]   */
+    | CATEGORY CONCRETE3                            /* [BC3]   */
+    | CATEGORY CONCRETE4                            /* [BC3]   */
     ;    
     
 dispatch
-    : DISPATCH dispatchTerm dispatchCases delayCase?        /* [CORE: must be top-level expression when last case is DELAY]  */ 
-    ;
-    
-dispatchTerm
-    : freeTerm                                              /* [CORE] */
+    : DISPATCH term dispatchCases DELAY?                   /* [CORE: must be top-level expression when last case is DELAY]  */ 
     ;
     
 dispatchCases
-    : dispatchCase (SEMI dispatchCase)*                     /* [CORE] */
+    : term (SEMI term)*                                    /* [CORE] */
     ;
-    
-dispatchCase
-    : ruleDeclaration                                       /* [CORE] */
-    ;
-    
-delayCase
-    : DELAY                                                 /* [CORE] */
-    ; 
     
 properties
     : LBRACE propertyList? RBRACE
     ;
     
 propertyList
-    : property (SEMI property)*
+    : property (SEMI property?)*
     ;
     
 // REVISIT: could split this up as not all properties are allowed everywhere.
@@ -192,29 +145,20 @@ propertyList
 property
     : METAVAR                                               /* [CORE]  property reference (match/construct)      */
     | NOT METAVAR                                           /* [CORE]  no property references (match only)       */
-    | METAVAR COLON freeTerm                                /* [CORE]  match property value / construct          */
+    | METAVAR COLON term                                    /* [CORE]  match property value / construct          */
     | VARIABLE                                              /* [CORE]  match / construct variable property       */
     | NOT VARIABLE                                          /* [CORE]  no variable (match only)                  */
-    | VARIABLE COLON freeTerm                               /* [CORE]  match variable property value / construct */
+    | VARIABLE COLON term                                   /* [CORE]  match variable property value / construct */
     | STRING                                                /* [CORE]  match / construct named property          */
     | NOT STRING                                            /* [CORE]  no named property (match only)            */
-    | STRING COLON freeTerm                                 /* [CORE]  match named property value / construct    */
-    | constructor COLON freeTerm                            /* [CORE]  property sort declaration                 */
-    ;
- 
-expression
-    : dispatch                                              /* [CORE]  dispatch expression */
+    | STRING COLON term                                     /* [CORE]  match named property value / construct    */
+    | constructor COLON term                                /* [CORE]  property sort declaration                 */
     ;
     
 /*  Sort declaration */    
     
-sortDeclaration
-    : sortparams? sortset sortname DATASORT LPAR forms RPAR /* [CORE] Data sort declaration */ 
-    | sortparams? sortset form COLONCOLON sortname          /* [CORE] Function sort declaration */ 
-    ;
-    
 sortparams
-    : FORALL variable+ DOT                                  /* [BC3] Sort parameters. Initially, CRSX 4 supports only inclusion polymorphism */  
+    : FORALL variable+ DOT                                  /* [CORE] Sort parameters. */  
     ;
     
 sortset
@@ -226,11 +170,11 @@ sortnames
     ;    
     
 sortname
-    : constructor sortarguments?                            /* [CORE] Concrete sort reference */
+    : constructor sortargs?                                 /* [CORE] Concrete sort reference */
     | variable                                              /* [BC3]  Sort variable */
     ;
 
-sortarguments 
+sortargs 
     : LSQUARE sortnames? RSQUARE                            /* [CORE] */  
     ;
         
@@ -239,7 +183,7 @@ forms
     ;
     
 form 
-    : constructor arguments?
+    : constructor sargs?
     | variable                                              
     ;
     
@@ -249,37 +193,15 @@ constructor
     ;
     
 qualifier
-    : CONSTRUCTOR DOT qualifier
+    : CONSTRUCTOR DOTDOT qualifier
     |
     ;
     
-reserved                                                   /* [BC3] */
+reserved                                                    /* [BC3] */
     : COLON                                             
     | AT 
     ;
-    
-/* Directive */
-
-directive
-    : constructor directiveArguments?
-    | directiveList
-    | literal
-    | concrete
-    ;
-       
-directiveArguments 
-    : LSQUARE directives? RSQUARE                       /* [CORE] */  
-    ;
-    
-directives
-    : directive (COMMA directive)*                      /* [CORE] */
-    ;
-    
-directiveList 
-    : LPAR declarations RPAR
-    ; 
-    
-    
+        
 // Lexer rules
 
 MODULE          : 'module';
@@ -301,25 +223,26 @@ SEMI            : ';';
 COMMA           : ',';
 DATASORT        : '::=';
 COLONCOLON      : '::';
-DOT             : '.';
+DOT             : '.'; 
+DOTDOT          : '..'; 
 NOT             : '¬';
 LINEAR          : '¹';                                  /* [BC3]  Linear marker */
 FUNCTIONAL      : 'ᵇ';                                  /* [CORE] Functional binder marker */ 
 AND             : '&';
 AT              : '@';
 
-CATEGORY        : '%' (Alpha | Digit | '_')+ ('*' | '+' | '?')?;
+CATEGORY        : '%' (Alpha | Digit | '_')+ Ebnf?;
 
-CONCRETE        : '\u27e6' (CONCRETE|.)*? '\u27e7';
-CONCRETE2       : '⟪' (CONCRETE2|.)*?'⟫';
-CONCRETE3       : '\u27EA' (CONCRETE3|.)*? '\u27EB';
-CONCRETE4       : '\u2983' (CONCRETE4|.)*? '\u2984';
+CONCRETE        : '\u27e6' (CONCRETE|.)*? '\u27e7';   // ⟦ ⟧
+CONCRETE2       : '⟨' (CONCRETE2|.)*?'⟩';
+CONCRETE3       : '\u27EA' (CONCRETE3|.)*? '\u27EB';  // ⟪ ⟫
+CONCRETE4       : '\u2983' (CONCRETE4|.)*? '\u2984';  // ⦃ ⦄
 
-CONSTRUCTOR     : StartConstructorChar ConstructorChar*;
+CONSTRUCTOR     : StartConstructorChar ConstructorChar* Ebnf?; // '$' is for internal use only.
 
-VARIABLE        : Lower (Lower | Digit | '-' | '_')*;
+VARIABLE        : Lower (Lower | Digit | '-' | '_')*; 
 
-METAVAR         : '#' (Alpha | Digit | Other | Unicode)*;
+METAVAR         : '#' (Alpha | Digit | Other | Unicode)* Ebnf? Digit*; // '$' is for internal use only 
 
 STRING          :  '"' ('\\"'|~'"')* '"';
 
@@ -332,9 +255,10 @@ fragment Digit   : [0-9];
 fragment Upper   : [A-Z];                                                
 fragment Lower   : [a-z];       
 fragment Alpha   : [a-zA-Z];
-fragment Decimal : [0-9]+ ('.' [0-9]+)? | '.' [0-9]+; 
-fragment Other   : '-' | '$' | '_' | '*' | '?' | '+'; // TODO: remove '-'
+fragment Decimal : '-'? [0-9]+ ('.' [0-9]+)? | '.' [0-9]+; 
+fragment Other   : '-' | '$' | '_'; // TODO: remove '-'
 fragment Unicode : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
+fragment Ebnf    : '*' | '?' | '+'; 
 
 WS               : [ \t\r\n\f]+ -> channel(HIDDEN) ;
 

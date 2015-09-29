@@ -9,6 +9,12 @@ import static org.crsx.pg.SinkAntlrListener.fireExitOPT;
 import static org.crsx.pg.SinkAntlrListener.fireEnterAlt;
 import static org.crsx.pg.SinkAntlrListener.fireExitAlt;
 import static org.crsx.pg.SinkAntlrListener.fireHide;
+import static org.crsx.pg.SinkAntlrListener.fireEnterSymbol;
+import static org.crsx.pg.SinkAntlrListener.fireExitSymbol;
+import static org.crsx.pg.SinkAntlrListener.fireEnterBinder;
+import static org.crsx.pg.SinkAntlrListener.fireExitBinder;
+import static org.crsx.pg.SinkAntlrListener.fireEnterBinds;
+import static org.crsx.pg.SinkAntlrListener.fireExitBinds;
 import static org.crsx.pg.SinkAntlrListener.fireTail;
 import static org.crsx.pg.SinkAntlrListener.fireTerm;
 import static org.crsx.pg.SinkAntlrListener.fireEmbed;
@@ -54,97 +60,97 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDeclarations(CrsxMetaParser.DeclarationsContext ctx) { }
+	@Override public void enterDecls(CrsxMetaParser.DeclsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDeclarations(CrsxMetaParser.DeclarationsContext ctx) { }
+	@Override public void exitDecls(CrsxMetaParser.DeclsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDeclarations_EOF(CrsxMetaParser.Declarations_EOFContext ctx) { }
+	@Override public void enterDecls_EOF(CrsxMetaParser.Decls_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDeclarations_EOF(CrsxMetaParser.Declarations_EOFContext ctx) { }
+	@Override public void exitDecls_EOF(CrsxMetaParser.Decls_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDeclaration_ZOM(CrsxMetaParser.Declaration_ZOMContext ctx) { }
+	@Override public void enterDecl_ZOM(CrsxMetaParser.Decl_ZOMContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDeclaration_ZOM(CrsxMetaParser.Declaration_ZOMContext ctx) { }
+	@Override public void exitDecl_ZOM(CrsxMetaParser.Decl_ZOMContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDeclaration_ZOM_EOF(CrsxMetaParser.Declaration_ZOM_EOFContext ctx) { }
+	@Override public void enterDecl_ZOM_EOF(CrsxMetaParser.Decl_ZOM_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDeclaration_ZOM_EOF(CrsxMetaParser.Declaration_ZOM_EOFContext ctx) { }
+	@Override public void exitDecl_ZOM_EOF(CrsxMetaParser.Decl_ZOM_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDeclaration(CrsxMetaParser.DeclarationContext ctx) { }
+	@Override public void enterDecl(CrsxMetaParser.DeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDeclaration(CrsxMetaParser.DeclarationContext ctx) { }
+	@Override public void exitDecl(CrsxMetaParser.DeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDeclaration_EOF(CrsxMetaParser.Declaration_EOFContext ctx) { }
+	@Override public void enterDecl_EOF(CrsxMetaParser.Decl_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDeclaration_EOF(CrsxMetaParser.Declaration_EOFContext ctx) { }
+	@Override public void exitDecl_EOF(CrsxMetaParser.Decl_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterModuleDeclaration(CrsxMetaParser.ModuleDeclarationContext ctx) { }
+	@Override public void enterModuleDecl(CrsxMetaParser.ModuleDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitModuleDeclaration(CrsxMetaParser.ModuleDeclarationContext ctx) { }
+	@Override public void exitModuleDecl(CrsxMetaParser.ModuleDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterModuleDeclaration_EOF(CrsxMetaParser.ModuleDeclaration_EOFContext ctx) { }
+	@Override public void enterModuleDecl_EOF(CrsxMetaParser.ModuleDecl_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitModuleDeclaration_EOF(CrsxMetaParser.ModuleDeclaration_EOFContext ctx) { }
+	@Override public void exitModuleDecl_EOF(CrsxMetaParser.ModuleDecl_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -174,49 +180,97 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterImportDeclaration(CrsxMetaParser.ImportDeclarationContext ctx) { }
+	@Override public void enterImportDecl(CrsxMetaParser.ImportDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitImportDeclaration(CrsxMetaParser.ImportDeclarationContext ctx) { }
+	@Override public void exitImportDecl(CrsxMetaParser.ImportDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterImportDeclaration_EOF(CrsxMetaParser.ImportDeclaration_EOFContext ctx) { }
+	@Override public void enterImportDecl_EOF(CrsxMetaParser.ImportDecl_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitImportDeclaration_EOF(CrsxMetaParser.ImportDeclaration_EOFContext ctx) { }
+	@Override public void exitImportDecl_EOF(CrsxMetaParser.ImportDecl_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterRuleDeclaration(CrsxMetaParser.RuleDeclarationContext ctx) { }
+	@Override public void enterSortDecl(CrsxMetaParser.SortDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitRuleDeclaration(CrsxMetaParser.RuleDeclarationContext ctx) { }
+	@Override public void exitSortDecl(CrsxMetaParser.SortDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterRuleDeclaration_EOF(CrsxMetaParser.RuleDeclaration_EOFContext ctx) { }
+	@Override public void enterSortDecl_EOF(CrsxMetaParser.SortDecl_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitRuleDeclaration_EOF(CrsxMetaParser.RuleDeclaration_EOFContext ctx) { }
+	@Override public void exitSortDecl_EOF(CrsxMetaParser.SortDecl_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterSortparams_OPT(CrsxMetaParser.Sortparams_OPTContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSortparams_OPT(CrsxMetaParser.Sortparams_OPTContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterSortparams_OPT_EOF(CrsxMetaParser.Sortparams_OPT_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSortparams_OPT_EOF(CrsxMetaParser.Sortparams_OPT_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterTermDecl(CrsxMetaParser.TermDeclContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTermDecl(CrsxMetaParser.TermDeclContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterTermDecl_EOF(CrsxMetaParser.TermDecl_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTermDecl_EOF(CrsxMetaParser.TermDecl_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -246,6 +300,30 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterContractum_OPT(CrsxMetaParser.Contractum_OPTContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitContractum_OPT(CrsxMetaParser.Contractum_OPTContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterContractum_OPT_EOF(CrsxMetaParser.Contractum_OPT_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitContractum_OPT_EOF(CrsxMetaParser.Contractum_OPT_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterOption(CrsxMetaParser.OptionContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -270,145 +348,25 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterArguments_OPT(CrsxMetaParser.Arguments_OPTContext ctx) { }
+	@Override public void enterArgs_OPT(CrsxMetaParser.Args_OPTContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitArguments_OPT(CrsxMetaParser.Arguments_OPTContext ctx) { }
+	@Override public void exitArgs_OPT(CrsxMetaParser.Args_OPTContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterArguments_OPT_EOF(CrsxMetaParser.Arguments_OPT_EOFContext ctx) { }
+	@Override public void enterArgs_OPT_EOF(CrsxMetaParser.Args_OPT_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitArguments_OPT_EOF(CrsxMetaParser.Arguments_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterPattern(CrsxMetaParser.PatternContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitPattern(CrsxMetaParser.PatternContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterPattern_EOF(CrsxMetaParser.Pattern_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitPattern_EOF(CrsxMetaParser.Pattern_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterProperties_OPT(CrsxMetaParser.Properties_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitProperties_OPT(CrsxMetaParser.Properties_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterProperties_OPT_EOF(CrsxMetaParser.Properties_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitProperties_OPT_EOF(CrsxMetaParser.Properties_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterContractum(CrsxMetaParser.ContractumContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitContractum(CrsxMetaParser.ContractumContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterContractum_EOF(CrsxMetaParser.Contractum_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitContractum_EOF(CrsxMetaParser.Contractum_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterAnnotations(CrsxMetaParser.AnnotationsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitAnnotations(CrsxMetaParser.AnnotationsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterAnnotations_EOF(CrsxMetaParser.Annotations_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitAnnotations_EOF(CrsxMetaParser.Annotations_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterAnnotation_OOM(CrsxMetaParser.Annotation_OOMContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitAnnotation_OOM(CrsxMetaParser.Annotation_OOMContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterAnnotation_OOM_EOF(CrsxMetaParser.Annotation_OOM_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitAnnotation_OOM_EOF(CrsxMetaParser.Annotation_OOM_EOFContext ctx) { }
+	@Override public void exitArgs_OPT_EOF(CrsxMetaParser.Args_OPT_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -438,6 +396,30 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterContractum(CrsxMetaParser.ContractumContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitContractum(CrsxMetaParser.ContractumContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterContractum_EOF(CrsxMetaParser.Contractum_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitContractum_EOF(CrsxMetaParser.Contractum_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterTerm(CrsxMetaParser.TermContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -462,49 +444,49 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFreeTerm(CrsxMetaParser.FreeTermContext ctx) { }
+	@Override public void enterSargs_OPT(CrsxMetaParser.Sargs_OPTContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFreeTerm(CrsxMetaParser.FreeTermContext ctx) { }
+	@Override public void exitSargs_OPT(CrsxMetaParser.Sargs_OPTContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFreeTerm_EOF(CrsxMetaParser.FreeTerm_EOFContext ctx) { }
+	@Override public void enterSargs_OPT_EOF(CrsxMetaParser.Sargs_OPT_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFreeTerm_EOF(CrsxMetaParser.FreeTerm_EOFContext ctx) { }
+	@Override public void exitSargs_OPT_EOF(CrsxMetaParser.Sargs_OPT_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterAnnotations_OPT(CrsxMetaParser.Annotations_OPTContext ctx) { }
+	@Override public void enterAnnotation_OOM(CrsxMetaParser.Annotation_OOMContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitAnnotations_OPT(CrsxMetaParser.Annotations_OPTContext ctx) { }
+	@Override public void exitAnnotation_OOM(CrsxMetaParser.Annotation_OOMContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterAnnotations_OPT_EOF(CrsxMetaParser.Annotations_OPT_EOFContext ctx) { }
+	@Override public void enterAnnotation_OOM_EOF(CrsxMetaParser.Annotation_OOM_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitAnnotations_OPT_EOF(CrsxMetaParser.Annotations_OPT_EOFContext ctx) { }
+	@Override public void exitAnnotation_OOM_EOF(CrsxMetaParser.Annotation_OOM_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -534,97 +516,193 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFreeArguments_OPT(CrsxMetaParser.FreeArguments_OPTContext ctx) { }
+	@Override public void enterScope(CrsxMetaParser.ScopeContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFreeArguments_OPT(CrsxMetaParser.FreeArguments_OPTContext ctx) { }
+	@Override public void exitScope(CrsxMetaParser.ScopeContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFreeArguments_OPT_EOF(CrsxMetaParser.FreeArguments_OPT_EOFContext ctx) { }
+	@Override public void enterScope_EOF(CrsxMetaParser.Scope_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFreeArguments_OPT_EOF(CrsxMetaParser.FreeArguments_OPT_EOFContext ctx) { }
+	@Override public void exitScope_EOF(CrsxMetaParser.Scope_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterBoundTerm(CrsxMetaParser.BoundTermContext ctx) { }
+	@Override public void enterBinders(CrsxMetaParser.BindersContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitBoundTerm(CrsxMetaParser.BoundTermContext ctx) { }
+	@Override public void exitBinders(CrsxMetaParser.BindersContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterBoundTerm_EOF(CrsxMetaParser.BoundTerm_EOFContext ctx) { }
+	@Override public void enterBinders_EOF(CrsxMetaParser.Binders_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitBoundTerm_EOF(CrsxMetaParser.BoundTerm_EOFContext ctx) { }
+	@Override public void exitBinders_EOF(CrsxMetaParser.Binders_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterNextBinder(CrsxMetaParser.NextBinderContext ctx) { }
+	@Override public void enterAnnotation_ZOM(CrsxMetaParser.Annotation_ZOMContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitNextBinder(CrsxMetaParser.NextBinderContext ctx) { }
+	@Override public void exitAnnotation_ZOM(CrsxMetaParser.Annotation_ZOMContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterNextBinder_EOF(CrsxMetaParser.NextBinder_EOFContext ctx) { }
+	@Override public void enterAnnotation_ZOM_EOF(CrsxMetaParser.Annotation_ZOM_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitNextBinder_EOF(CrsxMetaParser.NextBinder_EOFContext ctx) { }
+	@Override public void exitAnnotation_ZOM_EOF(CrsxMetaParser.Annotation_ZOM_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterArguments(CrsxMetaParser.ArgumentsContext ctx) { }
+	@Override public void enterVariable_TOK(CrsxMetaParser.Variable_TOKContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitArguments(CrsxMetaParser.ArgumentsContext ctx) { }
+	@Override public void exitVariable_TOK(CrsxMetaParser.Variable_TOKContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterArguments_EOF(CrsxMetaParser.Arguments_EOFContext ctx) { }
+	@Override public void enterVariable_TOK_EOF(CrsxMetaParser.Variable_TOK_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitArguments_EOF(CrsxMetaParser.Arguments_EOFContext ctx) { }
+	@Override public void exitVariable_TOK_EOF(CrsxMetaParser.Variable_TOK_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLinear_TOK_OPT(CrsxMetaParser.Linear_TOK_OPTContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLinear_TOK_OPT(CrsxMetaParser.Linear_TOK_OPTContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLinear_TOK_OPT_EOF(CrsxMetaParser.Linear_TOK_OPT_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLinear_TOK_OPT_EOF(CrsxMetaParser.Linear_TOK_OPT_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFunctional_TOK_OPT(CrsxMetaParser.Functional_TOK_OPTContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFunctional_TOK_OPT(CrsxMetaParser.Functional_TOK_OPTContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFunctional_TOK_OPT_EOF(CrsxMetaParser.Functional_TOK_OPT_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFunctional_TOK_OPT_EOF(CrsxMetaParser.Functional_TOK_OPT_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterVarsort_OPT(CrsxMetaParser.Varsort_OPTContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitVarsort_OPT(CrsxMetaParser.Varsort_OPTContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterVarsort_OPT_EOF(CrsxMetaParser.Varsort_OPT_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitVarsort_OPT_EOF(CrsxMetaParser.Varsort_OPT_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterArgs(CrsxMetaParser.ArgsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitArgs(CrsxMetaParser.ArgsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterArgs_EOF(CrsxMetaParser.Args_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitArgs_EOF(CrsxMetaParser.Args_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -702,97 +780,97 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFreeArguments(CrsxMetaParser.FreeArgumentsContext ctx) { }
+	@Override public void enterSargs(CrsxMetaParser.SargsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFreeArguments(CrsxMetaParser.FreeArgumentsContext ctx) { }
+	@Override public void exitSargs(CrsxMetaParser.SargsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFreeArguments_EOF(CrsxMetaParser.FreeArguments_EOFContext ctx) { }
+	@Override public void enterSargs_EOF(CrsxMetaParser.Sargs_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFreeArguments_EOF(CrsxMetaParser.FreeArguments_EOFContext ctx) { }
+	@Override public void exitSargs_EOF(CrsxMetaParser.Sargs_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFreeTerms_OPT(CrsxMetaParser.FreeTerms_OPTContext ctx) { }
+	@Override public void enterScopes_OPT(CrsxMetaParser.Scopes_OPTContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFreeTerms_OPT(CrsxMetaParser.FreeTerms_OPTContext ctx) { }
+	@Override public void exitScopes_OPT(CrsxMetaParser.Scopes_OPTContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFreeTerms_OPT_EOF(CrsxMetaParser.FreeTerms_OPT_EOFContext ctx) { }
+	@Override public void enterScopes_OPT_EOF(CrsxMetaParser.Scopes_OPT_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFreeTerms_OPT_EOF(CrsxMetaParser.FreeTerms_OPT_EOFContext ctx) { }
+	@Override public void exitScopes_OPT_EOF(CrsxMetaParser.Scopes_OPT_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFreeTerms(CrsxMetaParser.FreeTermsContext ctx) { }
+	@Override public void enterScopes(CrsxMetaParser.ScopesContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFreeTerms(CrsxMetaParser.FreeTermsContext ctx) { }
+	@Override public void exitScopes(CrsxMetaParser.ScopesContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFreeTerms_EOF(CrsxMetaParser.FreeTerms_EOFContext ctx) { }
+	@Override public void enterScopes_EOF(CrsxMetaParser.Scopes_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFreeTerms_EOF(CrsxMetaParser.FreeTerms_EOFContext ctx) { }
+	@Override public void exitScopes_EOF(CrsxMetaParser.Scopes_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFreeTerm_ZOM(CrsxMetaParser.FreeTerm_ZOMContext ctx) { }
+	@Override public void enterScope_ZOM(CrsxMetaParser.Scope_ZOMContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFreeTerm_ZOM(CrsxMetaParser.FreeTerm_ZOMContext ctx) { }
+	@Override public void exitScope_ZOM(CrsxMetaParser.Scope_ZOMContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFreeTerm_ZOM_EOF(CrsxMetaParser.FreeTerm_ZOM_EOFContext ctx) { }
+	@Override public void enterScope_ZOM_EOF(CrsxMetaParser.Scope_ZOM_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFreeTerm_ZOM_EOF(CrsxMetaParser.FreeTerm_ZOM_EOFContext ctx) { }
+	@Override public void exitScope_ZOM_EOF(CrsxMetaParser.Scope_ZOM_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -822,126 +900,6 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterTermList_OPT(CrsxMetaParser.TermList_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitTermList_OPT(CrsxMetaParser.TermList_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterTermList_OPT_EOF(CrsxMetaParser.TermList_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitTermList_OPT_EOF(CrsxMetaParser.TermList_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterTermList(CrsxMetaParser.TermListContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitTermList(CrsxMetaParser.TermListContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterTermList_EOF(CrsxMetaParser.TermList_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitTermList_EOF(CrsxMetaParser.TermList_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterListItem_ZOM(CrsxMetaParser.ListItem_ZOMContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitListItem_ZOM(CrsxMetaParser.ListItem_ZOMContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterListItem_ZOM_EOF(CrsxMetaParser.ListItem_ZOM_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitListItem_ZOM_EOF(CrsxMetaParser.ListItem_ZOM_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSemi_TOK_OPT(CrsxMetaParser.Semi_TOK_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSemi_TOK_OPT(CrsxMetaParser.Semi_TOK_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSemi_TOK_OPT_EOF(CrsxMetaParser.Semi_TOK_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSemi_TOK_OPT_EOF(CrsxMetaParser.Semi_TOK_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterListItem(CrsxMetaParser.ListItemContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitListItem(CrsxMetaParser.ListItemContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterListItem_EOF(CrsxMetaParser.ListItem_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitListItem_EOF(CrsxMetaParser.ListItem_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterVariable(CrsxMetaParser.VariableContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -961,150 +919,6 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitVariable_EOF(CrsxMetaParser.Variable_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterLinear_OPT(CrsxMetaParser.Linear_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitLinear_OPT(CrsxMetaParser.Linear_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterLinear_OPT_EOF(CrsxMetaParser.Linear_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitLinear_OPT_EOF(CrsxMetaParser.Linear_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterVariable_TOK(CrsxMetaParser.Variable_TOKContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitVariable_TOK(CrsxMetaParser.Variable_TOKContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterVariable_TOK_EOF(CrsxMetaParser.Variable_TOK_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitVariable_TOK_EOF(CrsxMetaParser.Variable_TOK_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterFunctional_OPT(CrsxMetaParser.Functional_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitFunctional_OPT(CrsxMetaParser.Functional_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterFunctional_OPT_EOF(CrsxMetaParser.Functional_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitFunctional_OPT_EOF(CrsxMetaParser.Functional_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterVarsort_OPT(CrsxMetaParser.Varsort_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitVarsort_OPT(CrsxMetaParser.Varsort_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterVarsort_OPT_EOF(CrsxMetaParser.Varsort_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitVarsort_OPT_EOF(CrsxMetaParser.Varsort_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterLinear(CrsxMetaParser.LinearContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitLinear(CrsxMetaParser.LinearContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterLinear_EOF(CrsxMetaParser.Linear_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitLinear_EOF(CrsxMetaParser.Linear_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterFunctional(CrsxMetaParser.FunctionalContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitFunctional(CrsxMetaParser.FunctionalContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterFunctional_EOF(CrsxMetaParser.Functional_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitFunctional_EOF(CrsxMetaParser.Functional_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -1177,30 +991,6 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitNumber_TOK_EOF(CrsxMetaParser.Number_TOK_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterBinder(CrsxMetaParser.BinderContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitBinder(CrsxMetaParser.BinderContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterBinder_EOF(CrsxMetaParser.Binder_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitBinder_EOF(CrsxMetaParser.Binder_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -1398,49 +1188,25 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDelayCase_OPT(CrsxMetaParser.DelayCase_OPTContext ctx) { }
+	@Override public void enterDelay_TOK_OPT(CrsxMetaParser.Delay_TOK_OPTContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDelayCase_OPT(CrsxMetaParser.DelayCase_OPTContext ctx) { }
+	@Override public void exitDelay_TOK_OPT(CrsxMetaParser.Delay_TOK_OPTContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDelayCase_OPT_EOF(CrsxMetaParser.DelayCase_OPT_EOFContext ctx) { }
+	@Override public void enterDelay_TOK_OPT_EOF(CrsxMetaParser.Delay_TOK_OPT_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDelayCase_OPT_EOF(CrsxMetaParser.DelayCase_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDispatchTerm(CrsxMetaParser.DispatchTermContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDispatchTerm(CrsxMetaParser.DispatchTermContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDispatchTerm_EOF(CrsxMetaParser.DispatchTerm_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDispatchTerm_EOF(CrsxMetaParser.DispatchTerm_EOFContext ctx) { }
+	@Override public void exitDelay_TOK_OPT_EOF(CrsxMetaParser.Delay_TOK_OPT_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -1465,78 +1231,6 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitDispatchCases_EOF(CrsxMetaParser.DispatchCases_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDispatchCase_ZOM(CrsxMetaParser.DispatchCase_ZOMContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDispatchCase_ZOM(CrsxMetaParser.DispatchCase_ZOMContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDispatchCase_ZOM_EOF(CrsxMetaParser.DispatchCase_ZOM_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDispatchCase_ZOM_EOF(CrsxMetaParser.DispatchCase_ZOM_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDispatchCase(CrsxMetaParser.DispatchCaseContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDispatchCase(CrsxMetaParser.DispatchCaseContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDispatchCase_EOF(CrsxMetaParser.DispatchCase_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDispatchCase_EOF(CrsxMetaParser.DispatchCase_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDelayCase(CrsxMetaParser.DelayCaseContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDelayCase(CrsxMetaParser.DelayCaseContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDelayCase_EOF(CrsxMetaParser.DelayCase_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDelayCase_EOF(CrsxMetaParser.DelayCase_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -1662,78 +1356,6 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterExpression(CrsxMetaParser.ExpressionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitExpression(CrsxMetaParser.ExpressionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterExpression_EOF(CrsxMetaParser.Expression_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitExpression_EOF(CrsxMetaParser.Expression_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSortDeclaration(CrsxMetaParser.SortDeclarationContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSortDeclaration(CrsxMetaParser.SortDeclarationContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSortDeclaration_EOF(CrsxMetaParser.SortDeclaration_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSortDeclaration_EOF(CrsxMetaParser.SortDeclaration_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSortparams_OPT(CrsxMetaParser.Sortparams_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSortparams_OPT(CrsxMetaParser.Sortparams_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSortparams_OPT_EOF(CrsxMetaParser.Sortparams_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSortparams_OPT_EOF(CrsxMetaParser.Sortparams_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterSortparams(CrsxMetaParser.SortparamsContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -1801,6 +1423,30 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitSortset_EOF(CrsxMetaParser.Sortset_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterProperties_OPT(CrsxMetaParser.Properties_OPTContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitProperties_OPT(CrsxMetaParser.Properties_OPTContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterProperties_OPT_EOF(CrsxMetaParser.Properties_OPT_EOFContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitProperties_OPT_EOF(CrsxMetaParser.Properties_OPT_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -1878,49 +1524,49 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSortarguments_OPT(CrsxMetaParser.Sortarguments_OPTContext ctx) { }
+	@Override public void enterSortargs_OPT(CrsxMetaParser.Sortargs_OPTContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitSortarguments_OPT(CrsxMetaParser.Sortarguments_OPTContext ctx) { }
+	@Override public void exitSortargs_OPT(CrsxMetaParser.Sortargs_OPTContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSortarguments_OPT_EOF(CrsxMetaParser.Sortarguments_OPT_EOFContext ctx) { }
+	@Override public void enterSortargs_OPT_EOF(CrsxMetaParser.Sortargs_OPT_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitSortarguments_OPT_EOF(CrsxMetaParser.Sortarguments_OPT_EOFContext ctx) { }
+	@Override public void exitSortargs_OPT_EOF(CrsxMetaParser.Sortargs_OPT_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSortarguments(CrsxMetaParser.SortargumentsContext ctx) { }
+	@Override public void enterSortargs(CrsxMetaParser.SortargsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitSortarguments(CrsxMetaParser.SortargumentsContext ctx) { }
+	@Override public void exitSortargs(CrsxMetaParser.SortargsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSortarguments_EOF(CrsxMetaParser.Sortarguments_EOFContext ctx) { }
+	@Override public void enterSortargs_EOF(CrsxMetaParser.Sortargs_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitSortarguments_EOF(CrsxMetaParser.Sortarguments_EOFContext ctx) { }
+	@Override public void exitSortargs_EOF(CrsxMetaParser.Sortargs_EOFContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -2089,174 +1735,6 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitReserved_EOF(CrsxMetaParser.Reserved_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirective(CrsxMetaParser.DirectiveContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirective(CrsxMetaParser.DirectiveContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirective_EOF(CrsxMetaParser.Directive_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirective_EOF(CrsxMetaParser.Directive_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirectiveArguments_OPT(CrsxMetaParser.DirectiveArguments_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirectiveArguments_OPT(CrsxMetaParser.DirectiveArguments_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirectiveArguments_OPT_EOF(CrsxMetaParser.DirectiveArguments_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirectiveArguments_OPT_EOF(CrsxMetaParser.DirectiveArguments_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirectiveArguments(CrsxMetaParser.DirectiveArgumentsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirectiveArguments(CrsxMetaParser.DirectiveArgumentsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirectiveArguments_EOF(CrsxMetaParser.DirectiveArguments_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirectiveArguments_EOF(CrsxMetaParser.DirectiveArguments_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirectives_OPT(CrsxMetaParser.Directives_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirectives_OPT(CrsxMetaParser.Directives_OPTContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirectives_OPT_EOF(CrsxMetaParser.Directives_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirectives_OPT_EOF(CrsxMetaParser.Directives_OPT_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirectives(CrsxMetaParser.DirectivesContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirectives(CrsxMetaParser.DirectivesContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirectives_EOF(CrsxMetaParser.Directives_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirectives_EOF(CrsxMetaParser.Directives_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirective_ZOM(CrsxMetaParser.Directive_ZOMContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirective_ZOM(CrsxMetaParser.Directive_ZOMContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirective_ZOM_EOF(CrsxMetaParser.Directive_ZOM_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirective_ZOM_EOF(CrsxMetaParser.Directive_ZOM_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirectiveList(CrsxMetaParser.DirectiveListContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirectiveList(CrsxMetaParser.DirectiveListContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirectiveList_EOF(CrsxMetaParser.DirectiveList_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirectiveList_EOF(CrsxMetaParser.DirectiveList_EOFContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

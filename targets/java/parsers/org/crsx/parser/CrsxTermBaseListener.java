@@ -45,61 +45,73 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDeclarations(CrsxTermParser.DeclarationsContext ctx) { }
+	@Override public void enterDecls(CrsxTermParser.DeclsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDeclarations(CrsxTermParser.DeclarationsContext ctx) { }
+	@Override public void exitDecls(CrsxTermParser.DeclsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDeclaration(CrsxTermParser.DeclarationContext ctx) { }
+	@Override public void enterDecl(CrsxTermParser.DeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitDeclaration(CrsxTermParser.DeclarationContext ctx) { }
+	@Override public void exitDecl(CrsxTermParser.DeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterModuleDeclaration(CrsxTermParser.ModuleDeclarationContext ctx) { }
+	@Override public void enterModuleDecl(CrsxTermParser.ModuleDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitModuleDeclaration(CrsxTermParser.ModuleDeclarationContext ctx) { }
+	@Override public void exitModuleDecl(CrsxTermParser.ModuleDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterImportDeclaration(CrsxTermParser.ImportDeclarationContext ctx) { }
+	@Override public void enterImportDecl(CrsxTermParser.ImportDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitImportDeclaration(CrsxTermParser.ImportDeclarationContext ctx) { }
+	@Override public void exitImportDecl(CrsxTermParser.ImportDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterRuleDeclaration(CrsxTermParser.RuleDeclarationContext ctx) { }
+	@Override public void enterSortDecl(CrsxTermParser.SortDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitRuleDeclaration(CrsxTermParser.RuleDeclarationContext ctx) { }
+	@Override public void exitSortDecl(CrsxTermParser.SortDeclContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterTermDecl(CrsxTermParser.TermDeclContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTermDecl(CrsxTermParser.TermDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -117,13 +129,13 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterPattern(CrsxTermParser.PatternContext ctx) { }
+	@Override public void enterAnnotation(CrsxTermParser.AnnotationContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitPattern(CrsxTermParser.PatternContext ctx) { }
+	@Override public void exitAnnotation(CrsxTermParser.AnnotationContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -141,30 +153,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterAnnotations(CrsxTermParser.AnnotationsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitAnnotations(CrsxTermParser.AnnotationsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterAnnotation(CrsxTermParser.AnnotationContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitAnnotation(CrsxTermParser.AnnotationContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterTerm(CrsxTermParser.TermContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -177,13 +165,13 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFreeTerm(CrsxTermParser.FreeTermContext ctx) { }
+	@Override public void enterScope(CrsxTermParser.ScopeContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFreeTerm(CrsxTermParser.FreeTermContext ctx) { }
+	@Override public void exitScope(CrsxTermParser.ScopeContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -201,13 +189,13 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterArguments(CrsxTermParser.ArgumentsContext ctx) { }
+	@Override public void enterArgs(CrsxTermParser.ArgsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitArguments(CrsxTermParser.ArgumentsContext ctx) { }
+	@Override public void exitArgs(CrsxTermParser.ArgsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -225,25 +213,25 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFreeArguments(CrsxTermParser.FreeArgumentsContext ctx) { }
+	@Override public void enterSargs(CrsxTermParser.SargsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFreeArguments(CrsxTermParser.FreeArgumentsContext ctx) { }
+	@Override public void exitSargs(CrsxTermParser.SargsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFreeTerms(CrsxTermParser.FreeTermsContext ctx) { }
+	@Override public void enterScopes(CrsxTermParser.ScopesContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFreeTerms(CrsxTermParser.FreeTermsContext ctx) { }
+	@Override public void exitScopes(CrsxTermParser.ScopesContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -261,30 +249,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterTermList(CrsxTermParser.TermListContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitTermList(CrsxTermParser.TermListContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterListItem(CrsxTermParser.ListItemContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitListItem(CrsxTermParser.ListItemContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterVariable(CrsxTermParser.VariableContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -292,30 +256,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitVariable(CrsxTermParser.VariableContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterLinear(CrsxTermParser.LinearContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitLinear(CrsxTermParser.LinearContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterFunctional(CrsxTermParser.FunctionalContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitFunctional(CrsxTermParser.FunctionalContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -369,18 +309,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDispatchTerm(CrsxTermParser.DispatchTermContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDispatchTerm(CrsxTermParser.DispatchTermContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterDispatchCases(CrsxTermParser.DispatchCasesContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -388,30 +316,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitDispatchCases(CrsxTermParser.DispatchCasesContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDispatchCase(CrsxTermParser.DispatchCaseContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDispatchCase(CrsxTermParser.DispatchCaseContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDelayCase(CrsxTermParser.DelayCaseContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDelayCase(CrsxTermParser.DelayCaseContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -448,30 +352,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitProperty(CrsxTermParser.PropertyContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterExpression(CrsxTermParser.ExpressionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitExpression(CrsxTermParser.ExpressionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSortDeclaration(CrsxTermParser.SortDeclarationContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSortDeclaration(CrsxTermParser.SortDeclarationContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -525,13 +405,13 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSortarguments(CrsxTermParser.SortargumentsContext ctx) { }
+	@Override public void enterSortargs(CrsxTermParser.SortargsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitSortarguments(CrsxTermParser.SortargumentsContext ctx) { }
+	@Override public void exitSortargs(CrsxTermParser.SortargsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -592,54 +472,6 @@ public class CrsxTermBaseListener implements CrsxTermListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitReserved(CrsxTermParser.ReservedContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirective(CrsxTermParser.DirectiveContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirective(CrsxTermParser.DirectiveContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirectiveArguments(CrsxTermParser.DirectiveArgumentsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirectiveArguments(CrsxTermParser.DirectiveArgumentsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirectives(CrsxTermParser.DirectivesContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirectives(CrsxTermParser.DirectivesContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDirectiveList(CrsxTermParser.DirectiveListContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDirectiveList(CrsxTermParser.DirectiveListContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
