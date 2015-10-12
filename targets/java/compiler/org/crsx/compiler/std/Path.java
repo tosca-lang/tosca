@@ -1,4 +1,4 @@
-/* START MODULE /Users/villardl/Projects/crsx/crsx4/src/std/path.crs.java */
+/* START MODULE /Users/villardl/Projects/crsx/crsx4_2/src/std/path.crs.java */
 /** Generated File */package org.crsx.compiler.std;
 import static org.crsx.runtime.ConstructionDescriptor.makeData;
 import static org.crsx.runtime.ConstructionDescriptor.makeFunction;
@@ -30,5 +30,5 @@ public class Path
     }
   }
 
-/* END MODULE « "/Users/villardl/Projects/crsx/crsx4/src/std/path.crs.java" » */
+/* END MODULE « "/Users/villardl/Projects/crsx/crsx4_2/src/std/path.crs.java" » */
 }

@@ -1,4 +1,4 @@
-/* START MODULE /Users/villardl/Projects/crsx/crsx4/src/state.crs.java */
+/* START MODULE /Users/villardl/Projects/crsx/crsx4_2/src/state.crs.java */
 /** Generated File */package org.crsx.compiler;
 import static org.crsx.runtime.ConstructionDescriptor.makeData;
 import static org.crsx.runtime.ConstructionDescriptor.makeFunction;
@@ -76,11 +76,11 @@ public class State
         sink.start(_M_OutputRuleDeclarations); sink.copy(term_84.ref());
         sink.end(); return true;
       }
-      label_34: {
+      label_83: {
         if (term.descriptor() != _M__sCons)
-        {   break label_34;
+        {   break label_83;
         }Term sub = term.sub(0).ref();
-        /* #rule=sub */Term sub_92 = term.sub(1).ref();
+        /* #rule=sub */Term sub_45 = term.sub(1).ref();
         /* #rules=sub */
         /* #keys=term *//*Contract*/
         sink.start(_M__sCons);
@@ -90,245 +90,245 @@ public class State
         sink.end(); sink.start(_M__sNil); sink.end();
         sink.end();
         sink.end();sink.properties(safeRef(props));
-        sink.start(_M_OutputRuleDeclarationsForKey); sink.copy(sub_92.ref()); sink.copy(term_84.ref());
+        sink.start(_M_OutputRuleDeclarationsForKey); sink.copy(sub_45.ref()); sink.copy(term_84.ref());
         sink.end();
         sink.end(); return true;
       }
     }
     return thunk(sink, _M_OutputRuleDeclarationsForKey, props, term, term_84);
-  }  final public static boolean _M_OutputRuleDeclarations(Sink sink, int shared, int depth, Properties props_32, Term term_26) {
+  }  final public static boolean _M_OutputRuleDeclarations(Sink sink, int shared, int depth, Properties props_58, Term term_47) {
     if (depth < 2000) {
-      label_38: {
-        if (term_26.descriptor() != _M__sNil)
-        {   break label_38;
+      label_72: {
+        if (term_47.descriptor() != _M__sNil)
+        {   break label_72;
         }/*Contract*/ sink.start(_M__sNil); sink.end(); return true;
       }
-      label_60: {
-        if (term_26.descriptor() != _M__sCons)
-        {   break label_60;
-        }Term sub_47 = term_26.sub(0).ref();
-        /* #key=sub */Term sub_73 = term_26.sub(1).ref();
-        /* #keys=sub *//*Contract*/sink.properties(safeRef(props_32));
+      label_64: {
+        if (term_47.descriptor() != _M__sCons)
+        {   break label_64;
+        }Term sub_14 = term_47.sub(0).ref();
+        /* #key=sub */Term sub_21 = term_47.sub(1).ref();
+        /* #keys=sub *//*Contract*/sink.properties(safeRef(props_58));
         sink.start(_M_OutputRuleDeclarationsForKey);
         sink.start(_M_UnRULES);
-        sink.start(_M__s);sink.properties(safeRef(props_32));
+        sink.start(_M__s);sink.properties(safeRef(props_58));
         sink.start(_M_Builtin_sGet);
-        sink.end(); sink.copy(sub_47.ref());
+        sink.end(); sink.copy(sub_14.ref());
         sink.end();
-        sink.end(); sink.copy(sub_73.ref());
+        sink.end(); sink.copy(sub_21.ref());
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_OutputRuleDeclarations, props_32, term_26);
-  } final public static boolean _M_OutputFuncDeclaration(Sink sink, int shared, int depth, Properties props_95, Term term_68, Term term_37) {
+    return thunk(sink, _M_OutputRuleDeclarations, props_58, term_47);
+  } final public static boolean _M_OutputFuncDeclaration(Sink sink, int shared, int depth, Properties props_44, Term term_63, Term term_56) {
     if (depth < 2000) {
       sink.start(_M__sCons);
       sink.start(_M_Crsx_xdeclarations_xS1); sink.literal(";");
       sink.start(_M__sCons);
-      sink.start(_M_Crsx_xdeclaration_xA4); sink.copy(term_68.ref());
+      sink.start(_M_Crsx_xdeclaration_xA4); sink.copy(term_63.ref());
       sink.end(); sink.start(_M__sNil); sink.end();
       sink.end();
-      sink.end();sink.properties(safeRef(props_95));
-      sink.start(_M_OutputFuncDeclarations); sink.copy(term_37.ref());
+      sink.end();sink.properties(safeRef(props_44));
+      sink.start(_M_OutputFuncDeclarations); sink.copy(term_56.ref());
       sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_OutputFuncDeclaration, props_95, term_68, term_37);
-  }  final public static boolean _M_OutputFuncDeclarations(Sink sink, int shared, int depth, Properties props_98, Term term_48) {
+    return thunk(sink, _M_OutputFuncDeclaration, props_44, term_63, term_56);
+  }  final public static boolean _M_OutputFuncDeclarations(Sink sink, int shared, int depth, Properties props_74, Term term_23) {
     if (depth < 2000) {
-      label_35: {
-        Term value = props_98 == null ? null : props_98.lookup("$rulekeys");
+      label_29: {
+        Term value = props_74 == null ? null : props_74.lookup("$rulekeys");
         if (value == null) 
-        {   break label_35;
+        {   break label_29;
         }
         if (value.descriptor() != _M_KEYS)
-        {   break label_35;
-        }Term sub_79 = value.sub(0).ref();
+        {   break label_29;
+        }Term sub_12 = value.sub(0).ref();
         /* #keys=sub */
-        if (term_48.descriptor() != _M__sNil)
-        {   break label_35;
-        }/*Contract*/sink.properties(safeRef(props_98));
-        sink.start(_M_OutputRuleDeclarations); sink.copy(sub_79.ref());
+        if (term_23.descriptor() != _M__sNil)
+        {   break label_29;
+        }/*Contract*/sink.properties(safeRef(props_74));
+        sink.start(_M_OutputRuleDeclarations); sink.copy(sub_12.ref());
         sink.end(); return true;
       }
-      label_45: {
-        if (term_48.descriptor() != _M__sCons)
-        {   break label_45;
-        }Term sub_69 = term_48.sub(0).ref();
-        /* #key=sub */Term sub_81 = term_48.sub(1).ref();
-        /* #keys=sub *//*Contract*/sink.properties(safeRef(props_98));
+      label_90: {
+        if (term_23.descriptor() != _M__sCons)
+        {   break label_90;
+        }Term sub_20 = term_23.sub(0).ref();
+        /* #key=sub */Term sub_8 = term_23.sub(1).ref();
+        /* #keys=sub *//*Contract*/sink.properties(safeRef(props_74));
         sink.start(_M_OutputFuncDeclaration);
         sink.start(_M_UnFUNCSORT);
-        sink.start(_M__s);sink.properties(safeRef(props_98));
+        sink.start(_M__s);sink.properties(safeRef(props_74));
         sink.start(_M_Builtin_sGet);
-        sink.end(); sink.copy(sub_69.ref());
+        sink.end(); sink.copy(sub_20.ref());
         sink.end();
-        sink.end(); sink.copy(sub_81.ref());
+        sink.end(); sink.copy(sub_8.ref());
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_OutputFuncDeclarations, props_98, term_48);
-  } final public static boolean _M_OutputDataDeclarationsForKey(Sink sink, int shared, int depth, Properties props_96, Term term_81, Term term_91) {
+    return thunk(sink, _M_OutputFuncDeclarations, props_74, term_23);
+  } final public static boolean _M_OutputDataDeclarationsForKey(Sink sink, int shared, int depth, Properties props_40, Term term_16, Term term_5) {
     if (depth < 2000) {
-      label_25: {
-        if (term_81.descriptor() != _M__sNil)
-        {   break label_25;
+      label_9: {
+        if (term_16.descriptor() != _M__sNil)
+        {   break label_9;
         }
-        /* #keys=term *//*Contract*/sink.properties(safeRef(props_96));
-        sink.start(_M_OutputDataDeclarations); sink.copy(term_91.ref());
+        /* #keys=term *//*Contract*/sink.properties(safeRef(props_40));
+        sink.start(_M_OutputDataDeclarations); sink.copy(term_5.ref());
         sink.end(); return true;
       }
-      label_93: {
-        if (term_81.descriptor() != _M__sCons)
-        {   break label_93;
-        }Term sub_46 = term_81.sub(0).ref();
-        if (sub_46.descriptor() != _M_QSORT)
-        {   break label_93;
-        }Term sub_172 = sub_46.sub(0).ref();
-        /* #qualifier=sub */Term sub_50 = sub_46.sub(1).ref();
-        /* #sort=sub */Term sub_85 = term_81.sub(1).ref();
+      label_16: {
+        if (term_16.descriptor() != _M__sCons)
+        {   break label_16;
+        }Term sub_69 = term_16.sub(0).ref();
+        if (sub_69.descriptor() != _M_QSORT)
+        {   break label_16;
+        }Term sub_53 = sub_69.sub(0).ref();
+        /* #qualifier=sub */Term sub_75 = sub_69.sub(1).ref();
+        /* #sort=sub */Term sub_63 = term_16.sub(1).ref();
         /* #qsorts=sub */
         /* #keys=term *//*Contract*/
         sink.start(_M__sCons);
         sink.start(_M_Crsx_xdeclarations_xS1); sink.literal(";");
         sink.start(_M__sCons);
-        sink.start(_M_Crsx_xdeclaration_xA4); sink.copy(sub_50.ref());
+        sink.start(_M_Crsx_xdeclaration_xA4); sink.copy(sub_75.ref());
         sink.end(); sink.start(_M__sNil); sink.end();
         sink.end();
-        sink.end();sink.properties(safeRef(props_96));
-        sink.start(_M_OutputDataDeclarationsForKey); sink.copy(sub_85.ref()); sink.copy(term_91.ref());
+        sink.end();sink.properties(safeRef(props_40));
+        sink.start(_M_OutputDataDeclarationsForKey); sink.copy(sub_63.ref()); sink.copy(term_5.ref());
         sink.end();
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_OutputDataDeclarationsForKey, props_96, term_81, term_91);
-  }  final public static boolean _M_OutputDataDeclarations(Sink sink, int shared, int depth, Properties props_21, Term term_32) {
+    return thunk(sink, _M_OutputDataDeclarationsForKey, props_40, term_16, term_5);
+  }  final public static boolean _M_OutputDataDeclarations(Sink sink, int shared, int depth, Properties props_99, Term term_44) {
     if (depth < 2000) {
-      label_22: {
-        Term value_0 = props_21 == null ? null : props_21.lookup("$funckeys");
-        if (value_0 == null) 
-        {   break label_22;
+      label_10: {
+        Term value_44 = props_99 == null ? null : props_99.lookup("$funckeys");
+        if (value_44 == null) 
+        {   break label_10;
         }
-        if (value_0.descriptor() != _M_KEYS)
-        {   break label_22;
-        }Term sub_21 = value_0.sub(0).ref();
+        if (value_44.descriptor() != _M_KEYS)
+        {   break label_10;
+        }Term sub_76 = value_44.sub(0).ref();
         /* #keys=sub */
-        if (term_32.descriptor() != _M__sNil)
-        {   break label_22;
-        }/*Contract*/sink.properties(safeRef(props_21));
-        sink.start(_M_OutputFuncDeclarations); sink.copy(sub_21.ref());
+        if (term_44.descriptor() != _M__sNil)
+        {   break label_10;
+        }/*Contract*/sink.properties(safeRef(props_99));
+        sink.start(_M_OutputFuncDeclarations); sink.copy(sub_76.ref());
         sink.end(); return true;
       }
-      label_43: {
-        if (term_32.descriptor() != _M__sCons)
-        {   break label_43;
-        }Term sub_4 = term_32.sub(0).ref();
-        /* #key=sub */Term sub_39 = term_32.sub(1).ref();
-        /* #keys=sub *//*Contract*/sink.properties(safeRef(props_21));
+      label_68: {
+        if (term_44.descriptor() != _M__sCons)
+        {   break label_68;
+        }Term sub_184 = term_44.sub(0).ref();
+        /* #key=sub */Term sub_61 = term_44.sub(1).ref();
+        /* #keys=sub *//*Contract*/sink.properties(safeRef(props_99));
         sink.start(_M_OutputDataDeclarationsForKey);
         sink.start(_M_UnDATASORT);
-        sink.start(_M__s);sink.properties(safeRef(props_21));
+        sink.start(_M__s);sink.properties(safeRef(props_99));
         sink.start(_M_Builtin_sGet);
-        sink.end(); sink.copy(sub_4.ref());
+        sink.end(); sink.copy(sub_184.ref());
         sink.end();
-        sink.end(); sink.copy(sub_39.ref());
+        sink.end(); sink.copy(sub_61.ref());
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_OutputDataDeclarations, props_21, term_32);
-  } final public static boolean _M_OutputImportGrammarDeclarations(Sink sink, int shared, int depth, Properties props_2, Term term_57) {
+    return thunk(sink, _M_OutputDataDeclarations, props_99, term_44);
+  } final public static boolean _M_OutputImportGrammarDeclarations(Sink sink, int shared, int depth, Properties props_7, Term term_8) {
     if (depth < 2000) {
-      label_12: {
-        Term value_90 = props_2 == null ? null : props_2.lookup("$datakeys");
-        if (value_90 == null) 
-        {   break label_12;
+      label_3: {
+        Term value_53 = props_7 == null ? null : props_7.lookup("$datakeys");
+        if (value_53 == null) 
+        {   break label_3;
         }
-        if (value_90.descriptor() != _M_KEYS)
-        {   break label_12;
-        }Term sub_15 = value_90.sub(0).ref();
+        if (value_53.descriptor() != _M_KEYS)
+        {   break label_3;
+        }Term sub_32 = value_53.sub(0).ref();
         /* #keys=sub */
-        if (term_57.descriptor() != _M__sNil)
-        {   break label_12;
-        }/*Contract*/sink.properties(safeRef(props_2));
-        sink.start(_M_OutputDataDeclarations); sink.copy(sub_15.ref());
+        if (term_8.descriptor() != _M__sNil)
+        {   break label_3;
+        }/*Contract*/sink.properties(safeRef(props_7));
+        sink.start(_M_OutputDataDeclarations); sink.copy(sub_32.ref());
         sink.end(); return true;
       }
-      label_0: {
-        if (term_57.descriptor() != _M__sCons)
-        {   break label_0;
-        }Term sub_0 = term_57.sub(0).ref();
-        /* #import=sub */Term sub_40 = term_57.sub(1).ref();
+      label_98: {
+        if (term_8.descriptor() != _M__sCons)
+        {   break label_98;
+        }Term sub_3 = term_8.sub(0).ref();
+        /* #import=sub */Term sub_68 = term_8.sub(1).ref();
         /* #imports=sub *//*Contract*/
         sink.start(_M__sCons);
         sink.start(_M_Crsx_xdeclarations_xS1); sink.literal(";");
         sink.start(_M__sCons);
         sink.start(_M_Crsx_xdeclaration_xA2);
         sink.start(_M_Crsx_ximportDeclaration_xA3); sink.literal("import"); sink.literal("grammar");
-        sink.start(_M_Crsx_xconstructor_xA1); sink.start(_M_Crsx_xqualifier_xA2); sink.end(); sink.copy(sub_0.ref());
+        sink.start(_M_Crsx_xconstructor_xA1); sink.start(_M_Crsx_xqualifier_xA2); sink.end(); sink.copy(sub_3.ref());
         sink.end();
         sink.end();
         sink.end(); sink.start(_M__sNil); sink.end();
         sink.end();
-        sink.end();sink.properties(safeRef(props_2));
-        sink.start(_M_OutputImportGrammarDeclarations); sink.copy(sub_40.ref());
+        sink.end();sink.properties(safeRef(props_7));
+        sink.start(_M_OutputImportGrammarDeclarations); sink.copy(sub_68.ref());
         sink.end();
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_OutputImportGrammarDeclarations, props_2, term_57);
-  } final public static boolean _M_OutputImportDeclarations(Sink sink, int shared, int depth, Properties props_25, Term term_63) {
+    return thunk(sink, _M_OutputImportGrammarDeclarations, props_7, term_8);
+  } final public static boolean _M_OutputImportDeclarations(Sink sink, int shared, int depth, Properties props_18, Term term_55) {
     if (depth < 2000) {
-      label_52: {
-        Term value_93 = props_25 == null ? null : props_25.lookup("$grammars");
-        if (value_93 == null) 
-        {   break label_52;
+      label_32: {
+        Term value_81 = props_18 == null ? null : props_18.lookup("$grammars");
+        if (value_81 == null) 
+        {   break label_32;
         }
-        if (value_93.descriptor() != _M_IMPORTS)
-        {   break label_52;
-        }Term sub_14 = value_93.sub(0).ref();
+        if (value_81.descriptor() != _M_IMPORTS)
+        {   break label_32;
+        }Term sub_43 = value_81.sub(0).ref();
         /* #imported=sub */
-        if (term_63.descriptor() != _M__sNil)
-        {   break label_52;
-        }/*Contract*/sink.properties(safeRef(props_25));
-        sink.start(_M_OutputImportGrammarDeclarations); sink.copy(sub_14.ref());
+        if (term_55.descriptor() != _M__sNil)
+        {   break label_32;
+        }/*Contract*/sink.properties(safeRef(props_18));
+        sink.start(_M_OutputImportGrammarDeclarations); sink.copy(sub_43.ref());
         sink.end(); return true;
       }
-      label_62: {
-        if (term_63.descriptor() != _M__sCons)
-        {   break label_62;
-        }Term sub_8 = term_63.sub(0).ref();
-        /* #import=sub */Term sub_45 = term_63.sub(1).ref();
+      label_14: {
+        if (term_55.descriptor() != _M__sCons)
+        {   break label_14;
+        }Term sub_59 = term_55.sub(0).ref();
+        /* #import=sub */Term sub_6 = term_55.sub(1).ref();
         /* #imports=sub *//*Contract*/
         sink.start(_M__sCons);
         sink.start(_M_Crsx_xdeclarations_xS1); sink.literal(";");
         sink.start(_M__sCons);
         sink.start(_M_Crsx_xdeclaration_xA2);
         sink.start(_M_Crsx_ximportDeclaration_xA2); sink.literal("import"); sink.literal("module");
-        sink.start(_M_Crsx_xconstructor_xA1); sink.start(_M_Crsx_xqualifier_xA2); sink.end(); sink.copy(sub_8.ref());
+        sink.start(_M_Crsx_xconstructor_xA1); sink.start(_M_Crsx_xqualifier_xA2); sink.end(); sink.copy(sub_59.ref());
         sink.end();
         sink.end();
         sink.end(); sink.start(_M__sNil); sink.end();
         sink.end();
-        sink.end();sink.properties(safeRef(props_25));
-        sink.start(_M_OutputImportDeclarations); sink.copy(sub_45.ref());
+        sink.end();sink.properties(safeRef(props_18));
+        sink.start(_M_OutputImportDeclarations); sink.copy(sub_6.ref());
         sink.end();
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_OutputImportDeclarations, props_25, term_63);
-  } final public static boolean _M_OutputCrsx(Sink sink, int shared, int depth, Properties props_60, Term term_22) {
+    return thunk(sink, _M_OutputImportDeclarations, props_18, term_55);
+  } final public static boolean _M_OutputCrsx(Sink sink, int shared, int depth, Properties props_71, Term term_30) {
     if (depth < 2000) {
-      label_26: {
-        Term value_16 = props_60 == null ? null : props_60.lookup("$imported");
-        if (value_16 == null) 
-        {   break label_26;
+      label_191: {
+        Term value_7 = props_71 == null ? null : props_71.lookup("$imported");
+        if (value_7 == null) 
+        {   break label_191;
         }
-        if (value_16.descriptor() != _M_IMPORTS)
-        {   break label_26;
-        }Term sub_83 = value_16.sub(0).ref();
+        if (value_7.descriptor() != _M_IMPORTS)
+        {   break label_191;
+        }Term sub_74 = value_7.sub(0).ref();
         /* #imported=sub */
-        if (term_22.descriptor() != _M_OK)
-        {   break label_26;
+        if (term_30.descriptor() != _M_OK)
+        {   break label_191;
         }/*Contract*/
         sink.start(_M_Crsx_xcrsx);
         sink.start(_M_Crsx_xdeclarations);
@@ -337,856 +337,856 @@ public class State
         sink.start(_M_Crsx_xconstructor_xA1); sink.start(_M_Crsx_xqualifier_xA2); sink.end(); sink.literal("$Lax");
         sink.end(); sink.start(_M__sNil); sink.end();
         sink.end();
-        sink.end();sink.properties(safeRef(props_60));
-        sink.start(_M_OutputImportDeclarations); sink.copy(sub_83.ref());
+        sink.end();sink.properties(safeRef(props_71));
+        sink.start(_M_OutputImportDeclarations); sink.copy(sub_74.ref());
         sink.end();
         sink.end();
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_OutputCrsx, props_60, term_22);
-  } final public static boolean _M_AddFuncSort2(Sink sink, int shared, int depth, Properties props_99, Term term_131, Term term_34, Term term_13, Variable var, Term term_38) {
+    return thunk(sink, _M_OutputCrsx, props_71, term_30);
+  } final public static boolean _M_AddFuncSort2(Sink sink, int shared, int depth, Properties props_47, Term term_93, Term term_31, Term term_45, Variable var, Term term_192) {
     if (depth < 2000) {
-      label_80: {
-        if (term_131.descriptor() != _M_FUNCSORT)
-        {   break label_80;
-        }Term sub_42 = term_131.sub(0).ref();
-        /* #qualifier=sub */Term sub_67 = term_131.sub(1).ref();
+      label_38: {
+        if (term_93.descriptor() != _M_FUNCSORT)
+        {   break label_38;
+        }Term sub_87 = term_93.sub(0).ref();
+        /* #qualifier=sub */Term sub_50 = term_93.sub(1).ref();
         /* #sort=sub */
         /* #key=term */
-        if (term_13.descriptor() != _M_Crsx_xsortDeclaration_xA2)
-        {   break label_80;
-        }Term sub_101 = term_13.sub(0).ref();
-        /* #sortparams?=sub */Term sub_84 = term_13.sub(1).ref();
-        /* #sortset=sub */Term sub_30 = term_13.sub(2).ref();
-        if (sub_30.descriptor() != _M_Crsx_xform_xA1)
-        {   break label_80;
-        }Term sub_37 = sub_30.sub(0).ref();
-        /* #constructor=sub */Term sub_250 = sub_30.sub(1).ref();
-        /* #arguments?=sub */Term sub_11 = term_13.sub(3).ref();Term sub_91 = term_13.sub(4).ref();
+        if (term_45.descriptor() != _M_Crsx_xsortDeclaration_xA2)
+        {   break label_38;
+        }Term sub_65 = term_45.sub(0).ref();
+        /* #sortparams?=sub */Term sub_25 = term_45.sub(1).ref();
+        /* #sortset=sub */Term sub_73 = term_45.sub(2).ref();
+        if (sub_73.descriptor() != _M_Crsx_xform_xA1)
+        {   break label_38;
+        }Term sub_9 = sub_73.sub(0).ref();
+        /* #constructor=sub */Term sub_82 = sub_73.sub(1).ref();
+        /* #arguments?=sub */Term sub_67 = term_45.sub(3).ref();Term sub_146 = term_45.sub(4).ref();
         /* #sortname=sub */
         /* #=term *//*Contract*/
         sink.start(_M__s); sink.start(_M_Builtin_sError); sink.end();
         sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("Function sort already defined:");
-        sink.start(_M_ConstructorToString); sink.copy(sub_37.ref());
+        sink.start(_M_ConstructorToString); sink.copy(sub_9.ref());
         sink.end();
         sink.end();
         sink.end(); return true;
       }
-      label_14: {
-        Term value_143 = props_99 == null ? null : props_99.lookup("$funckeys");
-        if (value_143 == null) 
-        {   break label_14;
+      label_8: {
+        Term value_57 = props_47 == null ? null : props_47.lookup("$funckeys");
+        if (value_57 == null) 
+        {   break label_8;
         }
-        if (value_143.descriptor() != _M_KEYS)
-        {   break label_14;
-        }Term sub_18 = value_143.sub(0).ref();
+        if (value_57.descriptor() != _M_KEYS)
+        {   break label_8;
+        }Term sub_95 = value_57.sub(0).ref();
         /* #keys=sub */
-        Term value_28 = props_99 == null ? null : props_99.lookup("$qualifier");
-        if (value_28 == null) 
-        {   break label_14;
+        Term value_32 = props_47 == null ? null : props_47.lookup("$qualifier");
+        if (value_32 == null) 
+        {   break label_8;
         }
-        if (value_28.descriptor() != _M_STR)
-        {   break label_14;
-        }Term sub_77 = value_28.sub(0).ref();
+        if (value_32.descriptor() != _M_STR)
+        {   break label_8;
+        }Term sub_29 = value_32.sub(0).ref();
         /* #qualifier=sub */
-        if (term_131.descriptor() != _M_NOCONTENTENTRY)
-        {   break label_14;
+        if (term_93.descriptor() != _M_NOCONTENTENTRY)
+        {   break label_8;
         }
         /* #key=term */
         /* #sortDeclaration=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_99));Term term_64;
+        /* #=term *//*Contract*/sink.properties(safeRef(props_47));Term term_92;
         {
           BufferSink buf = sink.context().makeBuffer();
-          buf.start(_M_FUNCSORT); buf.copy(sub_77.ref()); buf.copy(term_13.ref());
+          buf.start(_M_FUNCSORT); buf.copy(sub_29.ref()); buf.copy(term_45.ref());
           buf.end();
-          term_64 = buf.term();
+          term_92 = buf.term();
         }
-        term_34 = force(sink.context(), term_34);
-        Sink.property(sink, term_34, term_64);Term term_36;
+        term_31 = force(sink.context(), term_31);
+        Sink.property(sink, term_31, term_92);Term term_67;
         {
-          BufferSink buf_86 = sink.context().makeBuffer();
-          buf_86.start(_M_KEYS);
-          buf_86.start(_M__sCons); buf_86.copy(term_34.ref()); buf_86.copy(sub_18.ref());
-          buf_86.end();
-          buf_86.end();
-          term_36 = buf_86.term();
-        } sink.propertyNamed("$funckeys", term_36);Term term_93;
+          BufferSink buf_42 = sink.context().makeBuffer();
+          buf_42.start(_M_KEYS);
+          buf_42.start(_M__sCons); buf_42.copy(term_31.ref()); buf_42.copy(sub_95.ref());
+          buf_42.end();
+          buf_42.end();
+          term_67 = buf_42.term();
+        } sink.propertyNamed("$funckeys", term_67);Term term_80;
         {
-          BufferSink buf_53 = sink.context().makeBuffer(); buf_53.start(_M_OK); buf_53.end();
-          term_93 = buf_53.term();
+          BufferSink buf_22 = sink.context().makeBuffer(); buf_22.start(_M_OK); buf_22.end();
+          term_80 = buf_22.term();
         }
-        sink.substitute(term_38.ref(), new Variable[] { var }, new Term[] {term_93}); return true;
+        sink.substitute(term_192.ref(), new Variable[] { var }, new Term[] {term_80}); return true;
       }
     }
-    return thunk(sink, _M_AddFuncSort2, props_99, term_131, term_34, term_13, var, term_38);
-  }     final public static boolean _M_AddFuncSort1(Sink sink, int shared, int depth, Properties props_73, Term term_95, Term term_144, Variable var_75, Term term_6) {
+    return thunk(sink, _M_AddFuncSort2, props_47, term_93, term_31, term_45, var, term_192);
+  }     final public static boolean _M_AddFuncSort1(Sink sink, int shared, int depth, Properties props_42, Term term_15, Term term_77, Variable var_40, Term term_39) {
     if (depth < 2000) {
-      label_32: {
+      label_34: {
         /* #key=term */
         /* #sortDeclaration=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_73));
+        /* #=term *//*Contract*/sink.properties(safeRef(props_42));
         sink.start(_M_AddFuncSort2);
-        sink.start(_M__s);sink.properties(safeRef(props_73));
+        sink.start(_M__s);sink.properties(safeRef(props_42));
         sink.start(_M_Builtin_sGet);
-        sink.end(); sink.copy(term_95.ref()); sink.start(_M_NOCONTENTENTRY); sink.end();
-        sink.end(); sink.copy(term_95.ref()); sink.copy(term_144.ref());
-        Variable var_38 = sink.context().makeVariable("ok");
-        sink.binds(new Variable[] {var_38});
-        VariableUse use = sink.context().makeVariableUse(var_38);
-        sink.substitute(term_6.ref(), new Variable[] { var_75 }, new Term[] {use});
+        sink.end(); sink.copy(term_15.ref()); sink.start(_M_NOCONTENTENTRY); sink.end();
+        sink.end(); sink.copy(term_15.ref()); sink.copy(term_77.ref());
+        Variable var_21 = sink.context().makeVariable("ok");
+        sink.binds(new Variable[] {var_21});
+        VariableUse use = sink.context().makeVariableUse(var_21);
+        sink.substitute(term_39.ref(), new Variable[] { var_40 }, new Term[] {use});
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_AddFuncSort1, props_73, term_95, term_144, var_75, term_6);
-  }    final public static boolean _M_AddFuncSort(Sink sink, int shared, int depth, Properties props_77, Term term_29, Variable var_36, Term term_67) {
+    return thunk(sink, _M_AddFuncSort1, props_42, term_15, term_77, var_40, term_39);
+  }    final public static boolean _M_AddFuncSort(Sink sink, int shared, int depth, Properties props_22, Term term_51, Variable var_81, Term term_40) {
     if (depth < 2000) {
-      label_153: {
-        if (term_29.descriptor() != _M_Crsx_xsortDeclaration_xA2)
-        {   break label_153;
-        }Term sub_78 = term_29.sub(0).ref();
-        /* #sortparams?=sub */Term sub_41 = term_29.sub(1).ref();
-        /* #sortset=sub */Term sub_53 = term_29.sub(2).ref();
-        if (sub_53.descriptor() != _M_Crsx_xform_xA1)
-        {   break label_153;
-        }Term sub_155 = sub_53.sub(0).ref();
-        /* #constructor=sub */Term sub_12 = sub_53.sub(1).ref();
-        /* #arguments?=sub */Term sub_80 = term_29.sub(3).ref();Term sub_145 = term_29.sub(4).ref();
+      label_89: {
+        if (term_51.descriptor() != _M_Crsx_xsortDeclaration_xA2)
+        {   break label_89;
+        }Term sub_16 = term_51.sub(0).ref();
+        /* #sortparams?=sub */Term sub_36 = term_51.sub(1).ref();
+        /* #sortset=sub */Term sub_167 = term_51.sub(2).ref();
+        if (sub_167.descriptor() != _M_Crsx_xform_xA1)
+        {   break label_89;
+        }Term sub_11 = sub_167.sub(0).ref();
+        /* #constructor=sub */Term sub_28 = sub_167.sub(1).ref();
+        /* #arguments?=sub */Term sub_58 = term_51.sub(3).ref();Term sub_49 = term_51.sub(4).ref();
         /* #sortname=sub */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_77));
+        /* #=term *//*Contract*/sink.properties(safeRef(props_22));
         sink.start(_M_AddFuncSort1);
-        sink.start(_M_FuncSortKey); sink.copy(sub_155.ref());
+        sink.start(_M_FuncSortKey); sink.copy(sub_11.ref());
         sink.end();
-        sink.start(_M_Crsx_xsortDeclaration_xA2); sink.copy(sub_78.ref()); sink.copy(sub_41.ref());
-        sink.start(_M_Crsx_xform_xA1); sink.copy(sub_155.ref()); sink.copy(sub_12.ref());
-        sink.end(); sink.literal("::"); sink.copy(sub_145.ref());
+        sink.start(_M_Crsx_xsortDeclaration_xA2); sink.copy(sub_16.ref()); sink.copy(sub_36.ref());
+        sink.start(_M_Crsx_xform_xA1); sink.copy(sub_11.ref()); sink.copy(sub_28.ref());
+        sink.end(); sink.literal("::"); sink.copy(sub_49.ref());
         sink.end();
-        Variable var_60 = sink.context().makeVariable("ok");
-        sink.binds(new Variable[] {var_60});
-        VariableUse use_14 = sink.context().makeVariableUse(var_60);
-        sink.substitute(term_67.ref(), new Variable[] { var_36 }, new Term[] {use_14});
+        Variable var_9 = sink.context().makeVariable("ok");
+        sink.binds(new Variable[] {var_9});
+        VariableUse use_44 = sink.context().makeVariableUse(var_9);
+        sink.substitute(term_40.ref(), new Variable[] { var_81 }, new Term[] {use_44});
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_AddFuncSort, props_77, term_29, var_36, term_67);
-  }   final public static boolean _M_AddDataForm2(Sink sink, int shared, int depth, Properties props_14, Term term_42, Term term_11, Term term_76, Term term_3, Term term_59, Term term_17) {
+    return thunk(sink, _M_AddFuncSort, props_22, term_51, var_81, term_40);
+  }   final public static boolean _M_AddDataForm2(Sink sink, int shared, int depth, Properties props_29, Term term_10, Term term_12, Term term_83, Term term_29, Term term_2, Term term_113) {
     if (depth < 2000) {
-      label_6: {
-        if (term_42.descriptor() != _M_DATASORT)
-        {   break label_6;
-        }Term sub_17 = term_42.sub(0).ref();
+      label_0: {
+        if (term_10.descriptor() != _M_DATASORT)
+        {   break label_0;
+        }Term sub_102 = term_10.sub(0).ref();
         /* #sort=sub */
         /* #key=term */
-        if (term_76.descriptor() != _M_Crsx_xconstructor_xA1)
-        {   break label_6;
-        }Term sub_115 = term_76.sub(0).ref();
-        if (sub_115.descriptor() != _M_Crsx_xqualifier_xA2)
-        {   break label_6;
-        }Term sub_164 = term_76.sub(1).ref();
+        if (term_83.descriptor() != _M_Crsx_xconstructor_xA1)
+        {   break label_0;
+        }Term sub_19 = term_83.sub(0).ref();
+        if (sub_19.descriptor() != _M_Crsx_xqualifier_xA2)
+        {   break label_0;
+        }Term sub_52 = term_83.sub(1).ref();
         /* #CONSTRUCTOR1=sub */
-        if (term_3.descriptor() != _M_Crsx_xsortname_xA1)
-        {   break label_6;
-        }Term sub_24 = term_3.sub(0).ref();
-        if (sub_24.descriptor() != _M_Crsx_xconstructor_xA1)
-        {   break label_6;
-        }Term sub_174 = sub_24.sub(0).ref();
-        if (sub_174.descriptor() != _M_Crsx_xqualifier_xA2)
-        {   break label_6;
-        }Term sub_9 = sub_24.sub(1).ref();
-        /* #CONSTRUCTOR2=sub */Term sub_153 = term_3.sub(1).ref();
+        if (term_29.descriptor() != _M_Crsx_xsortname_xA1)
+        {   break label_0;
+        }Term sub_10 = term_29.sub(0).ref();
+        if (sub_10.descriptor() != _M_Crsx_xconstructor_xA1)
+        {   break label_0;
+        }Term sub_5 = sub_10.sub(0).ref();
+        if (sub_5.descriptor() != _M_Crsx_xqualifier_xA2)
+        {   break label_0;
+        }Term sub_101 = sub_10.sub(1).ref();
+        /* #CONSTRUCTOR2=sub */Term sub_42 = term_29.sub(1).ref();
         /* #sortarguments?=sub */
         /* #sortdecl=term */
         /* #CONTINUATION=term *//*Contract*/
         sink.start(_M__s); sink.start(_M_Builtin_sError); sink.end();
-        sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("Error: duplicate data form "); sink.copy(sub_164.ref()); sink.literal(" found in sort "); sink.copy(sub_9.ref()); sink.literal(".");
+        sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("Error: duplicate data form "); sink.copy(sub_52.ref()); sink.literal(" found in sort "); sink.copy(sub_101.ref()); sink.literal(".");
         sink.end();
         sink.end(); return true;
       }
-      label_7: {
-        Term value_88 = props_14 == null ? null : props_14.lookup("$qualifier");
-        if (value_88 == null) 
-        {   break label_7;
+      label_99: {
+        Term value_70 = props_29 == null ? null : props_29.lookup("$qualifier");
+        if (value_70 == null) 
+        {   break label_99;
         }
-        if (value_88.descriptor() != _M_STR)
-        {   break label_7;
-        }Term sub_125 = value_88.sub(0).ref();
+        if (value_70.descriptor() != _M_STR)
+        {   break label_99;
+        }Term sub_26 = value_70.sub(0).ref();
         /* #qualifier=sub */
-        if (term_42.descriptor() != _M_NOCONTENTENTRY)
-        {   break label_7;
+        if (term_10.descriptor() != _M_NOCONTENTENTRY)
+        {   break label_99;
         }
         /* #key=term */
         /* #constructor=term */
         /* #sortname=term */
         /* #sortdecl=term */
-        if (term_17.descriptor() != _M_CONTINUATION)
-        {   break label_7;
-        }Term sub_166 = term_17.sub(0).ref();
-        Variable binder = term_17.binders(0)[0];
-        /* #=sub *//*Contract*/sink.properties(safeRef(props_14));Term term_15;
+        if (term_113.descriptor() != _M_CONTINUATION)
+        {   break label_99;
+        }Term sub_193 = term_113.sub(0).ref();
+        Variable binder = term_113.binders(0)[0];
+        /* #=sub *//*Contract*/sink.properties(safeRef(props_29));Term term_24;
         {
-          BufferSink buf_62 = sink.context().makeBuffer();
-          buf_62.start(_M_DATASORT);
-          buf_62.start(_M__sCons);
-          buf_62.start(_M_QSORT); buf_62.copy(sub_125.ref()); buf_62.copy(term_59.ref());
-          buf_62.end(); buf_62.start(_M__sNil); buf_62.end();
-          buf_62.end();
-          buf_62.end();
-          term_15 = buf_62.term();
+          BufferSink buf_3 = sink.context().makeBuffer();
+          buf_3.start(_M_DATASORT);
+          buf_3.start(_M__sCons);
+          buf_3.start(_M_QSORT); buf_3.copy(sub_26.ref()); buf_3.copy(term_2.ref());
+          buf_3.end(); buf_3.start(_M__sNil); buf_3.end();
+          buf_3.end();
+          buf_3.end();
+          term_24 = buf_3.term();
         }
-        term_11 = force(sink.context(), term_11);
-        Sink.property(sink, term_11, term_15);Term term_121;
+        term_12 = force(sink.context(), term_12);
+        Sink.property(sink, term_12, term_24);Term term_99;
         {
-          BufferSink buf_73 = sink.context().makeBuffer(); buf_73.start(_M_OK); buf_73.end();
-          term_121 = buf_73.term();
+          BufferSink buf_17 = sink.context().makeBuffer(); buf_17.start(_M_OK); buf_17.end();
+          term_99 = buf_17.term();
         }
-        sink.substitute(sub_166.ref(), new Variable[] { binder }, new Term[] {term_121}); return true; 
+        sink.substitute(sub_193.ref(), new Variable[] { binder }, new Term[] {term_99}); return true; 
       }
     }
-    return thunk(sink, _M_AddDataForm2, props_14, term_42, term_11, term_76, term_3, term_59, term_17);
-  }      final public static boolean _M_AddDataForm1(Sink sink, int shared, int depth, Properties props_54, Term term_170, Term term_31, Term term_65, Term term_74, Term term_47) {
-    if (depth < 2000) {sink.properties(safeRef(props_54));
+    return thunk(sink, _M_AddDataForm2, props_29, term_10, term_12, term_83, term_29, term_2, term_113);
+  }      final public static boolean _M_AddDataForm1(Sink sink, int shared, int depth, Properties props_9, Term term_191, Term term_50, Term term_202, Term term_164, Term term_64) {
+    if (depth < 2000) {sink.properties(safeRef(props_9));
       sink.start(_M_AddDataForm2);
-      sink.start(_M__s);sink.properties(safeRef(props_54));
+      sink.start(_M__s);sink.properties(safeRef(props_9));
       sink.start(_M_Builtin_sGet);
-      sink.end(); sink.copy(term_170.ref()); sink.start(_M_NOCONTENTENTRY); sink.end();
-      sink.end(); sink.copy(term_170.ref()); sink.copy(term_31.ref()); sink.copy(term_65.ref()); sink.copy(term_74.ref()); sink.copy(term_47.ref());
+      sink.end(); sink.copy(term_191.ref()); sink.start(_M_NOCONTENTENTRY); sink.end();
+      sink.end(); sink.copy(term_191.ref()); sink.copy(term_50.ref()); sink.copy(term_202.ref()); sink.copy(term_164.ref()); sink.copy(term_64.ref());
       sink.end(); return true;
     }
-    return thunk(sink, _M_AddDataForm1, props_54, term_170, term_31, term_65, term_74, term_47);
-  }     final public static boolean _M_AddDataForm(Sink sink, int shared, int depth, Properties props_70, Term term_73, Term term_79, Term term_146, Term term_153) {
+    return thunk(sink, _M_AddDataForm1, props_9, term_191, term_50, term_202, term_164, term_64);
+  }     final public static boolean _M_AddDataForm(Sink sink, int shared, int depth, Properties props_37, Term term_0, Term term_251, Term term_162, Term term_1) {
     if (depth < 2000) {
-      label_79: {
-        if (term_73.descriptor() != _M_Crsx_xforms_xS1)
-        {   break label_79;
-        }Term sub_10 = term_73.sub(0).ref();
-        if (sub_10.descriptor() != _M_Crsx_xform_xA1)
-        {   break label_79;
-        }Term sub_22 = sub_10.sub(0).ref();
-        /* #constructor=sub */Term sub_34 = sub_10.sub(1).ref();
-        /* #arguments?=sub */Term sub_19 = term_73.sub(1).ref();
+      label_77: {
+        if (term_0.descriptor() != _M_Crsx_xforms_xS1)
+        {   break label_77;
+        }Term sub_70 = term_0.sub(0).ref();
+        if (sub_70.descriptor() != _M_Crsx_xform_xA1)
+        {   break label_77;
+        }Term sub_23 = sub_70.sub(0).ref();
+        /* #constructor=sub */Term sub_175 = sub_70.sub(1).ref();
+        /* #arguments?=sub */Term sub_93 = term_0.sub(1).ref();
         /* #sortname=term */
         /* #sortdecl=term */
-        /* #CONTINUATION=term *//*Contract*/sink.properties(safeRef(props_70));
+        /* #CONTINUATION=term *//*Contract*/sink.properties(safeRef(props_37));
         sink.start(_M_AddDataForm1);
-        sink.start(_M_DataFormKey); sink.copy(sub_22.ref());
-        sink.end(); sink.copy(sub_22.ref()); sink.copy(term_79.ref()); sink.copy(term_146.ref()); sink.copy(term_153.ref());
+        sink.start(_M_DataFormKey); sink.copy(sub_23.ref());
+        sink.end(); sink.copy(sub_23.ref()); sink.copy(term_251.ref()); sink.copy(term_162.ref()); sink.copy(term_1.ref());
         sink.end(); return true;
       }
-      label_105: {
-        if (term_73.descriptor() != _M_Crsx_xforms_xS1)
-        {   break label_105;
-        }Term sub_134 = term_73.sub(0).ref();
-        if (sub_134.descriptor() != _M_Crsx_xform_xA2)
-        {   break label_105;
-        }Term sub_28 = sub_134.sub(0).ref();
-        /* #variable=sub */Term sub_61 = term_73.sub(1).ref();
+      label_21: {
+        if (term_0.descriptor() != _M_Crsx_xforms_xS1)
+        {   break label_21;
+        }Term sub_100 = term_0.sub(0).ref();
+        if (sub_100.descriptor() != _M_Crsx_xform_xA2)
+        {   break label_21;
+        }Term sub_92 = sub_100.sub(0).ref();
+        /* #variable=sub */Term sub_54 = term_0.sub(1).ref();
         /* #sortname=term */
         /* #sortdecl=term */
-        if (term_153.descriptor() != _M_CONTINUATION)
-        {   break label_105;
-        }Term sub_27 = term_153.sub(0).ref();
-        Variable binder_4 = term_153.binders(0)[0];
-        /* #=sub *//*Contract*/sink.properties(safeRef(props_70));Term term_77;
+        if (term_1.descriptor() != _M_CONTINUATION)
+        {   break label_21;
+        }Term sub_64 = term_1.sub(0).ref();
+        Variable binder_12 = term_1.binders(0)[0];
+        /* #=sub *//*Contract*/sink.properties(safeRef(props_37));Term term_109;
         {
-          BufferSink buf_47 = sink.context().makeBuffer(); buf_47.start(_M_OK); buf_47.end();
-          term_77 = buf_47.term();
+          BufferSink buf_85 = sink.context().makeBuffer(); buf_85.start(_M_OK); buf_85.end();
+          term_109 = buf_85.term();
         }
-        sink.substitute(sub_27.ref(), new Variable[] { binder_4 }, new Term[] {term_77}); return true; 
+        sink.substitute(sub_64.ref(), new Variable[] { binder_12 }, new Term[] {term_109}); return true; 
       }
     }
-    return thunk(sink, _M_AddDataForm, props_70, term_73, term_79, term_146, term_153);
-  }    final public static boolean _M_AddDataSort3(Sink sink, int shared, int depth, Properties props_26, Term term_171, Term term_41, Term term_90, Variable var_9, Term term_89) {
+    return thunk(sink, _M_AddDataForm, props_37, term_0, term_251, term_162, term_1);
+  }    final public static boolean _M_AddDataSort3(Sink sink, int shared, int depth, Properties props_14, Term term_61, Term term_247, Term term_28, Variable var_88, Term term_128) {
     if (depth < 2000) {
-      label_145: {
-        Term value_73 = props_26 == null ? null : props_26.lookup("$qualifier");
+      label_81: {
+        Term value_73 = props_14 == null ? null : props_14.lookup("$qualifier");
         if (value_73 == null) 
-        {   break label_145;
+        {   break label_81;
         }
         if (value_73.descriptor() != _M_STR)
-        {   break label_145;
-        }Term sub_60 = value_73.sub(0).ref();
+        {   break label_81;
+        }Term sub_118 = value_73.sub(0).ref();
         /* #qualifier=sub */
-        if (term_171.descriptor() != _M_DATASORT)
-        {   break label_145;
-        }Term sub_76 = term_171.sub(0).ref();
+        if (term_61.descriptor() != _M_DATASORT)
+        {   break label_81;
+        }Term sub_84 = term_61.sub(0).ref();
         /* #sorts=sub */
         /* #key=term */
         /* #sortDeclaration=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_26));Term term_51;
+        /* #=term *//*Contract*/sink.properties(safeRef(props_14));Term term_186;
         {
-          BufferSink buf_6 = sink.context().makeBuffer();
-          buf_6.start(_M_DATASORT);
-          buf_6.start(_M__sCons);
-          buf_6.start(_M_QSORT); buf_6.copy(sub_60.ref()); buf_6.copy(term_90.ref());
-          buf_6.end(); buf_6.copy(sub_76.ref());
-          buf_6.end();
-          buf_6.end();
-          term_51 = buf_6.term();
+          BufferSink buf_11 = sink.context().makeBuffer();
+          buf_11.start(_M_DATASORT);
+          buf_11.start(_M__sCons);
+          buf_11.start(_M_QSORT); buf_11.copy(sub_118.ref()); buf_11.copy(term_28.ref());
+          buf_11.end(); buf_11.copy(sub_84.ref());
+          buf_11.end();
+          buf_11.end();
+          term_186 = buf_11.term();
         }
-        term_41 = force(sink.context(), term_41);
-        Sink.property(sink, term_41, term_51);Term term_58;
+        term_247 = force(sink.context(), term_247);
+        Sink.property(sink, term_247, term_186);Term term_81;
         {
-          BufferSink buf_77 = sink.context().makeBuffer(); buf_77.start(_M_OK); buf_77.end();
-          term_58 = buf_77.term();
+          BufferSink buf_70 = sink.context().makeBuffer(); buf_70.start(_M_OK); buf_70.end();
+          term_81 = buf_70.term();
         }
-        sink.substitute(term_89.ref(), new Variable[] { var_9 }, new Term[] {term_58}); return true;
+        sink.substitute(term_128.ref(), new Variable[] { var_88 }, new Term[] {term_81}); return true;
       }
-      label_40: {
-        Term value_59 = props_26 == null ? null : props_26.lookup("$datakeys");
-        if (value_59 == null) 
-        {   break label_40;
+      label_125: {
+        Term value_38 = props_14 == null ? null : props_14.lookup("$datakeys");
+        if (value_38 == null) 
+        {   break label_125;
         }
-        if (value_59.descriptor() != _M_KEYS)
-        {   break label_40;
-        }Term sub_7 = value_59.sub(0).ref();
+        if (value_38.descriptor() != _M_KEYS)
+        {   break label_125;
+        }Term sub_131 = value_38.sub(0).ref();
         /* #keys=sub */
-        Term value_72 = props_26 == null ? null : props_26.lookup("$qualifier");
-        if (value_72 == null) 
-        {   break label_40;
+        Term value_26 = props_14 == null ? null : props_14.lookup("$qualifier");
+        if (value_26 == null) 
+        {   break label_125;
         }
-        if (value_72.descriptor() != _M_STR)
-        {   break label_40;
-        }Term sub_1 = value_72.sub(0).ref();
+        if (value_26.descriptor() != _M_STR)
+        {   break label_125;
+        }Term sub_17 = value_26.sub(0).ref();
         /* #qualifier=sub */
-        if (term_171.descriptor() != _M_NOCONTENTENTRY)
-        {   break label_40;
+        if (term_61.descriptor() != _M_NOCONTENTENTRY)
+        {   break label_125;
         }
         /* #key=term */
         /* #sortDeclaration=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_26));Term term_39;
+        /* #=term *//*Contract*/sink.properties(safeRef(props_14));Term term_34;
         {
-          BufferSink buf_37 = sink.context().makeBuffer();
-          buf_37.start(_M_DATASORT);
-          buf_37.start(_M__sCons);
-          buf_37.start(_M_QSORT); buf_37.copy(sub_1.ref()); buf_37.copy(term_90.ref());
-          buf_37.end(); buf_37.start(_M__sNil); buf_37.end();
-          buf_37.end();
-          buf_37.end();
-          term_39 = buf_37.term();
+          BufferSink buf_29 = sink.context().makeBuffer();
+          buf_29.start(_M_DATASORT);
+          buf_29.start(_M__sCons);
+          buf_29.start(_M_QSORT); buf_29.copy(sub_17.ref()); buf_29.copy(term_28.ref());
+          buf_29.end(); buf_29.start(_M__sNil); buf_29.end();
+          buf_29.end();
+          buf_29.end();
+          term_34 = buf_29.term();
         }
-        term_41 = force(sink.context(), term_41);
-        Sink.property(sink, term_41, term_39);Term term_164;
+        term_247 = force(sink.context(), term_247);
+        Sink.property(sink, term_247, term_34);Term term_91;
         {
-          BufferSink buf_50 = sink.context().makeBuffer();
-          buf_50.start(_M_KEYS);
-          buf_50.start(_M__sCons); buf_50.copy(term_41.ref()); buf_50.copy(sub_7.ref());
-          buf_50.end();
-          buf_50.end();
-          term_164 = buf_50.term();
-        } sink.propertyNamed("$datakeys", term_164);Term term_23;
+          BufferSink buf_73 = sink.context().makeBuffer();
+          buf_73.start(_M_KEYS);
+          buf_73.start(_M__sCons); buf_73.copy(term_247.ref()); buf_73.copy(sub_131.ref());
+          buf_73.end();
+          buf_73.end();
+          term_91 = buf_73.term();
+        } sink.propertyNamed("$datakeys", term_91);Term term_46;
         {
-          BufferSink buf_191 = sink.context().makeBuffer(); buf_191.start(_M_OK); buf_191.end();
-          term_23 = buf_191.term();
+          BufferSink buf_80 = sink.context().makeBuffer(); buf_80.start(_M_OK); buf_80.end();
+          term_46 = buf_80.term();
         }
-        sink.substitute(term_89.ref(), new Variable[] { var_9 }, new Term[] {term_23}); return true;
+        sink.substitute(term_128.ref(), new Variable[] { var_88 }, new Term[] {term_46}); return true;
       }
     }
-    return thunk(sink, _M_AddDataSort3, props_26, term_171, term_41, term_90, var_9, term_89);
-  }     final public static boolean _M_AddDataSort2(Sink sink, int shared, int depth, Properties props_115, Term term_188, Term term_264, Variable var_56, Term term_46) {
+    return thunk(sink, _M_AddDataSort3, props_14, term_61, term_247, term_28, var_88, term_128);
+  }     final public static boolean _M_AddDataSort2(Sink sink, int shared, int depth, Properties props_84, Term term_95, Term term_73, Variable var_10, Term term_59) {
     if (depth < 2000) {
-      label_72: {
+      label_30: {
         /* #key=term */
         /* #sortDeclaration=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_115));
+        /* #=term *//*Contract*/sink.properties(safeRef(props_84));
         sink.start(_M_AddDataSort3);
-        sink.start(_M__s);sink.properties(safeRef(props_115));
+        sink.start(_M__s);sink.properties(safeRef(props_84));
         sink.start(_M_Builtin_sGet);
-        sink.end(); sink.copy(term_188.ref()); sink.start(_M_NOCONTENTENTRY); sink.end();
-        sink.end(); sink.copy(term_188.ref()); sink.copy(term_264.ref());
-        Variable var_144 = sink.context().makeVariable("ok");
-        sink.binds(new Variable[] {var_144});
-        VariableUse use_94 = sink.context().makeVariableUse(var_144);
-        sink.substitute(term_46.ref(), new Variable[] { var_56 }, new Term[] {use_94});
-        sink.end(); return true;
-      }
-    }
-    return thunk(sink, _M_AddDataSort2, props_115, term_188, term_264, var_56, term_46);
-  }    final public static boolean _M_AddDataSort1(Sink sink, int shared, int depth, Properties props_72, Term term_4, Term term_150, Variable var_4, Term term_33) {
-    if (depth < 2000) {
-      label_9: {
-        /* #key=term */
-        /* #sortDeclaration=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_72));
-        sink.start(_M_AddDataSort2); sink.copy(term_4.ref()); sink.copy(term_150.ref());
+        sink.end(); sink.copy(term_95.ref()); sink.start(_M_NOCONTENTENTRY); sink.end();
+        sink.end(); sink.copy(term_95.ref()); sink.copy(term_73.ref());
         Variable var_22 = sink.context().makeVariable("ok");
         sink.binds(new Variable[] {var_22});
-        VariableUse use_9 = sink.context().makeVariableUse(var_22);
-        sink.substitute(term_33.ref(), new Variable[] { var_4 }, new Term[] {use_9});
+        VariableUse use_23 = sink.context().makeVariableUse(var_22);
+        sink.substitute(term_59.ref(), new Variable[] { var_10 }, new Term[] {use_23});
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_AddDataSort1, props_72, term_4, term_150, var_4, term_33);
-  }    final public static boolean _M_AddDataSort(Sink sink, int shared, int depth, Properties props_16, Term term_149, Variable var_42, Term term_5) {
+    return thunk(sink, _M_AddDataSort2, props_84, term_95, term_73, var_10, term_59);
+  }    final public static boolean _M_AddDataSort1(Sink sink, int shared, int depth, Properties props_33, Term term_49, Term term_119, Variable var_37, Term term_13) {
     if (depth < 2000) {
-      label_90: {
-        if (term_149.descriptor() != _M_Crsx_xsortDeclaration_xA1)
-        {   break label_90;
-        }Term sub_299 = term_149.sub(0).ref();
-        /* #sortparams?=sub */Term sub_3 = term_149.sub(1).ref();
-        /* #sortset=sub */Term sub_43 = term_149.sub(2).ref();
-        /* #sortname=sub */Term sub_48 = term_149.sub(3).ref();Term sub_198 = term_149.sub(4).ref();Term sub_44 = term_149.sub(5).ref();
-        if (sub_44.descriptor() != _M_Crsx_xforms)
-        {   break label_90;
-        }Term sub_72 = sub_44.sub(0).ref();
-        /* #forms_S1*=sub */Term sub_75 = term_149.sub(6).ref();
-        /* #=term *//*Contract*/sink.properties(safeRef(props_16));
+      label_336: {
+        /* #key=term */
+        /* #sortDeclaration=term */
+        /* #=term *//*Contract*/sink.properties(safeRef(props_33));
+        sink.start(_M_AddDataSort2); sink.copy(term_49.ref()); sink.copy(term_119.ref());
+        Variable var_91 = sink.context().makeVariable("ok");
+        sink.binds(new Variable[] {var_91});
+        VariableUse use_53 = sink.context().makeVariableUse(var_91);
+        sink.substitute(term_13.ref(), new Variable[] { var_37 }, new Term[] {use_53});
+        sink.end(); return true;
+      }
+    }
+    return thunk(sink, _M_AddDataSort1, props_33, term_49, term_119, var_37, term_13);
+  }    final public static boolean _M_AddDataSort(Sink sink, int shared, int depth, Properties props_20, Term term_27, Variable var_43, Term term_17) {
+    if (depth < 2000) {
+      label_5: {
+        if (term_27.descriptor() != _M_Crsx_xsortDeclaration_xA1)
+        {   break label_5;
+        }Term sub_275 = term_27.sub(0).ref();
+        /* #sortparams?=sub */Term sub_134 = term_27.sub(1).ref();
+        /* #sortset=sub */Term sub_86 = term_27.sub(2).ref();
+        /* #sortname=sub */Term sub_24 = term_27.sub(3).ref();Term sub_15 = term_27.sub(4).ref();Term sub_83 = term_27.sub(5).ref();
+        if (sub_83.descriptor() != _M_Crsx_xforms)
+        {   break label_5;
+        }Term sub_40 = sub_83.sub(0).ref();
+        /* #forms_S1*=sub */Term sub_88 = term_27.sub(6).ref();
+        /* #=term *//*Contract*/sink.properties(safeRef(props_20));
         sink.start(_M_AddDataSort1);
-        sink.start(_M_DataSortKey); sink.copy(sub_43.ref());
+        sink.start(_M_DataSortKey); sink.copy(sub_86.ref());
         sink.end();
-        sink.start(_M_Crsx_xsortDeclaration_xA1); sink.copy(sub_299.ref()); sink.copy(sub_3.ref()); sink.copy(sub_43.ref()); sink.literal("::="); sink.literal("(");
-        sink.start(_M_Crsx_xforms); sink.copy(sub_72.ref());
+        sink.start(_M_Crsx_xsortDeclaration_xA1); sink.copy(sub_275.ref()); sink.copy(sub_134.ref()); sink.copy(sub_86.ref()); sink.literal("::="); sink.literal("(");
+        sink.start(_M_Crsx_xforms); sink.copy(sub_40.ref());
         sink.end(); sink.literal(")");
         sink.end();
-        Variable var_35 = sink.context().makeVariable("ok");
-        sink.binds(new Variable[] {var_35});
+        Variable var_56 = sink.context().makeVariable("ok");
+        sink.binds(new Variable[] {var_56});
         sink.start(_M_SeqMap);
-        Variable var_135 = sink.context().makeVariable("form");
-        Variable var_29 = sink.context().makeVariable("cont");
-        sink.binds(new Variable[] {var_135,var_29});
-        sink.start(_M_AddDataForm); sink.use(var_135); sink.copy(sub_43.ref());
-        sink.start(_M_Crsx_xsortDeclaration_xA1); sink.copy(sub_299.ref()); sink.copy(sub_3.ref()); sink.copy(sub_43.ref()); sink.literal("::="); sink.literal("(");
-        sink.start(_M_Crsx_xforms); sink.copy(sub_72.ref());
+        Variable var_86 = sink.context().makeVariable("form");
+        Variable var_87 = sink.context().makeVariable("cont");
+        sink.binds(new Variable[] {var_86,var_87});
+        sink.start(_M_AddDataForm); sink.use(var_86); sink.copy(sub_86.ref());
+        sink.start(_M_Crsx_xsortDeclaration_xA1); sink.copy(sub_275.ref()); sink.copy(sub_134.ref()); sink.copy(sub_86.ref()); sink.literal("::="); sink.literal("(");
+        sink.start(_M_Crsx_xforms); sink.copy(sub_40.ref());
         sink.end(); sink.literal(")");
-        sink.end(); sink.use(var_29);
-        sink.end(); sink.copy(sub_72.ref());
-        Variable var_50 = sink.context().makeVariable("ok");
-        sink.binds(new Variable[] {var_50});
-        VariableUse use_10 = sink.context().makeVariableUse(var_50);
-        sink.substitute(term_5.ref(), new Variable[] { var_42 }, new Term[] {use_10});
+        sink.end(); sink.use(var_87);
+        sink.end(); sink.copy(sub_40.ref());
+        Variable var_32 = sink.context().makeVariable("ok");
+        sink.binds(new Variable[] {var_32});
+        VariableUse use_48 = sink.context().makeVariableUse(var_32);
+        sink.substitute(term_17.ref(), new Variable[] { var_43 }, new Term[] {use_48});
         sink.end();
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_AddDataSort, props_16, term_149, var_42, term_5);
-  }   final public static boolean _M_AddRule3(Sink sink, int shared, int depth, Properties props_186, Term term_7, Term term_174, Term term_273, Variable var_5, Term term_60) {
+    return thunk(sink, _M_AddDataSort, props_20, term_27, var_43, term_17);
+  }   final public static boolean _M_AddRule3(Sink sink, int shared, int depth, Properties props_39, Term term_88, Term term_36, Term term_82, Variable var_55, Term term_18) {
     if (depth < 2000) {
-      label_55: {
-        if (term_7.descriptor() != _M_RULES)
-        {   break label_55;
-        }Term sub_38 = term_7.sub(0).ref();
+      label_48: {
+        if (term_88.descriptor() != _M_RULES)
+        {   break label_48;
+        }Term sub_79 = term_88.sub(0).ref();
         /* #rules=sub */
         /* #key=term */
         /* #ruleDeclaration=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_186));Term term_24;
+        /* #=term *//*Contract*/sink.properties(safeRef(props_39));Term term_43;
         {
-          BufferSink buf_72 = sink.context().makeBuffer();
-          buf_72.start(_M_RULES);
-          buf_72.start(_M_Concat); buf_72.copy(sub_38.ref());
-          buf_72.start(_M__sCons); buf_72.copy(term_273.ref()); buf_72.start(_M__sNil); buf_72.end();
-          buf_72.end();
-          buf_72.end();
-          buf_72.end();
-          term_24 = buf_72.term();
+          BufferSink buf_24 = sink.context().makeBuffer();
+          buf_24.start(_M_RULES);
+          buf_24.start(_M_Concat); buf_24.copy(sub_79.ref());
+          buf_24.start(_M__sCons); buf_24.copy(term_82.ref()); buf_24.start(_M__sNil); buf_24.end();
+          buf_24.end();
+          buf_24.end();
+          buf_24.end();
+          term_43 = buf_24.term();
         }
-        term_174 = force(sink.context(), term_174);
-        Sink.property(sink, term_174, term_24);Term term_27;
+        term_36 = force(sink.context(), term_36);
+        Sink.property(sink, term_36, term_43);Term term_22;
         {
-          BufferSink buf_48 = sink.context().makeBuffer(); buf_48.start(_M_OK); buf_48.end();
-          term_27 = buf_48.term();
+          BufferSink buf_27 = sink.context().makeBuffer(); buf_27.start(_M_OK); buf_27.end();
+          term_22 = buf_27.term();
         }
-        sink.substitute(term_60.ref(), new Variable[] { var_5 }, new Term[] {term_27}); return true;
+        sink.substitute(term_18.ref(), new Variable[] { var_55 }, new Term[] {term_22}); return true;
       }
-      label_85: {
-        Term value_75 = props_186 == null ? null : props_186.lookup("$rulekeys");
-        if (value_75 == null) 
-        {   break label_85;
+      label_185: {
+        Term value_99 = props_39 == null ? null : props_39.lookup("$rulekeys");
+        if (value_99 == null) 
+        {   break label_185;
         }
-        if (value_75.descriptor() != _M_KEYS)
-        {   break label_85;
-        }Term sub_51 = value_75.sub(0).ref();
+        if (value_99.descriptor() != _M_KEYS)
+        {   break label_185;
+        }Term sub_154 = value_99.sub(0).ref();
         /* #keys=sub */
-        if (term_7.descriptor() != _M_NOCONTENTENTRY)
-        {   break label_85;
+        if (term_88.descriptor() != _M_NOCONTENTENTRY)
+        {   break label_185;
         }
         /* #key=term */
         /* #ruleDeclaration=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_186));Term term_25;
+        /* #=term *//*Contract*/sink.properties(safeRef(props_39));Term term_6;
         {
-          BufferSink buf_14 = sink.context().makeBuffer();
-          buf_14.start(_M_RULES);
-          buf_14.start(_M__sCons); buf_14.copy(term_273.ref()); buf_14.start(_M__sNil); buf_14.end();
-          buf_14.end();
-          buf_14.end();
-          term_25 = buf_14.term();
+          BufferSink buf_90 = sink.context().makeBuffer();
+          buf_90.start(_M_RULES);
+          buf_90.start(_M__sCons); buf_90.copy(term_82.ref()); buf_90.start(_M__sNil); buf_90.end();
+          buf_90.end();
+          buf_90.end();
+          term_6 = buf_90.term();
         }
-        term_174 = force(sink.context(), term_174);
-        Sink.property(sink, term_174, term_25);Term term_148;
+        term_36 = force(sink.context(), term_36);
+        Sink.property(sink, term_36, term_6);Term term_332;
         {
-          BufferSink buf_179 = sink.context().makeBuffer();
-          buf_179.start(_M_KEYS);
-          buf_179.start(_M__sCons); buf_179.copy(term_174.ref()); buf_179.copy(sub_51.ref());
-          buf_179.end();
-          buf_179.end();
-          term_148 = buf_179.term();
-        } sink.propertyNamed("$rulekeys", term_148);Term term_66;
+          BufferSink buf_91 = sink.context().makeBuffer();
+          buf_91.start(_M_KEYS);
+          buf_91.start(_M__sCons); buf_91.copy(term_36.ref()); buf_91.copy(sub_154.ref());
+          buf_91.end();
+          buf_91.end();
+          term_332 = buf_91.term();
+        } sink.propertyNamed("$rulekeys", term_332);Term term_48;
         {
-          BufferSink buf_45 = sink.context().makeBuffer(); buf_45.start(_M_OK); buf_45.end();
-          term_66 = buf_45.term();
+          BufferSink buf_83 = sink.context().makeBuffer(); buf_83.start(_M_OK); buf_83.end();
+          term_48 = buf_83.term();
         }
-        sink.substitute(term_60.ref(), new Variable[] { var_5 }, new Term[] {term_66}); return true;
+        sink.substitute(term_18.ref(), new Variable[] { var_55 }, new Term[] {term_48}); return true;
       }
     }
-    return thunk(sink, _M_AddRule3, props_186, term_7, term_174, term_273, var_5, term_60);
-  }     final public static boolean _M_AddRule2(Sink sink, int shared, int depth, Properties props_31, Term term_83, Term term_99, Variable var_44, Term term_80) {
+    return thunk(sink, _M_AddRule3, props_39, term_88, term_36, term_82, var_55, term_18);
+  }     final public static boolean _M_AddRule2(Sink sink, int shared, int depth, Properties props_2, Term term_96, Term term_3, Variable var_17, Term term_79) {
     if (depth < 2000) {
-      label_70: {
+      label_28: {
         /* #key=term */
         /* #ruleDeclaration=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_31));
+        /* #=term *//*Contract*/sink.properties(safeRef(props_2));
         sink.start(_M_AddRule3);
-        sink.start(_M__s);sink.properties(safeRef(props_31));
+        sink.start(_M__s);sink.properties(safeRef(props_2));
         sink.start(_M_Builtin_sGet);
-        sink.end(); sink.copy(term_83.ref()); sink.start(_M_NOCONTENTENTRY); sink.end();
-        sink.end(); sink.copy(term_83.ref()); sink.copy(term_99.ref());
-        Variable var_90 = sink.context().makeVariable("ok");
-        sink.binds(new Variable[] {var_90});
-        VariableUse use_69 = sink.context().makeVariableUse(var_90);
-        sink.substitute(term_80.ref(), new Variable[] { var_44 }, new Term[] {use_69});
+        sink.end(); sink.copy(term_96.ref()); sink.start(_M_NOCONTENTENTRY); sink.end();
+        sink.end(); sink.copy(term_96.ref()); sink.copy(term_3.ref());
+        Variable var_54 = sink.context().makeVariable("ok");
+        sink.binds(new Variable[] {var_54});
+        VariableUse use_14 = sink.context().makeVariableUse(var_54);
+        sink.substitute(term_79.ref(), new Variable[] { var_17 }, new Term[] {use_14});
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_AddRule2, props_31, term_83, term_99, var_44, term_80);
-  }    final public static boolean _M_AddRule(Sink sink, int shared, int depth, Properties props_79, Term term_16, Term term_191, Variable var_125, Term term_21) {
+    return thunk(sink, _M_AddRule2, props_2, term_96, term_3, var_17, term_79);
+  }    final public static boolean _M_AddRule(Sink sink, int shared, int depth, Properties props_6, Term term_62, Term term_121, Variable var_84, Term term_139) {
     if (depth < 2000) {
-      label_47: {
+      label_104: {
         /* #key=term */
         /* #ruleDeclaration=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_79));
-        sink.start(_M_AddRule2); sink.copy(term_16.ref()); sink.copy(term_191.ref());
-        Variable var_6 = sink.context().makeVariable("ok");
-        sink.binds(new Variable[] {var_6});
-        VariableUse use_7 = sink.context().makeVariableUse(var_6);
-        sink.substitute(term_21.ref(), new Variable[] { var_125 }, new Term[] {use_7});
+        /* #=term *//*Contract*/sink.properties(safeRef(props_6));
+        sink.start(_M_AddRule2); sink.copy(term_62.ref()); sink.copy(term_121.ref());
+        Variable var_79 = sink.context().makeVariable("ok");
+        sink.binds(new Variable[] {var_79});
+        VariableUse use_132 = sink.context().makeVariableUse(var_79);
+        sink.substitute(term_139.ref(), new Variable[] { var_84 }, new Term[] {use_132});
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_AddRule, props_79, term_16, term_191, var_125, term_21);
-  }    final public static boolean _M_LookupSortByConstructor1(Sink sink, int shared, int depth, Term term_86, Term term_35) {
+    return thunk(sink, _M_AddRule, props_6, term_62, term_121, var_84, term_139);
+  }    final public static boolean _M_LookupSortByConstructor1(Sink sink, int shared, int depth, Term term_94, Term term_135) {
     if (depth < 2000) {
-      label_77: {
-        if (term_86.descriptor() != _M_SOME)
-        {   break label_77;
-        }Term sub_26 = term_86.sub(0).ref();
+      label_12: {
+        if (term_94.descriptor() != _M_SOME)
+        {   break label_12;
+        }Term sub_155 = term_94.sub(0).ref();
         /* #1=sub */
         /* #2=term *//*Contract*/
-        sink.start(_M_SOME); sink.copy(sub_26.ref());
+        sink.start(_M_SOME); sink.copy(sub_155.ref());
         sink.end(); return true;
       }
-      label_188: {
-        if (term_86.descriptor() != _M_NONE)
-        {   break label_188;
+      label_132: {
+        if (term_94.descriptor() != _M_NONE)
+        {   break label_132;
         }
-        /* #2=term *//*Contract*/ sink.copy(term_35.ref()); return true;
+        /* #2=term *//*Contract*/ sink.copy(term_135.ref()); return true;
       }
     }
-    return thunk(sink, _M_LookupSortByConstructor1, term_86, term_35);
-  }  final public static boolean _M_LookupSortByConstructor(Sink sink, int shared, int depth, Properties props_23, Term term_19) {
+    return thunk(sink, _M_LookupSortByConstructor1, term_94, term_135);
+  }  final public static boolean _M_LookupSortByConstructor(Sink sink, int shared, int depth, Properties props_10, Term term_205) {
     if (depth < 2000) {
-      sink.start(_M_LookupSortByConstructor1);sink.properties(safeRef(props_23));
+      sink.start(_M_LookupSortByConstructor1);sink.properties(safeRef(props_10));
       sink.start(_M_GetSome);
-      sink.start(_M_FuncSortKey); sink.copy(term_19.ref());
+      sink.start(_M_FuncSortKey); sink.copy(term_205.ref());
       sink.end();
-      sink.end();sink.properties(safeRef(props_23));
+      sink.end();sink.properties(safeRef(props_10));
       sink.start(_M_GetSome);
-      sink.start(_M_DataFormKey); sink.copy(term_19.ref());
+      sink.start(_M_DataFormKey); sink.copy(term_205.ref());
       sink.end();
       sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_LookupSortByConstructor, props_23, term_19);
-  } final public static boolean _M_LookupModule(Sink sink, int shared, int depth, Properties props_75, Term term_14) {
-    if (depth < 2000) {sink.properties(safeRef(props_75));
-      sink.start(_M_GetSome); sink.start(_M_ModuleKey); sink.copy(term_14.ref()); sink.end();
+    return thunk(sink, _M_LookupSortByConstructor, props_10, term_205);
+  } final public static boolean _M_LookupModule(Sink sink, int shared, int depth, Properties props_89, Term term_53) {
+    if (depth < 2000) {sink.properties(safeRef(props_89));
+      sink.start(_M_GetSome); sink.start(_M_ModuleKey); sink.copy(term_53.ref()); sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_LookupModule, props_75, term_14);
-  } final public static boolean _M_ConstructorToString(Sink sink, int shared, int depth, Term term_28) {
+    return thunk(sink, _M_LookupModule, props_89, term_53);
+  } final public static boolean _M_ConstructorToString(Sink sink, int shared, int depth, Term term_90) {
     if (depth < 2000) {
-      label_81: {
-        if (term_28.descriptor() != _M_Crsx_xconstructor_xA1)
-        {   break label_81;
-        }Term sub_123 = term_28.sub(0).ref();
-        if (sub_123.descriptor() != _M_Crsx_xqualifier_xA2)
-        {   break label_81;
-        }Term sub_36 = term_28.sub(1).ref();
-        /* #CONSTRUCTOR=sub *//*Contract*/ sink.copy(sub_36.ref()); return true;
+      label_85: {
+        if (term_90.descriptor() != _M_Crsx_xconstructor_xA1)
+        {   break label_85;
+        }Term sub_51 = term_90.sub(0).ref();
+        if (sub_51.descriptor() != _M_Crsx_xqualifier_xA2)
+        {   break label_85;
+        }Term sub_128 = term_90.sub(1).ref();
+        /* #CONSTRUCTOR=sub *//*Contract*/ sink.copy(sub_128.ref()); return true;
       }
-      label_69: {
-        if (term_28.descriptor() != _M_Crsx_xconstructor_xA2)
-        {   break label_69;
-        }Term sub_97 = term_28.sub(0).ref();
-        if (sub_97.descriptor() != _M_Crsx_xreserved_xA1)
-        {   break label_69;
-        }Term sub_70 = sub_97.sub(0).ref();/*Contract*/ sink.literal(":"); return true;
+      label_7: {
+        if (term_90.descriptor() != _M_Crsx_xconstructor_xA2)
+        {   break label_7;
+        }Term sub_99 = term_90.sub(0).ref();
+        if (sub_99.descriptor() != _M_Crsx_xreserved_xA1)
+        {   break label_7;
+        }Term sub_72 = sub_99.sub(0).ref();/*Contract*/ sink.literal(":"); return true;
       }
     }
-    return thunk(sink, _M_ConstructorToString, term_28);
-  } final public static boolean _M_SortnameToString(Sink sink, int shared, int depth, Term term_162) {
+    return thunk(sink, _M_ConstructorToString, term_90);
+  } final public static boolean _M_SortnameToString(Sink sink, int shared, int depth, Term term_87) {
     if (depth < 2000) {
-      label_68: {
-        if (term_162.descriptor() != _M_Crsx_xsortname_xA1)
-        {   break label_68;
-        }Term sub_25 = term_162.sub(0).ref();
-        if (sub_25.descriptor() != _M_Crsx_xconstructor_xA1)
-        {   break label_68;
-        }Term sub_63 = sub_25.sub(0).ref();
-        if (sub_63.descriptor() != _M_Crsx_xqualifier_xA2)
-        {   break label_68;
-        }Term sub_86 = sub_25.sub(1).ref();
-        /* #CONSTRUCTOR=sub */Term sub_195 = term_162.sub(1).ref();
-        /* #sortarguments?=sub *//*Contract*/ sink.copy(sub_86.ref()); return true;
+      label_97: {
+        if (term_87.descriptor() != _M_Crsx_xsortname_xA1)
+        {   break label_97;
+        }Term sub_33 = term_87.sub(0).ref();
+        if (sub_33.descriptor() != _M_Crsx_xconstructor_xA1)
+        {   break label_97;
+        }Term sub_232 = sub_33.sub(0).ref();
+        if (sub_232.descriptor() != _M_Crsx_xqualifier_xA2)
+        {   break label_97;
+        }Term sub_97 = sub_33.sub(1).ref();
+        /* #CONSTRUCTOR=sub */Term sub_31 = term_87.sub(1).ref();
+        /* #sortarguments?=sub *//*Contract*/ sink.copy(sub_97.ref()); return true;
       }
-      label_33: {
-        if (term_162.descriptor() != _M_Crsx_xsortname_xA1)
-        {   break label_33;
-        }Term sub_65 = term_162.sub(0).ref();
-        if (sub_65.descriptor() != _M_Crsx_xconstructor_xA2)
-        {   break label_33;
-        }Term sub_165 = sub_65.sub(0).ref();
-        if (sub_165.descriptor() != _M_Crsx_xreserved_xA1)
-        {   break label_33;
-        }Term sub_33 = sub_165.sub(0).ref();Term sub_35 = term_162.sub(1).ref();
+      label_248: {
+        if (term_87.descriptor() != _M_Crsx_xsortname_xA1)
+        {   break label_248;
+        }Term sub_56 = term_87.sub(0).ref();
+        if (sub_56.descriptor() != _M_Crsx_xconstructor_xA2)
+        {   break label_248;
+        }Term sub_121 = sub_56.sub(0).ref();
+        if (sub_121.descriptor() != _M_Crsx_xreserved_xA1)
+        {   break label_248;
+        }Term sub_172 = sub_121.sub(0).ref();Term sub_216 = term_87.sub(1).ref();
         /* #sortarguments?=sub *//*Contract*/ sink.literal(":"); return true;
       }
     }
-    return thunk(sink, _M_SortnameToString, term_162);
-  } final public static boolean _M_FuncSortKey(Sink sink, int shared, int depth, Term term_98) {
+    return thunk(sink, _M_SortnameToString, term_87);
+  } final public static boolean _M_FuncSortKey(Sink sink, int shared, int depth, Term term_21) {
     if (depth < 2000) {
-      label_205: {
-        if (term_98.descriptor() != _M_Crsx_xconstructor_xA1)
-        {   break label_205;
-        }Term sub_173 = term_98.sub(0).ref();
-        if (sub_173.descriptor() != _M_Crsx_xqualifier_xA2)
-        {   break label_205;
-        }Term sub_29 = term_98.sub(1).ref();
+      label_138: {
+        if (term_21.descriptor() != _M_Crsx_xconstructor_xA1)
+        {   break label_138;
+        }Term sub_81 = term_21.sub(0).ref();
+        if (sub_81.descriptor() != _M_Crsx_xqualifier_xA2)
+        {   break label_138;
+        }Term sub_71 = term_21.sub(1).ref();
         /* #CONSTRUCTOR=sub *//*Contract*/
-        sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$func$"); sink.copy(sub_29.ref());
+        sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$func$"); sink.copy(sub_71.ref());
         sink.end(); return true;
       }
-      label_20: {
-        if (term_98.descriptor() != _M_Crsx_xconstructor_xA2)
-        {   break label_20;
-        }Term sub_95 = term_98.sub(0).ref();
-        if (sub_95.descriptor() != _M_Crsx_xreserved_xA1)
-        {   break label_20;
-        }Term sub_118 = sub_95.sub(0).ref();/*Contract*/ sink.literal("$func$:"); return true;
+      label_65: {
+        if (term_21.descriptor() != _M_Crsx_xconstructor_xA2)
+        {   break label_65;
+        }Term sub_47 = term_21.sub(0).ref();
+        if (sub_47.descriptor() != _M_Crsx_xreserved_xA1)
+        {   break label_65;
+        }Term sub_38 = sub_47.sub(0).ref();/*Contract*/ sink.literal("$func$:"); return true;
       }
     }
-    return thunk(sink, _M_FuncSortKey, term_98);
-  } final public static boolean _M_DataFormKey(Sink sink, int shared, int depth, Term term_119) {
+    return thunk(sink, _M_FuncSortKey, term_21);
+  } final public static boolean _M_DataFormKey(Sink sink, int shared, int depth, Term term_25) {
     if (depth < 2000) {
-      label_15: {
-        if (term_119.descriptor() != _M_Crsx_xconstructor_xA1)
-        {   break label_15;
-        }Term sub_6 = term_119.sub(0).ref();
-        if (sub_6.descriptor() != _M_Crsx_xqualifier_xA2)
-        {   break label_15;
-        }Term sub_143 = term_119.sub(1).ref();
+      label_61: {
+        if (term_25.descriptor() != _M_Crsx_xconstructor_xA1)
+        {   break label_61;
+        }Term sub_107 = term_25.sub(0).ref();
+        if (sub_107.descriptor() != _M_Crsx_xqualifier_xA2)
+        {   break label_61;
+        }Term sub_41 = term_25.sub(1).ref();
         /* #CONSTRUCTOR=sub *//*Contract*/
-        sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$form$"); sink.copy(sub_143.ref());
+        sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$form$"); sink.copy(sub_41.ref());
         sink.end(); return true;
       }
-      label_66: {
-        if (term_119.descriptor() != _M_Crsx_xconstructor_xA2)
-        {   break label_66;
-        }Term sub_55 = term_119.sub(0).ref();
-        if (sub_55.descriptor() != _M_Crsx_xreserved_xA1)
-        {   break label_66;
-        }Term sub_189 = sub_55.sub(0).ref();/*Contract*/ sink.literal("$form$:"); return true;
+      label_58: {
+        if (term_25.descriptor() != _M_Crsx_xconstructor_xA2)
+        {   break label_58;
+        }Term sub_57 = term_25.sub(0).ref();
+        if (sub_57.descriptor() != _M_Crsx_xreserved_xA1)
+        {   break label_58;
+        }Term sub_196 = sub_57.sub(0).ref();/*Contract*/ sink.literal("$form$:"); return true;
       }
     }
-    return thunk(sink, _M_DataFormKey, term_119);
-  } final public static boolean _M_DataSortKey(Sink sink, int shared, int depth, Term term_88) {
+    return thunk(sink, _M_DataFormKey, term_25);
+  } final public static boolean _M_DataSortKey(Sink sink, int shared, int depth, Term term_143) {
     if (depth < 2000) {
-      label_37: {
-        if (term_88.descriptor() != _M_Crsx_xsortname_xA1)
-        {   break label_37;
-        }Term sub_138 = term_88.sub(0).ref();
-        if (sub_138.descriptor() != _M_Crsx_xconstructor_xA1)
-        {   break label_37;
-        }Term sub_31 = sub_138.sub(0).ref();
-        if (sub_31.descriptor() != _M_Crsx_xqualifier_xA2)
-        {   break label_37;
-        }Term sub_261 = sub_138.sub(1).ref();
-        /* #CONSTRUCTOR=sub */Term sub_290 = term_88.sub(1).ref();
+      label_184: {
+        if (term_143.descriptor() != _M_Crsx_xsortname_xA1)
+        {   break label_184;
+        }Term sub_130 = term_143.sub(0).ref();
+        if (sub_130.descriptor() != _M_Crsx_xconstructor_xA1)
+        {   break label_184;
+        }Term sub_169 = sub_130.sub(0).ref();
+        if (sub_169.descriptor() != _M_Crsx_xqualifier_xA2)
+        {   break label_184;
+        }Term sub_66 = sub_130.sub(1).ref();
+        /* #CONSTRUCTOR=sub */Term sub_4 = term_143.sub(1).ref();
         /* #sortarguments?=sub *//*Contract*/
-        sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$data$"); sink.copy(sub_261.ref());
+        sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$data$"); sink.copy(sub_66.ref());
         sink.end(); return true;
       }
-      label_18: {
-        if (term_88.descriptor() != _M_Crsx_xsortname_xA1)
-        {   break label_18;
-        }Term sub_162 = term_88.sub(0).ref();
-        if (sub_162.descriptor() != _M_Crsx_xconstructor_xA2)
-        {   break label_18;
-        }Term sub_23 = sub_162.sub(0).ref();
-        if (sub_23.descriptor() != _M_Crsx_xreserved_xA1)
-        {   break label_18;
-        }Term sub_154 = sub_23.sub(0).ref();Term sub_102 = term_88.sub(1).ref();
+      label_51: {
+        if (term_143.descriptor() != _M_Crsx_xsortname_xA1)
+        {   break label_51;
+        }Term sub_273 = term_143.sub(0).ref();
+        if (sub_273.descriptor() != _M_Crsx_xconstructor_xA2)
+        {   break label_51;
+        }Term sub_185 = sub_273.sub(0).ref();
+        if (sub_185.descriptor() != _M_Crsx_xreserved_xA1)
+        {   break label_51;
+        }Term sub_337 = sub_185.sub(0).ref();Term sub_117 = term_143.sub(1).ref();
         /* #sortarguments?=sub *//*Contract*/ sink.literal("$data$:"); return true;
       }
     }
-    return thunk(sink, _M_DataSortKey, term_88);
-  } final public static boolean _M_RulesKey(Sink sink, int shared, int depth, Term term_44) {
+    return thunk(sink, _M_DataSortKey, term_143);
+  } final public static boolean _M_RulesKey(Sink sink, int shared, int depth, Term term_180) {
     if (depth < 2000) {
-      label_4: {
-        if (term_44.descriptor() != _M_Crsx_xconstructor_xA1)
-        {   break label_4;
-        }Term sub_54 = term_44.sub(0).ref();
-        if (sub_54.descriptor() != _M_Crsx_xqualifier_xA2)
-        {   break label_4;
-        }Term sub_284 = term_44.sub(1).ref();
+      label_42: {
+        if (term_180.descriptor() != _M_Crsx_xconstructor_xA1)
+        {   break label_42;
+        }Term sub_2 = term_180.sub(0).ref();
+        if (sub_2.descriptor() != _M_Crsx_xqualifier_xA2)
+        {   break label_42;
+        }Term sub_194 = term_180.sub(1).ref();
         /* #CONSTRUCTOR=sub *//*Contract*/
-        sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$rules$"); sink.copy(sub_284.ref());
+        sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$rules$"); sink.copy(sub_194.ref());
         sink.end(); return true;
       }
-      label_13: {
-        if (term_44.descriptor() != _M_Crsx_xconstructor_xA2)
-        {   break label_13;
-        }Term sub_375 = term_44.sub(0).ref();
-        if (sub_375.descriptor() != _M_Crsx_xreserved_xA1)
-        {   break label_13;
-        }Term sub_175 = sub_375.sub(0).ref();/*Contract*/ sink.literal("$rules$:"); return true;
+      label_78: {
+        if (term_180.descriptor() != _M_Crsx_xconstructor_xA2)
+        {   break label_78;
+        }Term sub_96 = term_180.sub(0).ref();
+        if (sub_96.descriptor() != _M_Crsx_xreserved_xA1)
+        {   break label_78;
+        }Term sub_135 = sub_96.sub(0).ref();/*Contract*/ sink.literal("$rules$:"); return true;
       }
     }
-    return thunk(sink, _M_RulesKey, term_44);
-  } final public static boolean _M_UnRULES(Sink sink, int shared, int depth, Term term_113) {
+    return thunk(sink, _M_RulesKey, term_180);
+  } final public static boolean _M_UnRULES(Sink sink, int shared, int depth, Term term_127) {
     if (depth < 2000) {
-      label_214: {
-        if (term_113.descriptor() != _M_RULES)
-        {   break label_214;
-        }Term sub_59 = term_113.sub(0).ref(); /* #=sub *//*Contract*/ sink.copy(sub_59.ref()); return true;
+      label_87: {
+        if (term_127.descriptor() != _M_RULES)
+        {   break label_87;
+        }Term sub_190 = term_127.sub(0).ref(); /* #=sub *//*Contract*/ sink.copy(sub_190.ref()); return true;
       }
     }
-    return thunk(sink, _M_UnRULES, term_113);
-  } final public static boolean _M_UnFUNCSORT(Sink sink, int shared, int depth, Term term_139) {
+    return thunk(sink, _M_UnRULES, term_127);
+  } final public static boolean _M_UnFUNCSORT(Sink sink, int shared, int depth, Term term_37) {
     if (depth < 2000) {
-      label_84: {
-        if (term_139.descriptor() != _M_FUNCSORT)
-        {   break label_84;
-        }Term sub_182 = term_139.sub(0).ref();
-        /* #1=sub */Term sub_204 = term_139.sub(1).ref(); /* #=sub *//*Contract*/ sink.copy(sub_204.ref()); return true;
+      label_73: {
+        if (term_37.descriptor() != _M_FUNCSORT)
+        {   break label_73;
+        }Term sub_136 = term_37.sub(0).ref();
+        /* #1=sub */Term sub_27 = term_37.sub(1).ref(); /* #=sub *//*Contract*/ sink.copy(sub_27.ref()); return true;
       }
     }
-    return thunk(sink, _M_UnFUNCSORT, term_139);
-  } final public static boolean _M_UnDATASORT(Sink sink, int shared, int depth, Term term_102) {
+    return thunk(sink, _M_UnFUNCSORT, term_37);
+  } final public static boolean _M_UnDATASORT(Sink sink, int shared, int depth, Term term_253) {
     if (depth < 2000) {
-      label_199: {
-        if (term_102.descriptor() != _M_DATASORT)
-        {   break label_199;
-        }Term sub_100 = term_102.sub(0).ref(); /* #=sub *//*Contract*/ sink.copy(sub_100.ref()); return true;
+      label_91: {
+        if (term_253.descriptor() != _M_DATASORT)
+        {   break label_91;
+        }Term sub_113 = term_253.sub(0).ref(); /* #=sub *//*Contract*/ sink.copy(sub_113.ref()); return true;
       }
     }
-    return thunk(sink, _M_UnDATASORT, term_102);
-  } final public static boolean _M_AddModuleKey2(Sink sink, int shared, int depth, Properties props_58, Term term_52, Term term_40, Term term_199, Term term_18, Term term_124, Variable var_78, Term term_186) {
+    return thunk(sink, _M_UnDATASORT, term_253);
+  } final public static boolean _M_AddModuleKey2(Sink sink, int shared, int depth, Properties props_25, Term term_161, Term term_20, Term term_165, Term term_58, Term term_70, Variable var_99, Term term_268) {
     if (depth < 2000) {
-      label_117: {
+      label_24: {
         /* #key=term */
         /* #filename=term */
         /* #main=term */
         /* #modules=term */
         /* #notloaded=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_58));Term term_107;
+        /* #=term *//*Contract*/sink.properties(safeRef(props_25));Term term_26;
         {
-          BufferSink buf_81 = sink.context().makeBuffer();
-          buf_81.start(_M_MODULE); buf_81.copy(term_40.ref()); buf_81.copy(term_199.ref()); buf_81.start(_M_NOTLOADED); buf_81.end();
-          buf_81.end();
-          term_107 = buf_81.term();
+          BufferSink buf_43 = sink.context().makeBuffer();
+          buf_43.start(_M_MODULE); buf_43.copy(term_20.ref()); buf_43.copy(term_165.ref()); buf_43.start(_M_NOTLOADED); buf_43.end();
+          buf_43.end();
+          term_26 = buf_43.term();
         }
-        term_52 = force(sink.context(), term_52);
-        Sink.property(sink, term_52, term_107);Term term_137;
+        term_161 = force(sink.context(), term_161);
+        Sink.property(sink, term_161, term_26);Term term_111;
         {
-          BufferSink buf_33 = sink.context().makeBuffer();
-          buf_33.start(_M_MODULES); buf_33.copy(term_18.ref());
-          buf_33.end();
-          term_137 = buf_33.term();
-        } sink.propertyNamed("$modules", term_137);Term term_161;
+          BufferSink buf_63 = sink.context().makeBuffer();
+          buf_63.start(_M_MODULES); buf_63.copy(term_58.ref());
+          buf_63.end();
+          term_111 = buf_63.term();
+        } sink.propertyNamed("$modules", term_111);Term term_78;
         {
-          BufferSink buf_29 = sink.context().makeBuffer();
-          buf_29.start(_M_MODULES); buf_29.copy(term_124.ref());
-          buf_29.end();
-          term_161 = buf_29.term();
-        } sink.propertyNamed("$notloaded", term_161);Term term_72;
+          BufferSink buf_171 = sink.context().makeBuffer();
+          buf_171.start(_M_MODULES); buf_171.copy(term_70.ref());
+          buf_171.end();
+          term_78 = buf_171.term();
+        } sink.propertyNamed("$notloaded", term_78);Term term_7;
         {
-          BufferSink buf_159 = sink.context().makeBuffer(); buf_159.start(_M_OK); buf_159.end();
-          term_72 = buf_159.term();
+          BufferSink buf_25 = sink.context().makeBuffer(); buf_25.start(_M_OK); buf_25.end();
+          term_7 = buf_25.term();
         }
-        sink.substitute(term_186.ref(), new Variable[] { var_78 }, new Term[] {term_72}); return true;
+        sink.substitute(term_268.ref(), new Variable[] { var_99 }, new Term[] {term_7}); return true;
       }
     }
-    return thunk(sink, _M_AddModuleKey2, props_58, term_52, term_40, term_199, term_18, term_124, var_78, term_186);
-  }       final public static boolean _M_AddModuleKey(Sink sink, int shared, int depth, Properties props_9, Term term_12, Term term_96, Term term_109, Variable var_73, Term term_156) {
+    return thunk(sink, _M_AddModuleKey2, props_25, term_161, term_20, term_165, term_58, term_70, var_99, term_268);
+  }       final public static boolean _M_AddModuleKey(Sink sink, int shared, int depth, Properties props_96, Term term_110, Term term_144, Term term_98, Variable var_82, Term term_167) {
     if (depth < 2000) {
-      label_23: {
-        Term value_6 = props_9 == null ? null : props_9.lookup("$modules");
-        if (value_6 == null) 
-        {   break label_23;
+      label_62: {
+        Term value_19 = props_96 == null ? null : props_96.lookup("$modules");
+        if (value_19 == null) 
+        {   break label_62;
         }
-        if (value_6.descriptor() != _M_MODULES)
-        {   break label_23;
-        }Term sub_199 = value_6.sub(0).ref();
+        if (value_19.descriptor() != _M_MODULES)
+        {   break label_62;
+        }Term sub_137 = value_19.sub(0).ref();
         /* #modules=sub */
-        Term value_80 = props_9 == null ? null : props_9.lookup("$notloaded");
-        if (value_80 == null) 
-        {   break label_23;
+        Term value_34 = props_96 == null ? null : props_96.lookup("$notloaded");
+        if (value_34 == null) 
+        {   break label_62;
         }
-        if (value_80.descriptor() != _M_MODULES)
-        {   break label_23;
-        }Term sub_127 = value_80.sub(0).ref();
+        if (value_34.descriptor() != _M_MODULES)
+        {   break label_62;
+        }Term sub_18 = value_34.sub(0).ref();
         /* #notloaded=sub */
         /* #key=term */
         /* #filename=term */
         /* #main=term */
         /* #=term *//*Contract*/
-        sink.start(_M__s);sink.properties(safeRef(props_9));
+        sink.start(_M__s);sink.properties(safeRef(props_96));
         sink.start(_M_Builtin_sIfDef);
-        sink.end(); sink.copy(term_12.ref());sink.properties(safeRef(props_9));Term term_103;
+        sink.end(); sink.copy(term_110.ref());sink.properties(safeRef(props_96));Term term_150;
         {
-          BufferSink buf_85 = sink.context().makeBuffer(); buf_85.start(_M_OK); buf_85.end();
-          term_103 = buf_85.term();
+          BufferSink buf_60 = sink.context().makeBuffer(); buf_60.start(_M_OK); buf_60.end();
+          term_150 = buf_60.term();
         }
-        sink.substitute(term_156.ref(), new Variable[] { var_73 }, new Term[] {term_103});sink.properties(safeRef(props_9));
-        sink.start(_M_AddModuleKey2); sink.copy(term_12.ref()); sink.copy(term_96.ref()); sink.copy(term_109.ref());
-        sink.start(_M_Concat); sink.copy(sub_199.ref());
-        sink.start(_M__sCons); sink.copy(term_12.ref()); sink.start(_M__sNil); sink.end();
+        sink.substitute(term_167.ref(), new Variable[] { var_82 }, new Term[] {term_150});sink.properties(safeRef(props_96));
+        sink.start(_M_AddModuleKey2); sink.copy(term_110.ref()); sink.copy(term_144.ref()); sink.copy(term_98.ref());
+        sink.start(_M_Concat); sink.copy(sub_137.ref());
+        sink.start(_M__sCons); sink.copy(term_110.ref()); sink.start(_M__sNil); sink.end();
         sink.end();
         sink.end();
-        sink.start(_M_Concat); sink.copy(sub_127.ref());
-        sink.start(_M__sCons); sink.copy(term_12.ref()); sink.start(_M__sNil); sink.end();
+        sink.start(_M_Concat); sink.copy(sub_18.ref());
+        sink.start(_M__sCons); sink.copy(term_110.ref()); sink.start(_M__sNil); sink.end();
         sink.end();
         sink.end();
-        Variable var_80 = sink.context().makeVariable("ok");
-        sink.binds(new Variable[] {var_80});
-        VariableUse use_34 = sink.context().makeVariableUse(var_80);
-        sink.substitute(term_156.ref(), new Variable[] { var_73 }, new Term[] {use_34});
+        Variable var_46 = sink.context().makeVariable("ok");
+        sink.binds(new Variable[] {var_46});
+        VariableUse use_83 = sink.context().makeVariableUse(var_46);
+        sink.substitute(term_167.ref(), new Variable[] { var_82 }, new Term[] {use_83});
         sink.end();
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_AddModuleKey, props_9, term_12, term_96, term_109, var_73, term_156);
-  }     final public static boolean _M_AddModule(Sink sink, int shared, int depth, Properties props_46, Term term_233, Term term_284, Variable var_62, Term term_49) {
+    return thunk(sink, _M_AddModuleKey, props_96, term_110, term_144, term_98, var_82, term_167);
+  }     final public static boolean _M_AddModule(Sink sink, int shared, int depth, Properties props_90, Term term_292, Term term_166, Variable var_52, Term term_221) {
     if (depth < 2000) {
-      label_75: {
+      label_69: {
         /* #filename=term */
         /* #main=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_46));
+        /* #=term *//*Contract*/sink.properties(safeRef(props_90));
         sink.start(_M_AddModuleKey);
-        sink.start(_M_ModuleKey); sink.copy(term_233.ref());
-        sink.end(); sink.copy(term_233.ref()); sink.copy(term_284.ref());
-        Variable var_68 = sink.context().makeVariable("ok");
-        sink.binds(new Variable[] {var_68});
-        VariableUse use_92 = sink.context().makeVariableUse(var_68);
-        sink.substitute(term_49.ref(), new Variable[] { var_62 }, new Term[] {use_92});
+        sink.start(_M_ModuleKey); sink.copy(term_292.ref());
+        sink.end(); sink.copy(term_292.ref()); sink.copy(term_166.ref());
+        Variable var_15 = sink.context().makeVariable("ok");
+        sink.binds(new Variable[] {var_15});
+        VariableUse use_76 = sink.context().makeVariableUse(var_15);
+        sink.substitute(term_221.ref(), new Variable[] { var_52 }, new Term[] {use_76});
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_AddModule, props_46, term_233, term_284, var_62, term_49);
-  }    final public static boolean _M_ModuleKey(Sink sink, int shared, int depth, Term term_62) {
+    return thunk(sink, _M_AddModule, props_90, term_292, term_166, var_52, term_221);
+  }    final public static boolean _M_ModuleKey(Sink sink, int shared, int depth, Term term_19) {
     if (depth < 2000) {
-      sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$module$"); sink.copy(term_62.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$module$"); sink.copy(term_19.ref());
       sink.end(); return true;
     }
-    return thunk(sink, _M_ModuleKey, term_62);
+    return thunk(sink, _M_ModuleKey, term_19);
   } 
   private static boolean initialized = false;
   public static void init(Context context)
@@ -1197,5 +1197,5 @@ public class State
     }
   }
 
-/* END MODULE « "/Users/villardl/Projects/crsx/crsx4/src/state.crs.java" » */
+/* END MODULE « "/Users/villardl/Projects/crsx/crsx4_2/src/state.crs.java" » */
 }

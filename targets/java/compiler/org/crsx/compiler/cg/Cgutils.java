@@ -1,4 +1,4 @@
-/* START MODULE /Users/villardl/Projects/crsx/crsx4/src/cg/cgutils.crs.java */
+/* START MODULE /Users/villardl/Projects/crsx/crsx4_2/src/cg/cgutils.crs.java */
 /** Generated File */package org.crsx.compiler.cg;
 import static org.crsx.runtime.ConstructionDescriptor.makeData;
 import static org.crsx.runtime.ConstructionDescriptor.makeFunction;
@@ -53,475 +53,476 @@ public class Cgutils
       sink.end(); return true;
     }
     return thunk(sink, _M_ToJavaIdString, term);
-  } final public static boolean _M_ToJavaId(Sink sink, int shared, int depth, Term term_84) {
+  } final public static boolean _M_ToJavaId(Sink sink, int shared, int depth, Term term_28) {
     if (depth < 2000) {
       label: {
-        if (term_84.descriptor() != _M_Crsx_xconstructor_xA1)
+        if (term_28.descriptor() != _M_Crsx_xconstructor_xA1)
         {   break label;
-        }Term sub = term_84.sub(0).ref();
+        }Term sub = term_28.sub(0).ref();
         if (sub.descriptor() != _M_Crsx_xqualifier_xA2)
         {   break label;
-        }Term sub_57 = term_84.sub(1).ref();
+        }Term sub_27 = term_28.sub(1).ref();
         /* #CONSTRUCTOR=sub *//*Contract*/
         sink.start(_M_Text_Mangle);
-        sink.start(_M_UpCaseFirst); sink.copy(sub_57.ref());
+        sink.start(_M_UpCaseFirst); sink.copy(sub_27.ref());
         sink.end();
         sink.end(); return true;
       }
-      label_55: {
-        if (term_84.descriptor() != _M_Crsx_xconstructor_xA2)
-        {   break label_55;
-        }Term sub_53 = term_84.sub(0).ref();
+      label_54: {
+        if (term_28.descriptor() != _M_Crsx_xconstructor_xA2)
+        {   break label_54;
+        }Term sub_46 = term_28.sub(0).ref();
         /* #reserved=sub *//*Contract*/
         sink.start(_M__s); sink.start(_M_Builtin_sIf); sink.end();
         sink.start(_M__s); sink.start(_M_Builtin_sEqual); sink.end();
-        sink.start(_M__s); sink.start(_M_Builtin_sShow); sink.end(); sink.copy(sub_53.ref());
+        sink.start(_M__s); sink.start(_M_Builtin_sShow); sink.end(); sink.copy(sub_46.ref());
         sink.end(); sink.literal(":");
         sink.end();
         sink.start(_M__sTextCons);
         sink.start(_M__sTextChars); sink.literal(" _M_Colon ");
-        sink.end();Term term_28;
+        sink.end();Term term_91;
         {
           BufferSink buf = sink.context().makeBuffer(); buf.start(_M_STRING); buf.literal(1); buf.end();
-          term_28 = buf.term();
-        } sink.propertyNamed("$LineLocation", term_28);Term term_85;
+          term_91 = buf.term();
+        } sink.propertyNamed("$LineLocation", term_91);Term term_15;
         {
-          BufferSink buf_76 = sink.context().makeBuffer(); buf_76.start(_M_STRING); buf_76.literal(1); buf_76.end();
-          term_85 = buf_76.term();
-        } sink.propertyNamed("$ColumnLocation", term_85);
+          BufferSink buf_87 = sink.context().makeBuffer(); buf_87.start(_M_STRING); buf_87.literal(1); buf_87.end();
+          term_15 = buf_87.term();
+        } sink.propertyNamed("$ColumnLocation", term_15);
         sink.start(_M__sTextNil);
         sink.end();
         sink.end(); sink.start(_M__sTextNil); sink.end();
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_ToJavaId, term_84);
-  } final public static boolean _M_Literal(Sink sink, int shared, int depth, Term term_98) {
+    return thunk(sink, _M_ToJavaId, term_28);
+  } final public static boolean _M_Literal(Sink sink, int shared, int depth, Term term_77) {
     if (depth < 2000) {
-      label_77: {
-        if (term_98.descriptor() != _M_Crsx_xliteral_xA1)
-        {   break label_77;
-        }Term sub_15 = term_98.sub(0).ref();
+      label_75: {
+        if (term_77.descriptor() != _M_Crsx_xliteral_xA1)
+        {   break label_75;
+        }Term sub_10 = term_77.sub(0).ref();
         /* #STRING=sub *//*Contract*/
-        sink.start(_M_StringToText); sink.copy(sub_15.ref());
+        sink.start(_M_StringToText); sink.copy(sub_10.ref());
         sink.end(); return true;
       }
-      label_39: {
-        if (term_98.descriptor() != _M_Crsx_xliteral_xA2)
-        {   break label_39;
-        }Term sub_0 = term_98.sub(0).ref();
+      label_29: {
+        if (term_77.descriptor() != _M_Crsx_xliteral_xA2)
+        {   break label_29;
+        }Term sub_77 = term_77.sub(0).ref();
         /* #NUMBER=sub *//*Contract*/
-        sink.start(_M_StringToText); sink.copy(sub_0.ref());
+        sink.start(_M_StringToText); sink.copy(sub_77.ref());
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_Literal, term_98);
-  } final public static boolean _M_QuotedConstructor(Sink sink, int shared, int depth, Term term_15) {
+    return thunk(sink, _M_Literal, term_77);
+  } final public static boolean _M_QuotedConstructor(Sink sink, int shared, int depth, Term term_58) {
     if (depth < 2000) {
-      label_34: {
-        if (term_15.descriptor() != _M_Crsx_xconstructor_xA1)
-        {   break label_34;
-        }Term sub_26 = term_15.sub(0).ref();
-        if (sub_26.descriptor() != _M_Crsx_xqualifier_xA2)
-        {   break label_34;
-        }Term sub_61 = term_15.sub(1).ref();
+      label_11: {
+        if (term_58.descriptor() != _M_Crsx_xconstructor_xA1)
+        {   break label_11;
+        }Term sub_33 = term_58.sub(0).ref();
+        if (sub_33.descriptor() != _M_Crsx_xqualifier_xA2)
+        {   break label_11;
+        }Term sub_31 = term_58.sub(1).ref();
         /* #CONSTRUCTOR=sub *//*Contract*/
-        sink.start(_M_Text_QuoteEscape); sink.copy(sub_61.ref());
+        sink.start(_M_Text_QuoteEscape); sink.copy(sub_31.ref());
         sink.end(); return true;
       }
-      label_27: {
-        if (term_15.descriptor() != _M_Crsx_xconstructor_xA2)
-        {   break label_27;
-        }Term sub_3 = term_15.sub(0).ref();
+      label_72: {
+        if (term_58.descriptor() != _M_Crsx_xconstructor_xA2)
+        {   break label_72;
+        }Term sub_83 = term_58.sub(0).ref();
         /* #reserved=sub *//*Contract*/
         sink.start(_M__s); sink.start(_M_Builtin_sIf); sink.end();
         sink.start(_M__s); sink.start(_M_Builtin_sEqual); sink.end();
-        sink.start(_M__s); sink.start(_M_Builtin_sShow); sink.end(); sink.copy(sub_3.ref());
+        sink.start(_M__s); sink.start(_M_Builtin_sShow); sink.end(); sink.copy(sub_83.ref());
         sink.end(); sink.literal(":");
         sink.end();
         sink.start(_M__sTextCons);
         sink.start(_M__sTextChars); sink.literal(" Colon ");
-        sink.end();Term term_25;
+        sink.end();Term term_95;
         {
-          BufferSink buf_50 = sink.context().makeBuffer(); buf_50.start(_M_STRING); buf_50.literal(1); buf_50.end();
-          term_25 = buf_50.term();
-        } sink.propertyNamed("$LineLocation", term_25);Term term_88;
+          BufferSink buf_62 = sink.context().makeBuffer(); buf_62.start(_M_STRING); buf_62.literal(1); buf_62.end();
+          term_95 = buf_62.term();
+        } sink.propertyNamed("$LineLocation", term_95);Term term_22;
         {
-          BufferSink buf_65 = sink.context().makeBuffer(); buf_65.start(_M_STRING); buf_65.literal(1); buf_65.end();
-          term_88 = buf_65.term();
-        } sink.propertyNamed("$ColumnLocation", term_88);
+          BufferSink buf_84 = sink.context().makeBuffer(); buf_84.start(_M_STRING); buf_84.literal(1); buf_84.end();
+          term_22 = buf_84.term();
+        } sink.propertyNamed("$ColumnLocation", term_22);
         sink.start(_M__sTextNil);
         sink.end();
         sink.end(); sink.start(_M__sTextNil); sink.end();
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_QuotedConstructor, term_15);
-  } final public static boolean _M_Qualifier(Sink sink, int shared, int depth, Term term_46) {
+    return thunk(sink, _M_QuotedConstructor, term_58);
+  } final public static boolean _M_Qualifier(Sink sink, int shared, int depth, Term term_69) {
     if (depth < 2000) {
-      label_184: {
-        if (term_46.descriptor() != _M_Crsx_xqualifier_xA1)
-        {   break label_184;
-        }Term sub_109 = term_46.sub(0).ref();
-        /* #CONSTRUCTOR=sub */Term sub_80 = term_46.sub(1).ref();Term sub_19 = term_46.sub(2).ref();
-        if (sub_19.descriptor() != _M_Crsx_xqualifier_xA2)
-        {   break label_184;
+      label_0: {
+        if (term_69.descriptor() != _M_Crsx_xqualifier_xA1)
+        {   break label_0;
+        }Term sub_16 = term_69.sub(0).ref();
+        /* #CONSTRUCTOR=sub */Term sub_5 = term_69.sub(1).ref();Term sub_190 = term_69.sub(2).ref();
+        if (sub_190.descriptor() != _M_Crsx_xqualifier_xA2)
+        {   break label_0;
         }/*Contract*/
-        sink.start(_M__sTextCons);Term term_20;
+        sink.start(_M__sTextCons);Term term_61;
         {
-          BufferSink buf_53 = sink.context().makeBuffer(); buf_53.start(_M_STRING); buf_53.literal(1); buf_53.end();
-          term_20 = buf_53.term();
-        } sink.propertyNamed("$LineLocation", term_20);Term term_17;
+          BufferSink buf_69 = sink.context().makeBuffer(); buf_69.start(_M_STRING); buf_69.literal(1); buf_69.end();
+          term_61 = buf_69.term();
+        } sink.propertyNamed("$LineLocation", term_61);Term term_10;
         {
-          BufferSink buf_49 = sink.context().makeBuffer(); buf_49.start(_M_STRING); buf_49.literal(1); buf_49.end();
-          term_17 = buf_49.term();
-        } sink.propertyNamed("$ColumnLocation", term_17);
+          BufferSink buf_72 = sink.context().makeBuffer(); buf_72.start(_M_STRING); buf_72.literal(1); buf_72.end();
+          term_10 = buf_72.term();
+        } sink.propertyNamed("$ColumnLocation", term_10);
         sink.start(_M__sTextChars);
-        sink.start(_M_UpCaseFirst); sink.copy(sub_109.ref());
+        sink.start(_M_UpCaseFirst); sink.copy(sub_16.ref());
         sink.end();
-        sink.end();Term term_42;
+        sink.end();Term term_4;
         {
-          BufferSink buf_89 = sink.context().makeBuffer(); buf_89.start(_M_STRING); buf_89.literal(1); buf_89.end();
-          term_42 = buf_89.term();
-        } sink.propertyNamed("$LineLocation", term_42);Term term_33;
+          BufferSink buf_38 = sink.context().makeBuffer(); buf_38.start(_M_STRING); buf_38.literal(1); buf_38.end();
+          term_4 = buf_38.term();
+        } sink.propertyNamed("$LineLocation", term_4);Term term_46;
         {
-          BufferSink buf_61 = sink.context().makeBuffer(); buf_61.start(_M_STRING); buf_61.literal(2); buf_61.end();
-          term_33 = buf_61.term();
-        } sink.propertyNamed("$ColumnLocation", term_33);
-        sink.start(_M__sTextCons);Term term_76;
+          BufferSink buf_58 = sink.context().makeBuffer(); buf_58.start(_M_STRING); buf_58.literal(2); buf_58.end();
+          term_46 = buf_58.term();
+        } sink.propertyNamed("$ColumnLocation", term_46);
+        sink.start(_M__sTextCons);Term term_260;
         {
-          BufferSink buf_7 = sink.context().makeBuffer(); buf_7.start(_M_STRING); buf_7.literal(1); buf_7.end();
-          term_76 = buf_7.term();
-        } sink.propertyNamed("$LineLocation", term_76);Term term_7;
+          BufferSink buf_77 = sink.context().makeBuffer(); buf_77.start(_M_STRING); buf_77.literal(1); buf_77.end();
+          term_260 = buf_77.term();
+        } sink.propertyNamed("$LineLocation", term_260);Term term_30;
         {
-          BufferSink buf_59 = sink.context().makeBuffer(); buf_59.start(_M_STRING); buf_59.literal(2); buf_59.end();
-          term_7 = buf_59.term();
-        } sink.propertyNamed("$ColumnLocation", term_7);
+          BufferSink buf_32 = sink.context().makeBuffer(); buf_32.start(_M_STRING); buf_32.literal(2); buf_32.end();
+          term_30 = buf_32.term();
+        } sink.propertyNamed("$ColumnLocation", term_30);
         sink.start(_M__sTextChars); sink.literal(".");
-        sink.end();Term term_12;
+        sink.end();Term term_83;
         {
-          BufferSink buf_90 = sink.context().makeBuffer(); buf_90.start(_M_STRING); buf_90.literal(1); buf_90.end();
-          term_12 = buf_90.term();
-        } sink.propertyNamed("$LineLocation", term_12);Term term_73;
+          BufferSink buf_30 = sink.context().makeBuffer(); buf_30.start(_M_STRING); buf_30.literal(1); buf_30.end();
+          term_83 = buf_30.term();
+        } sink.propertyNamed("$LineLocation", term_83);Term term_34;
         {
-          BufferSink buf_95 = sink.context().makeBuffer(); buf_95.start(_M_STRING); buf_95.literal(29); buf_95.end();
-          term_73 = buf_95.term();
-        } sink.propertyNamed("$ColumnLocation", term_73);
+          BufferSink buf_27 = sink.context().makeBuffer(); buf_27.start(_M_STRING); buf_27.literal(29); buf_27.end();
+          term_34 = buf_27.term();
+        } sink.propertyNamed("$ColumnLocation", term_34);
         sink.start(_M__sTextNil);
         sink.end();
         sink.end();
         sink.end(); return true;
       }
-      label_48: {
-        if (term_46.descriptor() != _M_Crsx_xqualifier_xA2)
-        {   break label_48;
+      label_57: {
+        if (term_69.descriptor() != _M_Crsx_xqualifier_xA2)
+        {   break label_57;
         }/*Contract*/ sink.start(_M__sTextNil); sink.end(); return true;
       }
     }
-    return thunk(sink, _M_Qualifier, term_46);
-  } final public static boolean _M_Descriptor(Sink sink, int shared, int depth, Term term_16) {
+    return thunk(sink, _M_Qualifier, term_69);
+  } final public static boolean _M_Descriptor(Sink sink, int shared, int depth, Term term_32) {
     if (depth < 2000) {
-      label_36: {
-        if (term_16.descriptor() != _M_Crsx_xconstructor_xA1)
-        {   break label_36;
-        }Term sub_30 = term_16.sub(0).ref();
-        /* #qualifier=sub */Term sub_21 = term_16.sub(1).ref();
+      label_43: {
+        if (term_32.descriptor() != _M_Crsx_xconstructor_xA1)
+        {   break label_43;
+        }Term sub_58 = term_32.sub(0).ref();
+        /* #qualifier=sub */Term sub_39 = term_32.sub(1).ref();
         /* #CONSTRUCTOR=sub *//*Contract*/
         sink.start(_M__sTextCons);
         sink.start(_M__sTextEmbed);
-        sink.start(_M_AsText); sink.start(_M_Qualifier); sink.copy(sub_30.ref()); sink.end();
+        sink.start(_M_AsText); sink.start(_M_Qualifier); sink.copy(sub_58.ref()); sink.end();
         sink.end();
-        sink.end();Term term_52;
+        sink.end();Term term_16;
         {
-          BufferSink buf_71 = sink.context().makeBuffer(); buf_71.start(_M_STRING); buf_71.literal(1); buf_71.end();
-          term_52 = buf_71.term();
-        } sink.propertyNamed("$LineLocation", term_52);Term term_4;
+          BufferSink buf_54 = sink.context().makeBuffer(); buf_54.start(_M_STRING); buf_54.literal(1); buf_54.end();
+          term_16 = buf_54.term();
+        } sink.propertyNamed("$LineLocation", term_16);Term term_31;
         {
-          BufferSink buf_1 = sink.context().makeBuffer(); buf_1.start(_M_STRING); buf_1.literal(1); buf_1.end();
-          term_4 = buf_1.term();
-        } sink.propertyNamed("$ColumnLocation", term_4);
-        sink.start(_M__sTextCons);Term term_59;
+          BufferSink buf_0 = sink.context().makeBuffer(); buf_0.start(_M_STRING); buf_0.literal(1); buf_0.end();
+          term_31 = buf_0.term();
+        } sink.propertyNamed("$ColumnLocation", term_31);
+        sink.start(_M__sTextCons);Term term_85;
         {
-          BufferSink buf_24 = sink.context().makeBuffer(); buf_24.start(_M_STRING); buf_24.literal(1); buf_24.end();
-          term_59 = buf_24.term();
-        } sink.propertyNamed("$LineLocation", term_59);Term term_94;
+          BufferSink buf_156 = sink.context().makeBuffer(); buf_156.start(_M_STRING); buf_156.literal(1); buf_156.end();
+          term_85 = buf_156.term();
+        } sink.propertyNamed("$LineLocation", term_85);Term term_74;
         {
-          BufferSink buf_27 = sink.context().makeBuffer(); buf_27.start(_M_STRING); buf_27.literal(1); buf_27.end();
-          term_94 = buf_27.term();
-        } sink.propertyNamed("$ColumnLocation", term_94);
-        sink.start(_M__sTextEmbed);Term term_75;
+          BufferSink buf_67 = sink.context().makeBuffer(); buf_67.start(_M_STRING); buf_67.literal(1); buf_67.end();
+          term_74 = buf_67.term();
+        } sink.propertyNamed("$ColumnLocation", term_74);
+        sink.start(_M__sTextEmbed);Term term_64;
         {
-          BufferSink buf_31 = sink.context().makeBuffer(); buf_31.start(_M_STRING); buf_31.literal(1); buf_31.end();
-          term_75 = buf_31.term();
-        } sink.propertyNamed("$LineLocation", term_75);Term term_13;
+          BufferSink buf_157 = sink.context().makeBuffer(); buf_157.start(_M_STRING); buf_157.literal(1); buf_157.end();
+          term_64 = buf_157.term();
+        } sink.propertyNamed("$LineLocation", term_64);Term term_37;
         {
-          BufferSink buf_163 = sink.context().makeBuffer(); buf_163.start(_M_STRING); buf_163.literal(1); buf_163.end();
-          term_13 = buf_163.term();
-        } sink.propertyNamed("$ColumnLocation", term_13);
+          BufferSink buf_3 = sink.context().makeBuffer(); buf_3.start(_M_STRING); buf_3.literal(1); buf_3.end();
+          term_37 = buf_3.term();
+        } sink.propertyNamed("$ColumnLocation", term_37);
         sink.start(_M_AsText);
-        sink.start(_M_ToJavaIdString); sink.copy(sub_21.ref());
+        sink.start(_M_ToJavaIdString); sink.copy(sub_39.ref());
         sink.end();
         sink.end();
-        sink.end();Term term_91;
+        sink.end();Term term_48;
         {
-          BufferSink buf_93 = sink.context().makeBuffer(); buf_93.start(_M_STRING); buf_93.literal(1); buf_93.end();
-          term_91 = buf_93.term();
-        } sink.propertyNamed("$LineLocation", term_91);Term term_87;
+          BufferSink buf_81 = sink.context().makeBuffer(); buf_81.start(_M_STRING); buf_81.literal(1); buf_81.end();
+          term_48 = buf_81.term();
+        } sink.propertyNamed("$LineLocation", term_48);Term term_176;
         {
-          BufferSink buf_67 = sink.context().makeBuffer(); buf_67.start(_M_STRING); buf_67.literal(24); buf_67.end();
-          term_87 = buf_67.term();
-        } sink.propertyNamed("$ColumnLocation", term_87);
+          BufferSink buf_2 = sink.context().makeBuffer(); buf_2.start(_M_STRING); buf_2.literal(24); buf_2.end();
+          term_176 = buf_2.term();
+        } sink.propertyNamed("$ColumnLocation", term_176);
         sink.start(_M__sTextNil);
         sink.end();
         sink.end();
         sink.end(); return true;
       }
-      label_37: {
-        if (term_16.descriptor() != _M_Crsx_xconstructor_xA2)
-        {   break label_37;
-        }Term sub_176 = term_16.sub(0).ref();
+      label_77: {
+        if (term_32.descriptor() != _M_Crsx_xconstructor_xA2)
+        {   break label_77;
+        }Term sub_89 = term_32.sub(0).ref();
         /* #reserved=sub *//*Contract*/
         sink.start(_M__s); sink.start(_M_Builtin_sIf); sink.end();
         sink.start(_M__s); sink.start(_M_Builtin_sEqual); sink.end();
-        sink.start(_M__s); sink.start(_M_Builtin_sShow); sink.end(); sink.copy(sub_176.ref());
+        sink.start(_M__s); sink.start(_M_Builtin_sShow); sink.end(); sink.copy(sub_89.ref());
         sink.end(); sink.literal(":");
         sink.end();
         sink.start(_M__sTextCons);
         sink.start(_M__sTextChars); sink.literal(" Colon ");
-        sink.end();Term term_36;
+        sink.end();Term term_66;
         {
-          BufferSink buf_58 = sink.context().makeBuffer(); buf_58.start(_M_STRING); buf_58.literal(1); buf_58.end();
-          term_36 = buf_58.term();
-        } sink.propertyNamed("$LineLocation", term_36);Term term_68;
+          BufferSink buf_25 = sink.context().makeBuffer(); buf_25.start(_M_STRING); buf_25.literal(1); buf_25.end();
+          term_66 = buf_25.term();
+        } sink.propertyNamed("$LineLocation", term_66);Term term_92;
         {
-          BufferSink buf_28 = sink.context().makeBuffer(); buf_28.start(_M_STRING); buf_28.literal(1); buf_28.end();
-          term_68 = buf_28.term();
-        } sink.propertyNamed("$ColumnLocation", term_68);
+          BufferSink buf_151 = sink.context().makeBuffer(); buf_151.start(_M_STRING); buf_151.literal(1); buf_151.end();
+          term_92 = buf_151.term();
+        } sink.propertyNamed("$ColumnLocation", term_92);
         sink.start(_M__sTextNil);
         sink.end();
         sink.end(); sink.start(_M__sTextNil); sink.end();
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_Descriptor, term_16);
-  } final public static boolean _M_Variable0(Sink sink, int shared, int depth, Properties props, Term term_0) {
+    return thunk(sink, _M_Descriptor, term_32);
+  } final public static boolean _M_Variable0(Sink sink, int shared, int depth, Properties props, Term term_90) {
     if (depth < 2000) {
       sink.start(_M_UnTEXT);
       sink.start(_M__s);sink.properties(safeRef(props));
       sink.start(_M_Builtin_sGet);
-      sink.end(); sink.copy(term_0.ref());
+      sink.end(); sink.copy(term_90.ref());
       sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_Variable0, props, term_0);
-  } final public static boolean _M_Variable(Sink sink, int shared, int depth, Properties props_28, Term term_63) {
-    if (depth < 2000) {sink.properties(safeRef(props_28));
+    return thunk(sink, _M_Variable0, props, term_90);
+  } final public static boolean _M_Variable(Sink sink, int shared, int depth, Properties props_14, Term term_96) {
+    if (depth < 2000) {sink.properties(safeRef(props_14));
       sink.start(_M_Variable0);
-      sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$var$"); sink.copy(term_63.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$var$"); sink.copy(term_96.ref());
       sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_Variable, props_28, term_63);
-  } final public static boolean _M_VarKey(Sink sink, int shared, int depth, Term term_39) {
+    return thunk(sink, _M_Variable, props_14, term_96);
+  } final public static boolean _M_VarKey(Sink sink, int shared, int depth, Term term_42) {
     if (depth < 2000) {
-      label_187: {
-        if (term_39.descriptor() != _M_Crsx_xvariable)
-        {   break label_187;
-        }Term sub_78 = term_39.sub(0).ref();
-        if (sub_78.descriptor() != _M__sNil)
-        {   break label_187;
-        }Term sub_12 = term_39.sub(1).ref();
-        /* #VARIABLE=sub */Term sub_64 = term_39.sub(2).ref();
-        /* #linear?=sub */Term sub_34 = term_39.sub(3).ref();
-        /* #functional?=sub */Term sub_76 = term_39.sub(4).ref();
+      label_5: {
+        if (term_42.descriptor() != _M_Crsx_xvariable)
+        {   break label_5;
+        }Term sub_95 = term_42.sub(0).ref();
+        if (sub_95.descriptor() != _M__sNil)
+        {   break label_5;
+        }Term sub_42 = term_42.sub(1).ref();
+        /* #VARIABLE=sub */Term sub_44 = term_42.sub(2).ref();
+        /* #linear?=sub */Term sub_81 = term_42.sub(3).ref();
+        /* #functional?=sub */Term sub_55 = term_42.sub(4).ref();
         /* #varsort?=sub *//*Contract*/
-        sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$var$"); sink.copy(sub_12.ref());
+        sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$var$"); sink.copy(sub_42.ref());
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_VarKey, term_39);
-  } final public static boolean _M_BinderKey(Sink sink, int shared, int depth, Term term_27) {
+    return thunk(sink, _M_VarKey, term_42);
+  } final public static boolean _M_BinderKey(Sink sink, int shared, int depth, Term term_106) {
     if (depth < 2000) {
-      label_81: {
-        if (term_27.descriptor() != _M_Crsx_xbinder)
-        {   break label_81;
-        }Term sub_209 = term_27.sub(0).ref();
-        if (sub_209.descriptor() != _M__sNil)
-        {   break label_81;
-        }Term sub_99 = term_27.sub(1).ref();
+      label_14: {
+        if (term_106.descriptor() != _M_Crsx_xbinder)
+        {   break label_14;
+        }Term sub_12 = term_106.sub(0).ref();
+        if (sub_12.descriptor() != _M__sNil)
+        {   break label_14;
+        }Term sub_24 = term_106.sub(1).ref();
         /* #variable=sub *//*Contract*/
-        sink.start(_M_VarKey); sink.copy(sub_99.ref());
+        sink.start(_M_VarKey); sink.copy(sub_24.ref());
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_BinderKey, term_27);
-  } final public static boolean _M_DispatchedMetaVarBinders2(Sink sink, int shared, int depth, Properties props_3, Term term_22) {
+    return thunk(sink, _M_BinderKey, term_106);
+  } final public static boolean _M_DispatchedMetaVarBinders2(Sink sink, int shared, int depth, Properties props_77, Term term_53) {
     if (depth < 2000) {
       sink.start(_M_UnMETABinders);
-      sink.start(_M__s);sink.properties(safeRef(props_3));
-      sink.start(_M_Builtin_sGet);
-      sink.end(); sink.copy(term_22.ref());
-      sink.end();
-      sink.end(); return true;
-    }
-    return thunk(sink, _M_DispatchedMetaVarBinders2, props_3, term_22);
-  } final public static boolean _M_DispatchedMetaVarBinders1(Sink sink, int shared, int depth, Properties props_87, Term term_70) {
-    if (depth < 2000) {sink.properties(safeRef(props_87));
-      sink.start(_M_DispatchedMetaVarBinders2);
-      sink.start(_M_UnSTRING);
-      sink.start(_M__s);sink.properties(safeRef(props_87));
-      sink.start(_M_Builtin_sGet);
-      sink.end(); sink.copy(term_70.ref());
-      sink.end();
-      sink.end();
-      sink.end(); return true;
-    }
-    return thunk(sink, _M_DispatchedMetaVarBinders1, props_87, term_70);
-  } final public static boolean _M_DispatchedMetaVarBinders(Sink sink, int shared, int depth, Properties props_12, Term term_32) {
-    if (depth < 2000) {sink.properties(safeRef(props_12));
-      sink.start(_M_DispatchedMetaVarBinders1);
-      sink.start(_M_MetaDispatchKey); sink.copy(term_32.ref());
-      sink.end();
-      sink.end(); return true;
-    }
-    return thunk(sink, _M_DispatchedMetaVarBinders, props_12, term_32);
-  } final public static boolean _M_DispatchedMetaVar2(Sink sink, int shared, int depth, Properties props_74, Term term_83) {
-    if (depth < 2000) {
-      sink.start(_M_UnMETA);
-      sink.start(_M__s);sink.properties(safeRef(props_74));
-      sink.start(_M_Builtin_sGet);
-      sink.end(); sink.copy(term_83.ref());
-      sink.end();
-      sink.end(); return true;
-    }
-    return thunk(sink, _M_DispatchedMetaVar2, props_74, term_83);
-  } final public static boolean _M_DispatchedMetaVar1(Sink sink, int shared, int depth, Properties props_11, Term term_53) {
-    if (depth < 2000) {sink.properties(safeRef(props_11));
-      sink.start(_M_DispatchedMetaVar2);
-      sink.start(_M_UnSTRING);
-      sink.start(_M__s);sink.properties(safeRef(props_11));
+      sink.start(_M__s);sink.properties(safeRef(props_77));
       sink.start(_M_Builtin_sGet);
       sink.end(); sink.copy(term_53.ref());
       sink.end();
+      sink.end(); return true;
+    }
+    return thunk(sink, _M_DispatchedMetaVarBinders2, props_77, term_53);
+  } final public static boolean _M_DispatchedMetaVarBinders1(Sink sink, int shared, int depth, Properties props_43, Term term_105) {
+    if (depth < 2000) {sink.properties(safeRef(props_43));
+      sink.start(_M_DispatchedMetaVarBinders2);
+      sink.start(_M_UnSTRING);
+      sink.start(_M__s);sink.properties(safeRef(props_43));
+      sink.start(_M_Builtin_sGet);
+      sink.end(); sink.copy(term_105.ref());
+      sink.end();
       sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_DispatchedMetaVar1, props_11, term_53);
-  } final public static boolean _M_DispatchedMetaVar(Sink sink, int shared, int depth, Properties props_98, Term term_41) {
-    if (depth < 2000) {sink.properties(safeRef(props_98));
+    return thunk(sink, _M_DispatchedMetaVarBinders1, props_43, term_105);
+  } final public static boolean _M_DispatchedMetaVarBinders(Sink sink, int shared, int depth, Properties props_41, Term term_12) {
+    if (depth < 2000) {sink.properties(safeRef(props_41));
+      sink.start(_M_DispatchedMetaVarBinders1);
+      sink.start(_M_MetaDispatchKey); sink.copy(term_12.ref());
+      sink.end();
+      sink.end(); return true;
+    }
+    return thunk(sink, _M_DispatchedMetaVarBinders, props_41, term_12);
+  } final public static boolean _M_DispatchedMetaVar2(Sink sink, int shared, int depth, Properties props_60, Term term_86) {
+    if (depth < 2000) {
+      sink.start(_M_UnMETA);
+      sink.start(_M__s);sink.properties(safeRef(props_60));
+      sink.start(_M_Builtin_sGet);
+      sink.end(); sink.copy(term_86.ref());
+      sink.end();
+      sink.end(); return true;
+    }
+    return thunk(sink, _M_DispatchedMetaVar2, props_60, term_86);
+  } final public static boolean _M_DispatchedMetaVar1(Sink sink, int shared, int depth, Properties props_13, Term term_38) {
+    if (depth < 2000) {sink.properties(safeRef(props_13));
+      sink.start(_M_DispatchedMetaVar2);
+      sink.start(_M_UnSTRING);
+      sink.start(_M__s);sink.properties(safeRef(props_13));
+      sink.start(_M_Builtin_sGet);
+      sink.end(); sink.copy(term_38.ref());
+      sink.end();
+      sink.end();
+      sink.end(); return true;
+    }
+    return thunk(sink, _M_DispatchedMetaVar1, props_13, term_38);
+  } final public static boolean _M_DispatchedMetaVar(Sink sink, int shared, int depth, Properties props_70, Term term_88) {
+    if (depth < 2000) {sink.properties(safeRef(props_70));
       sink.start(_M_DispatchedMetaVar1);
-      sink.start(_M_MetaDispatchKey); sink.copy(term_41.ref());
+      sink.start(_M_MetaDispatchKey); sink.copy(term_88.ref());
       sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_DispatchedMetaVar, props_98, term_41);
-  } final public static boolean _M_MetaDispatchKey(Sink sink, int shared, int depth, Term term_62) {
+    return thunk(sink, _M_DispatchedMetaVar, props_70, term_88);
+  } final public static boolean _M_MetaDispatchKey(Sink sink, int shared, int depth, Term term_146) {
     if (depth < 2000) {
       sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$dispatch$");
-      sink.start(_M__s); sink.start(_M_Builtin_sFormatNumber); sink.end(); sink.copy(term_62.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sFormatNumber); sink.end(); sink.copy(term_146.ref());
       sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_MetaDispatchKey, term_62);
-  } final public static boolean _M_AddMetaVar0(Sink sink, int shared, int depth, Properties props_48, Term term_214, Term term_156, Term term_72, Variable var, Term term_54) {
+    return thunk(sink, _M_MetaDispatchKey, term_146);
+  } final public static boolean _M_AddMetaVar0(Sink sink, int shared, int depth, Properties props_37, Term term_183, Term term_3, Term term_1, Variable var, Term term_97) {
     if (depth < 2000) {
-      label_71: {
+      label_91: {
         /* #key=term */
         /* #javavar=term */
         /* #binders=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_48));Term term_31;
+        /* #=term *//*Contract*/sink.properties(safeRef(props_37));Term term_45;
         {
-          BufferSink buf_10 = sink.context().makeBuffer();
-          buf_10.start(_M_META); buf_10.copy(term_156.ref()); buf_10.copy(term_72.ref());
-          buf_10.end();
-          term_31 = buf_10.term();
+          BufferSink buf_74 = sink.context().makeBuffer();
+          buf_74.start(_M_META); buf_74.copy(term_3.ref()); buf_74.copy(term_1.ref());
+          buf_74.end();
+          term_45 = buf_74.term();
         }
-        term_214 = force(sink.context(), term_214);
-        Sink.property(sink, term_214, term_31);Term term_35;
+        term_183 = force(sink.context(), term_183);
+        Sink.property(sink, term_183, term_45);Term term_41;
         {
-          BufferSink buf_78 = sink.context().makeBuffer(); buf_78.start(_M_OK); buf_78.end();
-          term_35 = buf_78.term();
+          BufferSink buf_33 = sink.context().makeBuffer(); buf_33.start(_M_OK); buf_33.end();
+          term_41 = buf_33.term();
         }
-        sink.substitute(term_54.ref(), new Variable[] { var }, new Term[] {term_35}); return true;
+        sink.substitute(term_97.ref(), new Variable[] { var }, new Term[] {term_41}); return true;
       }
     }
-    return thunk(sink, _M_AddMetaVar0, props_48, term_214, term_156, term_72, var, term_54);
-  }     final public static boolean _M_AddMetaVar(Sink sink, int shared, int depth, Properties props_45, Term term_50, Term term_90, Term term_24, Variable var_85, Term term_37) {
+    return thunk(sink, _M_AddMetaVar0, props_37, term_183, term_3, term_1, var, term_97);
+  }     final public static boolean _M_AddMetaVar(Sink sink, int shared, int depth, Properties props_18, Term term_14, Term term_33, Term term_211, Variable var_46, Term term_137) {
     if (depth < 2000) {
-      label_73: {
+      label_32: {
         /* #metavar=term */
         /* #javavar=term */
         /* #binders=term */
-        /* #=term *//*Contract*/sink.properties(safeRef(props_45));
-        sink.start(_M_AddMetaVar0); sink.start(_M_MetaKey); sink.copy(term_50.ref()); sink.end(); sink.copy(term_90.ref()); sink.copy(term_24.ref());
-        Variable var_40 = sink.context().makeVariable("ok");
-        sink.binds(new Variable[] {var_40});
-        VariableUse use = sink.context().makeVariableUse(var_40);
-        sink.substitute(term_37.ref(), new Variable[] { var_85 }, new Term[] {use});
+        /* #=term *//*Contract*/sink.properties(safeRef(props_18));
+        sink.start(_M_AddMetaVar0); sink.start(_M_MetaKey); sink.copy(term_14.ref()); sink.end(); sink.copy(term_33.ref()); sink.copy(term_211.ref());
+        Variable var_45 = sink.context().makeVariable("ok");
+        sink.binds(new Variable[] {var_45});
+        VariableUse use = sink.context().makeVariableUse(var_45);
+        sink.substitute(term_137.ref(), new Variable[] { var_46 }, new Term[] {use});
         sink.end(); return true;
       }
     }
-    return thunk(sink, _M_AddMetaVar, props_45, term_50, term_90, term_24, var_85, term_37);
-  }     final public static boolean _M_MetaKey(Sink sink, int shared, int depth, Term term_65) {
+    return thunk(sink, _M_AddMetaVar, props_18, term_14, term_33, term_211, var_46, term_137);
+  }     final public static boolean _M_MetaKey(Sink sink, int shared, int depth, Term term_26) {
     if (depth < 2000) {
-      sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$meta$"); sink.copy(term_65.ref());
+      sink.start(_M__s); sink.start(_M_Builtin_sColon); sink.end(); sink.literal("$meta$"); sink.copy(term_26.ref());
       sink.end(); return true;
     }
-    return thunk(sink, _M_MetaKey, term_65);
-  } final public static boolean _M_MetaVar0(Sink sink, int shared, int depth, Properties props_85, Term term_19) {
+    return thunk(sink, _M_MetaKey, term_26);
+  } final public static boolean _M_MetaVar0(Sink sink, int shared, int depth, Properties props_36, Term term_24) {
     if (depth < 2000) {
       sink.start(_M_UnMETA);
-      sink.start(_M__s);sink.properties(safeRef(props_85));
+      sink.start(_M__s);sink.properties(safeRef(props_36));
       sink.start(_M_Builtin_sGet);
-      sink.end(); sink.copy(term_19.ref());
+      sink.end(); sink.copy(term_24.ref());
       sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_MetaVar0, props_85, term_19);
-  } final public static boolean _M_MetaVar(Sink sink, int shared, int depth, Properties props_72, Term term_18) {
-    if (depth < 2000) {sink.properties(safeRef(props_72));
-      sink.start(_M_MetaVar0); sink.start(_M_MetaKey); sink.copy(term_18.ref()); sink.end();
+    return thunk(sink, _M_MetaVar0, props_36, term_24);
+  } final public static boolean _M_MetaVar(Sink sink, int shared, int depth, Properties props_9, Term term_65) {
+    if (depth < 2000) {sink.properties(safeRef(props_9));
+      sink.start(_M_MetaVar0); sink.start(_M_MetaKey); sink.copy(term_65.ref()); sink.end();
       sink.end(); return true;
     }
-    return thunk(sink, _M_MetaVar, props_72, term_18);
-  } final public static boolean _M_UnMETABinders(Sink sink, int shared, int depth, Term term_2) {
+    return thunk(sink, _M_MetaVar, props_9, term_65);
+  } final public static boolean _M_UnMETABinders(Sink sink, int shared, int depth, Term term_43) {
+    if (depth < 2000) {
+      label_25: {
+        if (term_43.descriptor() != _M_META)
+        {   break label_25;
+        }Term sub_67 = term_43.sub(0).ref();
+        /* #1=sub */Term sub_267 = term_43.sub(1).ref();
+        /* #2=sub *//*Contract*/ sink.copy(sub_267.ref()); return true;
+      }
+    }
+    return thunk(sink, _M_UnMETABinders, term_43);
+  } final public static boolean _M_UnMETA(Sink sink, int shared, int depth, Term term_60) {
+    if (depth < 2000) {
+      label_50: {
+        if (term_60.descriptor() != _M_META)
+        {   break label_50;
+        }Term sub_40 = term_60.sub(0).ref();
+        /* #1=sub */Term sub_14 = term_60.sub(1).ref(); /* #2=sub *//*Contract*/ sink.copy(sub_40.ref()); return true;
+      }
+    }
+    return thunk(sink, _M_UnMETA, term_60);
+  } final public static boolean _M_UnSTRING(Sink sink, int shared, int depth, Term term_191) {
+    if (depth < 2000) {
+      label_28: {
+        if (term_191.descriptor() != _M_STRING)
+        {   break label_28;
+        }Term sub_90 = term_191.sub(0).ref(); /* #=sub *//*Contract*/ sink.copy(sub_90.ref()); return true;
+      }
+    }
+    return thunk(sink, _M_UnSTRING, term_191);
+  } final public static boolean _M_UnTEXT(Sink sink, int shared, int depth, Term term_23) {
     if (depth < 2000) {
       label_80: {
-        if (term_2.descriptor() != _M_META)
+        if (term_23.descriptor() != _M_TEXT)
         {   break label_80;
-        }Term sub_65 = term_2.sub(0).ref();
-        /* #1=sub */Term sub_41 = term_2.sub(1).ref(); /* #2=sub *//*Contract*/ sink.copy(sub_41.ref()); return true;
+        }Term sub_64 = term_23.sub(0).ref(); /* #=sub *//*Contract*/ sink.copy(sub_64.ref()); return true;
       }
     }
-    return thunk(sink, _M_UnMETABinders, term_2);
-  } final public static boolean _M_UnMETA(Sink sink, int shared, int depth, Term term_96) {
-    if (depth < 2000) {
-      label_9: {
-        if (term_96.descriptor() != _M_META)
-        {   break label_9;
-        }Term sub_55 = term_96.sub(0).ref();
-        /* #1=sub */Term sub_7 = term_96.sub(1).ref(); /* #2=sub *//*Contract*/ sink.copy(sub_55.ref()); return true;
-      }
-    }
-    return thunk(sink, _M_UnMETA, term_96);
-  } final public static boolean _M_UnSTRING(Sink sink, int shared, int depth, Term term_164) {
-    if (depth < 2000) {
-      label_118: {
-        if (term_164.descriptor() != _M_STRING)
-        {   break label_118;
-        }Term sub_46 = term_164.sub(0).ref(); /* #=sub *//*Contract*/ sink.copy(sub_46.ref()); return true;
-      }
-    }
-    return thunk(sink, _M_UnSTRING, term_164);
-  } final public static boolean _M_UnTEXT(Sink sink, int shared, int depth, Term term_185) {
-    if (depth < 2000) {
-      label_1: {
-        if (term_185.descriptor() != _M_TEXT)
-        {   break label_1;
-        }Term sub_8 = term_185.sub(0).ref(); /* #=sub *//*Contract*/ sink.copy(sub_8.ref()); return true;
-      }
-    }
-    return thunk(sink, _M_UnTEXT, term_185);
+    return thunk(sink, _M_UnTEXT, term_23);
   } 
   private static boolean initialized = false;
   public static void init(Context context)
@@ -532,5 +533,5 @@ public class Cgutils
     }
   }
 
-/* END MODULE « "/Users/villardl/Projects/crsx/crsx4/src/cg/cgutils.crs.java" » */
+/* END MODULE « "/Users/villardl/Projects/crsx/crsx4_2/src/cg/cgutils.crs.java" » */
 }
