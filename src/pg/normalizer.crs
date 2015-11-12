@@ -4,10 +4,7 @@
  * Normalize ANTLR v4 grammar as follows:
  *
  * - The following ANTLR constructs are stripped out:
- *   - options (might reconsider)
  *   - comments
- *   - tokens {}
- *   - actions as they might interfere with the meta rules. 
  * 
  * - In general subrules are promoted to top-level rules, for instance:
  *    
@@ -85,47 +82,42 @@ NormRules[ANTLR_rules_sort] :: ANTLR_rules_sort;
  */ 
 {#E}NormRuleSpec[{#L}%ruleSpec⟨ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec? 
                                   #rulePrequel* : #ruleAltList ; #exceptionHandler* #finallyClause? ⟩] 
-→
-(
-    {#L}%ruleSpec⟨ #RULE_REF : ⟨ruleAltList: {#E; "@rule":STRING[#RULE_REF]}NormRuleAltList[#ruleAltList]⟩ ; ⟩; // First pass
+→ (
+    {#L}%ruleSpec⟨ #ruleModifiers? #RULE_REF  #ARG_ACTION?  #ruleReturns? #throwsSpec? #localsSpec? 
+                       #rulePrequel* : ⟨ruleAltList: {#E; "@rule":STRING[#RULE_REF]}NormRuleAltList[#ruleAltList]⟩ ; #exceptionHandler* #finallyClause? ⟩; // First pass
     {#E; "@rule":STRING[#RULE_REF]}NSR-RuleAltList[#ruleAltList]                                             // Second pass
-);
+  );
 
 {#E}NormRuleSpec[{#L}%ruleSpec⟨ #lexerRule ⟩] 
-→ 
-( {#L}%ruleSpec⟨ #lexerRule ⟩; );
+→ ( {#L}%ruleSpec⟨ #lexerRule ⟩; );
 
 //--------- First Pass: eliminate subrules
 
 // Iterates over rule alternatives
 {#E}NormRuleAltList[{#L}%ruleAltList⟨ #labeledAlt #ruleAltList_S1* ⟩] 
-→
-{#L}%ruleAltList⟨ 
+→ {#L}%ruleAltList⟨ 
         ⟨labeledAlt: {#E; "@alt":NUM[1]; "@unique": BOOL[IsEmpty[#ruleAltList_S1*]]}NormLabeledAlt[#labeledAlt]⟩
         ⟨ruleAltList_S1*: {#E; "@alt":NUM[2]; "@unique": BOOL[FALSE]}NormRuleAltList_S1s[#ruleAltList_S1*] ⟩
-⟩;
+  ⟩;
 
 //
 {#E}NormRuleAltList_S1s[{#L}%ruleAltList_S1*⟨⟩] →{#L}%ruleAltList_S1*⟨⟩;
 
 {#E; "@alt":NUM[#count]}
-NormRuleAltList_S1s[{#L}%ruleAltList_S1*⟨ | #labeledAlt #ruleAltList_S1*⟩] 
-→
-{#L}%ruleAltList_S1*⟨ 
+NormRuleAltList_S1s[{#L}%ruleAltList_S1*⟨ | #labeledAlt #ruleAltList_S1* ⟩] 
+→ {#L}%ruleAltList_S1*⟨ 
     | ⟨labeledAlt: {#E}NormLabeledAlt[#labeledAlt]⟩ 
     ⟨ruleAltList_S1*: {#E; "@alt":NUM[$[Plus, #count, 1]]}NormRuleAltList_S1s[#ruleAltList_S1*] ⟩ 
-⟩;
+  ⟩;
 
 // Normalize a labeled alternative. Ignore the label for now (TODO: could be used for better ADT value name)
 {#E}NormLabeledAlt[{#L}%labeledAlt⟨ #alternative #labeledAlt_S1? ⟩] 
-→
-{#L}%labeledAlt⟨ ⟨alternative: {#E}NormAlternative[#alternative]⟩ ⟩;
+→ {#L}%labeledAlt⟨ ⟨alternative: {#E}NormAlternative[#alternative]⟩ ⟩;
 
 // Normalize an alternative. 
 // Keep element options intact as they specify either associativity or failed semantic predicate
 {#E}NormAlternative[{#L}%alternative⟨ #elementOptions? #element* ⟩] 
-→
-{#L}%alternative⟨ #elementOptions? ⟨element*: {#E; "@sub":NUM[1]}NormElements[#element*] ⟩ ⟩;
+→ {#L}%alternative⟨ #elementOptions? ⟨element*: {#E; "@sub":NUM[1]}NormElements[#element*] ⟩ ⟩;
 
 // Iterate over alternative elements.
 NormElements[$List[ANTLR_element_sort]] :: $List[ANTLR_element_sort];
@@ -134,69 +126,52 @@ NormElements[$List[ANTLR_element_sort]] :: $List[ANTLR_element_sort];
 {#E}NormElements[{#L}%element*⟨⟩] → {#L}%element*⟨⟩;
 
 // Labeled element optionally followed by an ebnfSuffix
-// Labeled element are discarded  as the rule context is not accessible within crsx.
-// so rewrite as a non-labeled element and recursively normalize.
 {#E}NormElements[{#L}%element*⟨ #labeledElement #element_A1_S1 #element* ⟩] 
-→
-{#E}NormElements[{#L}%element*⟨ ⟨element: NormRemoveLabel[#labeledElement, #element_A1_S1]⟩ #element* ⟩];
+→ {#E}NormLabeledElement[#labeledElement, #element_A1_S1, #element*];
 
 // Element is an atom optionally followed by an ebnfSuffix. Leave it this way.
 {#E}NormElements[{#L}%element*⟨ #atom #element_A2_S1 #element* ⟩] 
-→
-{#L}%element*⟨ #atom #element_A2_S1 ⟨element*: {#E}NormElements[#element*]⟩ ⟩;
+→ {#L}%element*⟨ #atom #element_A2_S1 ⟨element*: {#E}NormElements[#element*]⟩ ⟩;
 
 // Ebnf
 // This is a subrule -> lift only if it contains at least two non-constant productions
-{#E; "@index": {#I}RULEINDEX}NormElements[{#L}%element*⟨ #block #blockSuffix? #element* ⟩] 
-→
-{#E}NormBlock[{#I}TrivialBlock[#block], #block, #blockSuffix?, #element*];
+{#E; "@index": {#I}RULEINDEX}
+NormElements[{#L}%element*⟨ #block #blockSuffix? #element* ⟩] 
+→ {#E}NormBlock[{#I}TrivialBlock[#block], #block, #blockSuffix?, #element*];
 
-// Action or semantic predicate. Preserve it.
+// Action or semantic predicate. Preserve.
 {#E}NormElements[{#L}%element*⟨ #ACTION #QUESTION? #element* ⟩] 
-→
-{#L}%element*⟨ #ACTION #QUESTION? ⟨element*: {#E}NormElements[#element*]⟩ ⟩;
+→ {#L}%element*⟨ #ACTION #QUESTION? ⟨element*: {#E}NormElements[#element*]⟩ ⟩;
 
 // Normalize a block
 NormBlock[Boolean, ANTLR_block_sort, $List[ANTLR_blockSuffix_sort], $List[ANTLR_element_sort]] :: List[ANTLR_element_sort];
 
 // Trivial block: don't lift.
 {#E}NormBlock[TRUE, {#L}#block, #blockSuffix?, #element*] 
-→
-{#L}%element*⟨ #block #blockSuffix? ⟨element*: {#E}NormElements[#element*]⟩ ⟩;
+→ {#L}%element*⟨ #block #blockSuffix? ⟨element*: {#E}NormElements[#element*]⟩ ⟩;
 
 // Not trivial block: lift
 {#E; "@sub":NUM[#count]}NormBlock[FALSE, {#L}#block, #blockSuffix?, #element*] 
-→
-{#L}%element*⟨ 
+→ {#L}%element*⟨ 
     ⟨atom:    {#E}SubruleAtom⟩ ⟨element_A2_S1: {#E}SubruleSuffix[#blockSuffix?]⟩ 
     ⟨element*: {#E;"@sub": NUM[$[Plus, #count, 1]]}NormElements[#element*]⟩
-⟩;
+  ⟩;
 
-// Eliminate label from element
-NormRemoveElementLabel[ANTLR_labeledElement_sort, ANTLR_element_A2_S1_sort] :: ANTLR_element_sort;
+// Normalize labeled eleement
+NormLabeledElement[ANTLR_labeledElement_sort, ANTLR_element_A1_S1_sort, $List[ANTLR_element_sort]] :: ANTLR_element_sort;
 
-NormRemoveElementLabel[{#L}%labeledElement⟨ #id #labeledElement_S1 #atom ⟩, %element_A2_S1⟨ ⟩] 
-→
-{#L}%element⟨ #atom ⟩;
+{#E}NormLabeledElement[{#L}%labeledElement⟨ #id #labeledElement_S1 #atom ⟩, #element_A1_S1, #element*] 
+→ {#L}%element*⟨ #id #labeledElement_S1 #atom  #element_A1_S1 ⟨element*: {#E}NormElements[#element*]⟩ ⟩;
 
-NormRemoveElementLabel[{#L}%labeledElement⟨ #id #labeledElement_S1 #atom ⟩, %element_A2_S1⟨ #ebnfSuffix ⟩] 
-→
-{#L}%element⟨ #atom #ebnfSuffix ⟩;
-
-NormRemoveElementLabel[{#L}%labeledElement⟨ #id #labeledElement_S1 #block ⟩, %element_A2_S1⟨ ⟩] 
-→
-{#L}%element⟨ #block ⟩;
-
-NormRemoveElementLabel[{#L}%labeledElement⟨ #id #labeledElement_S1 #block ⟩, %element_A2_S1⟨ #ebnfSuffix ⟩] 
-→
-{#L}%element⟨ #block #ebnfSuffix ⟩;
+{#E; "@index": {#I}RULEINDEX}
+NormLabeledElement[{#L}%labeledElement⟨ #id #labeledElement_S1 #block ⟩, #element_A1_S1, #element*] 
+→ {#L}%element*⟨ #id #labeledElement_S1 ⟨block: {#E}NormBlock[{#I}TrivialBlock[#block], #block, Ebnf1ToBlockSuffix[#element_A1_S1], #element*]⟩ ⟩;
 
 //--------- Second Pass: Generate subrules
 
 //
 {#E}NSR-RuleAltList[{#L}%ruleAltList⟨ #labeledAlt #ruleAltList_S1* ⟩] 
-→
-{#L}%ruleAltList⟨ ⟨ruleAltList: Concat[
+→ {#L}%ruleAltList⟨ ⟨ruleAltList: Concat[
     {#E; "@alt":NUM[1]; "@unique": BOOL[IsEmpty[#ruleAltList_S1*]]}NSR-LabeledAlt[#labeledAlt],
     {#E; "@alt":NUM[2]; "@unique": BOOL[FALSE]}NSR-RuleAltList_S1s[#ruleAltList_S1*]] ⟩
 ⟩;
@@ -206,53 +181,53 @@ NormRemoveElementLabel[{#L}%labeledElement⟨ #id #labeledElement_S1 #block ⟩,
 
 {#E; "@alt":NUM[#count]}
 NSR-RuleAltList_S1s[{#L}%ruleAltList_S1*⟨ | #labeledAlt #ruleAltList_S1*⟩] 
-→
-{#L}%ruleAltList_S1*⟨ ⟨ruleAltList_S1*: Concat[
+→ {#L}%ruleAltList_S1*⟨ ⟨ruleAltList_S1*: Concat[
     {#E}NSR-LabeledAlt[#labeledAlt],
     {#E; "@alt":NUM[$[Plus, #count, 1]]}NSR-RuleAltList_S1s[#ruleAltList_S1*]] ⟩
 ⟩;
 
 //
 {#E}NSR-LabeledAlt[{#L}%labeledAlt⟨ #alternative #labeledAlt_S1?⟩] 
-→
-{#E}NSR-Alternative[#alternative] ;
+→ {#E}NSR-Alternative[#alternative] ;
 
 //
-{#E}
-NSR-Alternative[{#L}%alternative⟨ #elementOptions? #element*⟩] 
-→
-{#E; "@sub":NUM[1]}NSR-Elements[#element*];
+{#E}NSR-Alternative[{#L}%alternative⟨ #elementOptions? #element*⟩] 
+→ {#E; "@sub":NUM[1]}NSR-Elements[#element*];
 
 //
-{#E}NSR-Elements[{#L}%element*⟨⟩] → {#L}%element*⟨⟩;    
+{#E}NSR-Elements[{#L}%element*⟨⟩]
+→ {#L}%element*⟨⟩;    
 
-{#E}NSR-Elements[{#L}%element*⟨ #labeledElement #element_A1_S1 #element*⟩] 
-→
-{#E}NSR-LabeledElement[#labeledElement, #element_A1_S1, #element*];
+{#E}NSR-Elements[{#L}%element*⟨ #labeledElement #element_A1_S1 #element* ⟩] 
+→ {#E}NSR-LabeledElement[#labeledElement, #element*];
     
-{#E}NSR-Elements[{#L}%element*⟨ #atom #element_A2_S1  #element*⟩] 
-→
-{#E}NSR-Elements[#element*];
+{#E}NSR-Elements[{#L}%element*⟨ #atom #element_A2_S1 #element*⟩] 
+→ {#E}NSR-Elements[#element*];
 
 // This is a subrule -> generate new parser rule if non-trivial and recursively normalize
-{#E; "@index": {#I}RULEINDEX}NSR-Elements[{#L}%element*⟨ #block #blockSuffix? #element*⟩] 
-→
-{#E}NSR-Block[{#I}TrivialBlock[#block], {#L}LOC, #block, #blockSuffix?, #element*];
+{#E; "@index": {#I}RULEINDEX}
+NSR-Elements[{#L}%element*⟨ #block #blockSuffix? #element*⟩] 
+→ {#E}NSR-Block[{#I}TrivialBlock[#block], {#L}LOC, #block, #blockSuffix?, #element*];
 
 {#E}NSR-Elements[{#L}%element*⟨ #ACTION #QUESTION? #element*⟩] 
-→
-{#E}NSR-Elements[#element*];
+→ {#E}NSR-Elements[#element*];
+
+// Labeled Element
+
+{#E}NSR-LabeledElement[{#L}%labeledElement⟨ #id #labeledElement_S1 #atom ⟩, #element*] 
+→ {#E}NSR-Elements[#element*];
+
+{#E}NSR-LabeledElement[{#L}%labeledElement⟨ #id #labeledElement_S1 #block ⟩, #element*] 
+→ {#E}NSR-Elements[{#L}%element*⟨ #block #element* ⟩];
 
 // Trivial block. Don't generate lifted rule
 {#E}NSR-Block[TRUE, #LOC, #block, #blockSuffix?, #element*]
-→
-{#E}NSR-Elements[#element*];
+→ {#E}NSR-Elements[#element*];
 
 // Non-Trivial block. Generate lifted rule
 {#E; "@sub": NUM[#count]}
 NSR-Block[FALSE, {#L}LOC, #block, #blockSuffix?, #element*]
-→
-{#L}%element*⟨ ⟨element*: Concat[
+→ {#L}%element*⟨ ⟨element*: Concat[
     {#E}NormRuleSpec[{#L}%ruleSpec⟨ ⟨RULE_REF: {#E}SubruleRuleref⟩ : ⟨ruleBlock: Block2RuleBlock[#block]⟩ ; ⟩],
     {#E;"@sub": NUM[$[Plus, #count, 1]]}NSR-Elements[#element*]] ⟩ ⟩;
 

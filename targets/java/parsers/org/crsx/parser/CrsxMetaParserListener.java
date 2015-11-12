@@ -908,26 +908,6 @@ public interface CrsxMetaParserListener extends ParseTreeListener {
 	 */
 	void exitConcrete_TOK_EOF(CrsxMetaParser.Concrete_TOK_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#concrete2_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void enterConcrete2_TOK(CrsxMetaParser.Concrete2_TOKContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#concrete2_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void exitConcrete2_TOK(CrsxMetaParser.Concrete2_TOKContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#concrete2_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterConcrete2_TOK_EOF(CrsxMetaParser.Concrete2_TOK_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#concrete2_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitConcrete2_TOK_EOF(CrsxMetaParser.Concrete2_TOK_EOFContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link CrsxMetaParser#concrete3_TOK}.
 	 * @param ctx the parse tree
 	 */

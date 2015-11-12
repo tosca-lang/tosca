@@ -106,7 +106,7 @@ GetRefElements[%element*⟦ #element #element* ⟧, #index] → GetRefElement[#e
 GetRefElement[ANTLR_element_sort, $List[ANTLR_element_sort], RuleIndex] :: Option[$String];
 
 // This is a labeled block: look inside
-GetRefElement[{#L}%element⟦ #id #labeledElement_S1 #block #element_A1_S1  ⟧, #element*, #index] 
+GetRefElement[{#L}%element⟦ #id #labeledElement_S1 #block #element_A1_S1 ⟧, #element*, #index] 
 → GetRefBlock[#block, #element*, #index];
 
 // This is a block: look inside
@@ -119,7 +119,9 @@ GetRefElement[{#L}%element⟦ #RULE_REF #ARG_ACTION? #elementOptions? #element_A
 
 // This is a token ref: skip it only if constant 
 GetRefElement[{#L}%element⟦ #TOKEN_REF #elementOptions? ⟧, #element*, {#I}RULEINDEX] 
-→ If[{#I}IsConstantRuleSpec[UnSOME[{#I}GetSome[#TOKEN_REF]]], GetRefElements[#element*, {#I}RULEINDEX], SOME[#TOKEN_REF]];
+→ $[If, $[Equal, #TOKEN_REF, "EOF"],
+   GetRefElements[#element*, {#I}RULEINDEX],
+   If[{#I}IsConstantRuleSpec[UnSOME[{#I}GetSome[#TOKEN_REF]]], GetRefElements[#element*, {#I}RULEINDEX], SOME[#TOKEN_REF]]];
 
 -[Fallback]:
 GetRefElement[#element, #element*, #index] 
@@ -505,11 +507,14 @@ ToElementOption[#id, #value]
 
 // --- Misc...
 
+Enbf1ToBlockSuffix[ANTLR_element_A1_S1_sort] :: $List[ANTLR_blockSuffix_sort];
+Enbf1ToBlockSuffix[%element_A1_S1⟨             ⟩] → ();
+Enbf1ToBlockSuffix[%element_A1_S1⟨ #ebnfSuffix ⟩] → ( #ebnfSuffix );
+
 // Unwrap element option value
 UnwrapOptionValue[ANTLR_elementOption_S1_sort] :: $String;
 UnwrapOptionValue[%elementOption_S1⟦ #id             ⟧] → UnwrapId[#id];
 UnwrapOptionValue[%elementOption_S1⟦ #STRING_LITERAL ⟧] → #STRING_LITERAL;
-
 
 // Unwrap Grammar Id
 UnwrapId[ANTLR_id_sort] :: $String;
@@ -518,5 +523,7 @@ UnwrapId[ANTLR_id_A2[#id]] → #id;
 
 UnBINDS[ElementOption] :: $String;
 UnBINDS[BINDS[#]] → #;
+
+
 
 )]

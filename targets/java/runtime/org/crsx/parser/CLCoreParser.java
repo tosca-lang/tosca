@@ -38,7 +38,7 @@ import net.sf.crsx.util.FormattingAppendable;
  * 
  * @author villardl
  */
-public class CrsxParser
+public class CLCoreParser
 {
 
 	public static void printUsage()

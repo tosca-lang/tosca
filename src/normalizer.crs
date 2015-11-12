@@ -8,7 +8,6 @@
  * - Gather rules with same constructor into a single rule. 
  * - Convert all patterns to be only meta-variables (including properties)
  * - Qualify sort names and forms. 
- * - Create unique binder names (not implemented yet)
  * - Expand sorted concrete syntax
  * - Desugar property lookup (not implemented yet)
  */

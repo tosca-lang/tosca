@@ -286,7 +286,9 @@ tokensSpec
 
 /** Match stuff like @parser::members {int i;} */
 action
-	:	{enterAlt();} AT {enterOPT();} action_S1? {exitOPT();} id action_TOKEN {exitAlt();}
+	: {enterAlt();} AT {enterOPT();} action_S1? {exitOPT();} id action_TOKEN {exitAlt();}
+	| {term();}  PMT_ACTION
+    | {embed();} PET_ACTION EMBED_END
 	;
 	
 action_S1

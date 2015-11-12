@@ -2,266 +2,377 @@
  * Copyright (c) 2015 IBM Corporation.
  *
  * This is the complete CRSX 4 grammar specification.
- * 
- * Loosely compatible with CRSX 3. Does not support all features.
- * 
+ *
  * This grammar is annotated as follows:
- * - [BC3]             : for backward compatibility with CRSX 3
  * - [CORE constraint] : part of Core CRSX (input of code generator), with optionally a comment expressing additional constraint.
- * - [INT]             : internal use only. 
+ * - [INTERNAL]        : internal use only.
  * - [SUGAR]           : pure syntactic sugar, completely eliminating early during compilation.
+ *
+ * This grammar does not use any ANTLR4 literal due to current ANTLR4 meta parser generator limitation.
  */
 grammar Crsx;
- 
-// A CRSX file is just a list of declarations
-crsx      
-    : decls                                          /* [CORE] */
-    ;   
-    
+
+// Support for infix, infixr, infixl, postfix and prefix operators.
+// This is based on Keith Clarke, "The top-down parsing of expressions".
+
+// The code below is Java. It's simple enough to be ported to other languages.
+
+@header {
+import java.util.*;
+}
+
+@members {
+/** Fixity for each operator operator */
+Map<String, String> fixities = new HashMap<>();
+
+/** Precedence for each operator operator */
+Map<String, Integer> precedences = new HashMap<>();
+
+/** Get the next precedence for the give operator */
+public int nextp (String op) {
+    String fixity = fixities.get(op);
+    int p = precedences.get(op);
+
+    if (fixity.equals("infixr"))  return p;
+    if (fixity.equals("infixl"))  return p+1;
+    if (fixity.equals("prefix"))  return p;
+    if (fixity.equals("postfix")) return p+1;
+    if (fixity.equals("infix"))   return p+1;
+    return 0;
+}
+
+/** Add new symbol with given fixity and precedence */
+private void addOp(String op, String fixity, Integer precedence) {
+		if (fixity != null)	{
+			fixities.put(op,  fixity);
+			precedences.put(op, precedence);
+		}
+}
+
+private boolean isPrefix(String op) {
+  return "prefix".equals(fixities.get(op));
+}
+
+private boolean isAnyInfix(String op, int currentp) {
+  String fixity = fixities.get(op);
+  return fixity != null && fixity.startsWith("infix") && precedences.get(op) >= currentp;
+}
+
+private boolean isPostfix(String op, int currentp) {
+  return "postfix".equals(fixities.get(op)) && precedences.get(op) >= currentp;
+}
+
+{
+  fixities.put("...", "postfix");
+  precedences.put("...", 2);
+}
+
+}
+
+// A CRSX file is a module declaration and a list of declarations
+crsx
+    : decls EOF                    /* [CORE] */
+    ;
+
 decls
-    : decl (SEMI decl)*
+    : decl*
     ;
-        
+
 decl
-    : moduleDecl                                     
+    : moduleDecl
     | importDecl
-    | sortDecl    
-    | termDecl                                      
-    |                                                /* [SUGAR] empty declarations */
+    | sortDecl
+    | ruleDecl
+    | fnDecl
     ;
-    
+
 moduleDecl
-    :  MODULE CONSTRUCTOR LBRACE decls RBRACE        /* [SUGAR]  nested modules */  
+    : MODULE constructor
     ;
-    
+
 importDecl
     : IMPORT constructor                             /* [SUGAR: same as IMPORT MODULE] */
-    | IMPORT MODULE constructor                      /* [CORE] */    
+    | IMPORT MODULE constructor                      /* [CORE] */
     | IMPORT GRAMMAR constructor                     /* [CORE] */
     ;
-  
+
 sortDecl
-    : sortparams? sortset sortname DATASORT LPAR forms RPAR  /* [CORE] Data sort declaration */ 
-    | sortparams? sortset form COLONCOLON sortname           /* [CORE] Function sort declaration */ 
+     : TYPE c=constructor sortVars? sortDef[$c.text]      /* [CORE] Sort declaration */
+     ;
+
+sortVars
+    : LT variable+ GT                                /* [CORE] Sort variables. */
     ;
-  
-termDecl
-    : option? term contractum?                       /* [CORE]  term expression  */ 
+
+sortDef[String c]
+    : (OR variant)+                                   /* [CORE variant sort definition] */
+    | (AND sortMap)+                                   /* [CORE map sort definition] */
+    | FN fixity[c]?
+           LPAR fnSortParams? RPAR ARROW paramSort        /* [CORE] Function sort declaration */
     ;
-    
-option
-    : constructor args? COLON                        /* [BC3]  Annotation using term-syntax */
+
+fixity[String c]
+    : f=FIXITY p=NUMBER { addOp($c, $f.text, $p.int); }
     ;
-        
-annotation
-    : AT constructor args?                           /* [CORE] Annotation */
+
+// Variant type
+
+variant
+    : constructor variantArgs?
+    | VAR
     ;
-        
-contractum
-    : ARROW term                                     /* [CORE] Rewrite rule */
+
+variantArgs
+    : LPAR sorts RPAR
     ;
-       
-term
-    : constructor sargs?                             /* [CORE]  Construction with zero or more args */    
-    | literal                                        /* [CORE]  Literal construction */
-    | list                                           /* [SUGAR] List construction */ 
-    | variable                                       /* [CORE]  Variable */
-    | properties term                                /* [BC3]   Properties */
- //   | properties                                     /* [CORE]  Named data structure */
-    | concrete                                       /* [SUGAR] Concrete syntax */
-    | annotation+ term                               /* [CORE]  Annotated term */
-    | METAVAR args?                                  /* [CORE]  Meta variable. */ 
-    | dispatch                                       /* [CORE]  dispatch expression */ 
+
+// Map type
+
+sortMap
+    : STRING COLON sort
+    | sort COLON sort
+    ;
+
+// Function type
+
+fnSortParams
+     : sort (COMMA sort)*                         /* [CORE] */
+     ;
+
+// Sort Reference
+
+sort
+    : sortScope? paramSort
+    ;
+
+sortScope
+    : LSQUARE sort+ RSQUARE FNTYPE
+    ;
+
+paramSort
+    : constructor sortParams?   /* [CORE] Parametrized sort */
+    | variable
+    ;
+
+sortParams
+    : LT paramSort+ GT            /* [CORE] Sort Parameters */
+    ;
+
+sorts
+    : sort (COMMA sorts)*             /* [CORE] List of sort */
+    ;
+
+// Rule Declaration
+
+ruleDecl
+    : RULE term[0] ARROW terms                                  /* [SUGAR]  rewrite rule  */
+    ;
+
+// Function declaration
+
+fnDecl
+    : FN fnFixity sortParams? fnParamsDecl? FNTYPE sort ARROW terms        /* [CORE]  function declaration  */
+    ;
+
+fnFixity
+    : f=FIXITY p=NUMBER c=constructor { addOp($c.text, $f.text, $p.int); }
+    | c=constructor
+    ;
+
+fnParamsDecl
+     : LPAR fnParams? RPAR                  /* [CORE] */
+     ;
+
+fnParams
+    : fnParam (COMMA fnParam)*
+    ;
+
+fnParam
+    : METAVAR fnParamSort?
+    ;
+
+fnParamSort
+    : COLON sort
+    ;
+
+// Term
+
+terms
+    : term[0] (COMMA term[0])*
+    ;
+
+term[int p]
+    : aterm nterm[p]*
+    ;
+
+nterm[int p]
+    : // infixl infixr infix case
+      {isAnyInfix(_input.LT(1).getText(), $p)}?
+      op=constructor
+      term[nextp($op.text)]
+
+      // infix case, no assoc, stop trying to match more infix operator
+      {!"infix".equals(fixities.get($op.text))}?
+    |
+      // postfix case
+      {isPostfix(_input.LT(1).getText(), $p)}?
+      constructor
+    ;
+
+aterm
+    : {isPrefix(_input.LT(1).getText())}? op=constructor term[nextp($op.text)] /* [SUGAR] Prefixed term */
+    | {!isPrefix(_input.LT(1).getText())}? constructor args?             /* [CORE] Construction with zero or more args */
+    | literal                                         /* [CORE]  Literal construction */
+    | groupOrList                                     /* [SUGAR] Grouped expression */
+    | variable                                        /* [CORE]  Variable */
+    | map
+    | METAVAR apply?                                  /* [CORE]  Meta variable. */
+    | dispatch                                        /* [CORE]  Dispatch expression */
+    | concrete                                        /* [SUGAR] Concrete syntax */
+    ;
+
+args
+    : LPAR scopes? RPAR                                /* [CORE] */
+    ;
+
+scopes
+    : scope (COMMA scope)*                             /* [CORE] */
     ;
 
 scope
-    : binders                                        /* [CORE]  Scoped term  */ 
-    | term                                           /* [CORE]  No-scoped term */
-    ;
-       
-binders
-    : annotation* VARIABLE<binder=x> LINEAR? FUNCTIONAL? varsort? binders<binds=x>
-    | DOT term
-    ;
-               
-args 
-    : LSQUARE terms? RSQUARE                         /* [BC3] */  
-    | LPAR terms? RPAR                               /* [CORE] */  
-    ;
-    
-terms
-    : term (COMMA term)*                             /* [CORE] */
-    ;
-    
-sargs 
-    : LSQUARE scopes? RSQUARE                        /* [BC3] */  
-    | LPAR scopes? RPAR                              /* [CORE] */  
-    ;
-    
-scopes
-    : scope (COMMA scope)*                           /* [CORE] */
+    : LSQUARE binders                                    /* [CORE]  Scoped term  */
+    | term[0]                                        /* [CORE]  No-scoped term */
     ;
 
-list                                                          
-    : LPAR decls /* [BC3] should be term */ RPAR    /* [SUGAR] */
-    ; 
-    
-variable                                            /* [CORE] */
-    : VARIABLE<symbol> LINEAR? FUNCTIONAL? varsort?
+binders
+    : VARIABLE<binder=x> LINEAR? binders<binds=x>
+    | RSQUARE FNTYPE term[0]
     ;
-    
+
+apply
+    : LPAR terms? RPAR
+    ;
+
+groupOrList
+    : LPAR RPAR                                       /* [SUGAR] Empty list */
+    | LPAR term[0] RPAR                               /* [SUGAR] Grouped term */
+    | LPAR term[0] COMMA RPAR                           /* [SUGAR] Single term list */
+    | LPAR term[0] (COMMA term[0])+ RPAR                /* [SUGAR] Multiple terms list */
+    ;
+
+variable                                            /* [CORE] */
+    : VARIABLE<symbol> LINEAR?
+    ;
+
 literal
-    : STRING                                        /* [CORE] */        
+    : STRING                                        /* [CORE] */
     | NUMBER                                        /* [CORE] */
     ;
-varsort
-    : COLONCOLON sortname;   
-    
+
 concrete
-    : CATEGORY CONCRETE                             /* [CORE]   */
-    | CATEGORY CONCRETE2                            /* [BC3]   */
-    | CATEGORY CONCRETE3                            /* [BC3]   */
-    | CATEGORY CONCRETE4                            /* [BC3]   */
-    ;    
-    
-dispatch
-    : DISPATCH term dispatchCases DELAY?                   /* [CORE: must be top-level expression when last case is DELAY]  */ 
-    ;
-    
-dispatchCases
-    : term (SEMI term)*                                    /* [CORE] */
-    ;
-    
-properties
-    : LBRACE propertyList? RBRACE
-    ;
-    
-propertyList
-    : property (SEMI property?)*
-    ;
-    
-// REVISIT: could split this up as not all properties are allowed everywhere.
-// REVISIT: allow dynamic keys.
-property
-    : METAVAR                                               /* [CORE]  property reference (match/construct)      */
-    | NOT METAVAR                                           /* [CORE]  no property references (match only)       */
-    | METAVAR COLON term                                    /* [CORE]  match property value / construct          */
-    | VARIABLE                                              /* [CORE]  match / construct variable property       */
-    | NOT VARIABLE                                          /* [CORE]  no variable (match only)                  */
-    | VARIABLE COLON term                                   /* [CORE]  match variable property value / construct */
-    | STRING                                                /* [CORE]  match / construct named property          */
-    | NOT STRING                                            /* [CORE]  no named property (match only)            */
-    | STRING COLON term                                     /* [CORE]  match named property value / construct    */
-    | constructor COLON term                                /* [CORE]  property sort declaration                 */
-    ;
-    
-/*  Sort declaration */    
-    
-sortparams
-    : FORALL variable+ DOT                                  /* [CORE] Sort parameters. */  
-    ;
-    
-sortset
-    : properties? // TODO: specialize...
-    ;
-    
-sortnames
-    : sortname (COMMA sortname)*
-    ;    
-    
-sortname
-    : constructor sortargs?                                 /* [CORE] Concrete sort reference */
-    | variable                                              /* [BC3]  Sort variable */
+    : CONCRETE                                     /* [CORE]   */
     ;
 
-sortargs 
-    : LSQUARE sortnames? RSQUARE                            /* [CORE] */  
+dispatch
+    : DISPATCH LPAR terms RPAR dispatchCases                   /* [CORE]  */
     ;
-        
-forms
-    : (form SEMI)*
+
+dispatchCases
+    : OR term[0] ARROW term[0] (COMMA dispatchCases)*            /* [CORE] */
     ;
-    
-form 
-    : constructor sargs?
-    | variable                                              
+
+map
+    : LCURLY kvs? RCURLY
     ;
-    
+
+kvs
+    : kv (COMMA kv)*
+    ;
+
+kv
+    : METAVAR                                               /* [CORE]  property reference (match/construct)      */
+    | NOT  METAVAR                                           /* [CORE]  no property references (match only)       */
+    | METAVAR COLON term[0]                                  /* [CORE]  match property value / construct          */
+    | VARIABLE                                              /* [CORE]  match / construct variable property       */
+    | NOT VARIABLE                                          /* [CORE]  no variable (match only)                  */
+    | VARIABLE COLON term[0]                              /* [CORE]  match variable property value / construct */
+    | STRING                                                /* [CORE]  match / construct named property          */
+    | NOT STRING                                            /* [CORE]  no named property (match only)            */
+    | STRING COLON term[0]                                /* [CORE]  match named property value / construct    */
+    ;
+
 constructor
-    : qualifier CONSTRUCTOR
-    | reserved                                              /* [BC3] */
+    : CONSTRUCTOR
+    | symbols                                               /* [CORE: non-reserved symbols] */
     ;
-    
-qualifier
-    : CONSTRUCTOR DOTDOT qualifier
-    |
+
+symbols                                                    /* [CORE] */
+    : COLON
+    | LT
+    | GT
+    | OR
+    | AND
     ;
-    
-reserved                                                    /* [BC3] */
-    : COLON                                             
-    | AT 
-    ;
-        
+
 // Lexer rules
+
+// Keyword as token
 
 MODULE          : 'module';
 IMPORT          : 'import';
-DISPATCH        : 'dispatch';
-DELAY           : 'delay';
 GRAMMAR         : 'grammar';
-
-COLON           : ':';
-ARROW           : '→';
-FORALL          : '∀';
+FN              : 'fn';
+TYPE            : 'type';
+DISPATCH        : 'dispatch';
+COMMA           : ',';
 LPAR            : '(';
 RPAR            : ')';
+LCURLY          : '{';
+RCURLY          : '}';
+LT              : '<';
+GT              : '>';
 LBRACE          : '{';
 RBRACE          : '}';
+LINEAR          : '¹';                                  /* [BC3]  Linear marker */
+COLON           : ':';
+OR              : '|';
+AND             : '&';
+ARROW           : '→';
+VAR             : 'var';
 LSQUARE         : '[';
 RSQUARE         : ']';
-SEMI            : ';';
-COMMA           : ',';
-DATASORT        : '::=';
-COLONCOLON      : '::';
-DOT             : '.'; 
-DOTDOT          : '..'; 
+FNTYPE          : '->';
+RULE            : 'rule';
 NOT             : '¬';
-LINEAR          : '¹';                                  /* [BC3]  Linear marker */
-FUNCTIONAL      : 'ᵇ';                                  /* [CORE] Functional binder marker */ 
-AND             : '&';
-AT              : '@';
 
-CATEGORY        : '%' (Alpha | Digit | '_')+ Ebnf?;
+FIXITY          : 'infix' | 'infixr' | 'infixl' | 'postfix' | 'prefix';
 
 CONCRETE        : '\u27e6' (CONCRETE|.)*? '\u27e7';   // ⟦ ⟧
-CONCRETE2       : '⟨' (CONCRETE2|.)*?'⟩';
-CONCRETE3       : '\u27EA' (CONCRETE3|.)*? '\u27EB';  // ⟪ ⟫
-CONCRETE4       : '\u2983' (CONCRETE4|.)*? '\u2984';  // ⦃ ⦄
 
-CONSTRUCTOR     : StartConstructorChar ConstructorChar* Ebnf?; // '$' is for internal use only.
+CONSTRUCTOR     : StartConstructorChar ConstructorChar* // '$' is for internal use only.
+                | '<' [Other] ConstructorChar*;
+VARIABLE        : Lower (Lower | Digit | '-' | '_')*;
 
-VARIABLE        : Lower (Lower | Digit | '-' | '_')*; 
-
-METAVAR         : '#' (Alpha | Digit | Other | Unicode)* Ebnf? Digit*; // '$' is for internal use only 
+METAVAR         : '#' (Alpha | Digit | '-' | '_' | Unicode)* Ebnf? Digit*; // '$' is for internal use only
 
 STRING          :  '"' ('\\"'|~'"')* '"';
 
 NUMBER          : Decimal;
 
-fragment StartConstructorChar : Upper | Other | [\u00C0-\u00DE] | '\u0100' | '\u0102' | '\u0104' | '\u0106'; // TODO: all upper cases                 
+fragment StartConstructorChar : Upper | Other | UnicodeS;
 fragment ConstructorChar      : Alpha | Digit | Other | Unicode;
 
-fragment Digit   : [0-9];
-fragment Upper   : [A-Z];                                                
-fragment Lower   : [a-z];       
-fragment Alpha   : [a-zA-Z];
-fragment Decimal : '-'? [0-9]+ ('.' [0-9]+)? | '.' [0-9]+; 
-fragment Other   : '-' | '$' | '_'; // TODO: remove '-'
-fragment Unicode : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
-fragment Ebnf    : '*' | '?' | '+'; 
+fragment Digit    : [0-9];
+fragment Upper    : [A-Z];
+fragment Lower    : [a-z];
+fragment Alpha    : [a-zA-Z];
+fragment Decimal  : '-'? [0-9]+ ('.' [0-9]+)? | '.' [0-9]+;
+fragment Other    : '-' | [$_+/|`~!@^&*=?/>.:];
+fragment Unicode  : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
+fragment UnicodeS : ~[\u0000-\u00FF\uD800-\uDBFF\u27e6\u27e7\u27e8\u27e9] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
+fragment Ebnf     : '*' | '?' | '+';
 
 WS               : [ \t\r\n\f]+ -> channel(HIDDEN) ;
 
 BLOCK_COMMENT    : '/*' .*? ('*/' | EOF)    -> channel(HIDDEN);
 LINE_COMMENT     : '//' ~[\r\n]*            -> channel(HIDDEN);
-XML_COMMENT      : '<!--' .*? ('-->' | EOF) -> channel(HIDDEN);               /* [BC3] */

@@ -1092,30 +1092,6 @@ public class CrsxMetaParserBaseListener implements CrsxMetaParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterConcrete2_TOK(CrsxMetaParser.Concrete2_TOKContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitConcrete2_TOK(CrsxMetaParser.Concrete2_TOKContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterConcrete2_TOK_EOF(CrsxMetaParser.Concrete2_TOK_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitConcrete2_TOK_EOF(CrsxMetaParser.Concrete2_TOK_EOFContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterConcrete3_TOK(CrsxMetaParser.Concrete3_TOKContext ctx) { }
 	/**
 	 * {@inheritDoc}

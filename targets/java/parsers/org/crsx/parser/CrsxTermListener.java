@@ -15,7 +15,7 @@ import static org.crsx.pg.SinkAntlrListener.fireEnterBinder;
 import static org.crsx.pg.SinkAntlrListener.fireExitBinder;
 import static org.crsx.pg.SinkAntlrListener.fireEnterBinds;
 import static org.crsx.pg.SinkAntlrListener.fireExitBinds;
-
+import java.util.*;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -85,45 +85,205 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 */
 	void exitSortDecl(CrsxTermParser.SortDeclContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#termDecl}.
+	 * Enter a parse tree produced by {@link CrsxTermParser#sortVars}.
 	 * @param ctx the parse tree
 	 */
-	void enterTermDecl(CrsxTermParser.TermDeclContext ctx);
+	void enterSortVars(CrsxTermParser.SortVarsContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#termDecl}.
+	 * Exit a parse tree produced by {@link CrsxTermParser#sortVars}.
 	 * @param ctx the parse tree
 	 */
-	void exitTermDecl(CrsxTermParser.TermDeclContext ctx);
+	void exitSortVars(CrsxTermParser.SortVarsContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#option}.
+	 * Enter a parse tree produced by {@link CrsxTermParser#sortDef}.
 	 * @param ctx the parse tree
 	 */
-	void enterOption(CrsxTermParser.OptionContext ctx);
+	void enterSortDef(CrsxTermParser.SortDefContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#option}.
+	 * Exit a parse tree produced by {@link CrsxTermParser#sortDef}.
 	 * @param ctx the parse tree
 	 */
-	void exitOption(CrsxTermParser.OptionContext ctx);
+	void exitSortDef(CrsxTermParser.SortDefContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#annotation}.
+	 * Enter a parse tree produced by {@link CrsxTermParser#fixity}.
 	 * @param ctx the parse tree
 	 */
-	void enterAnnotation(CrsxTermParser.AnnotationContext ctx);
+	void enterFixity(CrsxTermParser.FixityContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#annotation}.
+	 * Exit a parse tree produced by {@link CrsxTermParser#fixity}.
 	 * @param ctx the parse tree
 	 */
-	void exitAnnotation(CrsxTermParser.AnnotationContext ctx);
+	void exitFixity(CrsxTermParser.FixityContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#contractum}.
+	 * Enter a parse tree produced by {@link CrsxTermParser#variant}.
 	 * @param ctx the parse tree
 	 */
-	void enterContractum(CrsxTermParser.ContractumContext ctx);
+	void enterVariant(CrsxTermParser.VariantContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#contractum}.
+	 * Exit a parse tree produced by {@link CrsxTermParser#variant}.
 	 * @param ctx the parse tree
 	 */
-	void exitContractum(CrsxTermParser.ContractumContext ctx);
+	void exitVariant(CrsxTermParser.VariantContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#variantArgs}.
+	 * @param ctx the parse tree
+	 */
+	void enterVariantArgs(CrsxTermParser.VariantArgsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#variantArgs}.
+	 * @param ctx the parse tree
+	 */
+	void exitVariantArgs(CrsxTermParser.VariantArgsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#sortMap}.
+	 * @param ctx the parse tree
+	 */
+	void enterSortMap(CrsxTermParser.SortMapContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#sortMap}.
+	 * @param ctx the parse tree
+	 */
+	void exitSortMap(CrsxTermParser.SortMapContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#fnSortParams}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnSortParams(CrsxTermParser.FnSortParamsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#fnSortParams}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnSortParams(CrsxTermParser.FnSortParamsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#sort}.
+	 * @param ctx the parse tree
+	 */
+	void enterSort(CrsxTermParser.SortContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#sort}.
+	 * @param ctx the parse tree
+	 */
+	void exitSort(CrsxTermParser.SortContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#sortScope}.
+	 * @param ctx the parse tree
+	 */
+	void enterSortScope(CrsxTermParser.SortScopeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#sortScope}.
+	 * @param ctx the parse tree
+	 */
+	void exitSortScope(CrsxTermParser.SortScopeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#paramSort}.
+	 * @param ctx the parse tree
+	 */
+	void enterParamSort(CrsxTermParser.ParamSortContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#paramSort}.
+	 * @param ctx the parse tree
+	 */
+	void exitParamSort(CrsxTermParser.ParamSortContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#sortParams}.
+	 * @param ctx the parse tree
+	 */
+	void enterSortParams(CrsxTermParser.SortParamsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#sortParams}.
+	 * @param ctx the parse tree
+	 */
+	void exitSortParams(CrsxTermParser.SortParamsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#sorts}.
+	 * @param ctx the parse tree
+	 */
+	void enterSorts(CrsxTermParser.SortsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#sorts}.
+	 * @param ctx the parse tree
+	 */
+	void exitSorts(CrsxTermParser.SortsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#ruleDecl}.
+	 * @param ctx the parse tree
+	 */
+	void enterRuleDecl(CrsxTermParser.RuleDeclContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#ruleDecl}.
+	 * @param ctx the parse tree
+	 */
+	void exitRuleDecl(CrsxTermParser.RuleDeclContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#fnDecl}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnDecl(CrsxTermParser.FnDeclContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#fnDecl}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnDecl(CrsxTermParser.FnDeclContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#fnFixity}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnFixity(CrsxTermParser.FnFixityContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#fnFixity}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnFixity(CrsxTermParser.FnFixityContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#fnParamsDecl}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParamsDecl(CrsxTermParser.FnParamsDeclContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#fnParamsDecl}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParamsDecl(CrsxTermParser.FnParamsDeclContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#fnParams}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParams(CrsxTermParser.FnParamsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#fnParams}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParams(CrsxTermParser.FnParamsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#fnParam}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParam(CrsxTermParser.FnParamContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#fnParam}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParam(CrsxTermParser.FnParamContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#fnParamSort}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParamSort(CrsxTermParser.FnParamSortContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#fnParamSort}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParamSort(CrsxTermParser.FnParamSortContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#terms}.
+	 * @param ctx the parse tree
+	 */
+	void enterTerms(CrsxTermParser.TermsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#terms}.
+	 * @param ctx the parse tree
+	 */
+	void exitTerms(CrsxTermParser.TermsContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#term}.
 	 * @param ctx the parse tree
@@ -134,6 +294,46 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitTerm(CrsxTermParser.TermContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#nterm}.
+	 * @param ctx the parse tree
+	 */
+	void enterNterm(CrsxTermParser.NtermContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#nterm}.
+	 * @param ctx the parse tree
+	 */
+	void exitNterm(CrsxTermParser.NtermContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#aterm}.
+	 * @param ctx the parse tree
+	 */
+	void enterAterm(CrsxTermParser.AtermContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#aterm}.
+	 * @param ctx the parse tree
+	 */
+	void exitAterm(CrsxTermParser.AtermContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#args}.
+	 * @param ctx the parse tree
+	 */
+	void enterArgs(CrsxTermParser.ArgsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#args}.
+	 * @param ctx the parse tree
+	 */
+	void exitArgs(CrsxTermParser.ArgsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxTermParser#scopes}.
+	 * @param ctx the parse tree
+	 */
+	void enterScopes(CrsxTermParser.ScopesContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxTermParser#scopes}.
+	 * @param ctx the parse tree
+	 */
+	void exitScopes(CrsxTermParser.ScopesContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#scope}.
 	 * @param ctx the parse tree
@@ -155,55 +355,25 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 */
 	void exitBinders(CrsxTermParser.BindersContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#args}.
+	 * Enter a parse tree produced by {@link CrsxTermParser#apply}.
 	 * @param ctx the parse tree
 	 */
-	void enterArgs(CrsxTermParser.ArgsContext ctx);
+	void enterApply(CrsxTermParser.ApplyContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#args}.
+	 * Exit a parse tree produced by {@link CrsxTermParser#apply}.
 	 * @param ctx the parse tree
 	 */
-	void exitArgs(CrsxTermParser.ArgsContext ctx);
+	void exitApply(CrsxTermParser.ApplyContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#terms}.
+	 * Enter a parse tree produced by {@link CrsxTermParser#groupOrList}.
 	 * @param ctx the parse tree
 	 */
-	void enterTerms(CrsxTermParser.TermsContext ctx);
+	void enterGroupOrList(CrsxTermParser.GroupOrListContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#terms}.
+	 * Exit a parse tree produced by {@link CrsxTermParser#groupOrList}.
 	 * @param ctx the parse tree
 	 */
-	void exitTerms(CrsxTermParser.TermsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#sargs}.
-	 * @param ctx the parse tree
-	 */
-	void enterSargs(CrsxTermParser.SargsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#sargs}.
-	 * @param ctx the parse tree
-	 */
-	void exitSargs(CrsxTermParser.SargsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#scopes}.
-	 * @param ctx the parse tree
-	 */
-	void enterScopes(CrsxTermParser.ScopesContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#scopes}.
-	 * @param ctx the parse tree
-	 */
-	void exitScopes(CrsxTermParser.ScopesContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#list}.
-	 * @param ctx the parse tree
-	 */
-	void enterList(CrsxTermParser.ListContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#list}.
-	 * @param ctx the parse tree
-	 */
-	void exitList(CrsxTermParser.ListContext ctx);
+	void exitGroupOrList(CrsxTermParser.GroupOrListContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#variable}.
 	 * @param ctx the parse tree
@@ -224,16 +394,6 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitLiteral(CrsxTermParser.LiteralContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#varsort}.
-	 * @param ctx the parse tree
-	 */
-	void enterVarsort(CrsxTermParser.VarsortContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#varsort}.
-	 * @param ctx the parse tree
-	 */
-	void exitVarsort(CrsxTermParser.VarsortContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#concrete}.
 	 * @param ctx the parse tree
@@ -265,105 +425,35 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 */
 	void exitDispatchCases(CrsxTermParser.DispatchCasesContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#properties}.
+	 * Enter a parse tree produced by {@link CrsxTermParser#map}.
 	 * @param ctx the parse tree
 	 */
-	void enterProperties(CrsxTermParser.PropertiesContext ctx);
+	void enterMap(CrsxTermParser.MapContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#properties}.
+	 * Exit a parse tree produced by {@link CrsxTermParser#map}.
 	 * @param ctx the parse tree
 	 */
-	void exitProperties(CrsxTermParser.PropertiesContext ctx);
+	void exitMap(CrsxTermParser.MapContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#propertyList}.
+	 * Enter a parse tree produced by {@link CrsxTermParser#kvs}.
 	 * @param ctx the parse tree
 	 */
-	void enterPropertyList(CrsxTermParser.PropertyListContext ctx);
+	void enterKvs(CrsxTermParser.KvsContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#propertyList}.
+	 * Exit a parse tree produced by {@link CrsxTermParser#kvs}.
 	 * @param ctx the parse tree
 	 */
-	void exitPropertyList(CrsxTermParser.PropertyListContext ctx);
+	void exitKvs(CrsxTermParser.KvsContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#property}.
+	 * Enter a parse tree produced by {@link CrsxTermParser#kv}.
 	 * @param ctx the parse tree
 	 */
-	void enterProperty(CrsxTermParser.PropertyContext ctx);
+	void enterKv(CrsxTermParser.KvContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#property}.
+	 * Exit a parse tree produced by {@link CrsxTermParser#kv}.
 	 * @param ctx the parse tree
 	 */
-	void exitProperty(CrsxTermParser.PropertyContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#sortparams}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortparams(CrsxTermParser.SortparamsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#sortparams}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortparams(CrsxTermParser.SortparamsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#sortset}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortset(CrsxTermParser.SortsetContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#sortset}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortset(CrsxTermParser.SortsetContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#sortnames}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortnames(CrsxTermParser.SortnamesContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#sortnames}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortnames(CrsxTermParser.SortnamesContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#sortname}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortname(CrsxTermParser.SortnameContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#sortname}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortname(CrsxTermParser.SortnameContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#sortargs}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortargs(CrsxTermParser.SortargsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#sortargs}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortargs(CrsxTermParser.SortargsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#forms}.
-	 * @param ctx the parse tree
-	 */
-	void enterForms(CrsxTermParser.FormsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#forms}.
-	 * @param ctx the parse tree
-	 */
-	void exitForms(CrsxTermParser.FormsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#form}.
-	 * @param ctx the parse tree
-	 */
-	void enterForm(CrsxTermParser.FormContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#form}.
-	 * @param ctx the parse tree
-	 */
-	void exitForm(CrsxTermParser.FormContext ctx);
+	void exitKv(CrsxTermParser.KvContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxTermParser#constructor}.
 	 * @param ctx the parse tree
@@ -375,23 +465,13 @@ public interface CrsxTermListener extends ParseTreeListener {
 	 */
 	void exitConstructor(CrsxTermParser.ConstructorContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#qualifier}.
+	 * Enter a parse tree produced by {@link CrsxTermParser#symbols}.
 	 * @param ctx the parse tree
 	 */
-	void enterQualifier(CrsxTermParser.QualifierContext ctx);
+	void enterSymbols(CrsxTermParser.SymbolsContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#qualifier}.
+	 * Exit a parse tree produced by {@link CrsxTermParser#symbols}.
 	 * @param ctx the parse tree
 	 */
-	void exitQualifier(CrsxTermParser.QualifierContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxTermParser#reserved}.
-	 * @param ctx the parse tree
-	 */
-	void enterReserved(CrsxTermParser.ReservedContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxTermParser#reserved}.
-	 * @param ctx the parse tree
-	 */
-	void exitReserved(CrsxTermParser.ReservedContext ctx);
+	void exitSymbols(CrsxTermParser.SymbolsContext ctx);
 }

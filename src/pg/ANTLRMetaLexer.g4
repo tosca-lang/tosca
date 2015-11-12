@@ -347,6 +347,9 @@ ET_BLOCK      : START_EMBED_CHAR 'block:'       -> pushMode(Embed);
 MT_ACTION     : META_CHAR 'ACTION' [0-9]*;
 ET_ACTION     : START_EMBED_CHAR 'ACTION:'       -> pushMode(Embed);
 
+PMT_ACTION     : META_CHAR 'action' [0-9]*;
+PET_ACTION     : START_EMBED_CHAR 'action:'       -> pushMode(Embed);
+
 MT_STRING_LITERAL : META_CHAR 'STRING_LITERAL' [0-9]*;
 ET_STRING_LITERAL : START_EMBED_CHAR 'STRING_LITERAL:'  -> pushMode(Embed);
 
