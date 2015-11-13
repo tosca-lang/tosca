@@ -23,21 +23,39 @@ Assert[ IsInstance[ %term⟦ F[y.A[y]] ⟧, Mgu[(PairCons["#X",%term⟦ y.A[y] �
         ComputeOverlapOrder[ %term⟦ F[y.A[y]] ⟧, %term⟦ F[x.#X[x]]  ⟧]
 	  ];
 
-/* no idea why this doesn't compute   */
 Assert[ RENAMING,
         ComputeOverlapOrder[ %term⟦ #X ⟧, %term⟦ #Y⟧]
 	  ];
 
-/* no idea why this doesn't compute   */
 Assert[ RENAMING,
         ComputeOverlapOrder[ %term⟦ F[#X] ⟧, %term⟦ F[#Y] ⟧]
 	  ];
 	
+
+Assert[ RENAMING,
+        ComputeOverlapOrder[ %term⟦ F[x.#X[x]] ⟧, %term⟦ F[y.#Y[y]] ⟧]
+	  ];
+
+// also includes renaming
+Assert[ IsInstance[ %term⟦ F[x x2.#X[x]] ⟧, 
+                    Mgu[( PairCons["#Y", %term⟦ x x2 . #0[x] ⟧]; 
+                          PairCons["#X", %term⟦ x . #0[x] ⟧];)], 
+                    %term⟦ F[y1 y2.#Y[y1,y2]] ⟧],
+        ComputeOverlapOrder[ %term⟦ F[x x2.#X[x]] ⟧, %term⟦ F[y1 y2.#Y[y1,y2]] ⟧]
+	  ];
+
+// also includes renaming
 Assert[ IsInstance[ %term⟦ F[B, #Y1] ⟧,
-                    Mgu[(PairCons["#Y1",%term⟦ B ⟧];)] ,
+                    Mgu[( PairCons["#Y2",%term⟦ #0 ⟧];
+                          PairCons["#Y1",%term⟦ #0 ⟧];
+                          PairCons["#X2",%term⟦ B ⟧];)] ,
                     %term⟦ F[#X2, #Y2] ⟧
                    ],
-        ComputeOverlapOrder[%term⟦ F[B, #Y1] ⟧ , %term⟦ F[#X2, #Y2] ⟧ ]
+        ComputeOverlapOrder[ %term⟦ F[B, #Y1] ⟧, 
+                             %term⟦ F[#X2, #Y2] ⟧ ]
        ];
+
+
+
 
 )

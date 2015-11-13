@@ -10,6 +10,7 @@ Specify[(
 $Use["std/core.crs"];
 $Use["std/list.crs"];
 $Use["std/pair.crs"];
+$Use["std/tree.crs"];
 
 $Use["unification/mgu.crs"];
 $Use["unification/unification.crs"];
@@ -20,7 +21,12 @@ $Use["utils/termops.crs"];
 $Use["utils/crsxequs.crs"];
 
 
-/* Disclaimer: Work in Progress --- neither working nor tested */
+/* Disclaimer: Work in Progress ---
+   2015/11/13: still preliminarty
+               but first 'specificity tree' computed (see SpecificityTree.term)
+               next steps: 1. more testing 
+                           2. the mgu has maybe redundant meta variables, check that out.
+ */
 
 OverlapOrder ::=  ( /* the terms do not unify */
                     INCOMPARABLE;   
@@ -35,6 +41,8 @@ OverlapOrder ::=  ( /* the terms do not unify */
                       but neither is an instance of the other */
                     AreParallel[Crsx_term_sort, Mgu, Crsx_term_sort]; );
 
+
+
 ComputeOverlapOrder[Crsx_term_sort, Crsx_term_sort ] :: OverlapOrder;
 ComputeOverlapOrder[ #t1, #t2 ] → 
    MatchUnifier[UnifyTerms[#t1, #t2], #t1, #t2];
@@ -46,112 +54,36 @@ ComputeOverlapOrder[ #t1, #t2 ] →
                    RestrictDomain[Mgu[#theta], #t2], Mgu[#theta], #t1, #t2];
    /* if there is a unifier, it computes whether one term is an instance */
    MatchInstance[Option[Mgu], Option[Mgu], Mgu, Crsx_term_sort, Crsx_term_sort ] :: OverlapOrder;
-   MatchInstance[NONE,        NONE,          #mgu, #t1, #t2] → AreParallel[#t1, #mgu, #t2];
-   MatchInstance[SOME[#mgu1],  SOME[#mgu2],  #mguP, #t1, #t2] → RENAMING;
+   MatchInstance[NONE,        NONE,          #mgu,  #t1, #t2] → AreParallel[#t1, #mgu, #t2];
+   MatchInstance[SOME[#mgu1], SOME[#mgu2],   #mguP, #t1, #t2] → RENAMING;
    MatchInstance[SOME[#mgu1], NONE,          #mguP, #t1, #t2] → IsGeneralization[#t1, #mguP, #t2];
    MatchInstance[NONE,        SOME[#mgu2],   #mguP, #t1, #t2] → IsInstance[#t1, #mguP, #t2];
 
 
-∀ l a . Tree[l,a] ::= ( Leaf[a]; Branch[ a , $List[Pair[l,Tree[l,a]]]]; Empty; );
-
-∀ l a . Root[ Tree[l,a] ] :: a;
-Root[ Leaf[#] ] → #;
-Root[ Branch[#, #succs]] → #;
-
-∀ l a . Succs[ Tree[l,a] ] :: $List[ Tree[l,a]  ];
-Succs[ Leaf[#] ] → ();
-Succs[ Branch[#, #succs]] → Map[ x.Snd[x], #succs];
-
-
-INIT_TREE[Crsx_sortDeclaration_sort] :: Tree[Mgu, Crsx_ruleDeclaration_sort];
-INIT_TREE[ #sortDeclaration ] → 
-Branch[ %ruleDeclaration⟦ ⟨pattern: WrapPattern[BluePrint[#sortDeclaration]]⟩ → F_LLBACK ⟧, () ];
-
 
 // input: a list of rules
 // output: a list of trees, ordered by instances
-ComputeInstanceOrder[Crsx_sortDeclaration_sort, $List[Crsx_ruleDeclaration_sort]] :: Tree[Mgu, Crsx_ruleDeclaration_sort];
-ComputeInstanceOrder[#sortDeclaration, #ruleDeclarations] 
-→ FoldlP[r tree . InsertRule[r, tree], INIT_TREE[#sortDeclaration], #ruleDeclarations];
+SpecificityTree[$List[Crsx_ruleDeclaration_sort]] :: $List[Tree[Crsx_ruleDeclaration_sort, Mgu]];
+SpecificityTree[#ruleDeclarations] 
+→ FoldlP[r rs . InsertRule[r, rs], (), #ruleDeclarations];
 
 
-InsertRule[Crsx_ruleDeclaration_sort, Tree[Mgu, Crsx_ruleDeclaration_sort]] :: Tree[Mgu, Crsx_ruleDeclaration_sort];
-InsertRule[ #r1, Branch[ #r2, #succs]]
-→ MatchInsert[ComputeOverlapOrder[Lhs[#r1], 
-                                  Lhs[#r2]], #r1, Branch[ #r2, #succs]];
+InsertRule[Crsx_ruleDeclaration_sort, $List[Tree[Crsx_ruleDeclaration_sort, Mgu]]] :: $List[Tree[Crsx_ruleDeclaration_sort, Mgu]];
+InsertRule[ #r1, #t] → InsertNode[ n1 n2 . CompareRules[n1,n2], #r1, #t];
 
-MatchInsert[OverlapOrder, Crsx_ruleDeclaration_sort, Tree[Mgu, Crsx_ruleDeclaration_sort]] :: Tree[Mgu, Crsx_ruleDeclaration_sort];
-// missing if root is overlapped twice!
-MatchInsert[RENAMING, #r1, Branch[#r2, #succs]] →  Branch[#r1, #succs]; 
+CompareRules[ Crsx_ruleDeclaration_sort, Crsx_ruleDeclaration_sort ] :: Pos[Mgu];
+CompareRules[#r1, #r2] → MatchCompareRules[ComputeOverlapOrder[Lhs[#r1], Lhs[#r2]]];
 
+  MatchCompareRules[OverlapOrder] :: Pos[Mgu];
+  MatchCompareRules[INCOMPARABLE]                     → Parallel;   
+  MatchCompareRules[RENAMING]                         → UnInsertable;  
+  MatchCompareRules[IsInstance[#t1, #mgu, #t2]]       → Below[#mgu]; 
+  MatchCompareRules[IsGeneralization[#t1, #mgu, #t2]] → Above[#mgu]; 
+  MatchCompareRules[AreParallel[#t1, #mgu, #t2]]      → UnInsertable;
 
-MatchInsert[IsInstance[#lhs1, #mgu, #lhs2], #r1, Branch[#r2, #succs]] →  
-Branch[ #r2, InsertInSuccs[#r1, #mgu, #succs ]];
-
-
-InsertInSuccs[Crsx_ruleDeclaration_sort, Mgu, $List[Pair[Mgu,Tree[Mgu, Crsx_ruleDeclaration_sort]]]] :: $List[Pair[Mgu,Tree[Mgu, Crsx_ruleDeclaration_sort]]];
-InsertInSuccs[ #r, #mgu, () ] → ( PairCons[ #mgu, Branch[ #r, ()]];  );
-InsertInSuccs[ #r, #mgu, (PairCons[#mgu2, #t];#ts)] → MatchInsertSuccs[ComputeOverlapOrder[Lhs[#r], 
-                                  Lhs[Root[#t]]], #r, #mgu, PairCons[#mgu2,#t], #ts, ()];
-
-MatchInsertSuccs[ OverlapOrder, 
-                  Crsx_ruleDeclaration_sort, 
-                  Mgu,
-                  Pair[Mgu,Tree[Mgu, Crsx_ruleDeclaration_sort]],
-                  $List[ Pair[Mgu,Tree[Mgu, Crsx_ruleDeclaration_sort]]], 
-                  $List[  Pair[Mgu,Tree[Mgu, Crsx_ruleDeclaration_sort]]]
-                ] :: $List[Pair[Mgu,Tree[Mgu, Crsx_ruleDeclaration_sort]]];
-
-MatchInsertSuccs[RENAMING, #r, #mgu1, PairCons[#mgu, #t], #ts, #acc] → ErrorRenaming[#r, Root[#t]];
-MatchInsertSuccs[AreParallel[#lhs1, #mgu, #lhs2], #r, #mgu1, PairCons[#mgu, #t], #ts, #acc] → ErrorParallelOverlap[#mgu, #r, Root[#t]];
-
-
-// r and rt of current are not comparable 
-// try to insert in rest
-//MatchInsertSuccs[INCOMPARABLE, #r, #mgu1, #t, #ts, ()] → (#t; InsertInSuccs[#r, #mgu1, #ts]);
-
-//MatchInsertSuccs[IsInstance[#lhs1, #mgu, #lhs2], #r, #mgu1, #t, #ts, #acc] →  (InsertRule[#r,#t]; #ts); 
-
-
-//MatchInsertSuccs[IsInstance[#lhs1, #mgu, #lhs2], #r, #mgu, #t, #ts, SOME[#foo]] → Error["AAAH!"];
-
-/*
-MatchInsertSuccs[IsGeneralization[#lhs1, #mgu, #lhs2], #r, #mgu, #t, (#t2;#ts), #acc] 
-→  MatchInsertSuccs[ ComputeOverlapOrder[Lhs[#r], Lhs[Root[#t2]]],#r, #mgu, #t2, #ts, (PairCons[#mgu,#t]; #acc)]; 
 
 
 /*
-ComputeInstanceOrder[$List[Crsx_ruleDeclaration_sort]] :: Tree[Mgu, Crsx_ruleDeclaration_sort];
-ComputeInstanceOrder[#rules] → FoldlP[r trees . InsertInstance[r, trees, ()], (Empty;), #rules];
-
-InsertInstance[ Crsx_ruleDeclaration_sort, $List[Tree[Mgu, Crsx_ruleDeclaration_sort]], $List[Tree[Mgu, Crsx_ruleDeclaration_sort]] ] :: Tree[Mgu, Crsx_ruleDeclaration_sort];
-InsertInstance[ #r, (), ()] → ( Leaf[#r]; );
-InsertInstance[ #r, (), #acc] → ( Branch[ #r, #acc ]; );
-InsertInstance[ #r, (#t; #ts), #acc] 
-→ MatchInsert[ComputeOverlapOrder[Lhs[#r], 
-                                  Lhs[Root[#t]]], #r, #t, #ts, #acc /* generalization collect ];
-
-//MatchInsert[OverlapOrder, Crsx_ruleDeclaration_sort, Tree[Mgu, Crsx_ruleDeclaration_sort], $List[Tree[Mgu, Crsx_ruleDeclaration_sort]]]:: $List[Tree[Mgu, Crsx_ruleDeclaration_sort]]; 
-MatchInsert[INCOMPARABLE, #r, #t, #ts, #acc]                → (#t; InsertInstance[#r, #ts, #acc]);
-MatchInsert[RENAMING,     #r, #t, #ts, #acc]                → ErrorRenaming[#r, Root[#t]];
-
-MatchInsert[AreParallel[#lhs1, #mgu, #lhs2], #r, #t, #ts, #acc] → ErrorParallelOverlap[#mgu, #r, Root[#t]];
-
-MatchInsert[IsInstance[#lhs1, #mgu, #lhs2], #r, #t, #ts, #acc] →  (InsertInTree[#mgu, #r, #t]; #ts); 
-
-MatchInsert[IsGeneralization[#lhs1, #mgu, #lhs2], #r, #t, (#t2;#ts), #acc] →  MatchInsert[ ComputeOverlap[Lhs[#r], Lhs[Root[#t2]]],
-                                                                                     #r, #t2, #ts, (PairCons[#mgu,#t]; #acc)
-                                                                                   ]; 
-
-
-InsertInTree[Mgu, Crsx_ruleDeclaration_sort, Tree[Mgu, Crsx_ruleDeclaration_sort] ] :: Tree[Mgu, Crsx_ruleDeclaration_sort];
-InsertInTree[ #mgu, #r, Leaf[#t]] →  Branch[#t, (PairCons[#mgu, Leaf[#r]];) ];
-// based on mgu some optimization should be possible!
-InsertInTree[ #mgu, #r, Branch[#t, #ts]] → Branch[ #t, SuccsHack[#r, #ts] ];
-
-//SuccsHack[ #r,#ts ] → InsertInstance[#r, Map[ x.Snd[x], #ts] , ()];
-*/
-
 
 ErrorParallelOverlap[ Mgu, Crsx_ruleDeclaration_sort, Crsx_ruleDeclaration_sort ] :: $List[Pair[Mgu,Tree[Mgu, Crsx_ruleDeclaration_sort]]];
 ErrorParallelOverlap[ #mgu, #r1, #r2] → 
@@ -171,5 +103,6 @@ Error[ ConcatString[ "I am very sorry to inform you, that two of your rules are 
                       Show[#r2]]]] 
      ]; 
 
+*/
 
 )]

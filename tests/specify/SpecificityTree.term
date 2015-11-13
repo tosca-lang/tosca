@@ -1,0 +1,33 @@
+/* 
+ * @author : m schett
+ * @date   : 2015/11/13
+ */
+(
+
+
+
+/* TEST TREE
+      F[#1, #2]
+        /   \
+   F[A, #2]   F[B, #2]
+     / \ 
+F[A,A]  F[A,B]
+*/
+
+
+
+Assert[ SpecificityTree[ ( %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
+                           %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
+                           %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
+                           %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
+                           %ruleDeclaration⟦ F[#1, #2]  → C1 ⟧;
+                          )]
+         ,
+        SpecificityTree[ ( %ruleDeclaration⟦ F[#1, #2]  → C1 ⟧;
+                           %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
+                           %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
+                           %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
+                           %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
+                          )]
+      ];
+)
