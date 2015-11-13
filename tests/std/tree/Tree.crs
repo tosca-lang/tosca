@@ -1,0 +1,48 @@
+
+Tree[(
+
+/* TEST TREE
+         A
+  ZERO /   \ ONE
+      B     D
+ZERO / \ ZERO
+    C   E
+*/
+
+LETTER ::= ( A; B; C; D; E; );
+NUMBER ::= ( ZERO; ONE; );
+
+TestPos[LETTER, LETTER] :: Pos[NUMBER];
+
+TestPos[A, A] → UnInsertable;
+TestPos[A, B] → Above[ZERO];
+TestPos[A, C] → Above[ZERO];
+TestPos[A, D] → Above[ONE];
+TestPos[A, E] → Above[ZERO];
+
+TestPos[B, A] → Below[ZERO];
+TestPos[B, B] → UnInsertable;
+TestPos[B, C] → Above[ZERO];
+TestPos[B, D] → Parallel; 
+TestPos[B, E] → Above[ZERO];
+
+TestPos[C, A] → Below[ZERO];
+TestPos[C, B] → Below[ZERO];
+TestPos[C, C] → UnInsertable;
+TestPos[C, D] → Parallel;
+TestPos[C, E] → Parallel;
+
+
+TestPos[D, A] → Below[ONE];
+TestPos[D, B] → Parallel; 
+TestPos[D, C] → Parallel;
+TestPos[D, D] → UnInsertable;
+TestPos[D, E] → Parallel;
+
+TestPos[E, A] → Below[ZERO];
+TestPos[E, B] → Below[ZERO];
+TestPos[E, C] → Parallel;
+TestPos[E, D] → Parallel;
+TestPos[E, E] → UnInsertable;
+
+)]

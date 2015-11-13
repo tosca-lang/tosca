@@ -27,12 +27,16 @@ $Use["utils/termops.crs"];
 $Use["utils/wrap.crs"];
 $Use["utils/unwrap.crs"];
 
+
+$Use["std/tree.crs"];
+// Test files, this should be solved somehow prettier than this...
+$Use["../tests/std/tree/Tree.crs"];
+
 $Use["specify/specify.crs"];
 
 
 Main[$List[$Boolean]] :: $List[$Boolean];
 -[Data[#]] : Main[#] → #;
-
 
 ∀ a . Assert[a,a] :: Boolean;
 -[Data[#Expected,#Computed]] : 

@@ -1,5 +1,5 @@
 /*
- * Copyright Mgu[(c)] 2015 IBM Corporation.
+ * Copyright (c) 2015 IBM Corporation.
  *  
  *
  * @author : m schett
@@ -68,6 +68,8 @@ Assert[ Error,
 Assert[ Mgu[ (PairCons["#X", %term⟦ Zero ⟧]; PairCons["#G", %term⟦ y x.#0[x] ⟧]; PairCons["#F", %term⟦ x.#0[x] ⟧];) ],
         GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ Div[x y. #F[x],#X] ⟧ , %term⟦  Div[x y. #G[y,x], Zero]  ⟧]]]
        ];
+
+
 
 
 // renaming 

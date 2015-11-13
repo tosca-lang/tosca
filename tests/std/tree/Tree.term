@@ -1,0 +1,123 @@
+/*
+ * @author : m schett
+ * @date   : 2015/11/06
+ */
+
+(
+
+
+/* TEST TREE
+         A
+  ZERO /   \ ONE
+      B     D
+ZERO / \ ZERO
+    C   E
+*/
+
+
+
+// Insert: A In: A*
+Assert[ ( Branch[A, ()]; ),
+        InsertNode[x y.Test[x,y], A, ()] 
+      ];
+
+// Insert: B In:  A
+//               /
+//              B*
+Assert[ ( Branch[A, (PairCons[ZERO, Branch[B,()]];)] ;) ,
+        InsertNode[ x y . TestPos[x,y], B, (Branch[A,()];)]
+      ];
+
+// Insert: B IN: D B* 
+Assert[ ( Branch[D,()]; Branch[B,()]; ),
+        InsertNode[ x y.TestPos[x,y], B, (Branch[D, ()]; )]
+      ];
+
+// Insert: C In:  A
+//               / 
+//              B
+//             /
+//            C*
+Assert[ ( Branch[A, (PairCons[ZERO, Branch[B, (PairCons[ZERO, Branch[C, ()]];) ]];)] ;) ,
+          InsertNode[ x y . TestPos[x,y], C, ( Branch[A, (PairCons[ZERO, Branch[B,()]];)]; )]
+       ];
+
+// Insert: D In:  A
+//               / \ 
+//              B   D*
+//             / 
+//            C
+Assert[ (Branch[A, ( PairCons[ZERO, Branch[B, (PairCons[ZERO, Branch[C, ()]]; )]];
+                     PairCons[ONE,  Branch[D, ()]]; )]; ), 
+        InsertNode[ x y . TestPos[x,y], D,  (Branch[A, (PairCons[ZERO, Branch[B, (PairCons[ZERO, Branch[C,()]];) ]];)];)]
+       ];
+
+// Insert: A In:  A*
+//               /
+//              B
+//             /
+//            C
+
+Assert[ (Branch[A, (PairCons[ZERO, Branch[B, (PairCons[ZERO, Branch[C, ()]];)]];)];),
+        InsertNode [ x y . TestPos[x,y], A, (Branch[B, (PairCons[ZERO, Branch[C, ()]];)];)]  
+      ];
+
+// Insert: C In:  A
+//               / \ 
+//              B   D
+//             / 
+//            C*
+Assert[ (Branch[ A, ( PairCons[ZERO, Branch[B, (PairCons[ZERO, Branch[C, ()]]; )]];
+                      PairCons[ONE, Branch[D, ()]];
+                     )]; ),
+        InsertNode[x y.TestPos[x,y], C, (Branch[A, (PairCons[ZERO, Branch[B, ()]]; PairCons[ONE, Branch[D, ()]];)];) ]
+      ];
+
+// Insert: A In:  A*
+//               / \ 
+//              B   D
+Assert[ (Branch[A, (PairCons[ZERO, Branch[B, ()]]; PairCons[ONE, Branch[D, ()]]; )];),
+        InsertNode[ x y.TestPos[x,y], A, (Branch[B, ()]; Branch[D, ()]; )]
+      ];
+
+
+// Insert: B In:  A
+//               / \ 
+//              B*   D
+//             / \
+//            C   E
+Assert[ (Branch[A, ( PairCons[ZERO, Branch[B, 
+                                   (PairCons[ZERO,  Branch[C, ()]]; 
+                                    PairCons[ZERO, Branch[E, ()]];)
+                              ]];)];),
+        InsertNode[x y.TestPos[x,y], B, (Branch[A, (PairCons[ZERO, Branch[C, ()]]; PairCons[ZERO, Branch[E, ()]];)];) ]
+      ];
+
+
+Assert[ InsertNode[x y. TestPos[x,y], E, 
+        InsertNode[x y. TestPos[x,y], C, 
+        InsertNode[x y. TestPos[x,y], A, 
+        InsertNode[x y. TestPos[x,y], D, 
+        InsertNode[x y. TestPos[x,y], B, ()]]]]]
+        ,
+        InsertNode[x y. TestPos[x,y], E, 
+        InsertNode[x y. TestPos[x,y], D, 
+        InsertNode[x y. TestPos[x,y], C, 
+        InsertNode[x y. TestPos[x,y], B, 
+        InsertNode[x y. TestPos[x,y], A, ()]]]]]
+      ];
+
+/* Expected Error 
+Assert [ InsertNode[x y . TestPos[x,y], E, (Branch[E, ()];)] ];
+*/
+
+/* Expected Error
+Assert[ InsertNode[x y. TestPos[x,y], E,
+        InsertNode[x y. TestPos[x,y], E, 
+        InsertNode[x y. TestPos[x,y], C, 
+        InsertNode[x y. TestPos[x,y], A, 
+        InsertNode[x y. TestPos[x,y], D, 
+        InsertNode[x y. TestPos[x,y], B, ()]]]]]]];
+  */
+
+)
