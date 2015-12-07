@@ -4,8 +4,6 @@
  */
 (
 
-
-
 /* TEST TREE
       F[#1, #2]
         /   \
@@ -14,15 +12,13 @@
 F[A,A]  F[A,B]
 */
 
-
-
 Assert[ SpecificityTree[ ( %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
                            %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
                            %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
                            %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
                            %ruleDeclaration⟦ F[#1, #2]  → C1 ⟧;
                           )]
-         ,
+        ,
         SpecificityTree[ ( %ruleDeclaration⟦ F[#1, #2]  → C1 ⟧;
                            %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
                            %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
@@ -30,4 +26,31 @@ Assert[ SpecificityTree[ ( %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
                            %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
                           )]
       ];
+
+/* TEST TREE
+
+   F[A, #2]   F[B, #2]
+     / \ 
+F[A,A]  F[A,B]
+*/
+
+Assert[ SpecificityTree[ ( %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
+                           %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
+                           %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
+                           %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
+                          )]
+         ,
+        SpecificityTree[ ( %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
+                           %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
+ 						   %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
+                           %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
+                          )]
+      ];
+
+/* Expected Error: Overlap
+Assert[ SpecificityTree[ ( %ruleDeclaration⟦ Div[Zero, #2]  → C1 ⟧;
+					       %ruleDeclaration⟦ Div[#1, Zero]  → C2 ⟧;
+                          )]
+      ];
+*/
 )

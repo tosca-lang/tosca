@@ -36,6 +36,10 @@ Root[Branch[#rt, #_]] → #rt;
 Succs[Branch[#_, #succs]] → Map[x.Snd[x], #succs];
 
 
+∀ n l . PostOrder[Tree[n,l]] :: $List[n];
+PostOrder[ Branch[ #N , ()] ] → ( #N; );
+PostOrder[ Branch[ #N, #succs]] → Concat[ Foldr[ s ss. Concat[PostOrder[Snd[s]],ss], (), #succs], (#N;)];
+
 /* `InsertNode[ n1 n2. #C[n1,n2], #n1, #ts]`
    @param `n1 n2. #C[n1,n2]` a Comparator which compares two nodes and returns a `Pos[l]`
    @param #n1                the node to insert

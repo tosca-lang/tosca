@@ -22,7 +22,7 @@ $Use["utils/crsxequs.crs"];
 
 
 /* Disclaimer: Work in Progress ---
-   2015/11/13: still preliminarty
+   2015/11/13: still preliminary
                but first 'specificity tree' computed (see SpecificityTree.term)
                next steps: 1. more testing 
                            2. the mgu has maybe redundant meta variables, check that out.
@@ -81,6 +81,11 @@ CompareRules[#r1, #r2] → MatchCompareRules[ComputeOverlapOrder[Lhs[#r1], Lhs[#
   MatchCompareRules[IsGeneralization[#t1, #mgu, #t2]] → Above[#mgu]; 
   MatchCompareRules[AreParallel[#t1, #mgu, #t2]]      → UnInsertable;
 
+
+// input: a list of rules
+// output: a list of rules sorted by specificity
+RulesBySpecificity[ $List[Crsx_ruleDeclaration_sort]] :: $List[Crsx_ruleDeclaration_sort];
+RulesBySpecificity[ #rules ] → Foldr[ t rs. Concat[PostOrder[t],rs], (), SpecificityTree[#rules]];
 
 
 /*

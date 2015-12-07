@@ -1,0 +1,56 @@
+/* 
+ * @author : m schett
+ * @date   : 2015/12/07
+ */
+(
+
+Assert[(),
+        RulesBySpecificity[()]
+     ];
+
+Assert[( %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧; ),
+        RulesBySpecificity[ (%ruleDeclaration⟦ F[A, A]  → C4 ⟧; )]
+     ];
+
+/* TEST TREE
+      F[#1, #2]
+        /   \
+   F[A, #2]   F[B, #2]
+     / \ 
+F[A,A]  F[A,B]
+*/
+
+Assert[( %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
+         %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
+         %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
+         %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
+ 	     %ruleDeclaration⟦ F[#1, #2]  → C1 ⟧;
+        )
+        ,
+        RulesBySpecificity[ ( %ruleDeclaration⟦ F[#1, #2]  → C1 ⟧;
+                              %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
+                              %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
+                              %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
+                              %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
+                          )]
+     ];
+
+/* TEST TREE
+   F[A, #2]   F[B, #2]
+     / \ 
+F[A,A]  F[A,B]
+*/
+
+Assert[( %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
+         %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
+         %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
+         %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
+        )
+        ,
+        RulesBySpecificity[ ( %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
+                              %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
+                              %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
+                              %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
+                          )]
+     ];
+)

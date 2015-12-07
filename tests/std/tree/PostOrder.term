@@ -1,0 +1,33 @@
+/*
+ * @author : m schett
+ * @date   : 2015/12/07
+ */
+
+(
+
+
+
+
+Assert[ (A;),
+        PostOrder[Branch[A, ()]]
+      ];
+
+
+/* TEST TREE
+         A
+  ZERO /   \ ONE
+      B     D
+ZERO / \ ZERO
+    C   E
+*/
+Assert[ (C; E; B; D; A;),
+        PostOrder[ Branch[A, ( PairCons[ZERO, Branch[B, 
+                                   (PairCons[ZERO,  Branch[C, ()]]; 
+                                    PairCons[ZERO, Branch[E, ()]];)
+                                    ]];
+                                PairCons[ONE, Branch[D,()]];
+                             )
+                         ]
+                  ]
+      ]; 
+)
