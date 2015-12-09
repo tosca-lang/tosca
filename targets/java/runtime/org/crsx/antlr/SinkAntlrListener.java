@@ -1,6 +1,6 @@
 // Copyright (c) 2015 IBM Corporation.
 
-package org.crsx.pg;
+package org.crsx.antlr;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -29,6 +29,7 @@ import org.crsx.runtime.Variable;
 /**
  * Create CRSX term from ANTLR parse events.
  * 
+ * <p>
  * Temporarily support CRSX3 sink.
  * 
  * @author Lionel Villard

@@ -97,19 +97,20 @@ importDecl
     ;
 
 sortDecl
-     : TYPE c=constructor sortVars? sortDef[$c.text]      /* [CORE] Sort declaration */
+     : TYPE c=constructor sortVars? sortDef[$c.text]     /* [CORE] Sort declaration */
      ;
 
 sortVars
-    : LT variable+ GT                                /* [CORE] Sort variables. */
+    : LT variable+ GT                                    /* [CORE] Sort variables. */
     ;
 
 sortDef[String c]
-    : (OR variant)+                                   /* [CORE variant sort definition] */
-    | (AND sortMap)+                                   /* [CORE map sort definition] */
+    : (OR variant)+                                      /* [CORE variant sort definition] */
+    | (AND sortMap)+                                     /* [CORE map sort definition] */
     | FN fixity[c]?
-           LPAR fnSortParams? RPAR ARROW paramSort        /* [CORE] Function sort declaration */
+           LPAR fnSortParams? RPAR ARROW paramSort       /* [CORE] Function sort declaration */
     ;
+
 
 fixity[String c]
     : f=FIXITY p=NUMBER { addOp($c, $f.text, $p.int); }
@@ -200,7 +201,7 @@ fnParamSort
 terms
     : term[0] (COMMA term[0])*
     ;
-
+    
 term[int p]
     : aterm nterm[p]*
     ;
@@ -220,8 +221,8 @@ nterm[int p]
     ;
 
 aterm
-    : {isPrefix(_input.LT(1).getText())}? op=constructor term[nextp($op.text)] /* [SUGAR] Prefixed term */
-    | {!isPrefix(_input.LT(1).getText())}? constructor args?             /* [CORE] Construction with zero or more args */
+    : { isPrefix(_input.LT(1).getText())}? op=constructor term[nextp($op.text)]   /* [SUGAR] Prefixed term */
+    | {!isPrefix(_input.LT(1).getText())}? constructor args?                      /* [CORE] Construction with zero or more args */
     | literal                                         /* [CORE]  Literal construction */
     | groupOrList                                     /* [SUGAR] Grouped expression */
     | variable                                        /* [CORE]  Variable */
@@ -256,25 +257,25 @@ apply
 groupOrList
     : LPAR RPAR                                       /* [SUGAR] Empty list */
     | LPAR term[0] RPAR                               /* [SUGAR] Grouped term */
-    | LPAR term[0] COMMA RPAR                           /* [SUGAR] Single term list */
-    | LPAR term[0] (COMMA term[0])+ RPAR                /* [SUGAR] Multiple terms list */
+    | LPAR term[0] COMMA RPAR                         /* [SUGAR] Single term list */
+    | LPAR term[0] (COMMA term[0])+ RPAR              /* [SUGAR] Multiple terms list */
     ;
 
-variable                                            /* [CORE] */
+variable                                              /* [CORE] */
     : VARIABLE<symbol> LINEAR?
     ;
 
 literal
-    : STRING                                        /* [CORE] */
-    | NUMBER                                        /* [CORE] */
+    : STRING                                          /* [CORE] */
+    | NUMBER                                          /* [CORE] */
     ;
 
 concrete
-    : CONCRETE                                     /* [CORE]   */
+    : CONCRETE                                        /* [CORE]   */
     ;
 
 dispatch
-    : DISPATCH LPAR terms RPAR dispatchCases                   /* [CORE]  */
+    : DISPATCH LPAR terms RPAR dispatchCases                     /* [CORE]  */
     ;
 
 dispatchCases
@@ -291,14 +292,14 @@ kvs
 
 kv
     : METAVAR                                               /* [CORE]  property reference (match/construct)      */
-    | NOT  METAVAR                                           /* [CORE]  no property references (match only)       */
-    | METAVAR COLON term[0]                                  /* [CORE]  match property value / construct          */
+    | NOT  METAVAR                                          /* [CORE]  no property references (match only)       */
+    | METAVAR COLON term[0]                                 /* [CORE]  match property value / construct          */
     | VARIABLE                                              /* [CORE]  match / construct variable property       */
     | NOT VARIABLE                                          /* [CORE]  no variable (match only)                  */
-    | VARIABLE COLON term[0]                              /* [CORE]  match variable property value / construct */
+    | VARIABLE COLON term[0]                                /* [CORE]  match variable property value / construct */
     | STRING                                                /* [CORE]  match / construct named property          */
     | NOT STRING                                            /* [CORE]  no named property (match only)            */
-    | STRING COLON term[0]                                /* [CORE]  match named property value / construct    */
+    | STRING COLON term[0]                                  /* [CORE]  match named property value / construct    */
     ;
 
 constructor
@@ -306,7 +307,7 @@ constructor
     | symbols                                               /* [CORE: non-reserved symbols] */
     ;
 
-symbols                                                    /* [CORE] */
+symbols                                                     /* [CORE] */
     : COLON
     | LT
     | GT

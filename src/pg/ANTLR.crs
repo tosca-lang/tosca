@@ -318,7 +318,7 @@ ANTLR_Print_element[ANTLR_element_sort] :: Text;
 ANTLR_Print_element[ANTLR_element_A1[#1, #2]] → %n⟪ «ANTLR_Print_labeledElement[#1]» «ANTLR_Print_element_A1_S1[#2]»⟫;
 ANTLR_Print_element[ANTLR_element_A2[#1, #2]] → %n⟪ «ANTLR_Print_atom[#1]» «ANTLR_Print_element_A2_S1[#2]»⟫;
 ANTLR_Print_element[ANTLR_element_A3[#1]] → %n⟪ «ANTLR_Print_ebnf[#1]»⟫;
-ANTLR_Print_element[ANTLR_element_A4[#1, #2]] → %n⟪ †«#1» «TextFold[Map[x.StringToText[x], #2], %n⟪ ⟫]»⟫;
+ANTLR_Print_element[ANTLR_element_A4[#1, #2]] → %n⟪ †«#1»«TextFold[Map[x.StringToText[x], #2], %n⟪⟫]»⟫;
 
 ANTLR_element_A1_S1_sort ::= (ANTLR_element_A1_S1_A1[ANTLR_ebnfSuffix_sort]; ANTLR_element_A1_S1_A2; );
 

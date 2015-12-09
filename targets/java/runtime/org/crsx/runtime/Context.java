@@ -7,7 +7,7 @@ import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import org.crsx.pg.Crsx3Parser;
+import org.crsx.antlr.Crsx3Parser;
 import org.crsx.runtime.ConstructionDescriptor.Step;
 
 /**

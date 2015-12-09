@@ -505,6 +505,65 @@ ToElementOption[#id, #value]
 {$String: ANTLR_ruleSpec_sort}IsSugarAtom[ANTLR_atom_sort] :: Boolean;
 {#I}IsSugarAtom[#atom] → Or[{#I}IsConstantAtom[#atom], IsNotEmpty[GetElementOptionAtom[#atom, "sugar"]]];
 
+// --- Strip ARG_ACTION
+
+StripArgActionAltList[ANTLR_altList_sort] :: ANTLR_altList_sort;
+StripArgActionAltList[{#L}%altList⟨ #alternative #altList_S1* ⟩] 
+→ {#L}%altList⟨ ⟨alternative: StripArgActionAlternative[#alternative]⟩ ⟨altList_S1*: StripArgActionAltList_S1s[#altList_S1*] ⟩ ⟩;
+
+StripArgActionAltList_S1s[$List[ANTLR_altList_S1_sort]] :: $List[ANTLR_altList_S1_sort];
+StripArgActionAltList_S1s[{#L}%altList_S1*⟨ ⟩] 
+→ {#L}%altList_S1*⟨ ⟩;
+
+StripArgActionAltList_S1s[{#L}%altList_S1*⟨ | #alternative #altList_S1* ⟩] 
+→ {#L}%altList_S1*⟨ | ⟨alternative: StripArgActionAlternative[#alternative]⟩ ⟨altList_S1*: StripArgActionAltList_S1s[#altList_S1*] ⟩ ⟩;
+
+StripArgActionAlternative[ANTLR_alternative_sort] :: ANTLR_alternative_sort;
+StripArgActionAlternative[{#L}%alternative⟨ #elementOptions? #element* ⟩] 
+→ {#L}%alternative⟨ #elementOptions? ⟨element*: StripArgActionElements[#element*]⟩ ⟩; 
+
+StripArgActionElements[$List[ANTLR_element_sort]] :: $List[ANTLR_element_sort];
+StripArgActionElements[{#L}%element*⟦ ⟧]                    
+→ {#L}%element*⟦ ⟧;
+
+StripArgActionElements[{#L}%element*⟦ #element #element* ⟧]
+→ {#L}%element*⟦ ⟨element: StripArgActionElement[#element]⟩ ⟨element*: StripArgActionElements[#element*]⟩ ⟧;
+
+StripArgActionElement[ANTLR_element_sort] :: ANTLR_element_sort;
+
+StripArgActionElement[{#L}%element⟦ #id #labeledElement_S1 #atom ⟧] 
+→ {#L}%element⟦ #id #labeledElement_S1 ⟨atom: StripArgActionAtom[#atom]⟩ ⟧;
+
+StripArgActionElement[{#L}%element⟦ #id #labeledElement_S1 #block ⟧] 
+→ {#L}%element⟦ #id #labeledElement_S1 ⟨atom: StripArgActionBlock[#block]⟩ ⟧;
+
+StripArgActionElement[{#L}%element⟦ #atom #element_A2_S1 ⟧] 
+→ {#L}%element⟦ ⟨atom: StripArgActionAtom[#atom]⟩ #element_A2_S1 ⟧;
+
+StripArgActionElement[{#L}%element⟦ #block #blockSuffix? ⟧] 
+→ {#L}%element⟦ ⟨block: StripArgActionBlock[#block]⟩ #blockSuffix? ⟧;
+
+StripArgActionElement[{#L}%element⟦ #ACTION #QUESTION? ⟧] 
+→ {#L}%element⟦ #ACTION #QUESTION? ⟧;
+
+StripArgActionBlock[ANTLR_block_sort] :: ANTLR_block_sort;
+StripArgActionBlock[{#L}%block⟦ ( #block_S1? #altList ) ⟧] 
+→ {#L}%block⟨ ( #block_S1? ⟨altList: StripArgActionAltList[#altList]⟩ ) ⟩;
+
+StripArgActionAtom[ANTLR_atom_sort] :: ANTLR_atom_sort;
+
+StripArgActionAtom[{#L}%atom⟦ #range ⟧] 
+→ {#L}%atom⟦ #range ⟧;
+
+StripArgActionAtom[{#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧] 
+→ {#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧;
+
+StripArgActionAtom[{#L}%atom⟦ #STRING_LITERAL  #elementOptions? ⟧] 
+→ {#L}%atom⟦ #STRING_LITERAL #elementOptions? ⟧;
+
+StripArgActionAtom[{#L}%atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧] 
+→ {#L}%atom⟦ #RULE_REF #elementOptions? ⟧;
+
 // --- Misc...
 
 Enbf1ToBlockSuffix[ANTLR_element_A1_S1_sort] :: $List[ANTLR_blockSuffix_sort];

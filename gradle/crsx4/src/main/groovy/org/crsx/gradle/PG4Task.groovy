@@ -30,7 +30,7 @@ class PG4Task extends DefaultTask {
 		if (sort || parsers)
 		{
 			// Configure PG runner
-			MainRunner pgrunner = new MainRunner(project.configurations.crsx4.files, "org.crsx.pg.PG")
+			MainRunner pgrunner = new MainRunner(project.configurations.crsx4.files, "org.crsx.antlr.PG")
 			
 			// Configure Crsx3 runner
 			MainRunner crsx3runner = new MainRunner(project.configurations.crsx4.files, "net.sf.crsx.run.Crsx")
@@ -53,7 +53,7 @@ class PG4Task extends DefaultTask {
 			{	
 				// .nterm -> sort
 				String sortt = basename + '.crs' // generate sort
-				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakePrinter', 'output=' + sortt ])
+				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakeSorts', 'output=' + sortt ])
 			}
 			
 			if (parsers)

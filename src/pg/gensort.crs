@@ -33,8 +33,7 @@ MakeGrammarSpec[ANTLR_grammarSpec_sort] :: Text;
 
 MakeModuleId[ANTLR_grammarSpec_sort] :: Text;
 {#E}MakeModuleId[#id, ok.#[ok]] 
-→
-%n⟦/* Generated File. */
+→ %n⟦/* Generated File. */
 †«#id»[(
 $CheckGrammar["net.sf.crsx.text.Text"];
 $Use["std/text.crs"];
@@ -47,8 +46,12 @@ $Use["std/list.crs"];
    Generates sort and printer for grammar rule 
  */
 MakeRuleSpec[ANTLR_ruleSpec_sort, Cont[Text]] :: Text;
-{#E}MakeRuleSpec[{#L}%ruleSpec⟦ #RULE_REF : #ruleBlock ; ⟧, #cont]                  → {#E; "@ruleRef": STRING[#RULE_REF]}MakeSort[#ruleBlock, #cont];
-{#E}MakeRuleSpec[{#L}%ruleSpec⟦ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟧, #cont] → {#E}ApplyCont[#cont];
+{#E}MakeRuleSpec[{#L}%ruleSpec⟦ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec? 
+                                #rulePrequel* : #ruleBlock ; #exceptionHandler* #finallyClause? ⟧, #cont]                  
+→ {#E; "@ruleRef": STRING[#RULE_REF]}MakeSort[#ruleBlock, #cont];
+
+{#E}MakeRuleSpec[{#L}%ruleSpec⟦ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟧, #cont] 
+→ {#E}ApplyCont[#cont];
 
 <!--―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――
 
@@ -88,7 +91,8 @@ MakeForms[ANTLR_ruleBlock_sort, ok::OK_SORT.Text] :: Text;
 //
 MakeRuleAltList_S1s[OK_SORT, $Numeric, $List[ANTLR_ruleAltList_S1_sort], ok::OK_SORT.Text] :: Text;
 
-{#E}MakeRuleAltList_S1s[OK, #count, (), ok¹.#[ok¹]] → {#E}#[OK];
+{#E}MakeRuleAltList_S1s[OK, #count, (), ok¹.#[ok¹]] 
+→ {#E}#[OK];
 
 {#E}MakeRuleAltList_S1s[OK, #count, {#L}%ruleAltList_S1*⟦ | #alternative #ruleAltList_S1* ⟧, ok¹.#[ok¹]] 
 → {#E}MakeForm[#alternative, #count, FALSE, ok¹ count¹.
@@ -258,7 +262,6 @@ MakeBindsArgument[$String, ok¹::OK_SORT.Text] :: Text;
 
 // Check element option is <symbol>
 
-
 // Common case: element has no options, and not fused. Make regular argument   
 MakeRawArgument[OK_SORT, ANTLR_element_sort, $Numeric, ok¹::OK_SORT count::$Numeric.Text] :: Text;
 
@@ -324,7 +327,7 @@ MakeArgFromAtom[{#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧, FALSE, #count, ok
 → {#E}MakeArgFromTokenRef[{#I}IsConstantAtom[%atom⟦ #TOKEN_REF ⟧], #TOKEN_REF, #count, ok¹.#[ok¹]];
 
 {#E; "@sort": TEXT[#sort]; "@plhs": TEXTS[#printerLHS]; "@prhs": TEXTS[#printerRHS]; "@sublist": WRAPPER[x.#wrap[x]]}
-MakeArgFromAtom[{#L}%atom⟦ #RULE_REF #elementOptions? ⟧, TRUE, #count, ok¹.#[ok¹]] 
+MakeArgFromAtom[{#L}%atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, TRUE, #count, ok¹.#[ok¹]] 
 → {#E; "@sort": TEXT[%n⟦«#sort»$List[«MakeSortName2[{#E}EnvString["@id"], #RULE_REF]»]⟧]; 
        "@plhs": TEXTS[(MakeMetaVar[#count, (), FALSE]; #printerLHS)]; 
        "@prhs": TEXTS[({#E}MakeRulerefText[#RULE_REF, #count, (), TRUE, x.#wrap[x]]; #printerRHS)]}#[OK];
@@ -333,7 +336,7 @@ MakeArgFromAtom[{#L}%atom⟦ #RULE_REF #elementOptions? ⟧, TRUE, #count, ok¹.
   "@sort": TEXT[#sort]; "@plhs": TEXTS[#printerLHS]; 
   "@prhs": TEXTS[#printerRHS]; "@sublist": WRAPPER[x.#wrap[x]];
   "@binders": TEXTS[#binders]
-}MakeArgFromAtom[{#L}%atom⟦ #RULE_REF #elementOptions? ⟧, FALSE, #count, ok¹.#[ok¹]] 
+}MakeArgFromAtom[{#L}%atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, FALSE, #count, ok¹.#[ok¹]] 
 → {#E; "@sort": TEXT[%n⟦«#sort»«MakeSortName2[{#E}EnvString["@id"], #RULE_REF]»⟧]; 
        "@plhs": TEXTS[(MakeMetaVar[#count, #binders, FALSE]; #printerLHS)];  
        "@prhs": TEXTS[({#E}MakeRulerefText[#RULE_REF, #count, #binders, FALSE, x.#wrap[x]]; #printerRHS)]}#[OK];

@@ -18,7 +18,7 @@ cdecl
     | FUNCTION csortparams? cform csortname             /* Function sort declaration */
     | RULE     cterm ARROW cterm                        /* Rule declaration */
     ;
-;
+
 
 cterm
     : cconstructor csargs                                /* Construction with zero or more args */
@@ -56,7 +56,7 @@ cscopes
 
 cvariable
     : VARIABLE<symbol> DATAVAR LINEAR? csort?           /* Scoped variable */
-    : VARIABLE<symbol> FUNCTIONVAR csort?               /* Formal parameter */
+    | VARIABLE<symbol> FUNCTIONVAR csort?               /* Formal parameter */
     ;
 
 cliteral
@@ -73,7 +73,7 @@ cdispatchCases
 
 clist
     : LPAR term* RPAR                                    /* List of term */
-    : LPAR ckv* RPAR                                     /* List of key-value pair */
+    | LPAR ckv* RPAR                                     /* List of key-value pair */
     ;
 
 ckv
@@ -131,6 +131,9 @@ cconstructor
 
 // Lexer rules
 
+DATA            : 'data';
+FUNCTION        : 'fn';
+RULE            : 'rule';
 DISPATCH        : 'dispatch';
 
 COLON           : ':';

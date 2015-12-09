@@ -1,26 +1,26 @@
 // Generated from CrsxMetaParser.g4 by ANTLR 4.5
 package org.crsx.parser;
 
-import org.crsx.pg.SinkAntlrListener;
-import static org.crsx.pg.SinkAntlrListener.fireEnterZOM;
-import static org.crsx.pg.SinkAntlrListener.fireExitZOM;
-import static org.crsx.pg.SinkAntlrListener.fireEnterOPT;
-import static org.crsx.pg.SinkAntlrListener.fireExitOPT;
-import static org.crsx.pg.SinkAntlrListener.fireEnterAlt;
-import static org.crsx.pg.SinkAntlrListener.fireExitAlt;
-import static org.crsx.pg.SinkAntlrListener.fireHide;
-import static org.crsx.pg.SinkAntlrListener.fireEnterSymbol;
-import static org.crsx.pg.SinkAntlrListener.fireExitSymbol;
-import static org.crsx.pg.SinkAntlrListener.fireEnterBinder;
-import static org.crsx.pg.SinkAntlrListener.fireExitBinder;
-import static org.crsx.pg.SinkAntlrListener.fireEnterBinds;
-import static org.crsx.pg.SinkAntlrListener.fireExitBinds;
-import static org.crsx.pg.SinkAntlrListener.fireTail;
-import static org.crsx.pg.SinkAntlrListener.fireTerm;
-import static org.crsx.pg.SinkAntlrListener.fireEmbed;
+import static org.crsx.antlr.SinkAntlrListener.fireEmbed;
+import static org.crsx.antlr.SinkAntlrListener.fireEnterAlt;
+import static org.crsx.antlr.SinkAntlrListener.fireEnterBinder;
+import static org.crsx.antlr.SinkAntlrListener.fireEnterBinds;
+import static org.crsx.antlr.SinkAntlrListener.fireEnterOPT;
+import static org.crsx.antlr.SinkAntlrListener.fireEnterSymbol;
+import static org.crsx.antlr.SinkAntlrListener.fireEnterZOM;
+import static org.crsx.antlr.SinkAntlrListener.fireExitAlt;
+import static org.crsx.antlr.SinkAntlrListener.fireExitBinder;
+import static org.crsx.antlr.SinkAntlrListener.fireExitBinds;
+import static org.crsx.antlr.SinkAntlrListener.fireExitOPT;
+import static org.crsx.antlr.SinkAntlrListener.fireExitSymbol;
+import static org.crsx.antlr.SinkAntlrListener.fireExitZOM;
+import static org.crsx.antlr.SinkAntlrListener.fireHide;
+import static org.crsx.antlr.SinkAntlrListener.fireTail;
+import static org.crsx.antlr.SinkAntlrListener.fireTerm;
 
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
+import org.crsx.antlr.SinkAntlrListener;
 
 /**
  * This interface defines a complete listener for a parse tree produced by
@@ -47,6 +47,26 @@ public interface CrsxMetaParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitCrsx_EOF(CrsxMetaParser.Crsx_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#eof_TOK}.
+	 * @param ctx the parse tree
+	 */
+	void enterEof_TOK(CrsxMetaParser.Eof_TOKContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#eof_TOK}.
+	 * @param ctx the parse tree
+	 */
+	void exitEof_TOK(CrsxMetaParser.Eof_TOKContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#eof_TOK_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterEof_TOK_EOF(CrsxMetaParser.Eof_TOK_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#eof_TOK_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitEof_TOK_EOF(CrsxMetaParser.Eof_TOK_EOFContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxMetaParser#decls}.
 	 * @param ctx the parse tree
@@ -128,26 +148,6 @@ public interface CrsxMetaParserListener extends ParseTreeListener {
 	 */
 	void exitModuleDecl_EOF(CrsxMetaParser.ModuleDecl_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#constructor_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void enterConstructor_TOK(CrsxMetaParser.Constructor_TOKContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#constructor_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void exitConstructor_TOK(CrsxMetaParser.Constructor_TOKContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#constructor_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterConstructor_TOK_EOF(CrsxMetaParser.Constructor_TOK_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#constructor_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitConstructor_TOK_EOF(CrsxMetaParser.Constructor_TOK_EOFContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link CrsxMetaParser#importDecl}.
 	 * @param ctx the parse tree
 	 */
@@ -188,225 +188,745 @@ public interface CrsxMetaParserListener extends ParseTreeListener {
 	 */
 	void exitSortDecl_EOF(CrsxMetaParser.SortDecl_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortparams_OPT}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortVars_OPT}.
 	 * @param ctx the parse tree
 	 */
-	void enterSortparams_OPT(CrsxMetaParser.Sortparams_OPTContext ctx);
+	void enterSortVars_OPT(CrsxMetaParser.SortVars_OPTContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortparams_OPT}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortVars_OPT}.
 	 * @param ctx the parse tree
 	 */
-	void exitSortparams_OPT(CrsxMetaParser.Sortparams_OPTContext ctx);
+	void exitSortVars_OPT(CrsxMetaParser.SortVars_OPTContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortparams_OPT_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortVars_OPT_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterSortparams_OPT_EOF(CrsxMetaParser.Sortparams_OPT_EOFContext ctx);
+	void enterSortVars_OPT_EOF(CrsxMetaParser.SortVars_OPT_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortparams_OPT_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortVars_OPT_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitSortparams_OPT_EOF(CrsxMetaParser.Sortparams_OPT_EOFContext ctx);
+	void exitSortVars_OPT_EOF(CrsxMetaParser.SortVars_OPT_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#termDecl}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortVars}.
 	 * @param ctx the parse tree
 	 */
-	void enterTermDecl(CrsxMetaParser.TermDeclContext ctx);
+	void enterSortVars(CrsxMetaParser.SortVarsContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#termDecl}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortVars}.
 	 * @param ctx the parse tree
 	 */
-	void exitTermDecl(CrsxMetaParser.TermDeclContext ctx);
+	void exitSortVars(CrsxMetaParser.SortVarsContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#termDecl_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortVars_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterTermDecl_EOF(CrsxMetaParser.TermDecl_EOFContext ctx);
+	void enterSortVars_EOF(CrsxMetaParser.SortVars_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#termDecl_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortVars_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitTermDecl_EOF(CrsxMetaParser.TermDecl_EOFContext ctx);
+	void exitSortVars_EOF(CrsxMetaParser.SortVars_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#option_OPT}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#variable_OOM}.
 	 * @param ctx the parse tree
 	 */
-	void enterOption_OPT(CrsxMetaParser.Option_OPTContext ctx);
+	void enterVariable_OOM(CrsxMetaParser.Variable_OOMContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#option_OPT}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#variable_OOM}.
 	 * @param ctx the parse tree
 	 */
-	void exitOption_OPT(CrsxMetaParser.Option_OPTContext ctx);
+	void exitVariable_OOM(CrsxMetaParser.Variable_OOMContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#option_OPT_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#variable_OOM_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterOption_OPT_EOF(CrsxMetaParser.Option_OPT_EOFContext ctx);
+	void enterVariable_OOM_EOF(CrsxMetaParser.Variable_OOM_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#option_OPT_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#variable_OOM_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitOption_OPT_EOF(CrsxMetaParser.Option_OPT_EOFContext ctx);
+	void exitVariable_OOM_EOF(CrsxMetaParser.Variable_OOM_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#contractum_OPT}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortDef}.
 	 * @param ctx the parse tree
 	 */
-	void enterContractum_OPT(CrsxMetaParser.Contractum_OPTContext ctx);
+	void enterSortDef(CrsxMetaParser.SortDefContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#contractum_OPT}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortDef}.
 	 * @param ctx the parse tree
 	 */
-	void exitContractum_OPT(CrsxMetaParser.Contractum_OPTContext ctx);
+	void exitSortDef(CrsxMetaParser.SortDefContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#contractum_OPT_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortDef_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterContractum_OPT_EOF(CrsxMetaParser.Contractum_OPT_EOFContext ctx);
+	void enterSortDef_EOF(CrsxMetaParser.SortDef_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#contractum_OPT_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortDef_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitContractum_OPT_EOF(CrsxMetaParser.Contractum_OPT_EOFContext ctx);
+	void exitSortDef_EOF(CrsxMetaParser.SortDef_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#option}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#variant_OOM}.
 	 * @param ctx the parse tree
 	 */
-	void enterOption(CrsxMetaParser.OptionContext ctx);
+	void enterVariant_OOM(CrsxMetaParser.Variant_OOMContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#option}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#variant_OOM}.
 	 * @param ctx the parse tree
 	 */
-	void exitOption(CrsxMetaParser.OptionContext ctx);
+	void exitVariant_OOM(CrsxMetaParser.Variant_OOMContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#option_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#variant_OOM_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterOption_EOF(CrsxMetaParser.Option_EOFContext ctx);
+	void enterVariant_OOM_EOF(CrsxMetaParser.Variant_OOM_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#option_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#variant_OOM_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitOption_EOF(CrsxMetaParser.Option_EOFContext ctx);
+	void exitVariant_OOM_EOF(CrsxMetaParser.Variant_OOM_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#args_OPT}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortMap_OOM}.
 	 * @param ctx the parse tree
 	 */
-	void enterArgs_OPT(CrsxMetaParser.Args_OPTContext ctx);
+	void enterSortMap_OOM(CrsxMetaParser.SortMap_OOMContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#args_OPT}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortMap_OOM}.
 	 * @param ctx the parse tree
 	 */
-	void exitArgs_OPT(CrsxMetaParser.Args_OPTContext ctx);
+	void exitSortMap_OOM(CrsxMetaParser.SortMap_OOMContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#args_OPT_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortMap_OOM_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterArgs_OPT_EOF(CrsxMetaParser.Args_OPT_EOFContext ctx);
+	void enterSortMap_OOM_EOF(CrsxMetaParser.SortMap_OOM_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#args_OPT_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortMap_OOM_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitArgs_OPT_EOF(CrsxMetaParser.Args_OPT_EOFContext ctx);
+	void exitSortMap_OOM_EOF(CrsxMetaParser.SortMap_OOM_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#annotation}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fixity_OPT}.
 	 * @param ctx the parse tree
 	 */
-	void enterAnnotation(CrsxMetaParser.AnnotationContext ctx);
+	void enterFixity_OPT(CrsxMetaParser.Fixity_OPTContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#annotation}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fixity_OPT}.
 	 * @param ctx the parse tree
 	 */
-	void exitAnnotation(CrsxMetaParser.AnnotationContext ctx);
+	void exitFixity_OPT(CrsxMetaParser.Fixity_OPTContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#annotation_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fixity_OPT_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterAnnotation_EOF(CrsxMetaParser.Annotation_EOFContext ctx);
+	void enterFixity_OPT_EOF(CrsxMetaParser.Fixity_OPT_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#annotation_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fixity_OPT_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitAnnotation_EOF(CrsxMetaParser.Annotation_EOFContext ctx);
+	void exitFixity_OPT_EOF(CrsxMetaParser.Fixity_OPT_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#contractum}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnSortParams_OPT}.
 	 * @param ctx the parse tree
 	 */
-	void enterContractum(CrsxMetaParser.ContractumContext ctx);
+	void enterFnSortParams_OPT(CrsxMetaParser.FnSortParams_OPTContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#contractum}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnSortParams_OPT}.
 	 * @param ctx the parse tree
 	 */
-	void exitContractum(CrsxMetaParser.ContractumContext ctx);
+	void exitFnSortParams_OPT(CrsxMetaParser.FnSortParams_OPTContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#contractum_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnSortParams_OPT_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterContractum_EOF(CrsxMetaParser.Contractum_EOFContext ctx);
+	void enterFnSortParams_OPT_EOF(CrsxMetaParser.FnSortParams_OPT_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#contractum_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnSortParams_OPT_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitContractum_EOF(CrsxMetaParser.Contractum_EOFContext ctx);
+	void exitFnSortParams_OPT_EOF(CrsxMetaParser.FnSortParams_OPT_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#term}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fixity}.
 	 * @param ctx the parse tree
 	 */
-	void enterTerm(CrsxMetaParser.TermContext ctx);
+	void enterFixity(CrsxMetaParser.FixityContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#term}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fixity}.
 	 * @param ctx the parse tree
 	 */
-	void exitTerm(CrsxMetaParser.TermContext ctx);
+	void exitFixity(CrsxMetaParser.FixityContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#term_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fixity_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterTerm_EOF(CrsxMetaParser.Term_EOFContext ctx);
+	void enterFixity_EOF(CrsxMetaParser.Fixity_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#term_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fixity_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitTerm_EOF(CrsxMetaParser.Term_EOFContext ctx);
+	void exitFixity_EOF(CrsxMetaParser.Fixity_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sargs_OPT}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fixity_TOK}.
 	 * @param ctx the parse tree
 	 */
-	void enterSargs_OPT(CrsxMetaParser.Sargs_OPTContext ctx);
+	void enterFixity_TOK(CrsxMetaParser.Fixity_TOKContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sargs_OPT}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fixity_TOK}.
 	 * @param ctx the parse tree
 	 */
-	void exitSargs_OPT(CrsxMetaParser.Sargs_OPTContext ctx);
+	void exitFixity_TOK(CrsxMetaParser.Fixity_TOKContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sargs_OPT_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fixity_TOK_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterSargs_OPT_EOF(CrsxMetaParser.Sargs_OPT_EOFContext ctx);
+	void enterFixity_TOK_EOF(CrsxMetaParser.Fixity_TOK_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sargs_OPT_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fixity_TOK_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitSargs_OPT_EOF(CrsxMetaParser.Sargs_OPT_EOFContext ctx);
+	void exitFixity_TOK_EOF(CrsxMetaParser.Fixity_TOK_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#annotation_OOM}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#number_TOK}.
 	 * @param ctx the parse tree
 	 */
-	void enterAnnotation_OOM(CrsxMetaParser.Annotation_OOMContext ctx);
+	void enterNumber_TOK(CrsxMetaParser.Number_TOKContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#annotation_OOM}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#number_TOK}.
 	 * @param ctx the parse tree
 	 */
-	void exitAnnotation_OOM(CrsxMetaParser.Annotation_OOMContext ctx);
+	void exitNumber_TOK(CrsxMetaParser.Number_TOKContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#annotation_OOM_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#number_TOK_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterAnnotation_OOM_EOF(CrsxMetaParser.Annotation_OOM_EOFContext ctx);
+	void enterNumber_TOK_EOF(CrsxMetaParser.Number_TOK_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#annotation_OOM_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#number_TOK_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitAnnotation_OOM_EOF(CrsxMetaParser.Annotation_OOM_EOFContext ctx);
+	void exitNumber_TOK_EOF(CrsxMetaParser.Number_TOK_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#variant}.
+	 * @param ctx the parse tree
+	 */
+	void enterVariant(CrsxMetaParser.VariantContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#variant}.
+	 * @param ctx the parse tree
+	 */
+	void exitVariant(CrsxMetaParser.VariantContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#variant_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterVariant_EOF(CrsxMetaParser.Variant_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#variant_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitVariant_EOF(CrsxMetaParser.Variant_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#variantArgs_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void enterVariantArgs_OPT(CrsxMetaParser.VariantArgs_OPTContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#variantArgs_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void exitVariantArgs_OPT(CrsxMetaParser.VariantArgs_OPTContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#variantArgs_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterVariantArgs_OPT_EOF(CrsxMetaParser.VariantArgs_OPT_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#variantArgs_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitVariantArgs_OPT_EOF(CrsxMetaParser.VariantArgs_OPT_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#variantArgs}.
+	 * @param ctx the parse tree
+	 */
+	void enterVariantArgs(CrsxMetaParser.VariantArgsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#variantArgs}.
+	 * @param ctx the parse tree
+	 */
+	void exitVariantArgs(CrsxMetaParser.VariantArgsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#variantArgs_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterVariantArgs_EOF(CrsxMetaParser.VariantArgs_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#variantArgs_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitVariantArgs_EOF(CrsxMetaParser.VariantArgs_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortMap}.
+	 * @param ctx the parse tree
+	 */
+	void enterSortMap(CrsxMetaParser.SortMapContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortMap}.
+	 * @param ctx the parse tree
+	 */
+	void exitSortMap(CrsxMetaParser.SortMapContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortMap_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterSortMap_EOF(CrsxMetaParser.SortMap_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortMap_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitSortMap_EOF(CrsxMetaParser.SortMap_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#string_TOK}.
+	 * @param ctx the parse tree
+	 */
+	void enterString_TOK(CrsxMetaParser.String_TOKContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#string_TOK}.
+	 * @param ctx the parse tree
+	 */
+	void exitString_TOK(CrsxMetaParser.String_TOKContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#string_TOK_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterString_TOK_EOF(CrsxMetaParser.String_TOK_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#string_TOK_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitString_TOK_EOF(CrsxMetaParser.String_TOK_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnSortParams}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnSortParams(CrsxMetaParser.FnSortParamsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnSortParams}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnSortParams(CrsxMetaParser.FnSortParamsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnSortParams_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnSortParams_EOF(CrsxMetaParser.FnSortParams_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnSortParams_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnSortParams_EOF(CrsxMetaParser.FnSortParams_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sort_ZOM}.
+	 * @param ctx the parse tree
+	 */
+	void enterSort_ZOM(CrsxMetaParser.Sort_ZOMContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sort_ZOM}.
+	 * @param ctx the parse tree
+	 */
+	void exitSort_ZOM(CrsxMetaParser.Sort_ZOMContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sort_ZOM_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterSort_ZOM_EOF(CrsxMetaParser.Sort_ZOM_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sort_ZOM_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitSort_ZOM_EOF(CrsxMetaParser.Sort_ZOM_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sort}.
+	 * @param ctx the parse tree
+	 */
+	void enterSort(CrsxMetaParser.SortContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sort}.
+	 * @param ctx the parse tree
+	 */
+	void exitSort(CrsxMetaParser.SortContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sort_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterSort_EOF(CrsxMetaParser.Sort_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sort_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitSort_EOF(CrsxMetaParser.Sort_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortScope_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void enterSortScope_OPT(CrsxMetaParser.SortScope_OPTContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortScope_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void exitSortScope_OPT(CrsxMetaParser.SortScope_OPTContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortScope_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterSortScope_OPT_EOF(CrsxMetaParser.SortScope_OPT_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortScope_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitSortScope_OPT_EOF(CrsxMetaParser.SortScope_OPT_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortScope}.
+	 * @param ctx the parse tree
+	 */
+	void enterSortScope(CrsxMetaParser.SortScopeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortScope}.
+	 * @param ctx the parse tree
+	 */
+	void exitSortScope(CrsxMetaParser.SortScopeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortScope_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterSortScope_EOF(CrsxMetaParser.SortScope_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortScope_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitSortScope_EOF(CrsxMetaParser.SortScope_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sort_OOM}.
+	 * @param ctx the parse tree
+	 */
+	void enterSort_OOM(CrsxMetaParser.Sort_OOMContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sort_OOM}.
+	 * @param ctx the parse tree
+	 */
+	void exitSort_OOM(CrsxMetaParser.Sort_OOMContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sort_OOM_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterSort_OOM_EOF(CrsxMetaParser.Sort_OOM_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sort_OOM_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitSort_OOM_EOF(CrsxMetaParser.Sort_OOM_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#paramSort}.
+	 * @param ctx the parse tree
+	 */
+	void enterParamSort(CrsxMetaParser.ParamSortContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#paramSort}.
+	 * @param ctx the parse tree
+	 */
+	void exitParamSort(CrsxMetaParser.ParamSortContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#paramSort_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterParamSort_EOF(CrsxMetaParser.ParamSort_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#paramSort_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitParamSort_EOF(CrsxMetaParser.ParamSort_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortParams_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void enterSortParams_OPT(CrsxMetaParser.SortParams_OPTContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortParams_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void exitSortParams_OPT(CrsxMetaParser.SortParams_OPTContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortParams_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterSortParams_OPT_EOF(CrsxMetaParser.SortParams_OPT_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortParams_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitSortParams_OPT_EOF(CrsxMetaParser.SortParams_OPT_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortParams}.
+	 * @param ctx the parse tree
+	 */
+	void enterSortParams(CrsxMetaParser.SortParamsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortParams}.
+	 * @param ctx the parse tree
+	 */
+	void exitSortParams(CrsxMetaParser.SortParamsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sortParams_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterSortParams_EOF(CrsxMetaParser.SortParams_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sortParams_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitSortParams_EOF(CrsxMetaParser.SortParams_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#paramSort_OOM}.
+	 * @param ctx the parse tree
+	 */
+	void enterParamSort_OOM(CrsxMetaParser.ParamSort_OOMContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#paramSort_OOM}.
+	 * @param ctx the parse tree
+	 */
+	void exitParamSort_OOM(CrsxMetaParser.ParamSort_OOMContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#paramSort_OOM_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterParamSort_OOM_EOF(CrsxMetaParser.ParamSort_OOM_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#paramSort_OOM_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitParamSort_OOM_EOF(CrsxMetaParser.ParamSort_OOM_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sorts}.
+	 * @param ctx the parse tree
+	 */
+	void enterSorts(CrsxMetaParser.SortsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sorts}.
+	 * @param ctx the parse tree
+	 */
+	void exitSorts(CrsxMetaParser.SortsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sorts_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterSorts_EOF(CrsxMetaParser.Sorts_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sorts_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitSorts_EOF(CrsxMetaParser.Sorts_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sorts_ZOM}.
+	 * @param ctx the parse tree
+	 */
+	void enterSorts_ZOM(CrsxMetaParser.Sorts_ZOMContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sorts_ZOM}.
+	 * @param ctx the parse tree
+	 */
+	void exitSorts_ZOM(CrsxMetaParser.Sorts_ZOMContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#sorts_ZOM_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterSorts_ZOM_EOF(CrsxMetaParser.Sorts_ZOM_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#sorts_ZOM_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitSorts_ZOM_EOF(CrsxMetaParser.Sorts_ZOM_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#ruleDecl}.
+	 * @param ctx the parse tree
+	 */
+	void enterRuleDecl(CrsxMetaParser.RuleDeclContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#ruleDecl}.
+	 * @param ctx the parse tree
+	 */
+	void exitRuleDecl(CrsxMetaParser.RuleDeclContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#ruleDecl_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterRuleDecl_EOF(CrsxMetaParser.RuleDecl_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#ruleDecl_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitRuleDecl_EOF(CrsxMetaParser.RuleDecl_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnDecl}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnDecl(CrsxMetaParser.FnDeclContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnDecl}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnDecl(CrsxMetaParser.FnDeclContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnDecl_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnDecl_EOF(CrsxMetaParser.FnDecl_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnDecl_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnDecl_EOF(CrsxMetaParser.FnDecl_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParamsDecl_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParamsDecl_OPT(CrsxMetaParser.FnParamsDecl_OPTContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParamsDecl_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParamsDecl_OPT(CrsxMetaParser.FnParamsDecl_OPTContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParamsDecl_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParamsDecl_OPT_EOF(CrsxMetaParser.FnParamsDecl_OPT_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParamsDecl_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParamsDecl_OPT_EOF(CrsxMetaParser.FnParamsDecl_OPT_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnFixity}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnFixity(CrsxMetaParser.FnFixityContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnFixity}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnFixity(CrsxMetaParser.FnFixityContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnFixity_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnFixity_EOF(CrsxMetaParser.FnFixity_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnFixity_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnFixity_EOF(CrsxMetaParser.FnFixity_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParamsDecl}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParamsDecl(CrsxMetaParser.FnParamsDeclContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParamsDecl}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParamsDecl(CrsxMetaParser.FnParamsDeclContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParamsDecl_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParamsDecl_EOF(CrsxMetaParser.FnParamsDecl_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParamsDecl_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParamsDecl_EOF(CrsxMetaParser.FnParamsDecl_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParams_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParams_OPT(CrsxMetaParser.FnParams_OPTContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParams_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParams_OPT(CrsxMetaParser.FnParams_OPTContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParams_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParams_OPT_EOF(CrsxMetaParser.FnParams_OPT_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParams_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParams_OPT_EOF(CrsxMetaParser.FnParams_OPT_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParams}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParams(CrsxMetaParser.FnParamsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParams}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParams(CrsxMetaParser.FnParamsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParams_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParams_EOF(CrsxMetaParser.FnParams_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParams_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParams_EOF(CrsxMetaParser.FnParams_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParam_ZOM}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParam_ZOM(CrsxMetaParser.FnParam_ZOMContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParam_ZOM}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParam_ZOM(CrsxMetaParser.FnParam_ZOMContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParam_ZOM_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParam_ZOM_EOF(CrsxMetaParser.FnParam_ZOM_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParam_ZOM_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParam_ZOM_EOF(CrsxMetaParser.FnParam_ZOM_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParam}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParam(CrsxMetaParser.FnParamContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParam}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParam(CrsxMetaParser.FnParamContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParam_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterFnParam_EOF(CrsxMetaParser.FnParam_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParam_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitFnParam_EOF(CrsxMetaParser.FnParam_EOFContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxMetaParser#metavar_TOK}.
 	 * @param ctx the parse tree
@@ -428,185 +948,45 @@ public interface CrsxMetaParserListener extends ParseTreeListener {
 	 */
 	void exitMetavar_TOK_EOF(CrsxMetaParser.Metavar_TOK_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#scope}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParamSort_OPT}.
 	 * @param ctx the parse tree
 	 */
-	void enterScope(CrsxMetaParser.ScopeContext ctx);
+	void enterFnParamSort_OPT(CrsxMetaParser.FnParamSort_OPTContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#scope}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParamSort_OPT}.
 	 * @param ctx the parse tree
 	 */
-	void exitScope(CrsxMetaParser.ScopeContext ctx);
+	void exitFnParamSort_OPT(CrsxMetaParser.FnParamSort_OPTContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#scope_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParamSort_OPT_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterScope_EOF(CrsxMetaParser.Scope_EOFContext ctx);
+	void enterFnParamSort_OPT_EOF(CrsxMetaParser.FnParamSort_OPT_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#scope_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParamSort_OPT_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitScope_EOF(CrsxMetaParser.Scope_EOFContext ctx);
+	void exitFnParamSort_OPT_EOF(CrsxMetaParser.FnParamSort_OPT_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#binders}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParamSort}.
 	 * @param ctx the parse tree
 	 */
-	void enterBinders(CrsxMetaParser.BindersContext ctx);
+	void enterFnParamSort(CrsxMetaParser.FnParamSortContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#binders}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParamSort}.
 	 * @param ctx the parse tree
 	 */
-	void exitBinders(CrsxMetaParser.BindersContext ctx);
+	void exitFnParamSort(CrsxMetaParser.FnParamSortContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#binders_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#fnParamSort_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterBinders_EOF(CrsxMetaParser.Binders_EOFContext ctx);
+	void enterFnParamSort_EOF(CrsxMetaParser.FnParamSort_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#binders_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#fnParamSort_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitBinders_EOF(CrsxMetaParser.Binders_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#annotation_ZOM}.
-	 * @param ctx the parse tree
-	 */
-	void enterAnnotation_ZOM(CrsxMetaParser.Annotation_ZOMContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#annotation_ZOM}.
-	 * @param ctx the parse tree
-	 */
-	void exitAnnotation_ZOM(CrsxMetaParser.Annotation_ZOMContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#annotation_ZOM_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterAnnotation_ZOM_EOF(CrsxMetaParser.Annotation_ZOM_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#annotation_ZOM_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitAnnotation_ZOM_EOF(CrsxMetaParser.Annotation_ZOM_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#variable_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void enterVariable_TOK(CrsxMetaParser.Variable_TOKContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#variable_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void exitVariable_TOK(CrsxMetaParser.Variable_TOKContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#variable_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterVariable_TOK_EOF(CrsxMetaParser.Variable_TOK_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#variable_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitVariable_TOK_EOF(CrsxMetaParser.Variable_TOK_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#linear_TOK_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void enterLinear_TOK_OPT(CrsxMetaParser.Linear_TOK_OPTContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#linear_TOK_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void exitLinear_TOK_OPT(CrsxMetaParser.Linear_TOK_OPTContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#linear_TOK_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterLinear_TOK_OPT_EOF(CrsxMetaParser.Linear_TOK_OPT_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#linear_TOK_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitLinear_TOK_OPT_EOF(CrsxMetaParser.Linear_TOK_OPT_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#functional_TOK_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void enterFunctional_TOK_OPT(CrsxMetaParser.Functional_TOK_OPTContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#functional_TOK_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void exitFunctional_TOK_OPT(CrsxMetaParser.Functional_TOK_OPTContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#functional_TOK_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterFunctional_TOK_OPT_EOF(CrsxMetaParser.Functional_TOK_OPT_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#functional_TOK_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitFunctional_TOK_OPT_EOF(CrsxMetaParser.Functional_TOK_OPT_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#varsort_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void enterVarsort_OPT(CrsxMetaParser.Varsort_OPTContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#varsort_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void exitVarsort_OPT(CrsxMetaParser.Varsort_OPTContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#varsort_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterVarsort_OPT_EOF(CrsxMetaParser.Varsort_OPT_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#varsort_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitVarsort_OPT_EOF(CrsxMetaParser.Varsort_OPT_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#args}.
-	 * @param ctx the parse tree
-	 */
-	void enterArgs(CrsxMetaParser.ArgsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#args}.
-	 * @param ctx the parse tree
-	 */
-	void exitArgs(CrsxMetaParser.ArgsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#args_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterArgs_EOF(CrsxMetaParser.Args_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#args_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitArgs_EOF(CrsxMetaParser.Args_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#terms_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void enterTerms_OPT(CrsxMetaParser.Terms_OPTContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#terms_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void exitTerms_OPT(CrsxMetaParser.Terms_OPTContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#terms_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterTerms_OPT_EOF(CrsxMetaParser.Terms_OPT_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#terms_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitTerms_OPT_EOF(CrsxMetaParser.Terms_OPT_EOFContext ctx);
+	void exitFnParamSort_EOF(CrsxMetaParser.FnParamSort_EOFContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxMetaParser#terms}.
 	 * @param ctx the parse tree
@@ -648,25 +1028,145 @@ public interface CrsxMetaParserListener extends ParseTreeListener {
 	 */
 	void exitTerm_ZOM_EOF(CrsxMetaParser.Term_ZOM_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sargs}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#term}.
 	 * @param ctx the parse tree
 	 */
-	void enterSargs(CrsxMetaParser.SargsContext ctx);
+	void enterTerm(CrsxMetaParser.TermContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sargs}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#term}.
 	 * @param ctx the parse tree
 	 */
-	void exitSargs(CrsxMetaParser.SargsContext ctx);
+	void exitTerm(CrsxMetaParser.TermContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sargs_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#term_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterSargs_EOF(CrsxMetaParser.Sargs_EOFContext ctx);
+	void enterTerm_EOF(CrsxMetaParser.Term_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sargs_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#term_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitSargs_EOF(CrsxMetaParser.Sargs_EOFContext ctx);
+	void exitTerm_EOF(CrsxMetaParser.Term_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#nterm_ZOM}.
+	 * @param ctx the parse tree
+	 */
+	void enterNterm_ZOM(CrsxMetaParser.Nterm_ZOMContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#nterm_ZOM}.
+	 * @param ctx the parse tree
+	 */
+	void exitNterm_ZOM(CrsxMetaParser.Nterm_ZOMContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#nterm_ZOM_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterNterm_ZOM_EOF(CrsxMetaParser.Nterm_ZOM_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#nterm_ZOM_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitNterm_ZOM_EOF(CrsxMetaParser.Nterm_ZOM_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#nterm}.
+	 * @param ctx the parse tree
+	 */
+	void enterNterm(CrsxMetaParser.NtermContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#nterm}.
+	 * @param ctx the parse tree
+	 */
+	void exitNterm(CrsxMetaParser.NtermContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#nterm_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterNterm_EOF(CrsxMetaParser.Nterm_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#nterm_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitNterm_EOF(CrsxMetaParser.Nterm_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#aterm}.
+	 * @param ctx the parse tree
+	 */
+	void enterAterm(CrsxMetaParser.AtermContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#aterm}.
+	 * @param ctx the parse tree
+	 */
+	void exitAterm(CrsxMetaParser.AtermContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#aterm_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterAterm_EOF(CrsxMetaParser.Aterm_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#aterm_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitAterm_EOF(CrsxMetaParser.Aterm_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#args_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void enterArgs_OPT(CrsxMetaParser.Args_OPTContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#args_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void exitArgs_OPT(CrsxMetaParser.Args_OPTContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#args_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterArgs_OPT_EOF(CrsxMetaParser.Args_OPT_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#args_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitArgs_OPT_EOF(CrsxMetaParser.Args_OPT_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#apply_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void enterApply_OPT(CrsxMetaParser.Apply_OPTContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#apply_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void exitApply_OPT(CrsxMetaParser.Apply_OPTContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#apply_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterApply_OPT_EOF(CrsxMetaParser.Apply_OPT_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#apply_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitApply_OPT_EOF(CrsxMetaParser.Apply_OPT_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#args}.
+	 * @param ctx the parse tree
+	 */
+	void enterArgs(CrsxMetaParser.ArgsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#args}.
+	 * @param ctx the parse tree
+	 */
+	void exitArgs(CrsxMetaParser.ArgsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#args_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterArgs_EOF(CrsxMetaParser.Args_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#args_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitArgs_EOF(CrsxMetaParser.Args_EOFContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxMetaParser#scopes_OPT}.
 	 * @param ctx the parse tree
@@ -728,25 +1228,165 @@ public interface CrsxMetaParserListener extends ParseTreeListener {
 	 */
 	void exitScope_ZOM_EOF(CrsxMetaParser.Scope_ZOM_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#list}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#scope}.
 	 * @param ctx the parse tree
 	 */
-	void enterList(CrsxMetaParser.ListContext ctx);
+	void enterScope(CrsxMetaParser.ScopeContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#list}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#scope}.
 	 * @param ctx the parse tree
 	 */
-	void exitList(CrsxMetaParser.ListContext ctx);
+	void exitScope(CrsxMetaParser.ScopeContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#list_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#scope_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterList_EOF(CrsxMetaParser.List_EOFContext ctx);
+	void enterScope_EOF(CrsxMetaParser.Scope_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#list_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#scope_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitList_EOF(CrsxMetaParser.List_EOFContext ctx);
+	void exitScope_EOF(CrsxMetaParser.Scope_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#binders}.
+	 * @param ctx the parse tree
+	 */
+	void enterBinders(CrsxMetaParser.BindersContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#binders}.
+	 * @param ctx the parse tree
+	 */
+	void exitBinders(CrsxMetaParser.BindersContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#binders_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterBinders_EOF(CrsxMetaParser.Binders_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#binders_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitBinders_EOF(CrsxMetaParser.Binders_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#variable_TOK}.
+	 * @param ctx the parse tree
+	 */
+	void enterVariable_TOK(CrsxMetaParser.Variable_TOKContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#variable_TOK}.
+	 * @param ctx the parse tree
+	 */
+	void exitVariable_TOK(CrsxMetaParser.Variable_TOKContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#variable_TOK_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterVariable_TOK_EOF(CrsxMetaParser.Variable_TOK_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#variable_TOK_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitVariable_TOK_EOF(CrsxMetaParser.Variable_TOK_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#linear_TOK_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void enterLinear_TOK_OPT(CrsxMetaParser.Linear_TOK_OPTContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#linear_TOK_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void exitLinear_TOK_OPT(CrsxMetaParser.Linear_TOK_OPTContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#linear_TOK_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterLinear_TOK_OPT_EOF(CrsxMetaParser.Linear_TOK_OPT_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#linear_TOK_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitLinear_TOK_OPT_EOF(CrsxMetaParser.Linear_TOK_OPT_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#apply}.
+	 * @param ctx the parse tree
+	 */
+	void enterApply(CrsxMetaParser.ApplyContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#apply}.
+	 * @param ctx the parse tree
+	 */
+	void exitApply(CrsxMetaParser.ApplyContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#apply_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterApply_EOF(CrsxMetaParser.Apply_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#apply_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitApply_EOF(CrsxMetaParser.Apply_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#terms_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void enterTerms_OPT(CrsxMetaParser.Terms_OPTContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#terms_OPT}.
+	 * @param ctx the parse tree
+	 */
+	void exitTerms_OPT(CrsxMetaParser.Terms_OPTContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#terms_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterTerms_OPT_EOF(CrsxMetaParser.Terms_OPT_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#terms_OPT_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitTerms_OPT_EOF(CrsxMetaParser.Terms_OPT_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#groupOrList}.
+	 * @param ctx the parse tree
+	 */
+	void enterGroupOrList(CrsxMetaParser.GroupOrListContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#groupOrList}.
+	 * @param ctx the parse tree
+	 */
+	void exitGroupOrList(CrsxMetaParser.GroupOrListContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#groupOrList_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterGroupOrList_EOF(CrsxMetaParser.GroupOrList_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#groupOrList_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitGroupOrList_EOF(CrsxMetaParser.GroupOrList_EOFContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#term_OOM}.
+	 * @param ctx the parse tree
+	 */
+	void enterTerm_OOM(CrsxMetaParser.Term_OOMContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#term_OOM}.
+	 * @param ctx the parse tree
+	 */
+	void exitTerm_OOM(CrsxMetaParser.Term_OOMContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link CrsxMetaParser#term_OOM_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void enterTerm_OOM_EOF(CrsxMetaParser.Term_OOM_EOFContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link CrsxMetaParser#term_OOM_EOF}.
+	 * @param ctx the parse tree
+	 */
+	void exitTerm_OOM_EOF(CrsxMetaParser.Term_OOM_EOFContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxMetaParser#variable}.
 	 * @param ctx the parse tree
@@ -788,66 +1428,6 @@ public interface CrsxMetaParserListener extends ParseTreeListener {
 	 */
 	void exitLiteral_EOF(CrsxMetaParser.Literal_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#string_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void enterString_TOK(CrsxMetaParser.String_TOKContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#string_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void exitString_TOK(CrsxMetaParser.String_TOKContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#string_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterString_TOK_EOF(CrsxMetaParser.String_TOK_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#string_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitString_TOK_EOF(CrsxMetaParser.String_TOK_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#number_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void enterNumber_TOK(CrsxMetaParser.Number_TOKContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#number_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void exitNumber_TOK(CrsxMetaParser.Number_TOKContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#number_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterNumber_TOK_EOF(CrsxMetaParser.Number_TOK_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#number_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitNumber_TOK_EOF(CrsxMetaParser.Number_TOK_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#varsort}.
-	 * @param ctx the parse tree
-	 */
-	void enterVarsort(CrsxMetaParser.VarsortContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#varsort}.
-	 * @param ctx the parse tree
-	 */
-	void exitVarsort(CrsxMetaParser.VarsortContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#varsort_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterVarsort_EOF(CrsxMetaParser.Varsort_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#varsort_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitVarsort_EOF(CrsxMetaParser.Varsort_EOFContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link CrsxMetaParser#concrete}.
 	 * @param ctx the parse tree
 	 */
@@ -867,26 +1447,6 @@ public interface CrsxMetaParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitConcrete_EOF(CrsxMetaParser.Concrete_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#category_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void enterCategory_TOK(CrsxMetaParser.Category_TOKContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#category_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void exitCategory_TOK(CrsxMetaParser.Category_TOKContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#category_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterCategory_TOK_EOF(CrsxMetaParser.Category_TOK_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#category_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitCategory_TOK_EOF(CrsxMetaParser.Category_TOK_EOFContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxMetaParser#concrete_TOK}.
 	 * @param ctx the parse tree
@@ -908,46 +1468,6 @@ public interface CrsxMetaParserListener extends ParseTreeListener {
 	 */
 	void exitConcrete_TOK_EOF(CrsxMetaParser.Concrete_TOK_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#concrete3_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void enterConcrete3_TOK(CrsxMetaParser.Concrete3_TOKContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#concrete3_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void exitConcrete3_TOK(CrsxMetaParser.Concrete3_TOKContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#concrete3_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterConcrete3_TOK_EOF(CrsxMetaParser.Concrete3_TOK_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#concrete3_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitConcrete3_TOK_EOF(CrsxMetaParser.Concrete3_TOK_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#concrete4_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void enterConcrete4_TOK(CrsxMetaParser.Concrete4_TOKContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#concrete4_TOK}.
-	 * @param ctx the parse tree
-	 */
-	void exitConcrete4_TOK(CrsxMetaParser.Concrete4_TOKContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#concrete4_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterConcrete4_TOK_EOF(CrsxMetaParser.Concrete4_TOK_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#concrete4_TOK_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitConcrete4_TOK_EOF(CrsxMetaParser.Concrete4_TOK_EOFContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link CrsxMetaParser#dispatch}.
 	 * @param ctx the parse tree
 	 */
@@ -967,26 +1487,6 @@ public interface CrsxMetaParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitDispatch_EOF(CrsxMetaParser.Dispatch_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#delay_TOK_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void enterDelay_TOK_OPT(CrsxMetaParser.Delay_TOK_OPTContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#delay_TOK_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void exitDelay_TOK_OPT(CrsxMetaParser.Delay_TOK_OPTContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#delay_TOK_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterDelay_TOK_OPT_EOF(CrsxMetaParser.Delay_TOK_OPT_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#delay_TOK_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitDelay_TOK_OPT_EOF(CrsxMetaParser.Delay_TOK_OPT_EOFContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxMetaParser#dispatchCases}.
 	 * @param ctx the parse tree
@@ -1008,365 +1508,125 @@ public interface CrsxMetaParserListener extends ParseTreeListener {
 	 */
 	void exitDispatchCases_EOF(CrsxMetaParser.DispatchCases_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#properties}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#dispatchCases_ZOM}.
 	 * @param ctx the parse tree
 	 */
-	void enterProperties(CrsxMetaParser.PropertiesContext ctx);
+	void enterDispatchCases_ZOM(CrsxMetaParser.DispatchCases_ZOMContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#properties}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#dispatchCases_ZOM}.
 	 * @param ctx the parse tree
 	 */
-	void exitProperties(CrsxMetaParser.PropertiesContext ctx);
+	void exitDispatchCases_ZOM(CrsxMetaParser.DispatchCases_ZOMContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#properties_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#dispatchCases_ZOM_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterProperties_EOF(CrsxMetaParser.Properties_EOFContext ctx);
+	void enterDispatchCases_ZOM_EOF(CrsxMetaParser.DispatchCases_ZOM_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#properties_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#dispatchCases_ZOM_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitProperties_EOF(CrsxMetaParser.Properties_EOFContext ctx);
+	void exitDispatchCases_ZOM_EOF(CrsxMetaParser.DispatchCases_ZOM_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#propertyList_OPT}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#map}.
 	 * @param ctx the parse tree
 	 */
-	void enterPropertyList_OPT(CrsxMetaParser.PropertyList_OPTContext ctx);
+	void enterMap(CrsxMetaParser.MapContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#propertyList_OPT}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#map}.
 	 * @param ctx the parse tree
 	 */
-	void exitPropertyList_OPT(CrsxMetaParser.PropertyList_OPTContext ctx);
+	void exitMap(CrsxMetaParser.MapContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#propertyList_OPT_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#map_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterPropertyList_OPT_EOF(CrsxMetaParser.PropertyList_OPT_EOFContext ctx);
+	void enterMap_EOF(CrsxMetaParser.Map_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#propertyList_OPT_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#map_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitPropertyList_OPT_EOF(CrsxMetaParser.PropertyList_OPT_EOFContext ctx);
+	void exitMap_EOF(CrsxMetaParser.Map_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#propertyList}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#kvs_OPT}.
 	 * @param ctx the parse tree
 	 */
-	void enterPropertyList(CrsxMetaParser.PropertyListContext ctx);
+	void enterKvs_OPT(CrsxMetaParser.Kvs_OPTContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#propertyList}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#kvs_OPT}.
 	 * @param ctx the parse tree
 	 */
-	void exitPropertyList(CrsxMetaParser.PropertyListContext ctx);
+	void exitKvs_OPT(CrsxMetaParser.Kvs_OPTContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#propertyList_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#kvs_OPT_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterPropertyList_EOF(CrsxMetaParser.PropertyList_EOFContext ctx);
+	void enterKvs_OPT_EOF(CrsxMetaParser.Kvs_OPT_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#propertyList_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#kvs_OPT_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitPropertyList_EOF(CrsxMetaParser.PropertyList_EOFContext ctx);
+	void exitKvs_OPT_EOF(CrsxMetaParser.Kvs_OPT_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#property_ZOM}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#kvs}.
 	 * @param ctx the parse tree
 	 */
-	void enterProperty_ZOM(CrsxMetaParser.Property_ZOMContext ctx);
+	void enterKvs(CrsxMetaParser.KvsContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#property_ZOM}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#kvs}.
 	 * @param ctx the parse tree
 	 */
-	void exitProperty_ZOM(CrsxMetaParser.Property_ZOMContext ctx);
+	void exitKvs(CrsxMetaParser.KvsContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#property_ZOM_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#kvs_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterProperty_ZOM_EOF(CrsxMetaParser.Property_ZOM_EOFContext ctx);
+	void enterKvs_EOF(CrsxMetaParser.Kvs_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#property_ZOM_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#kvs_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitProperty_ZOM_EOF(CrsxMetaParser.Property_ZOM_EOFContext ctx);
+	void exitKvs_EOF(CrsxMetaParser.Kvs_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#property}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#kv_ZOM}.
 	 * @param ctx the parse tree
 	 */
-	void enterProperty(CrsxMetaParser.PropertyContext ctx);
+	void enterKv_ZOM(CrsxMetaParser.Kv_ZOMContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#property}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#kv_ZOM}.
 	 * @param ctx the parse tree
 	 */
-	void exitProperty(CrsxMetaParser.PropertyContext ctx);
+	void exitKv_ZOM(CrsxMetaParser.Kv_ZOMContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#property_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#kv_ZOM_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterProperty_EOF(CrsxMetaParser.Property_EOFContext ctx);
+	void enterKv_ZOM_EOF(CrsxMetaParser.Kv_ZOM_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#property_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#kv_ZOM_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitProperty_EOF(CrsxMetaParser.Property_EOFContext ctx);
+	void exitKv_ZOM_EOF(CrsxMetaParser.Kv_ZOM_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortparams}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#kv}.
 	 * @param ctx the parse tree
 	 */
-	void enterSortparams(CrsxMetaParser.SortparamsContext ctx);
+	void enterKv(CrsxMetaParser.KvContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortparams}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#kv}.
 	 * @param ctx the parse tree
 	 */
-	void exitSortparams(CrsxMetaParser.SortparamsContext ctx);
+	void exitKv(CrsxMetaParser.KvContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortparams_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#kv_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterSortparams_EOF(CrsxMetaParser.Sortparams_EOFContext ctx);
+	void enterKv_EOF(CrsxMetaParser.Kv_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortparams_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#kv_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitSortparams_EOF(CrsxMetaParser.Sortparams_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#variable_OOM}.
-	 * @param ctx the parse tree
-	 */
-	void enterVariable_OOM(CrsxMetaParser.Variable_OOMContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#variable_OOM}.
-	 * @param ctx the parse tree
-	 */
-	void exitVariable_OOM(CrsxMetaParser.Variable_OOMContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#variable_OOM_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterVariable_OOM_EOF(CrsxMetaParser.Variable_OOM_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#variable_OOM_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitVariable_OOM_EOF(CrsxMetaParser.Variable_OOM_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortset}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortset(CrsxMetaParser.SortsetContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortset}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortset(CrsxMetaParser.SortsetContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortset_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortset_EOF(CrsxMetaParser.Sortset_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortset_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortset_EOF(CrsxMetaParser.Sortset_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#properties_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void enterProperties_OPT(CrsxMetaParser.Properties_OPTContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#properties_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void exitProperties_OPT(CrsxMetaParser.Properties_OPTContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#properties_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterProperties_OPT_EOF(CrsxMetaParser.Properties_OPT_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#properties_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitProperties_OPT_EOF(CrsxMetaParser.Properties_OPT_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortnames}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortnames(CrsxMetaParser.SortnamesContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortnames}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortnames(CrsxMetaParser.SortnamesContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortnames_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortnames_EOF(CrsxMetaParser.Sortnames_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortnames_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortnames_EOF(CrsxMetaParser.Sortnames_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortname_ZOM}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortname_ZOM(CrsxMetaParser.Sortname_ZOMContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortname_ZOM}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortname_ZOM(CrsxMetaParser.Sortname_ZOMContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortname_ZOM_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortname_ZOM_EOF(CrsxMetaParser.Sortname_ZOM_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortname_ZOM_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortname_ZOM_EOF(CrsxMetaParser.Sortname_ZOM_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortname}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortname(CrsxMetaParser.SortnameContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortname}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortname(CrsxMetaParser.SortnameContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortname_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortname_EOF(CrsxMetaParser.Sortname_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortname_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortname_EOF(CrsxMetaParser.Sortname_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortargs_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortargs_OPT(CrsxMetaParser.Sortargs_OPTContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortargs_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortargs_OPT(CrsxMetaParser.Sortargs_OPTContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortargs_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortargs_OPT_EOF(CrsxMetaParser.Sortargs_OPT_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortargs_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortargs_OPT_EOF(CrsxMetaParser.Sortargs_OPT_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortargs}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortargs(CrsxMetaParser.SortargsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortargs}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortargs(CrsxMetaParser.SortargsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortargs_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortargs_EOF(CrsxMetaParser.Sortargs_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortargs_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortargs_EOF(CrsxMetaParser.Sortargs_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortnames_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortnames_OPT(CrsxMetaParser.Sortnames_OPTContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortnames_OPT}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortnames_OPT(CrsxMetaParser.Sortnames_OPTContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#sortnames_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterSortnames_OPT_EOF(CrsxMetaParser.Sortnames_OPT_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#sortnames_OPT_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitSortnames_OPT_EOF(CrsxMetaParser.Sortnames_OPT_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#forms}.
-	 * @param ctx the parse tree
-	 */
-	void enterForms(CrsxMetaParser.FormsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#forms}.
-	 * @param ctx the parse tree
-	 */
-	void exitForms(CrsxMetaParser.FormsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#forms_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterForms_EOF(CrsxMetaParser.Forms_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#forms_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitForms_EOF(CrsxMetaParser.Forms_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#form_ZOM}.
-	 * @param ctx the parse tree
-	 */
-	void enterForm_ZOM(CrsxMetaParser.Form_ZOMContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#form_ZOM}.
-	 * @param ctx the parse tree
-	 */
-	void exitForm_ZOM(CrsxMetaParser.Form_ZOMContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#form_ZOM_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterForm_ZOM_EOF(CrsxMetaParser.Form_ZOM_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#form_ZOM_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitForm_ZOM_EOF(CrsxMetaParser.Form_ZOM_EOFContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#form}.
-	 * @param ctx the parse tree
-	 */
-	void enterForm(CrsxMetaParser.FormContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#form}.
-	 * @param ctx the parse tree
-	 */
-	void exitForm(CrsxMetaParser.FormContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#form_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void enterForm_EOF(CrsxMetaParser.Form_EOFContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#form_EOF}.
-	 * @param ctx the parse tree
-	 */
-	void exitForm_EOF(CrsxMetaParser.Form_EOFContext ctx);
+	void exitKv_EOF(CrsxMetaParser.Kv_EOFContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link CrsxMetaParser#constructor}.
 	 * @param ctx the parse tree
@@ -1388,43 +1648,43 @@ public interface CrsxMetaParserListener extends ParseTreeListener {
 	 */
 	void exitConstructor_EOF(CrsxMetaParser.Constructor_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#qualifier}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#constructor_TOK}.
 	 * @param ctx the parse tree
 	 */
-	void enterQualifier(CrsxMetaParser.QualifierContext ctx);
+	void enterConstructor_TOK(CrsxMetaParser.Constructor_TOKContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#qualifier}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#constructor_TOK}.
 	 * @param ctx the parse tree
 	 */
-	void exitQualifier(CrsxMetaParser.QualifierContext ctx);
+	void exitConstructor_TOK(CrsxMetaParser.Constructor_TOKContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#qualifier_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#constructor_TOK_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterQualifier_EOF(CrsxMetaParser.Qualifier_EOFContext ctx);
+	void enterConstructor_TOK_EOF(CrsxMetaParser.Constructor_TOK_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#qualifier_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#constructor_TOK_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitQualifier_EOF(CrsxMetaParser.Qualifier_EOFContext ctx);
+	void exitConstructor_TOK_EOF(CrsxMetaParser.Constructor_TOK_EOFContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#reserved}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#symbols}.
 	 * @param ctx the parse tree
 	 */
-	void enterReserved(CrsxMetaParser.ReservedContext ctx);
+	void enterSymbols(CrsxMetaParser.SymbolsContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#reserved}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#symbols}.
 	 * @param ctx the parse tree
 	 */
-	void exitReserved(CrsxMetaParser.ReservedContext ctx);
+	void exitSymbols(CrsxMetaParser.SymbolsContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link CrsxMetaParser#reserved_EOF}.
+	 * Enter a parse tree produced by {@link CrsxMetaParser#symbols_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void enterReserved_EOF(CrsxMetaParser.Reserved_EOFContext ctx);
+	void enterSymbols_EOF(CrsxMetaParser.Symbols_EOFContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link CrsxMetaParser#reserved_EOF}.
+	 * Exit a parse tree produced by {@link CrsxMetaParser#symbols_EOF}.
 	 * @param ctx the parse tree
 	 */
-	void exitReserved_EOF(CrsxMetaParser.Reserved_EOFContext ctx);
+	void exitSymbols_EOF(CrsxMetaParser.Symbols_EOFContext ctx);
 }

@@ -16,7 +16,8 @@ buildscript {
 	dependencies { classpath 'org.crsx.gradle:crsx4-gradle-plugin:1.+' }
 }
 
-//
+// -- Build the term and meta parsers
+//    3 set of parsers are generated: Crsx4, Core Crsx and Antlr
 project(':parsers')
 {
 	// Note: the current directory is now 'parsers'
@@ -24,17 +25,20 @@ project(':parsers')
 	apply plugin:'org.crsx.gradle.crsx4'
 	
 	repositories {
-		flatDir { dirs '../dist' } // crsx4
-		flatDir { dirs '../lib' }  // crsx3
+		flatDir { dirs '../dist' } // for crsx4.jar
+		flatDir { dirs '../lib' }  // for crsx3.jar
 		mavenCentral()
 	}
 	
 	dependencies {
-		crsx4 'org.crsx:crsx:4.0.0-ALPHA@jar'
+		crsx4 'org.crsx:crsx:4.0.0-ALPHA@jar'  // 
 		crsx4 'org.crsx:crsx3@jar'
 		crsx4 'org.antlr:antlr4:4.5'
 	}
 	
+	//-- Generate Crsx4 parser and metaparsers.
+	
+	//-- 1. Generate the .g4 Crsx files
 	task crsxPG4(dependsOn:'antlrAntlr4', type: PG4Task) {
 		source = file('../../../src/parser/Crsx.g4')
 		generatedFileDir = file('../build/pg4')
@@ -42,6 +46,8 @@ project(':parsers')
 		metaPrefix = '##'
 	}
 	
+	
+	//-- 2. Generate the Java Crsx meta parser 
 	task crsxMetaAntlr4(dependsOn: 'crsxPG4', type: Antlr4Task) {
 		lexer = file('../build/pg4/CrsxMetaLexer.g4')
 		grammar = file('../build/pg4/CrsxMetaParser.g4')
@@ -50,12 +56,15 @@ project(':parsers')
 		superClass = 'org.crsx.pg.Crsx3Parser'
 	}
 	
+	//-- 3. Generate the Java Crsx term parser 
 	task crsxTermAntlr4(dependsOn: 'crsxPG4', type: Antlr4Task) {
 		grammar = file('../build/pg4/CrsxTerm.g4')
 		generatedFileDir = file('org/crsx/parser')
 		packageName = 'org.crsx.parser'
 	}
+
 	
+	//-- Generate Antlr Java meta parser.
 	task antlrAntlr4(type: Antlr4Task) {
 		lexer = file('../../../src/pg/ANTLRMetaLexer.g4')
 		grammar = file('../../../src/pg/ANTLRMeta.g4')
@@ -64,6 +73,7 @@ project(':parsers')
 		superClass = 'org.crsx.pg.Crsx3Parser'
 	}
 	
+	//-- Generate Antlr Java term parser.
 	task antlrTermAntlr4(type: Antlr4Task) {
 		lexer = file('../../../src/pg/ANTLRTermLexer.g4')
 		grammar = file('../../../src/pg/ANTLRTerm.g4')
@@ -71,8 +81,8 @@ project(':parsers')
 		packageName = 'org.crsx.pg'
 	}
 	
+	//-- Meta task to build all parsers.
 	task buildParsers(dependsOn: ['antlrAntlr4', 'antlrTermAntlr4', 'crsxMetaAntlr4', 'crsxTermAntlr4'])
-
 }
 
 project(':compiler')
@@ -87,7 +97,7 @@ project(':compiler')
 	
 	dependencies {
 		crsx4 files('../../../src')   // the interpreter always uses the development rules
-		crsx4 files('../build')   // with the current parser. 
+		crsx4 files('../build')       // with the current parser. 
 	//	crsx4 'org.crsx:crsx:4.0.0-ALPHA@jar' 
 		crsx4 'org.crsx:crsx3@jar'
 		crsx4 'org.antlr:antlr4:4.5'

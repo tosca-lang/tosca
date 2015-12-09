@@ -308,7 +308,7 @@ MakeElements[$List[ANTLR_element_sort], $List[ANTLR_element_sort], $String, $Boo
 → {#L}%element*⟨ ⟨element:  {#E}MakeExitAltAction[IsInternalRule[#RULE_REF]]⟩ ⟩;
 
 {#E; "$index": INDEX[#index]}MakeElements[{#L}%element*⟨ #element #element* ⟩, #fused, #RULE_REF, #meta] 
-→ {#E}MakeMaybeFusedElements[IsFused[#element, #element*, #index], #element, #element*, #fused, #RULE_REF, #meta];
+→ {#E}MakeMaybeFusedElements[IsFused[#element, #element*, #index], $[If, #meta, StripArgActionElement[#element], #element], #element*, #fused, #RULE_REF, #meta];
 
 // 
 MakeMaybeFusedElements[Boolean, ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANTLR_element_sort], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
@@ -339,8 +339,13 @@ MakeElement[{#L}%element⟨ #atom ⟩, (), #RULE_REF, #meta]
 {#E}MakeElement[{#L}%element⟨ #block ⟩, (), #RULE_REF, #meta]             
 → {#L}%element*⟨ ⟨block: {#E}HideConstBlock[#block] ⟩ ⟩;
 
-{#E}MakeElement[{#L}%element⟦ #ACTION #QUESTION? ⟧, (), #RULE_REF, #meta]             
+// Preserve action/semantic predicate only if not meta
+{#E}MakeElement[{#L}%element⟦ #ACTION #QUESTION? ⟧, (), #RULE_REF, $False]             
 → {#L}%element*⟨ #ACTION #QUESTION? ⟩;
+
+// Discard action/semantic predicate
+{#E}MakeElement[{#L}%element⟦ #ACTION #QUESTION? ⟧, (), #RULE_REF, $True]             
+→ {#L}%element*⟨⟩;
 
 //
 MakeLabeledElement[ANTLR_labeledElement_sort, ANTLR_element_A1_S1, $List[ANTLR_element_sort], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];

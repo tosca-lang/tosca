@@ -1,13 +1,11 @@
 // Generated from /Users/villardl/Projects/crsx/crsx4/src/pg/ANTLRTerm.g4 by ANTLR 4.5
 package org.crsx.pg;
 
-    import org.crsx.pg.SinkAntlrListener;
-
-
-import org.antlr.v4.runtime.ParserRuleContext;
+    import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.crsx.antlr.SinkAntlrListener;
 
 /**
  * This class provides an empty implementation of {@link ANTLRTermListener},
