@@ -18,7 +18,17 @@ $StringEntry ::= ( STRING[$String];);
 
 ∀ a.UnSOME[Option[a]] :: a;
 UnSOME[SOME[#]] → #;
-UnSOME[NONE]    → $[Error, "Error: no optional value."];
+
+// TODO: unable when not using interpreter (which is too strict)
+//UnSOME[NONE]    → $[Error, "Error: no optional value."];
+
+/* `HasOption[#option]`
+   Whether #option is `SOME` value.
+ */
+∀ a.HasOption[Option[a]] :: Boolean;
+HasOption[NONE]    → FALSE;
+HasOption[SOME[#]] → TRUE;
+
 
 // --- Boolean
 

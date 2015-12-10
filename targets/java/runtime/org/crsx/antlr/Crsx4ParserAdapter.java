@@ -1,6 +1,6 @@
 // Copyright (c) 2015 IBM Corporation.
 
-package org.crsx.pg;
+package org.crsx.antlr;
 
 import java.io.IOException;
 import java.io.Reader;

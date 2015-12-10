@@ -2,6 +2,7 @@
 
 package org.crsx.parser;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -10,30 +11,31 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.DiagnosticErrorListener;
+import org.antlr.v4.runtime.TokenSource;
+import org.antlr.v4.runtime.TokenStream;
+import org.crsx.antlr.SinkAntlrListener;
+
 import net.sf.crsx.Variable;
 import net.sf.crsx.generic.GenericFactory;
 import net.sf.crsx.generic.GenericTerm;
 import net.sf.crsx.util.Buffer;
 import net.sf.crsx.util.FormattingAppendable;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.TokenSource;
-import org.antlr.v4.runtime.TokenStream;
-import org.crsx.pg.SinkAntlrListener;
-
 /**
  * Simple utility to invoke the CRSX parser from the command line.
  * 
  * @author villardl
  */
-public class CrsxParser
+public class CLCoreParser
 {
 
 	public static void printUsage()
 	{
-		System.out.println("java org.crsx.parser.CrsxParser input.crs output.term");
+		System.out.println("java org.crsx.parser.CLCoreParser input.crs output.term");
 		System.exit(-1);
 	}
 
@@ -54,17 +56,19 @@ public class CrsxParser
 
 			CrsxTermParser parser = new CrsxTermParser(input);
 			parser.setBuildParseTree(false);
-			parser.setTrace(true);
+			//parser.setTrace(true);
 			GenericFactory factory = new GenericFactory();
 			Buffer buffer = new Buffer(factory);
 			SinkAntlrListener listener = new SinkAntlrListener(factory, buffer.sink(), "Crsx_", "##", parser);
 
 			parser.addParseListener(listener);
-			parser.crsx();
-            //parser.freeTerm();
+			parser.addErrorListener(new DiagnosticErrorListener(true));
+			parser.crsx(); 
 			GenericTerm term = (GenericTerm) buffer.term(true);
 
-			FileWriter w = new FileWriter(outputname);
+			File outputFile = new File(outputname);
+			outputFile.getParentFile().mkdirs();
+			FileWriter w = new FileWriter(outputFile);
 			FormattingAppendable f = FormattingAppendable.format(w, 120, 0, Integer.MAX_VALUE);
 			Map<Variable, String> variableNames = new HashMap<Variable, String>();
 			term.appendTermTo(
@@ -82,4 +86,5 @@ public class CrsxParser
 			e.printStackTrace();
 		}
 	}
+	
 }

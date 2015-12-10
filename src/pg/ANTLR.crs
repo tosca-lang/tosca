@@ -116,8 +116,8 @@ ANTLR_Print_rules[ANTLR_rules[#1]] → %n⟪ «TextFold[Map[x.ANTLR_Print_ruleSp
 ANTLR_ruleSpec_sort ::= (ANTLR_ruleSpec_A1[ANTLR_parserRuleSpec_sort]; ANTLR_ruleSpec_A2[ANTLR_lexerRule_sort]; );
 
 ANTLR_Print_ruleSpec[ANTLR_ruleSpec_sort] :: Text;
-ANTLR_Print_ruleSpec[ANTLR_ruleSpec_A1[#1]] → %n⟪ «ANTLR_Print_parserRuleSpec[#1]»⟫;
-ANTLR_Print_ruleSpec[ANTLR_ruleSpec_A2[#1]] → %n⟪ «ANTLR_Print_lexerRule[#1]»⟫;
+ANTLR_Print_ruleSpec[ANTLR_ruleSpec_A1[#1]] → %n⟪¶«ANTLR_Print_parserRuleSpec[#1]»⟫;
+ANTLR_Print_ruleSpec[ANTLR_ruleSpec_A2[#1]] → %n⟪¶«ANTLR_Print_lexerRule[#1]»⟫;
 
 ANTLR_parserRuleSpec_sort ::= (ANTLR_parserRuleSpec[$List[$String], $List[ANTLR_ruleModifiers_sort], $String, $List[$String], $List[ANTLR_ruleReturns_sort], $List[ANTLR_throwsSpec_sort], $List[ANTLR_localsSpec_sort], $List[ANTLR_rulePrequel_sort], $String, ANTLR_ruleBlock_sort, $String, ANTLR_exceptionGroup_sort]; );
 
@@ -191,12 +191,12 @@ ANTLR_Print_ruleBlock[ANTLR_ruleBlock[#1]] → %n⟪ «ANTLR_Print_ruleAltList[#
 ANTLR_ruleAltList_sort ::= (ANTLR_ruleAltList[ANTLR_labeledAlt_sort, $List[ANTLR_ruleAltList_S1_sort]]; );
 
 ANTLR_Print_ruleAltList[ANTLR_ruleAltList_sort] :: Text;
-ANTLR_Print_ruleAltList[ANTLR_ruleAltList[#1, #2]] → %n⟪ «ANTLR_Print_labeledAlt[#1]» «TextFold[Map[x.ANTLR_Print_ruleAltList_S1[x], #2], %n⟪ ⟫]»⟫;
+ANTLR_Print_ruleAltList[ANTLR_ruleAltList[#1, #2]] → %n⟪«ANTLR_Print_labeledAlt[#1]» «TextFold[Map[x.ANTLR_Print_ruleAltList_S1[x], #2], %n⟪ ⟫]»⟫;
 
 ANTLR_ruleAltList_S1_sort ::= (ANTLR_ruleAltList_S1[$String, ANTLR_labeledAlt_sort]; );
 
 ANTLR_Print_ruleAltList_S1[ANTLR_ruleAltList_S1_sort] :: Text;
-ANTLR_Print_ruleAltList_S1[ANTLR_ruleAltList_S1[#1, #2]] → %n⟪ †«#1» «ANTLR_Print_labeledAlt[#2]»⟫;
+ANTLR_Print_ruleAltList_S1[ANTLR_ruleAltList_S1[#1, #2]] → %n⟪¶†«#1» «ANTLR_Print_labeledAlt[#2]»⟫;
 
 ANTLR_labeledAlt_sort ::= (ANTLR_labeledAlt[ANTLR_alternative_sort, $List[ANTLR_labeledAlt_S1_sort]]; );
 
@@ -318,7 +318,7 @@ ANTLR_Print_element[ANTLR_element_sort] :: Text;
 ANTLR_Print_element[ANTLR_element_A1[#1, #2]] → %n⟪ «ANTLR_Print_labeledElement[#1]» «ANTLR_Print_element_A1_S1[#2]»⟫;
 ANTLR_Print_element[ANTLR_element_A2[#1, #2]] → %n⟪ «ANTLR_Print_atom[#1]» «ANTLR_Print_element_A2_S1[#2]»⟫;
 ANTLR_Print_element[ANTLR_element_A3[#1]] → %n⟪ «ANTLR_Print_ebnf[#1]»⟫;
-ANTLR_Print_element[ANTLR_element_A4[#1, #2]] → %n⟪ †«#1» «TextFold[Map[x.StringToText[x], #2], %n⟪ ⟫]»⟫;
+ANTLR_Print_element[ANTLR_element_A4[#1, #2]] → %n⟪ †«#1»«TextFold[Map[x.StringToText[x], #2], %n⟪⟫]»⟫;
 
 ANTLR_element_A1_S1_sort ::= (ANTLR_element_A1_S1_A1[ANTLR_ebnfSuffix_sort]; ANTLR_element_A1_S1_A2; );
 
@@ -445,17 +445,17 @@ ANTLR_elementOptions_S1_sort ::= (ANTLR_elementOptions_S1[$String, ANTLR_element
 ANTLR_Print_elementOptions_S1[ANTLR_elementOptions_S1_sort] :: Text;
 ANTLR_Print_elementOptions_S1[ANTLR_elementOptions_S1[#1, #2]] → %n⟪ †«#1» «ANTLR_Print_elementOption[#2]»⟫;
 
-ANTLR_elementOption_sort ::= (ANTLR_elementOption_A1[ANTLR_id_sort]; ANTLR_elementOption_A2[ANTLR_id_sort, $String, ANTLR_elementOption_A2_S1_sort]; );
+ANTLR_elementOption_sort ::= (ANTLR_elementOption_A1[ANTLR_id_sort]; ANTLR_elementOption_A2[ANTLR_id_sort, $String, ANTLR_elementOption_S1_sort]; );
 
 ANTLR_Print_elementOption[ANTLR_elementOption_sort] :: Text;
 ANTLR_Print_elementOption[ANTLR_elementOption_A1[#1]] → %n⟪ «ANTLR_Print_id[#1]»⟫;
-ANTLR_Print_elementOption[ANTLR_elementOption_A2[#1, #2, #3]] → %n⟪ «ANTLR_Print_id[#1]» †«#2» «ANTLR_Print_elementOption_A2_S1[#3]»⟫;
+ANTLR_Print_elementOption[ANTLR_elementOption_A2[#1, #2, #3]] → %n⟪ «ANTLR_Print_id[#1]» †«#2» «ANTLR_Print_elementOption_S1[#3]»⟫;
 
-ANTLR_elementOption_A2_S1_sort ::= (ANTLR_elementOption_A2_S1_A1[ANTLR_id_sort]; ANTLR_elementOption_A2_S1_A2[$String]; );
+ANTLR_elementOption_S1_sort ::= (ANTLR_elementOption_S1_A1[ANTLR_id_sort]; ANTLR_elementOption_S1_A2[$String]; );
 
-ANTLR_Print_elementOption_A2_S1[ANTLR_elementOption_A2_S1_sort] :: Text;
-ANTLR_Print_elementOption_A2_S1[ANTLR_elementOption_A2_S1_A1[#1]] → %n⟪ «ANTLR_Print_id[#1]»⟫;
-ANTLR_Print_elementOption_A2_S1[ANTLR_elementOption_A2_S1_A2[#1]] → %n⟪ †«#1»⟫;
+ANTLR_Print_elementOption_S1[ANTLR_elementOption_S1_sort] :: Text;
+ANTLR_Print_elementOption_S1[ANTLR_elementOption_S1_A1[#1]] → %n⟪ «ANTLR_Print_id[#1]»⟫;
+ANTLR_Print_elementOption_S1[ANTLR_elementOption_S1_A2[#1]] → %n⟪ †«#1»⟫;
 
 ANTLR_id_sort ::= (ANTLR_id_A1[$String]; ANTLR_id_A2[$String]; );
 

@@ -1,59 +1,59 @@
 // Copyright (c) 2015 IBM Corporation.
-defaultTasks 'bootstrap', 'java'
+import org.crsx.gradle.*
+
+defaultTasks 'bootstrap'
 
 apply plugin:'base'
 
+// -- Configure build script which requires crsx4 gradle plugin
 buildscript {
-	repositories {
-		flatDir { dirs 'gradle' } // to find crsx4-gradle-plugin.jar
-	}
-	dependencies {
-		classpath 'org.crsx.gradle:crsx4-gradle-plugin:1.+'
-	}
+    repositories {
+        flatDir { dirs 'gradle' } // to find crsx4-gradle-plugin.jar
+    }
+    dependencies {
+        classpath 'org.crsx.gradle:crsx4-gradle-plugin:1.+'
+    }
 }
 
 apply plugin:'org.crsx.gradle.crsx4'
 
 repositories {
-	flatDir { dirs 'targets/java/dist' } // crsx4
-	flatDir { dirs 'targets/java/lib' }  // crsx3
-	mavenCentral() 
+    flatDir { dirs 'targets/java/dist' } // where to find crsx4.jar
+    flatDir { dirs 'targets/java/lib' }  // where to find crsx3.jar
+    mavenCentral() // Where to find ANTLR  
 }
 
 dependencies {
-	crsx4 'org.crsx:crsx:4.0+@jar'
-	crsx4 'org.crsx:crsx3@jar'
-	crsx4 'org.antlr:antlr4:4.5' 
+    crsx4 project.hasProperty('dev') ? files('targets/java/build') : 'org.crsx:crsx:4.0+@jar' 
+    crsx4 project.hasProperty('dev') ? files('src') : '' 
+    crsx4 'org.crsx:crsx3@jar'
+    crsx4 'org.antlr:antlr4:4.5' 
 }
 
-pg4 {
-	source = file('src/parser/Crsx.g4')
-	generatedFileDir = file('src/parser')
-	parsers = false
+task coreParsers(type: PG4Task) {
+    description "Generate Core term and meta parsers"
+    source = file('src/core/Core.g4')
+    generatedFileDir = file('src/core')
+}
+
+task crsxParsers(type: PG4Task) {
+    description "Generate Crsx4 term and meta parsers"
+    source = file('src/parser/Crsx.g4')
+    generatedFileDir = file('src/parser')
 }
 
 task installCrsxSort(type: Copy, dependsOn: 'pg4') {
-	description "Update parser/Crsx.crs"
-	from 'build/pg4/Crsx.crs'
-	into 'src/parser'
+    description "Update parser/Crsx.crs"
+    from 'build/pg4/Crsx.crs'
+    into 'src/parser'
 }
 
-task cleanInstallCrsxSort(overwrite : true) {
-} 
+task cleanInstallCrsxSort(overwrite : true) {} 
+task cleanCoreParsers(overwrite : true) {} 
+task cleanCrsxParsers(overwrite : true) {} 
 
 task bootstrap(dependsOn: [ 'installCrsxSort' ]) {}
 
-// --- Shortcut to Java target
-
-task java(type: GradleBuild) {
-	description = "Generate CRSX Java distribution file.";
-	dir = 'targets/java';
-	tasks = ['dist']
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2'
 }
-
-//task updateBootstrap(type: Copy, dependsOn: java) {
-//	description "Update bootstrapping crsx4."
-//	from 'targets/java/dist/crsx-4.0.0-SNAPSHOT.jar'
-//	into 'bootstrap'
-//	rename { String fileName -> "crsx4.jar" }
-//}

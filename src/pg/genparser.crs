@@ -8,14 +8,13 @@
  * Naming convention
  * -----------------
  *
- *    RuleRef     → (MODNAME_)?RuleRef  
- *    
- *    TODO: change _ to be $
- *
+ *    RuleRef     → (MODNAME$)?RuleRef  
+ *   
  * Single Alternative
  * ------------------
  * 
- *     rule : R1  →  rule : {_enterAlt(");} R1 {_exitAlt();} 
+ *     rule : R1    →  rule : {_enterAlt(");} R1    {_exitAlt();} 
+ *     rule : R1 R2 →  rule : {_enterAlt(");} R1 R2 {_exitAlt();} 
  *
  * Multiple Alternatives
  * ---------------------
@@ -31,6 +30,23 @@
  *     rule : R1*  → rule : {_enterZOM();} R1* {_exitZOM();}
  *     rule : R1+  → rule : {_enterOOM();} R1+ {_exitOOM();}
  *     rule : R1?  → rule : {_enterOPT();} R1? {_exitOPT();}  
+ *
+ * Fusing element
+ * --------------
+ *
+ * Identical consecutive rule elements are fused to form only one list argument 
+ *
+ *     rule : R1? R1  →  rule : {_enterOOM();} R1? R1 {_exitOOM();}
+ *  
+ * Constant element are skipped. For instance 
+ *
+ *     rule : R1 (',' R1)*  →  rule : {_enterOOM();} R1 ({_hide()} ',' R1)* {_exitOOM();}
+ *
+ * TODO: add <fuse> option to control mapping
+ *
+ * Scoping
+ * -------
+ * Implemented.. Explain..
  *
  * Meta Parser
  * -----------
@@ -52,7 +68,8 @@
  *     rule_ZOM : {enterZOM();} R1* {({tail();} ({term();} MT_RULE_ZOM | {embed();} ET_RULE_ZOM EMBED_END))? exitZOM();}  
  *
  * where tail capture the rest of a list.
- *
+ * 
+ *  
  */
 MakeParser[(
 
@@ -62,6 +79,8 @@ $Use["pg/ANTLR.crs"];
 $Use["pg/util.crs"];
 $Use["std/function.crs"];
 $Use["std/list.crs"];
+$Use["std/core.crs"];
+$Use["std/string.crs"];
 
 Mode ::= ( 
     PARSER;     /* Generate term parser and lexer */ 
@@ -70,23 +89,23 @@ Mode ::= (
 );
 
 MakeParser[ANTLR_grammarSpec_sort] :: ANTLR_grammarSpec_sort;
-MakeParser[#] → ANTLR_Print_grammarSpec[MakeGrammarSpec[#, PARSER]];
+MakeParser[#] → ANTLR_Print_grammarSpec[MakeGrammarSpec[#, IndexGrammar[#], PARSER]];
 
 MakeMetaParser[ANTLR_grammarSpec_sort] :: ANTLR_grammarSpec_sort;
-MakeMetaParser[#] → ANTLR_Print_grammarSpec[MakeGrammarSpec[#, METAPARSER]];
+MakeMetaParser[#] → ANTLR_Print_grammarSpec[MakeGrammarSpec[#, IndexGrammar[#], METAPARSER]];
 
 MakeMetaLexer[ANTLR_grammarSpec_sort] :: ANTLR_grammarSpec_sort;
-MakeMetaLexer[#] → ANTLR_Print_grammarSpec[MakeGrammarSpec[#, METALEXER]];
+MakeMetaLexer[#] → ANTLR_Print_grammarSpec[MakeGrammarSpec[#, IndexGrammar[#], METALEXER]];
 
 // grammar ...
 
-MakeGrammarSpec[ANTLR_grammarSpec_sort, Mode] :: ANTLR_grammarSpec_sort;
-
-MakeGrammarSpec[{#L}%grammarSpec⟨ #DOC_COMMENT? #grammarType #id ; #prequelConstruct* #rules #modeSpec* ⟩, #mode] → 
-    {#L}%grammarSpec⟨ #DOC_COMMENT? ⟨grammarType: MakeGrammarType[#grammarType, #mode]⟩ ⟨id: MakeGrammarId[#id, #mode]⟩ ; 
-                      ⟨prequelConstruct*: MakePrequelConstructs[#mode, UnwrapId[#id]]⟩ 
-                      ⟨rules: MakeRules[ApplyIf[#rules, IsMeta[#mode], x.LiftEbnfRules[x]], #mode]⟩ 
-                      ⟨modeSpec*: MakeModeSpec[#modeSpec*, #mode]⟩ ⟩;
+MakeGrammarSpec[ANTLR_grammarSpec_sort, RuleIndex, Mode] :: ANTLR_grammarSpec_sort;
+MakeGrammarSpec[{#L}%grammarSpec⟨ #DOC_COMMENT? #grammarType #id ; #prequelConstruct* #rules #modeSpec* ⟩, #index, #mode]
+→ {#L}%grammarSpec⟨ #DOC_COMMENT? 
+                    ⟨grammarType: MakeGrammarType[#grammarType, #mode]⟩ ⟨id: MakeGrammarId[#id, #mode]⟩ ;
+                    ⟨prequelConstruct*: MakePrequelConstructs[#mode, UnwrapId[#id], #prequelConstruct*]⟩ 
+                    ⟨rules: {"$index": INDEX[#index]}MakeRules[ApplyIf[#rules, IsMeta[#mode], x.LiftEbnfRules[x, #index]], #mode]⟩ 
+                    ⟨modeSpec*: MakeModeSpec[#modeSpec*, #mode]⟩ ⟩;
 
 MakeGrammarType[ANTLR_grammarType_sort, Mode] :: ANTLR_grammarType_sort;
 
@@ -101,9 +120,9 @@ MakeGrammarId[{#L}%id⟨ #TOKEN_REF ⟩, METAPARSER] →  {#L}%id⟨ ⟨TOKEN_RE
 MakeGrammarId[{#L}%id⟨ #TOKEN_REF ⟩, METALEXER]  →  {#L}%id⟨ ⟨TOKEN_REF:  $[:, #TOKEN_REF,  "MetaLexer"] ⟩ ⟩; 
 
 // Add target language dependent actions. 
-MakePrequelConstructs[Mode, $String] :: $List[ANTLR_prequelConstruct];
-MakePrequelConstructs[#mode, #id] → 
-    Concat[LexerVocab[#mode, #id], ParserConstructs[#id, IsParser[#mode], IsMeta[#mode]]];
+MakePrequelConstructs[Mode, $String, $List[ANTLR_prequelConstruct]] :: $List[ANTLR_prequelConstruct];
+MakePrequelConstructs[#mode, #id, #prequelConstruct*] 
+→ Concat[LexerVocab[#mode, #id], ParserConstructs[#id, IsParser[#mode], IsMeta[#mode], GetPrequelAction["header", #prequelConstruct*], GetPrequelAction["members", #prequelConstruct*]]];
 
 LexerVocab[Mode, $String] :: $List[ANTLR_prequelConstruct];
 
@@ -111,13 +130,14 @@ LexerVocab[PARSER, #id]      → ();
 LexerVocab[METALEXER, #id]   → ();
 LexerVocab[METAPARSER, #id]  → %prequelConstruct*⟨ options { tokenVocab = ⟨STRING_LITERAL: $[:, #id, "MetaLexer"]⟩ ; } ⟩;
 
-ParserConstructs[$String, $Boolean, $Boolean] :: $List[ANTLR_prequelConstruct];
+ParserConstructs[$String, $Boolean, $Boolean, $String, $String] :: $List[ANTLR_prequelConstruct];
 
-ParserConstructs[#id, $False, #meta]    → ();
+ParserConstructs[#id, $False, #meta, #header, #members]    → ();
 
 // TODO: string concatenation is quite ugly. CRSX should support string template!
-ParserConstructs[#id, $True, #meta]     →
-    %prequelConstruct*⟨
+-[Data[#header, #members]]:
+ParserConstructs[#id, $True, #meta, #header, #members]    
+→ %prequelConstruct*⟨
         @header ⟨ACTION: $[:, "{\n",
              "import org.crsx.pg.SinkAntlrListener;\n",
              "import static org.crsx.pg.SinkAntlrListener.fireEnterZOM;\n",
@@ -127,9 +147,16 @@ ParserConstructs[#id, $True, #meta]     →
              "import static org.crsx.pg.SinkAntlrListener.fireEnterAlt;\n",
              "import static org.crsx.pg.SinkAntlrListener.fireExitAlt;\n",
              "import static org.crsx.pg.SinkAntlrListener.fireHide;\n",
+             "import static org.crsx.pg.SinkAntlrListener.fireEnterSymbol;\n",
+             "import static org.crsx.pg.SinkAntlrListener.fireExitSymbol;\n",
+             "import static org.crsx.pg.SinkAntlrListener.fireEnterBinder;\n",
+             "import static org.crsx.pg.SinkAntlrListener.fireExitBinder;\n",
+             "import static org.crsx.pg.SinkAntlrListener.fireEnterBinds;\n",
+             "import static org.crsx.pg.SinkAntlrListener.fireExitBinds;\n",
              $[If, #meta, "import static org.crsx.pg.SinkAntlrListener.fireTail;\n", ""],
              $[If, #meta, "import static org.crsx.pg.SinkAntlrListener.fireTerm;\n", ""],
              $[If, #meta, "import static org.crsx.pg.SinkAntlrListener.fireEmbed;\n", ""],
+             $[If, $[Not, #meta], #header, ""],
         "}"]⟩
         
         @parser::members ⟨ACTION: $[:, "{\n",
@@ -150,12 +177,32 @@ ParserConstructs[#id, $True, #meta]     →
             "protected void _enterAlt() { fireEnterAlt(_parseListeners, _ctx); }\n",
             "protected void _exitAlt()  { fireExitAlt(_parseListeners, _ctx); }\n",
             "protected void _hide()     { fireHide(_parseListeners, _ctx); }\n",
+            "protected void _enterSymbol()  { fireEnterSymbol(_parseListeners, _ctx); }\n",
+            "protected void _exitSymbol()     { fireExitSymbol(_parseListeners, _ctx); }\n",
+            "protected void _enterBinder(String name)     { fireEnterBinder(_parseListeners, _ctx, name); }\n",
+            "protected void _exitBinder()     { fireExitBinder(_parseListeners, _ctx); }\n",
+            "protected void _enterBinds(String names) { fireEnterBinds(_parseListeners, _ctx, names); }\n",
+            "protected void _exitBinds()  { fireExitBinds(_parseListeners, _ctx); }\n",
             $[If, #meta, "protected void _embed()    { fireEmbed(_parseListeners, _ctx); }\n", ""],
             $[If, #meta, "protected void _tail()     { fireTail(_parseListeners, _ctx); }\n", ""],
             $[If, #meta, "protected void _term()     { fireTerm(_parseListeners, _ctx); }\n", ""],
             $[If, #meta, $[:, "protected String _metachar() { return ", MetaChar["\""], ";}\n"], ""],
-        "}"]⟩
+            $[If, $[Not, #meta], #members, ""],
+        "}"]⟩ 
     ⟩;
+
+
+GetPrequelAction[$String, $List[ANTLR_prequelConstruct_sort]] :: $String;
+
+GetPrequelAction[#actionid, ()] → "";
+
+GetPrequelAction[#actionid, (%prequelConstruct⟨ @ #RULE_REF #ACTION ⟩; #prequelConstruct*)] 
+→ $[If, $[Equal, #RULE_REF, #actionid], #ACTION, GetPrequelAction[#actionid, #prequelConstruct*]];
+
+-[Fallback]:
+GetPrequelAction[#actionid, (#prequel; #prequelConstruct*)] 
+→ GetPrequelAction[#actionid, #prequelConstruct*];
+
 
 MakeModeSpec[$List[ANTLR_modeSpec_sort], Mode] :: $List[ANTLR_modeSpec_sort];
 
@@ -179,102 +226,216 @@ MakeModeSpec[#modeSpec*, METALEXER]     →
         #modeSpec*
     ];
 // TODO: ANTLR Meta parser to support ModeSpec tail
-
-
 // 
 MakeRules[ANTLR_rules_sort, Mode] :: $List[ANTLR_rules_sort];
-MakeRules[{#L}%rules⟨ #ruleSpec* ⟩, #mode] → {#L}%rules⟨ ⟨ruleSpec*: MakeRuleSpecs[#ruleSpec*, #mode]⟩ ⟩;
+{#E}MakeRules[{#L}%rules⟨ #ruleSpec* ⟩, #mode] 
+→ {#L}%rules⟨ ⟨ruleSpec*: {#E}MakeRuleSpecs[#ruleSpec*, #mode]⟩ ⟩;
 
 // 
 MakeRuleSpecs[$List[ANTLR_ruleSpec_sort], Mode] :: $List[ANTLR_ruleSpec_sort];
 
-MakeRuleSpecs[(), PARSER]       → ();
-MakeRuleSpecs[(), METAPARSER]   → ();
-MakeRuleSpecs[(), METALEXER]    → 
+{#E}MakeRuleSpecs[(), PARSER]       → ();
+{#E}MakeRuleSpecs[(), METAPARSER]   → ();
+{#E}MakeRuleSpecs[(), METALEXER]    → 
     %ruleSpec* ⟨
         fragment CRSX_META_CHAR        : ⟨STRING_LITERAL: MetaChar["'"]⟩; 
         fragment CRSX_START_EMBED_CHAR : '⟨';  
         fragment CRSX_END_EMBED_CHAR   : '⟩';  
     ⟩;
 
-MakeRuleSpecs[(#ruleSpec; #ruleSpec*), #mode]  → Concat[MakeRuleSpec[#ruleSpec, #mode], MakeRuleSpecs[#ruleSpec*, #mode]];
+{#E}MakeRuleSpecs[(#ruleSpec; #ruleSpec*), #mode]  → Concat[{#E}MakeRuleSpec[#ruleSpec, #mode], {#E}MakeRuleSpecs[#ruleSpec*, #mode]];
 
 //
 MakeRuleSpec[ANTLR_ruleSpec_sort, Mode] :: $List[ANTLR_ruleSpec_sort];
 
 // Parser rule
 // RuleRef : RuleBlock ;
-MakeRuleSpec[{#L}%ruleSpec⟨ #RULE_REF : #ruleBlock ; ⟩, #mode] →
-    Concat[MakeRuleSpec2[IsParser[#mode], #RULE_REF, #ruleBlock, #mode], MakeMetaRules[#mode, #RULE_REF, ToMeta[#RULE_REF]]];
+{#E}MakeRuleSpec[{#L}%ruleSpec⟨ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? 
+                 #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ; 
+                 #exceptionHandler* #finallyClause? ⟩, #mode] 
+→ Concat[{#E}MakeParserRuleSpec[%parserRuleSpec⟨ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? 
+                 #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ; 
+                 #exceptionHandler* #finallyClause?⟩, #mode], {#E}MakeMetaRules[#mode, #RULE_REF, ToMeta[#RULE_REF]]];
 
 // Lexer rule
-MakeRuleSpec[{#L}%ruleSpec⟨ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟩, #mode] →
-    $[If, $[Equal, #mode, METAPARSER], (), ({#L}%ruleSpec⟨ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟩;)];
-
+MakeRuleSpec[{#L}%ruleSpec⟨ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟩, #mode] 
+→ $[If, $[Equal, #mode, METAPARSER], (), ({#L}%ruleSpec⟨ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟩;)];
 
 // Decide to annotate or filter rule based on mode
-MakeRuleSpec2[$String, ANTLR_ruleBlock_sort, Mode] :: $List[ANTLR_ruleSpec_sort];
+MakeParserRuleSpec[ANTLR_parserRuleSpec_sort, Mode] :: $List[ANTLR_ruleSpec_sort];
 
-MakeRuleSpec2[$False, #RULE_REF, #ruleBlock, #mode]  → ();
-MakeRuleSpec2[$True, #RULE_REF, #ruleBlock, #mode]   → (%ruleSpec⟨ #RULE_REF : ⟨ruleBlock: MakeRuleBlock[#ruleBlock, #RULE_REF, #mode]⟩ ; ⟩;);
+{#E}MakeParserRuleSpec[#parserRuleSpec, METALEXER]  → ();
+
+{#E}MakeParserRuleSpec[{#L}%parserRuleSpec⟨ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? 
+                 #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ; 
+                 #exceptionHandler* #finallyClause? ⟩, PARSER]   
+→ ( {#L}%ruleSpec⟨ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns?  #throwsSpec? #localsSpec? #rulePrequel* 
+                        : ⟨ruleAltList: {#E}MakeRuleAltList[#ruleAltList, #RULE_REF, PARSER]⟩ ; 
+                        #exceptionHandler* #finallyClause?⟩; );
+
+{#E}MakeParserRuleSpec[{#L}%parserRuleSpec⟨ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? 
+                 #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ; 
+                 #exceptionHandler* #finallyClause? ⟩, METAPARSER]   
+→ ( {#L}%ruleSpec⟨ #RULE_REF : ⟨ruleAltList: {#E}MakeRuleAltList[#ruleAltList, #RULE_REF, METAPARSER]⟩ ; ⟩; );
 
 //----- Parser Rule Block
 
 //
-MakeRuleBlock[ANTLR_ruleBlock_sort, $String, Mode] :: ANTLR_ruleBlock_sort;
-MakeRuleBlock[{#L}%ruleBlock⟨ #ruleAltList ⟩, #RULE_REF, #mode] → {#L}%ruleBlock⟨ ⟨ruleAltList: MakeRuleAltList[#ruleAltList, #RULE_REF, #mode] ⟩ ⟩;
-
-//
 MakeRuleAltList[ANTLR_ruleAltList_sort, $String, Mode] :: ANTLR_ruleAltList_sort;
-MakeRuleAltList[{#L}%ruleAltList⟨ #alternative #ruleAltList_S1* ⟩, #RULE_REF, #mode] →
-    {#L}%ruleAltList⟨ ⟨alternative: MakeAlternative[#alternative, IsEmpty[#ruleAltList_S1*], 1, #RULE_REF, IsMeta[#mode]]⟩ ⟨ruleAltList_S1*: Concat[MakeRuleAltList_S1s[#ruleAltList_S1*, 2, #RULE_REF, IsMeta[#mode]], MakeMetaAltList[#RULE_REF, #mode]]⟩ ⟩; ;
+{#E}MakeRuleAltList[{#L}%ruleAltList⟨ #alternative #ruleAltList_S1* ⟩, #RULE_REF, #mode] 
+→ {#L}%ruleAltList⟨ ⟨alternative: {#E}MakeAlternative[#alternative, IsEmpty[#ruleAltList_S1*], 1, #RULE_REF, IsMeta[#mode]]⟩ 
+                 ⟨ruleAltList_S1*: Concat[{#E}MakeRuleAltList_S1s[#ruleAltList_S1*, 2, #RULE_REF, IsMeta[#mode]], {#E}MakeMetaAltList[#RULE_REF, #mode]]⟩ ⟩; ;
 
 //
 MakeRuleAltList_S1s[$List[ANTLR_ruleAltList_S1_sort], $Numeric, $String, $Boolean /* Meta parser? */] :: $List[ANTLR_ruleAltList_S1_sort];
 
-MakeRuleAltList_S1s[{#L}%ruleAltList_S1*⟨⟩, #Count, #RULE_REF, #meta] → {#L}%ruleAltList_S1*⟨⟩;
-MakeRuleAltList_S1s[{#L}%ruleAltList_S1*⟨ | #alternative #ruleAltList_S1* ⟩, #Count, #RULE_REF, #meta] →
-    {#L}%ruleAltList_S1*⟨ | ⟨alternative: MakeAlternative[#alternative, FALSE, #Count, #RULE_REF, #meta]⟩ ⟨ruleAltList_S1*: MakeRuleAltList_S1s[#ruleAltList_S1*, $[Plus, #Count, 1], #RULE_REF, #meta]⟩ ⟩
-;
+{#E}MakeRuleAltList_S1s[{#L}%ruleAltList_S1*⟨⟩, #count, #RULE_REF, #meta] → {#L}%ruleAltList_S1*⟨⟩;
+
+{#E}MakeRuleAltList_S1s[{#L}%ruleAltList_S1*⟨ | #alternative #ruleAltList_S1* ⟩, #count, #RULE_REF, #meta] 
+→ {#L}%ruleAltList_S1*⟨ | ⟨alternative: {#E}MakeAlternative[#alternative, FALSE, #count, #RULE_REF, #meta]⟩ 
+                        ⟨ruleAltList_S1*: {#E}MakeRuleAltList_S1s[#ruleAltList_S1*, $[Plus, #count, 1], #RULE_REF, #meta]⟩ ⟩;
 
 //
 MakeAlternative[ANTLR_alternative_sort, $Boolean, $Numeric, $String, $Boolean /* Meta parser? */] :: ANTLR_alternative_sort;
-MakeAlternative[{#L}%alternative⟨ #element* ⟩, #Unique, #Count, #RULE_REF, #meta] →
-    {#L}%alternative⟨ ⟨element: MakeEnterAltAction[#Unique, #Count, IsInternalRule[#RULE_REF]]⟩ ⟨element*: MakeElements[#element*, #RULE_REF, #meta]⟩ ⟩
-;
+
+{#E}MakeAlternative[{#L}%alternative⟨ #element* ⟩, #unique, #count, #RULE_REF, #meta]
+→ {#L}%alternative⟨ ⟨element: {#E}MakeEnterAltAction[#unique, #count, IsInternalRule[#RULE_REF]]⟩ ⟨element*: {#E}MakeElements[#element*, (), #RULE_REF, #meta]⟩ ⟩;
 
 // 
-MakeElements[$List[ANTLR_element_sort], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
-MakeElements[{#L}%element*⟨⟩, #RULE_REF, #meta]                     → {#L}%element*⟨ ⟨element:  MakeExitAltAction[IsInternalRule[#RULE_REF]]⟩ ⟩;
-MakeElements[{#L}%element*⟨ #element #element* ⟩, #RULE_REF, #meta] → {#L}%element*⟨ ⟨element*: Concat[MakeElement[#element, #RULE_REF, #meta], MakeElements[#element*, #RULE_REF, #meta]] ⟩ ⟩;
+MakeElements[$List[ANTLR_element_sort], $List[ANTLR_element_sort], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
+
+{#E}MakeElements[{#L}%element*⟨⟩, #fused, #RULE_REF, #meta]                     
+→ {#L}%element*⟨ ⟨element:  {#E}MakeExitAltAction[IsInternalRule[#RULE_REF]]⟩ ⟩;
+
+{#E; "$index": INDEX[#index]}MakeElements[{#L}%element*⟨ #element #element* ⟩, #fused, #RULE_REF, #meta] 
+→ {#E}MakeMaybeFusedElements[IsFused[#element, #element*, #index], $[If, #meta, StripArgActionElement[#element], #element], #element*, #fused, #RULE_REF, #meta];
+
+// 
+MakeMaybeFusedElements[Boolean, ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANTLR_element_sort], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
+
+// The element is fused: record and continue processing the remaining elements
+{#E}MakeMaybeFusedElements[TRUE, #element, #element*, #fused, #RULE_REF, #meta] → {#E}MakeElements[#element*, Concat[#fused, (#element;)], #RULE_REF, #meta];
+
+// The element is not fused: proceed
+{#E}MakeMaybeFusedElements[FALSE, {#L}#element, #element*, #fused, #RULE_REF, #meta] 
+→ {#L}%element*⟨ ⟨element*: Concat[{#E}MakeElement[#element, #fused, #RULE_REF, #meta], {#E}MakeElements[#element*, (), #RULE_REF, #meta]] ⟩ ⟩; 
 
 //
-MakeElement[ANTLR_element_sort, $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
-MakeElement[{#L}%element⟨ #atom #ebnfSuffix ⟩, #RULE_REF, #meta]  → WrapElement[{#L}%element⟨ #atom #ebnfSuffix ⟩, #ebnfSuffix, #RULE_REF, #meta];
-MakeElement[{#L}%element⟨ #atom ⟩, #RULE_REF, #meta]              → {#L}%element*⟨ #atom ⟩;
-;
+MakeElement[ANTLR_element_sort, $List[ANTLR_element_sort], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
+
+{#E}MakeElement[{#L}%element⟨ #labeledElement #element_A1_S1 ⟩, #fused, #RULE_REF, #meta]  
+→ {#E}MakeLabeledElement[#labeledElement, #element_A1_S1, #fused, #RULE_REF, #meta];
+
+{#E}MakeElement[{#L}%element⟨ #atom #ebnfSuffix ⟩, #fused, #RULE_REF, #meta]  
+→ WrapElement[{#L}%element⟨ #atom #ebnfSuffix ⟩, #ebnfSuffix, #fused, #RULE_REF, #meta];
+
+{#E; "$index": INDEX[{#I}RULEINDEX]}
+MakeElement[{#L}%element⟨ #atom ⟩, (), #RULE_REF, #meta]             
+→ {#E}MaybeHideAtom[{#I}IsSugarAtom[#atom], #atom, {#L}%element⟨ #atom ⟩];
+
+{#E}MakeElement[{#L}%element⟨ #block #ebnfSuffix ⟩, #fused, #RULE_REF, #meta]  
+→ WrapElement[{#L}%element⟨ ⟨block: {#E}HideConstBlock[#block]⟩ #ebnfSuffix ⟩, #ebnfSuffix, #fused, #RULE_REF, #meta];
+
+{#E}MakeElement[{#L}%element⟨ #block ⟩, (), #RULE_REF, #meta]             
+→ {#L}%element*⟨ ⟨block: {#E}HideConstBlock[#block] ⟩ ⟩;
+
+// Preserve action/semantic predicate only if not meta
+{#E}MakeElement[{#L}%element⟦ #ACTION #QUESTION? ⟧, (), #RULE_REF, $False]             
+→ {#L}%element*⟨ #ACTION #QUESTION? ⟩;
+
+// Discard action/semantic predicate
+{#E}MakeElement[{#L}%element⟦ #ACTION #QUESTION? ⟧, (), #RULE_REF, $True]             
+→ {#L}%element*⟨⟩;
+
+//
+MakeLabeledElement[ANTLR_labeledElement_sort, ANTLR_element_A1_S1, $List[ANTLR_element_sort], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
+
+{#E; "$index": INDEX[{#I}RULEINDEX]}
+MakeLabeledElement[{#L}%labeledElement⟨ #id #labeledElement_S1 #atom ⟩, #element_A1_S1, #fused, #RULE_REF, #meta]  
+→ MaybeHideAtom[{#I}IsSugarAtom[#atom], #atom, {#L}%element⟨ #id #labeledElement_S1 #atom #element_A1_S1 ⟩];
+
+{#E; "$index": INDEX[{#I}RULEINDEX]}
+MakeLabeledElement[{#L}%labeledElement⟨ #id #labeledElement_S1 #block ⟩, #element_A1_S1, #fused, #RULE_REF, #meta]  
+→ ( {#L}%element⟨ #id #labeledElement_S1 ⟨block: {#E}HideConstBlock[#block]⟩ #element_A1_S1 ⟩; );
 
 // Wrap element with action depending on its attached EBNF suffix
-WrapElement[ANTLR_element_sort, ANTLR_ebnfSuffix_sort, $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
+WrapElement[ANTLR_element_sort, ANTLR_ebnfSuffix_sort, $List[ANTLR_element_sort], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
 
-WrapElement[{#L}#element, %ebnfSuffix⟨ ? ⟩, #RULE_REF, #meta] → Concat[{#L}%element*⟨ {_enterOPT();} #element ⟩, Concat[MakeTail[#RULE_REF, #meta], {#L}%element*⟨ {_exitOPT();} ⟩]] ;
-WrapElement[{#L}#element, %ebnfSuffix⟨ * ⟩, #RULE_REF, #meta] → Concat[{#L}%element*⟨ {_enterZOM();} #element ⟩, Concat[MakeTail[#RULE_REF, #meta], {#L}%element*⟨ {_exitZOM();} ⟩]] ;
-WrapElement[{#L}#element, %ebnfSuffix⟨ + ⟩, #RULE_REF, #meta] → Concat[{#L}%element*⟨ {_enterOOM();} #element ⟩, Concat[MakeTail[#RULE_REF, #meta], {#L}%element*⟨ {_exitOOM();} ⟩]] ;
+WrapElement[{#L}#element, %ebnfSuffix⟨ ? ⟩, #element*, #RULE_REF, #meta] → Concat[{#L}%element*⟨ {_enterOPT();} #element* ⟩, Concat[ (#element;), Concat[MakeTail[#RULE_REF, #meta], {#L}%element*⟨ {_exitOPT();} ⟩]]];
+WrapElement[{#L}#element, %ebnfSuffix⟨ * ⟩, #element*, #RULE_REF, #meta] → Concat[{#L}%element*⟨ {_enterZOM();} #element* ⟩, Concat[ (#element;), Concat[MakeTail[#RULE_REF, #meta], {#L}%element*⟨ {_exitZOM();} ⟩]]] ;
+WrapElement[{#L}#element, %ebnfSuffix⟨ + ⟩, #element*, #RULE_REF, #meta] → Concat[{#L}%element*⟨ {_enterOOM();} #element* ⟩, Concat[ (#element;), Concat[MakeTail[#RULE_REF, #meta], {#L}%element*⟨ {_exitOOM();} ⟩]]] ;
 
 // Produce grammar to match/contract a sequence tail.
 MakeTail[$String, $Boolean] :: $List[ANTLR_element_sort];
-
 MakeTail[#RULE_REF, $False]    → %element*⟨ ⟩;
 MakeTail[#RULE_REF, $True]     → %element*⟨ ({_tail();} ({_term();} ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩ | {_embed();} ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩ CRSX_EMBED_END))? ⟩;
 
-// ({tail();} ({term();} MT_ELEMENT_ZOM | {embed();} ET_ELEMENT_ZOM EMBED_END))?
+// Produce grammar to hide constant production.
+MaybeHideAtom[Boolean, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
+MaybeHideAtom[TRUE, #atom, #element]  → %element*⟨ {_hide();} #element ⟩;
+MaybeHideAtom[FALSE, #atom, #element] → MaybeBinderAtom[GetElementOptionAtom[#atom, "binder"], #atom, #element];
+
+// Produce grammar for binder
+MaybeBinderAtom[$List[ElementOption], ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
+MaybeBinderAtom[(), #atom, #element]          
+→ MaybeBindsAtom[GetElementOptionAtom[#atom, "binds"], #atom, #element];
+
+MaybeBinderAtom[(BINDER[#binder];), #atom, #element] 
+→ %element*⟨ ⟨ACTION: $[:, "{_enterBinder(\"", #binder, "\");}"]⟩ ⟨element: #element⟩ {_exitBinder();} ⟩;
+
+// Produce grammar for binds
+MaybeBindsAtom[$List[ElementOption], ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
+MaybeBindsAtom[(), #atom, #element] 
+→ MaybeSymbolAtom[GetElementOptionAtom[#atom, "symbol"], #atom, #element];
+
+MaybeBindsAtom[(#binds; #bindss), #atom, #element] 
+→ %element*⟨ ⟨ACTION: ConcatString[Foldl[val result.ConcatString[result, ConcatString[" ", UnBINDS[val]]], "{_enterBinds(\"", (#binds; #bindss)], "\");}"] ⟩
+             ⟨element: #element⟩   
+             {_exitBinds();} ⟩;
+
+// Produce grammar for symbol
+MaybeSymbolAtom[$List[ElementOption], ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
+MaybeSymbolAtom[(), #atom, #element]        
+→ %element*⟨ ⟨element: #element⟩ ⟩;
+
+MaybeSymbolAtom[(SYMBOL;), #atom, #element] 
+→ %element*⟨ {_enterSymbol();} ⟨element: #element⟩ {_exitSymbol();} ⟩;
+
+// Produce grammar to hide constant productions inside a block.
+
+HideConstBlock[ANTLR_block_sort] :: ANTLR_block_sort;
+{#E}HideConstBlock[%block⟨ ( #altList ) ⟩]  → %block⟨ ( ⟨altList: {#E}HideConstAltList[#altList]⟩ ) ⟩;
+
+HideConstAltList[ANTLR_altList_sort] :: ANTLR_altList_sort;
+{#E}HideConstAltList[%altList⟨ #alternative #altList_S1* ⟩]  → %altList⟨ ⟨alternative: {#E}HideConstAlternative[#alternative]⟩ ⟨altList_S1*: {#E}HideConstAltList_S1s[#altList_S1*]⟩ ⟩;
+
+HideConstAltList_S1s[$List[ANTLR_altList_S1_sort]] :: $List[ANTLR_altList_S1_sort];
+HideConstAltList_S1s[%altList_S1*⟨  ⟩]  → %altList_S1*⟨  ⟩;
+HideConstAltList_S1s[%altList_S1*⟨ | #alternative #altList_S1* ⟩] → %altList_S1*⟨ | ⟨alternative: HideConstAlternative[#alternative]⟩ ⟨altList_S1*: HideConstAltList_S1s[#altList_S1*]⟩ ⟩;
+
+HideConstAlternative[ANTLR_alternative_sort] :: ANTLR_alternative_sort;
+{#E}HideConstAlternative[%alternative⟨ #elementOptions? #element* ⟩]  → %alternative⟨ #elementOptions? ⟨element*: {#E}HideConstElements[#element*]⟩ ⟩;
+
+HideConstElements[$List[ANTLR_element_sort]] :: $List[ANTLR_element_sort];
+{#E}HideConstElements[%element*⟨ ⟩]                     → %element*⟨ ⟩;
+{#E}HideConstElements[%element*⟨ #element #element* ⟩]  → Concat[{#E}HideConstElement[#element], {#E}HideConstElements[#element*]];
+
+HideConstElement[ANTLR_element_sort] :: $List[ANTLR_element_sort];
+
+{#E; "$index": INDEX[{#I}RULEINDEX]}HideConstElement[{#L}%element⟨ #atom ⟩]                     
+→ MaybeHideAtom[{#I}IsConstantAtom[#atom], #atom, {#L}%element⟨ #atom ⟩];
+
+-[Fallback]:
+{#E}HideConstElement[%element⟨ #element ⟩]  → %element*⟨ #element ⟩;
+
+// Don't recurse into block: trivial blocks don't have nested blocks.
 
 // Some utilities
 
 // Make the "enterAlt" action. If only 1 alternative, command takes no alternative number.
-MakeEnterAltAction[#Unique, #Count, $True]                    → %element⟨ {} ⟩;
-MakeEnterAltAction[TRUE /* Unique */, #Count, $False]         → %element⟨ {_enterAlt();} ⟩;
-MakeEnterAltAction[FALSE /* Not Unique */, #Count, $False]    → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", $[FormatNumber, #Count], "\");}"]⟩ ⟩;
+MakeEnterAltAction[#unique, #count, $True]                    → %element⟨ {} ⟩;
+MakeEnterAltAction[TRUE /* Unique */, #count, $False]         → %element⟨ {_enterAlt();} ⟩;
+MakeEnterAltAction[FALSE /* Not Unique */, #count, $False]    → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", $[FormatNumber, #count], "\");}"]⟩ ⟩;
 
 // Make the "exitAlt" action
 MakeExitAltAction[$False] → %element⟨ {_exitAlt();} ⟩;
@@ -286,18 +447,28 @@ MakeMetaRules[Mode, $String /* RULE_REF */, $String /* Resolved rule ref */] :: 
 
 MakeMetaRules[PARSER, #RULE_REF, #resolved]        → ();
 
-MakeMetaRules[METAPARSER, #RULE_REF, #resolved]    →
-    (
-        %ruleSpec⟨ ⟨RULE_REF: $[:, #RULE_REF, "_EOF"]⟩ : #RULE_REF EOF ; ⟩; 
-    );
+MakeMetaRules[METAPARSER, #RULE_REF, #resolved]    → MakeMetaRulesMetaParser[IsList[#RULE_REF], #RULE_REF]; 
+ 
+MakeMetaRules[METALEXER, #RULE_REF, #resolved]     
+→ ( 
+      %ruleSpec⟨ ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩  : CRSX_META_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, "'"]⟩[0-9]* ; ⟩;
+      %ruleSpec⟨ ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩  : CRSX_START_EMBED_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, ":'"]⟩  -> pushMode(CrsxEmbed); ⟩;
+  );
 
-MakeMetaRules[METALEXER, #RULE_REF, #resolved]     →    
-    ( 
-        %ruleSpec⟨ ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩  : CRSX_META_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, "'"]⟩[0-9]* ; ⟩;
-        %ruleSpec⟨ ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩  : CRSX_START_EMBED_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, ":'"]⟩  -> pushMode(CrsxEmbed); ⟩;
-    );
+MakeMetaRulesMetaParser[Boolean, $String /* RULE_REF */] :: $List[ANTLR_ruleSpec_sort];
 
-//----- Generate additional alternatives, for META and EMBED. Only for meta paresr
+MakeMetaRulesMetaParser[TRUE, #RULE_REF]
+→ (
+    %ruleSpec⟨ ⟨RULE_REF: $[:, #RULE_REF, "_EOF"]⟩ : (#RULE_REF|{_enterZOM();}{_exitZOM();}) EOF ; ⟩; 
+  );
+
+MakeMetaRulesMetaParser[FALSE, #RULE_REF]
+→ (
+    %ruleSpec⟨ ⟨RULE_REF: $[:, #RULE_REF, "_EOF"]⟩ : #RULE_REF EOF ; ⟩; 
+  );
+
+
+//----- Generate additional alternatives, for META and EMBED. Only for meta parser
 
 MakeMetaAltList[$String, Mode] :: $List[ANTLR_ruleAltList_S1_sort];
 
@@ -308,132 +479,287 @@ MakeMetaAltList[#RULE_REF, METAPARSER]
 →
 %ruleAltList_S1*⟨ | {_term();} ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩ | {_embed();} ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩ CRSX_EMBED_END ⟩; 
 
-// 
-// LiftEbnfRules
-//
-// Elements with ebnf suffix are promoted to top-level rules, for instance:
-// 
-//      A     : B C*
-//      →
-//      A     : B C_ZOM
-//      C_ZOM : C*
-//
-// In addition, tokens are replaced by a grammar rule producing the token, to allow META and EMBED on tokens.
-// 
-// It's done in two passes, the first one rewrite the rule, and the second one generate the new rules.
-//
-// Only called when generating the meta-parser.
-//  
+/* 
+ * LiftEbnfRules
+ *
+ * - Elements with ebnf suffix are promoted to top-level rules, for instance:
+ * 
+ *      A     : B C*
+ *      →
+ *      A     : B C_ZOM
+ *      C_ZOM : C*
+ *
+ * - Tokens are replaced by a grammar rule producing the token, to allow META and EMBED on tokens.
+ * 
+ * High-level algorithm: done in two passes, the first one rewrite the rule, and the second one generate the new rules.
+ *
+ * Note: only called when generating the meta-parser.
+ * 
+ * TODO: only lift if the element with ebnf suffix is not unique (the rule as more than one non-fused element)
+ */  
+LiftEbnfRules[ANTLR_rules_sort, RuleIndex] :: ANTLR_rules_sort;
+LiftEbnfRules[{#L}%rules⟨ #ruleSpec* ⟩, #index] 
+→ {#L}%rules⟨ ⟨ruleSpec*: {"$index": INDEX[#index]}LiftEbnfRuleSpecs[OK, #ruleSpec*, ok.$Nil]⟩ ⟩;
 
-{#E}LiftEbnfRules[{#L}%rules⟨ #ruleSpec* ⟩] → {#L}%rules⟨ ⟨ruleSpec*: {#E}LiftEbnfRuleSpecs[OK, #ruleSpec*, ok.$Nil]⟩ ⟩;
+LiftEbnfRuleSpecs[OK_SORT, $List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
 
-//
-{#E}LiftEbnfRuleSpecs[OK, (), ok.#[ok]]                       → {#E}#[OK];
-{#E}LiftEbnfRuleSpecs[OK, (#ruleSpec; #ruleSpec*), ok.#[ok]]  → {#E}LiftEbnfRuleSpec[#ruleSpec, ok.LiftEbnfRuleSpecs[ok, #ruleSpec*, ok.#[ok]]];
+{#E}LiftEbnfRuleSpecs[OK, (), ok.#[ok]]                      
+→ {#E}#[OK];
 
-{#E}LiftEbnfRuleSpec[{#L}%ruleSpec⟨ #RULE_REF : #ruleAltList ; ⟩, ok.#[ok]] →
-    (
-        {#L}%ruleSpec⟨ #RULE_REF : ⟨ruleAltList: {#E}LiftEbnfRuleAltList[#ruleAltList]⟩ ; ⟩;   // First pass
-        {#E}MakeEbnfRuleAltList[#ruleAltList, ok.#[ok]]                                      // Second pass
-    );
+{#E}LiftEbnfRuleSpecs[OK, (#ruleSpec; #ruleSpec*), ok.#[ok]]  
+→ {#E}LiftEbnfRuleSpec[#ruleSpec, ok.LiftEbnfRuleSpecs[ok, #ruleSpec*, ok.#[ok]]];
 
-{#E}LiftEbnfRuleSpec[{#L}%ruleSpec⟨ #lexerRule ⟩, ok.#[ok]] → ( {#L}%ruleSpec⟨ #lexerRule ⟩; {#E}#[OK]);
+LiftEbnfRuleSpec[ANTLR_ruleSpec_sort] :: $List[ANTLR_ruleSpec_sort];
+
+{#E}LiftEbnfRuleSpec[{#L}%ruleSpec⟨ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? 
+                 #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ; 
+                 #exceptionHandler* #finallyClause?  ⟩, ok.#[ok]] 
+→ (
+    {#L}%ruleSpec⟨ #RULE_REF : ⟨ruleAltList: {#E}LiftEbnfRuleAltList[#ruleAltList]⟩ ; ⟩;   // First pass
+    {#E}MakeEbnfRuleAltList[#ruleAltList, ok.#[ok]]                                      // Second pass
+  );
+
+{#E}LiftEbnfRuleSpec[{#L}%ruleSpec⟨ #lexerRule ⟩, ok.#[ok]]
+→ ( {#L}%ruleSpec⟨ #lexerRule ⟩; {#E}#[OK]);
 
 // --- First Pass: rewrite the original rule.
 
-//
-{#E}LiftEbnfRuleAltList[{#L}%ruleAltList⟨ #element* #ruleAltList_S1* ⟩] →
-    {#L}%ruleAltList⟨ 
-        ⟨element*:        {#E}LiftEbnfElements[#element*]⟩
-        ⟨ruleAltList_S1*: {#E}LiftEbnfRuleAltList_S1s[#ruleAltList_S1*] ⟩
-    ⟩;
+LiftEbnfRuleAltList[ANTLR_ruleAltList_sort] :: ANTLR_ruleAltList_sort;
 
-//
-{#E}LiftEbnfRuleAltList_S1s[{#L}%ruleAltList_S1*⟨⟩] → {#L}%ruleAltList_S1*⟨⟩;
+{#E}LiftEbnfRuleAltList[{#L}%ruleAltList⟨ #element* #ruleAltList_S1* ⟩] 
+→ {#L}%ruleAltList⟨ 
+    ⟨element*:        {#E}LiftEbnfElements[#element*]⟩
+    ⟨ruleAltList_S1*: {#E}LiftEbnfRuleAltList_S1s[#ruleAltList_S1*] ⟩⟩;
 
-{#E}LiftEbnfRuleAltList_S1s[{#L}%ruleAltList_S1*⟨ | #element* #ruleAltList_S1*⟩] →
-    {#L}%ruleAltList_S1*⟨ 
-        | ⟨element*: {#E}LiftEbnfElements[#element*]⟩ 
-        ⟨ruleAltList_S1*: {#E}LiftEbnfRuleAltList_S1s[#ruleAltList_S1*] ⟩ 
-    ⟩;
+LiftEbnfRuleAltList_S1s[$List[ANTLR_ruleAltList_S1_sort]] :: $List[ANTLR_ruleAltList_S1_sort];
 
-//
-{#E}LiftEbnfElements[{#L}%element*⟨⟩]                                  → {#L}%element*⟨⟩;
-{#E}LiftEbnfElements[{#L}%element*⟨ #RULE_REF #element* ⟩]             → {#L}%element*⟨ #RULE_REF ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+{#E}LiftEbnfRuleAltList_S1s[{#L}%ruleAltList_S1*⟨⟩] 
+→ {#L}%ruleAltList_S1*⟨⟩;
 
-{#E}LiftEbnfElements[{#L}%element*⟨ #RULE_REF #ebnfSuffix #element* ⟩] 
-→ 
-{#L}%element*⟨ ⟨RULE_REF: EbnfEBNFRuleRef[#RULE_REF, #ebnfSuffix]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+{#E}LiftEbnfRuleAltList_S1s[{#L}%ruleAltList_S1*⟨ | #element* #ruleAltList_S1* ⟩] 
+→ {#L}%ruleAltList_S1*⟨ 
+    | ⟨element*: {#E}LiftEbnfElements[#element*]⟩ 
+    ⟨ruleAltList_S1*: {#E}LiftEbnfRuleAltList_S1s[#ruleAltList_S1*] ⟩ ⟩;
 
-{#E}LiftEbnfElements[{#L}%element*⟨ #TOKEN_REF #element* ⟩] 
-→ 
-{#L}%element*⟨ ⟨RULE_REF: TokenToRuleName[#TOKEN_REF]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+LiftEbnfElements[$List[ANTLR_element_sort]] :: $List[ANTLR_element_sort];
 
-{#E}LiftEbnfElements[{#L}%element*⟨ #TOKEN_REF #ebnfSuffix #element* ⟩] 
-→ 
-{#L}%element*⟨ ⟨RULE_REF: TokenToRuleName[#TOKEN_REF]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+{#E}LiftEbnfElements[{#L}%element*⟨⟩]                      
+→ {#L}%element*⟨⟩;
 
-{#E}LiftEbnfElements[{#L}%element*⟨ #STRING_LITERAL #element* ⟩]            
-→ 
-$[Error, $[:, "Invalid string literal ", #STRING_LITERAL, " in parser rule. It must be defined as a lexer rule (a token)."]];
+{#E; "$index": INDEX[#index]}
+LiftEbnfElements[{#L}%element*⟨ #element #element* ⟩]  
+→ {#E}LiftEbnfMaybeFusedElement[IsFused[#element, #element*, #index], #element, #element*];
+
+LiftEbnfMaybeFusedElement[Boolean, ANTLR_element_sort, $List[ANTLR_element_sort]] :: $List[ANTLR_element_sort];
+
+// Element is not fused: proceed..
+{#E}LiftEbnfMaybeFusedElement[FALSE, #element, #element*] 
+→ {#E}LiftEbnfElement[#element, #element*];
+
+// Element is fused: skip it as one of the following elements will generate a reference to the lifted rule
+{#E}LiftEbnfMaybeFusedElement[TRUE, #element, #element*] 
+→ {#E}LiftEbnfElements[#element*];
+
+// Lift no-fused element
+LiftEbnfElement[ANTLR_element_sort, $List[ANTLR_element_sort]] :: $List[ANTLR_element_sort];
+
+// labeled single atom: maybe lift.
+{#E}LiftEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #atom ⟩, #element*]            
+→ {#L}%element*⟨ #id #labeledElement_S1 ⟨atom: {#E}LiftEbnfAtom[#atom]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+
+// labeled suffixed atom: lift
+{#E}LiftEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #atom #ebnfSuffix ⟩, #element*]
+→ {#L}%element*⟨ ⟨RULE_REF: LiftedRuleNameAtom[#atom, SOME[#ebnfSuffix]]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+
+// labeled single trivial (after normalization) block: keep it unchanged
+{#E}LiftEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #block ⟩, #element*]   
+→ {#L}%element*⟨ #id #labeledElement_S1 #block ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+
+// labeled suffixed trivial (after normalization) block: lift
+{#E}LiftEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #block #ebnfSuffix ⟩, #element*]   
+→ {#L}%element*⟨ ⟨RULE_REF: {#E}LiftedRuleNameBlock[#block, SOME[#ebnfSuffix]]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+
+// Single atom element: maybe lift
+{#E}LiftEbnfElement[{#L}%element⟨ #atom ⟩, #element*]                        
+→ {#L}%element*⟨ ⟨atom: {#E}LiftEbnfAtom[#atom]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+
+// Suffixed atom element
+{#E}LiftEbnfElement[{#L}%element⟨ #atom #ebnfSuffix ⟩, #element*]                        
+→ {#L}%element*⟨ ⟨RULE_REF: LiftedRuleNameAtom[#atom, SOME[#ebnfSuffix]]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+
+// Single trivial block
+{#E}LiftEbnfElement[{#L}%element⟨ #block  ⟩, #element*]                        
+→  {#L}%element*⟨ #block ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+
+// Suffixed trivial block
+{#E}LiftEbnfElement[{#L}%element⟨ #block #ebnfSuffix ⟩, #element*]                        
+→ {#L}%element*⟨ ⟨RULE_REF: {#E}LiftedRuleNameBlock[#block, SOME[#ebnfSuffix]]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+
+// Just an action: preserve
+{#E}LiftEbnfElement[{#L}%element⟨ #ACTION #QUESTION? ⟩, #element*]                        
+→ {#L}%element*⟨ #ACTION #QUESTION? ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+
+// Lift atom if not sugar
+LiftEbnfAtom[ANTLR_atom_sort] :: ANTLR_atom_sort;
+
+{#E; "$index": INDEX[{#I}RULEINDEX]}LiftEbnfAtom[#atom]                        
+→ {#E}LiftEbnfAtom2[{#I}IsSugarAtom[#atom], #atom];                        
+
+LiftEbnfAtom2[Boolean, ANTLR_atom_sort] :: ANTLR_atom_sort;
+
+// Sugar atom: skip
+{#E}LiftEbnfAtom2[TRUE , #atom] → #atom;
+
+// Not constant: lift 
+{#E}LiftEbnfAtom2[FALSE, {#L}%atom⟨ #TOKEN_REF #elementOptions? ⟩] 
+→ %atom⟦ ⟨RULE_REF: LiftedRuleNameTokenRef[#TOKEN_REF, NONE]⟩ ⟨elementOptions?: #elementOptions?⟩ ⟧;                  
+
+{#E}LiftEbnfAtom2[FALSE, {#L}%atom⟨ #RULE_REF #ARG_ACTION? #elementOptions? ⟩] 
+→ %atom⟦ ⟨RULE_REF: LiftedRuleNameRuleRef[#RULE_REF, NONE]⟩ ⟨elementOptions?: #elementOptions?⟩ ⟧;                  
 
 // --- Second  Pass: Generate new rules
 
-//
-{#E}MakeEbnfRuleAltList[{#L}%ruleAltList⟨ #element* #ruleAltList_S1* ⟩, ok.#[ok]] 
-→
-{#E}MakeEbnfElements[#element*, ok.MakeEbnfRuleAltList_S1s[ok, #ruleAltList_S1*, ok.#[ok]]];
+MakeEbnfRuleAltList[ANTLR_ruleAltList_sort, ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
 
-//
-{#E}MakeEbnfRuleAltList_S1s[OK, {#L}%ruleAltList_S1*⟨⟩, ok.#[ok]] → {#E}#[OK];
+{#E}MakeEbnfRuleAltList[{#L}%ruleAltList⟨ #element* #ruleAltList_S1* ⟩, ok.#[ok]] 
+→ {#E}MakeEbnfElements[#element*, (), ok.MakeEbnfRuleAltList_S1s[ok, #ruleAltList_S1*, ok.#[ok]]];
+
+MakeEbnfRuleAltList[ANTLR_ruleAltList_sort, ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
+{#E}MakeEbnfRuleAltList_S1s[OK, {#L}%ruleAltList_S1*⟨⟩, ok.#[ok]] 
+→ {#E}#[OK];
 
 {#E}MakeEbnfRuleAltList_S1s[OK, {#L}%ruleAltList_S1*⟨ | #element* #ruleAltList_S1* ⟩, ok.#[ok]] 
-→
-{#E}MakeEbnfElements[#element*, ok.MakeEbnfRuleAltList_S1s[ok, #ruleAltList_S1*, ok.#[ok]]];
+→ {#E}MakeEbnfElements[#element*, (), ok.MakeEbnfRuleAltList_S1s[ok, #ruleAltList_S1*, ok.#[ok]]];
     
-//
-{#E}MakeEbnfElements[{#L}%element*⟨⟩, ok.#[ok]]                                  → {#E}#[OK];
-{#E}MakeEbnfElements[{#L}%element*⟨ #RULE_REF #element* ⟩, ok.#[ok]]             → {#E}MakeEbnfElements[#element*, ok.#[ok]];
+MakeEbnfElements[$List[ANTLR_element_sort], $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
 
-{#E}MakeEbnfElements[{#L}%element*⟨ #RULE_REF #ebnfSuffix #element* ⟩, ok.#[ok]] 
-→
-{#E}MakeEbnfElements-Key[EbnfEBNFRuleRef[#RULE_REF, #ebnfSuffix], #RULE_REF, #ebnfSuffix, #element*, ok.#[ok]];
+{#E}MakeEbnfElements[{#L}%element*⟨⟩, #fused, ok.#[ok]]                     
+→ {#E}#[OK];
 
-// TODO: should support ebnfSuffix
-{#E}MakeEbnfElements[{#L}%element*⟨ #TOKEN_REF #element* ⟩, ok.#[ok]] 
-→
-{#E}MakeToken-Key[TokenToRuleName[#TOKEN_REF], #TOKEN_REF, #element*, ok.#[ok]];
+{#E; "$index": INDEX[#index]}MakeEbnfElements[{#L}%element*⟨ #element #element* ⟩, #fused, ok.#[ok]]  
+→ {#E}MakeEbnfMaybeFusedElements[IsFused[#element, #element*, #index], #element, #element*, #fused, ok.#[ok]];
 
-{#E}MakeEbnfElements[{#L}%element*⟨ #TOKEN_REF #ebnfSuffix #element* ⟩, ok.#[ok]] 
-→
-{#E}MakeToken-Key[TokenToRuleName[#TOKEN_REF], #TOKEN_REF, #element*, ok.#[ok]];
+MakeEbnfMaybeFusedElements[Boolean, $List[ANTLR_element_sort], $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
 
-//
+// Element is not fused: proceed..
+{#E}MakeEbnfMaybeFusedElements[FALSE, #element, #element*, #fused, ok.#[ok]]
+→ {#E}MakeEbnfElement[#element, #element*, #fused, ok.#[ok]];
+
+// Element is fused. Record
+{#E}MakeEbnfMaybeFusedElements[TRUE, #element, #element*, #fused, ok.#[ok]] 
+→ {#E}MakeEbnfElements[#element*, Concat[#fused, (#element;)], ok.#[ok]];
+
+MakeEbnfElement[ANTLR_element_sort, $List[ANTLR_element_sort],  $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
+
+// labeled single atom: lift to allow metavar. #fused must be empty (guaranteed by IsFused)
+{#E}MakeEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #atom ⟩, #element*, (), ok.#[ok]]            
+→ {#E}MakeEbnfAtom[#atom, NONE, {#L}%element⟦ #id #labeledElement_S1 #atom ⟧, #element*, (), ok.#[ok]];
+
+// labeled suffixed atom: lift
+{#E}MakeEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #atom #ebnfSuffix ⟩, #element*, #fused, ok.#[ok]]
+→ {#E}MakeEbnfAtom[#atom, SOME[#ebnfSuffix], {#L}%element⟦ #id #labeledElement_S1 #atom #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]];
+
+// labeled single trivial (after normalization) block: skip. #fused must be empty (guaranteed by IsFused)
+{#E}MakeEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #block ⟩, #element*, (), ok.#[ok]]   
+→ {#E}MakeEbnfElements[#element*, (), ok.#[ok]];
+
+// labeled suffixed trivial (after normalization) block: lift
+{#E}MakeEbnfElement[{#L}%element⟦ #id #labeledElement_S1 #block #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]]   
+→ {#E}MakeLiftedRule[{#E}LiftedRuleNameBlock[#block, SOME[#ebnfSuffix]], {#L}%element⟦ #id #labeledElement_S1 #block #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]];
+
+// Single atom element: lift to allow metavar. #fused must be empty (guaranteed by IsFused)
+{#E}MakeEbnfElement[{#L}%element⟨ #atom ⟩, #element*, (), ok.#[ok]]                        
+→ {#E}MakeEbnfAtom[#atom, NONE, {#L}%element⟨ #atom ⟩, #element*, (), ok.#[ok]];
+
+// Suffixed atom element: lift
+{#E}MakeEbnfElement[{#L}%element⟨ #atom #ebnfSuffix ⟩, #element*, #fused, ok.#[ok]]                        
+→ {#E}MakeEbnfAtom[#atom, SOME[#ebnfSuffix], {#L}%element⟨ #atom #ebnfSuffix ⟩, #element*, #fused, ok.#[ok]];
+
+// Single trivial block: skip. #fused must be empty (guaranteed by IsFused)
+{#E}MakeEbnfElement[{#L}%element⟨ #block ⟩, #element*, (), ok.#[ok]]                        
+→ {#E}MakeEbnfElements[#element*, (), ok.#[ok]];
+
+// Suffixed trivial block: lift
+{#E}MakeEbnfElement[{#L}%element⟨ #block #ebnfSuffix ⟩, #element*, #fused, ok.#[ok]]                        
+→ {#E}MakeLiftedRule[{#E}LiftedRuleNameBlock[#block, SOME[#ebnfSuffix]], {#L}%element⟦ #block #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]];
+
+// Action: skip
+{#E}MakeEbnfElement[{#L}%element⟨ #ACTION #QUESTION? ⟩, #element*, #fused, ok.#[ok]]                        
+→ {#E}MakeEbnfElements[#element*, (), ok.#[ok]];
+
+MakeEbnfAtom[ANTLR_atom_sort, Option[ANTLR_ebnfSuffix_sort], ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
+
+{#E}MakeEbnfAtom[{#L}%atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, NONE, #element, #element*, #fused, ok.#[ok]] 
+→ {#E}MakeEbnfElements[#element*, #fused, ok.#[ok]];
+
+{#E}MakeEbnfAtom[{#L}%atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, SOME[#ebnfSuffix], #element, #element*, #fused, ok.#[ok]] 
+→ {#E}MakeLiftedRule[LiftedRuleNameRuleRef[#RULE_REF, SOME[#ebnfSuffix]], #element, #element*, #fused, ok.#[ok]];
+
+// Test is atom is constant, which in this case don't lift token
+{#E; "$index": INDEX[{#I}RULEINDEX]}
+MakeEbnfAtom[{#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧, NONE, #element, #element*, #fused, ok.#[ok]] 
+→ {#E}MakeEbnfSingleToken[{#I}IsSugarAtom[{#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧], {#L}%atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, ok.#[ok]];
+
+{#E}MakeEbnfAtom[{#L}%atom⟦ #TOKEN_REF ⟧, SOME[#ebnfSuffix], #element, #element*, #fused, ok.#[ok]] 
+→ {#E}MakeLiftedRule[LiftedRuleNameTokenRef[#TOKEN_REF, SOME[#ebnfSuffix]], #element, #element*, #fused, ok.#[ok]];
+
+MakeEbnfSingleToken[Boolean, ANTLR_atom_sort, ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
+
+// Not a constant token: lift it to allow metavariable
+{#E}MakeEbnfSingleToken[FALSE, {#L}%atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, ok.#[ok]]
+→ {#E}MakeLiftedRule[LiftedRuleNameTokenRef[#TOKEN_REF, NONE], #element, #element*, #fused, ok.#[ok]];
+
+// Constant token: skip
+{#E}MakeEbnfSingleToken[TRUE, {#L}%atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, ok.#[ok]]
+→ {#E}MakeEbnfElements[#element*, #fused, ok.#[ok]];
+ 
+MakeLiftedRule[$String, ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
+
 -[Data[#key]]:
-{#E}MakeEbnfElements-Key[#key, #RULE_REF, #ebnfSuffix, #element*, ok.#[ok]] 
-→
-$[{#E}IfDef, #key, 
-    {#E}MakeEbnfElements[#element*, ok.#[ok]],
-   (%ruleSpec⟨ ⟨RULE_REF: #key⟩ : #RULE_REF #ebnfSuffix ; ⟩ ; {#E; #key: DEFINED}MakeEbnfElements[#element*, ok.#[ok]])];
-
-//
--[Data[#key]]:
-{#E}MakeToken-Key[#key, #TOKEN_REF, #element*, ok.#[ok]] 
-→
-$[{#E}IfDef, #key, 
-    {#E}MakeEbnfElements[#element*, ok.#[ok]],
-   (%ruleSpec⟨ ⟨RULE_REF: #key⟩ : #TOKEN_REF ; ⟩ ; {#E; #key: DEFINED}MakeEbnfElements[#element*, ok.#[ok]])];
+{#E}MakeLiftedRule[#key, #element, #element*, #fused, ok.#[ok]] 
+→ $[{#E}IfDef, #key, 
+    {#E}MakeEbnfElements[#element*, (), ok.#[ok]],
+    (%ruleSpec⟨ ⟨RULE_REF: #key⟩ : ⟨element*: Concat[#fused, (#element;)]⟩ ; ⟩ ; {#E; #key: DEFINED}MakeEbnfElements[#element*, (), ok.#[ok]])];
 
 // -- Helpers
 
+// Generate lifted rule name from trivial block. Extract the non-constant atom
+LiftedRuleNameBlock[ANTLR_block_sort, Option[ANTLR_ebnfSuffix_sort]] :: $String;
+
+{#E; "$index": INDEX[#index]}LiftedRuleNameBlock[#block, #ebnfSuffix]
+→ LiftedRuleNameRuleRef[UnSOME[GetRefBlock[#block, (), #index]], #ebnfSuffix];
+
+// Generate lifted rule name from atom
+LiftedRuleNameAtom[ANTLR_atom_sort, Option[ANTLR_ebnfSuffix_sort]] :: $String;
+
+//LiftedRuleNameAtom[{#L}%atom⟨ #range ⟩, #ebnfSuffix] → $[Error, $[:, "Invalid range ", #range, " in parser rule. It must be defined as a lexer rule (a token)."]];
+LiftedRuleNameAtom[{#L}%atom⟨ #STRING_LITERAL #elementOptions? ⟩, #ebnfSuffix] 
+→ $[Error, $[:, "Invalid string literal ", #STRING_LITERAL, " in parser rule. It must be defined as a lexer rule (a token)."]];
+
+LiftedRuleNameAtom[{#L}%atom⟨ #TOKEN_REF #elementOptions? ⟩, #ebnfSuffix]             
+→ LiftedRuleNameRuleRef[TokenToRuleName[#TOKEN_REF], #ebnfSuffix];
+
+LiftedRuleNameAtom[{#L}%atom⟨ #RULE_REF #ARG_ACTION? #elementOptions? ⟩, #ebnfSuffix] 
+→ LiftedRuleNameRuleRef[#RULE_REF, #ebnfSuffix];
+
 //
-EbnfEBNFRuleRef[#ruleref, %ebnfSuffix⟨ * ⟩] → $[:, #ruleref, "_ZOM"];
-EbnfEBNFRuleRef[#ruleref, %ebnfSuffix⟨ ? ⟩] → $[:, #ruleref, "_OPT"];
-EbnfEBNFRuleRef[#ruleref, %ebnfSuffix⟨ + ⟩] → $[:, #ruleref, "_OOM"];  
+//// TODO: other cases...
 
-// Convert token name to rule name.
+// Generate lifted rule name from token ref
+LiftedRuleNameTokenRef[$String, Option[ANTLR_ebnfSuffix_sort]] :: $String;
+LiftedRuleNameTokenRef[#tokenref, #ebnfSuffix] 
+→ LiftedRuleNameRuleRef[TokenToRuleName[#tokenref], #ebnfSuffix];
+
+// Generate lifted rule name from ruleref
+LiftedRuleNameRuleRef[$String, Option[ANTLR_ebnfSuffix_sort]] :: $String;
+
+-[Data[#ruleref]]: LiftedRuleNameRuleRef[#ruleref, SOME[%ebnfSuffix⟨ * ⟩]] → $[:, #ruleref, "_ZOM"];
+-[Data[#ruleref]]: LiftedRuleNameRuleRef[#ruleref, SOME[%ebnfSuffix⟨ ? ⟩]] → $[:, #ruleref, "_OPT"];
+-[Data[#ruleref]]: LiftedRuleNameRuleRef[#ruleref, SOME[%ebnfSuffix⟨ + ⟩]] → $[:, #ruleref, "_OOM"];  
+-[Data[#ruleref]]: LiftedRuleNameRuleRef[#ruleref, NONE]                  → #ruleref;  
+
+// Convert token name to rule name (for non-lifted token).
 TokenToRuleName[$String] :: $String;
-
 TokenToRuleName[#token] → $[:, $[DownCase, #token], "_TOK"];
 
 // Convert internal rule name to a string to be used for meta and category
@@ -478,7 +804,16 @@ IsInternalRule[#RuleRef] →
     $False]]]];
 
 
+// Whether the rule produces a  list
+IsList[$String] :: Boolean;
+IsList[#RuleRef] →
+    $[If, $[EndsWith, #RuleRef, "_ZOM"], TRUE,
+    $[If, $[EndsWith, #RuleRef, "_OOM"], TRUE,
+    FALSE]];
+
+
 // The meta sequence of characters
 MetaChar[$String] :: $String;
 MetaChar[#quote] → $[:, #quote, $[Get, "metaprefix", "#"], #quote];
+
 )]

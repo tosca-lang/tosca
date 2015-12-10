@@ -2,6 +2,7 @@ Text[(
 
 $Use["std/core.crs"];
 $Use["std/list.crs"];
+$Use["std/pair.crs"];
 
 // Sorts using constructors from grammar.
 Text ::= ( $TextCons[Text-Part, Text] ; $TextNil ; ) ;
@@ -35,6 +36,12 @@ Text-Text[#content] → Text-User["n", #content] ;
 // Concat texts 
 Text-Concat[$List[Text]] :: Text;
 Text-Concat[#list] → Text-ConcatSep[#list, %n⟦⟧];
+
+/* `Text-ConcatPair[#Pair]`
+ * Concat pair of `Text`
+*/
+Text-ConcatPair[Pair[Text, Text]] :: Text;
+Text-ConcatPair[PairCons[#1, #2]] → %n⟦«#1»«#2»⟧;
 
 // Concat texts with separator
 Text-ConcatSep[$List[Text], Text] :: Text;

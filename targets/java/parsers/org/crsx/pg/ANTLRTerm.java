@@ -1,13 +1,13 @@
 // Generated from /Users/villardl/Projects/crsx/crsx4_2/src/pg/ANTLRTerm.g4 by ANTLR 4.5
 package org.crsx.pg;
 
-    import org.crsx.pg.SinkAntlrListener;
-
-import org.antlr.v4.runtime.atn.*;
+    import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.misc.*;
 import org.antlr.v4.runtime.tree.*;
+import org.crsx.antlr.SinkAntlrListener;
+
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;

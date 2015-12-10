@@ -14,7 +14,7 @@ group = 'org.crsx.gradle'
 version = '1.0-SNAPSHOT'
 
 task install(type: Copy, dependsOn: ['jar']) {
-	description "Install crsx4 gradle plugin."
+	description "Install Crsx4 Gradle Plugin."
 	from jar
 	into project.file('..')
 }

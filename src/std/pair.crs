@@ -2,7 +2,7 @@
 Pair [(
 
 /*
-parametrically polymorphic sort for a Pair
+parametric polymorphic sort for a Pair
 */
 ∀ a b . Pair[a,b] ::= ( PairCons[a,b]; );
 
