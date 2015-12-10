@@ -5,7 +5,6 @@ package org.crsx.runtime.text;
 import java.io.IOException;
 import java.util.ArrayDeque;
 
-import org.crsx.compiler.std.Text;
 import org.crsx.runtime.ConstructionDescriptor;
 import org.crsx.runtime.Context;
 import org.crsx.runtime.FormattingAppendable;
@@ -95,9 +94,10 @@ public class TextSink extends Sink
 	/** Whether given constructor descriptor is a text one */
 	final protected boolean isTextDescriptor(ConstructionDescriptor desc)
 	{
-		return desc == Text._M__sTextChars
-				|| desc == Text._M__sTextBreak || desc == Text._M__sTextIndent || desc == Text._M__sTextEmbed
-				|| desc == Text._M__sTextString || desc == Text._M__sTextCons || desc == Text._M__sTextNil;
+		return false; // TODO
+//		return desc == Text._M__sTextChars
+//				|| desc == Text._M__sTextBreak || desc == Text._M__sTextIndent || desc == Text._M__sTextEmbed
+//				|| desc == Text._M__sTextString || desc == Text._M__sTextCons || desc == Text._M__sTextNil;
 	}
 
 	// Overrides Sink
@@ -113,10 +113,10 @@ public class TextSink extends Sink
 			{
 				// outputting text and receiving text. 
 
-				if (descriptor == Text._M__sTextIndent)
-				{
-					indent += 2;
-				}
+//				if (descriptor == Text._M__sTextIndent)
+//				{
+//					indent += 2;
+//				}
 			}
 			else
 			{
@@ -158,10 +158,10 @@ public class TextSink extends Sink
 			if (isText)
 			{
 				// outputting text and receiving text. 
-				if (descriptor == Text._M__sTextIndent)
-				{
-					indent -= 2;
-				}
+//				if (descriptor == Text._M__sTextIndent)
+//				{
+//					indent -= 2;
+//				}
 			}
 			else
 			{
