@@ -1,5 +1,7 @@
 apply plugin: 'groovy'
 
+defaultTasks 'install'
+
 archivesBaseName = 'crsx4-gradle-plugin'
 
 dependencies {
@@ -21,4 +23,8 @@ task install(type: Copy, dependsOn: ['jar']) {
 
 task cleanInstall(overwrite: true) {
 	delete project.file("../${jar.archiveName}")
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2'
 }

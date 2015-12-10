@@ -1,0 +1,4 @@
+/Core.crs
+/CoreMetaLexer.g4
+/CoreMetaParser.g4
+/CoreTerm.g4

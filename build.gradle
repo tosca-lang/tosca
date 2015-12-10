@@ -1,7 +1,7 @@
 // Copyright (c) 2015 IBM Corporation.
 import org.crsx.gradle.*
 
-defaultTasks 'bootstrap'
+defaultTasks 'coreParsers', 'crsxParsers'
 
 apply plugin:'base'
 
@@ -24,8 +24,7 @@ repositories {
 }
 
 dependencies {
-    crsx4 project.hasProperty('dev') ? files('targets/java/build') : 'org.crsx:crsx:4.0+@jar' 
-    crsx4 project.hasProperty('dev') ? files('src') : '' 
+    crsx4 project.hasProperty('dev') ? files('targets/java/build', 'src') : 'org.crsx:crsx:4.0+@jar' 
     crsx4 'org.crsx:crsx3@jar'
     crsx4 'org.antlr:antlr4:4.5' 
 }
@@ -42,17 +41,8 @@ task crsxParsers(type: PG4Task) {
     generatedFileDir = file('src/parser')
 }
 
-task installCrsxSort(type: Copy, dependsOn: 'pg4') {
-    description "Update parser/Crsx.crs"
-    from 'build/pg4/Crsx.crs'
-    into 'src/parser'
-}
-
-task cleanInstallCrsxSort(overwrite : true) {} 
 task cleanCoreParsers(overwrite : true) {} 
 task cleanCrsxParsers(overwrite : true) {} 
-
-task bootstrap(dependsOn: [ 'installCrsxSort' ]) {}
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.2'
