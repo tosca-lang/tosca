@@ -2,61 +2,78 @@
  * Copyright (c) 2015 IBM Corporation.
  *
  * This is the Crsx Core grammar specification.
- *
- * Only one grammar is used throughout the compilation pipeline. However
- * restrictions apply as lowering occurs.
- *
  */
 grammar Core;
+
+// -- Top-level declarations
 
 ccrsx
     : cdecl (SEMI cdecl)*
     ;
 
 cdecl
-    : DATA     csortparams? csortname LPAR cforms RPAR  /* Data sort declaration */
-    | FUNCTION csortparams? cform csortname             /* Function sort declaration */
-    | RULE     cterm ARROW cterm                        /* Rule declaration */
+    : DATA  csortparams? cconstructor LPAR cforms RPAR   /* Data sort declaration */
+    | FN    csortparams? cconstructor LPAR csorts RPAR   /* Function sort declaration */
+    | RULE  cterm ARROW cterm                            /* Rule declaration */
     ;
 
+// -- Sorts
+
+csortparams
+    : FORALL cvariable+ DOT                              /* Sort parameters. */
+    ;
+
+cforms
+    : cform (COMMA cform)*                               /* List of forms */
+    ;
+
+cform
+    : cconstructor csortargs?                            /* Construction form */
+    | cvariable                                          /* Allow variable form */
+    ;
+   
+csortargs
+    : LPAR csorts RPAR                                   /* Construction sort arguments */
+    ;
+    
+csorts
+    : csort (COMMA csort)*                               /* List of sort references */
+    ;
+
+csort
+    : cconstructor csortargs?                            /* Construction sort */
+    | cvariable                                          /* Parameterized sort  */
+    | LCURLY csortkv+ RCURLY                             /* Association map sort */
+    ;
+        
+csortkv
+    : cconstructor COLON cterm                          /* Key-value sort */
+    ;
+    
+// -- Term
 
 cterm
-    : cconstructor csargs                                /* Construction with zero or more args */
+    : cconstructor                                       /* Constant */
+    | cconstructor LPAR cbounds RPAR                     /* Construction */
     | cliteral                                           /* Literal construction */
     | cvariable                                          /* Variable */
-    | clist                                              /* association list */
-    | DISPATCH cterm cdispatchCases                      /* dispatch expression */
+    | LCURLY ckv* RCURLY                                 /* association map */
+    | METAVAR                                            /* Meta variable */
+    | METAVAR LPAR cterms RPAR                           /* Substitution */
     ;
 
-cscope
-    : cbinders                                           /* Scoped term  */
-    | cterm                                              /* No-scoped term */
+cbounds
+    : cbound (COMMA cbound)*                             /* Bound term list */
+    ;
+    
+cbound
+    : cbinder                                            /* Bound term  */
+    | cterm                                              /* Free term */
     ;
 
-cbinders
-    : VARIABLE<binder=x> LINEAR? FUNCTIONAL? csort? cbinders<binds=x>
+cbinder
+    : VARIABLE<binder=x> csort? cbinders<binds=x>
     | DOT cterm
-    ;
-
-cargs
-    : LSQUARE cterms? RSQUARE                             /* No scoped argument list */
-    ;
-
-csargs
-    : LSQUARE cscopes? RSQUARE                            /* Scoped argument list */
-    ;
-
-cterms
-    : cterm (COMMA cterm)*                                /* No Scoped term list */
-    ;
-
-cscopes
-    : cscope (COMMA cscope)*                             /* Scoped term list */
-    ;
-
-cvariable
-    : VARIABLE<symbol> DATAVAR LINEAR? csort?           /* Scoped variable */
-    | VARIABLE<symbol> FUNCTIONVAR csort?               /* Formal parameter */
     ;
 
 cliteral
@@ -64,16 +81,12 @@ cliteral
     | NUMBER                                             /* Number literal */
     ;
 
-csort
-    : COLONCOLON csortname;                              /* Sort annotation */
-
-cdispatchCases
-    : cterm (SEMI cterm)*                                /* Dispatch cases */
+cvariable
+    : VARIABLE<symbol> FUNCTIONAL? csortas?              /* Variable occurrence */
     ;
 
-clist
-    : LPAR term* RPAR                                    /* List of term */
-    | LPAR ckv* RPAR                                     /* List of key-value pair */
+csortas
+    : AS csort                                           /* Sort annotation */
     ;
 
 ckv
@@ -88,42 +101,10 @@ ckv
     | STRING COLON cterm                                 /* match named property value / construct    */
     ;
 
-/*  Sort declaration */
-
-csortparams
-    : FORALL cvariable+ DOT                              /* Sort parameters. */
+cterms
+    : cterm (COMMA cterm)*                               /* Term list */
     ;
-
-csortset
-    : LPAR csortkv* RPAR
-    ;
-
-csortkv
-    : constructor COLON cterm
-    ;
-
-csortnames
-    : csortname (COMMA csortname)*
-    ;
-
-csortname
-    : cconstructor csortargs?                            /* Concrete sort reference */
-    | cvariable                                          /* Sort variable */
-    ;
-
-csortargs
-    : LSQUARE csortnames RSQUARE                         /*  */
-    ;
-
-cforms
-    : (cform SEMI)*
-    ;
-
-cform
-    : cconstructor csargs?
-    | cvariable
-    ;
-
+    
 cconstructor
     : CONSTRUCTOR
     | COLON
@@ -132,49 +113,49 @@ cconstructor
 // Lexer rules
 
 DATA            : 'data';
-FUNCTION        : 'fn';
+FN              : 'fn';
 RULE            : 'rule';
-DISPATCH        : 'dispatch';
-
+AS              : 'as';
 COLON           : ':';
 ARROW           : '→';
 FORALL          : '∀';
 LPAR            : '(';
 RPAR            : ')';
-LSQUARE         : '[';
-RSQUARE         : ']';
+LCURLY          : '}';
+RCURLY          : '}';
 SEMI            : ';';
-COMMA           : ',';
-DATASORT        : '::=';
-COLONCOLON      : '::';
+COMMA           : ',';  
 DOT             : '.';
-NOT             : '¬';
-LINEAR          : '¹';
-FUNCTIONVAR     : 'ᵇ';
-DATAVAR         : 'ᵇ';
+NOT             : '¬'; 
+FUNCTIONAL      : 'ˢ';    
 
-CONSTRUCTOR     : StartConstructorChar ConstructorChar* Ebnf?; // '$' is for internal use only.
+// -- Common lexing rules with Crsx.g4.
+//    Cannot extract these rules yet as the antlr meta parser generator does not support modular grammars yet 
 
+CONSTRUCTOR     : StartConstructorChar ConstructorChar* // '$' is for internal use only.
+                | '<' [Other] ConstructorChar*;
 VARIABLE        : Lower (Lower | Digit | '-' | '_')*;
 
-METAVAR         : '#' (Alpha | Digit | Other | Unicode)* Ebnf? Digit*; // '$' is for internal use only
+METAVAR         : '#' (Alpha | Digit | '-' | '_' | Unicode)* Ebnf? Digit*; // '$' is for internal use only
 
 STRING          :  '"' ('\\"'|~'"')* '"';
 
 NUMBER          : Decimal;
 
-fragment StartConstructorChar : Upper | Other | [\u00C0-\u00DE] | '\u0100' | '\u0102' | '\u0104' | '\u0106'; // TODO: all upper cases
+fragment StartConstructorChar : Upper | Other | UnicodeS;
 fragment ConstructorChar      : Alpha | Digit | Other | Unicode;
 
-fragment Digit   : [0-9];
-fragment Upper   : [A-Z];
-fragment Lower   : [a-z];
-fragment Alpha   : [a-zA-Z];
-fragment Decimal : '-'? [0-9]+ ('.' [0-9]+)? | '.' [0-9]+;
-fragment Other   : '-' | '$' | '_'; // TODO: remove '-'
-fragment Unicode : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
-fragment Ebnf    : '*' | '?' | '+';
+fragment Digit    : [0-9];
+fragment Upper    : [A-Z];
+fragment Lower    : [a-z];
+fragment Alpha    : [a-zA-Z];
+fragment Decimal  : '-'? [0-9]+ ('.' [0-9]+)? | '.' [0-9]+;
+fragment Other    : '-' | [$_+/|`~!@^&*=?/>.:];
+fragment Unicode  : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
+fragment UnicodeS : ~[\u0000-\u00FF\uD800-\uDBFF\u27e6\u27e7\u27e8\u27e9] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
+fragment Ebnf     : '*' | '?' | '+';
 
 WS               : [ \t\r\n\f]+ -> channel(HIDDEN) ;
 
 BLOCK_COMMENT    : '/*' .*? ('*/' | EOF)    -> channel(HIDDEN);
+LINE_COMMENT     : '//' ~[\r\n]*            -> channel(HIDDEN);
