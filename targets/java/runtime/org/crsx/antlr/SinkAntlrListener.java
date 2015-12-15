@@ -11,12 +11,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import net.sf.crsx.CRS;
-import net.sf.crsx.CRSException;
-import net.sf.crsx.Constructor;
-import net.sf.crsx.Sink;
-import net.sf.crsx.generic.GenericFactory;
-
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -25,6 +19,12 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.crsx.runtime.Primitives;
 import org.crsx.runtime.Variable;
+
+import net.sf.crsx.CRS;
+import net.sf.crsx.CRSException;
+import net.sf.crsx.Constructor;
+import net.sf.crsx.Sink;
+import net.sf.crsx.generic.GenericFactory;
 
 /**
  * Create CRSX term from ANTLR parse events.
@@ -170,9 +170,6 @@ public class SinkAntlrListener implements ParseTreeListener
 
 	/** Whether the next token represent the tail of a list. */
 	private boolean tail;
-
-	/** */
-	private boolean binder;
 
 	/** When non-null, indicates received tokens are parts of a name, to associate to this id */
 	private String binderId;
