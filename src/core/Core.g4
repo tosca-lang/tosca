@@ -3,9 +3,6 @@
  *
  * This is the Crsx Core grammar specification.
  *
- %MS: What does the c- in front of every left hand side stand for?
-      c-ore? Maybe explain here, so that it is easier for reader.
-      Or is it even possible to drop the "c"?
  *
  */
 
@@ -13,13 +10,43 @@
 %MS: I commented directly above the respective line and 
      always start with '%MS'
      When I write ANTLR code in the comments I use to distinguish 'antlr'.
-     From our (GM and I) perspective we have three big questions:
-     1. the definition of 'cterm' --- see comment of 'cterm'
+     From our (GM and I) perspective we have three big questions:    
      2. intutions for the 'ckv' production 
      3. to get rid of (potential) redundancies
         * inlining, when sensible 
         * distinction between 'cform' and 'csort' --- see comment of 'cform'
 %LV: my comments.
+*/
+
+/*
+ %MS: What does the c- in front of every left hand side stand for?
+      c-ore? Maybe explain here, so that it is easier for reader.
+      Or is it even possible to drop the "c"?
+*/
+
+/* To discuss:
+   
+  1. I see some patterns: 
+    * we have several times some kind of 'args' case (currently only once explicit: 'sortargs')
+    * we have some list case 't' and 'ts: t (DELIM t)*'
+   
+  Maybe it is a good idea to think of a general scheme, and do it the same way everywhere?
+  
+  That is:
+  * csortargs : LPAR (csort (COMMA csort)*)?  RPAR 
+  * cformargs : LPAR (cform (COMMA cform)*)?  RPAR
+  * ctermargs : LPAR (cterm (COMMA cterm)*)?  RPAR
+   
+  And then make them optional wherever they can occur, e.g.
+  cdecl : DATA csortparams? cconstructor cformargs? 
+  
+  -> Do ckv and ckvsorts fit in?
+
+  2. I am not sure, I quite understand the difference between cform and csort  --- see comment of 'cform'
+  
+  3. In 'cterm : LCURLY ckv* RCURLY' we have no enforced argument as opposed to 
+     'csort : LCURLY csortassoc+ RCURLY'
+     Is this intended?                             
 */
 
 grammar Core;
@@ -38,27 +65,26 @@ cdecl
 
 // -- Sorts
 
-/*
-%MS: Could be inlined.
-%LV: It's better to not inlined for several reasons:
-     1. It allows ##sortparams? to be in patterns: it's shorter to write ⟦ data ##sortparams? ... ⟧ compare to ⟦ data ∀ ##cvariable+ . ... ⟧, especially when ##sortparams? is discarded. The latter is still possible.
-     2. The sort name and parser category name is then explicit. A optional group, for instance cdecl : DATA (FORALL cvariable+ DOT)?, where (FORALL cvariable+ DOT)?
-        is the optional group resulting from inlining, is, in general, automatically transformed into an optional element, in this case cdecl_S1?. 
+/* 'csortparams' is not inlined because
+   1. to allow "##sortparams?" in direct syntax,
+      i.e. %cdecl⟦ data ##sortparams? ... ⟧ is more convenient to write then
+       vs. %cdecl⟦ data ∀ ##VARIABLE . ... ⟧, which is still possible
+   2. to have an explicit and descriptive sort and parser category name
+      e.g. 'cdecl : DATA (FORALL VARIABLE+ DOT)?' 
+           where '(FORALL VARIABLE+ DOT)?' as an optional group,
+           is automatically transformed into an optional element: "cdecl_S1?". 
 */
 csortparams
-    /*
-    %MS: Should we maybe replace 'cvariable+' by 'VARIABLE'?
-         Should a variable with 'FUNCTIONAL' annotation be possible here?
-         Should a variable with 'AS sort' be possible here?
-         Also: Maybe it is a good idea to separate sort variables from variables?
-    %LV: all good points. Replaced
-    */
     : FORALL VARIABLE+ DOT                              /* Sort parameters. */
     ;
 
 /*
 %MS: Could be inlined.
 %LV: Yes but better not for allowing ##cforms in patterns.
+%MS: Okay, but here we don't really have the same as in 'csortparams'?
+     * it is not optional 
+       Remark: It should be optional, no?, e.g., "Zero[]" ) 
+     * ideally i would have something like $List, Collection... of 'cform' as sort here, no?
 */
 cforms
     : cform (COMMA cform)*                               /* List of forms */
@@ -76,18 +102,30 @@ cforms
                But currently it is, so there is something wrong.
      Theory 2: There is no real difference (any more) and 
                the form-productions should be dropped.  
+
 %LV: The separation exists because they represent different things. {} cannot occur as root. cvariable should maybe be 'allows-variable'?
+
+%MS: @{} at root: But this is already enforced by: 'cdecl: DATA  csortparams? cconstructor LPAR cforms RPAR'
+         It is already enforced here that the root is a constructor.
+     
+     The separation between 'cforms' and 'csorts' is actually only on the first layer of arguments for
+     data sort declarations (see examples in Theory 1), because of 'cform : ... csortargs?'.
+     Is this intended?
+
+%MS: would 'allows-variable' indicate that at this argument position a variable could occur? So it is not actually a 'cvariable' here?
+     
+     But this would be a valid data declaration: 
+       ∀ n l . Tree[n, l] ::= ( Branch[ n, $List [ Pair[ l, Tree[n, l]]]]; );
+     so we need 'VARIABLE', no?
 */
 cform
     : cconstructor csortargs?                            /* Construction form */
-    /*
-    %MS: same comment about 'cvariable' as in 'csortparams'
-    */
     | cvariable                                          /* Allow variable form */
     ;
 
+
 /*
-%MS: Could be inlined.
+%MS: Could be inlined. 
 */
 csortargs
     : LPAR csorts RPAR                                   /* Construction sort arguments */
@@ -103,7 +141,10 @@ csorts
 csort
     : cconstructor csortargs?                            /* Construction sort */
     /*
-    %MS: same comment about 'cvariable' as in 'csortparams'
+    %MS: Should we maybe replace 'cvariable+' by 'VARIABLE'?
+         Should a variable with 'FUNCTIONAL' annotation be possible here?
+         Should a variable with 'AS sort' be possible here?
+         Also: Maybe it is a good idea to separate sort variables from variables?
     */
     | cvariable                                          /* Parameterized sort  */
     /*
@@ -124,11 +165,12 @@ csortassoc
     /*
     %MS: What about the other cases in 'ckv'? 
          Could you give me an example sort for the cterm 'S({x})' or 'S({#X})'?
-         Should 'cterm' be 'csort'?
     %LV: example of sorts: 
              data SSort1 ( S({$String:$String}) )  // any string to any string
              data SSort2 ( S({Field:String}); data Field ( Field );  // Construction Field to any string
              data SSort3 ( S({Var:String}); data Var ( x );  // Variable to any string    
+    %MS: I probably miss something, but in ckv we have also cases where we there is no ':'.
+         How would those get a sort? Or does this not occur?
     */
     : cconstructor COLON csort                          /* Association sort */
     ;
@@ -136,23 +178,15 @@ csortassoc
 // -- Term
 
 /*
- %MS: About the distinction between 'cterm' and 'cbound'.
-      We argue for dropping this distinction here. 
-      That is, drop the productions: 
-        'cbounds', 'cbound', 'cbinder'
-      and add the following to 'cterm'
-        ' | VARIABLE<binder=x> csort? cbinders<binds=x> cterm '
-      
- 
-     Argument: A 'cbound' is (semantically) a 'cterm'. 
+ %MS: A 'cbound' is (semantically) a 'cterm'. 
      
-     When coding, I realized, that it is much more convient for functions like 
-     "IsLinear", "IsVariable", "Unify", and for recursive definitions
+     more convient for coding and in particular for recursive definitions
      to work with 'cterm' only.
  
-     The distinction is currently used at:
+     Define restrictions on cterm to be check in core semantic checker for:
 
      * 'RULE  cterm ARROW cterm'
+
        So we want to prevent rules like 
          x y . #F(x,y) → x y . #F(y,x) 
 
@@ -168,8 +202,10 @@ csortassoc
        (e.g., the left hand side is not only a meta variable)
  
        We should discuss, which we want to encode in the grammar, if any.
-
- %LV: yup make sense.
+               
+       * 'ckv : METAVAR COLON cterm  
+              | VARIABLE COLON cterm
+              | STRING COLON cterm'
 
       * 'METAVAR LPAR cterms RPAR'
         Currently this is
@@ -183,25 +219,11 @@ csortassoc
          #F(S(x.C(x))) the 'S' is actually the Idendity function, then we 
         easily rewrite to the not allowed #F(x.C(x)).   
         
- %LV: we can't rewrite, the grammar does not allow it. S cannot be the identity function. S[x.#[x]] -> x.#[x] is not a valid rule.
+        %LV: we can't rewrite, the grammar does not allow it. S cannot be the identity function. S[x.#[x]] -> x.#[x] is not a valid rule.
 
-        Hence it is not possible to enforce this condition through the grammar. 
-
-%LV: no
-       
-       * 'csortkv : cconstructor COLON cterm'
-         see comment in 'csortkv'
-
-       * 'ckv : METAVAR COLON cterm  
-              | VARIABLE COLON cterm
-              | STRING COLON cterm'
-          Here, it depends on the sematic, which terms should be allowed here.
-          But we feel like it could be better to again define the restrictions here,
-          and not on the 'cterm'?
-          
-%LV: yes
-
-%LV: bottom line: I'm happy to eliminate cbound and to check for invalid cases in the core semantic checker.
+        %MS: but ∀ x . S[x] :: x  
+                 S[#X] → #X;
+        would be a perfectly fine rule, no?  
 */
 
 cterm
@@ -210,9 +232,10 @@ cterm
          could be combined to simpler
          'cconstructor( LPAR cbound RPAR )?'
     %LV: for reasons stated above, it could but it's preferable not to.
+    %MS: I am sorry, which ones are you referring to?
     */
-    : cconstructor                                       /* Constant */
-    | cconstructor LPAR cbounds RPAR                     /* Construction */
+    :  cconstructor                                       /* Constant */
+    | cconstructor LPAR cterms RPAR                      /* Construction */
     | cliteral                                           /* Literal construction */
     | cvariable                                          /* Variable */
     /*
@@ -227,34 +250,30 @@ cterm
     */
     | METAVAR                                            /* Meta variable */
     | METAVAR LPAR cterms RPAR                           /* Substitution */
-    ;
-
-/*
-%MS: Could be inlined.
-*/
-cbounds
-    : cbound (COMMA cbound)*                             /* Bound term list */
-    ;
-    
-cbound
-    : cbinder                                            /* Bound term  */
-    | cterm                                              /* Free term */
-    ;
-
-cbinder
     /* VARIABLE<binder=x> is an extension to ANTLR and specifies:
        "this VARIABLE is a binder we call x"
        with
        t<binds=x> specifies:
        "x is bound in the context of the t" 
     */
+
     /*
     %MS: The 'csort?' of variables is new? 
          Is the sort not defined in the (function) declaration? 
     %LV: We want to encode the result of the sorter in the grammar itself. Not quite finished yet though.
     */
-    : VARIABLE<binder=x> csort? cbinder<binds=x>
-    | DOT cterm
+
+    /* This slightly changes the grammar that it is not "x y . t" but "x . y . t" 
+       either we accept that (it makes sense) or we have to do something like this
+
+       add production
+       boundvars : VARIABLE<binder=x> csort? boundvars 
+                 | VARIABLE<binder=x> csort? DOT
+
+       and change to 
+       | boundvars cterm
+    */
+    | VARIABLE<binder=x> csort? DOT cterm<binds=x>
     ;
 
 cliteral
@@ -275,7 +294,8 @@ cvariable
     ;
 
 /*
-%MS: Could be inlined.
+%MS: Could be inlined. 
+     Should it be inlined?
 */
 csortas
     : AS csort                                           /* Sort annotation */
