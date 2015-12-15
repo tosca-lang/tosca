@@ -21,6 +21,7 @@
  %MS: What does the c- in front of every left hand side stand for?
       c-ore? Maybe explain here, so that it is easier for reader.
       Or is it even possible to drop the "c"?
+ %LV: to avoid conflicts with the Crsx grammar.
 */
 
 /* To discuss:
@@ -78,15 +79,14 @@ csortparams
     ;
 
 /*
-%MS: Could be inlined.
-%LV: Yes but better not for allowing ##cforms in patterns.
 %MS: Okay, but here we don't really have the same as in 'csortparams'?
      * it is not optional 
        Remark: It should be optional, no?, e.g., "Zero[]" ) 
      * ideally i would have something like $List, Collection... of 'cform' as sort here, no?
+%LV: COMMA is constant and therefore eliminated. Internally, it becomes $List of forms. 
 */
 cforms
-    : cform (COMMA cform)*                               /* List of forms */
+    : cform (COMMA cform)*                    /* List of forms */
     ;
 
 /*
@@ -118,16 +118,8 @@ cforms
      so we need 'VARIABLE', no?
 */
 cform
-    : cconstructor csortargs?                            /* Construction form */
-    | cvariable                                          /* Allow variable form */
-    ;
-
-
-/*
-%MS: Could be inlined. 
-*/
-csortargs
-    : LPAR csorts RPAR                                   /* Construction sort arguments */
+    : cconstructor LPAR csorts RPAR            /* Construction form */
+    | cvariable                                 /* Allow variable form */
     ;
 
 /*
@@ -138,7 +130,7 @@ csorts
     ;
 
 csort
-    : cconstructor csortargs?                            /* Construction sort */
+    : cconstructor LPAR csorts RPAR                   /* Construction sort */
     /*
     %MS: Should we maybe replace 'cvariable+' by 'VARIABLE'?
          Should a variable with 'FUNCTIONAL' annotation be possible here?
@@ -151,16 +143,14 @@ csort
          also, as opposed to 'cterm : LCURLY ckv* RCURLY'
          here we have 'csortkv+'
     */       
-    | LCURLY csortassoc+ RCURLY                             /* Association map sort */
+    | LCURLY cmapsorts RCURLY                             /* Association map sort */
     ;
 
-/*
-%MS: About naming:
-     Maybe key-value (kv) is a too specialized name? 
-     Because it can also be the whole map?
-     Suggestion: "association" as in hacs core?
-*/
-csortassoc
+cmapsorts
+    : cmapsort (COMMA cmapsort)*                         /* List of association map sorts */
+    ;
+    
+cmapsort
     /*
     %MS: What about the other cases in 'ckv'? 
          Could you give me an example sort for the cterm 'S({x})' or 'S({#X})'?
@@ -170,8 +160,9 @@ csortassoc
              data SSort3 ( S({Var:String}); data Var ( x );  // Variable to any string    
     %MS: I probably miss something, but in ckv we have also cases where we there is no ':'.
          How would those get a sort? Or does this not occur?
+    %LV: {#} means match, or contract using the entire map. It's not the same as the sort.
     */
-    : cconstructor COLON csort                          /* Association sort */
+    : cconstructor COLON csort                          /* Association map sort */
     ;
     
 // -- Term
@@ -222,7 +213,9 @@ csortassoc
 
         %MS: but ∀ x . S[x] :: x  
                  S[#X] → #X;
-        would be a perfectly fine rule, no?  
+        would be a perfectly fine rule, no?
+        %LV: yes but the grammar will still prevent #F(x.C(x))
+             anyway I think removing cbound outweight the benefit of keeping it. As you said, anyhow not all constraints can be checked by the grammar     
 */
 
 cterm
@@ -233,7 +226,7 @@ cterm
     %LV: for reasons stated above, it could but it's preferable not to.
     %MS: I am sorry, which ones are you referring to?
     */
-    :  cconstructor                                       /* Constant */
+    : cconstructor                                       /* Constant */
     | cconstructor LPAR cterms RPAR                      /* Construction */
     | cliteral                                           /* Literal construction */
     | cvariable                                          /* Variable */
@@ -241,7 +234,7 @@ cterm
     %MS: There is no delimiter (compare e.g., COMMA in csorts) 
          '(ckv (COMMA ckv)* )?'
     */
-    | LCURLY ckv* RCURLY                                 /* association map */
+    | LCURLY cmapentries RCURLY                                 /* association map */
     /*
     %MS: case 'METAVAR' and 'METAVAR LPAR cterms RPAR' 
          could be combined to simpler
@@ -271,8 +264,17 @@ cterm
 
        and change to 
        | boundvars cterm
+       %LV: good point! fixing!
     */
-    | VARIABLE<binder=x> csort? DOT cterm<binds=x>
+    | cbound                  /* Bound term */
+    ;
+    
+/**
+ %LV: the grammar allows ".t". not nice but simpler.  
+ */    
+cbound
+    : VARIABLE<binder=x> FUNCTIONAL? csort? cbound<binds=x>    
+    | DOT cterm
     ;
 
 cliteral
@@ -300,11 +302,14 @@ csortas
     : AS csort                                           /* Sort annotation */
     ;
 
+cmapentries
+    : cmapentry (COMMA cmapentry)*
+    ;
 /*
 %MS: Maybe it is possible to create an example for each of these cases? 
      For intutition and to demonstrate the practical need?
 */
-ckv
+cmapentry
     : METAVAR                                            /* property reference (match/construct)      */
     | NOT METAVAR                                        /* no property references (match only)       */
     | METAVAR COLON cterm                                /* match property value / construct          */
