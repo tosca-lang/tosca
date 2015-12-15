@@ -16,8 +16,8 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenSource;
 import org.antlr.v4.runtime.TokenStream;
-import org.crsx.pg.ANTLRTerm;
-import org.crsx.pg.ANTLRTermLexer;
+import org.crsx.antlr.ANTLRTerm;
+import org.crsx.antlr.ANTLRTermLexer;
 
 import net.sf.crsx.Variable;
 import net.sf.crsx.generic.GenericFactory;

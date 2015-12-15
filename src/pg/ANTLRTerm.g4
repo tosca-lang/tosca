@@ -49,7 +49,7 @@ options {
 
 @header
 {
-    import org.crsx.pg.SinkAntlrListener;
+    import org.crsx.antlr.SinkAntlrListener;
 }
 
 @parser::members

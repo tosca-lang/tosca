@@ -47,24 +47,24 @@ class PG4Task extends DefaultTask {
 			
 			// .term -> .nterm
 			String nterm = absname + '.nterm' // normalize grammar
-			crsx3runner.run([ 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/normalizer.crs', 'input=' + term, 'wrapper=Normalize', 'output=' + nterm ])
+			crsx3runner.run([ 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.antlr.ANTLRMeta\';)', 'rules=pg/normalizer.crs', 'input=' + term, 'wrapper=Normalize', 'output=' + nterm ])
 			
 			if (sort)
 			{	
 				// .nterm -> sort
 				String sortt = basename + '.crs' // generate sort
-				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakeSorts', 'output=' + sortt ])
+				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.antlr.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakeSorts', 'output=' + sortt ])
 			}
 			
 			if (parsers)
 			{
 				def commonargs = []
 				commonargs << 'sink=net.sf.crsx.text.TextSink'
-				commonargs << 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)'
+				commonargs << 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.antlr.ANTLRMeta\';)'
 			
 				// .nterm -> term lexer/parser
 				String termparser = basename + 'Term.g4'
-				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.pg.ANTLRMeta\';)', 'rules=pg/genparser.crs', 'input=' + nterm, 'wrapper=MakeParser', 'output=' + termparser ])
+				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.antlr.ANTLRMeta\';)', 'rules=pg/genparser.crs', 'input=' + nterm, 'wrapper=MakeParser', 'output=' + termparser ])
 					
 				// .nterm -> meta lexer
 				String metalexer = basename + 'MetaLexer.g4' // generate meta lexer

@@ -19,6 +19,7 @@
      3. to get rid of (potential) redundancies
         * inlining, when sensible 
         * distinction between 'cform' and 'csort' --- see comment of 'cform'
+%LV: my comments.
 */
 
 grammar Core;
@@ -39,6 +40,10 @@ cdecl
 
 /*
 %MS: Could be inlined.
+%LV: It's better to not inlined for several reasons:
+     1. It allows ##sortparams? to be in patterns: it's shorter to write ⟦ data ##sortparams? ... ⟧ compare to ⟦ data ∀ ##cvariable+ . ... ⟧, especially when ##sortparams? is discarded. The latter is still possible.
+     2. The sort name and parser category name is then explicit. A optional group, for instance cdecl : DATA (FORALL cvariable+ DOT)?, where (FORALL cvariable+ DOT)?
+        is the optional group resulting from inlining, is, in general, automatically transformed into an optional element, in this case cdecl_S1?. 
 */
 csortparams
     /*
@@ -46,12 +51,14 @@ csortparams
          Should a variable with 'FUNCTIONAL' annotation be possible here?
          Should a variable with 'AS sort' be possible here?
          Also: Maybe it is a good idea to separate sort variables from variables?
+    %LV: all good points. Replaced
     */
-    : FORALL cvariable+ DOT                              /* Sort parameters. */
+    : FORALL VARIABLE+ DOT                              /* Sort parameters. */
     ;
 
 /*
 %MS: Could be inlined.
+%LV: Yes but better not for allowing ##cforms in patterns.
 */
 cforms
     : cform (COMMA cform)*                               /* List of forms */
@@ -69,6 +76,7 @@ cforms
                But currently it is, so there is something wrong.
      Theory 2: There is no real difference (any more) and 
                the form-productions should be dropped.  
+%LV: The separation exists because they represent different things. {} cannot occur as root. cvariable should maybe be 'allows-variable'?
 */
 cform
     : cconstructor csortargs?                            /* Construction form */
@@ -103,7 +111,7 @@ csort
          also, as opposed to 'cterm : LCURLY ckv* RCURLY'
          here we have 'csortkv+'
     */       
-    | LCURLY csortkv+ RCURLY                             /* Association map sort */
+    | LCURLY csortassoc+ RCURLY                             /* Association map sort */
     ;
 
 /*
@@ -112,13 +120,17 @@ csort
      Because it can also be the whole map?
      Suggestion: "association" as in hacs core?
 */
-csortkv
+csortassoc
     /*
     %MS: What about the other cases in 'ckv'? 
          Could you give me an example sort for the cterm 'S({x})' or 'S({#X})'?
          Should 'cterm' be 'csort'?
+    %LV: example of sorts: 
+             data SSort1 ( S({$String:$String}) )  // any string to any string
+             data SSort2 ( S({Field:String}); data Field ( Field );  // Construction Field to any string
+             data SSort3 ( S({Var:String}); data Var ( x );  // Variable to any string    
     */
-    : cconstructor COLON cterm                          /* Key-value sort */
+    : cconstructor COLON csort                          /* Association sort */
     ;
     
 // -- Term
@@ -157,6 +169,8 @@ csortkv
  
        We should discuss, which we want to encode in the grammar, if any.
 
+ %LV: yup make sense.
+
       * 'METAVAR LPAR cterms RPAR'
         Currently this is
           not allowed: #F(x.C(x))    
@@ -167,9 +181,13 @@ csortkv
         
         However, this is not preventable with the grammar. If in the allowed case 
          #F(S(x.C(x))) the 'S' is actually the Idendity function, then we 
-        easily rewrite to the not allowed #F(x.C(x)).
+        easily rewrite to the not allowed #F(x.C(x)).   
+        
+ %LV: we can't rewrite, the grammar does not allow it. S cannot be the identity function. S[x.#[x]] -> x.#[x] is not a valid rule.
 
         Hence it is not possible to enforce this condition through the grammar. 
+
+%LV: no
        
        * 'csortkv : cconstructor COLON cterm'
          see comment in 'csortkv'
@@ -180,6 +198,10 @@ csortkv
           Here, it depends on the sematic, which terms should be allowed here.
           But we feel like it could be better to again define the restrictions here,
           and not on the 'cterm'?
+          
+%LV: yes
+
+%LV: bottom line: I'm happy to eliminate cbound and to check for invalid cases in the core semantic checker.
 */
 
 cterm
@@ -187,6 +209,7 @@ cterm
     %MS: case 'cconstructor' and 'cconstructor LPAR cbounds RPAR' 
          could be combined to simpler
          'cconstructor( LPAR cbound RPAR )?'
+    %LV: for reasons stated above, it could but it's preferable not to.
     */
     : cconstructor                                       /* Constant */
     | cconstructor LPAR cbounds RPAR                     /* Construction */
@@ -228,6 +251,7 @@ cbinder
     /*
     %MS: The 'csort?' of variables is new? 
          Is the sort not defined in the (function) declaration? 
+    %LV: We want to encode the result of the sorter in the grammar itself. Not quite finished yet though.
     */
     : VARIABLE<binder=x> csort? cbinder<binds=x>
     | DOT cterm
@@ -286,6 +310,7 @@ cterms
      :(#X) or F(:,:) 
      Is it possible to drop it/ put it just where it is really needed?
      And then inline the 'cconstructor'?
+%LV: ':' is a value constructor. See $[:, ... ]
 */
 cconstructor
     : CONSTRUCTOR
@@ -310,7 +335,8 @@ COMMA           : ',';
 DOT             : '.';
 NOT             : '¬';
 /*
-%MS: What does the 'ˢ' stand for? Maybe some intuition?
+%MS: What does the 'ˢ' stand for? Maybe some intuition? 
+%LV: semantic. Using Cynthia's terminology. FUNCTIONAL should be SEMANTIC
 */
 FUNCTIONAL      : 'ˢ';    
 

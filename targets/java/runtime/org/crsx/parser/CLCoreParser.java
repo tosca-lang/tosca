@@ -18,6 +18,8 @@ import org.antlr.v4.runtime.DiagnosticErrorListener;
 import org.antlr.v4.runtime.TokenSource;
 import org.antlr.v4.runtime.TokenStream;
 import org.crsx.antlr.SinkAntlrListener;
+import org.crsx.core.CoreTermLexer;
+import org.crsx.core.CoreTermParser;
 
 import net.sf.crsx.Variable;
 import net.sf.crsx.generic.GenericFactory;
@@ -51,10 +53,10 @@ public class CLCoreParser
 		{
 			CharStream stream = new ANTLRInputStream(new FileReader(inputname));
 
-			TokenSource source = new CrsxTermLexer(stream);
+			TokenSource source = new CoreTermLexer(stream);
 			TokenStream input = new CommonTokenStream(source);
 
-			CrsxTermParser parser = new CrsxTermParser(input);
+			CoreTermParser parser = new CoreTermParser(input);
 			parser.setBuildParseTree(false);
 			//parser.setTrace(true);
 			GenericFactory factory = new GenericFactory();
@@ -63,7 +65,7 @@ public class CLCoreParser
 
 			parser.addParseListener(listener);
 			parser.addErrorListener(new DiagnosticErrorListener(true));
-			parser.crsx(); 
+			parser.ccrsx(); 
 			GenericTerm term = (GenericTerm) buffer.term(true);
 
 			File outputFile = new File(outputname);

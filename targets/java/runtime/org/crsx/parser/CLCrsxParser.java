@@ -38,10 +38,10 @@ public class CLCrsxParser
 		{
 			CharStream stream = new ANTLRInputStream(new FileReader(inputname));
 
-			TokenSource source = new CrsxLexer(stream);
+			TokenSource source = new CrsxTermLexer(stream);
 			TokenStream input = new CommonTokenStream(source);
 
-			CrsxParser parser = new CrsxParser(input);
+			CrsxTermParser parser = new CrsxTermParser(input);
 			parser.setBuildParseTree(false);
 			//parser.setTrace(true);
 		

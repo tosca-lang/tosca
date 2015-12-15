@@ -9,7 +9,6 @@ $Use["std/core.crs"];
 
 // --- Testing
 
-
 StartsWith[$String /* string */, $String /* search string */] :: Boolean; /* extern */
 -[Data[#string, #search]]: StartsWith[#string, #search] → WrapBoolean[$[StartsWith, #string, #search]];
 
@@ -42,6 +41,12 @@ RemoveFirstChar[$String] :: $String;
  */
 RemoveLastChar[$String] :: $String; 
 -[Data[#string]]: RemoveLastChar[#string] → $[Substring, #string, 0, $[Minus, $[Length, #string], 1]];
+
+/*
+ * Trim leading and trailing spaces
+ */
+Trim[$String] :: $String;
+-[Data[#string]]: Trim[#string] → $[Trim, #string];
 
 Replace[$String, $String, $String] :: $String;
 -[Data[#string, #old, #new]]: Replace[#string, #old, #new] → $[Replace, #string, #old, #new]; 

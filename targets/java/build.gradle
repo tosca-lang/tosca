@@ -4,22 +4,19 @@
  */
 import org.crsx.gradle.*
 
-
 defaultTasks 'dist'
 
 // --- Script configuration
 //
 
 buildscript {
-	repositories { flatDir { dirs '../../gradle/' } // to find crsx4-gradle-plugin.jar
-	}
+	repositories { flatDir { dirs '../../gradle/' } }// to find crsx4-gradle-plugin.jar
 	dependencies { classpath 'org.crsx.gradle:crsx4-gradle-plugin:1.+' }
 }
 
 // -- Build the term and meta parsers
 //    3 set of parsers are generated: Crsx4, Core Crsx and Antlr
-project(':parsers')
-{
+project(':parsers') {
 	// Note: the current directory is now 'parsers'
 	
 	apply plugin:'org.crsx.gradle.crsx4'
@@ -30,63 +27,69 @@ project(':parsers')
 		mavenCentral()
 	}
 	
+	def srcDir = '../../../src'
+	def buildDir = '../build'
+	
 	dependencies {
-		crsx4 'org.crsx:crsx:4.0.0-ALPHA@jar'  // 
+		crsx4  project.hasProperty('dev') ? files(srcDir, buildDir) : 'org.crsx:crsx:4.0+@jar' 
 		crsx4 'org.crsx:crsx3@jar'
 		crsx4 'org.antlr:antlr4:4.5'
 	}
 	
-	//-- Generate Crsx4 parser and metaparsers.
+	task coreMetaParser(type: Antlr4Task) {
+        description = 'Generate Java Core meta parser'
+        lexer = file(srcDir + '/core/CoreMetaLexer.g4')
+        grammar = file(srcDir + '/core/CoreMetaParser.g4')
+        generatedFileDir = file('org/crsx/core')
+        packageName = 'org.crsx.core'
+        superClass = 'org.crsx.antlr.Crsx3Parser'
+    }
+    
+    task coreTermParser(type: Antlr4Task) {
+        description = 'Generate Java Core term parser'   
+        grammar = file(srcDir + '/core/CoreTerm.g4')
+        generatedFileDir = file('org/crsx/core')
+        packageName = 'org.crsx.core'
+    }
 	
-	//-- 1. Generate the .g4 Crsx files
-	task crsxPG4(dependsOn:'antlrAntlr4', type: PG4Task) {
-		source = file('../../../src/parser/Crsx.g4')
-		generatedFileDir = file('../build/pg4')
-		sort = false
-		metaPrefix = '##'
-	}
-	
-	
-	//-- 2. Generate the Java Crsx meta parser 
-	task crsxMetaAntlr4(dependsOn: 'crsxPG4', type: Antlr4Task) {
-		lexer = file('../build/pg4/CrsxMetaLexer.g4')
-		grammar = file('../build/pg4/CrsxMetaParser.g4')
+	task crsxMetaParser(type: Antlr4Task) {
+	    description = 'Generate Java Crsx meta parser'
+		lexer = file(srcDir + '/parser/CrsxMetaLexer.g4')
+		grammar = file(srcDir + '/parser/CrsxMetaParser.g4')
 		generatedFileDir = file('org/crsx/parser')
 		packageName = 'org.crsx.parser'
-		superClass = 'org.crsx.pg.Crsx3Parser'
+		superClass = 'org.crsx.antlr.Crsx3Parser'
 	}
 	
-	//-- 3. Generate the Java Crsx term parser 
-	task crsxTermAntlr4(dependsOn: 'crsxPG4', type: Antlr4Task) {
-		grammar = file('../build/pg4/CrsxTerm.g4')
+	task crsxTermParser(type: Antlr4Task) {
+	    description = 'Generate Java Crsx term parser'   
+		grammar = file(srcDir + '/parser/CrsxTerm.g4')
 		generatedFileDir = file('org/crsx/parser')
 		packageName = 'org.crsx.parser'
 	}
-
 	
-	//-- Generate Antlr Java meta parser.
-	task antlrAntlr4(type: Antlr4Task) {
-		lexer = file('../../../src/pg/ANTLRMetaLexer.g4')
-		grammar = file('../../../src/pg/ANTLRMeta.g4')
-		generatedFileDir = file('org/crsx/pg')
-		packageName = 'org.crsx.pg'
-		superClass = 'org.crsx.pg.Crsx3Parser'
+	task antlrMetaParser(type: Antlr4Task) {
+	    description = 'Generate Antlr4 Java meta parser'   
+    	lexer = file(srcDir + '/pg/ANTLRMetaLexer.g4')
+		grammar = file(srcDir + '/pg/ANTLRMeta.g4')
+		generatedFileDir = file('org/crsx/antlr')
+		packageName = 'org.crsx.antlr'
+		superClass = 'org.crsx.antlr.Crsx3Parser'
 	}
 	
-	//-- Generate Antlr Java term parser.
-	task antlrTermAntlr4(type: Antlr4Task) {
-		lexer = file('../../../src/pg/ANTLRTermLexer.g4')
-		grammar = file('../../../src/pg/ANTLRTerm.g4')
-		generatedFileDir = file('org/crsx/pg')
-		packageName = 'org.crsx.pg'
+	task antlrAntlrTermParser(type: Antlr4Task) {
+	    description = 'Generate Antlr4 Java term parser.'  
+		lexer = file(srcDir + '/pg/ANTLRTermLexer.g4')
+		grammar = file(srcDir + '/pg/ANTLRTerm.g4')
+		generatedFileDir = file('org/crsx/antlr')
+		packageName = 'org.crsx.antlr'
 	}
 	
 	//-- Meta task to build all parsers.
-	task buildParsers(dependsOn: ['antlrAntlr4', 'antlrTermAntlr4', 'crsxMetaAntlr4', 'crsxTermAntlr4'])
+	task buildParsers(dependsOn: ['coreMetaParser', 'coreTermParser', 'crsxMetaParser', 'crsxTermParser', 'antlrMetaParser', 'antlrAntlrTermParser']) 
 }
 
-project(':compiler')
-{
+project(':compiler') {
 	apply plugin:'org.crsx.gradle.crsx4'
 	
 	repositories {

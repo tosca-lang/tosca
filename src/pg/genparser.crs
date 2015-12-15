@@ -139,23 +139,23 @@ ParserConstructs[#id, $False, #meta, #header, #members]    → ();
 ParserConstructs[#id, $True, #meta, #header, #members]    
 → %prequelConstruct*⟨
         @header ⟨ACTION: $[:, "{\n",
-             "import org.crsx.pg.SinkAntlrListener;\n",
-             "import static org.crsx.pg.SinkAntlrListener.fireEnterZOM;\n",
-             "import static org.crsx.pg.SinkAntlrListener.fireExitZOM;\n",
-             "import static org.crsx.pg.SinkAntlrListener.fireEnterOPT;\n",
-             "import static org.crsx.pg.SinkAntlrListener.fireExitOPT;\n",
-             "import static org.crsx.pg.SinkAntlrListener.fireEnterAlt;\n",
-             "import static org.crsx.pg.SinkAntlrListener.fireExitAlt;\n",
-             "import static org.crsx.pg.SinkAntlrListener.fireHide;\n",
-             "import static org.crsx.pg.SinkAntlrListener.fireEnterSymbol;\n",
-             "import static org.crsx.pg.SinkAntlrListener.fireExitSymbol;\n",
-             "import static org.crsx.pg.SinkAntlrListener.fireEnterBinder;\n",
-             "import static org.crsx.pg.SinkAntlrListener.fireExitBinder;\n",
-             "import static org.crsx.pg.SinkAntlrListener.fireEnterBinds;\n",
-             "import static org.crsx.pg.SinkAntlrListener.fireExitBinds;\n",
-             $[If, #meta, "import static org.crsx.pg.SinkAntlrListener.fireTail;\n", ""],
-             $[If, #meta, "import static org.crsx.pg.SinkAntlrListener.fireTerm;\n", ""],
-             $[If, #meta, "import static org.crsx.pg.SinkAntlrListener.fireEmbed;\n", ""],
+             "import org.crsx.antlr.SinkAntlrListener;\n",
+             "import static org.crsx.antlr.SinkAntlrListener.fireEnterZOM;\n",
+             "import static org.crsx.antlr.SinkAntlrListener.fireExitZOM;\n",
+             "import static org.crsx.antlr.SinkAntlrListener.fireEnterOPT;\n",
+             "import static org.crsx.antlr.SinkAntlrListener.fireExitOPT;\n",
+             "import static org.crsx.antlr.SinkAntlrListener.fireEnterAlt;\n",
+             "import static org.crsx.antlr.SinkAntlrListener.fireExitAlt;\n",
+             "import static org.crsx.antlr.SinkAntlrListener.fireHide;\n",
+             "import static org.crsx.antlr.SinkAntlrListener.fireEnterSymbol;\n",
+             "import static org.crsx.antlr.SinkAntlrListener.fireExitSymbol;\n",
+             "import static org.crsx.antlr.SinkAntlrListener.fireEnterBinder;\n",
+             "import static org.crsx.antlr.SinkAntlrListener.fireExitBinder;\n",
+             "import static org.crsx.antlr.SinkAntlrListener.fireEnterBinds;\n",
+             "import static org.crsx.antlr.SinkAntlrListener.fireExitBinds;\n",
+             $[If, #meta, "import static org.crsx.antlr.SinkAntlrListener.fireTail;\n", ""],
+             $[If, #meta, "import static org.crsx.antlr.SinkAntlrListener.fireTerm;\n", ""],
+             $[If, #meta, "import static org.crsx.antlr.SinkAntlrListener.fireEmbed;\n", ""],
              $[If, $[Not, #meta], #header, ""],
         "}"]⟩
         
@@ -197,12 +197,14 @@ GetPrequelAction[$String, $List[ANTLR_prequelConstruct_sort]] :: $String;
 GetPrequelAction[#actionid, ()] → "";
 
 GetPrequelAction[#actionid, (%prequelConstruct⟨ @ #RULE_REF #ACTION ⟩; #prequelConstruct*)] 
-→ $[If, $[Equal, #RULE_REF, #actionid], #ACTION, GetPrequelAction[#actionid, #prequelConstruct*]];
+→ $[If, $[Equal, #RULE_REF, #actionid], TrimBraces[#ACTION], GetPrequelAction[#actionid, #prequelConstruct*]];
 
 -[Fallback]:
 GetPrequelAction[#actionid, (#prequel; #prequelConstruct*)] 
 → GetPrequelAction[#actionid, #prequelConstruct*];
 
+TrimBraces[$String] :: $String;
+TrimBraces[#] → RemoveFirstChar[RemoveLastChar[Trim[#]]];
 
 MakeModeSpec[$List[ANTLR_modeSpec_sort], Mode] :: $List[ANTLR_modeSpec_sort];
 
