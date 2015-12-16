@@ -169,7 +169,7 @@ MaybeMakeArgument[Boolean /* fused? */, Boolean /* sugar? */, ANTLR_element_sort
 
 // Common case: element is not fused and not a sugar. It is a binder?   
 {#E}MaybeMakeArgument[FALSE, FALSE, #element, #count, ok¹ count.#[ok¹, count]] 
-→ {#E}MaybeMakeBinderArgument[GetElementOptionElement[#element, "binder"], #element, #count, ok¹ count.#[ok¹, count]];
+→ {#E}MaybeMakeBinderArgument[GetElementOptionElement[#element, "boundvar"], #element, #count, ok¹ count.#[ok¹, count]];
 
 /* The first list argument has been fused but not sugar. Unfused by extracting it. 
    Only update the right hand-side as the lhs metavariable is reused 
@@ -189,7 +189,7 @@ MaybeMakeBinderArgument[$List[ElementOption], ANTLR_element_sort, $Numeric, ok¹
 
 // No binder option. Could it be binds?
 {#E}MaybeMakeBinderArgument[(), #element, #count, ok¹ count.#[ok¹, count]]
-→ {#E}MaybeMakeBindsArgument[GetElementOptionElement[#element, "binds"], #element, #count, ok¹ count.#[ok¹, count]];
+→ {#E}MaybeMakeBindsArgument[GetElementOptionElement[#element, "bound"], #element, #count, ok¹ count.#[ok¹, count]];
 
 /* Yes binder option (only one). 
 */ 

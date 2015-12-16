@@ -2,6 +2,7 @@
  * Copyright (c) 2015 IBM Corporation.
  *
  * This is the Crsx Core grammar specification.
+ *
  * To avoid conflicts with the Crsx grammar,
  * every production starts with a 'c' for 'c'ore
  */
@@ -12,33 +13,12 @@
               and ANTLR code is distinguished by: 'antlr'.
 */
 
-/* To discuss:
-   
-  1. I see some patterns: 
-    * we have several times some kind of 'args' case 
-    * we have some list case 't' and 'ts: t (DELIM t)*'
-   
-    Cases:
-    * csortargs : LPAR (csort (COMMA csort)*)?  RPAR 
-    * cformargs : LPAR (cform (COMMA cform)*)?  RPAR
-    * ctermargs : LPAR (cterm (COMMA cterm)*)?  RPAR
-    
-    Currently:
-      DATA  csortparams? cconstructor cformargs? 
-      
-    allows "Z" but not "Z()"
-  
-    To achieve that: 
-    either (i) inline and '?' as in the examples above
-    or    (ii) add in 'cformargs : LPAR cforms? RPAR'
 
-    Otherwise we can sure argue, that one of the two
-    does not have to be supported in the core (I'd argue for Z)
-
-  2. I am not sure, I quite understand the difference between cform and csort  --- see comment of 'cform'       
-
-  3. inlining, when sensible 
-
+/* Open:
+   Map <- depends on plank to stabilize
+   cform <-  MS: think through, comment
+   properties for (term) variables
+   As Sort, inline sort annotation for easier Code Generation
 */
 
 grammar Core;
@@ -49,37 +29,38 @@ ccrsx
     : cdecl+
     ;
 
+/*
+   note: allow only Z() to be easier machine readable and for plank compatibility
+ */
 cdecl
-    : DATA  csortparams? cconstructor cformargs?   /* Data sort declaration */
-    | FN    csortparams? cconstructor csortargs?   /* Function sort declaration */
-    | RULE  cterm ARROW cterm                      /* Rule declaration */
+    : DATA  csortvars? CONSTRUCTOR LPAR cforms? RPAR  /* Data sort declaration */
+    | FN    csortvars? CONSTRUCTOR LPAR csorts? RPAR  /* Function sort declaration */
+    | RULE  cterm ARROW cterm                          /* Rule declaration */
     ;
+
 
 // -- Sorts
 
-/* 'csortparams' is not inlined because
-   1. to allow "##sortparams?" in direct syntax,
-      i.e. %cdecl⟦ data ##sortparams? ... ⟧ is more convenient to write then
+/* 'csortvars' is not inlined because
+   1. to allow "##csortvars?" in direct syntax,
+      i.e. %cdecl⟦ data ##csortvars? ... ⟧ is more convenient to write then
        vs. %cdecl⟦ data ∀ ##VARIABLE . ... ⟧, which is still possible
    2. to have an explicit and descriptive sort and parser category name
       e.g. 'cdecl : DATA (FORALL VARIABLE+ DOT)?' 
            where '(FORALL VARIABLE+ DOT)?' as an optional group,
            is automatically transformed into an optional element: "cdecl_S1?". 
 */
-csortparams
-    : FORALL VARIABLE+ DOT                              /* Sort parameters. */
-    ;
-
-cformargs
-    : LPAR cforms RPAR
+csortvars
+    : FORALL VARIABLE+ DOT                             /* Sort variables. */
     ;
 
 /*
-%LV: COMMA is constant and therefore eliminated and Internally, it becomes $List of forms. 
-%MS: So the sort of cforms is "$List(cform)"? That would be beautiful.
+TODO:  make change to meta parser to directly support $List(cform) with either
+       - (cform (COMMA cform)*)?
+       - (cform (COMMA cform)* | ) 
 */
 cforms
-    : cform (COMMA cform)*                    /* List of forms */
+    : cform (COMMA cform)*                            /* List of forms */
     ;
 
 /*
@@ -90,19 +71,6 @@ cforms
                  allowed:     DATA C1(C2({C3 : #X}))
                  not allowed: DATA C1({C3 : #X})
                Is this intended?
-     Theory 3: 'LCURLY csortkv+ RCURLY' should not be allowed at all.
-               But currently it is, so there is something wrong.
-     Theory 2: There is no real difference (any more) and 
-               the form-productions should be dropped.  
-
-%LV: The separation exists because they represent different things. {} cannot occur as root. cvariable should maybe be 'allows-variable'?
-
-%MS: @{} at root: But this is already enforced by: 'cdecl: DATA  csortparams? cconstructor LPAR cforms RPAR'
-         It is already enforced here that the root is a constructor.
-     
-     The separation between 'cforms' and 'csorts' is actually only on the first layer of arguments for
-     data sort declarations (see examples in Theory 1), because of 'cform : ... csortargs?'.
-     Is this intended?
 
 %MS: would 'allows-variable' indicate that at this argument position a variable could occur? So it is not actually a 'cvariable' here?
      
@@ -111,32 +79,18 @@ cforms
      so we need 'VARIABLE', no?
 */
 cform
-    : cconstructor csortargs?            /* Construction form */
-    | cvariable                          /* Allow variable form */
-    ;
-    
-csortargs
-    : LPAR csorts RPAR                        /* List of sort references */
+    : CONSTRUCTOR LPAR csorts? RPAR                 /* Construction form */
+    | ALLOWS-VARIABLE                               /* Allow variable form */
     ;
 
 csorts
-    : csort (COMMA csort)*                               /* List of sort references */
+    : csort (COMMA csort)*                          /* List of sort references */
     ;
 
 csort
-    : cconstructor csortargs?                   /* Construction sort */
-    /*
-    %MS: Should we maybe replace 'cvariable+' by 'VARIABLE'?
-         Should a variable with 'FUNCTIONAL' annotation be possible here?
-         Should a variable with 'AS sort' be possible here?
-         Also: Maybe it is a good idea to separate sort variables from variables?
-    */
-    | cvariable                                          /* Parameterized sort  */ 
-    | LCURLY cmapsorts RCURLY                            /* Association map sort */
-    ;
-
-cmapsorts
-    : cmapsort (COMMA cmapsort)*                         /* List of association map sorts */
+    : CONSTRUCTOR LPAR csorts? RPAR                 /* Construction sort */
+    | VARIABLE                                      /* Parameterized sort  */ 
+    | LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sort */
     ;
     
 cmapsort
@@ -151,7 +105,7 @@ cmapsort
          How would those get a sort? Or does this not occur?
     %LV: {#} means match, or contract using the entire map. It's not the same as the sort.
     */
-    : cconstructor COLON csort                          /* Association map sort */
+    : CONSTRUCTOR COLON csort                          /* Association map sort */
     ;
     
 // -- Term
@@ -208,70 +162,25 @@ cmapsort
 */
 
 cterm
-    : cconstructor ctermargs?                           /* Constant/Construction */
-    | cliteral                                           /* Literal construction */
-    | cvariable                                          /* Variable */
-    | LCURLY cmapentries RCURLY                          /* Association map */
-    | METAVAR ctermargs?                                 /* Meta variable/substitution */
-    /* VARIABLE<binder=x> is an extension to ANTLR and specifies:
-       "this VARIABLE is a binder we call x"
-       with
-       t<binds=x> specifies:
-       "x is bound in the context of the t" 
-    */
-
-    /*
-    %MS: The 'csort?' of variables is new? 
-         Is the sort not defined in the (function) declaration? 
-    %LV: We want to encode the result of the sorter in the grammar itself. Not quite finished yet though.
-    */
-
-    /* This slightly changes the grammar that it is not "x y . t" but "x . y . t" 
-       either we accept that (it makes sense) or we have to do something like this
-
-       add production
-       boundvars : VARIABLE<binder=x> csort? boundvars 
-                 | VARIABLE<binder=x> csort? DOT
-
-       and change to 
-       | boundvars cterm
-       %LV: good point! fixing!
-    */
-    | cbound                  /* Bound term */
-    ;
-    
-/**
- %LV: the grammar allows ".t". not nice but simpler.  
- %MS: I see the following problem here: "." is somehow an (infix) operator taking 2 arguments.
-      it would be similar to allow "* 4" as multiplicative expression
- */    
-cbound
-    : VARIABLE<binder=x> FUNCTIONAL? csort? cbound<binds=x>    
-    | DOT cterm
+    : CONSTRUCTOR LPAR cterms? RPAR                             /* Constant/Construction */
+    | cliteral                                                  /* Literal construction */
+    | cvariable                                                 /* Variable */
+    | LCURLY cmapentries RCURLY                                 /* Association map */
+    | METAVAR LPAR cterms? RPAR                                 /* Meta variable/substitution */
+    | VARIABLE<boundvar=x> FUNCTIONAL? DOT cterm<bound=x>       /* Bound term. 
+                                                                     VARIABLE<boundvar=x> means VARIABLE is a bound variable we call x
+                                                                     cterm<bound=x>       means x is bound in the context of the cterm */
     ;
 
 cliteral
-    : STRING                                             /* String literal */
-    | NUMBER                                             /* Number literal */
+    : STRING                                                    /* String literal */
+    | NUMBER                                                    /* Number literal */
     ;
 
-/*
-%MS: Can you give me an intution for the use of 'FUNCTIONAL' and 'csortas'?
-     Is it feasible everywhere, where we have a 'cvariable'?
-*/
+
 cvariable
-    /* VARIABLE<symbol> is an extension to ANTLR and specifies:
-      "look for a binder that matches VARIABLE 
-       in the current tracked bound variables (innermost scope first)"
-    */
-    : VARIABLE<symbol> FUNCTIONAL? csortas?              /* Variable occurrence */
-    ;
-
-/*
-%MS: Should this be inlined?
-*/
-csortas
-    : AS csort                                           /* Sort annotation */
+    : VARIABLE<variable> FUNCTIONAL?               /* Variable occurrence. VARIABLE<variable> means look for a bound variable that matches VARIABLE 
+                                                                           in the current tracked bound variables (innermost scope first). VARIABLE is free if not found in scope.  */
     ;
 
 cmapentries
@@ -294,26 +203,9 @@ cmapentry
     | STRING COLON cterm                                 /* match named property value / construct    */
     ;
 
-ctermargs
-    : LPAR cterms RPAR                                   /* Term argument list */
-    ;
-
+/* TODO: inline when antlr-based meta parser generator support (()*)? */
 cterms
     : cterm (COMMA cterm)*                               /* Term list */
-    ;
-
-/*
-%MS: Where is the COLON case needed?
-     It seems a bit strange and allow sort and function declarations such as:
-     :(#X) or F(:,:) 
-     Is it possible to drop it/ put it just where it is really needed?
-     And then inline the 'cconstructor'?
-%LV: ':' is a value constructor. See $[:, ... ]
-%MS: Okay, but can't we just put COLON to be included in the definition of CONSTRUCTOR
-*/
-cconstructor
-    : CONSTRUCTOR
-    | COLON
     ;
 
 // Lexer rules
@@ -321,7 +213,7 @@ cconstructor
 DATA            : 'data';
 FN              : 'func';
 RULE            : 'rule';
-AS              : 'as';
+ALLOWS-VARIABLE : 'allows-variable';
 COLON           : ':';
 ARROW           : '→';
 FORALL          : '∀';
@@ -329,7 +221,6 @@ LPAR            : '(';
 RPAR            : ')';
 LCURLY          : '}';
 RCURLY          : '}';
-SEMI            : ';';
 COMMA           : ',';  
 DOT             : '.';
 NOT             : '¬';

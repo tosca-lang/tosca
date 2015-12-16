@@ -375,12 +375,12 @@ MakeTail[#RULE_REF, $True]     → %element*⟨ ({_tail();} ({_term();} ⟨TOKEN
 // Produce grammar to hide constant production.
 MaybeHideAtom[Boolean, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
 MaybeHideAtom[TRUE, #atom, #element]  → %element*⟨ {_hide();} #element ⟩;
-MaybeHideAtom[FALSE, #atom, #element] → MaybeBinderAtom[GetElementOptionAtom[#atom, "binder"], #atom, #element];
+MaybeHideAtom[FALSE, #atom, #element] → MaybeBinderAtom[GetElementOptionAtom[#atom, "boundvar"], #atom, #element];
 
 // Produce grammar for binder
 MaybeBinderAtom[$List[ElementOption], ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
 MaybeBinderAtom[(), #atom, #element]          
-→ MaybeBindsAtom[GetElementOptionAtom[#atom, "binds"], #atom, #element];
+→ MaybeBindsAtom[GetElementOptionAtom[#atom, "bound"], #atom, #element];
 
 MaybeBinderAtom[(BINDER[#binder];), #atom, #element] 
 → %element*⟨ ⟨ACTION: $[:, "{_enterBinder(\"", #binder, "\");}"]⟩ ⟨element: #element⟩ {_exitBinder();} ⟩;
@@ -388,7 +388,7 @@ MaybeBinderAtom[(BINDER[#binder];), #atom, #element]
 // Produce grammar for binds
 MaybeBindsAtom[$List[ElementOption], ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
 MaybeBindsAtom[(), #atom, #element] 
-→ MaybeSymbolAtom[GetElementOptionAtom[#atom, "symbol"], #atom, #element];
+→ MaybeSymbolAtom[GetElementOptionAtom[#atom, "variable"], #atom, #element];
 
 MaybeBindsAtom[(#binds; #bindss), #atom, #element] 
 → %element*⟨ ⟨ACTION: ConcatString[Foldl[val result.ConcatString[result, ConcatString[" ", UnBINDS[val]]], "{_enterBinds(\"", (#binds; #bindss)], "\");}"] ⟩

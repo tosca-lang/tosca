@@ -122,6 +122,7 @@ GetRefElement[{#L}%element⟦ #TOKEN_REF #elementOptions? ⟧, #element*, {#I}RU
 → $[If, $[Equal, #TOKEN_REF, "EOF"],
    GetRefElements[#element*, {#I}RULEINDEX],
    If[{#I}IsConstantRuleSpec[UnSOME[{#I}GetSome[#TOKEN_REF]]], GetRefElements[#element*, {#I}RULEINDEX], SOME[#TOKEN_REF]]];
+// TODO: should output an error when token is not found but the crsx interpreter does not handle errors very well.
 
 -[Fallback]:
 GetRefElement[#element, #element*, #index] 
@@ -490,9 +491,9 @@ GetElementOptionOptions_S1_ZOM[%elementOptions_S1*⟦, #elementOption #elementOp
 ∀ a .ToElementOption[$String, Option[a]] :: ElementOption;
 ToElementOption[#id, #value] 
 → $[If, $[Equal, #id, "sugar"], SUGAR, 
-  $[If, $[Equal, #id, "symbol"], SYMBOL, 
-  $[If, $[Equal, #id, "binder"], BINDER[UnwrapOptionValue[UnSOME[#value]]], 
-  $[If, $[Equal, #id, "binds"], BINDS[UnwrapOptionValue[UnSOME[#value]]], 
+  $[If, $[Equal, #id, "variable"], SYMBOL, 
+  $[If, $[Equal, #id, "boundvar"], BINDER[UnwrapOptionValue[UnSOME[#value]]], 
+  $[If, $[Equal, #id, "bound"], BINDS[UnwrapOptionValue[UnSOME[#value]]], 
   UNKOWN]]]];
 
 // --- Sugar: a constant or as the option <sugar>

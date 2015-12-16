@@ -1,10 +1,10 @@
 // Some data sorts
-data Boolean     ( True, False )
-data ∀ a. Option ( None, Some(a) )
-data ∀ a. List   ( Nil, Cons(a, List(a)) )
+data Boolean     ( True(), False() )
+data ∀ a. Option ( None(), Some(a) )
+data ∀ a. List   ( Nil(), Cons(a, List(a)) )
 
 // Some function sorts
-func :(List(String))
+func Flatten( List( String() ) )
 
 // Some rules
-rule :(Cons(#, #s)) → Concat(#, :(#s))  
+rule Flatten( Cons(#(), #s()) ) → Concat(#(), Flatten(#s()))  
