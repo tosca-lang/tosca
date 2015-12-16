@@ -91,8 +91,9 @@ csorts
 
 csort
     : CONSTRUCTOR csorts?                           /* Construction sort */
-    | VARIABLE                                      /* Parameterized sort  */ 
-    | LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sort */
+    | VARIABLE                                      /* Sort variable  */ 
+    | csort DOT csort                               /* Term variable sort */ 
+    | LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sort */ 
     ;
     
 cmapsort
@@ -253,7 +254,7 @@ fragment Upper    : [A-Z];
 fragment Lower    : [a-z];
 fragment Alpha    : [a-zA-Z];
 fragment Decimal  : '-'? [0-9]+ ('.' [0-9]+)? | '.' [0-9]+;
-fragment Other    : '-' | [$_+/|`~!@^&*=?/>.:];
+fragment Other    : '-' | [$]; // not in the core: _+/|`~!@^&*=?/>.:
 fragment Unicode  : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
 fragment UnicodeS : ~[\u0000-\u00FF\uD800-\uDBFF\u27e6\u27e7\u27e8\u27e9] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
 fragment Ebnf     : '*' | '?' | '+';

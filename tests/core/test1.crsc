@@ -1,7 +1,5 @@
-// Some data sorts
+// Boolean
 data Boolean     ( True, False )
-data ∀ a. Option ( None, Some(a) )
-data ∀ a. List   ( Nil, Cons(a, List(a)) )
 
 // Some function sorts
 func String Flatten( List(String) )
@@ -14,3 +12,12 @@ data N ( Z, S(N) )
 func N Plus(N, N)
 rule Plus(Z,   #2) → #2 
 rule Plus(S(#1), #2) → S( Plus(#1,#2) )
+
+data ∀ a. List ( Nil, Cons(a, List(a)) )
+func ∀ a. List Append(List(a), List(a))
+rule Append(Nil, #2) → #2 
+rule Append(Cons(#11, #12), #2) → Cons(#11, Append(#12, #2))
+
+func ∀ a b . List(a) Map(b.a, List(b)) 
+rule Map(x.#(x), Nil)          → Nil
+rule Map(x.#(x), Cons(#1, #2)) → Cons( #(#1), Map(x.#(x), #2))
