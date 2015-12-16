@@ -2,51 +2,43 @@
  * Copyright (c) 2015 IBM Corporation.
  *
  * This is the Crsx Core grammar specification.
- *
+ * To avoid conflicts with the Crsx grammar,
+ * every production starts with a 'c' for 'c'ore
  */
 
 /* 
-%MS: I commented directly above the respective line and 
-     always start with '%MS'
-     When I write ANTLR code in the comments I use to distinguish 'antlr'.
-     From our (GM and I) perspective we have three big questions:    
-     2. intutions for the 'ckv' production 
-     3. to get rid of (potential) redundancies
-        * inlining, when sensible 
-        * distinction between 'cform' and 'csort' --- see comment of 'cform'
-%LV: my comments.
-*/
-
-/*
- %MS: What does the c- in front of every left hand side stand for?
-      c-ore? Maybe explain here, so that it is easier for reader.
-      Or is it even possible to drop the "c"?
- %LV: to avoid conflicts with the Crsx grammar.
+%MS: Comments are directly above the respective line and 
+              start with %MS or %LV
+              and ANTLR code is distinguished by: 'antlr'.
 */
 
 /* To discuss:
    
   1. I see some patterns: 
-    * we have several times some kind of 'args' case (currently only once explicit: 'sortargs')
+    * we have several times some kind of 'args' case 
     * we have some list case 't' and 'ts: t (DELIM t)*'
    
-  Maybe it is a good idea to think of a general scheme, and do it the same way everywhere?
+    Cases:
+    * csortargs : LPAR (csort (COMMA csort)*)?  RPAR 
+    * cformargs : LPAR (cform (COMMA cform)*)?  RPAR
+    * ctermargs : LPAR (cterm (COMMA cterm)*)?  RPAR
+    
+    Currently:
+      DATA  csortparams? cconstructor cformargs? 
+      
+    allows "Z" but not "Z()"
   
-  That is:
-  * csortargs : LPAR (csort (COMMA csort)*)?  RPAR 
-  * cformargs : LPAR (cform (COMMA cform)*)?  RPAR
-  * ctermargs : LPAR (cterm (COMMA cterm)*)?  RPAR
-   
-  And then make them optional wherever they can occur, e.g.
-  cdecl : DATA csortparams? cconstructor cformargs? 
-  
-  -> Do ckv and ckvsorts fit in?
+    To achieve that: 
+    either (i) inline and '?' as in the examples above
+    or    (ii) add in 'cformargs : LPAR cforms? RPAR'
 
-  2. I am not sure, I quite understand the difference between cform and csort  --- see comment of 'cform'
-  
-  3. In 'cterm : LCURLY ckv* RCURLY' we have no enforced argument as opposed to 
-     'csort : LCURLY csortassoc+ RCURLY'
-     Is this intended?                             
+    Otherwise we can sure argue, that one of the two
+    does not have to be supported in the core (I'd argue for Z)
+
+  2. I am not sure, I quite understand the difference between cform and csort  --- see comment of 'cform'       
+
+  3. inlining, when sensible 
+
 */
 
 grammar Core;
@@ -60,7 +52,7 @@ ccrsx
 cdecl
     : DATA  csortparams? cconstructor cformargs?   /* Data sort declaration */
     | FN    csortparams? cconstructor csortargs?   /* Function sort declaration */
-    | RULE  cterm ARROW cterm                            /* Rule declaration */
+    | RULE  cterm ARROW cterm                      /* Rule declaration */
     ;
 
 // -- Sorts
@@ -83,11 +75,8 @@ cformargs
     ;
 
 /*
-%MS: Okay, but here we don't really have the same as in 'csortparams'?
-     * it is not optional 
-       Remark: It should be optional, no?, e.g., "Zero[]" ) 
-     * ideally i would have something like $List, Collection... of 'cform' as sort here, no?
-%LV: COMMA is constant and therefore eliminated. Internally, it becomes $List of forms. 
+%LV: COMMA is constant and therefore eliminated and Internally, it becomes $List of forms. 
+%MS: So the sort of cforms is "$List(cform)"? That would be beautiful.
 */
 cforms
     : cform (COMMA cform)*                    /* List of forms */
@@ -129,9 +118,7 @@ cform
 csortargs
     : LPAR csorts RPAR                        /* List of sort references */
     ;
-/*
-%MS: Could be inlined.
-*/
+
 csorts
     : csort (COMMA csort)*                               /* List of sort references */
     ;
@@ -144,13 +131,8 @@ csort
          Should a variable with 'AS sort' be possible here?
          Also: Maybe it is a good idea to separate sort variables from variables?
     */
-    | cvariable                                          /* Parameterized sort  */
-    /*
-    %MS: There is no delimiter (compare e.g., COMMA in csorts) 
-         also, as opposed to 'cterm : LCURLY ckv* RCURLY'
-         here we have 'csortkv+'
-    */       
-    | LCURLY cmapsorts RCURLY                             /* Association map sort */
+    | cvariable                                          /* Parameterized sort  */ 
+    | LCURLY cmapsorts RCURLY                            /* Association map sort */
     ;
 
 cmapsorts
@@ -159,13 +141,13 @@ cmapsorts
     
 cmapsort
     /*
-    %MS: What about the other cases in 'ckv'? 
+    %MS: What about the other cases in 'cmapentry'? 
          Could you give me an example sort for the cterm 'S({x})' or 'S({#X})'?
     %LV: example of sorts: 
              data SSort1 ( S({$String:$String}) )  // any string to any string
              data SSort2 ( S({Field:String}); data Field ( Field );  // Construction Field to any string
              data SSort3 ( S({Var:String}); data Var ( x );  // Variable to any string    
-    %MS: I probably miss something, but in ckv we have also cases where we there is no ':'.
+    %MS: I probably miss something, but in mapentry we have also cases where we there is no ':'.
          How would those get a sort? Or does this not occur?
     %LV: {#} means match, or contract using the entire map. It's not the same as the sort.
     */
@@ -200,9 +182,9 @@ cmapsort
  
        We should discuss, which we want to encode in the grammar, if any.
                
-       * 'ckv : METAVAR COLON cterm  
-              | VARIABLE COLON cterm
-              | STRING COLON cterm'
+       * 'metavarentry : METAVAR COLON cterm  
+                       | VARIABLE COLON cterm
+                       | STRING COLON cterm'
 
       * 'METAVAR LPAR cterms RPAR'
         Currently this is
@@ -226,26 +208,10 @@ cmapsort
 */
 
 cterm
-    /*
-    %MS: case 'cconstructor' and 'cconstructor LPAR cbounds RPAR' 
-         could be combined to simpler
-         'cconstructor( LPAR cbound RPAR )?'
-    %LV: for reasons stated above, it could but it's preferable not to.
-    %MS: I am sorry, which ones are you referring to?
-    */
     : cconstructor ctermargs?                           /* Constant/Construction */
     | cliteral                                           /* Literal construction */
     | cvariable                                          /* Variable */
-    /*
-    %MS: There is no delimiter (compare e.g., COMMA in csorts) 
-         '(ckv (COMMA ckv)* )?'
-    */
-    | LCURLY cmapentries RCURLY                                 /* association map */
-    /*
-    %MS: case 'METAVAR' and 'METAVAR LPAR cterms RPAR' 
-         could be combined to simpler
-         'METAVAR ( LPAR cterms RPAR )?'
-    */
+    | LCURLY cmapentries RCURLY                          /* Association map */
     | METAVAR ctermargs?                                 /* Meta variable/substitution */
     /* VARIABLE<binder=x> is an extension to ANTLR and specifies:
        "this VARIABLE is a binder we call x"
@@ -276,6 +242,8 @@ cterm
     
 /**
  %LV: the grammar allows ".t". not nice but simpler.  
+ %MS: I see the following problem here: "." is somehow an (infix) operator taking 2 arguments.
+      it would be similar to allow "* 4" as multiplicative expression
  */    
 cbound
     : VARIABLE<binder=x> FUNCTIONAL? csort? cbound<binds=x>    
@@ -300,8 +268,7 @@ cvariable
     ;
 
 /*
-%MS: Could be inlined. 
-     Should it be inlined?
+%MS: Should this be inlined?
 */
 csortas
     : AS csort                                           /* Sort annotation */
@@ -310,6 +277,7 @@ csortas
 cmapentries
     : cmapentry (COMMA cmapentry)*
     ;
+
 /*
 %MS: Maybe it is possible to create an example for each of these cases? 
      For intutition and to demonstrate the practical need?
@@ -330,9 +298,6 @@ ctermargs
     : LPAR cterms RPAR                                   /* Term argument list */
     ;
 
-/*
-%MS: Could be inlined.
-*/
 cterms
     : cterm (COMMA cterm)*                               /* Term list */
     ;
@@ -344,6 +309,7 @@ cterms
      Is it possible to drop it/ put it just where it is really needed?
      And then inline the 'cconstructor'?
 %LV: ':' is a value constructor. See $[:, ... ]
+%MS: Okay, but can't we just put COLON to be included in the definition of CONSTRUCTOR
 */
 cconstructor
     : CONSTRUCTOR
