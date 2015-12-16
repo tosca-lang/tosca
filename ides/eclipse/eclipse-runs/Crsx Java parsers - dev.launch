@@ -3,7 +3,6 @@
 <listAttribute key="arguments">
 <listEntry value="-Pdev"/>
 <listEntry value="-Domit-properties"/>
-<listEntry value="--rerun-tasks"/>
 </listAttribute>
 <stringAttribute key="gradle_distribution" value="GRADLE_DISTRIBUTION(WRAPPER)"/>
 <listAttribute key="jvm_arguments"/>

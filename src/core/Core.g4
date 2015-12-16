@@ -54,12 +54,12 @@ grammar Core;
 // -- Top-level declarations
 
 ccrsx
-    : cdecl (SEMI cdecl)*
+    : cdecl+
     ;
 
 cdecl
-    : DATA  csortparams? cconstructor LPAR cforms RPAR   /* Data sort declaration */
-    | FN    csortparams? cconstructor LPAR csorts RPAR   /* Function sort declaration */
+    : DATA  csortparams? cconstructor cformargs?   /* Data sort declaration */
+    | FN    csortparams? cconstructor csortargs?   /* Function sort declaration */
     | RULE  cterm ARROW cterm                            /* Rule declaration */
     ;
 
@@ -76,6 +76,10 @@ cdecl
 */
 csortparams
     : FORALL VARIABLE+ DOT                              /* Sort parameters. */
+    ;
+
+cformargs
+    : LPAR cforms RPAR
     ;
 
 /*
@@ -118,10 +122,13 @@ cforms
      so we need 'VARIABLE', no?
 */
 cform
-    : cconstructor LPAR csorts RPAR            /* Construction form */
-    | cvariable                                 /* Allow variable form */
+    : cconstructor csortargs?            /* Construction form */
+    | cvariable                          /* Allow variable form */
     ;
-
+    
+csortargs
+    : LPAR csorts RPAR                        /* List of sort references */
+    ;
 /*
 %MS: Could be inlined.
 */
@@ -130,7 +137,7 @@ csorts
     ;
 
 csort
-    : cconstructor LPAR csorts RPAR                   /* Construction sort */
+    : cconstructor csortargs?                   /* Construction sort */
     /*
     %MS: Should we maybe replace 'cvariable+' by 'VARIABLE'?
          Should a variable with 'FUNCTIONAL' annotation be possible here?
@@ -226,8 +233,7 @@ cterm
     %LV: for reasons stated above, it could but it's preferable not to.
     %MS: I am sorry, which ones are you referring to?
     */
-    : cconstructor                                       /* Constant */
-    | cconstructor LPAR cterms RPAR                      /* Construction */
+    : cconstructor ctermargs?                           /* Constant/Construction */
     | cliteral                                           /* Literal construction */
     | cvariable                                          /* Variable */
     /*
@@ -240,8 +246,7 @@ cterm
          could be combined to simpler
          'METAVAR ( LPAR cterms RPAR )?'
     */
-    | METAVAR                                            /* Meta variable */
-    | METAVAR LPAR cterms RPAR                           /* Substitution */
+    | METAVAR ctermargs?                                 /* Meta variable/substitution */
     /* VARIABLE<binder=x> is an extension to ANTLR and specifies:
        "this VARIABLE is a binder we call x"
        with
@@ -321,6 +326,10 @@ cmapentry
     | STRING COLON cterm                                 /* match named property value / construct    */
     ;
 
+ctermargs
+    : LPAR cterms RPAR                                   /* Term argument list */
+    ;
+
 /*
 %MS: Could be inlined.
 */
@@ -344,7 +353,7 @@ cconstructor
 // Lexer rules
 
 DATA            : 'data';
-FN              : 'fn';
+FN              : 'func';
 RULE            : 'rule';
 AS              : 'as';
 COLON           : ':';
