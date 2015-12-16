@@ -82,7 +82,7 @@ cforms
 */
 cform
     : CONSTRUCTOR csorts?                           /* Construction form */
-    | ALLOWS-VARIABLE                               /* Allow variable form */
+    | ALLOWS_VARIABLE                               /* Allow variable form */
     ;
 
 csorts
@@ -92,8 +92,8 @@ csorts
 csort
     : CONSTRUCTOR csorts?                           /* Construction sort */
     | VARIABLE                                      /* Sort variable  */ 
-    | csort DOT csort                               /* Term variable sort */ 
-    | LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sort */ 
+    | LSQUARE csort RSQUARE csort                   /* Bound variable sort */ 
+    | LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sorts */ 
     ;
     
 cmapsort
@@ -108,7 +108,7 @@ cmapsort
          How would those get a sort? Or does this not occur?
     %LV: {#} means match, or contract using the entire map. It's not the same as the sort.
     */
-    : CONSTRUCTOR COLON csort                          /* Association map sort */
+    : csort COLON csort                            /* Association map sort */
     ;
     
 // -- Term
@@ -165,20 +165,20 @@ cmapsort
 */
 
 cterm
-    : CONSTRUCTOR cterms?                                       /* Constant/Construction */
-    | cliteral                                                  /* Literal construction */
-    | cvariable                                                 /* Variable */
-    | LCURLY cmapentries RCURLY                                 /* Association map */
-    | METAVAR cterms?                                           /* Meta variable/substitution */
-    | VARIABLE<boundvar=x> FUNCTIONAL? DOT cterm<bound=x>       /* Bound term. 
-                                                                     VARIABLE<boundvar=x> means VARIABLE is a bound variable we call x
-                                                                     cterm<bound=x>       means x is bound in the context of the cterm */
+    : CONSTRUCTOR cterms?                                               /* Constant/Construction */
+    | cliteral                                                          /* Literal construction */
+    | cvariable                                                         /* Variable */
+    | LCURLY cmapentries? RCURLY                                        /* Association map */
+    | METAVAR cterms?                                                   /* Meta variable/substitution */
+    | LSQUARE VARIABLE<boundvar=x> FUNCTIONAL? RSQUARE cterm<bound=x>   /* Bound term. 
+                                                                            VARIABLE<boundvar=x> means VARIABLE is a bound variable we call x
+                                                                            cterm<bound=x>       means x is bound in the context of the cterm */
     ;
 
 cliteral
     : STRING                                                    /* String literal */
     | NUMBER                                                    /* Number literal */
-    ;
+    ; 
 
 
 cvariable
@@ -195,7 +195,7 @@ cmapentries
      For intutition and to demonstrate the practical need?
 */
 cmapentry
-    : METAVAR                                            /* property reference (match/construct)      */
+    : COLON METAVAR                                      /* property reference (match/construct)      */
     | NOT METAVAR                                        /* no property references (match only)       */
     | METAVAR COLON cterm                                /* match property value / construct          */
     | VARIABLE                                           /* match / construct variable property       */
@@ -216,14 +216,16 @@ cterms
 DATA            : 'data';
 FN              : 'func';
 RULE            : 'rule';
-ALLOWS-VARIABLE : 'allows-variable';
+ALLOWS_VARIABLE : 'allows-variable';
 COLON           : ':';
 ARROW           : '→';
 FORALL          : '∀';
 LPAR            : '(';
 RPAR            : ')';
-LCURLY          : '}';
+LCURLY          : '{';
 RCURLY          : '}';
+LSQUARE         : '[';
+RSQUARE         : ']';
 COMMA           : ',';  
 DOT             : '.';
 NOT             : '¬';
