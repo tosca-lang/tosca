@@ -31,11 +31,13 @@ ccrsx
 
 /*
    note: allow only Z() to be easier machine readable and for plank compatibility
+   %LV: I found a way for easy human-readable and easy machine readable. Plan compatibility is lost but only on a detail 
+        Z() is not allowed. Z is allowed. ⟦ ... ##cforms*  ... ⟧ is allowed.
  */
 cdecl
-    : DATA  csortvars? CONSTRUCTOR LPAR cforms? RPAR  /* Data sort declaration */
-    | FN    csortvars? CONSTRUCTOR LPAR csorts? RPAR  /* Function sort declaration */
-    | RULE  cterm ARROW cterm                          /* Rule declaration */
+    : DATA  csortvars? CONSTRUCTOR cforms?                  /* Data sort declaration */
+    | FN    csortvars? csort CONSTRUCTOR csorts?            /* Function sort declaration */
+    | RULE  cterm ARROW cterm                               /* Rule declaration */
     ;
 
 
@@ -60,7 +62,7 @@ TODO:  make change to meta parser to directly support $List(cform) with either
        - (cform (COMMA cform)* | ) 
 */
 cforms
-    : cform (COMMA cform)*                            /* List of forms */
+    :  LPAR cform (COMMA cform)* RPAR                  /* List of forms */
     ;
 
 /*
@@ -79,16 +81,16 @@ cforms
      so we need 'VARIABLE', no?
 */
 cform
-    : CONSTRUCTOR LPAR csorts? RPAR                 /* Construction form */
+    : CONSTRUCTOR csorts?                           /* Construction form */
     | ALLOWS-VARIABLE                               /* Allow variable form */
     ;
 
 csorts
-    : csort (COMMA csort)*                          /* List of sort references */
+    : LPAR csort (COMMA csort)* RPAR                /* List of sort references */
     ;
 
 csort
-    : CONSTRUCTOR LPAR csorts? RPAR                 /* Construction sort */
+    : CONSTRUCTOR csorts?                           /* Construction sort */
     | VARIABLE                                      /* Parameterized sort  */ 
     | LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sort */
     ;
@@ -162,11 +164,11 @@ cmapsort
 */
 
 cterm
-    : CONSTRUCTOR LPAR cterms? RPAR                             /* Constant/Construction */
+    : CONSTRUCTOR cterms?                                       /* Constant/Construction */
     | cliteral                                                  /* Literal construction */
     | cvariable                                                 /* Variable */
     | LCURLY cmapentries RCURLY                                 /* Association map */
-    | METAVAR LPAR cterms? RPAR                                 /* Meta variable/substitution */
+    | METAVAR cterms?                                           /* Meta variable/substitution */
     | VARIABLE<boundvar=x> FUNCTIONAL? DOT cterm<bound=x>       /* Bound term. 
                                                                      VARIABLE<boundvar=x> means VARIABLE is a bound variable we call x
                                                                      cterm<bound=x>       means x is bound in the context of the cterm */
@@ -205,7 +207,7 @@ cmapentry
 
 /* TODO: inline when antlr-based meta parser generator support (()*)? */
 cterms
-    : cterm (COMMA cterm)*                               /* Term list */
+    : LPAR cterm (COMMA cterm)* RPAR                    /* Term list */
     ;
 
 // Lexer rules
