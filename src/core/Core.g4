@@ -35,9 +35,11 @@ ccrsx
         Z() is not allowed. Z is allowed. ⟦ ... ##cforms*  ... ⟧ is allowed.
  */
 cdecl
-    : DATA  csortvars? CONSTRUCTOR cforms?                  /* Data sort declaration */
+    : DATA  csortvars? CONSTRUCTOR cforms                   /* Data sort declaration */
     | FN    csortvars? csort CONSTRUCTOR csorts?            /* Function sort declaration */
     | RULE  cterm ARROW cterm                               /* Rule declaration */
+    | IMPORT MODULE CONSTRUCTOR                             /* Import module declaration */
+    | IMPORT GRAMMAR CONSTRUCTOR                            /* Import grammar declaration */
     ;
 
 
@@ -217,6 +219,9 @@ DATA            : 'data';
 FN              : 'func';
 RULE            : 'rule';
 ALLOWS_VARIABLE : 'allows-variable';
+MODULE          : 'module';
+IMPORT          : 'import';
+GRAMMAR         : 'grammar';
 COLON           : ':';
 ARROW           : '→';
 FORALL          : '∀';

@@ -33,12 +33,14 @@ task coreParsers(type: PG4Task) {
     description "Generate Core term and meta parsers"
     source = file('src/core/Core.g4')
     generatedFileDir = file('src/core')
+    metaPrefix = '##'
 }
 
 task crsxParsers(type: PG4Task) {
-    description "Generate Crsx4 term and meta parsers"
+    description 'Generate Crsx4 term and meta parsers'
     source = file('src/parser/Crsx.g4')
     generatedFileDir = file('src/parser')
+    metaPrefix = '##'
 }
 
 task cleanCoreParsers(overwrite : true) {} 
