@@ -94,14 +94,17 @@ public class Crsx
 
 		buildEnv.put("rules", rules);
 		buildEnv.put("build-dir", buildir);
-		build(buildEnv);
+		//		build(buildEnv);
 
 		// Compute output class name
-	
+
 		String output = targetJavaFilename(rules, buildir, false);
 		File outputClassFile = new File(output);
 		output = outputClassFile.getName().replace(".java", ""); // TODO package
 
+		// For testing only
+		output = "tests." + output;
+		
 		Map<String, Object> internal = new HashMap<>();
 
 		// Compute classloader
@@ -146,6 +149,7 @@ public class Crsx
 		buildEnv.put("wrapper", "Compile");
 
 		buildEnv.put("grammar", "org.crsx.parser.CrsxMetaParser"); // Temporary.
+		buildEnv.put("grammar", "org.crsx.core.CoreMetaParser"); // Temporary.
 		buildEnv.put("sink", "org.crsx.runtime.text.TextSink");
 
 		buildEnv.put("term", "\"" + rules + "\"");
@@ -161,7 +165,7 @@ public class Crsx
 	 * Get the name of the target java file
 	 * @param input input crsx file
 	 * @param dest target directory
-	 * @param mkaeDirs whether to make destination directories.
+	 * @param makeDirs whether to make destination directories.
 	 */
 	static String targetJavaFilename(String input, String dest, boolean makeDirs)
 	{
@@ -177,7 +181,7 @@ public class Crsx
 		}
 
 		// Compute output java filename
-		String output = inputFile.getName().replace(".crs", ".java");
+		String output = inputFile.getName().replace(".crsc", ".java").replace(".crs", ".java");
 		output = Character.toUpperCase(output.charAt(0)) + output.substring(1); // First character must be upper case.
 		output = dest + File.separator + output; // dest / output.java
 		return output;
@@ -191,7 +195,6 @@ public class Crsx
 	 */
 	static ClassLoader classLoader(String input, String dest)
 	{
-
 		if (dest == null)
 		{
 			final File inputFile = new File(input);
@@ -342,8 +345,7 @@ public class Crsx
 			wrapper = context.lookupDescriptor(wrapperName);
 			if (wrapper == null)
 				System.out.println("Warning: wrapper " + wrapperName + " not found.");
-			
-			
+
 		}
 
 		BufferSink buffer = context.makeBuffer();

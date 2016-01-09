@@ -22,4 +22,14 @@ parametric polymorphic sort for a Pair
 ∀ a b . Snd[Pair[a,b]] :: b;
 -[Discard[#X]] : Snd[PairCons[#X,#Y]] → #Y;
 
+/*
+  Deconstruct pair 
+  @param `Pair[a,b]` Pair
+  @param `x1::a x2::b.$sort[c]` Recipient for desconstructed pair
+  @return returns the recipient result
+*/
+∀ a b c. Deconstruct[Pair[a,b], x1::a x2::b.$sort[c]] :: c;
+Deconstruct[PairCons[#1, #2], x1 x2.#[x1, x2]] → #[#1, #2];
+
+
 )]

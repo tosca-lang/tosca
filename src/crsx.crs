@@ -4,8 +4,7 @@
 // 
 Crsx[(
 
-$Use["state.crs"];
-$Use["normalizer.crs"];
+$Use["system.crs"];
 $Use["cg/cgjava.crs"];
 $Use["std/core.crs"];
 $Use["std/list.crs"];
@@ -13,140 +12,158 @@ $Use["std/text.crs"];
 
 // REVISIT: very limited. to revisit when crsx4 is stable enough to compile itself 
 
-// For now: normalize all modules, resolve global references and generate code.
+// For now: normalize all modules and generate code.
 // The plan: load only stubs
 
-// Compile a CRSX system.
+//--- API
+
+/* Compile the Crsx program located to the given url 
+   @param `$String` a url
+   @return a compile Crsx program in Java (for now)
+*/
 Compile[$String] :: Text;  
+Compile[#url] 
+→ CompileSystem[InitSystem[#url]];
 
-Compile[#filename] 
-→
-{
-	"$modules"   : MODULES[()]; 
-	"$notloaded" : MODULES[()]; 
-	"$normalized": MODULES[()]
-}AddModule[#filename, MAINMODULE, ok¹.NormalizeNextModule[ok¹]];
+CompileSystem[System] :: Text;  
+CompileSystem[#system] 
+→ MaybeLoadModule[#system, PickNotLoaded[#system]];
 
-// --- Normalization. Load module, parse and register imports. 
-// --- Eventually: load only stub to avoid full normalization.
+MaybeLoadModule[System, Option[Module]] :: Text;
 
-{$String:$StringEntry}
-NormalizeNextModule[OK_SORT] :: Text; 
+// Done loading all modules. Generate code.  
+MaybeLoadModule[#system, NONE] 
+→ CrsxToJava[#system];  
 
-{#E}NormalizeNextModule[OK] 
-→ 
-{#E}NormalizeNextModule1[$[{#E}Get, "$notloaded"]];
+MaybeLoadModule[#system, SOME[Module[#url, NOTLOADED]]]
+→ CompileSystem[PutModule[#system, #url, Module[#url, LoadModule[#url]]]];
 
-{$String:$StringEntry}
-NormalizeNextModule1[$StringEntry] :: Text; 
+LoadModule[$String] :: Content;
+LoadModule[#url] → Loaded[LoadCore[$[ParseResource, "ccrsx", #url]]];
 
-// All modules have been normalized.
-{#E}NormalizeNextModule1[MODULES[()]]
-→
-// For now don't resolve name. Put everything in the global namespace.
-//{#E}Resolve[ok¹.             // Global name resolution
-//    CompileNextModule[ok¹]]; // Generate code.
-{#E}CompileNextModule[OK]; // Generate code.
 
-{#E}NormalizeNextModule1[MODULES[(#module; #modules)]]
-→
-{#E; "$notloaded":MODULES[#modules]}NormalizeModule[#module, ok¹.NormalizeNextModule[ok¹]];
+//
 
-{$String:$StringEntry}
-NormalizeModule[$String, ok¹::OK_SORT.Text] :: Text;
--[Data[#key]]: {#E}NormalizeModule[#key, ok¹.#[ok¹]] → {#E}NormalizeModuleLoad[$[{#E}Get, #key], ok¹.#[ok¹]]; 
-
-{$String:$StringEntry}
-NormalizeModuleLoad[$StringEntry, ok¹::OK_SORT.Text] :: Text;
-
-// Module not loaded: load and normalize it.
-{#E}NormalizeModuleLoad[MODULE[#filename, #mode, NOTLOADED], ok¹.#[ok¹]]
-→
-{#E}NormalizeParsed[ModuleKey[#filename], #filename, #mode, $[ParseResource, "crsx", #filename], ok¹.#[ok¹]];
-
-// Module loaded: skip
-{#E}NormalizeModuleLoad[MODULE[#filename, #mode, {#M}LOADED], ok¹.#[ok¹]]
-→
-{#E}#[OK];
-
-{$String:$StringEntry}
-NormalizeParsed[$String, $String, Mode, Crsx_crsx_sort, ok¹::OK_SORT.Text] :: Text;
-
--[Data[#key]]:
-{#E}NormalizeParsed[#key, #filename, #mode, #crsx, ok¹.#[ok¹]] 
-→ 
-{#E}NormalizeDone[#key, #filename, #mode,  NormalizeToState[#filename, #crsx], ok¹.#[ok¹]];
-
-{$String:$StringEntry}
-NormalizeDone[$String, $String, Mode, Content, ok¹::OK_SORT.Text] :: Text;
-
-// Module has been loaded and normalized. Register module dependencies
-{#E}NormalizeDone[#key, #filename, #mode, {#M}LOADED, ok¹.#[ok¹]] 
-→ 
-{#E}NormalizeDone1[$[{#E}Get, "$normalized"], $[{#E}Get, "$modules"], $[{#M}Get, "$imported"], #key, #filename, #mode, {#M}LOADED, ok¹.#[ok¹]];
-
-{$String:$StringEntry}
-NormalizeDone1[$StringEntry, $StringEntry, ContentEntry, $String, $String, Mode, Content, ok¹::OK_SORT.Text] :: Text;
-
-{#E}NormalizeDone1[MODULES[#normalized], MODULES[#modules],  IMPORTS[#imports], #key, #filename, #mode, #content, ok¹.#[ok¹]]
-→
-{#E;
-	"$normalized" : MODULES[Concat[#normalized, (#filename;)]]; // Keep it in order: main module needs to first. (REVISIT when save to different files)  
-     #key         : MODULE[#filename, #mode, #content]
-}SeqMap[name cont.AddImport[name, cont], #imports, ok¹.#[ok¹]];
-
-{$String:$StringEntry}
-AddImport[$String, Cont[Text]] :: Text;
-
-{#E}AddImport[#filename, CONT[ok¹.#[ok¹]]] 
-→ 
-// Do nothing. Have each module compile independently for now.
-{#E}#[OK];
-//{#E}AddModule[#filename, SUBMODULE, ok¹.#[ok¹]];
-
-// --- Compile normalized module to target language (Java for now)
-
-{$String:$StringEntry}
-CompileNextModule[OK_SORT] :: Text; 
-
-{#E}CompileNextModule[OK] → {#E}CompileNextModule1[$[{#E}Get, "$modules"]];
-
-{$String:$StringEntry}
-CompileNextModule1[$StringEntry] :: Text; 
-
-{#E}CompileNextModule1[MODULES[()]] → %n⟦}⟧; // TODO: temporary closing bracket 
-
-{#E}CompileNextModule1[MODULES[(#module; #modules)]] 
-→ 
-{#E; "$modules":MODULES[#modules]}CompileModule[#module, ok¹.CompileNextModule[ok¹]];
-
-{$String:$StringEntry}
-CompileModule[$String, ok¹::OK_SORT.Text] :: Text;
-
--[Data[#key]]:
-{#E}CompileModule[#key, ok¹.#[ok¹]] 
-→
-{#E}CompileNormalized[$[{#E}Get, #key], ok¹.#[ok¹]]; 
-
-{$String:$StringEntry}
-CompileNormalized[$StringEntry, ok¹::OK_SORT.Text] :: Text;
-
-// Module has been loded and normalized. Register module dependencies
-{#E}CompileNormalized[MODULE[#filename, #mode, {#M}LOADED], ok¹.#[ok¹]] 
-→
-//{#E}CompileSave[$[:, #filename, ".java"], GenerateJavaParsed[#filename, {#M}OutputCrsx[OK], #mode], ok¹.#[ok¹]];
-{#E}CompileSave[$[:, #filename, ".java"], Crsx_Print_crsx[{#M}OutputCrsx[OK]], ok¹.#[ok¹]];
-//{#E}CompileSave[$[:, #filename, ".java"], {#M}OutputCrsx[OK], ok¹.#[ok¹]];
-
-{$String:$StringEntry}
-CompileSave[$String, Text, ok¹::OK_SORT.Text] :: Text;
-
--[Data[#code, #filename]]:
-{#E}CompileSave[#filename, #code, ok¹.#[ok¹]]
-→
-%n⟦/* START MODULE †«#filename» */
-«#code»
-/* END MODULE «#filename» */
-«{#E}#[OK]»⟧;
+//// --- Normalization. Load module, parse and register imports. 
+//// --- Eventually: load only stub to avoid full normalization.
+//
+//{$String:$StringEntry}
+//NormalizeNextModule[OK_SORT] :: Text; 
+//
+//{#E}NormalizeNextModule[OK] 
+//→ 
+//{#E}NormalizeNextModule1[$[{#E}Get, "$notloaded"]];
+//
+//{$String:$StringEntry}
+//NormalizeNextModule1[$StringEntry] :: Text; 
+//
+//// All modules have been normalized.
+//{#E}NormalizeNextModule1[MODULES[()]]
+//→
+//// For now don't resolve name. Put everything in the global namespace.
+////{#E}Resolve[ok¹.             // Global name resolution
+////    CompileNextModule[ok¹]]; // Generate code.
+//{#E}CompileNextModule[OK]; // Generate code.
+//
+//{#E}NormalizeNextModule1[MODULES[(#module; #modules)]]
+//→
+//{#E; "$notloaded":MODULES[#modules]}NormalizeModule[#module, ok¹.NormalizeNextModule[ok¹]];
+//
+//{$String:$StringEntry}
+//NormalizeModule[$String, ok¹::OK_SORT.Text] :: Text;
+//-[Data[#key]]: {#E}NormalizeModule[#key, ok¹.#[ok¹]] → {#E}NormalizeModuleLoad[$[{#E}Get, #key], ok¹.#[ok¹]]; 
+//
+//{$String:$StringEntry}
+//NormalizeModuleLoad[$StringEntry, ok¹::OK_SORT.Text] :: Text;
+//
+//// Module not loaded: load and normalize it.
+//{#E}NormalizeModuleLoad[MODULE[#filename, #mode, NOTLOADED], ok¹.#[ok¹]]
+//→
+//{#E}NormalizeParsed[ModuleKey[#filename], #filename, #mode, $[ParseResource, "crsx", #filename], ok¹.#[ok¹]];
+//
+//// Module loaded: skip
+//{#E}NormalizeModuleLoad[MODULE[#filename, #mode, {#M}LOADED], ok¹.#[ok¹]]
+//→
+//{#E}#[OK];
+//
+//{$String:$StringEntry}
+//NormalizeParsed[$String, $String, Mode, Crsx_crsx_sort, ok¹::OK_SORT.Text] :: Text;
+//
+//-[Data[#key]]:
+//{#E}NormalizeParsed[#key, #filename, #mode, #crsx, ok¹.#[ok¹]] 
+//→ 
+//{#E}NormalizeDone[#key, #filename, #mode,  NormalizeToState[#filename, #crsx], ok¹.#[ok¹]];
+//
+//{$String:$StringEntry}
+//NormalizeDone[$String, $String, Mode, Content, ok¹::OK_SORT.Text] :: Text;
+//
+//// Module has been loaded and normalized. Register module dependencies
+//{#E}NormalizeDone[#key, #filename, #mode, {#M}LOADED, ok¹.#[ok¹]] 
+//→ 
+//{#E}NormalizeDone1[$[{#E}Get, "$normalized"], $[{#E}Get, "$modules"], $[{#M}Get, "$imported"], #key, #filename, #mode, {#M}LOADED, ok¹.#[ok¹]];
+//
+//{$String:$StringEntry}
+//NormalizeDone1[$StringEntry, $StringEntry, ContentEntry, $String, $String, Mode, Content, ok¹::OK_SORT.Text] :: Text;
+//
+//{#E}NormalizeDone1[MODULES[#normalized], MODULES[#modules],  IMPORTS[#imports], #key, #filename, #mode, #content, ok¹.#[ok¹]]
+//→
+//{#E;
+//	"$normalized" : MODULES[Concat[#normalized, (#filename;)]]; // Keep it in order: main module needs to first. (REVISIT when save to different files)  
+//     #key         : MODULE[#filename, #mode, #content]
+//}SeqMap[name cont.AddImport[name, cont], #imports, ok¹.#[ok¹]];
+//
+//{$String:$StringEntry}
+//AddImport[$String, Cont[Text]] :: Text;
+//
+//{#E}AddImport[#filename, CONT[ok¹.#[ok¹]]] 
+//→ 
+//// Do nothing. Have each module compile independently for now.
+//{#E}#[OK];
+////{#E}AddModule[#filename, SUBMODULE, ok¹.#[ok¹]];
+//
+//// --- Compile normalized module to target language (Java for now)
+//
+//{$String:$StringEntry}
+//CompileNextModule[OK_SORT] :: Text; 
+//
+//{#E}CompileNextModule[OK] → {#E}CompileNextModule1[$[{#E}Get, "$modules"]];
+//
+//{$String:$StringEntry}
+//CompileNextModule1[$StringEntry] :: Text; 
+//
+//{#E}CompileNextModule1[MODULES[()]] → %n⟦}⟧; // TODO: temporary closing bracket 
+//
+//{#E}CompileNextModule1[MODULES[(#module; #modules)]] 
+//→ 
+//{#E; "$modules":MODULES[#modules]}CompileModule[#module, ok¹.CompileNextModule[ok¹]];
+//
+//{$String:$StringEntry}
+//CompileModule[$String, ok¹::OK_SORT.Text] :: Text;
+//
+//-[Data[#key]]:
+//{#E}CompileModule[#key, ok¹.#[ok¹]] 
+//→
+//{#E}CompileNormalized[$[{#E}Get, #key], ok¹.#[ok¹]]; 
+//
+//{$String:$StringEntry}
+//CompileNormalized[$StringEntry, ok¹::OK_SORT.Text] :: Text;
+//
+//// Module has been loded and normalized. Register module dependencies
+//{#E}CompileNormalized[MODULE[#filename, #mode, {#M}LOADED], ok¹.#[ok¹]] 
+//→
+////{#E}CompileSave[$[:, #filename, ".java"], GenerateJavaParsed[#filename, {#M}OutputCrsx[OK], #mode], ok¹.#[ok¹]];
+//{#E}CompileSave[$[:, #filename, ".java"], Crsx_Print_crsx[{#M}OutputCrsx[OK]], ok¹.#[ok¹]];
+////{#E}CompileSave[$[:, #filename, ".java"], {#M}OutputCrsx[OK], ok¹.#[ok¹]];
+//
+//{$String:$StringEntry}
+//CompileSave[$String, Text, ok¹::OK_SORT.Text] :: Text;
+//
+//-[Data[#code, #filename]]:
+//{#E}CompileSave[#filename, #code, ok¹.#[ok¹]]
+//→
+//%n⟦/* START MODULE †«#filename» */
+//«#code»
+///* END MODULE «#filename» */
+//«{#E}#[OK]»⟧;
 
 )]

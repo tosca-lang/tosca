@@ -12,332 +12,230 @@ $Lax;
 $Use["std/core.crs"];
 $Use["std/env.crs"];
 $Use["std/list.crs"];
+$Use["std/map.crs"];
 $Use["core/Core.crs"];
 
 // --- System representation. 
 
-/* Main module or sub-module. TODO: not sure this is needed anymore */
-Mode ::= ( MAINMODULE; SUBMODULE; ); 
+/* A Crsx system as a list of modules */
+System ::= ( System[$String /* Initial url */, MAP[$String, Module]]; ); 
 
-$StringEntry ::= (
-
-    // Modules composing the system. List of keys in this environment.
-    MODULES[$List[$String]];                                                  // keys: $modules, $notloaded, $normalized
-
-    // A module composing the system
-    MODULE[$String /* filename/module id */, Mode, Content];                  // key: $module$<filename>. 
-
-);
-
-/* Compute the module key from the given module id */
-ModuleKey[$String] :: $String;
--[Data[#moduleid]]: 
-ModuleKey[#moduleid] 
-→ $[:, "$module$", #moduleid];
-
-/* 
-   Register module to compile. If module already registered, this does nothing. 
-   Add it to the $notloaded list
-*/
-∀ a.{$String:$StringEntry}
-AddModule[$String /* filename */, Mode, ok¹::OK_SORT.$sort[a]] :: a;
-{#E}AddModule[#filename, #main, ok¹.#[ok¹]] 
-→ {#E}AddModuleKey[ModuleKey[#filename], #filename, #main, ok¹.#[ok¹]]; 
-
-∀ a.{$String:$StringEntry}
-AddModuleKey[$String, $String, Mode, ok¹::OK_SORT.$sort[a]] :: a;
-
--[Data[#key]]: 
-{#E; "$modules":MODULES[#modules]; "$notloaded":MODULES[#notloaded]}
-AddModuleKey[#key, #filename, #main, ok¹.#[ok¹]] 
-→ $[{#E}IfDef, #key, 
-    {#E}#[OK], 
-    {#E}AddModuleKey2[#key, #filename, #main, Concat[#modules, (#key;)], Concat[#notloaded, (#key;)], ok¹.#[ok¹]]];
-
-// Need this due to a bug in the crsx interpreter
-∀ a.{$String:$StringEntry}
-AddModuleKey2[$String, $String, Mode, $List[$String], $List[$String], ok¹::OK_SORT.$sort[a]] :: a;
-
--[Data[#modules, #notloaded]]: 
-{#E}AddModuleKey2[#key, #filename, #main, #modules, #notloaded, ok¹.#[ok¹]] 
-→ {#E; #key: MODULE[#filename, #main, NOTLOADED]; "$modules":MODULES[#modules]; "$notloaded":MODULES[#notloaded]}#[OK];
+/* Initialize system with main module */
+InitSystem[$String] :: System;
+InitSystem[#url] → System[#url, MapPut[MAP, #url, Module[#url, NOTLOADED]]];
+  
+/* A Crsx module  */
+Module ::= ( Module[$String /* filename/module id */, Content /* of module */]; ); 
 
 // --- module representation
 
 /* Module content */
-{$String:ContentEntry}
 Content ::= ( 
 
     // Module not loaded yet.
     NOTLOADED;      
 
     // Module has been fully loaded into ContentEntry 
-    LOADED;       
+    Loaded[LoadedContent];       
 
     /*, STUB (might need a stub for fast compilation) */
 );
 
 /* The actual module content. Sorts and rules are indexed for fast lookup. */
-ContentEntry ::= (
-
-    // Entry in this environment
-    KEYS[$List[$String]];                                           // keys: 
-                                                                    // $rulekeys  : list of rule keys           ($rules$...)
-                                                                    // $datakeys  : list of data sort keys      ($data$...)
-                                                                    // $funckeys  : list of function sort keys  ($func$...)
-
-    // Imported modules and grammars, as a list of filenames and classnames
-    IMPORTS[$List[$String]];                                        // key: $imported, $grammars
-
-    // List of rules for a given constructor
-    RULES[$List[Core_cdecl_sort]];                                  // key: $rules$<constructor>
-
-    // Data sorts. Extensible. Also indexed by data forms constructor
-    DATASORT[$List[QualifiedSort]];                                 // keys:$data$<sortname>, $form$<constructor>
-    
-    // Function sort. Unique.
-    FUNCSORT[$String /* qualifier */, Core_cdecl_sort];             // key: $func$<constructor>
-
-    // form keys ($form$..), indexed by constructor. 
-    // Many forms per constructor allowed but then required 
-    // qualification 
-    FORMKEYS[$List[$String]];                                       // keys: $form$<constructor>
-
-    // General purpose string value
-    STR[$String];
-
-    // Special no entry value
-    NOCONTENTENTRY;
+LoadedContent ::= (
+    LoadedContent[
+           MAP[$String /* Constructor */, $List[Core_cdecl_sort]], /* Rules */
+           MAP[$String /* Constructor */, Core_cdecl_sort],        /* DataSorts */ 
+           MAP[$String /* Constructor */, Core_cdecl_sort]         /* FuncSorts */];
 );
-
-QualifiedSort ::= ( QSORT[$String /* Qualifier */, Core_cdecl_sort]; );
-
-// --- Sort utilities
-
-UnDATASORT[ContentEntry] :: $List[QualifiedSort];
-UnDATASORT[DATASORT[#]] → #;
-
-UnFUNCSORT[ContentEntry] :: Core_cdecl_sort;
-UnFUNCSORT[FUNCSORT[#1, #]] → #;
-
-UnRULES[ContentEntry] :: $List[Core_cdecl_sort];
-UnRULES[RULES[#]] → #;
-
-RulesKey[$String /* Constructor */] :: $String;
--[Data[#constructor]]: RulesKey[#constructor] → $[:, "$rules$", #constructor]; 
-
-DataSortKey[$String /* Constructor */] :: $String;
--[Data[#constructor]]: DataSortKey[#constructor] → $[:, "$data$", #constructor]; 
-
-DataFormKey[$String /* Constructor */] :: $String;
--[Data[#constructor]]: DataFormKey[#constructor] → $[:, "$form$", #constructor]; 
-
-FuncSortKey[$String /* Constructor */] :: $String;
--[Data[#constructor]]: FuncSortKey[#constructor] → $[:, "$func$", #constructor];
 
 // --- System lookup functions.
 
 /* 
-  Gets module content for given module id.
-  @return A module content or NONE 
+  Gets module for given url.
+  @return A module or NONE 
  */
-{$String:$StringEntry}LookupModule[$String /* module id */] :: Option[Content];
-{#E}LookupModule[#moduleid] 
-→ {#E}GetSome[ModuleKey[#moduleid]];
+LookupModule[System, $String /* url */] :: Option[Module];
+LookupModule[System[#mainurl, #modules], #url] 
+→ MapGet[#modules, #url];
 
-/* 
-  Gets data or function sort for given name
-  @return A sort or NONE 
+/* Pick an not loaded module.
+  @return A unloaded module or NONE 
  */
-{$String:$ContentEntry}LookupSortByConstructor[$String /* constructor */] :: Option[ContentEntry];
-{#E}LookupSortByConstructor[#constructor] 
-→ LookupSortByConstructor1[{#E}GetSome[FuncSortKey[#constructor]], {#E}GetSome[DataFormKey[#constructor]]];
+PickNotLoaded[System] :: Option[Module];
+PickNotLoaded[System[#mainurl, #modules]] 
+→ PickFirst[MapValues[#modules], x.IsNotLoaded[x]];
 
-// Helper
-LookupSortByConstructor1[Option[ContentEntry], Option[ContentEntry]] :: Option[ContentEntry];
-LookupSortByConstructor1[SOME[#1], #2] → SOME[#1];
-LookupSortByConstructor1[NONE, #2]     → #2;
+/* @return $True if module is not loaded */
+IsNotLoaded[Module] :: $Boolean;
+IsNotLoaded[Module[#url, NOTLOADED]]  → $True;
+IsNotLoaded[Module[#url, Loaded[#c]]] → $False;
 
 // --- System mutation functions.
 
 /* 
-  Add rule to the system. Always succeed. 
+  Put module for given url into system.
+ */
+PutModule[System, $String, Module] :: System;
+PutModule[System[#mainurl, #modules], #url, #module] 
+→ System[#mainurl, MapPut[#modules, #url, #module]];
+
+//
+///* 
+//  Gets data or function sort for given name
+//  @return A sort or NONE 
+// */
+//LookupSortByConstructor[Module, $String /* constructor */] :: Option[Core_cdecl_sort];
+//LookupSortByConstructor[System[#filename, #modules], #constructor] 
+//→ LookupSortByConstructor1[MapGet[FuncSortKey[#constructor]], {#E}GetSome[DataFormKey[#constructor]]];
+//
+//// Helper
+//LookupSortByConstructor1[Option[ContentEntry], Option[ContentEntry]] :: Option[ContentEntry];
+//LookupSortByConstructor1[SOME[#1], #2] → SOME[#1];
+//LookupSortByConstructor1[NONE, #2]     → #2;
+
+// --- Loaded content mutation functions.
+
+/* Add rule to module content. Always succeed. 
 */ 
-∀ a.AddRule[Core_cdecl_sort , ok¹::OK_SORT.$sort[a]] :: a;
-{#E}AddRule[{#L}%cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧, ok¹.#[ok¹]]
-→ {#E}AddRule2[RulesKey[#CONSTRUCTOR], {#L}%cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧, ok¹.#[ok¹]];
+PutRule[MAP[$String, $List[Core_cdecl_sort]], Core_cdecl_sort] :: MAP[$String, $List[Core_cdecl_sort]];
+PutRule[#rules, {#L}%cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧]
+→ PutRule1[MapGet[#rules, #CONSTRUCTOR], #rules, #CONSTRUCTOR, {#L}%cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧];
 
-∀ a.AddRule2[$String, Core_cdecl_sort, ok¹::OK_SORT.$sort[a]] :: a;
--[Data[#key]]:
-{#E}AddRule2[#key, #ruleDecl, ok¹.#[ok¹]]
-→ {#E}AddRule3[$[{#E}Get, #key, NOCONTENTENTRY], #key, #ruleDecl, ok¹.#[ok¹]];
+PutRule1[Option[$List[Core_cdecl_sort]], MAP[$String, $List[Core_cdecl_sort]], $String, Core_cdecl_sort] :: MAP[$String, $List[Core_cdecl_sort]];
+PutRule1[NONE, #rules, #constructor, #rule]
+→ MapPut[#rules, #constructor, (#rule;)];
 
-∀ a.AddRule3[ContentEntry, $String, Core_cdecl_sort, ok¹::OK_SORT.$sort[a]] :: a;
+PutRule1[SOME[#rulesForCons], #rules, #constructor, #rule]
+→ MapPut[#rules, #constructor, (#rule; #rulesForCons)];
 
-// Case where there is already some rules with the top-level constructor. Adds to it
-{#E}AddRule3[RULES[#rules], #key, #ruleDecl, ok¹.#[ok¹]]
-→ {#E; #key: RULES[Concat[#rules, (#ruleDecl;)]]}#[OK]; // For now the lexical order must be preserved.
-
-// Case where there is no prior rules.
-{#E; "$rulekeys": KEYS[#keys]} 
-AddRule3[NOCONTENTENTRY, #key, #ruleDecl, ok¹.#[ok¹]] 
-→ {#E; #key: RULES[(#ruleDecl;)]; "$rulekeys": KEYS[(#key; #keys)]}#[OK];
-
-/* 
-  Add data sort to the system. 
-  Index by sort name. Also index forms
-  Always succeed. 
+/*  Add data sort to module content. Fail if data sort already exists. 
 */ 
-∀ a.{$String:$ContentEntry}
-AddDataSort[Core_cdecl_sort, ok¹::OK_SORT.$sort[a]] :: a;
+PutDataSort[MAP[$String, Core_cdecl_sort], Core_cdecl_sort] :: MAP[$String, Core_cdecl_sort];
+PutDataSort[#data, {#L}%cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧]
+→ PutDataSort1[MapGet[#data, #CONSTRUCTOR], #data, #CONSTRUCTOR,  {#L}%cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧];
 
-{#E}AddDataSort[{#L}%cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, ok¹.#[ok¹]]
-→ {#E}AddDataSort1[DataSortKey[#CONSTRUCTOR], {#L}%cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, ok¹.
-      ThenSeqMap[ok¹, form cont.AddDataForm[form, #CONSTRUCTOR, {#L}%cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, cont], #cform*, ok¹.#[ok¹]]];
+PutDataSort1[Option[Core_cdecl_sort], MAP[$String /* Constructor */, Core_cdecl_sort], $String, Core_cdecl_sort] :: MAP[$String, Core_cdecl_sort];
+PutDataSort1[NONE, #data, #constructor, #decl]
+→ MapPut[#data, #constructor, #decl];
 
-∀ a.AddDataSort1[$String, Core_cdecl_sort, ok¹::OK_SORT.$sort[a]] :: a;
+PutDataSort1[SOME[#datasort], #data, #constructor, #rule]
+→ $[Error, $[:, "Data sort already declared:", #constructor]];
 
--[Data[#key]]:
-{#E}AddDataSort1[#key, #sortDecl, ok¹.#[ok¹]]
-→ {#E}AddDataSort2[$[{#E}Get, #key, NOCONTENTENTRY], #key, #sortDecl, ok¹.#[ok¹]];
+/* Add function sort to module content. 
+ */
+PutFuncSort[MAP[$String, Core_cdecl_sort], Core_ccdecl_sort] :: MAP[$String, Core_cdecl_sort];
+PutFuncSort[#func, {#L}%cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧]
+→ PutFuncSort1[MapGet[#func, #CONSTRUCTOR], #func, #CONSTRUCTOR,  {#L}%cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧];
 
-∀ a.AddDataSort2[ContentEntry, $String, Core_cdecl_sort, ok¹::OK_SORT.$sort[a]] :: a;
+PutFuncSort1[Option[Core_cdecl_sort], MAP[$String, Core_cdecl_sort], $String, Core_cdecl_sort] :: MAP[$String, Core_cdecl_sort];
+PutFuncSort1[NONE, #func, #constructor, #decl]
+→ MapPut[#func, #constructor, #decl];
 
-{#E; "$qualifier": STR[#qualifier]}
-AddDataSort2[DATASORT[#sorts], #key, #sortDecl, ok¹.#[ok¹]]
-→ {#E; #key: DATASORT[(QSORT[#qualifier, #sortDecl]; #sorts)]}#[OK];
+PutFuncSort1[SOME[#datasort], #func, #constructor, #rule]
+→ $[Error, $[:, "Function sort already declared:", #constructor]];
 
-{#E; "$datakeys": KEYS[#keys]; "$qualifier": STR[#qualifier]}
-AddDataSort2[NOCONTENTENTRY, #key, #sortDecl, ok¹.#[ok¹]]
-→ {#E; #key: DATASORT[(QSORT[#qualifier, #sortDecl];)]; "$datakeys": KEYS[(#key; #keys)]}#[OK];
-
-∀ a.{$String:$ContentEntry}
-AddDataForm[Core_cform_sort, $String, Core_ccdecl_sort, Cont[a]] :: a;
-
-{#E}AddDataForm[%cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #sortname, #sortdecl, #CONT]
-→ {#E}AddDataForm1[DataFormKey[#CONSTRUCTOR], #CONSTRUCTOR, #sortname, #sortdecl, #CONT];
-
-// TODO: indicate syntactic variable allowed in data sort.
-{#E}AddDataForm[%cform⟦ ALLOWS-VARIABLE ⟧, #sortname, #sortdecl, CONT[ok¹.#[ok¹]]]
-→ {#E}#[OK];
-
-∀ a.{$String:$ContentEntry}
-AddDataForm1[$String, $String, $String, Core_ccdecl_sort, Cont[a]] :: a;
-
--[Data[#key]]: 
-{#E}AddDataForm1[#key, #constructor, #sortname, #sortdecl, #CONT]
-→ {#E}AddDataForm2[$[{#E}Get, #key, NOCONTENTENTRY], #key, #constructor, #sortname, #sortdecl, #CONT];
-
-∀ a.{$String:$ContentEntry}
-AddDataForm2[ContentEntry, $String, $String, $String, Core_ccdecl_sort, Cont[a]] :: a;
-
-{#E}AddDataForm2[DATASORT[#sort], #key, #CONSTRUCTOR1, #CONSTRUCTOR2, #sortdecl, #CONT]
-→ $[Error, $[:, "Error: duplicate data form ", #CONSTRUCTOR1, " found in sort ", #CONSTRUCTOR2, "."]];
-  
-{#E; "$qualifier":STR[#qualifier]}
-AddDataForm2[NOCONTENTENTRY, #key, #constructor, #sortname, #sortdecl, CONT[ok¹.#[ok¹]]]
-→ {#E; #key: DATASORT[(QSORT[#qualifier, #sortdecl];)]}#[OK];
+// --- Load core program into system
 
 /*
+   Loads core program 
+   @param `Core_ccrsx_sort` core program 
+   @return loaded core program into internal representation
  */
-∀ a.AddFuncSort[Core_ccdecl_sort, ok¹::OK_SORT.$sort[a]] :: a;
+LoadCore[Core_ccrsx_sort] :: LoadedContent;
+LoadCore[%ccrsx⟦ ##cdecl+ ⟧]
+→ LoadDecls[#cdecl+, MAP, MAP, MAP];
 
-// Crsx Interpreter does not like fetching a env entry and data at the same time.
-{#E}AddFuncSort[{#L}%cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, ok¹.#[ok¹]]
-→ {#E}AddFuncSort1[FuncSortKey[#CONSTRUCTOR], {#L}%cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, ok¹.#[ok¹]];
+LoadDecls[$List[Core_cdecl_sort]] :: LoadedContent;
+LoadDecls[%cdecl+⟦⟧, #rules, #data, #func] 
+→ LoadedContent[#rules, #data, #func];
 
-∀ a.AddFuncSort1[$String, Core_ccdecl_sort, ok¹::OK_SORT.$sort[a]] :: a;
+LoadDecls[%cdecl+⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ##cdecl+ ⟧, #rules, #data, #func] 
+→ LoadDecls[#cdecl+, #rules, PutDataSort[#data, %cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧], #func];
 
--[Data[#key]]: 
-{#E}AddFuncSort1[#key, #sortDecl, ok¹.#[ok¹]]
-→ {#E}AddFuncSort2[$[{#E}Get, #key, NOCONTENTENTRY], #key, #sortDecl, ok¹.#[ok¹]];
+LoadDecls[%cdecl+⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ##cdecl+ ⟧, #rules, #data, #func] 
+→ LoadDecls[#cdecl+, #rules, #data, PutFuncSort[#func, %cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧]];
 
-∀ a.AddFuncSort2[ContentEntry, $String, Core_ccdecl_sort, ok¹::OK_SORT.$sort[a]] :: a;
-
-{#E}AddFuncSort2[FUNCSORT[#qualifier, #sort], #key, {#L}%cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, ok¹.#[ok¹]]
-→ $[Error, $[:, "Function sort already defined:", #CONSTRUCTOR]]; // TODO: locations, data 
-
-{#E; "$funckeys": KEYS[#keys]; "$qualifier" : STR[#qualifier]}
-AddFuncSort2[NOCONTENTENTRY, #key, #sortDecl, ok¹.#[ok¹]] 
-→ {#E; #key: FUNCSORT[#qualifier, #sortDecl]; "$funckeys": KEYS[(#key; #keys)]}#[OK];
+LoadDecls[%cdecl+⟦ rule ##cterm → ##cterm2 ##cdecl+  ⟧, #rules, #data, #func] 
+→ LoadDecls[#cdecl+, PutRule[#rules, %cdecl⟦ rule  ##cterm → ##cterm2 ⟧], #data, #func];
 
 // --- Convert system back to Core syntax (debugging only)
-
-{$String:ContentEntry}
-OutputCrsx[OK_SORT] :: Core_ccrsx_sort;
-
-{#E; "$imported": IMPORTS[#imported]}OutputCrsx[OK] 
-→ %ccrsx⟦ ⟨cdecl+: {#E}OutputImportDeclarations[#imported]⟩ ⟧;
-
-/* Convert import declarations */
-{$String:ContentEntry}
-OutputImportDeclarations[$List[$String]] :: $List[Core_cdecl_sort];
-
-{#E; "$grammars": IMPORTS[#imported]}OutputImportDeclarations[()]
-→ {#E}OutputImportGrammarDeclarations[#imported];
-
-{#E}OutputImportDeclarations[(#import; #imports)]
-→ %cdecl+⟦ import module ⟨CONSTRUCTOR: #import⟩ ⟨cdecl+: {#E}OutputImportDeclarations[#imports]⟩ ⟧;
-
-/* Convert import grammar declarations */
-{$String:ContentEntry}
-OutputImportGrammarDeclarations[$List[$String]] :: $List[Core_cdecl_sort];
-
-{#E; "$datakeys": KEYS[#keys]}OutputImportGrammarDeclarations[()]
-→ {#E}OutputDataDeclarations[#keys];
-
-{#E}OutputImportGrammarDeclarations[(#import; #imports)]
-→ %cdecl+⟦ import grammar ⟨CONSTRUCTOR: #import⟩ ⟨cdecl+: {#E}OutputImportGrammarDeclarations[#imports]⟩ ⟧;
-
-{$String:ContentEntry}
-OutputDataDeclarations[$List[$String]] :: $List[Core_cdecl_sort];
-
-{#E; "$funckeys": KEYS[#keys]}OutputDataDeclarations[()] 
-→ {#E}OutputFuncDeclarations[#keys];
-
-{#E}OutputDataDeclarations[(#key; #keys)] 
-→ {#E}OutputDataDeclarationsForKey[UnDATASORT[$[{#E}Get, #key]], #keys];
-
-{$String:ContentEntry}
-OutputDataDeclarationsForKey[$List[QualifiedSort], $List[$String]] :: $List[Core_cdecl_sort];
-
-{#E}OutputDataDeclarationsForKey[(), #keys] 
-→ {#E}OutputDataDeclarations[#keys];
-
-{#E}OutputDataDeclarationsForKey[(QSORT[#qualifier, #sort]; #qsorts), #keys]
-→ %cdecl+⟦ ⟨cdecl: #sort⟩ ⟨cdecl+: {#E}OutputDataDeclarationsForKey[#qsorts, #keys]⟩ ⟧;
-
-{$String:ContentEntry}
-OutputFuncDeclarations[$List[$String]] :: $List[Core_cdecl_sort];
-
-{#E; "$rulekeys": KEYS[#keys]}
-OutputFuncDeclarations[()] →  {#E}OutputRuleDeclarations[#keys];
-
-{#E}OutputFuncDeclarations[(#key; #keys)] 
-→ {#E}OutputFuncDeclaration[UnFUNCSORT[$[{#E}Get, #key]], #keys];
-
-{$String:ContentEntry}
-OutputFuncDeclaration[Core_cdecl_sort, $List[$String]] :: $List[Core_cdecl_sort];
-
-{#E}OutputFuncDeclaration[#sort, #keys]
-→ %cdecl+⟦ ⟨cdecl: #sort⟩ ⟨cdecl+: {#E}OutputFuncDeclarations[#keys]⟩ ⟧;
-
-{$String:ContentEntry}
-OutputRuleDeclarations[$List[$String]] :: $List[Core_cdecl_sort];
-
-{#E}OutputRuleDeclarations[()] 
-→ %cdecl+⟦ ⟧;
-
-{#E}OutputRuleDeclarations[(#key; #keys)] 
-→ {#E}OutputRuleDeclarationsForKey[UnRULES[$[{#E}Get, #key]], #keys];
-
-{$String:ContentEntry}
-OutputRuleDeclarationsForKey[$List[Core_cdecl_sort], $List[$String]] :: $List[Core_cdecl_sort];
-
-{#E}OutputRuleDeclarationsForKey[(), #keys]
-→ {#E}OutputRuleDeclarations[#keys];
-
-{#E}OutputRuleDeclarationsForKey[(#rule; #rules), #keys]
-→ %cdecl+⟦ ⟨cdecl: #rule⟩ ⟨cdecl+: {#E}OutputRuleDeclarationsForKey[#rules, #keys]⟩ ⟧;
+//
+//{$String:ContentEntry}
+//OutputCrsx[OK_SORT] :: Core_ccrsx_sort;
+//
+//{#E; "$imported": IMPORTS[#imported]}OutputCrsx[OK] 
+//→ %ccrsx⟦ ⟨cdecl+: {#E}OutputImportDeclarations[#imported]⟩ ⟧;
+//
+///* Convert import declarations */
+//{$String:ContentEntry}
+//OutputImportDeclarations[$List[$String]] :: $List[Core_cdecl_sort];
+//
+//{#E; "$grammars": IMPORTS[#imported]}OutputImportDeclarations[()]
+//→ {#E}OutputImportGrammarDeclarations[#imported];
+//
+//{#E}OutputImportDeclarations[(#import; #imports)]
+//→ %cdecl+⟦ import module ⟨CONSTRUCTOR: #import⟩ ⟨cdecl+: {#E}OutputImportDeclarations[#imports]⟩ ⟧;
+//
+///* Convert import grammar declarations */
+//{$String:ContentEntry}
+//OutputImportGrammarDeclarations[$List[$String]] :: $List[Core_cdecl_sort];
+//
+//{#E; "$datakeys": KEYS[#keys]}OutputImportGrammarDeclarations[()]
+//→ {#E}OutputDataDeclarations[#keys];
+//
+//{#E}OutputImportGrammarDeclarations[(#import; #imports)]
+//→ %cdecl+⟦ import grammar ⟨CONSTRUCTOR: #import⟩ ⟨cdecl+: {#E}OutputImportGrammarDeclarations[#imports]⟩ ⟧;
+//
+//{$String:ContentEntry}
+//OutputDataDeclarations[$List[$String]] :: $List[Core_cdecl_sort];
+//
+//{#E; "$funckeys": KEYS[#keys]}OutputDataDeclarations[()] 
+//→ {#E}OutputFuncDeclarations[#keys];
+//
+//{#E}OutputDataDeclarations[(#key; #keys)] 
+//→ {#E}OutputDataDeclarationsForKey[UnDATASORT[$[{#E}Get, #key]], #keys];
+//
+//{$String:ContentEntry}
+//OutputDataDeclarationsForKey[$List[QualifiedSort], $List[$String]] :: $List[Core_cdecl_sort];
+//
+//{#E}OutputDataDeclarationsForKey[(), #keys] 
+//→ {#E}OutputDataDeclarations[#keys];
+//
+//{#E}OutputDataDeclarationsForKey[(QSORT[#qualifier, #sort]; #qsorts), #keys]
+//→ %cdecl+⟦ ⟨cdecl: #sort⟩ ⟨cdecl+: {#E}OutputDataDeclarationsForKey[#qsorts, #keys]⟩ ⟧;
+//
+//{$String:ContentEntry}
+//OutputFuncDeclarations[$List[$String]] :: $List[Core_cdecl_sort];
+//
+//{#E; "$rulekeys": KEYS[#keys]}
+//OutputFuncDeclarations[()] →  {#E}OutputRuleDeclarations[#keys];
+//
+//{#E}OutputFuncDeclarations[(#key; #keys)] 
+//→ {#E}OutputFuncDeclaration[UnFUNCSORT[$[{#E}Get, #key]], #keys];
+//
+//{$String:ContentEntry}
+//OutputFuncDeclaration[Core_cdecl_sort, $List[$String]] :: $List[Core_cdecl_sort];
+//
+//{#E}OutputFuncDeclaration[#sort, #keys]
+//→ %cdecl+⟦ ⟨cdecl: #sort⟩ ⟨cdecl+: {#E}OutputFuncDeclarations[#keys]⟩ ⟧;
+//
+//{$String:ContentEntry}
+//OutputRuleDeclarations[$List[$String]] :: $List[Core_cdecl_sort];
+//
+//{#E}OutputRuleDeclarations[()] 
+//→ %cdecl+⟦ ⟧;
+//
+//{#E}OutputRuleDeclarations[(#key; #keys)] 
+//→ {#E}OutputRuleDeclarationsForKey[UnRULES[$[{#E}Get, #key]], #keys];
+//
+//{$String:ContentEntry}
+//OutputRuleDeclarationsForKey[$List[Core_cdecl_sort], $List[$String]] :: $List[Core_cdecl_sort];
+//
+//{#E}OutputRuleDeclarationsForKey[(), #keys]
+//→ {#E}OutputRuleDeclarations[#keys];
+//
+//{#E}OutputRuleDeclarationsForKey[(#rule; #rules), #keys]
+//→ %cdecl+⟦ ⟨cdecl: #rule⟩ ⟨cdecl+: {#E}OutputRuleDeclarationsForKey[#rules, #keys]⟩ ⟧;
 
 )]

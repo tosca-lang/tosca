@@ -72,14 +72,13 @@ Text-Integer[$Numeric] :: Text;
 Text-Mangle[$String] :: Text;
 -[Data[#t]] : Text-Mangle[#t] → %n⟦†« $[Mangle,#t] »⟧ ;
 
-
 TextFold[$List[Text], Text] :: Text;
--[Discard[#sep]]: TextFold[()     , #sep] → %n⟦⟧ ;
--               : TextFold[(#1;#s), #sep] → %n⟦« #sep »« #1 »« TextFold1[#s, #sep] »⟧ ;
+TextFold[()     , #sep] → %n⟦⟧ ;
+TextFold[(#1;#s), #sep] → %n⟦« #1 »« TextFold1[#s, #sep] »⟧ ;
 
 TextFold1[$List[Text], Text] :: Text;
--[Discard[#sep]]: TextFold1[()     , #sep] → %n⟦⟧ ;
--[Copy[#sep]]   : TextFold1[(#1;#s), #sep] → %n⟦« #sep »« #1 »« TextFold1[#s, #sep] »⟧ ;
+TextFold1[()     , #sep] → %n⟦⟧ ;
+TextFold1[(#1;#s), #sep] → %n⟦« #sep »« #1 »« TextFold1[#s, #sep] »⟧ ;
 
 ReverseTextFold[$List[Text], Text] :: Text;
 -[Discard[#sep]]: ReverseTextFold[()        , #sep] → %n⟦⟧ ;

@@ -63,7 +63,19 @@ Head[()] → $[Error,"Head of empty list"] ;
 Tail[(#;#s)] → #s ;
 Tail[()] → $[Error,"Tail of empty list"] ;
 
-// Concat the two list 
+/* Get element at given index (zero-based), or NONE
+   @param `$List[a]` the list
+   @param `$Numeric` the index
+ */
+∀ a . At[$List[a], $Numeric] :: Option[a];
+At[(), #i]      → NONE;
+
+-[Data[#i]]:
+At[(#; #s), #i] → $[If, $[Equal, #i, 0], SOME[#], At[#s, $[Minus, #i, 1]]];
+
+/*
+  Concat the two list 
+*/
 ∀ a.Concat[$List[a], $List[a]] :: $List[a] ;
 Concat[(), #tail] → #tail ;
 Concat[(#1;#s), #tail] → (#1 ; Concat[#s, #tail]) ;
@@ -84,8 +96,31 @@ Elem[#X,#XS] → Foldr[x y.Or[Eq[#X,x],y], FALSE, #XS];
    @return a new list, where `#X` is inserted at the head of `#XS`
    @note   read "insert #X in #XS to remember the order of the parameters"
 */
-∀ a . Insert[a,$List[a]] :: $List[a];
+∀ a . Insert[a, $List[a]] :: $List[a];
 Insert[#X,#XS] → (#X;#XS);
+
+/* 
+   Append element to list.
+   @param  `a` element
+   @param  `$List[a]` list
+   @return a new list, where the element is inserted at the end of the list
+*/
+∀ a . Append[a, $List[a]] :: $List[a];
+Append[#x,()]      → (#x;);
+Append[#x,(#1;#s)] → (#1; Append[#x, #s]);
+
+/* 
+   Pick first element matching condition 
+   @param  `$List[a]` list
+   @return an element or NONE
+*/
+∀ a . PickFirst[$List[a], x::a.$Boolean] :: Option[a];
+PickFirst[(), x.#[x]]      → NONE;
+PickFirst[(#1;#s), x.#[x]] → PickFirst1[#[#1], #1, #s, x.#[x]];
+
+∀ a . PickFirst1[$Boolean, a, $List[a], x::a.$Boolean] :: Option[a];
+PickFirst1[$True, #1, #s, x.#[x]]  → SOME[#1];
+PickFirst1[$False, #1, #s, x.#[x]] → PickFirst[#s, x.#[x]];
 
 /* `ListEqual[x y.#C[x,y], #XS, #YS]`
    @param  `#C`  a condition to check for equality 
@@ -192,11 +227,6 @@ LookUp[ #Key, #KeyValueList] → Map[ x.Snd[x], Filter[pair.Eq[#Key, Fst[pair]],
 ∀ a b . DelEntry[ a , $List[Pair[a,b]] ] ::  $List[Pair[a,b]] ;
 DelEntry[#Key, #KeyValueList] → Filter[ pair. Not[Eq[Fst[pair], #Key]], #KeyValueList];
 
-
-/* 
- * Partition
- */
-
 /* `Partition[x.#C[x], #XS]`
     @param `x.#C[x]` a condition to partition
     @param `XS`      the list to partition
@@ -212,13 +242,9 @@ Partition[x.#C[x], #XS] → Foldr[ x res . MatchPartition[#C[x], x, res ], PairC
 MatchPartition[TRUE,  #X, PairCons[#TS, #FS]] → PairCons[Insert[#X,#TS], #FS];
 MatchPartition[FALSE, #X, PairCons[#TS, #FS]] → PairCons[#TS, Insert[#X,#FS]];
 
-
-/* 
- * Map  
+/* Apply each item in list to function
  */
-
-// Apply each item in list to function
-∀ a b . Map[x::a . $sort[b], $List[a]] :: $List[b] ;
+∀ a b . Map[x::a.$sort[b], $List[a]] :: $List[b] ;
 Map[x.#[x], ()] → () ;
 Map[x.#[x], (#1;#s)] → (#[#1]; Map[x.#[x], #s]) ;
 
@@ -228,8 +254,25 @@ Map[x.#[x], (#1;#s)] → (#[#1]; Map[x.#[x], #s]) ;
    @returns a list where the function `#F` is applied to all elements `#X` in `#XS`
    @note    alternative implementation to `Map` based on `Foldr`
 */
-∀ a b. Map2[ x :: a . $sort[b] , $List[a]] :: $List[b];
-Map2[x.#F[x], #XS] → Foldr[y ys.Insert[#F[y],ys],(),#XS];
+∀ a b. Map2[x::a.$sort[b], $List[a]] :: $List[b];
+Map2[x.#F[x], #XS] → Foldr[y ys.Insert[#F[y],ys], (), #XS];
+
+/* Monadic map. Apply each item in list to the function taking a state and an element,
+   evaluating to a new state and a value. Apply the next element with the new state.
+   @param `state::a x::b.Pair[a, c]` the function to apply
+   @param `a` the initial state
+   @param `$List[b]` the list of elements to apply
+   @return a pair containing the end state and the a list containing resulting values.
+ */
+∀ a b c. MMap[state::a x::b.Pair[a, c], a, $List[b]] :: Pair[a, $List[c]];
+MMap[state x.#[state, x], #state, #s] → MMap2[state x.#[state, x], #state, #s, ()];
+
+∀ a b c. MMap2[state::a x::b.Pair[a, c], a, $List[b], $List[c]] :: Pair[a, $List[c]];
+MMap2[state x.#[state, x], #state, (), #rs]      → PairCons[#state, #rs];
+MMap2[state x.#[state, x], #state, (#1;#s), #rs] → MMap3[#[#state, #1], state x.#[state, x], #s, #rs];
+
+∀ a b c. MMap3[Pair[a, c], state::a x::b.Pair[a, c], $List[b], $List[c]] :: Pair[a, $List[c]];
+MMap3[PairCons[#nstate, #r], state x.#[state, x], #s, #rs] → MMap2[state x.#[state, x], #nstate, #s, Append[#r, #rs]];
 
 // 
 ∀ a.Cont[a] ::= ( CONT[ok¹::OK_SORT.$sort[a]];  );
@@ -243,7 +286,7 @@ Map2[x.#F[x], #XS] → Foldr[y ys.Insert[#F[y],ys],(),#XS];
 /* `SeqMap[x c.#[x,c], #L, ok.#D[ok]]`
     Apply each item in list #L to function #, as a continuation, passing the environment along
  */
-∀ a b. {$String:$Any}SeqMap[x::a c::Continuation[b]. $sort[b], $List[a], ok::OK_SORT.$sort[b]] :: b ;
+∀ a b. {$String:$Any}SeqMap[x::a c::Cont[b]. $sort[b], $List[a], ok::OK_SORT.$sort[b]] :: b ;
 {#E}SeqMap[x c.#[x, c], #list, ok¹.#done[ok¹]] → {#E}SeqMap1[OK, x c.#[x, c], #list, ok¹.#done[ok¹]];
 
 // Internal
@@ -311,25 +354,6 @@ Foldl [x y. #F[x,y], #Z, (#H; #T)] → Foldl[x y.#F[x,y], #F[#H,#Z], #T];
 ∀ a b . Foldr[x :: a  y :: b . $sort[b], b, $List[a]] :: b;
 Foldr [x y. #F[x,y], #Z, ()] → #Z;
 Foldr [x y. #F[x,y], #Z, (#H; #T)] → #F[#H,Foldr[x y. #F[x,y], #Z, #T]];
-
-/* Hold a continuation */
-∀ a.Continuation[a] ::= ( CONTINUATION[ok¹::OK_SORT.$sort[a]];  );
-
-/*
- * Sequential map: apply each item in list to function, as a continuation, 
- * passing the environment along
- */
-∀ a b. {$String:$Any}SeqMap[x::a c::Continuation[b]. $sort[b], $List[a], ok::OK_SORT.$sort[b]] :: b ;
-
-{#E}SeqMap[x c.#[x, c], #list, ok¹.#done[ok¹]] → {#E}SeqMap1[OK, x c.#[x, c], #list, ok¹.#done[ok¹]];
-
-∀ a b. {$String:$StringEntrySort} SeqMap1[OK_SORT, x::a c::Continuation[b]. $sort[b], $List[a], ok¹::OK_SORT.$sort[b]] :: b ;
-{#E}SeqMap1[OK, x c.#[x, c], ()     , ok¹.#done[ok¹]] → {#E}#done[OK];
-{#E}SeqMap1[OK, x c.#[x, c], (#1;#s), ok¹.#done[ok¹]] → {#E}#[#1, CONTINUATION[ok¹.SeqMap1[ok¹, x c.#[x, c], #s,  ok¹.#done[ok¹]]]];
-
-∀ a b. {$String:$Any}ThenSeqMap[OK_SORT, x::a c::Continuation[b]. $sort[b], $List[a], ok::OK_SORT.$sort[b]] :: b ;
-{#E}ThenSeqMap[OK, x c.#[x, c], #list, ok¹.#done[ok¹]] → {#E}SeqMap[x c.#[x, c], #list, ok¹.#done[ok¹]];
-
 
 
 )]

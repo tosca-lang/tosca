@@ -7,34 +7,7 @@ CgUtils[(
 $Use["std/core.crs"];
 $Use["std/text.crs"];
 $Use["std/string.crs"];
-$Use["parser/Crsx.crs"];
-
-
-// ===== Sorts  
-
-STRING_ENTRY ::= ( 
-    TEXT[Text];  
-    META[Text, $List[Text]]; 
-    NO; YES; 
-    TEXTS[$List[Text]]; 
-    STRINGS[$List[$String]]; 
-    NOENTRY; 
-); //  STRING[$String]; (already defined)
-
-VARIABLE_ENTRY ::= ( BOUND; FRESH; );
-
-UnTEXT[STRING_ENTRY] :: Text;
-UnTEXT[TEXT[#]] → #;
-
-UnSTRING[STRING_ENTRY] :: $String;
-UnSTRING[STRING[#]] → #;
-
-UnMETA[STRING_ENTRY] :: Text;
-UnMETA[META[#1, #2]] → #1;
-
-UnMETABinders[STRING_ENTRY] :: $List[Text];
-UnMETABinders[META[#1, #2]] → #2;
-
+$Use["core/Core.crs"];
 
 // ===== Utilities  
 
@@ -81,14 +54,14 @@ DispatchedMetaVarBinders1[$String] :: $List[Text];
 
 DispatchedMetaVarBinders2[$String] :: $List[Text];
 -[Data[#key]]: {#E}DispatchedMetaVarBinders2[#key] → UnMETABinders[$[{#E}Get, #key]];
-
-// Gets property name for given binder
-BinderKey[Crsx_binder_sort] :: $String;
-BinderKey[%binder⟦ ##variable ⟧] → VarKey[#variable];
-
-// Gets property name for given variable
-VarKey[Crsx_variable_sort] :: $String;
-VarKey[%variable⟦ ##VARIABLE ##linear? ##functional? ##varsort? ⟧] → $[:, "$var$", #VARIABLE];
+//
+//// Gets property name for given binder
+//BinderKey[Crsx_binder_sort] :: $String;
+//BinderKey[%binder⟦ ##variable ⟧] → VarKey[#variable];
+//
+//// Gets property name for given variable
+//VarKey[Crsx_variable_sort] :: $String;
+//VarKey[%variable⟦ ##VARIABLE ##linear? ##functional? ##varsort? ⟧] → $[:, "$var$", #VARIABLE];
 
 // Gets the text corresponding to the given variable
 Variable[$String] :: Text;
@@ -97,38 +70,18 @@ Variable[$String] :: Text;
 Variable0[$String] :: Text;
 -[Data[#key]]: {#E}Variable0[#key] → UnTEXT[$[{#E}Get, #key]];
 
-
 // Print construction descriptor name
-Descriptor[Crsx_constructor_sort] :: Text;
-Descriptor[%constructor⟦ ##qualifier ##CONSTRUCTOR ⟧] → %n⟦«Qualifier[#qualifier]»«ToJavaIdString[#CONSTRUCTOR]»⟧;
-Descriptor[%constructor⟦ ##reserved                ⟧] 
-→ 
-$[If, $[Equal, $[Show, #reserved], ":"], %n⟦ Colon ⟧, %n⟦⟧];
-
-// Print construction descriptor qualifier name
-Qualifier[Crsx_qualifier_sort] :: Text;
-Qualifier[%qualifier⟦ ##CONSTRUCTOR . ⟧] → %n⟦†«UpCaseFirst[#CONSTRUCTOR]».⟧;
-Qualifier[%qualifier⟦                 ⟧]  → %n⟦⟧;
-
-// Print quoted constructor
-QuotedConstructor[Crsx_constructor_sort] :: Text;
-QuotedConstructor[%constructor⟦ ##CONSTRUCTOR ⟧] → Text-QuoteEscape[#CONSTRUCTOR];
-QuotedConstructor[%constructor⟦ ##reserved ⟧]             
-→ 
-$[If, $[Equal, $[Show, #reserved], ":"], %n⟦ Colon ⟧, %n⟦⟧];
+Descriptor[$String] :: Text;
+Descriptor[#constructor] → ToJavaIdString[#constructor];
 
 // Print literal as a java string
-Literal[Crsx_literal_sort] :: Text;
-Literal[%literal⟦ ##STRING ⟧] → StringToText[#STRING];
-Literal[%literal⟦ ##NUMBER ⟧] → StringToText[#NUMBER];
-
+Literal[Core_cliteral_sort] :: Text;
+Literal[%cliteral⟦ ##STRING ⟧] → StringToText[#STRING];
+Literal[%cliteral⟦ ##NUMBER ⟧] → StringToText[#NUMBER];
 
 // Convert constructor to legal Java ID
-ToJavaId[Crsx_constructor_sort] :: Text;
-ToJavaId[%constructor⟦ ##CONSTRUCTOR ⟧] → Text-Mangle[UpCaseFirst[#CONSTRUCTOR]]; 
-ToJavaId[%constructor⟦ ##reserved ⟧]            
-→ 
-$[If, $[Equal, $[Show, #reserved], ":"], %n⟦ _M_Colon ⟧, %n⟦⟧];
+ToJavaId[$String] :: Text;
+ToJavaId[#constructor] → Text-Mangle[UpCaseFirst[#constructor]]; 
 
 // Convert constructor to legal Java ID
 ToJavaIdString[$String] :: Text;

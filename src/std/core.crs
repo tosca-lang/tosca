@@ -29,7 +29,6 @@ UnSOME[SOME[#]] → #;
 HasOption[NONE]    → FALSE;
 HasOption[SOME[#]] → TRUE;
 
-
 // --- Boolean
 
 Boolean ::=( TRUE; FALSE; );

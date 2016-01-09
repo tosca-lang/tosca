@@ -1,0 +1,25 @@
+/* Copyright (c) 2016 IBM Corporation. */
+
+/*
+    Standard library for map. Thin wrapper around Crsx associative array.
+ */
+Map[(
+
+$Use["std/env.crs"];
+
+∀ a b . MAP[a,b] ::=( {a : b}MAP; );
+
+∀ a b . MapPut[MAP[a,b], a /* Key */, b /* Value */] :: MAP[a,b] ;
+-[Data[#key]]: MapPut[{#map}MAP, #key, #value] →  {#map; #key:#value}MAP;
+
+∀ a b . MapGet[MAP[a,b], a /* Key */] :: Option[b];
+-[Data[#key], Free[x::a]]: MapGet[{#map}MAP, $[NotMatch, x, #key]] → {#map}GetSome[#key];
+
+∀ a b . MapKeys[MAP[a,b]] :: $List[a];
+MapKeys[{#map}MAP] → $[{#map}Keys];
+
+∀ a b . MapValues[MAP[a,b]] :: $List[b];
+MapValues[{#map}MAP] → Map[key.UnSOME[MapGet[{#map}MAP, key]], $[{#map}Keys]];
+
+
+)]

@@ -115,57 +115,6 @@ cmapsort
     
 // -- Term
 
-/*
- %MS: A 'cbound' is (semantically) a 'cterm'. 
-     
-     more convient for coding and in particular for recursive definitions
-     to work with 'cterm' only.
- 
-     Define restrictions on cterm to be check in core semantic checker for:
-
-     * 'RULE  cterm ARROW cterm'
-
-       So we want to prevent rules like 
-         x y . #F(x,y) → x y . #F(y,x) 
-
-       If we want to do that, we should do it here 
-        'RULE cterm ARROW cterm', so e.g., 'RULE pattern ARROW cterm'
-       and not at 'cterm' level.
-
-       There are several more conditions on the rules, which are not
-       expressible with the grammar 
-       (e.g., in the left hand side each meta variable 
-              has only distinct bound variables as arguments) 
-       and some who are 
-       (e.g., the left hand side is not only a meta variable)
- 
-       We should discuss, which we want to encode in the grammar, if any.
-               
-       * 'metavarentry : METAVAR COLON cterm  
-                       | VARIABLE COLON cterm
-                       | STRING COLON cterm'
-
-      * 'METAVAR LPAR cterms RPAR'
-        Currently this is
-          not allowed: #F(x.C(x))    
-          allowed:     #F(S(x.C(x))) 
-        We guess, the reason lies with second order, i.e.,
-        a meta variable which takes as argument a function is not allowed.
-        i.e., it is not allowed that #F is of sort '(Sort1 -> Sort2) -> Sort3' 
-        
-        However, this is not preventable with the grammar. If in the allowed case 
-         #F(S(x.C(x))) the 'S' is actually the Idendity function, then we 
-        easily rewrite to the not allowed #F(x.C(x)).   
-        
-        %LV: we can't rewrite, the grammar does not allow it. S cannot be the identity function. S[x.#[x]] -> x.#[x] is not a valid rule.
-
-        %MS: but ∀ x . S[x] :: x  
-                 S[#X] → #X;
-        would be a perfectly fine rule, no?
-        %LV: yes but the grammar will still prevent #F(x.C(x))
-             anyway I think removing cbound outweight the benefit of keeping it. As you said, anyhow not all constraints can be checked by the grammar     
-*/
-
 cterm
     : CONSTRUCTOR cterms?                                               /* Constant/Construction */
     | cliteral                                                          /* Literal construction */
@@ -181,7 +130,6 @@ cliteral
     : STRING                                                    /* String literal */
     | NUMBER                                                    /* Number literal */
     ; 
-
 
 cvariable
     : VARIABLE<variable> FUNCTIONAL?               /* Variable occurrence. VARIABLE<variable> means look for a bound variable that matches VARIABLE 

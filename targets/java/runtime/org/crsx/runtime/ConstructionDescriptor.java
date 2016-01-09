@@ -227,8 +227,7 @@ public abstract class ConstructionDescriptor
 
 			args[0] = sink; // sink
 			args[1] = 1; // shared
-			args[2] = 1; // depth
-			int argp = 3;
+			int argp = 2;
 
 			if (hasProperties)
 			{

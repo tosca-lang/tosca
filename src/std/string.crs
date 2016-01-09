@@ -7,6 +7,10 @@ String[(
 
 $Use["std/core.crs"];
 
+// --- Wrapper
+
+String ::= ( String[$String]; );
+
 // --- Testing
 
 StartsWith[$String /* string */, $String /* search string */] :: Boolean; /* extern */
