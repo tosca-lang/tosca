@@ -17,8 +17,7 @@ Getting Started
 To get started, open a terminal and run these commands:
 
     git clone https://github.com/crsx/crsx4.git
-    cd crsx4
-    git checkout develop
+    cd crsx4 
     
 Crsx build system is Gradle. It depends on one custom plugin that needs to be built before building Crsx. Type these commands:
 
