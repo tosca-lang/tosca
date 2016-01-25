@@ -107,7 +107,7 @@ PutRule1[NONE, #rules, #constructor, #rule]
 → MapPut[#rules, #constructor, (#rule;)];
 
 PutRule1[SOME[#rulesForCons], #rules, #constructor, #rule]
-→ MapPut[#rules, #constructor, (#rule; #rulesForCons)];
+→ MapPut[#rules, #constructor, Append[#rule, #rulesForCons]]; // Keep rules in order.
 
 /*  Add data sort to module content. Fail if data sort already exists. 
 */ 

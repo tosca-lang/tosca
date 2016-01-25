@@ -2,6 +2,7 @@ data Bool ( True, False )
 
 func Bool And(Bool, Bool) 
 rule And(True, True) → True
+rule And(True, #)    → #
 
 func Bool Main
 rule Main → And(True, True)

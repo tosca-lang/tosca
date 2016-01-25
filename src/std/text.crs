@@ -43,12 +43,6 @@ Text-Concat[#list] → Text-ConcatSep[#list, %n⟦⟧];
 Text-ConcatPair[Pair[Text, Text]] :: Text;
 Text-ConcatPair[PairCons[#1, #2]] → %n⟦«#1»«#2»⟧;
 
-// Concat texts with separator
-Text-ConcatSep[$List[Text], Text] :: Text;
-Text-ConcatSep[()             , #sep] → %n⟦⟧;
-Text-ConcatSep[(#t1;)         , #sep] → %n⟦«#t1»⟧;
-Text-ConcatSep[(#t1; #t2; #ts), #sep] → %n⟦«#t1»«#sep»«Text-ConcatSep[(#t2; #ts), #sep]»⟧;
-
 // Fragment to be parsed as user language text.
 //
 Text-User[$String<!--ParsePrefix-->, Text<!-- Unparsed -->] :: Text ;

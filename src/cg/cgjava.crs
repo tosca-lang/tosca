@@ -143,23 +143,32 @@ JavaPattern[#env, #cterms, #contractum]
 
 JavaCasePattern[JavaEnv, $List[Core_cterm_sort], Core_cterm_sort] :: Text;
 JavaCasePattern[#env, #cterms, #contractum]
-→ Deconstruct[MMap[state term.JavaPatternTerm[
-                              SetArgs[state, Tail[GetArgs[state]]] /* Consume first arg */, term, Head[GetArgs[state]]], 
-                   #env, #cterms], 
-              state texts.%n⟦«TextFold[texts, %n⟨¶⟩]»«JavaContractum[state, #contractum]»⟧];
+→ TextFold[MapMThen[
+             state term.JavaPatternTerm[SetArgs[state, Tail[GetArgs[state]]], term, Head[GetArgs[state]]], 
+             #env, #cterms, state.JavaContractum[state, #contractum]], %n⟦⟧];
+
+// --- Term pattern matching
 
 JavaPatternTerm[JavaEnv, Core_cterm_sort, Text /* Current term */] :: Pair[JavaEnv, Text];
+
 JavaPatternTerm[#env, %cterm⟦ ##CONSTRUCTOR ##cterms? ⟧, #term]
 → PairCons[#env, %n⟦
 «#term» = force(sink.context(), «#term»);
 if («#term».descriptor() != «Descriptor[#CONSTRUCTOR]»)
 {⟦
   break «GetLabel[#env]»;⟧
-}«JavaPatternMaybeTerms[#env, #cterms?, #term]»⟧];  
+}«JavaPatternMaybeTerms[#env, #cterms?, #term]»⟧];
 
+JavaPatternTerm[#env, %cterm⟦ ##cliteral ⟧, #term]
+→ $[Error, "Internal error: invalid pattern matching on literal"];
+
+-[Data[#term]]:
 JavaPatternTerm[#env, %cterm⟦ ##METAVAR ##cterms? ⟧, #term]
 → PairCons[AddMeta[#env, #METAVAR, #term], %n⟦
 /* «Text-CommentToken[#METAVAR]»=«Text-CommentToken[$[Show, #term]]» */⟧];  
+
+JavaPatternTerm[#env, %cterm⟦ ##VARIABLE ⟧, #term] 
+→ JavaPatternVariable[MapGetVar[#env, #VARIABLE], #env, #VARIABLE, #term];
 
 JavaPatternMaybeTerms[JavaEnv, $List[Core_cterms_sort], Text] :: Text;
 JavaPatternMaybeTerms[#env, %cterms?⟦⟧, #term]
@@ -167,6 +176,26 @@ JavaPatternMaybeTerms[#env, %cterms?⟦⟧, #term]
 
 JavaPatternMaybeTerms[#env, %cterms?⟦ ( ##cterm* ) ⟧, #term]
 → %n⟦⟧;
+
+// --- Variable pattern matching outside of meta
+
+JavaPatternVariable[Option[VarEntry], JavaEnv, $String, Text /* Current term */] :: Pair[JavaEnv, Text];
+
+// First variable occurrence: it's a free variable.
+JavaPatternVariable[NONE, #env, #variable, #term] 
+→ PairCons[AddFreeVar[#env, #variable, #term], %n⟦
+Variable «#variable» = «#term».variable();⟧];
+
+// Bound variable
+// TODO: update term's parent with evaluated term.
+// TODO: release acquired references.
+JavaPatternVariable[SOME[BOUND], #env, #variable, #term] 
+→ PairCons[#env, %n⟦
+«#term» = force(«GetSink[#env]».context(), «#term»);
+if («#variable» != VARIABLE(«#term»)) 
+{⟦
+  break «GetLabel[#env]»;⟧
+}⟧];
 
 // ----- Contraction
 
@@ -183,35 +212,22 @@ SendTerm[#env, %cterm⟦ ##CONSTRUCTOR ##cterms? ⟧]
 SendTerm[#env, %cterm⟦ ##cliteral ⟧]
 → %n⟦¶«GetSink[#env]».literal(«Literal[#cliteral]»);«SendEndTerm[GetTail[#env]]»⟧;
 
-//SendTerm[%cterm⟦ ##VARIABLE ##FUNCTIONAL? ⟧] 
-//→ SendVariable[VarKey[%variable⟦ ##VARIABLE ##linear? ##functional? ⟧]];
+SendTerm[#env, %cterm⟦ ##VARIABLE ⟧] 
+→ %n⟦¶«SendVariable[#env, #VARIABLE]»«SendEndTerm[GetTail[#env]]»⟧;
 
+SendTerm[%cterm⟦ ##VARIABLE ˢ ⟧] 
+→ %n⟦⟧; // TODO
+
+SendTerm[#env, %cterm⟦ ##METAVAR ##cterms? ⟧] 
+→ %n⟦«SendMeta[#env, #METAVAR, #cterms?]»«SendEndTerm[GetTail[#env]]»⟧;
+
+SendTerm[#env, %cterm⟦ [ ##VARIABLE ] ##cterm ⟧]  
+→ %n⟦«SendEndTerm[GetTail[#env]]»⟧; // TODO
 
 SendEndTerm[$Boolean] :: Text;
 SendEndTerm[$True]  → %n⟦return true;⟧;
 SendEndTerm[$False] → %n⟦⟧;
 
-//
-//// struct     
-//{#E}SendFreeTerm[%freeTerm⟦ ##annotations? ##properties ⟧] 
-//→
-//$[Error, "Named data structure not implemented yet."];
-//
-//// meta     
-//{#E; "$tail":#tail}
-//SendFreeTerm[%freeTerm⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧] 
-//→
-//%n⟦«{#E; "$tail": NO}SendMaybeProperties[#properties?]»«{#E; "$tail": NO}SendMeta[#METAVAR, #freeArguments?]»«SendTail[#tail]»⟧;
-//
-//// dispatch expression
-//{#E}SendFreeTerm[%freeTerm⟦ ##annotations? ##properties? ##dispatch ⟧] 
-//→
-//{#E}SendDispatch[#dispatch]; 
-//
-//{#E}SendFreeTerm[%freeTerm⟦ ##annotations? ##properties?  ##expression ⟧] 
-//→
-//$[Error, $[:, "Expression not implemented yet: ", $[Show, #expression]]]; 
-//
 // ---- SEND construction
 
 SendConstruction[JavaEnv, $String, $List[Core_cterms_sort]] :: Text;
@@ -224,6 +240,31 @@ SendConstruction[#env, #constructor, #cterms?]
 SendMaybeTerms[JavaEnv, $List[Core_cterms_sort]] :: Text;
 SendMaybeTerms[#env, %cterms?⟦              ⟧] → %n⟦⟧;
 SendMaybeTerms[#env, %cterms?⟦ ( ##cterm* ) ⟧] → TextFold[Map[term.SendTerm[#env, term], #cterm*], %n⟦⟧];
+
+// ---- SEND scope variable
+
+SendVariable[JavaEnv, $String] :: Text;
+SendVariable[#env, #var]
+→ %n⟦¶«GetSink[#env]».use(«GetVariable[#var]»);⟧;
+
+// ---- SEND metavar
+
+SendMeta[JavaEnv, $String, $List[Core_cterms_sort]] :: Text;
+
+// No argument -> just send value.
+SendMeta[#env, #metavar, %cterms?⟦⟧] 
+→ %n⟦
+«GetSink[#env]».copy(«GetMeta[#env, #metavar]».ref());⟧;
+
+// With arguments -> substitute.
+// Start by computing arguments and then call substitute.
+SendMeta[#env, #metavar, %cterms?⟦ ( ##cterm* ) ⟧] 
+→ SetTerms[#env, #cterm*, terms.SendSubstitutes[#env, #metavar, terms]];
+
+SendSubstitutes[JavaEnv, $String, $List[Text]] :: Text;
+SendSubstitutes[#env, #metavar, #substitutes]
+→ %n⟦
+«GetSink[#env]».substitute(«GetMeta[#metavar]».ref(), new Variable[] { «TextFold[GetBinders[#env], %n⟦, ⟧]» }, new Term[] {«TextFold[#substitutes, %n⟦, ⟧]»});⟧;
 
 //SendBinders[Crsx_nextBinder_sort] :: Text;
 //
@@ -320,7 +361,7 @@ SendMaybeTerms[#env, %cterms?⟦ ( ##cterm* ) ⟧] → TextFold[Map[term.SendTer
 //{#E}SendVariable0[$[{#E}Get, #key, NOENTRY], #key];
 //
 //SendVariable0[STRING_ENTRY, $String] :: Text;
-//
+/
 //{#E; "$sink":TEXT[#sink]; "$tail":#tail}
 //SendVariable0[TEXT[#var], #key]
 //→
@@ -334,45 +375,6 @@ SendMaybeTerms[#env, %cterms?⟦ ( ##cterm* ) ⟧] → TextFold[Map[term.SendTer
 //$[Error, $[:, "Internal error: undefined variable key ", #key]];
 ////%n⟦¶Variable «var» = «#sink».context().makeVariable("†«#key»");«
 ////      {#E; var: FRESH; #key: TEXT[var]}SendVariable[#key]»⟧;
-//
-//// --- SEND meta
-//
-//SendMeta[$String, $List[Crsx_freeArguments_sort]] :: Text;
-//{#E}SendMeta[#metavar, #freeArguments?] → {#E}SendMetaKey[MetaKey[#metavar], #metavar, #freeArguments?];
-//
-//SendMetaKey[$String, $String, $List[Crsx_freeArguments_sort]] :: Text;
-//
-//-[Data[#key]]:
-//{#E}SendMetaKey[#key, #metavar, #freeArguments?] 
-//→
-//{#E}SendMetaEntry[$[{#E}Get, #key], #metavar, #freeArguments?]; 
-//
-//SendMetaEntry[STRING_ENTRY, $String, $List[Crsx_freeArguments_sort]] :: Text;
-//
-//// No argument -> just send value.
-//{#E; "$sink":TEXT[#sink]}
-//SendMetaEntry[META[#var, #binders], #metavar, %freeArguments?⟦ ⟧] 
-//→
-//%n⟦¶«#sink».copy(«#var».ref());⟧;
-//
-//// Also no argument -> just send value.
-//{#E; "$sink":TEXT[#sink]}
-//SendMetaEntry[META[#var, #binders], #metavar, %freeArguments?⟦ [] ⟧] 
-//→
-//%n⟦¶«#sink».copy(«#var».ref());⟧;
-//
-//// With arguments -> substitute.
-//// Start by computing arguments and then call substitute.
-//{#E}SendMetaEntry[META[#var, #binders], #metavar, %freeArguments?⟦ [ ##freeTerms ] ⟧] 
-//→
-//{#E}SetFreeTerms[#freeTerms, ok args.SendSubstitutes[ok, #metavar, #binders, args]];
-//
-//SendSubstitutes[OK_SORT, $String, $List[Text], $List[Text]] :: Text;
-//
-//{#E; "$sink": TEXT[#sink]}
-//SendSubstitutes[OK, #metavar, #binders, #substitutes]
-//→
-//%n⟦¶«#sink».substitute(«{#E}MetaVar[#metavar]».ref(), new Variable[] { «Text-ConcatSep[#binders, %n⟦, ⟧]» }, new Term[] {«Text-ConcatSep[#substitutes, %n⟦, ⟧]»});⟧;
 //
 //// --- SEND dispatch
 //
@@ -457,39 +459,12 @@ SendMaybeTerms[#env, %cterms?⟦ ( ##cterm* ) ⟧] → TextFold[Map[term.SendTer
 //
 //// --- dispatch cases
 //
-//SendDispatchCases[OK_SORT, $List[Crsx_dispatchCase_sort]] :: Text;
-//
-//{#E}SendDispatchCases[OK, %dispatchCase*⟦⟧] → %n⟦⟧;
-//
-//{#E}SendDispatchCases[OK, %dispatchCase*⟦ ##dispatchCase ##dispatchCase* ⟧] 
-//→
-//%n⟦«{#E}SendDispatchCase[#dispatchCase]»«{#E}SendDispatchCases[OK, #dispatchCase*]»⟧; 
-//
-//SendDispatchCase[Crsx_dispatchCase_sort] :: Text;
-//
-//-[Fresh[label::Text]]:
-//{#E}SendDispatchCase[%dispatchCase⟦ ##option? ##properties? ##constructor [ ##terms ] → ##freeTerm ⟧] 
-//→
-//%n⟦¶«label»: {⟦«{#E; "$caselabel":TEXT[label]}OptionOpt[#option?, ok.SendMatchTopMaybeProperties[ok, #properties?, ok.SendMatchTopArguments[ok, DesugarTerms[#terms], 0, ok.SendContraction[ok, #freeTerm]]]]»⟧¶}⟧;
-//
-//-[Fallback]:
-//{#E}SendDispatchCase[#dispatchCase] 
-//→
-//$[Error, $[:, "Internal error: dispatch case pattern must be of the form C[ ... ]. Got: ", $[Show, #dispatchCase]]];
-//
 //// Match the top-level properties
 //SendMatchTopMaybeProperties[OK_SORT, $List[Crsx_properties_sort], ok::OK_SORT.Text] :: Text;
 //
 //{#E}SendMatchTopMaybeProperties[OK, %properties?⟦                 ⟧, ok.#[ok]] → {#E}#[OK];
 //{#E}SendMatchTopMaybeProperties[OK, %properties?⟦ {             } ⟧, ok.#[ok]] → {#E}#[OK];
 //{#E}SendMatchTopMaybeProperties[OK, %properties?⟦ { ##property* } ⟧, ok.#[ok]] → {#E; "$top-props":YES}SendMatchProperties[OK, #property*, %n⟦⟧, ok.#[ok]];
-//
-//// Match the top-level argument: set the term to be match against by dereferencing the dispatched meta variable.
-//SendMatchTopArguments[OK_SORT, $List[Crsx_term_sort], $Numeric, ok::OK_SORT.Text] :: Text;
-//
-//{#E}SendMatchTopArguments[OK, %term*⟦                ⟧, #position, ok.#[ok]] → {#E}#[OK];
-//
-//{#E}SendMatchTopArguments[OK, %term*⟦ ##term ##term* ⟧, #position, ok.#[ok]] 
 //→ 
 //{#E; "$binders": TEXTS[{#E}DispatchedMetaVarBinders[#position]]; "$top-props":NO}  // Gets the binders on the Java method signature.
 //  SendMatchTerm[#term, NONE, {#E}DispatchedMetaVar[#position], #position, ok.
@@ -511,45 +486,6 @@ SendMaybeTerms[#env, %cterms?⟦ ( ##cterm* ) ⟧] → TextFold[Map[term.SendTer
 //→ 
 //{#E;"$binders": TEXTS[()]} // Compute as we go
 //SendMatchNextBinder[%nextBinder⟦ ##binder ##nextBinder⟧, SOME[#parent], #term, #termpos, 0, ok.#[ok]];
-//
-//{$String:STRING_ENTRY}
-//SendMatchFreeTerm[Crsx_freeTerm_sort, Text /* Current term */, ok::OK_SORT.Text] :: Text;
-//
-//// TODO: force only of has Data annotation!
-//{#E; "$caselabel":TEXT[#label]}
-//SendMatchFreeTerm[%freeTerm⟦ ##annotations? ##properties? ##constructor ##arguments? ⟧, #term, ok.#[ok]] 
-//→
-//%n⟦¶«#term» = force(sink.context(), «#term»);
-//if («#term».descriptor() != «Descriptor[#constructor]»)
-//{⟦
-//  break «#label»;⟧
-//}«{#E}SendMatchMaybeProperties[#properties?, #term, ok.SendMatchMaybeArguments[ok, #arguments?, #term, ok.#[ok]]]»⟧;
-////
-//
-//// Match Literal
-//{#E}SendMatchFreeTerm[%freeTerm⟦ ##annotations? ##properties? ##literal ⟧, #term, ok.#[ok]] 
-//→
-//{#E}#[OK]; // Ignore for now 
-////$[Error, $[:, "Internal error: literals cannot appear in patterns, not yet... (", #literal, ")"]];
-//
-//// Metavariable matches all terms. Just record name in the environment.
-//-[Data[#term]]:
-//{#E}SendMatchFreeTerm[%freeTerm⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧, #term, ok.#[ok]] 
-//→
-//%n⟦¶/* «Text-CommentToken[#METAVAR]»=«Text-CommentToken[$[Show, #term]]» */«{#E}SendMatchMeta[MetaKey[#METAVAR], #term, ok.#[ok]]»⟧;
-//
-//{$String:STRING_ENTRY}
-//SendMatchMaybeProperties[$List[Crsx_properties_sort], Text, ok::OK_SORT.Text] :: Text;
-//
-//{#E}SendMatchMaybeProperties[%properties?⟦                 ⟧, #term, ok.#[ok]] → {#E}#[OK];
-//{#E}SendMatchMaybeProperties[%properties?⟦ {             } ⟧, #term, ok.#[ok]] → {#E}#[OK];
-//
-//{#E}SendMatchMaybeProperties[%properties?⟦ { ##property* } ⟧, #term, ok.#[ok]] 
-//→ 
-//{#E}SendMatchProperties[OK, #property*, #term,  ok.#[ok]];
-//
-//{$String:STRING_ENTRY}
-//SendMatchProperties[OK_SORT, $List[Crsx_property_sort], Text, ok::OK_SORT.Text] :: Text;
 //
 //{#E}SendMatchProperties[OK, %property*⟦                        ⟧, #term, ok.#[ok]] → {#E}#[OK];
 //{#E}SendMatchProperties[OK, %property*⟦ ##property ##property* ⟧, #term, ok.#[ok]] → {#E}SendMatchProperty[#property, #term, ok.SendMatchProperties[ok, #property*, #term, ok.#[ok]]];
@@ -711,13 +647,6 @@ SendMaybeTerms[#env, %cterms?⟦ ( ##cterm* ) ⟧] → TextFold[Map[term.SendTer
 //  {#E; "$binders": TEXTS[Concat[(binder;), #binders]]}SendMatchNextBinder[#nextBinder, SOME[#parent], #term, #termpos, NumberPlus[#binderpos,1], ok.#[ok]] » ⟧;
 //
 //// --- Dispatch case contraction.
-//
-//SendContraction[OK_SORT, Crsx_freeTerm_sort] :: Text;
-//
-//{#E}SendContraction[OK, #freeTerm] 
-//→
-//%n⟦«Text-Comment["Contract"]»«{#E}SendFreshes[$[{#E}Get, "$Freshes", NOENTRY], #freeTerm]»⟧;
-//
 ////--- Make fresh variable
 //
 //SendFreshes[STRING_ENTRY, Crsx_freeTerm_sort] :: Text;
@@ -744,18 +673,6 @@ SendMaybeTerms[#env, %cterms?⟦ ( ##cterm* ) ⟧] → TextFold[Map[term.SendTer
 //→
 //%n⟦¶Variable «var» = «#sink».context().makeVariable("†«#varname»");«
 //      {#E; var: FRESH; #key: TEXT[var]}#[OK]»⟧;
-//
-//// --- send utilities
-//
-//SendTail[STRING_ENTRY] :: Text;
-//
-//SendTail[YES] → %n⟦¶return true;⟧; 
-//SendTail[NO]  → %n⟦⟧;
-//
-//SendTail2[STRING_ENTRY] :: Text;
-//
-//SendTail2[YES]  → %n⟦¶return ⟧;
-//SendTail2[NO]   → %n⟦¶⟧;
 //
 //CallFunction[OK_SORT, STRING_ENTRY, Crsx_constructor_sort, $List[Text]] :: Text;
 //
@@ -983,7 +900,9 @@ ClassName[#name] → UpCaseFirst[AfterLast[BeforeLast[#name, "."], "/"]];
 
 // To change when upgrade to crsx4.
 
-JavaEnvEntry ::= ( EText[Text]; ETexts[$List[Text]]; EBool[$Boolean]; ETermMap[MAP[$String, Text]]; );
+VarEntry ::= ( FREE; BOUND; FRESH; SEMANTIC; );
+
+JavaEnvEntry ::= ( EText[Text]; ETexts[$List[Text]]; EBool[$Boolean]; EMapText[MAP[$String, Text]]; EMapVar[MAP[$String, VarEntry]]; );
 
 {$String:JavaEnvEntry} 
 JavaEnv ::= ( JavaEnv; );
@@ -994,7 +913,8 @@ NewEnv → { "sink" : EText[%n⟦⟧];   /* Current sink. */
            "thunk": ETexts[()];    /* thunk arguments */
            "label": EText[%n⟦⟧];   /* Current pattern block label. */
            "tail" : EBool[$True];  /* Tail? */
-           "meta" : EMapText[MAP]  /* Map meta variable to java variable */ 
+           "meta" : EMapText[MAP]; /* Map meta variable to java variable */
+           "vars" : EMapVar[MAP]   /* Map variable to VarEntry */
          }JavaEnv;
 
 // --- Helpers.
@@ -1066,11 +986,22 @@ UnsetTail[{#env}JavaEnv] → {#env; "tail": EBool[$False]}JavaEnv;
 
 // --- Meta
 
-GetMeta[JavaEnv] :: MAP[$String, Text];
-GetTail[#env] → GetValue[#env, "meta", x.UnMapText[x]];
+GetMetas[JavaEnv] :: MAP[$String, Text];
+GetMetas[#env] → GetValue[#env, "meta", x.UnMapText[x]];
+
+GetMeta[JavaEnv, $String] :: Text;
+GetMeta[#env, #metavar] → UnSOME[MapGet[GetMetas[#env], #metavar]];
 
 AddMeta[JavaEnv, $String, Text] :: JavaEnv;
 AddMeta[{#env}JavaEnv, #metavar, #term]
-→ {#env; "meta": ETermMap[MapPut[GetMeta[{#env}JavaEnv], #metavar, #term]]}JavaEnv;
+→ {#env; "meta": EMapText[MapPut[GetMetas[{#env}JavaEnv], #metavar, #term]]}JavaEnv;
+
+SetValue[JavaEnv, $String, JavaEnvEntry] :: JavaEnv;
+-[Data[#value]]: 
+SetValue[{#env}JavaEnv, #key, #value]
+→ {#env; #key: #value}JavaEnv;
+
+// --- Variable
+
 
 )]

@@ -1,7 +1,8 @@
 /* Copyright (c) 2016 IBM Corporation. */
 
 /*
-    Standard library for map. Thin wrapper around Crsx associative array.
+    Standard library for homogeneous map. 
+    Thin wrapper around Crsx associative array.
  */
 Map[(
 
@@ -14,6 +15,9 @@ $Use["std/env.crs"];
 
 ∀ a b . MapGet[MAP[a,b], a /* Key */] :: Option[b];
 -[Data[#key], Free[x::a]]: MapGet[{#map}MAP, $[NotMatch, x, #key]] → {#map}GetSome[#key];
+
+∀ a b . MapGetVar[MAP[a,b], a /* Variable Key */] :: Option[b];
+-[Data[#key], Free[x::a]]: MapGetVar[{#map}MAP, x] → {#map}GetSome[x];
 
 ∀ a b . MapKeys[MAP[a,b]] :: $List[a];
 MapKeys[{#map}MAP] → $[{#map}Keys];

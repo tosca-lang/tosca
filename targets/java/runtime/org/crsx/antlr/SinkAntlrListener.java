@@ -112,7 +112,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	{
 		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).exitBinder(_ctx));
 	}
-	
+
 	public static void fireEnterBinds(List<ParseTreeListener> listeners, ParserRuleContext _ctx, String names)
 	{
 		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).enterBinds(_ctx, names));
@@ -384,7 +384,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	 */
 	public void enterBinder(ParserRuleContext context, String name)
 	{
-		assert!tail : "Cannot declare a binder is a list tail";
+		assert !tail : "Cannot declare a binder is a list tail";
 		assert binderId == null : "Cannot nest binders";
 
 		state = State.NAME;
@@ -408,14 +408,13 @@ public class SinkAntlrListener implements ParseTreeListener
 		state = State.PARSE;
 	}
 
-	
 	/**
 	 * Receive the notification the next tokens declare a binder
 	 * @param context
 	 */
 	public void enterSymbol(ParserRuleContext context)
 	{
-		assert!tail : "Cannot declare a binder is a list tail";
+		assert !tail : "Cannot declare a binder is a list tail";
 		assert binderId == null : "Cannot nest binders";
 
 		binderName = "";
@@ -429,34 +428,48 @@ public class SinkAntlrListener implements ParseTreeListener
 	public void exitSymbol(ParserRuleContext context)
 	{
 		assert state == State.NAME;
-		assert !tail : "Cannot declare a name is a list tail";
-		
-		// This is a binder occurrence. Resolve and emit
-		Optional<Object> variable = bounds.stream().filter(var -> {
-			if (var == MARKER)
-				return false;
+		assert !tail : "Cannot declare a name in a list tail";
 
-			if (sink == null)
-				return ((Variable) var).name().equals(binderName);
-			else
-				return ((net.sf.crsx.Variable) var).name().equals(binderName);
-		}).findFirst();
-
-		if (variable.isPresent())
+		if (sort == TokenSort.TERM)
 		{
-			// Binder exists -> emit variable use
-			if (sink == null)
-				sink4 = sink4.use((Variable) variable.get());
+			// received a metavariable. 
+			String metaname = fixupMetachar(binderName);
+			if (sink != null)
+				sink = sink.startMetaApplication(metaname).endMetaApplication();
 			else
-				sink = sink.use((net.sf.crsx.Variable) variable.get());
+				sink4 = sink4.startMetaApplication(metaname).endMetaApplication();
+			
+			sort = TokenSort.STRING;
 		}
 		else
 		{
-			// Binder does not exists: emit fresh variable.
-			if (sink == null)
-				sink4 = sink4.use(new Variable(binderName));
+			// This is a binder occurrence. Resolve and emit
+			Optional<Object> variable = bounds.stream().filter(var -> {
+				if (var == MARKER)
+					return false;
+
+				if (sink == null)
+					return ((Variable) var).name().equals(binderName);
+				else
+					return ((net.sf.crsx.Variable) var).name().equals(binderName);
+			}).findFirst();
+
+			if (variable.isPresent())
+			{
+				// Binder exists -> emit variable use
+				if (sink == null)
+					sink4 = sink4.use((Variable) variable.get());
+				else
+					sink = sink.use((net.sf.crsx.Variable) variable.get());
+			}
 			else
-				sink = sink.use(factory.makeVariable(binderName, false));
+			{
+				// Binder does not exists: emit fresh variable.
+				if (sink == null)
+					sink4 = sink4.use(new Variable(binderName));
+				else
+					sink = sink.use(factory.makeVariable(binderName, false));
+			}
 		}
 		state = State.PARSE;
 	}
@@ -498,7 +511,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	 */
 	public void exitBinds(ParserRuleContext context)
 	{
-		assert!bounds.isEmpty() : "Inbalanced use of enterBinds/exitBinds";
+		assert !bounds.isEmpty() : "Inbalanced use of enterBinds/exitBinds";
 
 		while (bounds.pop() != MARKER);
 	}
@@ -546,7 +559,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	{
 		switch (state)
 		{
-			case SKIP:
+			case SKIP :
 				state = State.PARSE;
 				break;
 			case PARSE :
@@ -580,9 +593,9 @@ public class SinkAntlrListener implements ParseTreeListener
 							}
 							break;
 						case TERM :
-							String metaname = context.getText();
-							if (metachar.length() > 1 || metachar.charAt(0) != metaname.charAt(0))
-								metaname = "#" + metaname.substring(metachar.length());
+							String metaname = fixupMetachar(context.getText());
+							//if (metachar.length() > 1 || metachar.charAt(0) != metaname.charAt(0))
+							//	metaname = "#" + metaname.substring(metachar.length());
 
 							if (sink != null)
 								sink = sink.startMetaApplication(metaname).endMetaApplication();
@@ -591,7 +604,6 @@ public class SinkAntlrListener implements ParseTreeListener
 							break;
 						default :
 							break;
-
 					}
 
 					sort = TokenSort.STRING;
@@ -636,15 +648,23 @@ public class SinkAntlrListener implements ParseTreeListener
 				break;
 
 			case NAME :
-				assert sort == TokenSort.STRING || sort == TokenSort.NUMERIC : "Embedded terms cannot be part of a binder name";
+				// Receive a symbol or a bound variable
 				binderName += context.getText().trim();
 				break;
-			
+
 			default :
 				break;
 		}
 	}
 
+	/**
+	 * Convert parser specific metacharacter to Crsx meta character (#).
+	 */
+	protected String fixupMetachar(String metavar)
+	{
+		return "#" + metavar.substring(metachar.length());		
+	}
+	
 	// Utility classes
 
 	class MutableInt
