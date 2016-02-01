@@ -114,10 +114,7 @@ JavaBody[JavaEnv, $List[Core_cdecl_sort]] :: Text;
 JavaBody[#env, #rules]
 → %n⟦) 
 {⟦
-if (++sink.context().sd < 256)
-{⟦
-«TextFold[Map[rule.JavaBodyRule[#env, rule], #rules], %n⟨⟩]»⟧
-}
+«TextFold[Map[rule.JavaBodyRule[#env, rule], #rules], %n⟨⟩]»
 return «Thunk[GetThunk[#env]]»;⟧
 }⟧;
 
@@ -132,7 +129,7 @@ JavaBodyRule[#env, %cdecl⟦ rule ##CONSTRUCTOR → ##cterm2 ⟧]
 JavaBodyRule[#env, %cdecl⟦ rule ##CONSTRUCTOR ( ##cterm* ) → ##cterm2 ⟧]
 → JavaPattern[#env, #cterm*, #cterm2];
 
-// ----- Naive pattern matching. 
+// ----- Naive pattern matching: test each pattern in sequence
 
 JavaPattern[JavaEnv, $List[Core_cterm_sort], Core_cterm_sort] :: Text;
 
@@ -142,127 +139,144 @@ JavaPattern[#env, #cterms, #contractum]
 }⟧;
 
 JavaCasePattern[JavaEnv, $List[Core_cterm_sort], Core_cterm_sort] :: Text;
-JavaCasePattern[#env, #cterms, #contractum]
-→ TextFold[MapMThen[
-             state term.JavaPatternTerm[SetArgs[state, Tail[GetArgs[state]]], term, Head[GetArgs[state]]], 
-             #env, #cterms, state.JavaContractum[state, #contractum]], %n⟦⟧];
+
+JavaCasePattern[#env, %cterm*⟦ ⟧, #contractum]
+→ JavaContractum[#env, #contractum];
+
+JavaCasePattern[#env, %cterm*⟦ ##cterm ##cterm* ⟧, #contractum]
+→ JavaPatternTerm[SetArgs[#env, Tail[GetArgs[#env]]], #cterm, Head[GetArgs[#env]], env.JavaCasePattern[env, #cterm*, #contractum]];
 
 // --- Term pattern matching
 
-JavaPatternTerm[JavaEnv, Core_cterm_sort, Text /* Current term */] :: Pair[JavaEnv, Text];
+JavaPatternTerm[JavaEnv, Core_cterm_sort, Text /* Current term */, env::JavaEnv.Text] :: Text;
 
-JavaPatternTerm[#env, %cterm⟦ ##CONSTRUCTOR ##cterms? ⟧, #term]
-→ PairCons[#env, %n⟦
+JavaPatternTerm[#env, %cterm⟦ ##CONSTRUCTOR ##cterms? ⟧, #term, env.#[env]]
+→ %n⟦
 «#term» = force(sink.context(), «#term»);
 if («#term».descriptor() != «Descriptor[#CONSTRUCTOR]»)
 {⟦
   break «GetLabel[#env]»;⟧
-}«JavaPatternMaybeTerms[#env, #cterms?, #term]»⟧];
+}«JavaPatternMaybeSubs[#env, #cterms?, #term, env.#[env]]»⟧;
 
-JavaPatternTerm[#env, %cterm⟦ ##cliteral ⟧, #term]
+JavaPatternTerm[#env, %cterm⟦ ##cliteral ⟧, #term, env.#[env]]
 → $[Error, "Internal error: invalid pattern matching on literal"];
 
+// REVISIT: bound variable reordering, ie. [x][y]#[y, x]
+// For now only accepts patterns of the form [x]...[y]#[x, ... y]
 -[Data[#term]]:
-JavaPatternTerm[#env, %cterm⟦ ##METAVAR ##cterms? ⟧, #term]
-→ PairCons[AddMeta[#env, #METAVAR, #term], %n⟦
-/* «Text-CommentToken[#METAVAR]»=«Text-CommentToken[$[Show, #term]]» */⟧];  
+JavaPatternTerm[#env, %cterm⟦ ##METAVAR ##cterms? ⟧, #term, env.#[env]]
+→ %n⟦
+/* «Text-CommentToken[#METAVAR]»=«Text-CommentToken[$[Show, #term]]» */«#[AddMeta[#env, #METAVAR, #term]]»⟧;  
 
-JavaPatternTerm[#env, %cterm⟦ ##VARIABLE ⟧, #term] 
-→ JavaPatternVariable[MapGetVar[#env, #VARIABLE], #env, #VARIABLE, #term];
+JavaPatternTerm[#env, %cterm⟦ ##VARIABLE ⟧, #term, env.#[env]] 
+→ JavaPatternVariable[MapGetVar[#env, #VARIABLE], #env, #VARIABLE, #term, env.#[env]];
 
-JavaPatternMaybeTerms[JavaEnv, $List[Core_cterms_sort], Text] :: Text;
-JavaPatternMaybeTerms[#env, %cterms?⟦⟧, #term]
-→ %n⟦⟧;
+// Pattern matching on construction arguments (subterms).
+JavaPatternMaybeSubs[JavaEnv, $List[Core_cterms_sort], Text, env::JavaEnv.Text] :: Text;
 
-JavaPatternMaybeTerms[#env, %cterms?⟦ ( ##cterm* ) ⟧, #term]
-→ %n⟦⟧;
+JavaPatternMaybeSubs[#env, %cterms?⟦⟧, #term, env.#[env]]
+→ #[#env];
+
+JavaPatternMaybeSubs[#env, %cterms?⟦ ( ##cterm* ) ⟧, #term, env.#[env]]
+→ JavaPatternSubs[#env, #cterm*, #term, 0, env.#[env]];
+
+JavaPatternSubs[JavaEnv, $List[Core_cterm_sort], Text /* parent term */, $Numeric /* sub index */, env::JavaEnv.Text] :: Text;
+
+JavaPatternSubs[#env, %cterm*⟦⟧, #term, #index, env.#[env]]
+→ #[#env];
+
+-[Fresh[sub::Text]]:
+JavaPatternSubs[#env, %cterm*⟦ ##cterm ##cterm* ⟧, #term, #index, env.#[env]]
+→ %n⟦
+Term «sub» = «#term».sub(«Text-Integer[#index]»).ref();«JavaPatternTerm[#env, #cterm, sub, env.JavaPatternSubs[env, #cterm*, #term, NumberPlus[#index, 1], env.#[env]]]»⟧;
 
 // --- Variable pattern matching outside of meta
 
-JavaPatternVariable[Option[VarEntry], JavaEnv, $String, Text /* Current term */] :: Pair[JavaEnv, Text];
+JavaPatternVariable[Option[VarEntry], JavaEnv, $String, Text /* Current term */, env::JavaEnv.Text] :: Text;
 
 // First variable occurrence: it's a free variable.
-JavaPatternVariable[NONE, #env, #variable, #term] 
-→ PairCons[AddFreeVar[#env, #variable, #term], %n⟦
-Variable «#variable» = «#term».variable();⟧];
+JavaPatternVariable[NONE, #env, #variable, #term, env.#[env]] 
+→ %n⟦
+Variable «#variable» = «#term».variable();«#[AddFreeVar[#env, #variable, #term]]»⟧;
 
 // Bound variable
 // TODO: update term's parent with evaluated term.
 // TODO: release acquired references.
-JavaPatternVariable[SOME[BOUND], #env, #variable, #term] 
-→ PairCons[#env, %n⟦
+JavaPatternVariable[SOME[BOUND], #env, #variable, #term, env.#[env]] 
+→ %n⟦
 «#term» = force(«GetSink[#env]».context(), «#term»);
 if («#variable» != VARIABLE(«#term»)) 
 {⟦
   break «GetLabel[#env]»;⟧
-}⟧];
+}«#[#env]»⟧;
 
 // ----- Contraction
 
 JavaContractum[JavaEnv, Core_cterm_sort] :: Text;
-JavaContractum[#env, #term] → SendTerm[#env, #term];
+JavaContractum[#env, #term] → JavaSendTerm[#env, #term];
 
 // ---- Contraction send mode
 
-SendTerm[JavaEnv, Core_cterm_sort] :: Text;
+JavaSendTerm[JavaEnv, Core_cterm_sort] :: Text;
 
-SendTerm[#env, %cterm⟦ ##CONSTRUCTOR ##cterms? ⟧]
-→ SendConstruction[#env, #CONSTRUCTOR, #cterms?];
+JavaSendTerm[#env, %cterm⟦ ##CONSTRUCTOR ##cterms? ⟧]
+→ JavaSendConstruction[#env, #CONSTRUCTOR, #cterms?];
 
-SendTerm[#env, %cterm⟦ ##cliteral ⟧]
-→ %n⟦¶«GetSink[#env]».literal(«Literal[#cliteral]»);«SendEndTerm[GetTail[#env]]»⟧;
+JavaSendTerm[#env, %cterm⟦ ##cliteral ⟧]
+→ %n⟦¶«GetSink[#env]».literal(«Literal[#cliteral]»);«JavaSendEndTerm[GetTail[#env]]»⟧;
 
-SendTerm[#env, %cterm⟦ ##VARIABLE ⟧] 
-→ %n⟦¶«SendVariable[#env, #VARIABLE]»«SendEndTerm[GetTail[#env]]»⟧;
+JavaSendTerm[#env, %cterm⟦ ##VARIABLE ⟧] 
+→ %n⟦¶«JavaSendVariable[#env, #VARIABLE]»«JavaSendEndTerm[GetTail[#env]]»⟧;
 
-SendTerm[%cterm⟦ ##VARIABLE ˢ ⟧] 
-→ %n⟦⟧; // TODO
+// REVISIT: optimize
+JavaSendTerm[#env, %cterm⟦ ##VARIABLE ˢ ⟧] 
+→ %n⟦¶«JavaSendVariable[#env, #VARIABLE]»«JavaSendEndTerm[GetTail[#env]]»⟧;
 
-SendTerm[#env, %cterm⟦ ##METAVAR ##cterms? ⟧] 
-→ %n⟦«SendMeta[#env, #METAVAR, #cterms?]»«SendEndTerm[GetTail[#env]]»⟧;
+JavaSendTerm[#env, %cterm⟦ ##METAVAR ##cterms? ⟧] 
+→ %n⟦«JavaSendMeta[#env, #METAVAR, #cterms?]»«JavaSendEndTerm[GetTail[#env]]»⟧;
 
-SendTerm[#env, %cterm⟦ [ ##VARIABLE ] ##cterm ⟧]  
-→ %n⟦«SendEndTerm[GetTail[#env]]»⟧; // TODO
+JavaSendTerm[#env, %cterm⟦ [ ##VARIABLE ] ##cterm ⟧]  
+→ %n⟦«JavaSendEndTerm[GetTail[#env]]»⟧; // TODO
 
-SendEndTerm[$Boolean] :: Text;
-SendEndTerm[$True]  → %n⟦return true;⟧;
-SendEndTerm[$False] → %n⟦⟧;
+JavaSendEndTerm[$Boolean] :: Text;
+JavaSendEndTerm[$True]  → %n⟦return true;⟧;
+JavaSendEndTerm[$False] → %n⟦⟧;
 
 // ---- SEND construction
 
-SendConstruction[JavaEnv, $String, $List[Core_cterms_sort]] :: Text;
+JavaSendConstruction[JavaEnv, $String, $List[Core_cterms_sort]] :: Text;
 
-SendConstruction[#env, #constructor, #cterms?]
+JavaSendConstruction[#env, #constructor, #cterms?]
 → %n⟦
-«GetSink[#env]».start(«Descriptor[#constructor]»);«SendMaybeTerms[UnsetTail[#env], #cterms?]»
-«GetSink[#env]».end();«SendEndTerm[GetTail[#env]]»⟧;
+«GetSink[#env]».start(«Descriptor[#constructor]»);«JavaSendMaybeTerms[UnsetTail[#env], #cterms?]»
+«GetSink[#env]».end();«JavaSendEndTerm[GetTail[#env]]»⟧;
 
-SendMaybeTerms[JavaEnv, $List[Core_cterms_sort]] :: Text;
-SendMaybeTerms[#env, %cterms?⟦              ⟧] → %n⟦⟧;
-SendMaybeTerms[#env, %cterms?⟦ ( ##cterm* ) ⟧] → TextFold[Map[term.SendTerm[#env, term], #cterm*], %n⟦⟧];
+JavaSendMaybeTerms[JavaEnv, $List[Core_cterms_sort]] :: Text;
+JavaSendMaybeTerms[#env, %cterms?⟦              ⟧] → %n⟦⟧;
+JavaSendMaybeTerms[#env, %cterms?⟦ ( ##cterm* ) ⟧] → TextFold[Map[term.JavaSendTerm[#env, term], #cterm*], %n⟦⟧];
 
 // ---- SEND scope variable
 
-SendVariable[JavaEnv, $String] :: Text;
-SendVariable[#env, #var]
+JavaSendVariable[JavaEnv, $String] :: Text;
+JavaSendVariable[#env, #var]
 → %n⟦¶«GetSink[#env]».use(«GetVariable[#var]»);⟧;
 
 // ---- SEND metavar
 
-SendMeta[JavaEnv, $String, $List[Core_cterms_sort]] :: Text;
+JavaSendMeta[JavaEnv, $String, $List[Core_cterms_sort]] :: Text;
 
 // No argument -> just send value.
-SendMeta[#env, #metavar, %cterms?⟦⟧] 
+JavaSendMeta[#env, #metavar, %cterms?⟦⟧] 
 → %n⟦
 «GetSink[#env]».copy(«GetMeta[#env, #metavar]».ref());⟧;
 
 // With arguments -> substitute.
 // Start by computing arguments and then call substitute.
-SendMeta[#env, #metavar, %cterms?⟦ ( ##cterm* ) ⟧] 
-→ SetTerms[#env, #cterm*, terms.SendSubstitutes[#env, #metavar, terms]];
+JavaSendMeta[#env, #metavar, %cterms?⟦ ( ##cterm* ) ⟧] 
+→ SetTerms[#env, #cterm*, terms.JavaSendSubstitutes[#env, #metavar, terms]];
 
-SendSubstitutes[JavaEnv, $String, $List[Text]] :: Text;
-SendSubstitutes[#env, #metavar, #substitutes]
+JavaSendSubstitutes[JavaEnv, $String, $List[Text]] :: Text;
+JavaSendSubstitutes[#env, #metavar, #substitutes]
 → %n⟦
 «GetSink[#env]».substitute(«GetMeta[#metavar]».ref(), new Variable[] { «TextFold[GetBinders[#env], %n⟦, ⟧]» }, new Term[] {«TextFold[#substitutes, %n⟦, ⟧]»});⟧;
 

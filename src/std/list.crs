@@ -274,7 +274,7 @@ MapM2[state x.#[state, x], #state, (#1;#s), #rs] → MapM3[#[#state, #1], state 
 ∀ a b c. MapM3[Pair[a, c], state::a x::b.Pair[a, c], $List[b], $List[c]] :: Pair[a, $List[c]];
 MapM3[PairCons[#nstate, #r], state x.#[state, x], #s, #rs] → MMap2[state x.#[state, x], #nstate, #s, Append[#r, #rs]];
 
-/* Monadic map with continutation. Apply each item in list to the function taking a state and an element,
+/* Monadic map with continuation. Apply each item in list to the function taking a state and an element,
    evaluating to a new state and a value. Apply the next element with the new state.
    When the list is exhaustive, call continuation with state.
    @param `state::a x::b.Pair[a, c]` the function to apply
@@ -283,12 +283,12 @@ MapM3[PairCons[#nstate, #r], state x.#[state, x], #s, #rs] → MMap2[state x.#[s
    @param `$List[b]` the list of elements to apply
    @return a pair containing the end state and the a list containing resulting values.
  */
-∀ a b c. MapMThen[state::a x::b.Pair[a, c], a, $List[b], state::a.$sort[c]] :: $List[c];
-MapMThen[state x.#[state, x], #state, (),      state.#c[state]] → (#c[#state];);
-MapMThen[state x.#[state, x], #state, (#1;#s), state.#c[state]] → MapMThen2[#[#state, #1], state x.#[state, x], #s, state.#c[state]];
+∀ a b c. MapC[state::a x::b.Pair[a, c], a, $List[b], state::a.$sort[c]] :: $List[c];
+MapC[state x.#[state, x], #state, (),      state.#c[state]] → (#c[#state];);
+MapC[state x.#[state, x], #state, (#1;#s), state.#c[state]] → MapC2[#[#state, #1], state x.#[state, x], #s, state.#c[state]];
 
-∀ a b c. MapMThen2[Pair[a, c], state::a x::b.Pair[a, c], a, $List[b], state::a.$sort[c]] :: $List[c];
-MapMThen2[PairCons[#newstate, #1], state x.#[state, x], #s, state.#c[state]] → (#1; MapMThen[state x.#[state, x], #newstate, #s, state.#c[state]]);
+∀ a b c. MapC2[Pair[a, c], state::a x::b.Pair[a, c], a, $List[b], state::a.$sort[c]] :: $List[c];
+MapC2[PairCons[#newstate, #1], state x.#[state, x], #s, state.#c[state]] → (#1; MapC[state x.#[state, x], #newstate, #s, state.#c[state]]);
 
 // 
 ∀ a.Cont[a] ::= ( CONT[ok¹::OK_SORT.$sort[a]];  );

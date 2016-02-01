@@ -28,8 +28,8 @@ parametric polymorphic sort for a Pair
   @param `x1::a x2::b.$sort[c]` Recipient for desconstructed pair
   @return returns the recipient result
 */
-∀ a b c. Deconstruct[Pair[a,b], x1::a x2::b.$sort[c]] :: c;
-Deconstruct[PairCons[#1, #2], x1 x2.#[x1, x2]] → #[#1, #2];
+∀ a b c. UnPair[Pair[a,b], x1::a x2::b.$sort[c]] :: c;
+UnPair[PairCons[#1, #2], x1 x2.#[x1, x2]] → #[#1, #2];
 
 
 )]

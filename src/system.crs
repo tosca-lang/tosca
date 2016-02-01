@@ -80,20 +80,6 @@ PutModule[System, $String, Module] :: System;
 PutModule[System[#mainurl, #modules], #url, #module] 
 → System[#mainurl, MapPut[#modules, #url, #module]];
 
-//
-///* 
-//  Gets data or function sort for given name
-//  @return A sort or NONE 
-// */
-//LookupSortByConstructor[Module, $String /* constructor */] :: Option[Core_cdecl_sort];
-//LookupSortByConstructor[System[#filename, #modules], #constructor] 
-//→ LookupSortByConstructor1[MapGet[FuncSortKey[#constructor]], {#E}GetSome[DataFormKey[#constructor]]];
-//
-//// Helper
-//LookupSortByConstructor1[Option[ContentEntry], Option[ContentEntry]] :: Option[ContentEntry];
-//LookupSortByConstructor1[SOME[#1], #2] → SOME[#1];
-//LookupSortByConstructor1[NONE, #2]     → #2;
-
 // --- Loaded content mutation functions.
 
 /* Add rule to module content. Always succeed. 
@@ -158,84 +144,5 @@ LoadDecls[%cdecl+⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ##cdecl+ 
 
 LoadDecls[%cdecl+⟦ rule ##cterm → ##cterm2 ##cdecl+  ⟧, #rules, #data, #func] 
 → LoadDecls[#cdecl+, PutRule[#rules, %cdecl⟦ rule  ##cterm → ##cterm2 ⟧], #data, #func];
-
-// --- Convert system back to Core syntax (debugging only)
-//
-//{$String:ContentEntry}
-//OutputCrsx[OK_SORT] :: Core_ccrsx_sort;
-//
-//{#E; "$imported": IMPORTS[#imported]}OutputCrsx[OK] 
-//→ %ccrsx⟦ ⟨cdecl+: {#E}OutputImportDeclarations[#imported]⟩ ⟧;
-//
-///* Convert import declarations */
-//{$String:ContentEntry}
-//OutputImportDeclarations[$List[$String]] :: $List[Core_cdecl_sort];
-//
-//{#E; "$grammars": IMPORTS[#imported]}OutputImportDeclarations[()]
-//→ {#E}OutputImportGrammarDeclarations[#imported];
-//
-//{#E}OutputImportDeclarations[(#import; #imports)]
-//→ %cdecl+⟦ import module ⟨CONSTRUCTOR: #import⟩ ⟨cdecl+: {#E}OutputImportDeclarations[#imports]⟩ ⟧;
-//
-///* Convert import grammar declarations */
-//{$String:ContentEntry}
-//OutputImportGrammarDeclarations[$List[$String]] :: $List[Core_cdecl_sort];
-//
-//{#E; "$datakeys": KEYS[#keys]}OutputImportGrammarDeclarations[()]
-//→ {#E}OutputDataDeclarations[#keys];
-//
-//{#E}OutputImportGrammarDeclarations[(#import; #imports)]
-//→ %cdecl+⟦ import grammar ⟨CONSTRUCTOR: #import⟩ ⟨cdecl+: {#E}OutputImportGrammarDeclarations[#imports]⟩ ⟧;
-//
-//{$String:ContentEntry}
-//OutputDataDeclarations[$List[$String]] :: $List[Core_cdecl_sort];
-//
-//{#E; "$funckeys": KEYS[#keys]}OutputDataDeclarations[()] 
-//→ {#E}OutputFuncDeclarations[#keys];
-//
-//{#E}OutputDataDeclarations[(#key; #keys)] 
-//→ {#E}OutputDataDeclarationsForKey[UnDATASORT[$[{#E}Get, #key]], #keys];
-//
-//{$String:ContentEntry}
-//OutputDataDeclarationsForKey[$List[QualifiedSort], $List[$String]] :: $List[Core_cdecl_sort];
-//
-//{#E}OutputDataDeclarationsForKey[(), #keys] 
-//→ {#E}OutputDataDeclarations[#keys];
-//
-//{#E}OutputDataDeclarationsForKey[(QSORT[#qualifier, #sort]; #qsorts), #keys]
-//→ %cdecl+⟦ ⟨cdecl: #sort⟩ ⟨cdecl+: {#E}OutputDataDeclarationsForKey[#qsorts, #keys]⟩ ⟧;
-//
-//{$String:ContentEntry}
-//OutputFuncDeclarations[$List[$String]] :: $List[Core_cdecl_sort];
-//
-//{#E; "$rulekeys": KEYS[#keys]}
-//OutputFuncDeclarations[()] →  {#E}OutputRuleDeclarations[#keys];
-//
-//{#E}OutputFuncDeclarations[(#key; #keys)] 
-//→ {#E}OutputFuncDeclaration[UnFUNCSORT[$[{#E}Get, #key]], #keys];
-//
-//{$String:ContentEntry}
-//OutputFuncDeclaration[Core_cdecl_sort, $List[$String]] :: $List[Core_cdecl_sort];
-//
-//{#E}OutputFuncDeclaration[#sort, #keys]
-//→ %cdecl+⟦ ⟨cdecl: #sort⟩ ⟨cdecl+: {#E}OutputFuncDeclarations[#keys]⟩ ⟧;
-//
-//{$String:ContentEntry}
-//OutputRuleDeclarations[$List[$String]] :: $List[Core_cdecl_sort];
-//
-//{#E}OutputRuleDeclarations[()] 
-//→ %cdecl+⟦ ⟧;
-//
-//{#E}OutputRuleDeclarations[(#key; #keys)] 
-//→ {#E}OutputRuleDeclarationsForKey[UnRULES[$[{#E}Get, #key]], #keys];
-//
-//{$String:ContentEntry}
-//OutputRuleDeclarationsForKey[$List[Core_cdecl_sort], $List[$String]] :: $List[Core_cdecl_sort];
-//
-//{#E}OutputRuleDeclarationsForKey[(), #keys]
-//→ {#E}OutputRuleDeclarations[#keys];
-//
-//{#E}OutputRuleDeclarationsForKey[(#rule; #rules), #keys]
-//→ %cdecl+⟦ ⟨cdecl: #rule⟩ ⟨cdecl+: {#E}OutputRuleDeclarationsForKey[#rules, #keys]⟩ ⟧;
 
 )]

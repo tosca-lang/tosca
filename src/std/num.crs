@@ -15,7 +15,6 @@ $Use["std/core.crs"];
 /* extern */ NumberPlus[$Numeric, $Numeric] :: $Numeric;
 -[Data[#1, #2]]: NumberPlus[#1, #2] → $[Plus, #1, #2];
 
-
 // Subtraction
 /* extern */ NumberMinus[$Numeric, $Numeric] :: $Numeric;
 -[Data[#1, #2]]: NumberMinus[#1, #2] → $[Minus, #1, #2];
