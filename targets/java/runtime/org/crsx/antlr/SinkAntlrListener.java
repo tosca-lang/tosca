@@ -511,7 +511,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	 */
 	public void exitBinds(ParserRuleContext context)
 	{
-		assert !bounds.isEmpty() : "Inbalanced use of enterBinds/exitBinds";
+		assert !bounds.isEmpty() : "Unbalanced use of enterBinds/exitBinds";
 
 		while (bounds.pop() != MARKER);
 	}
@@ -594,13 +594,29 @@ public class SinkAntlrListener implements ParseTreeListener
 							break;
 						case TERM :
 							String metaname = fixupMetachar(context.getText());
-							//if (metachar.length() > 1 || metachar.charAt(0) != metaname.charAt(0))
-							//	metaname = "#" + metaname.substring(metachar.length());
-
+							
 							if (sink != null)
-								sink = sink.startMetaApplication(metaname).endMetaApplication();
+								sink = sink.startMetaApplication(metaname);
 							else
-								sink4 = sink4.startMetaApplication(metaname).endMetaApplication();
+								sink4 = sink4.startMetaApplication(metaname);
+							
+							// Add directly bound variable.
+							// REVISIT: should be user-specified.
+							for (Object variable : bounds)
+							{
+								if (variable == MARKER)
+									break;
+								if (sink != null)
+									sink = sink.use((net.sf.crsx.Variable) variable);
+								else
+									sink4 = sink4.use((Variable) variable);
+							}
+							
+							if (sink != null)
+								sink = sink.endMetaApplication();
+							else
+								sink4 = sink4.endMetaApplication();
+							
 							break;
 						default :
 							break;

@@ -92,7 +92,7 @@ JavaMethod[#constructor, #rules, #datasorts, #funcsorts]
 
 JavaMethodSig[Core_cdecl_sort, $List[Core_cdecl_sort]] :: Text;
 JavaMethodSig[%cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #rules] 
-→ %n⟦«ToJavaId[#CONSTRUCTOR]»(Sink sink, int shared«JavaSigMaybeArgs[
+→ %n⟦«ToJavaId[#CONSTRUCTOR]»(Sink sink«JavaSigMaybeArgs[
                 SetSink[AddThunk[AddThunk[NewEnv, %n⟦sink⟧], Descriptor[#CONSTRUCTOR]], %n⟦sink⟧], #csorts?, #rules]»⟧;  // )
 
 JavaSigMaybeArgs[JavaEnv, $List[Core_csorts_sort], $List[Core_cdecl_sort]] :: Text;
@@ -103,12 +103,25 @@ JavaSigMaybeArgs[#env, %csorts?⟦ ( ##csort* ) ⟧, #rules]
 → JavaSigArgs[#env, #csort*, #rules];
 
 JavaSigArgs[JavaEnv, $List[Core_csort_sort], $List[Core_cdecl_sort]] :: Text;
+
 JavaSigArgs[#env, %csort*⟦ ⟧, #rules]
 → JavaBody[#env, #rules];
 
 -[Fresh[term::Text]]:
 JavaSigArgs[#env, %csort*⟦ ##CONSTRUCTOR ##csorts? ##csort* ⟧, #rules]
 → %n⟦, Term «term»«JavaSigArgs[AddArg[#env, term], #csort*, #rules]»⟧;
+
+-[Fresh[term::Text]]:
+JavaSigArgs[#env, %csort*⟦ ##VARIABLE ##csort* ⟧, #rules] // Sort variable
+→ %n⟦, Term «term»«JavaSigArgs[AddArg[#env, term], #csort*, #rules]»⟧;
+
+-[Fresh[var::Text]]:
+JavaSigArgs[#env, %csort*⟦ [ ##csort ] ##csort2 ##csort* ⟧, #rules]
+→ %n⟦, Variable «var»«JavaSigArgs[AddArg[#env, var], (#csort2; #csort*), #rules]»⟧;
+
+// TODO
+JavaSigArgs[#env, %csort*⟦ { ##cmapsort* }  ⟧, #rules]
+→ %n⟦⟧;
 
 JavaBody[JavaEnv, $List[Core_cdecl_sort]] :: Text;
 JavaBody[#env, #rules]
@@ -161,8 +174,6 @@ if («#term».descriptor() != «Descriptor[#CONSTRUCTOR]»)
 JavaPatternTerm[#env, %cterm⟦ ##cliteral ⟧, #term, env.#[env]]
 → $[Error, "Internal error: invalid pattern matching on literal"];
 
-// REVISIT: bound variable reordering, ie. [x][y]#[y, x]
-// For now only accepts patterns of the form [x]...[y]#[x, ... y]
 -[Data[#term]]:
 JavaPatternTerm[#env, %cterm⟦ ##METAVAR ##cterms? ⟧, #term, env.#[env]]
 → %n⟦
@@ -170,6 +181,13 @@ JavaPatternTerm[#env, %cterm⟦ ##METAVAR ##cterms? ⟧, #term, env.#[env]]
 
 JavaPatternTerm[#env, %cterm⟦ ##VARIABLE ⟧, #term, env.#[env]] 
 → JavaPatternVariable[MapGetVar[#env, #VARIABLE], #env, #VARIABLE, #term, env.#[env]];
+
+// REVISIT: bound variable reordering, ie. [x][y]#(y, x)
+// For now only accepts patterns of the form [x]...[y]#(x, ... y)
+
+-[Fresh[var::Core_cterm_sort]]:
+JavaPatternTerm[#env, %cterm⟦ [ ##VARIABLE ] ##cterm ⟧, #term, env.#[env]] 
+→ JavaPatternTerm[#env, #cterm[var], #term, env.#[env]];
 
 // Pattern matching on construction arguments (subterms).
 JavaPatternMaybeSubs[JavaEnv, $List[Core_cterms_sort], Text, env::JavaEnv.Text] :: Text;

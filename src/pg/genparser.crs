@@ -368,7 +368,7 @@ WrapElement[{#L}#element, %ebnfSuffix⟨ * ⟩, #element*, #RULE_REF, #meta] →
 WrapElement[{#L}#element, %ebnfSuffix⟨ + ⟩, #element*, #RULE_REF, #meta] → Concat[{#L}%element*⟨ {_enterOOM();} #element* ⟩, Concat[ (#element;), Concat[MakeTail[#RULE_REF, #meta], {#L}%element*⟨ {_exitOOM();} ⟩]]] ;
 
 // Produce grammar to match/contract a sequence tail.
-MakeTail[$String, $Boolean] :: $List[ANTLR_element_sort];
+MakeTail[$String, $Boolean /* meta? */] :: $List[ANTLR_element_sort];
 MakeTail[#RULE_REF, $False]    → %element*⟨ ⟩;
 MakeTail[#RULE_REF, $True]     → %element*⟨ ({_tail();} ({_term();} ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩ | {_embed();} ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩ CRSX_EMBED_END))? ⟩;
 
