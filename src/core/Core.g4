@@ -121,7 +121,7 @@ cterm
     | cvariable                                                         /* Variable */
     | LCURLY cmapentries? RCURLY                                        /* Association map */
     | METAVAR cterms?                                                   /* Meta variable/substitution */
-    | LSQUARE VARIABLE<boundvar=x> FUNCTIONAL? RSQUARE cterm<bound=x>   /* Bound term. 
+    | LSQUARE VARIABLE<boundvar=x> RSQUARE cterm<bound=x>               /* Bound term. 
                                                                             VARIABLE<boundvar=x> means VARIABLE is a bound variable we call x
                                                                             cterm<bound=x>       means x is bound in the context of the cterm */
     ;
@@ -132,7 +132,7 @@ cliteral
     ; 
 
 cvariable
-    : VARIABLE<variable> FUNCTIONAL?               /* Variable occurrence. VARIABLE<variable> means look for a bound variable that matches VARIABLE 
+    : VARIABLE<variable>                                        /* Variable occurrence. VARIABLE<variable> means look for a bound variable that matches VARIABLE 
                                                                            in the current tracked bound variables (innermost scope first). VARIABLE is free if not found in scope.  */
     ;
 
@@ -182,11 +182,6 @@ RSQUARE         : ']';
 COMMA           : ',';  
 DOT             : '.';
 NOT             : '¬';
-/*
-%MS: What does the 'ˢ' stand for? Maybe some intuition? 
-%LV: semantic. Using Cynthia's terminology. FUNCTIONAL should be SEMANTIC
-*/
-FUNCTIONAL      : 'ˢ';    
 
 // -- Common lexing rules with Crsx.g4.
 //    Cannot extract these rules yet as the antlr meta parser generator does not support modular grammars yet 
@@ -203,6 +198,7 @@ NUMBER          : Decimal;
 
 fragment StartConstructorChar : Upper | Other | UnicodeS;
 fragment ConstructorChar      : Alpha | Digit | Other | Unicode;
+
 
 fragment Digit    : [0-9];
 fragment Upper    : [A-Z];

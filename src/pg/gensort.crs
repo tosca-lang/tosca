@@ -129,7 +129,7 @@ MakePrintFreshes[()]
 → %n⟦⟧;
 
 MakePrintFreshes[(#fresh; #freshes)] 
-→ %n⟦-[Fresh[«Text-ConcatSep[(#fresh; #freshes), %n⟪, ⟫]»]]:¶⟧;
+→ %n⟦-[Fresh[«TextFold[(#fresh; #freshes), %n⟪, ⟫]»]]:¶⟧;
 
 /* Iterates over the elements (maybe none) of an alternative. 
  */

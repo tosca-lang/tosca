@@ -246,10 +246,6 @@ JavaSendTerm[#env, %cterm⟦ ##cliteral ⟧]
 JavaSendTerm[#env, %cterm⟦ ##VARIABLE ⟧] 
 → %n⟦¶«JavaSendVariable[#env, #VARIABLE]»«JavaSendEndTerm[GetTail[#env]]»⟧;
 
-// REVISIT: optimize
-JavaSendTerm[#env, %cterm⟦ ##VARIABLE ˢ ⟧] 
-→ %n⟦¶«JavaSendVariable[#env, #VARIABLE]»«JavaSendEndTerm[GetTail[#env]]»⟧;
-
 JavaSendTerm[#env, %cterm⟦ ##METAVAR ##cterms? ⟧] 
 → %n⟦«JavaSendMeta[#env, #METAVAR, #cterms?]»«JavaSendEndTerm[GetTail[#env]]»⟧;
 
