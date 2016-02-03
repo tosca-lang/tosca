@@ -6,41 +6,39 @@
  */
 
 (
-Assert[ %term⟦ A ⟧,
-        Rename[ "t1_", %term⟦ A ⟧ ]
+Assert[ %cterm⟦ A ⟧,
+        Rename[ "t1_", %cterm⟦ A ⟧ ]
       ];
 
 
-Assert[ %term⟦ F[#X_1] ⟧,
-        Rename[ "_1", %term⟦ F[#X] ⟧ ]
+Assert[ %cterm⟦ F(#X_1) ⟧,
+        Rename[ "_1", %cterm⟦ F(#X) ⟧ ]
       ];
 
-Assert[ %term⟦ F[#X_1, #Y_1] ⟧,
-        Rename[ "_1", %term⟦ F[#X,#Y] ⟧ ]
+Assert[ %cterm⟦ F(#X_1, #Y_1) ⟧,
+        Rename[ "_1", %cterm⟦ F(#X,#Y) ⟧ ]
       ];
 
-/* Expected Error
+/* Expected Error */
 Assert[ Error,
-        RenameHelper[ "_1", ( %variable⟦ x ⟧ ;), %term⟦ x .F[x,y]⟧ ]
+        RenameHelper[ "_1", ( %cvariable⟦ x ⟧ ;), %cterm⟦ [x]F(x,y)⟧ ]
       ];
-*/
 
-/* Expected Error 
-Assert[ Error,
-        RenameHelper[ "_1", ( ), %term⟦ x . C[x . F[x]]⟧ ]
-      ];
-*/
 
-/* Expected Error 
+/* Expected Error */
 Assert[ Error,
-        RenameHelper[ "_1", ( ), %term⟦ y y . F[x] ⟧ ]
+        RenameHelper[ "_1", ( ), %cterm⟦ [x] C([x] F(x))⟧ ]
       ];
-*/
 
-/* Expected Error 
+
+/* Expected Error */
 Assert[ Error,
-        RenameHelper[ "_1", ( ), %term⟦ x z z . F[z]⟧ ]
+        RenameHelper[ "_1", ( ), %cterm⟦ [y][y] F(x) ⟧ ]
       ];
-*/
+
+/* Expected Error */
+Assert[ Error,
+        RenameHelper[ "_1", ( ), %cterm⟦ [x][z][z] F(z)⟧ ]
+      ];
 
 )

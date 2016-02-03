@@ -18,21 +18,21 @@ $Use["std/list.crs"];
 $Use["std/num.crs"];
 $Use["std/pair.crs"];
 
-$Use["unification/unification.crs"];
-$Use["unification/state.crs"];
+//$Use["unification/unification.crs"];
+//$Use["unification/state.crs"];
 
 $Use["utils/crsxequs.crs"];
 $Use["utils/termops.crs"];
 
-$Use["utils/wrap.crs"];
-$Use["utils/unwrap.crs"];
+//$Use["utils/wrap.crs"];
+//$Use["utils/unwrap.crs"];
 
 
-$Use["std/tree.crs"];
+//$Use["std/tree.crs"];
 // Test files, this should be solved somehow prettier than this...
-$Use["../tests/std/tree/Tree.crs"];
+//$Use["../tests/std/tree/Tree.crs"];
 
-$Use["specify/specify.crs"];
+//$Use["specify/specify.crs"];
 
 
 Main[$List[$Boolean]] :: $List[$Boolean];

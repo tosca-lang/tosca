@@ -8,44 +8,44 @@
 
 (
 Assert[  Vars[(),(),()] ,
-        Variables[%term⟦ A ⟧]
+        Variables[%cterm⟦ A ⟧]
       ];
 
-Assert[  Vars[(),(),( %variable⟦ x ⟧; )] ,
-        Variables[%term⟦ x ⟧]
+Assert[  Vars[(),(),( %cvariable⟦ x ⟧; )] ,
+        Variables[%cterm⟦ x ⟧]
       ];
 
-Assert[  Vars[(),( %variable⟦ x ⟧; ), ()] ,
-        Variables[%term⟦ x.x ⟧]
+Assert[  Vars[(),( %cvariable⟦ x ⟧; ), ()] ,
+        Variables[%cterm⟦ [x]x ⟧]
+      ];
+/*
+Assert[  Vars[(),( %cvariable⟦ x ⟧; ), ( %cvariable⟦ x ⟧; )] ,
+        Variables[%cterm⟦ F(x, [x]x) ⟧]
       ];
 
-Assert[  Vars[(),( %variable⟦ x ⟧; ), ( %variable⟦ x ⟧; )] ,
-        Variables[%term⟦ F[x, x.x] ⟧]
+Assert[ Vars[(),( %cvariable⟦ x ⟧; ), ( %cvariable⟦ x ⟧; )] ,
+        Variables[%cterm⟦ F([x]x, x) ⟧]
       ];
 
-Assert[ Vars[(),( %variable⟦ x ⟧; ), ( %variable⟦ x ⟧; )] ,
-        Variables[%term⟦ F[x.x, x] ⟧]
-      ];
-
-Assert[  Vars[( "#"; ),( %variable⟦ x ⟧; ), ( %variable⟦ x ⟧; )] ,
-        Variables[%term⟦ F[x, x.#[x]] ⟧]
+Assert[  Vars[( "#"; ),( %cvariable⟦ x ⟧; ), ( %cvariable⟦ x ⟧; )] ,
+        Variables[%cterm⟦ F(x, [x]#(x)) ⟧]
       ];
 
 
-Assert[ ( %variable⟦ z ⟧; %variable⟦ y ⟧; %variable⟦ x ⟧; ) ,
-        FreeVariables[%term⟦ F[x, x.#[x], y, G[z]] ⟧]
+Assert[ ( %cvariable⟦ z ⟧; %cvariable⟦ y ⟧; %cvariable⟦ x ⟧; ) ,
+        FreeVariables[%cterm⟦ F(x, [x]#(x), y, G(z)) ⟧]
       ];
 
-Assert[ Vars[("#";),( %variable⟦ x ⟧; %variable⟦ x ⟧; ), ( %variable⟦ z ⟧; )] ,
-        Variables[%term⟦ F[x.#[x], x.x, z] ⟧]
+Assert[ Vars[("#";),( %cvariable⟦ x ⟧; %cvariable⟦ x ⟧; ), ( %cvariable⟦ z ⟧; )] ,
+        Variables[%cterm⟦ F([x]#(x), [x]x, z) ⟧]
       ];
 
-Assert[ Vars[(),( %variable⟦ x ⟧; %variable⟦ x ⟧; ), ()] ,
-        Variables[%term⟦ F[x.G[x. H[x]]] ⟧]
+Assert[ Vars[(),( %cvariable⟦ x ⟧; %cvariable⟦ x ⟧; ), ()] ,
+        Variables[%cterm⟦ F([x]G([x] H(x))) ⟧]
       ];
 
 Assert[ ( "#Y"; "#X";),
-         MetaVariables[ %term⟦ F[#X, #Y] ⟧ ]
+         MetaVariables[ %cterm⟦ F(#X, #Y) ⟧ ]
        ];
-
+*/
 )

@@ -8,24 +8,24 @@
 (
 
 Assert[ TRUE, 
-        TermFoldl[ v. TRUE,  b t.TRUE, m xs. TRUE, c bs. TRUE, %term⟦ F[#X] ⟧]
+        TermFoldl[ v. TRUE,  b t.TRUE, m xs. TRUE, c bs. TRUE, %cterm⟦ F(#X) ⟧]
       ]; 
 
 Assert[ FALSE, 
-        TermFoldl[ v. TRUE,  b t.TRUE, m xs. TRUE, c bs. FALSE, %term⟦ F[#X] ⟧]
+        TermFoldl[ v. TRUE,  b t.TRUE, m xs. TRUE, c bs. FALSE, %cterm⟦ F(#X) ⟧]
       ]; 
 
 Assert[ TRUE, 
-        TermFoldl[ v. TRUE,  b t.TRUE, m xs. TRUE, c bs. FALSE, %term⟦ #X[x] ⟧]
+        TermFoldl[ v. TRUE,  b t.TRUE, m xs. TRUE, c bs. FALSE, %cterm⟦ #X(x) ⟧]
       ]; 
 
 //Fun[ #variable ] →  %term⟦ S[##variable] ⟧;
-Assert[ %term⟦ F[S[x],S[x]] ⟧, 
-    TermFoldl[ v. Fun[v], b t.BVar[b,t], m xs. Meta[m,xs], c bs. Const[c,bs], %term⟦ F[x,x] ⟧]
+Assert[ %cterm⟦ F(S(x),S(x)) ⟧, 
+    TermFoldl[ v. Fun[v], b t.BVar[b,t], m xs. Meta[m,xs], c bs. Const[c,bs], %cterm⟦ F(x,x) ⟧]
       ];
 
-Assert[ %term⟦ F[x,F[A,#X_1[x]]] ⟧,
-         TermFoldl[x.Var[x], b t . BVar[b,t], m xs.MetaR[m,xs], c ts.Const[c,ts], %term⟦ F[x,F[A,#X[x]]] ⟧]
+Assert[ %cterm⟦ F(x,F(A,#X_1(x))) ⟧,
+         TermFoldl[x.Var[x], b t . BVar[b,t], m xs.MetaR[m,xs], c ts.Const[c,ts], %cterm⟦ F(x,F(A,#X(x))) ⟧]
        ];
 
 )

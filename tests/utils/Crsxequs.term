@@ -11,25 +11,25 @@
 /* **Constructor Equality** */
 
 Assert[ TRUE,
-        ConstructorEqual[ %constructor ⟦ ##qualifier B ⟧ ,%constructor ⟦ ##qualifier B ⟧]
+        ConstructorEqual[A,A]
       ];
 
 Assert[ FALSE,
-        ConstructorEqual[ %constructor ⟦ ##qualifier A ⟧ ,%constructor ⟦ ##qualifier B ⟧]
+        ConstructorEqual[A,B]
       ];
 
-/* **Binder Equality** */
-
+/* ** Variable Equality** */
 Assert[ TRUE,
-        BinderEqual[%binder ⟦ ##annotations? x ⟧, %binder ⟦ ##annotations? x ⟧]
-      ];
+        VariableEqual[%cvariable⟦ x ⟧, %cvariable⟦ x ⟧]
+       ];
+
+Assert[ 
+        Print[%cvariable⟦ x ⟧, %cvariable⟦ x ⟧]
+       ];
 
 Assert[ FALSE,
-        BinderEqual[%binder ⟦ ##annotations? x ⟧, %binder ⟦ ##annotations? y ⟧]
-      ];
+        VariableEqual[%cvariable⟦ x ⟧, %cvariable⟦ y ⟧]
+       ];
 
-Assert[ FALSE,
-        BinderEqual[%binder ⟦ ##annotations? xi ⟧, %binder ⟦ ##annotations? xj ⟧]
-      ];
 
 )
