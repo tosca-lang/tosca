@@ -9,16 +9,16 @@
 
 (
 
-Assert[ SOME[%term⟦ A ⟧],
-        Assoc["#X" , Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )]]
+Assert[ SOME[%cterm⟦ A ⟧],
+        Assoc["#X" , Mgu[( PairCons[ "#X",  %cterm⟦ A ⟧]; )]]
       ];
 
-Assert[ SOME[%term⟦ F[A] ⟧] ,
-        Assoc["#Y" , Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧];  PairCons[ "#Y",  %term⟦ F[A] ⟧];)]]
+Assert[ SOME[%cterm⟦ F(A) ⟧] ,
+        Assoc["#Y" , Mgu[( PairCons[ "#X",  %cterm⟦ F(A,B) ⟧];  PairCons[ "#Y",  %cterm⟦ F(A) ⟧];)]]
       ];
 
-Assert[ SOME[%term⟦ F[A,B] ⟧],
-        Assoc["#X" , Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧];  PairCons[ "#Y",  %term⟦ F[A] ⟧];)]]
+Assert[ SOME[%cterm⟦ F(A,B) ⟧],
+        Assoc["#X" , Mgu[( PairCons[ "#X",  %cterm⟦ F(A,B) ⟧];  PairCons[ "#Y",  %cterm⟦ F(A) ⟧];)]]
       ];
 
 )

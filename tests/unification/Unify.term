@@ -9,75 +9,77 @@
 
 (
 
-Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )],0],
-        Unify[State[Mgu[()],0], PairCons[ %term ⟦ #X ⟧ , %term⟦ A ⟧]]
+Assert[ State[Mgu[( PairCons[ "#X",  %cterm⟦ A ⟧]; )],0],
+        Unify[State[Mgu[()],0], PairCons[ %cterm ⟦ #X ⟧ , %cterm⟦ A ⟧]]
       ]; 
 
-Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧]; )],0],
-        Unify[State[Mgu[()],0], PairCons[ %term ⟦ #X ⟧ , %term⟦ F[A,B] ⟧]]
+Assert[ State[Mgu[( PairCons[ "#X",  %cterm⟦ F(A,B) ⟧]; )],0],
+        Unify[State[Mgu[()],0], PairCons[ %cterm ⟦ #X ⟧ , %cterm⟦ F(A,B) ⟧]]
       ];
 
-Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ x.F[x] ⟧]; )],0],
-        Unify[State[Mgu[()],0], PairCons[ %term ⟦ #X[x] ⟧ ,%term⟦ F[x] ⟧]]
+Assert[ State[Mgu[( PairCons[ "#X",  %cterm⟦ [x]F(x) ⟧]; )],0],
+        Unify[State[Mgu[()],0], PairCons[ %cterm ⟦ #X(x) ⟧ ,%cterm⟦ F(x) ⟧]]
       ]; 
 
-Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ x y.F[x] ⟧]; )],0],
-        Unify[State[Mgu[()],0], PairCons[ %term ⟦ #X[x,y] ⟧ ,%term⟦ F[x] ⟧]]
+
+Assert[ State[Mgu[( PairCons[ "#X",  %cterm⟦ [x][y] F(x) ⟧]; )],0],
+        Unify[State[Mgu[()],0], PairCons[ %cterm ⟦ #X(x,y) ⟧ ,%cterm⟦ F(x) ⟧]]
       ]; 
 
-Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ x y .F[y,x] ⟧]; )],0],
-        Unify[State[Mgu[()],0], PairCons[ %term ⟦ #X[x,y] ⟧ , %term⟦ F[y,x] ⟧]]
+Assert[ State[Mgu[( PairCons[ "#X",  %cterm⟦ [x][y]F(y,x) ⟧]; )],0],
+        Unify[State[Mgu[()],0], PairCons[ %cterm ⟦ #X(x,y) ⟧ , %cterm⟦ F(y,x) ⟧]]
+      ]; 
+
+
+Assert[ State[FAIL,0],
+        Unify[State[Mgu[()],0], PairCons[ %cterm ⟦ [x][y]#X(x,y) ⟧ , %cterm⟦ Plus(0,0) ⟧]]
       ]; 
 
 Assert[ State[FAIL,0],
-        Unify[State[Mgu[()],0], PairCons[ %term ⟦ x y.#X[x,y] ⟧ , %term⟦ Plus[0,0] ⟧]]
-      ]; 
-
-Assert[ State[FAIL,0],
-        Unify[State[Mgu[()],0], PairCons[ %term ⟦ #X[x,y] ⟧ , %term⟦ x.Plus[0,0] ⟧]]
+        Unify[State[Mgu[()],0], PairCons[ %cterm ⟦ #X(x,y) ⟧ , %cterm⟦ [x]Plus(0,0) ⟧]]
       ]; 
 
 // bound terms
 
-Assert[ Mgu[ (PairCons["#G", %term⟦ x.#0[x] ⟧]; PairCons["#F", %term⟦ x.#0[x] ⟧];) ],
-        GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x. #F[x] ⟧ , %term⟦  x . #G[x]  ⟧]]]
+Assert[ Mgu[ (PairCons["#G", %cterm⟦ [x]#0(x) ⟧]; PairCons["#F", %cterm⟦ [x]#0(x) ⟧];) ],
+        GetMgu[Unify[State[Mgu[()],0], PairCons[ %cterm ⟦ [x] #F(x) ⟧ , %cterm⟦  [x] #G(x)  ⟧]]]
        ];
  
 
-Assert[ State[Mgu[( PairCons[ "#G",  %term⟦ y x . #0[x] ⟧];  PairCons[ "#F",  %term⟦ x . C[#0[x]] ⟧]; )], 1],
-        Unify[State[Mgu[()],0], PairCons[ %term⟦ x y . #F[x] ⟧, %term⟦ x y. C[#G[y,x]] ⟧ ]]  ];
+Assert[ State[Mgu[( PairCons[ "#G",  %cterm⟦ [y] [x] #0(x) ⟧];  PairCons[ "#F",  %cterm⟦ [x] C(#0(x)) ⟧]; )], 1],
+        Unify[State[Mgu[()],0], PairCons[ %cterm⟦ [x] [y] #F(x) ⟧, %cterm⟦ [x][y] C(#G(y,x)) ⟧ ]]  ];
 
 
 //alpha equv 
-Assert[ Assoc[ "#G", GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  y .#G[y]  ⟧]]]],
-        Assoc[ "#F", GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  y .#G[y]  ⟧]]]]
+Assert[ Assoc[ "#G", GetMgu[Unify[State[Mgu[()],0], PairCons[ %cterm ⟦ [x]#F(x) ⟧ , %cterm⟦  [y]#G(y)  ⟧]]]],
+        Assoc[ "#F", GetMgu[Unify[State[Mgu[()],0], PairCons[ %cterm ⟦ [x]#F(x) ⟧ , %cterm⟦  [y]#G(y)  ⟧]]]]
       ]; 
 
 //alpha equv 2
-Assert[ Assoc[ "#G", GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  y .#G[y]  ⟧]]]],
-        Assoc[ "#F", GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x.#F[x] ⟧ , %term⟦  x .#G[x]  ⟧]]]]
+Assert[ Assoc[ "#G", GetMgu[Unify[State[Mgu[()],0], PairCons[ %cterm ⟦ [x]#F(x) ⟧ , %cterm⟦  [y]#G(y)  ⟧]]]],
+        Assoc[ "#F", GetMgu[Unify[State[Mgu[()],0], PairCons[ %cterm ⟦ [x]#F(x) ⟧ , %cterm⟦  [x]#G(x)  ⟧]]]]
       ]; 
 
 
-/* Expected Error
+/* Expected Error */
 Assert[ Error,
-      GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ x y.#F[x,y] ⟧ , %term⟦  y x .#G[y,x]  ⟧]]]
+      GetMgu[Unify[State[Mgu[()],0], PairCons[ %cterm ⟦ [x] [y] #F(x,y) ⟧ , %cterm⟦  [y] [x]#G(y,x)  ⟧]]]
     ]; 
-*/
 
-Assert[ Mgu[ (PairCons["#X", %term⟦ Zero ⟧]; PairCons["#G", %term⟦ y x.#0[x] ⟧]; PairCons["#F", %term⟦ x.#0[x] ⟧];) ],
-        GetMgu[Unify[State[Mgu[()],0], PairCons[ %term ⟦ Div[x y. #F[x],#X] ⟧ , %term⟦  Div[x y. #G[y,x], Zero]  ⟧]]]
+
+Assert[ Mgu[ (PairCons["#X", %cterm⟦ Zero ⟧]; PairCons["#G", %cterm⟦ [y] [x]#0(x) ⟧]; PairCons["#F", %cterm⟦ [x]#0(x) ⟧];) ],
+        GetMgu[Unify[State[Mgu[()],0], PairCons[ %cterm ⟦ Div([x][y] #F(x),#X)⟧ , %cterm⟦  Div([x][y] #G(y,x) , Zero)  ⟧]]]
        ];
 
 
 
 
 // renaming 
-/*
+
 Assert[ FAIL, // here we do not have distinct meta variables!
-       Unify[ State[Mgu[()],0], PairCons[%term⟦ F[#X,#Y] ⟧, %term⟦ F[#Y,#X] ⟧] ]
+       Unify[ State[Mgu[()],0], PairCons[%cterm⟦ F(#X,#Y) ⟧, %cterm⟦ F(#Y,#X) ⟧] ]
       ]; 
 
-*/
+
  
 )

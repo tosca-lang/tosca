@@ -8,49 +8,49 @@
 (
 	
 Assert[ SOME[Mgu[()]],
-        RestrictDomain[ Mgu[()], %term⟦ #X ⟧] 
+        RestrictDomain[ Mgu[()], %cterm⟦ #X ⟧] 
        ];
 	
-Assert[ SOME[Mgu[(PairCons[ "#X", %term⟦ #Y ⟧];)]],
-        RestrictDomain[ Mgu[(PairCons[ "#X", %term⟦ #Y ⟧];) ], %term⟦ #X ⟧ ] 
+Assert[ SOME[Mgu[(PairCons[ "#X", %cterm⟦ #Y ⟧];)]],
+        RestrictDomain[ Mgu[(PairCons[ "#X", %cterm⟦ #Y ⟧];) ], %cterm⟦ #X ⟧ ] 
        ];
 
 Assert[ SOME[Mgu[()]],
-        RestrictDomain[ Mgu[(PairCons[ "#X", %term⟦ #Y ⟧];)], %term⟦ B ⟧ ] 
+        RestrictDomain[ Mgu[(PairCons[ "#X", %cterm⟦ #Y ⟧];)], %cterm⟦ B ⟧ ] 
        ];
 
-Assert[ SOME[Mgu[(PairCons[ "#X_1", %term⟦ #0 ⟧];)]],
-        RestrictDomain[ Mgu[( PairCons[ "#X_2", %term⟦ #0 ⟧]; 
-                              PairCons[ "#X_1", %term⟦ #0 ⟧];
+Assert[ SOME[Mgu[(PairCons[ "#X_1", %cterm⟦ #0 ⟧];)]],
+        RestrictDomain[ Mgu[( PairCons[ "#X_2", %cterm⟦ #0 ⟧]; 
+                              PairCons[ "#X_1", %cterm⟦ #0 ⟧];
                             )], 
-                        %term⟦ F[#X_1] ⟧ ] 
+                        %cterm⟦ F(#X_1) ⟧ ] 
        ];
 
-Assert[ SOME[Mgu[(PairCons[ "#X_2", %term⟦ B ⟧];)]],
-        RestrictDomain[ Mgu[( PairCons[ "#X_2", %term⟦ B ⟧];
-                              PairCons[ "#X_1", %term⟦ #X ⟧];
+Assert[ SOME[Mgu[(PairCons[ "#X_2", %cterm⟦ B ⟧];)]],
+        RestrictDomain[ Mgu[( PairCons[ "#X_2", %cterm⟦ B ⟧];
+                              PairCons[ "#X_1", %cterm⟦ #X ⟧];
                             )], 
-                        %term⟦ #X_2 ⟧ ] 
+                        %cterm⟦ #X_2 ⟧ ] 
        ];
 
-Assert[ SOME[Mgu[(PairCons[ "#X_1", %term⟦ #0 ⟧];)]], 
-        RestrictDomain[GetMgu[UnifyPattern[%pattern⟦ F[#X_1] ⟧, %pattern⟦ F[#X_2] ⟧ ]],  
-                        %term⟦ F[#X_1] ⟧ ] 
+Assert[ SOME[Mgu[(PairCons[ "#X_1", %cterm⟦ #0 ⟧];)]], 
+        RestrictDomain[GetMgu[UnifyPattern[%cterm⟦ F(#X_1) ⟧, %cterm⟦ F(#X_2) ⟧ ]],  
+                        %cterm⟦ F(#X_1) ⟧ ] 
        ];
 
-Assert[ SOME[Mgu[(PairCons["#X_1", %term⟦ #0 ⟧];)] ] , 
-        RestrictDomain[GetMgu[UnifyPattern[%pattern⟦ F[#X_1] ⟧,%pattern⟦ F[#X_2]⟧ ]],  
-                        %term⟦ F[#X_1]⟧ ] 
+Assert[ SOME[Mgu[(PairCons["#X_1", %cterm⟦ #0 ⟧];)] ] , 
+        RestrictDomain[GetMgu[UnifyPattern[%cterm⟦ F(#X_1) ⟧,%cterm⟦ F(#X_2) ⟧ ]],  
+                        %cterm⟦ F(#X_1)⟧ ] 
        ];
 
-Assert[ SOME[Mgu[(PairCons["#X_1", %term⟦ B ⟧];)] ], 
-        RestrictDomain[GetMgu[UnifyPattern[ %pattern⟦ F[#X_1] ⟧, %pattern⟦ F[B] ⟧ ]],  
-                        %term⟦ F[#X_1] ⟧ ] 
+Assert[ SOME[Mgu[(PairCons["#X_1", %cterm⟦ B ⟧];)] ], 
+        RestrictDomain[GetMgu[UnifyPattern[ %cterm⟦ F(#X_1) ⟧, %cterm⟦ F(B) ⟧ ]],  
+                        %cterm⟦ F(#X_1) ⟧ ] 
        ];
 
 Assert[ NONE, 
-        RestrictDomain[GetMgu[UnifyPattern[ %pattern⟦ F[A] ⟧, %pattern⟦ F[#X] ⟧ ]],  
-                        %term⟦ F[A] ⟧ ] 
+        RestrictDomain[GetMgu[UnifyPattern[ %cterm⟦ F(A) ⟧, %cterm⟦ F(#X) ⟧ ]],  
+                        %cterm⟦ F(A) ⟧ ] 
        ];
 
 )

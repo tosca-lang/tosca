@@ -18,6 +18,10 @@ Assert[ FALSE,
         ConstructorEqual[A,B]
       ];
 
+Assert[ FALSE,
+        VariableEqual[%cvariable⟦ x ⟧, %cvariable⟦ y ⟧]
+       ];
+
 /* ** Variable Equality** */
 Assert[ TRUE,
         VariableEqual[%cvariable⟦ x ⟧, %cvariable⟦ x ⟧]
@@ -26,10 +30,5 @@ Assert[ TRUE,
 Assert[ 
         Print[%cvariable⟦ x ⟧, %cvariable⟦ x ⟧]
        ];
-
-Assert[ FALSE,
-        VariableEqual[%cvariable⟦ x ⟧, %cvariable⟦ y ⟧]
-       ];
-
 
 )

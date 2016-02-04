@@ -6,50 +6,53 @@
  */
 
 (
-Assert[ Branch[ %ruleDeclaration⟦ F[#0_, #1_] → F_LLBACK ⟧ ,
-                ( PairCons[ Mgu[( PairCons["#1_", %term⟦ B ⟧];
-                                  PairCons["#0_", %term⟦ A ⟧];
+
+
+Assert[ Branch[ %cdecl⟦ rule F(#0_, #1_) → FLLBACK ⟧ ,
+                ( PairCons[ Mgu[( PairCons["#1_", %cterm⟦ B ⟧];
+                                  PairCons["#0_", %cterm⟦ A ⟧];
                 		        )],
-                           Branch[ %ruleDeclaration⟦ F[A,  B] → A ⟧ ,
+                           Branch[ %cdecl⟦ rule F(A,  B) → A ⟧ ,
                                    () ]
                           ];
                 )
                ],          
-        ComputeInstanceOrder[ %sortDeclaration⟦ F[ Data, Data] :: Data ⟧, 
-                           (  %ruleDeclaration⟦ F[A,  B] → A ⟧ ;)]
+        ComputeInstanceOrder[ %cdecl⟦ func Data F( Data, Data ) ⟧
+                            , (  %cdecl⟦ rule F(A,B) → A ⟧ ;)
+         ]
 	  ];
 
 
-Assert[ Branch[ %ruleDeclaration⟦ F[#X] → #X ⟧ , ()],          
-        ComputeInstanceOrder[ %sortDeclaration⟦ F[Data] :: Data ⟧, 
-                           (  %ruleDeclaration⟦ F[#X] → #X ⟧ ;) ]
+Assert[ Branch[ %cdecl⟦ rule F(#X) → #X ⟧ , ()],          
+        ComputeInstanceOrder[  %cdecl⟦ func Data F(Data) ⟧, 
+                           (  %cdecl⟦ rule F(#X) → #X ⟧ ;) ]
 	  ];
 
-/* Expected Error: Ambigious 
+/* Expected Error: Ambigious */
 Assert[ Error ,
-        ComputeInstanceOrder[( %ruleDeclaration⟦ F[#X,A] → 1 ⟧ ; %ruleDeclaration⟦ F[A,#Y] → 1 ⟧ ; )]
+        ComputeInstanceOrder[( %cdecl⟦ rule F(#X,A) → 1 ⟧ ; %cdecl⟦ rule F(A,#Y) → 1 ⟧ ; )]
 	  ];
 
 
-Assert[                ( Leaf[ %ruleDeclaration⟦ F[A,  #Y1] → 1 ⟧ ];
-                         Leaf[ %ruleDeclaration⟦ F[B,  #Y2] → 1 ⟧ ];
+Assert[                ( Leaf[ %cdecl⟦ rule F(A,  #Y1) → 1 ⟧ ];
+                         Leaf[ %cdecl⟦ rule F(B,  #Y2) → 1 ⟧ ];
 		               ) ,
-        ComputeInstanceOrder[( %ruleDeclaration⟦ F[A,  #Y1] → 1 ⟧ ;
-                               %ruleDeclaration⟦ F[B,  #Y2] → 1 ⟧ ;)]
+        ComputeInstanceOrder[( %cdecl⟦ rule F(A,  #Y1) → 1 ⟧ ;
+                               %cdecl⟦ rule F(B,  #Y2) → 1 ⟧ ;)]
         		
 	  ];
 
 
 
-Assert[  ( Branch[ %ruleDeclaration⟦ F[#X2, #Y2] → 1 ⟧, 
-                                 (PairCons[ Mgu[ ( PairCons["#Y2", %term⟦ #0 ⟧]; PairCons["#X1", %term⟦ B ⟧];) ], 
-                                            Leaf[%ruleDeclaration⟦ F[B,   #Y2] → 1 ⟧]
+Assert[  ( Branch[ %cdecl⟦ rule F(#X2, #Y2) → 1 ⟧, 
+                                 (PairCons[ Mgu[ ( PairCons["#Y2", %cterm⟦ #0 ⟧]; PairCons["#X1", %cterm⟦ B ⟧];) ], 
+                                            Leaf[%cdecl⟦ rule F(B,   #Y2) → 1 ⟧]
                                            ];)
                   ];),
-        ComputeInstanceOrder[( %ruleDeclaration⟦ F[B, #Y1] → 1 ⟧ ;
-                               %ruleDeclaration⟦ F[#X2, #Y2] → 1 ⟧ ;)]
+        ComputeInstanceOrder[( %cdecl⟦ rule F(B, #Y1) → 1 ⟧ ;
+                               %cdecl⟦ rule F(#X2, #Y2) → 1 ⟧ ;)]
 
 ];
 
-*/
+
 )

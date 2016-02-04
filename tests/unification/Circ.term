@@ -10,40 +10,40 @@
 (
 
 Assert[ State[FAIL,0],
-        Circ[State[FAIL,0], %term ⟦ #X ⟧ , %term⟦ A ⟧]
+        Circ[State[FAIL,0], %cterm ⟦ #X ⟧ , %cterm⟦ A ⟧]
       ]; 
 
-Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )],0],
-        Circ[State[Mgu[()],0] , "#X" , %term⟦ A ⟧]
+Assert[ State[Mgu[( PairCons[ "#X",  %cterm⟦ A ⟧]; )],0],
+        Circ[State[Mgu[()],0] , "#X" , %cterm⟦ A ⟧]
       ];
 
 
 
-Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧];)],0],
-        Circ[State[Mgu[()],0], "#X" , %term⟦ F[A,B] ⟧]
+Assert[ State[Mgu[( PairCons[ "#X",  %cterm⟦ F(A,B) ⟧];)],0],
+        Circ[State[Mgu[()],0], "#X" , %cterm⟦ F(A,B) ⟧]
       ];
 
-Assert[ State[Mgu[( PairCons[ "#X",  %term⟦ F[A,B] ⟧];  PairCons[ "#Y",  %term⟦ F[A] ⟧];)],0],
-        Circ[Circ[State[Mgu[()],0], "#Y" , %term⟦ F[A] ⟧], "#X" , %term⟦ F[A,B] ⟧]
+Assert[ State[Mgu[( PairCons[ "#X",  %cterm⟦ F(A,B) ⟧];  PairCons[ "#Y",  %cterm⟦ F(A) ⟧];)],0],
+        Circ[Circ[State[Mgu[()],0], "#Y" , %cterm⟦ F(A) ⟧], "#X" , %cterm⟦ F(A,B) ⟧]
       ];
 
 Assert[ State[FAIL,0],
-        Circ[Circ[State[FAIL,0], "#Y" , %term⟦ F[A] ⟧], "#X" , %term⟦ F[A,B] ⟧]
+        Circ[Circ[State[FAIL,0], "#Y" , %cterm⟦ F(A) ⟧], "#X" , %cterm⟦ F(A,B) ⟧]
       ];
 
-Assert[ State[Mgu[ ( PairCons[ "#Y",  %term⟦ A ⟧]; PairCons[ "#X",  %term⟦ A ⟧];) ],0],
-        Circ[Circ[State[Mgu[()],0], "#X" , %term⟦ #Y ⟧], "#Y" , %term⟦ A ⟧]
+Assert[ State[Mgu[ ( PairCons[ "#Y",  %cterm⟦ A ⟧]; PairCons[ "#X",  %cterm⟦ A ⟧];) ],0],
+        Circ[Circ[State[Mgu[()],0], "#X" , %cterm⟦ #Y ⟧], "#Y" , %cterm⟦ A ⟧]
       ];
 
-Assert[ State[Mgu[ ( PairCons[ "#Y",  %term⟦ F[A,B] ⟧]; PairCons[ "#X",  %term⟦ F[F[A,B]] ⟧];) ],0],
-        Circ[Circ[State[Mgu[()],0], "#X" , %term⟦ F[#Y] ⟧], "#Y" , %term⟦ F[A,B] ⟧]
+Assert[ State[Mgu[ ( PairCons[ "#Y",  %cterm⟦ F(A,B) ⟧]; PairCons[ "#X",  %cterm⟦ F(F(A,B)) ⟧];) ],0],
+        Circ[Circ[State[Mgu[()],0], "#X" , %cterm⟦ F(#Y) ⟧], "#Y" , %cterm⟦ F(A,B) ⟧]
       ];
 
-Assert[ State[Mgu[ ( PairCons[ "#Y",  %term⟦ F[A,B] ⟧]; PairCons[ "#X",  %term⟦ x.F[x,F[A,B]] ⟧];) ],0],
-        Circ[Circ[State[Mgu[()],0], "#X" , %term⟦ x.F[x,#Y] ⟧], "#Y" , %term⟦ F[A,B] ⟧]
+Assert[ State[Mgu[ ( PairCons[ "#Y",  %cterm⟦ F(A,B) ⟧]; PairCons[ "#X",  %cterm⟦ [x]F(x,F(A,B)) ⟧];) ],0],
+        Circ[Circ[State[Mgu[()],0], "#X" , %cterm⟦ [x]F(x,#Y) ⟧], "#Y" , %cterm⟦ F(A,B) ⟧]
       ];
 
-Assert[ State[Mgu[ ( PairCons[ "#Z",  %term⟦ C ⟧]; PairCons[ "#Y",  %term⟦ F[A,B] ⟧]; PairCons[ "#X",  %term⟦ C ⟧];) ],0],
-        Circ[Circ[Circ[State[Mgu[()],0], "#X" , %term⟦ #Z ⟧], "#Y" , %term⟦ F[A,B] ⟧], "#Z", %term⟦ C ⟧]
+Assert[ State[Mgu[ ( PairCons[ "#Z",  %cterm⟦ C ⟧]; PairCons[ "#Y",  %cterm⟦ F(A,B) ⟧]; PairCons[ "#X",  %cterm⟦ C ⟧];) ],0],
+        Circ[Circ[Circ[State[Mgu[()],0], "#X" , %cterm⟦ #Z ⟧], "#Y" , %cterm⟦ F(A,B) ⟧], "#Z", %cterm⟦ C ⟧]
       ];
 )

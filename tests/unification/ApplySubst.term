@@ -8,59 +8,60 @@
 
 (
 
-Assert[ %term⟦ A ⟧,
-        ApplySubst[ Mgu[()], %term⟦ A ⟧ ] 
+Assert[ %cterm⟦ A ⟧,
+        ApplySubst[ Mgu[()], %cterm⟦ A ⟧ ] 
       ]; 
 
-Assert[ %term⟦ A ⟧,
-        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )], %term⟦ #X ⟧ ] 
+Assert[ %cterm⟦ A ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %cterm⟦ A ⟧]; )], %cterm⟦ #X ⟧ ] 
       ]; 
 
-Assert[ %term⟦ #X ⟧,
-        ApplySubst[ Mgu[( PairCons[ "#Y",  %term⟦ A ⟧]; )], %term⟦ #X ⟧ ] 
-      ]; 
-
-
-Assert[ %term⟦ x ⟧,
-        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; )], %term⟦ x ⟧ ] 
+Assert[ %cterm⟦ #X ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#Y",  %cterm⟦ A ⟧]; )], %cterm⟦ #X ⟧ ] 
       ]; 
 
 
-Assert[ %term⟦ F[A,B] ⟧,
-        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ A ⟧]; PairCons[ "#Y",  %term⟦ B ⟧]; )], %term⟦ F[#X,#Y] ⟧ ] 
+Assert[ %cterm⟦ x ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %cterm⟦ A ⟧]; )], %cterm⟦ x ⟧ ] 
       ]; 
 
 
-Assert[ %term⟦ F[x.C[x]] ⟧,
-        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ x.C[x] ⟧]; )], %term⟦ F[#X] ⟧ ] 
+Assert[ %cterm⟦ F(A,B) ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %cterm⟦ A ⟧]; PairCons[ "#Y",  %cterm⟦ B ⟧]; )], %cterm⟦ F(#X,#Y) ⟧ ] 
       ]; 
 
-Assert[ %term⟦ x.F[G[x,#Y]] ⟧,
-        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ #Y ⟧]; )], %term⟦ x.F[G[x,#Y]] ⟧ ] 
+
+Assert[ %cterm⟦ F([x]C(x)) ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %cterm⟦ [x]C(x) ⟧]; )], %cterm⟦ F(#X) ⟧ ] 
       ]; 
 
-Assert[ %term⟦ F[#Y] ⟧,
-        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ #Y ⟧]; )], %term⟦ F[#X] ⟧ ] 
+Assert[ %cterm⟦ [x]F(G(x,#Y)) ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %cterm⟦ #Y ⟧]; )], %cterm⟦ [x]F(G(x,#Y)) ⟧ ] 
       ]; 
 
-Assert[ %term⟦ F[x.#Y[x]] ⟧,
-        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ y.#Y[y] ⟧]; )], %term⟦ F[x.#X[x]] ⟧ ] 
+Assert[ %cterm⟦ F(#Y) ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %cterm⟦ #Y ⟧]; )], %cterm⟦ F(#X) ⟧ ] 
       ]; 
 
-Assert[ %term⟦ F[x.S[x]] ⟧,
-        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ y.S[y] ⟧]; )], %term⟦ F[x.#X[x]] ⟧ ] 
+Assert[ %cterm⟦ F([x]#Y(x)) ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %cterm⟦ [y]#Y(y) ⟧]; )], %cterm⟦ F([x]#X(x)) ⟧ ] 
       ]; 
 
-Assert[ %term⟦ F[x1 x2 x3.S[x1, x2, x3]] ⟧,
-        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ y1 y2 y3.S[y1,y2,y3] ⟧]; )], %term⟦ F[x1 x2 x3.#X[x1, x2,x3]] ⟧ ] 
+Assert[ %cterm⟦ F([x]S(x)) ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %cterm⟦ [y]S(y) ⟧]; )], %cterm⟦ F([x]#X(x)) ⟧ ] 
       ]; 
 
-Assert[ %term⟦ x1 . F[ x2 x3.S[x1, x2, x3]] ⟧,
-        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ y1 y2 y3.S[y1,y2,y3] ⟧]; )], %term⟦ x1 . F[ x2 x3.#X[x1, x2,x3]] ⟧ ] 
+Assert[ %cterm⟦ F([x1][x2][x3]S(x1, x2, x3)) ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %cterm⟦ [y1][y2][y3]S(y1,y2,y3) ⟧]; )], %cterm⟦ F([x1][x2][x3]#X(x1, x2,x3)) ⟧ ] 
       ]; 
 
-Assert[ %term⟦ x1 . F[ x2 x3.S[x1, x2, Zero]] ⟧,
-        ApplySubst[ Mgu[( PairCons[ "#X",  %term⟦ y1 y2 y3.S[y1,y2,Zero] ⟧]; )], %term⟦ x1 . F[ x2 x3.#X[x1, x2,x3]] ⟧ ] 
+Assert[  %cterm⟦ [x1] F([x2][x3] S(x1, x2, x3)) ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %cterm⟦ [y1][y2][y3]S(y1,y2,y3) ⟧]; )], %cterm⟦ [x1]F([x2][x3]#X(x1,x2,x3)) ⟧ ] 
+      ]; 
+
+
+Assert[ %cterm⟦ [x1] F( [x2][x3]S(x1, x2, Zero)) ⟧,
+        ApplySubst[ Mgu[( PairCons[ "#X",  %cterm⟦ [y1][y2][y3]S(y1,y2,Zero) ⟧]; )], %cterm⟦ [x1] F( [x2][x3]#X(x1, x2,x3)) ⟧ ] 
       ];
 
 

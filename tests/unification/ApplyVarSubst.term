@@ -7,29 +7,29 @@
  */
 (
 
-Assert[ %term⟦ A ⟧,
-        ApplyVarSubst[ PairCons[ %variable⟦ x ⟧,  %term⟦ y ⟧] , %term⟦ A ⟧ , ()] 
+Assert[ %cterm⟦ A ⟧,
+        ApplyVarSubst[ PairCons[ %cvariable⟦ x ⟧,  %cterm⟦ y ⟧] , %cterm⟦ A ⟧ , ()] 
       ];
 
-Assert[ %term⟦ y ⟧,
-        ApplyVarSubst[ (PairCons[ %variable⟦ x ⟧,  %term⟦ y ⟧];) , %term⟦ x ⟧ , ()] 
+Assert[ %cterm⟦ y ⟧,
+        ApplyVarSubst[ (PairCons[ %cvariable⟦ x ⟧,  %cterm⟦ y ⟧];) , %cterm⟦ x ⟧ , ()] 
       ];
 
-Assert[ %term⟦ F[y] ⟧,
-        ApplyVarSubst[ (PairCons[ %variable⟦ x ⟧,  %term⟦ y ⟧];) , %term⟦ F[x] ⟧ , ()] 
+Assert[ %cterm⟦ F(y) ⟧,
+        ApplyVarSubst[ (PairCons[ %cvariable⟦ x ⟧,  %cterm⟦ y ⟧];) , %cterm⟦ F(x) ⟧ , ()] 
       ];
 
-Assert[ %term⟦ x.F[x] ⟧,
-        ApplyVarSubst[ (PairCons[ %variable⟦ x ⟧,  %term⟦ y ⟧];) , %term⟦ x.F[x] ⟧ , ()] 
+Assert[ %cterm⟦ [x]F(x) ⟧,
+        ApplyVarSubst[ (PairCons[ %cvariable⟦ x ⟧,  %cterm⟦ y ⟧];) , %cterm⟦ [x]F(x) ⟧ , ()] 
       ];
 
-Assert[ %term⟦ C[x.F[x],y] ⟧,
-        ApplyVarSubst[ (PairCons[ %variable⟦ x ⟧,  %term⟦ y ⟧];) , %term⟦ C[x.F[x], x] ⟧ , (%variable⟦ y ⟧;)] 
+Assert[ %cterm⟦ C([x]F(x),y) ⟧,
+        ApplyVarSubst[ (PairCons[ %cvariable⟦ x ⟧,  %cterm⟦ y ⟧];) , %cterm⟦ C([x]F(x), x) ⟧ , (%cvariable⟦ y ⟧;)] 
       ];
 
 /* Expected Error
 Assert[ Error,
-        ApplyVarSubst[ (PairCons[ %variable⟦ x ⟧,  %term⟦ y ⟧];) , %term⟦ y.x ⟧ , (%variable⟦ y ⟧;)] 
+        ApplyVarSubst[ (PairCons[ %cvariable⟦ x ⟧,  %cterm⟦ y ⟧];) , %cterm⟦ [y]x ⟧ , (%cvariable⟦ y ⟧;)] 
       ];
 */
 )

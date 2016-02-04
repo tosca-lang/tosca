@@ -5,51 +5,51 @@
 (
 
 /* TEST TREE
-      F[#1, #2]
+      rule F(#1, #2]
         /   \
-   F[A, #2]   F[B, #2]
+   rule F(A, #2]   rule F(B, #2]
      / \ 
-F[A,A]  F[A,B]
+rule F(A,A]  rule F(A,B]
 */
 
-Assert[ SpecificityTree[ ( %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
-                           %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
-                           %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
-                           %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
-                           %ruleDeclaration⟦ F[#1, #2]  → C1 ⟧;
+Assert[ SpecificityTree[ ( %cdecl⟦ rule F(A,  #2)  → C2 ⟧;
+                           %cdecl⟦ rule F(B,  #2)  → C3 ⟧;
+                           %cdecl⟦ rule F(A,  A )  → C4 ⟧;
+                           %cdecl⟦ rule F(A,  B )  → C5 ⟧;
+                           %cdecl⟦ rule F(#1, #2)  → C1 ⟧;
                           )]
         ,
-        SpecificityTree[ ( %ruleDeclaration⟦ F[#1, #2]  → C1 ⟧;
-                           %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
-                           %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
-                           %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
-                           %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
+        SpecificityTree[ ( %cdecl⟦ rule F(#1, #2)  → C1 ⟧;
+                           %cdecl⟦ rule F(A,  #2)  → C2 ⟧;
+                           %cdecl⟦ rule F(B,  #2)  → C3 ⟧;
+                           %cdecl⟦ rule F(A,  A )  → C4 ⟧;
+                           %cdecl⟦ rule F(A,  B )  → C5 ⟧;
                           )]
       ];
 
 /* TEST TREE
 
-   F[A, #2]   F[B, #2]
+   rule F(A, #2]   rule F(B, #2]
      / \ 
-F[A,A]  F[A,B]
+rule F(A,A]  rule F(A,B]
 */
 
-Assert[ SpecificityTree[ ( %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
-                           %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
-                           %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
-                           %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
+Assert[ SpecificityTree[ ( %cdecl⟦ rule F(A,  #2)  → C2 ⟧;
+                           %cdecl⟦ rule F(B,  #2)  → C3 ⟧;
+                           %cdecl⟦ rule F(A,  A )  → C4 ⟧;
+                           %cdecl⟦ rule F(A,  B )  → C5 ⟧;
                           )]
          ,
-        SpecificityTree[ ( %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
-                           %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
- 						   %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
-                           %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
+        SpecificityTree[ ( %cdecl⟦ rule F(A,  A )  → C4 ⟧;
+                           %cdecl⟦ rule F(A,  B )  → C5 ⟧;
+ 						   %cdecl⟦ rule F(A,  #2)  → C2 ⟧;
+                           %cdecl⟦ rule F(B,  #2)  → C3 ⟧;
                           )]
       ];
 
 /* Expected Error: Overlap
-Assert[ SpecificityTree[ ( %ruleDeclaration⟦ Div[Zero, #2]  → C1 ⟧;
-					       %ruleDeclaration⟦ Div[#1, Zero]  → C2 ⟧;
+Assert[ SpecificityTree[ ( %cdecl⟦ Div(Zero, #2)  → C1 ⟧;
+					       %cdecl⟦ Div(#1, Zero)  → C2 ⟧;
                           )]
       ];
 */

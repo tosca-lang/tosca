@@ -1,5 +1,4 @@
-/* 
- * @author : m schett
+/*
  * @date   : 2015/12/07
  */
 (
@@ -8,49 +7,49 @@ Assert[(),
         RulesBySpecificity[()]
      ];
 
-Assert[( %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧; ),
-        RulesBySpecificity[ (%ruleDeclaration⟦ F[A, A]  → C4 ⟧; )]
+Assert[( %cdecl⟦ rule F(A,  A )  → C4 ⟧; ),
+        RulesBySpecificity[ (%cdecl⟦ rule F(A, A)  → C4 ⟧; )]
      ];
 
 /* TEST TREE
-      F[#1, #2]
+      rule F(#1, #2]
         /   \
-   F[A, #2]   F[B, #2]
+   rule F(A, #2]   rule F(B, #2]
      / \ 
-F[A,A]  F[A,B]
+rule F(A,A]  rule F(A,B]
 */
 
-Assert[( %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
-         %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
-         %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
-         %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
- 	     %ruleDeclaration⟦ F[#1, #2]  → C1 ⟧;
+Assert[( %cdecl⟦ rule F(A,  A )  → C4 ⟧;
+         %cdecl⟦ rule F(A,  B )  → C5 ⟧;
+         %cdecl⟦ rule F(A,  #2)  → C2 ⟧;
+         %cdecl⟦ rule F(B,  #2)  → C3 ⟧;
+ 	     %cdecl⟦ rule F(#1, #2)  → C1 ⟧;
         )
         ,
-        RulesBySpecificity[ ( %ruleDeclaration⟦ F[#1, #2]  → C1 ⟧;
-                              %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
-                              %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
-                              %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
-                              %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
+        RulesBySpecificity[ ( %cdecl⟦ rule F(#1, #2)  → C1 ⟧;
+                              %cdecl⟦ rule F(A,  #2)  → C2 ⟧;
+                              %cdecl⟦ rule F(B,  #2)  → C3 ⟧;
+                              %cdecl⟦ rule F(A,  A )  → C4 ⟧;
+                              %cdecl⟦ rule F(A,  B )  → C5 ⟧;
                           )]
      ];
 
 /* TEST TREE
-   F[A, #2]   F[B, #2]
+   rule F(A, #2]   rule F(B, #2]
      / \ 
-F[A,A]  F[A,B]
+rule F(A,A]  rule F(A,B]
 */
 
-Assert[( %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
-         %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
-         %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
-         %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
+Assert[( %cdecl⟦ rule F(A,  A )  → C4 ⟧;
+         %cdecl⟦ rule F(A,  B )  → C5 ⟧;
+         %cdecl⟦ rule F(A,  #2)  → C2 ⟧;
+         %cdecl⟦ rule F(B,  #2)  → C3 ⟧;
         )
         ,
-        RulesBySpecificity[ ( %ruleDeclaration⟦ F[A,  #2]  → C2 ⟧;
-                              %ruleDeclaration⟦ F[B,  #2]  → C3 ⟧;
-                              %ruleDeclaration⟦ F[A,  A ]  → C4 ⟧;
-                              %ruleDeclaration⟦ F[A,  B ]  → C5 ⟧;
+        RulesBySpecificity[ ( %cdecl⟦ rule F(A,  #2)  → C2 ⟧;
+                              %cdecl⟦ rule F(B,  #2)  → C3 ⟧;
+                              %cdecl⟦ rule F(A,  A )  → C4 ⟧;
+                              %cdecl⟦ rule F(A,  B )  → C5 ⟧;
                           )]
      ];
 )

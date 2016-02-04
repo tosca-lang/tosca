@@ -11,61 +11,61 @@
 
 //case constructor
 Assert[ State[Mgu[()] ,0],
-        Proj[State[Mgu[()] ,0], (), %term⟦ A ⟧]
+        Proj[State[Mgu[()] ,0], (), %cterm⟦ A ⟧]
       ];
 
 Assert[ State[FAIL ,0],
-        Proj[State[Mgu[()] ,0], (), %term⟦ F[x,y] ⟧]
+        Proj[State[Mgu[()] ,0], (), %cterm⟦ F(x,y) ⟧]
       ]; 
  
 
-Assert[ State[Mgu[( PairCons["#Y", %term⟦ #1 ⟧]; PairCons["#X",%term⟦ #0 ⟧]; )],2] ,
-        Proj[State[Mgu[()] ,0], (), %term⟦ F[#X,#Y] ⟧]
+Assert[ State[Mgu[( PairCons["#Y", %cterm⟦ #1 ⟧]; PairCons["#X",%cterm⟦ #0 ⟧]; )],2] ,
+        Proj[State[Mgu[()] ,0], (), %cterm⟦ F(#X,#Y) ⟧]
       ]; 
 
 //case binder
 Assert[ State[Mgu[()] ,0],
-        Proj[State[Mgu[()] ,0], (), %term⟦ x.F[x] ⟧]
+        Proj[State[Mgu[()] ,0], (), %cterm⟦ [x]F(x) ⟧]
       ]; 
 
 Assert[ State[FAIL ,0], 
-        Proj[State[Mgu[()] ,0], (), %term⟦ x.F[y] ⟧]
+        Proj[State[Mgu[()] ,0], (), %cterm⟦ [x]F(y) ⟧]
       ]; 
 
-Assert[ State[Mgu[( PairCons[ "#X", %term⟦ x.#0[x] ⟧ ]; )] ,1],
-        Proj[State[Mgu[()] ,0], (), %term⟦ x.#X[x] ⟧]
+Assert[ State[Mgu[( PairCons[ "#X", %cterm⟦ [x]#0(x) ⟧ ]; )] ,1],
+        Proj[State[Mgu[()] ,0], (), %cterm⟦ [x]#X(x) ⟧]
       ]; 
 
-Assert[ State[Mgu[( PairCons[ "#X", %term⟦ x.#0[x] ⟧ ]; )] ,1],
-        Proj[State[Mgu[()] ,0], (), %term⟦ x y.#X[x] ⟧]
+Assert[ State[Mgu[( PairCons[ "#X", %cterm⟦ [x]#0(x) ⟧ ]; )] ,1],
+        Proj[State[Mgu[()] ,0], (), %cterm⟦ [x][y]#X(x) ⟧]
       ]; 
 
 //case variable
 Assert[ State[FAIL ,0],
-        Proj[State[Mgu[()] ,0], ( %variable⟦ y ⟧; ),   %term⟦ x ⟧]
+        Proj[State[Mgu[()] ,0], ( %cvariable⟦ y ⟧; ),   %cterm⟦ x ⟧]
       ]; 
 
 Assert[ State[Mgu[()] ,0],
-        Proj[State[Mgu[()] ,0], ( %variable⟦ x ⟧; ), %term⟦ x ⟧]
+        Proj[State[Mgu[()] ,0], ( %cvariable⟦ x ⟧; ), %cterm⟦ x ⟧]
       ]; 
 
 //case meta variable
 
-Assert[ State[Mgu[(PairCons["#F", %term⟦ #0 ⟧];)],1] ,
-        Proj[State[Mgu[()] ,0], (%variable ⟦ x ⟧ ;), %term⟦ #F ⟧]
+Assert[ State[Mgu[(PairCons["#F", %cterm⟦ #0 ⟧];)],1] ,
+        Proj[State[Mgu[()] ,0], (%cvariable ⟦ x ⟧ ;), %cterm⟦ #F ⟧]
       ];
 
-Assert[ State[Mgu[(PairCons["#F", %term⟦ x y.#0 ⟧];)], 1] ,
-        Proj[State[Mgu[()] ,0], (), %term⟦ #F[x,y] ⟧]
+Assert[ State[Mgu[(PairCons["#F", %cterm⟦ [x][y]#0 ⟧];)], 1] ,
+        Proj[State[Mgu[()] ,0], (), %cterm⟦ #F(x,y) ⟧]
       ];
 
-Assert[ State[Mgu[(PairCons["#F", %term⟦ x y.#0[x] ⟧];)], 1] ,
-        Proj[State[Mgu[()] ,0], ( %variable⟦ x ⟧; ), %term⟦ #F[x,y] ⟧]
+Assert[ State[Mgu[(PairCons["#F", %cterm⟦ [x][y]#0(x) ⟧];)], 1] ,
+        Proj[State[Mgu[()] ,0], ( %cvariable⟦ x ⟧; ), %cterm⟦ #F(x,y) ⟧]
       ];
 
 
-Assert[ State[Mgu[(PairCons["#F", %term⟦ x y.#0[x,y] ⟧];)], 1] ,
-        Proj[State[Mgu[()] ,0], ( %variable⟦ x ⟧; %variable⟦ y ⟧;  ), %term⟦ #F[x,y] ⟧]
-      ];
+Assert[ State[Mgu[(PairCons["#F", %cterm⟦ [x][y]#0(x,y) ⟧];)], 1] ,
+        Proj[State[Mgu[()] ,0], ( %cvariable⟦ x ⟧; %cvariable⟦ y ⟧;  ), %cterm⟦ #F(x,y) ⟧]
+      ]; 
 
 )

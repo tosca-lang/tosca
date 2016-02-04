@@ -16,7 +16,7 @@ Assert[  Vars[(),(),( %cvariable⟦ x ⟧; )] ,
       ];
 
 Assert[  Vars[(),( %cvariable⟦ x ⟧; ), ()] ,
-        Variables[%cterm⟦ [x]x ⟧]
+         Variables[%cterm⟦ [x]x ⟧]
       ];
 /*
 Assert[  Vars[(),( %cvariable⟦ x ⟧; ), ( %cvariable⟦ x ⟧; )] ,

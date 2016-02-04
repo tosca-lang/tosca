@@ -11,21 +11,21 @@ Assert[ TRUE,
         IsRenaming[ Mgu[ () ] ] ];
 		
 Assert[ TRUE, 
-        IsRenaming[ Mgu[ ( PairCons["#X", %term⟦ #Y ⟧]; PairCons["#V", %term⟦ #Z ⟧]; ) ] ] ];
+        IsRenaming[ Mgu[ ( PairCons["#X", %cterm⟦ #Y ⟧]; PairCons["#V", %cterm⟦ #Z ⟧]; ) ] ] ];
 
 Assert[ FALSE, 
-        IsRenaming[ Mgu[ ( PairCons["#X", %term⟦ F[A,B] ⟧]; ) ] ] ];
+        IsRenaming[ Mgu[ ( PairCons["#X", %cterm⟦ F(A,B) ⟧]; ) ] ] ];
 
 Assert[ TRUE, 
-        IsRenaming[ Mgu[ ( PairCons["#X", %term⟦ x.#F[x] ⟧]; ) ] ] ];
+        IsRenaming[ Mgu[ ( PairCons["#X", %cterm⟦ [x]#F(x) ⟧]; ) ] ] ];
 
 Assert[ TRUE, 
-        IsRenaming[ Mgu[ ( PairCons["#X", %term⟦ x y z.#F[x,y,z] ⟧]; ) ] ] ];
+        IsRenaming[ Mgu[ ( PairCons["#X", %cterm⟦ [x][y][z]#F(x,y,z) ⟧]; ) ] ] ];
 
 Assert[ FALSE, 
-        IsRenaming[ Mgu[ ( PairCons["#X", %term⟦ x y z.#F[x,z,y] ⟧]; ) ] ] ];
+        IsRenaming[ Mgu[ ( PairCons["#X", %cterm⟦ [x][y][z]#F(x,z,y) ⟧]; ) ] ] ];
 
 Assert[ FALSE, 
-        IsRenaming[ Mgu[ ( PairCons["#X", %term⟦ x y z.#F[x,y] ⟧]; ) ] ] ];
+        IsRenaming[ Mgu[ ( PairCons["#X", %cterm⟦ [x][y][z]#F(x,y) ⟧]; ) ] ] ];
 
 )

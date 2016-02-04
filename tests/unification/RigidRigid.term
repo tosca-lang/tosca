@@ -13,15 +13,15 @@ Assert[ State[FAIL,0],
 ];
 
 Assert[ State[FAIL,0],
-        RigidRigid[ State[Mgu[()],0], %constructor ⟦ F ⟧, (%term ⟦ A ⟧;), %constructor ⟦ F ⟧, (%term ⟦ B ⟧;)]
+        RigidRigid[ State[Mgu[()],0], %constructor ⟦ F ⟧, (%cterm ⟦ A ⟧;), %constructor ⟦ F ⟧, (%cterm ⟦ B ⟧;)]
 ];
 
 Assert[ State[FAIL,0],
-        RigidRigid[ State[Mgu[()],0], %constructor ⟦ F ⟧, (%term ⟦ A ⟧;%term ⟦ B ⟧;), %constructor ⟦ F ⟧, (%term ⟦ B ⟧;%term ⟦ A ⟧;)]
+        RigidRigid[ State[Mgu[()],0], %constructor ⟦ F ⟧, (%cterm ⟦ A ⟧;%cterm ⟦ B ⟧;), %constructor ⟦ F ⟧, (%cterm ⟦ B ⟧;%cterm ⟦ A ⟧;)]
 ];
 
 Assert[ State[FAIL,0],
-        RigidRigid[ State[Mgu[()],0], %constructor ⟦ F ⟧, (%term ⟦ A ⟧;), %constructor ⟦ A ⟧, ()]
+        RigidRigid[ State[Mgu[()],0], %constructor ⟦ F ⟧, (%cterm ⟦ A ⟧;), %constructor ⟦ A ⟧, ()]
 ];
 
 

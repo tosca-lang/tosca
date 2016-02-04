@@ -6,39 +6,39 @@
  */
 
 (
-Assert[ %term⟦ x ⟧,
-        BetaDev[ %term⟦ x ⟧, () ] 
+Assert[ %cterm⟦ x ⟧,
+        BetaDev[ %cterm⟦ x ⟧, () ] 
       ]; 
 
 
-Assert[ %term⟦ F[y] ⟧,
-        BetaDev[ %term⟦ x.F[x] ⟧, ( %term⟦ y ⟧ ;) ] 
+Assert[ %cterm⟦ F(y) ⟧,
+        BetaDev[ %cterm⟦ [x]F(x) ⟧, ( %cterm⟦ y ⟧ ;) ] 
       ]; 
 
 
 
-Assert[ %term⟦ F[x,y] ⟧,
-        BetaDev[ %term⟦ x y.F[x,y] ⟧, ( %term⟦ x ⟧ ; %term⟦ y ⟧ ;) ] 
+Assert[ %cterm⟦ F(x,y) ⟧,
+        BetaDev[ %cterm⟦ [x][y]F(x,y) ⟧, ( %cterm⟦ x ⟧ ; %cterm⟦ y ⟧ ;) ] 
       ]; 
 
 
-Assert[ %term⟦ F[y,x] ⟧,
-        BetaDev[ %term⟦ x y.F[x,y] ⟧, ( %term⟦ y ⟧ ; %term⟦ x ⟧ ;) ] 
+Assert[ %cterm⟦ F(y,x) ⟧,
+        BetaDev[ %cterm⟦ [x][y]F(x,y) ⟧, ( %cterm⟦ y ⟧ ; %cterm⟦ x ⟧ ;) ] 
       ]; 
 
-Assert[ %term⟦ y. #X[z] ⟧,
-        BetaDev[ %term⟦ x y.#X[x] ⟧, ( %term⟦ z ⟧ ;) ] 
+Assert[ %cterm⟦ [y]#X(z) ⟧,
+        BetaDev[ %cterm⟦ [x][y]#X(x) ⟧, ( %cterm⟦ z ⟧ ;) ] 
       ]; 
 
 /* Expected Error
 Assert[ Error,
-        BetaDev[ %term⟦ #X[x] ⟧, ( %term⟦ z ⟧ ;) ] 
+        BetaDev[ %cterm⟦ #X(x) ⟧, ( %cterm⟦ z ⟧ ;) ] 
 ];
 */
 
 /* Expected Error 
 Assert[ Error,
-        BetaDev[ %term⟦ x. #X[x] ⟧, ( %term⟦ z ⟧ ; %term⟦ y ⟧ ;) ] 
+        BetaDev[ %cterm⟦ [x] #X(x) ⟧, ( %cterm⟦ z ⟧ ; %cterm⟦ y ⟧ ;) ] 
 ];
 */
 

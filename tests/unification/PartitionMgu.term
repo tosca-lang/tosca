@@ -8,22 +8,22 @@
 (
 		
 /* no variables */		
-Assert[ PairCons[ Mgu[()], Mgu[ (PairCons["#Y", %term⟦ B⟧];
-                                 PairCons["#X", %term⟦ #Y ⟧];)] ],
-        PartitionMgu[ Mgu[ (PairCons[ "#Y", %term⟦ B⟧];
-                            PairCons[ "#X", %term⟦ #Y ⟧];)], () ]
+Assert[ PairCons[ Mgu[()], Mgu[ (PairCons["#Y", %cterm⟦ B⟧];
+                                 PairCons["#X", %cterm⟦ #Y ⟧];)] ],
+        PartitionMgu[ Mgu[ (PairCons[ "#Y", %cterm⟦ B⟧];
+                            PairCons[ "#X", %cterm⟦ #Y ⟧];)], () ]
 	  ];
 
 /* all variables */
-Assert[ PairCons[ Mgu[ (PairCons["#Y", %term⟦ B⟧];
-                        PairCons["#X", %term⟦ #Y ⟧];)], Mgu[()] ],
-        PartitionMgu[ Mgu[ (PairCons[ "#Y", %term⟦ B⟧];
-                            PairCons[ "#X", %term⟦ #Y ⟧];)], ("#X";"#Y";) ]
+Assert[ PairCons[ Mgu[ (PairCons["#Y", %cterm⟦ B⟧];
+                        PairCons["#X", %cterm⟦ #Y ⟧];)], Mgu[()] ],
+        PartitionMgu[ Mgu[ (PairCons[ "#Y", %cterm⟦ B⟧];
+                            PairCons[ "#X", %cterm⟦ #Y ⟧];)], ("#X";"#Y";) ]
 ];
 
-Assert[ PairCons[ Mgu[(PairCons["#X", %term⟦ #Y ⟧];)], 
-                  Mgu[(PairCons["#Y", %term⟦ B  ⟧];)]],
-        PartitionMgu[Mgu[(PairCons["#Y", %term⟦ B ⟧]; 
-                          PairCons["#X", %term⟦ #Y ⟧];)], ("#X";)]
+Assert[ PairCons[ Mgu[(PairCons["#X", %cterm⟦ #Y ⟧];)], 
+                  Mgu[(PairCons["#Y", %cterm⟦ B  ⟧];)]],
+        PartitionMgu[Mgu[(PairCons["#Y", %cterm⟦ B ⟧]; 
+                          PairCons["#X", %cterm⟦ #Y ⟧];)], ("#X";)]
       ];
 )
