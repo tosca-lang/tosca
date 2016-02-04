@@ -54,6 +54,17 @@ public abstract class Term extends Reference
 	{
 		return term.kind() == Kind.CONSTRUCTION && ((Construction) term).descriptor() == ConstructionDescriptor.LiteralDescriptor.singleton;
 	}
+
+	/**
+	 * Whether the given term is a variable use 
+	 * 
+	 * @param term
+	 */
+	public static boolean isVariableUse(Term term)
+	{
+		return term.kind() == Kind.VARIABLE_USE;
+	}
+
 	
 	// State
 

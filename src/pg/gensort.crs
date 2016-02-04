@@ -184,7 +184,7 @@ MaybeMakeArgument[TRUE, FALSE, #element, #count, ok¹ count.#[ok¹, count]]
 {#E}MaybeMakeArgument[FALSE, TRUE, #element, #count, ok¹ count.#[ok¹, count]] 
 → {#E}MakeArgument[#element, #count, ok¹.#[ok¹, #count]];
 
-// Check element option is <binder=variable>
+// Check element option is <bound=variable>
 MaybeMakeBinderArgument[$List[ElementOption], ANTLR_element_sort, $Numeric, ok¹::OK_SORT count::$Numeric.Text] :: Text;
 
 // No binder option. Could it be binds?
@@ -197,7 +197,7 @@ MaybeMakeBinderArgument[$List[ElementOption], ANTLR_element_sort, $Numeric, ok¹
 MaybeMakeBinderArgument[(BINDER[#binder];), #element, #count, ok¹ count.#[ok¹, count]]
 → {#E}MakeBinderArgument[#binder, MakeBinderKey[#binder], GetRefElement[#element, (), #index], #count, ok¹ count.#[ok¹, count]]; 
      
-/* Handle <binder=x>: 
+/* Handle <boundvar=x>: 
    
   For the printing rule: get a fresh new variable to get a new name. Limit binder to 
   token, and due to CRSX sort system limitation, the fresh variable sort is $String
@@ -225,8 +225,12 @@ MakeBinderArgument[$String, $String, Option[$String], $Numeric, ok¹::OK_SORT co
     "@prhs"    : TEXTS[(Text-Embed[%n⟦$[Show, †«#binder»]⟧]; #rhs)];
   }#[OK, #count];
 
-// Check element option is list of <binds=variable>
+// Check element option is list of <bound=variable>
 MaybeMakeBindsArgument[$List[ElementOption], ANTLR_element_sort, $Numeric, ok¹::OK_SORT count::$Numeric.Text] :: Text;
+
+// No <bound> option. Check for variable 
+{#E}MaybeMakeBindsArgument[(), #element, #count, ok¹ count.#[ok¹, count]] 
+→ {#E}MakeRawArgument[OK, #element, #count, ok¹ count.#[ok¹, count]];
 
 {#E; "@sort":TEXT[#sort]; "@sep":TEXT[#sep]}
 MaybeMakeBindsArgument[(#binds; #bindss), #element, #count, ok¹ count.#[ok¹, count]] 
@@ -236,11 +240,6 @@ MaybeMakeBindsArgument[(#binds; #bindss), #element, #count, ok¹ count.#[ok¹, c
   }MakeBindsArguments[OK, (#binds; #bindss), ok¹.
    MakeRawArgument[ok¹, #element, #count, ok¹ count.#[ok¹, count]]]; 
 
-// Common case: element has no options, and not fused. This is a raw element 
-{#E}MaybeMakeBindsArgument[(), #element, #count, ok¹ count.#[ok¹, count]] 
-→ {#E}MakeRawArgument[OK, #element, #count, ok¹ count.#[ok¹, count]];
-
-// Check element option is list of <binds=variable>
 MakeBindsArguments[OK_SORT, $List[ElementOption], ok¹::OK_SORT.Text] :: Text;
 
 {#E}MakeBindsArguments[OK, (), ok¹.#[ok¹]] 
@@ -260,7 +259,20 @@ MakeBindsArgument[$String, ok¹::OK_SORT.Text] :: Text;
     "@binders" : TEXTS[(%n⟦†«#binder»⟧; #binders)];
   }#[OK];
 
-// Check element option is <symbol>
+// Check element option is <variable>
+// TODO: should be done earlier, to avoid generating a data constructor
+//MaybeMakeVariableArgument[$List[ElementOption], ANTLR_element_sort, $Numeric, ok¹::OK_SORT count::$Numeric.Text] :: Text;
+//
+//// Common case: element has no options, and not fused. This is a raw element 
+//{#E}MaybeMakeVariableArgument[(), #element, #count, ok¹ count.#[ok¹, count]] 
+//→ {#E}MakeRawArgument[OK, #element, #count, ok¹ count.#[ok¹, count]];
+//
+//{#E; "@plhs": TEXTS[#printerLHS]; "@prhs": TEXTS[#printerRHS]; "@sort":TEXT[#sort]}
+//MaybeMakeVariableArgument[(#variable; #rest), #element, #count, ok¹ count.#[ok¹, count]] 
+//→ {#E;
+//    "@sort": TEXT[%n⟦«#sort»x⟧];
+//    "@plhs": TEXTS[(%n⟦x⟧; #printerLHS)];  
+//    "@prhs": TEXTS[(Text-Embed[%n⟦x⟧]; #printerRHS)]}#[OK, $[Plus, #count, 1]];
 
 // Common case: element has no options, and not fused. Make regular argument   
 MakeRawArgument[OK_SORT, ANTLR_element_sort, $Numeric, ok¹::OK_SORT count::$Numeric.Text] :: Text;

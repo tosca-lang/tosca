@@ -16,9 +16,9 @@ rule Plus(S(#1), #2) → S( Plus(#1,#2) )
 
 // Pick number. 
 
-//func Int Pick(List(Int), [Int][Int]Bool) 
-//rule Pick(#, [x][y]#pick(x,y)) → Pick2(#, [x][y]#pick(x,y), 1)
+func Int Pick(List(Int), [Int][Int]Bool) 
+rule Pick(#, [x][y]#pick(x,y)) → Pick2(#, [x][y]#pick(x,y), 1)
 
-//func Int Pick2(List(Int), [Int][Int]Bool, Int) 
-//rule Pick2(Nil, [x][y]#pick(x,y), #n) → #n
-//rule Pick2(Cons(#1, #rest), [x][y]#pick(x,y), #n) → Pick2(#rest, [x][y]#pick(x,y), #pick(#1,#n))
+func Int Pick2(List(Int), [Int][Int]Bool, Int) 
+rule Pick2(Nil, [x][y]#pick(x,y), #n) → #n
+rule Pick2(Cons(#1, #rest), [x][y]#pick(x,y), #n) → Pick2(#rest, [x][y]#pick(x,y), #pick(#1,#n))

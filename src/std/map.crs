@@ -16,6 +16,7 @@ $Use["std/env.crs"];
 ∀ a b . MapGet[MAP[a,b], a /* Key */] :: Option[b];
 -[Data[#key], Free[x::a]]: MapGet[{#map}MAP, $[NotMatch, x, #key]] → {#map}GetSome[#key];
 
+// TODO: really want to match a syntactic variable, not a semantic one.
 ∀ a b . MapGetVar[MAP[a,b], a /* Variable Key */] :: Option[b];
 -[Data[#key], Free[x::a]]: MapGetVar[{#map}MAP, x] → {#map}GetSome[x];
 

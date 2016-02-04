@@ -125,6 +125,7 @@ cterm
                                                                             VARIABLE<boundvar=x> means VARIABLE is a bound variable we call x
                                                                             cterm<bound=x>       means x is bound in the context of the cterm */
     ;
+     
 
 cliteral
     : STRING                                                    /* String literal */
@@ -132,8 +133,11 @@ cliteral
     ; 
 
 cvariable
-    : VARIABLE<variable>                                        /* Variable occurrence. VARIABLE<variable> means look for a bound variable that matches VARIABLE 
-                                                                           in the current tracked bound variables (innermost scope first). VARIABLE is free if not found in scope.  */
+    : VARIABLE<variable>                                       /* Variable occurrence */
+                          /* <variable> means 1. maps VARIABLE to a syntactic variable
+                                              2. look for a bound variable that matches VARIABLE 
+                                                   in the current tracked bound variables (innermost scope first). 
+                                                   VARIABLE is free if not found in scope.  */
     ;
 
 cmapentries

@@ -299,10 +299,9 @@ MapC2[PairCons[#newstate, #1], state x.#[state, x], #s, state.#c[state]] → (#1
 /* `{#}ApplyCont[#cont]`
    @param #cont continutation to apply
  */
-/* MS Sort error: rule reference meta-variable List-ApplyCont-1 -- #E not defined!
-∀ a. ApplyCont[Cont[a]] :: a;
+∀ a. {$String:$String}ApplyCont[Cont[a]] :: a;
 {#E}ApplyCont[CONT[ok¹.#[ok¹]]] → {#E}#[OK];
-*/
+
 
 /* `SeqMap[x c.#[x,c], #L, ok.#D[ok]]`
     Apply each item in list #L to function #, as a continuation, passing the environment along
