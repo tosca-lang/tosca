@@ -28,6 +28,8 @@ METAVAREqual[#METAVAR, #METAVAR2]
 → 
 StringEqual[#METAVAR, #METAVAR2];
 
+// TODO-2016-02-04: problem variable equal
+
 /* VariableEqual 
   @param  cvariable `v1` 
   @param  cvariable `v2`
@@ -37,8 +39,8 @@ StringEqual[#METAVAR, #METAVAR2];
 */
 VariableEqual[Core_cvariable_sort, Core_cvariable_sort] :: Boolean;
 VariableEqual[%cvariable⟦ ##VARIABLE ⟧, %cvariable⟦ ##VARIABLE2 ⟧  ] 
-→ 
-StringEqual[#VARIABLE, #VARIABLE2];
+→ WrapBoolean[$[SameVariable, #VARIABLE, #VARIABLE2]];
+//StringEqual[#VARIABLE, #VARIABLE2];
 
 
 

@@ -7,6 +7,8 @@
 
 Unification [(
 
+$Use["core/Core.crs"];
+
 $Use["std/core.crs"];
 $Use["std/list.crs"];
 $Use["std/pair.crs"];
@@ -16,46 +18,8 @@ $Use["unification/state.crs"];
 $Use["utils/termops.crs"];
 
 
-UnifyTerms[Crsx_term_sort,Crsx_term_sort] :: Mgu;
+UnifyTerms[Core_cterm_sort,Core_cterm_sort] :: Mgu;
 UnifyTerms[#t1, #t2] → GetMgu[Unify[INIT_STATE, PairCons[#t1,#t2]]];
-
-////////////////////////////////////////////////////////////////////////
-
-/* UnifyPattern 
-  @param  pattern `p1` 
-  @param  pattern `p2`
-  @return a state, where its Mgu is 
-          `FAIL`, iff `p1` does not unify with `p2`, 
-           an association list between subterms in `p1` and `p2`, otherwise
-  @note   this pre-step is required to get the sorts right,
-          because a pattern is not a term
-          to surpass a potentially futile UnwrapArguments, the equality of the 
-          constructors is checked immediately.
-  @note   due to renaming the name of the meta variables will change, meaning
-          that the original patterns will not have the same meta variable names 
-          as the computed mgu. 
-          Fixes: 
-          * apply rename *function* to term
-          * compute a renaming mgu and apply it on the computed mgu 
-  @note   Assumptions
-          Assumption 1: alpha equivalent, e.g., x.x ≈ y.y 
-          Assumption 2: linear patterns
-          Assumption 3: variable disjoint
-*/
-UnifyPattern[Crsx_pattern_sort, Crsx_pattern_sort] :: STATE;
--[Discard[#properties?, #properties?2]] :
-UnifyPattern[ %pattern⟦ ##properties?  ##constructor  ##arguments?  ⟧, 
-              %pattern⟦ ##properties?2 ##constructor2 ##arguments?2 ⟧ ]
-→  
-MatchUnifyPattern[ConstructorEqual[#constructor,#constructor2], #constructor, #arguments?, #constructor2, #arguments?2];
-  MatchUnifyPattern[Boolean, Crsx_constructor_sort, $List[Crsx_arguments_sort], Crsx_constructor_sort, $List[Crsx_arguments_sort]] :: STATE;
-  MatchUnifyPattern[FALSE, #constructor, #arguments?, #constructor2,  #arguments?2 ] 
-  → 
-  UpdateMgu[INIT_STATE,x.FAIL];
-
-  MatchUnifyPattern[TRUE,  #constructor, #arguments?, #constructor2, #arguments?2 ] 
-  →
-  RigidRigid[INIT_STATE, #constructor , UnwrapArguments[#arguments?], #constructor2, UnwrapArguments[#arguments?2]];
 
 /* Unify 
   @param  a state with an mgu `θ`
@@ -63,37 +27,51 @@ MatchUnifyPattern[ConstructorEqual[#constructor,#constructor2], #constructor, #a
   @return a STATE, where `θ` is
           `FAIL`, iff `t1` does not unify with `t2`, 
            an association list between subterms in `t1` and `t2`, otherwise
-  @note   the same assumptions as for UnifyPattern apply
+  @note  
+         Assumption 1: alpha equivalent, e.g., x.x ≈ y.y 
+         Assumption 2: linear patterns
+         Assumption 3: variable disjoint
+
+  @note   due to renaming the name of the meta variables will change, meaning
+          that the original patterns will not have the same meta variable names 
+          as the computed mgu. 
+          Fixes: 
+          * apply rename *function* to term
+          * compute a renaming mgu and apply it on the computed mgu 
 */
-Unify[STATE, Pair[Crsx_term_sort, Crsx_term_sort]] :: STATE;
+
+// TODO 2016-02-04	 bound terms
+Unify[STATE, Pair[Core_cterm_sort, Core_cterm_sort]] :: STATE;
 /* term `t1 = x.t1'` and term `t2 = x.t2'` */
--[Discard[#annotations?, #annotations?2]] :
-Unify[#state, PairCons[ %term⟦ ##annotations?  ##variable  ##nextBinder  ⟧, 
-                        %term⟦ ##annotations?2 ##variable2 ##nextBinder2 ⟧]]
-→ MatchAlphaEq[VariableEqual[#variable, #variable2], #state, 
-                        %term⟦ ##annotations?  ##variable  ##nextBinder  ⟧,
-                        %term⟦ ##annotations?2 ##variable2 ##nextBinder2 ⟧];  
-
-  MatchAlphaEq[Boolean, STATE, Crsx_term_sort, Crsx_term_sort] :: STATE;
-  MatchAlphaEq[TRUE,  #state, %term⟦ ##annotations?  ##variable  ##nextBinder  ⟧, 
-                              %term⟦ ##annotations?2 ##variable2 ##nextBinder2 ⟧] 
-  → Unify[#state, PairCons[UnwrapNextBinder[#nextBinder], UnwrapNextBinder[#nextBinder2]]];
-  MatchAlphaEq[FALSE, #state, %term⟦ ##annotations? ##variable ##nextBinder ⟧,  
+Unify[#state, PairCons[ %cterm⟦ [ ##VARIABLE  ] ##cterm  ⟧, 
+                        %cterm⟦ [ ##VARIABLE2 ] ##cterm2 ⟧]]
+→ FooUnify; /*
+  MatchAlphaEq[VariableEqual[#VARIABLE, #VARIABLE2], #state, 
+                        %cterm⟦ [ ##VARIABLE  ] ##cterm  ⟧, 
+                        %cterm⟦ [ ##VARIABLE2 ] ##cterm2 ⟧];  
+  */
+  MatchAlphaEq[Boolean, STATE, Core_cterm_sort, Core_cterm_sort] :: STATE;
+  MatchAlphaEq[TRUE,  #state, %cterm⟦ [ ##VARIABLE  ] ##cterm  ⟧, 
+                              %cterm⟦ [ ##VARIABLE2 ] ##cterm2 ⟧] 
+  → FooMatchAlphaEq; //Unify[#state, PairCons[#cterm, #cterm2]];
+  MatchAlphaEq[FALSE, #state, %cterm⟦ [ ##VARIABLE  ] ##cterm  ⟧,  
                               #term2] 
-  → Unify[#state, PairCons[UnwrapNextBinder[#nextBinder], BetaDev[#term2, (%term⟦ ##variable ⟧;)]]];
+  → FooMatchAlphaEq;
+   // Unify[#state, PairCons[#cterm, BetaDev[#term2, (%cterm⟦ ##VARIABLE ⟧;)]]];
 
-
-/* term `t1 = x.t1'` but term `t2 ≠ x.t2'`  */
-Unify[#state, PairCons[ %term⟦ ##boundTerm ⟧, %term⟦ ##freeTerm ⟧ ] ] 
+// TODO 2016-02-04	 grammar change
+/* term `t1 = x.t1'` but term `t2 ≠ x.t2'`  
+Unify[#state, PairCons[ %cterm⟦ ##boundTerm ⟧, %cterm⟦ ##freeTerm ⟧ ] ] 
 → UpdateMgu[#state, x.FAIL] ;
-
-/* term `t2 = x.t2'`  but term `t1 ≠ x.t1'` */
-Unify[#state, PairCons[ %term⟦ ##freeTerm ⟧, %term⟦ ##boundTerm ⟧ ] ] 
+*/
+/* term `t2 = x.t2'`  but term `t1 ≠ x.t1'` 
+Unify[#state, PairCons[ %cterm⟦ ##freeTerm ⟧, %cterm⟦ ##boundTerm ⟧ ] ] 
 → UpdateMgu[#state, x.FAIL] ;
+*/
 
 /* term `t1 ≠ x.t1'` and `t2 ≠ x.t2'` */
-Unify[#state, PairCons[ %term⟦ ##freeTerm ⟧  , %term⟦ ##freeTerm2 ⟧ ]] 
-→ Cases[#state, %term⟦ ##freeTerm ⟧  , %term⟦ ##freeTerm2 ⟧ ];
+Unify[#state, PairCons[ %cterm⟦ ##cterm ⟧  , %cterm⟦ ##cterm2 ⟧ ]] 
+→ Cases[#state, %cterm⟦ ##cterm ⟧, %cterm⟦ ##cterm2 ⟧];
 
 
 /* *********************************************************** */
@@ -107,45 +85,41 @@ Unify[#state, PairCons[ %term⟦ ##freeTerm ⟧  , %term⟦ ##freeTerm2 ⟧ ]]
            `FAIL`, iff `t1` does not unify with `t2`, 
            an association list between subterms in `t1` and `t2`, otherwise
 */
-Cases[STATE, Crsx_term_sort, Crsx_term_sort] :: STATE;
+Cases[STATE, Core_cterm_sort, Core_cterm_sort] :: STATE;
 
 /* Case: root(`t1`) ∈ Constructors, root(`t2`) ∈ Constructors  */
--[Discard[#annotations?, #annotations?2, #properties?, #properties?2]]:
-Cases[#state, %term⟦ ##annotations?  ##properties?   ##constructor  ##arguments?  ⟧, 
-              %term⟦ ##annotations?2 ##properties?2  ##constructor2 ##arguments?2 ⟧] 
+Cases[#state, %cterm⟦ ##CONSTRUCTOR  ##cterms?  ⟧, 
+              %cterm⟦ ##CONSTRUCTOR2 ##cterms?2 ⟧] 
 → 
-RigidRigid[#state, #constructor,  UnwrapArguments[#arguments?], 
-                   #constructor2, UnwrapArguments[#arguments?2]];
+RigidRigid[#state, #CONSTRUCTOR,  Unwrap[#cterms?], 
+                   #CONSTRUCTOR2, Unwrap[#cterms?2]];
 
 /* Case: root(`t1`) ∈ MetaVars, root(`t2`) ∈ MetaVars */
--[Discard[#annotations?, #annotations?2, #properties?, #properties?2]] :
-Cases[#state, %term⟦ ##annotations?  ##properties?  ##METAVAR  ##freeArguments?  ⟧,
-              %term⟦ ##annotations?2 ##properties?2 ##METAVAR2 ##freeArguments?2 ⟧ ]
+Cases[#state, %cterm⟦ ##METAVAR  ##cterms?  ⟧,
+              %cterm⟦ ##METAVAR2 ##cterms?2 ⟧ ]
 → 
-FlexFlex[#state, #METAVAR,  UnwrapMetaVariableArguments[#freeArguments?], 
-                 #METAVAR2, UnwrapMetaVariableArguments[#freeArguments?2]];
+FlexFlex[#state, #METAVAR,  UnwrapMetaVariableArguments[#cterms?], 
+                 #METAVAR2, UnwrapMetaVariableArguments[#cterms?2]];
 
 /* Case: root(`t1`) ∈ MetaVars, root(`t2`) ∉ MetaVars */
--[Discard[#annotations?, #properties?]]:
-Cases[#state, %term⟦ ##annotations?  ##properties?  ##METAVAR ##freeArguments? ⟧,
+Cases[#state, %cterm⟦ ##METAVAR ##cterms? ⟧,
               #t2] 
 → 
-FlexRigid[#state, #METAVAR, UnwrapMetaVariableArguments[#freeArguments?], 
+FlexRigid[#state, #METAVAR, UnwrapMetaVariableArguments[#cterms?], 
                   #t2];
 
 /* Case: root(`t1`) ∉ MetaVars, root(`t2`) ∈ MetaVars */
--[Discard[#annotations?2, #properties?2]] :
 Cases[#state, #t1,
-              %term⟦ ##annotations?2 ##properties?2 ##METAVAR ##freeArguments? ⟧]
+              %cterm⟦ ##METAVAR ##cterms? ⟧]
 →  
-FlexRigid[#state, #METAVAR, UnwrapMetaVariableArguments[#freeArguments?], 
+FlexRigid[#state, #METAVAR, UnwrapMetaVariableArguments[#cterms?], 
                   #t1];
 
 /*  case is treated by RigidRigid in Nipkow93 */ 
-Cases[#state, %term⟦ ##annotations? ##variable ⟧,  
-              %term⟦ ##annotations?2 ##variable2 ⟧] 
+Cases[#state, %cterm⟦ ##cvariable ⟧,  
+              %cterm⟦ ##cvariable2 ⟧] 
 → 
-MatchVariableCase[VariableEqual[#variable, #variable2], #state];
+MatchVariableCase[VariableEqual[ #cvariable, #cvariable2], #state];
   MatchVariableCase[Boolean, STATE] :: STATE;
   MatchVariableCase[TRUE,  #state] → #state;
   MatchVariableCase[FALSE, #state] → UpdateMgu[#state, x.FAIL];
@@ -154,13 +128,13 @@ MatchVariableCase[VariableEqual[#variable, #variable2], #state];
 
 /* case literal, number or string       */
 /* literals are treated as constructors */
-Cases[#state, %term⟦##annotations?  ##properties?  ##NUMBER  ⟧,
-              %term⟦##annotations?2 ##properties?2 ##NUMBER2 ⟧]
+Cases[#state, %cterm⟦  ##NUMBER  ⟧,
+              %cterm⟦  ##NUMBER2 ⟧]
 → 
 MatchLiteral[StringEqual[#NUMBER, #NUMBER2],#state];
 
-Cases[#state, %term⟦##annotations?  ##properties?  ##STRING  ⟧,
-              %term⟦##annotations?2 ##properties?2 ##STRING2 ⟧]
+Cases[#state, %cterm⟦  ##STRING  ⟧,
+              %cterm⟦  ##STRING2 ⟧]
 → 
 MatchLiteral[StringEqual[#STRING, #STRING2], #state];
   MatchLiteral[Boolean, STATE] :: STATE;
@@ -181,11 +155,11 @@ MatchLiteral[StringEqual[#STRING, #STRING2], #state];
    `FAIL` if `#a` ≠ `#b`, i.e., they are different constructors,
     otherwise try to unify the arguments recursively
 */
-RigidRigid[STATE, Crsx_constructor_sort, $List[Crsx_term_sort], Crsx_constructor_sort, $List[Crsx_term_sort]] :: STATE; 
+RigidRigid[STATE, $String /* Core_cconstructor_sort*/, $List[Core_cterm_sort], $String /* Core_constructor_sort*/, $List[Core_cterm_sort]] :: STATE; 
 RigidRigid[#state, #a, #ss, #b, #ts] 
 → MatchRigidRigid[#state, ConstructorEqual[#a, #b], #ss, #ts];
 
-  MatchRigidRigid[STATE, Boolean, $List[Crsx_term_sort], $List[Crsx_term_sort]] :: STATE;
+  MatchRigidRigid[STATE, Boolean, $List[Core_cterm_sort], $List[Core_cterm_sort]] :: STATE;
   MatchRigidRigid[#state, FALSE, #ss, #ts] → UpdateMgu[#state,x.FAIL];
   MatchRigidRigid[#state, TRUE,  #ss, #ts] → IWrapFoldlP[p st. Unify[st,p], #state, Zip[#ss,#ts]];
   //if it fails here, it is most likely because the arity of the constructors was different.
@@ -197,7 +171,7 @@ RigidRigid[#state, #a, #ss, #b, #ts]
    @param  term         `#ts` = `t2`
    @return a state with an updated mgu `θ'`
 */
-FlexRigid[STATE, $String /* Crsx_METAVAR_sort */, $List[Crsx_variable_sort], Crsx_term_sort] :: STATE;
+FlexRigid[STATE, $String /* Core_METAVAR_sort */, $List[Core_cvariable_sort], Core_cterm_sort] :: STATE;
 FlexRigid[#state, #F, #xs, #t] 
 → Proj[ Circ[#state, #F, WrapBoundTerm[#xs, #t]], #xs, #t ];
        /*  wrt Nipkow93, if #F in FreeVariables(t2) then FAIL 
@@ -214,18 +188,18 @@ FlexRigid[#state, #F, #xs, #t]
    @note   careful, the order of the arguments depend on 
            the definition of Intersect
 */
-FlexFlex[STATE, $String /* Crsx_METAVAR_sort */, $List[Crsx_variable_sort], $String /* Crsx_METAVAR_sort */, $List[Crsx_variable_sort]] :: STATE;
+FlexFlex[STATE, $String /* Core_cMETAVAR_sort */, $List[Core_cvariable_sort], $String /* Core_cMETAVAR_sort */, $List[Core_cvariable_sort]] :: STATE;
 -[Data[#xs, #ys]]: //intersect
 FlexFlex[#state, #F, #xs, #G, #ys ] 
 →  /* If[Eq[#F,#G], FlexFlex1[...], ... linear */
   FlexFlex2[#state, #F, #xs, #G, #ys];
 
 
-FlexFlex2[STATE, $String /* Crsx_METAVAR_sort */, $List[Crsx_variable_sort], $String /* Crsx_METAVAR_sort */, $List[Crsx_variable_sort]] :: STATE; 
+FlexFlex2[STATE, $String /* Core_cMETAVAR_sort */, $List[Core_cvariable_sort], $String /* Core_cMETAVAR_sort */, $List[Core_cvariable_sort]] :: STATE; 
 FlexFlex2[#state,#F,#xs,#G,#ys] 
 → MatchFlexFlex2[FRESH_METAVAR[#state], Intersect[#xs,#ys], #F, #xs, #G, #ys];
 
-  MatchFlexFlex2[Pair[STATE, $String /* Crsx_METAVAR_sort */], $List[Crsx_variable_sort], $String /* Crsx_METAVAR_sort */, $List[Crsx_variable_sort], $String /* Crsx_METAVAR_sort */, $List[Crsx_variable_sort]] :: STATE;
+  MatchFlexFlex2[Pair[STATE, $String /* Core_cMETAVAR_sort */], $List[Core_cvariable_sort], $String /* Core_cMETAVAR_sort */, $List[Core_cvariable_sort], $String /* Core_cMETAVAR_sort */, $List[Core_cvariable_sort]] :: STATE;
   MatchFlexFlex2[PairCons[#state, #fresh], #zs, #F, #xs, #G, #ys] 
   → Circ[Circ[#state, #F,  WrapSubstitute[#xs, #fresh, #zs]], 
                       #G,  WrapSubstitute[#ys, #fresh, #zs]]; 
@@ -234,29 +208,31 @@ FlexFlex2[#state,#F,#xs,#G,#ys]
 /* *********************************************************** */
 
 
-Proj[STATE, $List[Crsx_variable_sort], Crsx_term_sort] :: STATE;
+Proj[STATE, $List[Core_cvariable_sort], Core_cterm_sort] :: STATE;
 Proj[#state, #V, #s] → Case[#state, #V, ApplySubst[ GetMgu[#state] ,#s ]];
 
-Case[STATE, $List[Crsx_variable_sort], Crsx_term_sort] :: STATE;
+Case[STATE, $List[Core_cvariable_sort], Core_cterm_sort] :: STATE;
+
+// TODO 2016-02-04	 boundterms
 /* case: `s = x . s'` */
-Case[#state, #V, %term⟦ ##annotations? ##variable ##nextBinder ⟧] 
-→ Proj[#state, Insert[#variable, #V], UnwrapNextBinder[#nextBinder]] ;
+Case[#state, #V, %cterm⟦ [ ##VARIABLE ] ##cterm ⟧] 
+→ FooCase; //Proj[#state, Insert[#VARIABLE, #V], #cterm] ;
 
 /* case: `s = C[s_1, ..., s_n]` */ 
-Case[#state, #V, %term⟦ ##annotations? ##properties? ##constructor ##arguments? ⟧]
-→ IWrapFoldlP[si state.Proj[state, #V, si], #state, UnwrapArguments[#arguments?]];
+Case[#state, #V, %cterm⟦ ##CONSTRUCTOR ##cterms? ⟧]
+→ IWrapFoldlP[si state.Proj[state, #V, si], #state, Unwrap[#cterms?]];
 
 /* case: `s = x` */ 
-Case[#state,#V, %term⟦ ##annotations? ##variable ⟧] 
-→ MatchVarCase[Elem[#variable,#V], #state, %term⟦ ##annotations?  ##variable ⟧];
-  MatchVarCase[Boolean, STATE, Crsx_term_sort] :: STATE;
+Case[#state, #V, %cterm⟦  ##cvariable ⟧] 
+→ MatchVarCase[Elem[#cvariable,#V], #state, %cterm⟦ ##cvariable ⟧];
+  MatchVarCase[Boolean, STATE, Core_cterm_sort] :: STATE;
   MatchVarCase[TRUE, #state, #s] → #state;
   MatchVarCase[FALSE,#state, #s] → UpdateMgu[#state,x.FAIL];
 
 /* case: `s = #X[x_1, ..., x_n] ` */ 
-Case[#state,#V, %term⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧]
-→ CaseHelper[FRESH_METAVAR[#state], #V, #METAVAR, UnwrapMetaVariableArguments[#freeArguments?]];
-  CaseHelper[Pair[STATE, $String /* Crsx_METAVAR */],  $List[Crsx_variable_sort], $String /* Crsx_METAVAR */, $List[Crsx_variable_sort]] :: STATE;
+Case[#state,#V, %cterm⟦   ##METAVAR ##cterms? ⟧]
+→ CaseHelper[FRESH_METAVAR[#state], #V, #METAVAR, UnwrapMetaVariableArguments[#cterms?]];
+  CaseHelper[Pair[STATE, $String /* Core_cMETAVAR */],  $List[Core_cvariable_sort], $String /* Core_cMETAVAR */, $List[Core_cvariable_sort]] :: STATE;
   CaseHelper[PairCons[#state, #fresh], #V, #METAVAR, #ys] → Circ[#state, #METAVAR, WrapSubstitute[ #ys, #fresh, Intersect[#ys,#V]]];
 
 )]

@@ -15,8 +15,7 @@ $Use["std/tree.crs"];
 $Use["unification/mgu.crs"];
 $Use["unification/unification.crs"];
 
-$Use["utils/wrap.crs"];
-$Use["utils/unwrap.crs"];
+
 $Use["utils/termops.crs"];
 $Use["utils/crsxequs.crs"];
 
@@ -34,26 +33,26 @@ OverlapOrder ::=  ( /* the terms do not unify */
                     RENAMING;      //areVariants  
                     /* the first term Is[An]Instance of the second term, 
                         wrt. to the given substitution [one of those things is redundant] */
-                    IsInstance[Crsx_term_sort, Mgu, Crsx_term_sort]; 
+                    IsInstance[Core_cterm_sort, Mgu, Core_cterm_sort]; 
                     /* the first term Is[A]Generalization of the second term */
-                    IsGeneralization[Crsx_term_sort, Mgu, Crsx_term_sort]; 
+                    IsGeneralization[Core_cterm_sort, Mgu, Core_cterm_sort]; 
                    /* the first term and the second term unify with the given mgu,
                       but neither is an instance of the other */
-                    AreParallel[Crsx_term_sort, Mgu, Crsx_term_sort]; );
+                    AreParallel[Core_cterm_sort, Mgu, Core_cterm_sort]; );
 
 
 
-ComputeOverlapOrder[Crsx_term_sort, Crsx_term_sort ] :: OverlapOrder;
+ComputeOverlapOrder[Core_cterm_sort, Core_cterm_sort ] :: OverlapOrder;
 ComputeOverlapOrder[ #t1, #t2 ] → 
    MatchUnifier[UnifyTerms[#t1, #t2], #t1, #t2];
    /* checks whether a unifier between #t1 and #t2 exists */
-   MatchUnifier[Mgu, Crsx_term_sort, Crsx_term_sort] :: OverlapOrder;
+   MatchUnifier[Mgu, Core_cterm_sort, Core_cterm_sort] :: OverlapOrder;
    MatchUnifier[FAIL,         #t1, #t2] → INCOMPARABLE;
    MatchUnifier[Mgu[#theta],  #t1, #t2] 
    → MatchInstance[RestrictDomain[Mgu[#theta], #t1], 
                    RestrictDomain[Mgu[#theta], #t2], Mgu[#theta], #t1, #t2];
    /* if there is a unifier, it computes whether one term is an instance */
-   MatchInstance[Option[Mgu], Option[Mgu], Mgu, Crsx_term_sort, Crsx_term_sort ] :: OverlapOrder;
+   MatchInstance[Option[Mgu], Option[Mgu], Mgu, Core_cterm_sort, Core_cterm_sort ] :: OverlapOrder;
    MatchInstance[NONE,        NONE,          #mgu,  #t1, #t2] → AreParallel[#t1, #mgu, #t2];
    MatchInstance[SOME[#mgu1], SOME[#mgu2],   #mguP, #t1, #t2] → RENAMING;
    MatchInstance[SOME[#mgu1], NONE,          #mguP, #t1, #t2] → IsGeneralization[#t1, #mguP, #t2];
@@ -63,15 +62,15 @@ ComputeOverlapOrder[ #t1, #t2 ] →
 
 // input: a list of rules
 // output: a list of trees, ordered by instances
-SpecificityTree[$List[Crsx_ruleDeclaration_sort]] :: $List[Tree[Crsx_ruleDeclaration_sort, Mgu]];
-SpecificityTree[#ruleDeclarations] 
-→ FoldlP[r rs . InsertRule[r, rs], (), #ruleDeclarations];
+SpecificityTree[$List[Core_cdecl_sort]] :: $List[Tree[Core_cdecl_sort, Mgu]];
+SpecificityTree[#decls] 
+→ FoldlP[r rs . InsertRule[r, rs], (), #decls];
 
 
-InsertRule[Crsx_ruleDeclaration_sort, $List[Tree[Crsx_ruleDeclaration_sort, Mgu]]] :: $List[Tree[Crsx_ruleDeclaration_sort, Mgu]];
+InsertRule[Core_cdecl_sort, $List[Tree[Core_cdecl_sort, Mgu]]] :: $List[Tree[Core_cdecl_sort, Mgu]];
 InsertRule[ #r1, #t] → InsertNode[ n1 n2 . CompareRules[n1,n2], #r1, #t];
 
-CompareRules[ Crsx_ruleDeclaration_sort, Crsx_ruleDeclaration_sort ] :: Pos[Mgu];
+CompareRules[ Core_cdecl_sort, Core_cdecl_sort ] :: Pos[Mgu];
 CompareRules[#r1, #r2] → MatchCompareRules[ComputeOverlapOrder[Lhs[#r1], Lhs[#r2]]];
 
   MatchCompareRules[OverlapOrder] :: Pos[Mgu];
@@ -84,30 +83,10 @@ CompareRules[#r1, #r2] → MatchCompareRules[ComputeOverlapOrder[Lhs[#r1], Lhs[#
 
 // input: a list of rules
 // output: a list of rules sorted by specificity
-RulesBySpecificity[ $List[Crsx_ruleDeclaration_sort]] :: $List[Crsx_ruleDeclaration_sort];
+RulesBySpecificity[ $List[Core_cdecl_sort]] :: $List[Core_cdecl_sort];
 RulesBySpecificity[ #rules ] → Foldr[ t rs. Concat[PostOrder[t],rs], (), SpecificityTree[#rules]];
 
 
-/*
 
-ErrorParallelOverlap[ Mgu, Crsx_ruleDeclaration_sort, Crsx_ruleDeclaration_sort ] :: $List[Pair[Mgu,Tree[Mgu, Crsx_ruleDeclaration_sort]]];
-ErrorParallelOverlap[ #mgu, #r1, #r2] → 
-Error[ ConcatString[ "I am very sorry to inform you, that two of your rules are ambiguous. \n",
-       ConcatString[  Show[#r1], //TextToString[Crsx_Print_ruleDeclaration[#r1]],
-       ConcatString[ "and \n",
-       ConcatString[  Show[#r2], 
-       ConcatString[ "\n with the term : \n",
-                     Show[ApplySubst[ #mgu, Lhs[#r1]]]]]]]] 
-     ]; 
-
-ErrorRenaming[Crsx_ruleDeclaration_sort, Crsx_ruleDeclaration_sort ] :: $List[Pair[Mgu,Tree[Mgu, Crsx_ruleDeclaration_sort]]];
-ErrorRenaming[ #r1, #r2] → 
-Error[ ConcatString[ "I am very sorry to inform you, that two of your rules are only a renaming of each other. \n",
-       ConcatString[  Show[#r1], 
-       ConcatString[ "and \n",
-                      Show[#r2]]]] 
-     ]; 
-
-*/
 
 )]

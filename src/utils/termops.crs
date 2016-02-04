@@ -32,6 +32,9 @@ Wrap[$List[Core_cterm_sort]] :: $List[Core_cterms_sort];
 Wrap[ () ] → ();
 Wrap[ (#1;#2) ] → (Core_cterms[(#1;#2)];);
 
+ToVariable[Core_cterm_sort] :: Core_cvariable_sort;
+ToVariable[%cterm⟦ ##VARIABLE ⟧] →  %cvariable⟦ ##VARIABLE ⟧;
+
 /* ***************************************************** */
 /*  RENAMING                                             */
 /* ***************************************************** */
@@ -76,8 +79,9 @@ Rename[#suffix, #term] → RenameHelper[#suffix, (), #term];
    
 // TODO-2016-02-03: problem with bound terms
   /* case: bound term */
+  -[Fresh[x::Core_cterm_sort]]:
   RenameHelper[#suffix, #BVs,  %cterm⟦ [ ##VARIABLE ] ##cterm ⟧ ]
-  → Foo; // DetectNestedBinders[Elem[#VARIABLE, #BVs], #suffix, #BVs, #VARIABLE, #cterm]; 
+  →  FooRenameHelper; // DetectNestedBinders[Elem[ ToVariable[x] , #BVs], #suffix, #BVs, ToVariable[x], #cterm[x]]; 
     /* according to Nipkow93, Sec. 5, nested binders with the same name are a problem */
 
     DetectNestedBinders[Boolean, $String, $List[Core_cvariable_sort], Core_cvariable_sort, Core_cterm_sort] :: Core_cterm_sort;
@@ -166,11 +170,14 @@ Variables[ #term ] →  VariablesHelperBoundVar[(), #term ];
 
   // TODO-2016-02-03: problem with bound term
   /* case: bound term */
+  -[ Fresh[x::Core_cterm_sort] ]:
   VariablesHelper[Vars[#M, #BV, #FV], #currBV, 
                   %cterm⟦ [ ##VARIABLE ] ##cterm ⟧] 
-  → Foo2;
-  // VariablesHelper[Vars[#M, Insert[#VARIABLE, #BV], #FV], Insert[#VARIABLE, #currBV], #cterm];
+  → FooVariablesHelper;
+  //VariablesHelper[Vars[#M, Insert[ToVariable[x], #BV], #FV], Insert[ToVariable[x], #currBV], #cterm[x]];
   
+
+
   /* case: variable */
   VariablesHelper[#VARS, #currBV, 
                   %cterm⟦ ##cvariable ⟧] 
@@ -215,7 +222,7 @@ ConcatVars[#VARS, #VARSs] → FoldlP[ vars varsAcc . ConcatVARSHelper[vars, vars
   // TODO-2016-02-03: problem with bound term
   /* case: bound term */
  TermFoldl[v.#V[v], m xs.#M[m,xs], c ts.#F[c,ts],  %cterm⟦ [ ##VARIABLE ] ##cterm  ⟧]
-  → Foo3; 
+  → FooTermFoldl; 
    //#B[#VARIABLE, TermFoldl[v.#V[v], m xs.#M[m,xs], c ts.#F[c,ts], #cterm ]];
 
 
