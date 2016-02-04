@@ -128,8 +128,9 @@ JavaSigArgs[#env, %csort*⟦ { ##cmapsort* }  ⟧, #rules]
 JavaBody[JavaEnv, $List[Core_cdecl_sort]] :: Text;
 JavaBody[#env, #rules]
 → %n⟦) 
-{⟦
-«TextFold[Map[rule.JavaBodyRule[#env, rule], #rules], %n⟨⟩]»
+{⟦if («GetSink[#env]».context().sd ++ < 256) {⟦
+«TextFold[Map[rule.JavaBodyRule[#env, rule], #rules], %n⟨⟩]»⟧
+}
 return «Thunk[GetThunk[#env]]»;⟧
 }⟧;
 

@@ -66,7 +66,7 @@ public class Crsx
 	{
 		System.out.println("Usage: java -jar <crsx.jar> <command> [<args>]");
 		System.out.println("\nThe commands are:");
-		System.out.println("  build         Compile a crsx system.");
+		System.out.println("  build         Build a crsx system.");
 		System.out.println("  run           Run a crsx system.");
 		System.out.println("\nFor additional help, type java -jar crsx4.jar command help.");
 		System.exit(0);
@@ -94,7 +94,7 @@ public class Crsx
 
 		buildEnv.put("rules", rules);
 		buildEnv.put("build-dir", buildir);
-		//		build(buildEnv);
+//		build(buildEnv);
 
 		// Compute output class name
 

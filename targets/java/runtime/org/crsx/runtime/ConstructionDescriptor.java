@@ -226,8 +226,7 @@ public abstract class ConstructionDescriptor
 			Object[] args = new Object[method.getParameterCount()];
 
 			args[0] = sink; // sink
-			args[1] = 1; // shared
-			int argp = 2;
+			int argp = 1;
 
 			if (hasProperties)
 			{
