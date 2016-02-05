@@ -55,3 +55,4 @@ func /* extern */ Trace<a>(a) -> a
 // -- Error
 func Error<a>(String) -> a
 
+func /* extern */ Show<a>(a) -> String

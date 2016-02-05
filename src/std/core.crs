@@ -82,4 +82,5 @@ Error[#X] → $[Error, #X];
 -[ Data[#X] ] : 
 TextError[#X] → $[Error, TextToString[#X]] ; //TextToString not working
 
+
 )]

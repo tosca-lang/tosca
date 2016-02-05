@@ -1,0 +1,106 @@
+/* Copyright (c) 2015 IBM Corporation. */
+
+/*
+ * Standard library for string.
+ */
+
+import Std::Core
+import Std::Num
+
+// --- Wrapper
+
+//String | ( String($String)  ) 
+
+// --- Querying
+
+func /* extern */ Contains($String /* string */, $String /* search string */) -> Boolean  
+
+func /* extern */ Length($String /* string */) -> Numeric  
+
+func /* extern */ StartsWith($String /* string */, $String /* search string */) -> Boolean  
+
+func /* extern */ EndsWith($String /* string */, $String /* search string */) -> Boolean  
+
+func /* extern */ StringEqual($String /* string */, $String /* other string */) -> Boolean  
+
+// --- Mutation
+
+func /* extern */ ConcatString($String, $String) -> $String 
+
+func /* extern */ Rescape(eager $String) -> $String 
+func /* extern */ UpCase(eager $String) -> $String 
+func /* extern */ DownCase(eager $String) -> $String 
+func /* extern */ Substring(eager $String, eager Numeric, eager $Numeric) -> $String 
+
+func UnString(eager $String) -> $String  
+rule UnString(#string) → Rescape(#string)  
+
+/*
+ * Make sure the given string first character is upper case
+ */
+func UpCaseFirst($String) -> $String 
+rule UpCaseFirst(#string) → ConcatString(UpCase(Substring(#string, 0, 1)), Substring(#string, 1))  
+
+/*
+ * Make sure the given string first character is lower case
+ */
+func DownCaseFirst($String) -> $String 
+rule DownCaseFirst(#string) → ConcatString(DownCase(Substring(#string, 0, 1)), Substring(#string, 1))  
+
+/*
+ * Returns given string without its first character
+ */
+func RemoveFirstChar(eager $String) -> $String  
+rule RemoveFirstChar(#string) → Substring(#string, 1) 
+
+
+/*
+ * Returns given string without its last character
+ */
+func RemoveLastChar(eager $String) -> $String  
+rule RemoveLastChar(#string) → Substring(#string, 0, Minus(Length(#string), 1)) 
+
+/*
+ * Trim leading and trailing spaces
+ */
+func /* extern */ Trim(eager $String) -> $String 
+
+func /* extern */ Replace(eager $String, eager $String, eager $String) -> $String 
+
+func /* extern */ AfterFirst(eager $String, eager $String) -> $String 
+
+func AfterLast(eager $String, eager $String) -> $String 
+
+rule AfterLast(#string, #sep)
+→ If(Contains(#string, #sep), 
+    AfterLast2(AfterFirst(#string, #sep), #sep),
+    #string) 
+
+// Internal helper.
+func AfterLast2(eager $String, $String) -> $String 
+rule AfterLast2(#string, #sep) → AfterLast(#string, #sep) 
+
+func /* extern */ BeforeFirst(eager $String, eager $String) -> $String 
+
+func BeforeLast(eager $String, eager $String) -> $String 
+
+rule BeforeLast(#String, #Sep)
+→ If(Contains(#String, #Sep), 
+    BeforeLast2(BeforeFirst(#String, #Sep), #Sep, BeforeLast(AfterFirst(#String, #Sep), #Sep)),
+    "") 
+
+func BeforeLast2(eager $String, $String, eager $String) -> $String 
+rule BeforeLast2(#Before, #Sep, #After)
+→ If(StringEqual(#After, ""), 
+    #Before,
+    ConcatString(#Before, #Sep, #After)) 
+
+// --- Parsing
+
+func /* extern */ ParseText<a>(eager $String, eager $String) -> a
+
+func ParseToString(eager $String, eager $String) -> $String 
+rule ParseToString(#category, #string) → Show(ParseText(#category, #string))  // TODO: line information.
+
+func ParseToTerm<a>(eager $String, eager $String) -> a 
+rule ParseToTerm(#category, #string) → ParseText(#category, #string)  // TODO: line information.
