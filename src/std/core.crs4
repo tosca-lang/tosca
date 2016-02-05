@@ -1,0 +1,54 @@
+enum OK_SORT | OK
+
+// --- Builtin string entry
+
+enum $StringEntry | STRING($String)
+
+// --- Optional value
+
+enum Option<a> | SOME(a) | NONE
+
+func UnSOME<a>(Option<a>) -> a
+rule UnSOME(SOME(#)) → #
+
+// TODO: unable when not using interpreter (which is too strict)
+//UnSOME(NONE)    → $(Error, "Error: no optional value."),
+
+/* `HasOption(#option)`
+   Whether #option is `SOME` value.
+ */
+func HasOption<a>(Option<a>) -> Boolean
+rule HasOption(NONE)    → FALSE
+rule HasOption(SOME(#)) → TRUE
+
+// --- Boolean
+
+enum Boolean | TRUE | FALSE
+
+func If<a>(Boolean, a, a) -> a
+rule If(TRUE,  #1, #2) → #1
+rule If(FALSE, #1, #2) → #2
+
+func And(Boolean, Boolean) -> Boolean
+rule And(TRUE, #)  → #
+rule And(FALSE, #) → FALSE
+
+func Or(Boolean, Boolean) -> Boolean
+rule Or(TRUE, #)  → TRUE
+rule Or(FALSE, #) → #
+
+func Not(Boolean) -> Boolean
+rule Not(TRUE)  → FALSE
+rule Not(FALSE) → TRUE
+
+// forces evaluation of the arguments
+func Eq<a>(a,a) -> Boolean
+//rule  Eq(#X,#Y) → $(If, $(Equal,#X,#Y), TRUE, FALSE),
+
+// --- Debugging
+
+func /* extern */ Trace<a>(a) -> a
+
+// -- Error
+func Error<a>(String) -> a
+

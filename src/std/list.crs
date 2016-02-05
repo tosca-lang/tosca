@@ -80,6 +80,13 @@ At[(#; #s), #i] → $[If, $[Equal, #i, 0], SOME[#], At[#s, $[Minus, #i, 1]]];
 Concat[(), #tail] → #tail ;
 Concat[(#1;#s), #tail] → (#1 ; Concat[#s, #tail]) ;
 
+/* Flatten list of lists 
+*/
+∀ a.Flatten[$List[$List[a]]] :: List[a] ;
+Flatten[()]       → () ;
+Flatten[(#1;#s) ] → Concat[#1, Flatten[#s]];
+
+
 /* `Elem[#X,#XS]`
    @param  `#X`  element
    @param  `#XS` list

@@ -5,11 +5,11 @@ module Test // No semicolon. Declarations are separated by lower case keywords (
 
 // This is a type definition
 // The name of a type can be anything expect the first character which must not be a lower case character, a digit and separators (,),(, space)
-type List<a>       // type parameters are specified betwen < >. Use space to separate them
+enum List<a>       // type parameters are specified between < >. Use space to separate them
     | Cons(a, List<a>)   // '|' is used to indicate the definition of a variant type
     | Nil
 
-type Statement
+enum Statement
     | Let(Expr, [Expr] -> Expr)    // [] specifies scoped variables. -> says it's a function parameters.
     | Var(String)
     | var // allow variables
@@ -19,15 +19,15 @@ type Expr
     | Number(Integer)
 
 // Function type definition. Notice '->'
-type TermList<a> fn (Expr) -> List<a>
-type HO<a> fn ([Expr Expr] -> Expr) -> List<a>
+func TermList<a>(Expr) -> List<a> 
+func HO<a>([Expr Expr] -> Expr) -> List<a>
 
 // Function cannot return scoped functions. Must be wrapped
 // Might relax for function
-//type Invalid fn ([Expr Expr] -> Expr) -> [Expr] -> List<a>
+//func Invalid([Expr Expr] -> Expr) -> [Expr] -> List<a>
 
 // Can also define associative array (map)
-type MyEnv
+struct MyEnv
     & "key1" : Expr         // key1 has type Expr
     & String : String       // all other keys are of type String
 // Potential confusion: String: String is not the same as String : String, since ':' is a valid symbol character
@@ -35,7 +35,7 @@ type MyEnv
 // This is a function. #expr is a called a meta-variable (just a variable in other programming languages)
 // The parameter type is specified after ':'
 // → marks the beginning of the function body
-fn Eval(#expr : Expr) -> Expr
+func Eval(#expr : Expr) -> Expr
 → dispatch (#expr)           // Dispatch variant value. Partial overlaps is allowed. Most specific case triggers first
     | Let(#expr)   → Eval(#body),    // ',' to separate between cases
     | Var(#string) → Eval(#string)
@@ -66,17 +66,17 @@ rule OpenList( (#item1, #items ... ) ) // items matches a rest of the list
 → #items
 
 // Prefix can be used to specify annotation on term expression
-fn prefix 1 @last<a>(#term : a) -> a
+func prefix 1 @last<a>(#term : a) -> a
 → #term
 
-// On type defintion as well
-type @copy<a> fn prefix 1 (a) -> a
+// On type definition as well
+func @copy<a> prefix 1 (a) -> a
 
 // Prefixes are hard to read because the syntax is ambiguous
-fn Annotation1IsNotPrefix -> a
-→ Annotation1 ( Arg )   // Arg is an argument!
+func Annotation1IsNotPrefix -> a
+→ Annotation1 ( Arg )   // Arg is the argument of Annotation1. () is not a parentherized expression !
 
-fn prefix 1 Annotation2(#term : a) -> a
+func prefix 1 Annotation2(#term : a) -> a
 → #term
 
 fn Annotation2IsPrefix -> a
@@ -99,21 +99,21 @@ rule MyMapPattern( {#E}, {#E2, "key1" : #1, #2 : #3, ¬ #5})
 → #2
 
 // Can define left-associative infix operators
-fn infixl 4 +(#expr : Expr, #expr : Expr) -> Expr
+func infixl 4 +(#expr : Expr, #expr : Expr) -> Expr
 → 45 + 32 + 1      // same as (45 + 32) + 1
 
 // Or postfix operator
-fn postfix 2 !!(#expr : Expr) -> Expr
+func postfix 2 !!(#expr : Expr) -> Expr
 → 45 + 32 + 1 !!     // same as ((45 + 32) + 1) !! because 2 < 4
 
 // nested module declaration. :: is *NOT* an operator, just a name convention
-module Test::Sub
+//module Test::Sub
 
 // All declarations below are in the Test::Nested module
 
 // Concrete syntax, business as usual
 
-fn Test -> Expr
+func Test -> Expr
 → Test::Eval(⟦ let v := 4 return v ⟧)
 
 // Different:
@@ -121,23 +121,23 @@ fn Test -> Expr
 
 // Embedding Crsx in concrete syntax is customizable.
 // However the recommended way is ⟨grammar_rule_name: ⟩ syntax (described in documentation).
-fn Test2 -> Expr
+func Test2 -> Expr
 → Eval(⟦ let v := 4 return ⟨expr: CreateExpr⟩ ⟧)
 
 // Maybe monad
 
-type Maybe<a>
+enum Maybe<a>
     | Just(a)
     | Nothing
 
-fn infixl 1 BindMaybe<a b>(#maybe : Maybe<a>, #make : (a) -> Maybe<b>) -> Maybe<b>
+func infixl 1 BindMaybe<a b>(#maybe : Maybe<a>, #make : (a) -> Maybe<b>) -> Maybe<b>
 → dispatch (#maybe)
     | Just(#) → #make(#),
     | Nothing → Nothing
 
 
-fn ReturnMaybe<a>(#v: a) -> Maybe<a>
+func ReturnMaybe<a>(#v: a) -> Maybe<a>
 → Just(a)
 
-fn Ex
+func Ex
 → Just(1) BindMaybe (x) -> Just(x + 1)

@@ -16,6 +16,9 @@ String ::= ( String[$String]; );
 StartsWith[$String /* string */, $String /* search string */] :: Boolean; /* extern */
 -[Data[#string, #search]]: StartsWith[#string, #search] → WrapBoolean[$[StartsWith, #string, #search]];
 
+EndsWith[$String /* string */, $String /* search string */] :: Boolean; /* extern */
+-[Data[#string, #search]]: EndsWith[#string, #search] → WrapBoolean[$[EndsWith, #string, #search]];
+
 StringEqual[$String /* string */, $String /* other string */] :: Boolean; /* extern */
 -[Data[#string1, #string2]]: StringEqual[#string1, #string2] → WrapBoolean[$[StringEqual, #string1, #string2]];
 
@@ -55,6 +58,12 @@ Trim[$String] :: $String;
 Replace[$String, $String, $String] :: $String;
 -[Data[#string, #old, #new]]: Replace[#string, #old, #new] → $[Replace, #string, #old, #new]; 
 
+AfterFirst[$String, $String] :: $String;
+
+-[Data[#String, #Sep]]:
+AfterFirst[#String, #Sep]
+→ $[AfterFirst, #String, #Sep];
+
 AfterLast[$String, $String] :: $String;
 
 -[Data[#string, #sep]]:
@@ -70,6 +79,12 @@ AfterLast2[$String, $String] :: $String;
 -[Data[#string]]:
 AfterLast2[#string, #sep] → AfterLast[#string, #sep];
 
+BeforeFirst[$String, $String] :: $String;
+
+-[Data[#String, #Sep]]:
+BeforeFirst[#String, #Sep]
+→ $[BeforeFirst, #String, #Sep];
+
 BeforeLast[$String, $String] :: $String;
 
 -[Data[#String, #Sep]]:
@@ -84,11 +99,9 @@ BeforeLast2[$String, $String, $String] :: $String;
 
 -[Data[#After]]:
 BeforeLast2[#Before, #Sep, #After]
-→
-$[If, $[StringEqual, #After, ""], 
+→ $[If, $[StringEqual, #After, ""], 
     #Before,
     $[:, #Before, #Sep, #After]];
-
 
 // --- Parsing
 

@@ -71,50 +71,45 @@ private boolean isPostfix(String op, int currentp) {
 
 // A CRSX file is a module declaration and a list of declarations
 crsx
-    : decls EOF                    /* [CORE] */
-    ;
-
-decls
-    : decl*
+    : decl+ EOF                    /* [CORE] */
     ;
 
 decl
-    : moduleDecl
-    | importDecl
-    | sortDecl
+    //: moduleDecl
+    //| importDecl
+    : sortDecl
     | ruleDecl
     | fnDecl
     ;
+
+/*
 
 moduleDecl
     : MODULE constructor
     ;
 
 importDecl
-    : IMPORT constructor                             /* [SUGAR: same as IMPORT MODULE] */
-    | IMPORT MODULE constructor                      /* [CORE] */
-    | IMPORT GRAMMAR constructor                     /* [CORE] */
+    : IMPORT constructor                                 /* [SUGAR: same as IMPORT MODULE] *
+    | IMPORT MODULE constructor                          /* [CORE] *
+    | IMPORT GRAMMAR constructor                         /* [CORE] *
     ;
 
+*/
+
 sortDecl
-     : TYPE c=constructor sortVars? sortDef[$c.text]     /* [CORE] Sort declaration */
+     : ENUM constructor sortVars? (OR variant)+          /* [CORE] Variant sort declaration */
+     | STRUCT constructor sortVars? (AND sortMap)+       /* [CORE] map sort definition */ 
      ;
 
 sortVars
     : LT variable+ GT                                    /* [CORE] Sort variables. */
     ;
 
-sortDef[String c]
-    : (OR variant)+                                      /* [CORE variant sort definition] */
-    | (AND sortMap)+                                     /* [CORE map sort definition] */
-    | FN fixity[c]?
-           LPAR fnSortParams? RPAR ARROW paramSort       /* [CORE] Function sort declaration */
-    ;
-
-
+/*
 fixity[String c]
     : f=FIXITY p=NUMBER { addOp($c, $f.text, $p.int); }
     ;
+*/
 
 // Variant type
 
@@ -134,11 +129,13 @@ sortMap
     | sort COLON sort
     ;
 
+/*
 // Function type
 
 fnSortParams
-     : sort (COMMA sort)*                         /* [CORE] */
+     : sort (COMMA sort)*                         /* [CORE] *
      ;
+*/
 
 // Sort Reference
 
@@ -151,12 +148,12 @@ sortScope
     ;
 
 paramSort
-    : constructor sortParams?   /* [CORE] Parametrized sort */
+    : constructor sortParams?               /* [CORE] Parameterized sort */
     | variable
     ;
 
 sortParams
-    : LT paramSort+ GT            /* [CORE] Sort Parameters */
+    : LT VARIABLE+ GT                   /* [CORE] Sort Parameters */
     ;
 
 sorts
@@ -166,21 +163,21 @@ sorts
 // Rule Declaration
 
 ruleDecl
-    : RULE term[0] ARROW terms                                  /* [SUGAR]  rewrite rule  */
+    : RULE constructor args? ARROW terms                            /* [CORE]  rewrite rule  */
     ;
 
-// Function declaration
+// Function declaration, signature and optional body
 
 fnDecl
-    : FN fnFixity sortParams? fnParamsDecl? FNTYPE sort ARROW terms        /* [CORE]  function declaration  */
+    : FUNC fnFixity sortParams? fnParamDecls? FNTYPE sort fnBody?   /* [SUGAR]  function declaration  */
     ;
 
 fnFixity
     : f=FIXITY p=NUMBER c=constructor { addOp($c.text, $f.text, $p.int); }
-    | c=constructor
+    | constructor
     ;
 
-fnParamsDecl
+fnParamDecls
      : LPAR fnParams? RPAR                  /* [CORE] */
      ;
 
@@ -189,11 +186,15 @@ fnParams
     ;
 
 fnParam
-    : METAVAR fnParamSort?
+    : fnParamName? sort
     ;
 
-fnParamSort
-    : COLON sort
+fnParamName
+    : METAVAR COLON
+    ;
+    
+fnBody
+    : ARROW terms
     ;
 
 // Term
@@ -221,8 +222,9 @@ nterm[int p]
     ;
 
 aterm
-    : { isPrefix(_input.LT(1).getText())}? op=constructor term[nextp($op.text)]   /* [SUGAR] Prefixed term */
-    | {!isPrefix(_input.LT(1).getText())}? constructor args?                      /* [CORE] Construction with zero or more args */
+    // enable when crsx is capable of parsing input using the term parser, not the meta parser which does not include semantic predicates
+    // : { isPrefix(_input.LT(1).getText())}? op=constructor term[nextp($op.text)]   /* [SUGAR] Prefixed term */
+    : {!isPrefix(_input.LT(1).getText())}? constructor args?                      /* [CORE] Construction with zero or more args */
     | literal                                         /* [CORE]  Literal construction */
     | groupOrList                                     /* [SUGAR] Grouped expression */
     | variable                                        /* [CORE]  Variable */
@@ -246,7 +248,7 @@ scope
     ;
 
 binders
-    : VARIABLE<binder=x> LINEAR? binders<binds=x>
+    : VARIABLE<binder=x> binders<binds=x>
     | RSQUARE FNTYPE term[0]
     ;
 
@@ -262,7 +264,7 @@ groupOrList
     ;
 
 variable                                              /* [CORE] */
-    : VARIABLE<symbol> LINEAR?
+    : VARIABLE<symbol>  
     ;
 
 literal
@@ -322,8 +324,9 @@ symbols                                                     /* [CORE] */
 MODULE          : 'module';
 IMPORT          : 'import';
 GRAMMAR         : 'grammar';
-FN              : 'fn';
-TYPE            : 'type';
+FUNC            : 'func';
+ENUM            : 'enum';
+STRUCT          : 'struct';
 DISPATCH        : 'dispatch';
 COMMA           : ',';
 LPAR            : '(';
@@ -348,7 +351,7 @@ NOT             : '¬';
 
 FIXITY          : 'infix' | 'infixr' | 'infixl' | 'postfix' | 'prefix';
 
-CONCRETE        : '\u27e6' (CONCRETE|.)*? '\u27e7';   // ⟦ ⟧
+CONCRETE        : Lower+ Ebnf? '\u27e6' (CONCRETE|.)*? '\u27e7';   // category⟦ ⟧
 
 CONSTRUCTOR     : StartConstructorChar ConstructorChar* // '$' is for internal use only.
                 | '<' [Other] ConstructorChar*;

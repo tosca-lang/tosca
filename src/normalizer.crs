@@ -5,483 +5,189 @@
  * Eliminate syntactic sugars and perform various checks.
  *
  * In particular:
- * - Gather rules with same constructor into a single rule. 
- * - Convert all patterns to be only meta-variables (including properties)
- * - Qualify sort names and forms. 
  * - Expand sorted concrete syntax
- * - Desugar property lookup (not implemented yet)
  */
 CrsxNormalizer[(
 
 $Lax;
 
 $AddGrammar["org.crsx.parser.CrsxMetaParser"];
+$AddGrammar["org.crsx.core.CoreMetaParser"];
 
 $Use["parser/Crsx.crs"];
-$Use["state.crs"];
-$Use["crsxutils.crs"];
+$Use["core/Core.crs"];
 $Use["std/core.crs"];
 $Use["std/string.crs"];
 $Use["std/list.crs"];
 $Use["std/num.crs"];
-$Use["std/path.crs"];
 
 // ----- API
 
-// Normalize Crsx and produces a normalized Crsx
-NormalizeToCrsx[$String, Crsx_crsx_sort] :: Crsx_crsx_sort;
-NormalizeToCrsx[#filename, %crsx⟦ ##declaration* ⟧] → N1DeclarationsInit[BaseName[#filename], #declaration*, ok¹.N2[ok¹, ok¹.OutputCrsx[ok¹]]];
+// Convert Crsx to Core
+ToCore[$String, Crsx_crsx_sort] :: Core_ccrsx_sort;
+ToCore[#filename, %crsx⟦ ##decl+ ⟧] 
+→ %ccrsx⟦ ⟨cdecl+: NDecls[#decl+]⟩ ⟧;
 
-// Normalize Crsx and produces a state
-NormalizeToState[$String, Crsx_crsx_sort] :: Content;
-//NormalizeToState[#filename, %crsx⟦ ##declaration* ⟧] → N1DeclarationsInit[BaseName[#filename], #declaration*, ok¹.N2[ok¹, ok¹.LOADED]];
-NormalizeToState[#filename, %crsx⟦ ##declaration* ⟧] → N1DeclarationsInit[BaseName[#filename], #declaration*, ok¹.LOADED];
+// ----- Declarations
 
-// ----- Pass1
-//  
-// - Collect declarations into the environment (state).
-// - Collect imported module file names
-//
-N1DeclarationsInit[$String, $List[Crsx_declaration_sort], ok¹::OK_SORT.$sort[a]] :: a;
+NDecls[$List[Crsx_decl_sort]] :: $List[Core_cdecl_sort];
+NDecls[#cdecl+] 
+→ Flatten[Map[x.NDecl[x], #cdecl+]];
 
-N1DeclarationsInit[#qualifier, #declaration*, ok¹.#[ok¹]]
-→
-{"$qualifier": STR[#qualifier]; "$rulekeys": KEYS[()]; "$datakeys": KEYS[()]; 
- "$funckeys": KEYS[()]; "$imported": IMPORTS[()];"$grammars": IMPORTS[()]}
-N1Declarations[#declaration*, ok¹.#[ok¹]];
+NDecl[Crsx_decl_sort] :: $List[Core_cdecl_sort];
 
-∀ a.{$String:ContentEntry} 
-N1Declarations[$List[Crsx_declaration_sort], ok¹::OK_SORT.$sort[a]] :: a;
+/* Convert enum to data sort */
+NDecl[%decl⟦ enum ##constructor ##sortVars? ##variant+ ⟧]
+→ %cdecl+⟦ data ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ( ⟨cform*: NVariants[#variant+]⟩ ) ⟧; 
 
-{#E}N1Declarations[#declaration*, ok¹.#[ok¹]]
-→
-{#E}N1Declarations1[OK, #declaration*, ok¹.#[ok¹]];
+/* Convert function.
+   Fixity is only used by the parser and can be eliminated. Still need to access the constructor
+*/
+NDecl[%decl⟦ func ##fnFixity ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧]
+→ %cdecl+⟦ 
+  func ⟨csortvars?: NMaybeSortParams[#sortParams?]⟩ ⟨csort: NSort[#sort]⟩ ⟨CONSTRUCTOR: NConstructor[GetConstructor[#fnFixity]]⟩  ⟨csorts?: NMaybeParamDecls[#fnParamDecls?]⟩ 
+  ⟨cdecl+: NMaybeBody[#fnBody?, GetConstructor[#fnFixity], #fnParamDecls?]⟩ 
+⟧; 
 
-//
-∀ a.{$String:ContentEntry} 
-N1Declarations1[OK_SORT, $List[Crsx_declaration_sort], ok¹::OK_SORT.$sort[a]] :: a;
-
-{#E}N1Declarations1[OK, %declaration*⟦                                ⟧, ok¹.#[ok¹]] → {#E}#[OK];
-
-{#E}N1Declarations1[OK, %declaration*⟦ ##declaration ##declaration* ⟧, ok¹.#[ok¹]] 
-→ 
-{#E}N1Declaration[#declaration, ok¹.N1Declarations1[ok¹, #declaration*, ok¹.#[ok¹]]];
-
-//
-∀ a.{$String:ContentEntry} 
-N1Declaration[Crsx_declaration_sort, ok¹::OK_SORT.$sort[a]] :: a;
-
-{#E}N1Declaration[%declaration⟦ ##constructor [( )] ; ⟧, ok¹.#[ok¹]]
-→
-//If[IsDirective[#constructor],
-$[If, IsDirectiveUnwrap[#constructor], 
-    {#E}N1DirectiveConstructor[#constructor, ok¹.#[ok¹]], // potential directive.
-    {#E}#[OK]];  // Crsx 3 empty module
-
-
-{#E}N1Declaration[%declaration⟦ ##constructor [( ##declaration* )] ; ⟧, ok¹.#[ok¹]] 
-→
-//If[IsDirective[#constructor], 
-$[If, IsDirectiveUnwrap[#constructor], 
-    {#E}N1DirectiveConstructor[#constructor, ok¹.#[ok¹]], // potential directive.
-    {#E}N1Declarations1[OK, #declaration*, ok¹.#[ok¹]]]; // Crsx 3 module: no name mangling.
-
-{#E}N1Declaration[%declaration⟦ ##directive ; ⟧, ok¹.#[ok¹]] 
-→
-{#E}N1Directive[#directive, ok¹.#[ok¹]];
-
-// Crsx 4 module: name mangling
-{#E}N1Declaration[%declaration⟦ module ##CONSTRUCTOR { ##declaration* } ; ⟧, ok¹.#[ok¹]] 
-→ 
-{#E}N1Declarations[#declaration*, ok¹.#[ok¹]];
-
-{#E}N1Declaration[%declaration⟦ ##option? ##properties? ##constructor ##arguments? → ##contractum ; ⟧, ok¹.#[ok¹]]
-→
-{#E}AddRule[RulesKey[#constructor], %ruleDeclaration⟦ ##option? ##properties? ##constructor ##arguments? → ##contractum ⟧, ok¹.#[ok¹]];
-
-{#E}N1Declaration[%declaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##forms ) ; ⟧, ok¹.#[ok¹]] 
-→ 
-{#E}AddDataSort[%sortDeclaration⟦ ##sortparams? ##sortset ##sortname ::= ( ##forms ) ⟧, ok¹.#[ok¹]];
-
-{#E}N1Declaration[%declaration⟦ ##sortparams? ##sortset ##constructor ##arguments? :: ##sortname ;⟧, ok¹.#[ok¹]] 
-→ 
-{#E}AddFuncSort[%sortDeclaration⟦ ##sortparams? ##sortset ##constructor ##arguments? :: ##sortname ⟧, ok¹.#[ok¹]];
-
-//
-∀ a.{$String:ContentEntry} 
-N1Directive[Crsx_directive_sort, ok¹::OK_SORT.$sort[a]] :: a;
-
-{#E}N1Directive[%directive⟦ ##CONSTRUCTOR ##directiveArguments? ⟧, ok¹.#[ok¹]]
-→
-$[If, $[StringEqual, #CONSTRUCTOR, "$Use"],        {#E}N1Import[#directiveArguments?, TRUE, ok¹.#[ok¹]],
-$[If, $[StringEqual, #CONSTRUCTOR, "$AddGrammar"], {#E}N1Import[#directiveArguments?, FALSE, ok¹.#[ok¹]],
-   {#E}#[OK]]]; // Just ignore unknown directives. We might want to output a warning.
-
-{#E}N1Directive[#directive, ok¹.#[ok¹]] → {#E}#[OK];
-
-//
-∀ a.{$String:ContentEntry} 
-N1DirectiveConstructor[Crsx_constructor_sort, ok¹::OK_SORT.$sort[a]] :: a;
-{#E}N1DirectiveConstructor[#constructor, ok¹.#[ok¹]] → {#E}#[OK];
-
-// Import a module or grammar: at this level just record dependency.
-∀ a.{$String:ContentEntry} 
-N1Import[$List[Crsx_directiveArguments_sort], Boolean /* TRUE: module, FALSE: grammar */, ok¹::OK_SORT.$sort[a]] :: a;
-
-{#E}N1Import[%directiveArguments?⟦                   ⟧, #kind, ok¹.#[ok¹]] → $[Error, "Error: missing filename argument in import directive."];
-{#E}N1Import[%directiveArguments?⟦ [ ##directives? ] ⟧, #kind, ok¹.#[ok¹]] → {#E}N1ImportDirectives[#directives?, #kind, ok¹.#[ok¹]];
-
-∀ a.{$String:ContentEntry} 
-N1ImportDirectives[$List[Crsx_directives_sort], Boolean, ok¹::OK_SORT.$sort[a]] :: a;
-
-{#E}N1ImportDirectives[%directives?⟦                                          ⟧, #kind, ok¹.#[ok¹]] → $[Error, "Error: missing filename argument in import directive."];
-{#E}N1ImportDirectives[%directives?⟦ ##directive1 , ##directive2 ##directive* ⟧, #kind, ok¹.#[ok¹]] → $[Error, "Error: extraneous argument in import directive."];
-{#E}N1ImportDirectives[%directives?⟦ ##directive                              ⟧, #kind, ok¹.#[ok¹]] → {#E}N1ImportDirective[#directive, #kind, ok¹.#[ok¹]];
-
-∀ a.{$String:ContentEntry} 
-N1ImportDirective[Crsx_directive_sort, Boolean, ok¹::OK_SORT.$sort[a]] :: a;
-
-{#E; "$imported": IMPORTS[#imported]}N1ImportDirective[%directive⟦ ##STRING ⟧, TRUE, ok¹.#[ok¹]] 
-→ 
-{#E; "$imported": IMPORTS[Concat[#imported, (UnString[#STRING];)]]}#[OK];
-
-{#E; "$grammars": IMPORTS[#imported]}N1ImportDirective[%directive⟦ ##STRING ⟧, FALSE, ok¹.#[ok¹]] 
-→ 
-{#E; "$grammars": IMPORTS[Concat[#imported, (Replace[UnString[#STRING], ".", "/"];)]]}#[OK];
-
-{#E}N1ImportDirective[#directive, #kind, ok¹.#[ok¹]] → $[Error, "Error: invalid argument in import directive."];
-
-// ----- Pass2: normalize/check.
-
-∀ a.{$String:ContentEntry} 
-N2[OK_SORT, ok¹::OK_SORT.$sort[a]] :: a;
-
-{#E; "$rulekeys":KEYS[#keys]}N2[OK, ok¹.#[ok¹]] 
-→ 
-{#E}N2Rules[#keys, ok¹.#[ok¹]];
-
-∀ a.{$String:ContentEntry} 
-N2Rules[$List[$String], ok¹::OK_SORT.$sort[a]] :: a;
-
-{#E}N2Rules[#keys, ok¹.#[ok¹]]
-→
-{#E}SeqMap[x c.N2Rule[x,c], #keys, ok¹.#[ok¹]];
-
-∀ a.{$String:ContentEntry} 
-N2Rule[$String, Cont[a]] :: a;
-
-{#E}
-N2Rule[#ruleKey, CONT[ok¹.#[ok¹]]]
-→
-//{#E}MayGroupRule[#ruleKey, ok¹.#[ok¹]];
-{#E}MayGroupRule[#ruleKey, ok¹.
-    NormalizeRuleKey[ok¹, #ruleKey, ok¹.#[ok¹]]];
-//{#E}NormalizeRuleKey[#ruleKey, ok¹.#[ok¹]];
-
-/*
- * Group Rules
- *
- * Create a single rule composing all the given rules 
- * using the dispatch core expression.
- * 
- * Basically do:
- *
- *   O₁:{#E₁}R₁[P₁¹ ... P₁ⁿ] → C₁ 
- *   ..
- *   Oᵢ:{#Eᵢ}Rᵢ[Pᵢ¹ ... Pᵢⁿ] → Cᵢ
- * 
- * becomes
- *
- *   {#$P$E}R[#¹ ... #ⁿ] →
- *      dispatch {#$P$E}R[#¹ ... #ⁿ]
- *        O₁:{#E₁}R[P₁¹ ... P₁ⁿ] → C₁
- *        ...
- *        Oᵢ:{#Eᵢ}R[Pᵢ¹ ... Pᵢⁿ] → Cᵢ
- *        delay
- */ 
-∀ a.{$String:ContentEntry} 
-MayGroupRule[$String, ok¹::OK_SORT.$sort[a]] :: a;
-
-{#E}MayGroupRule[#key, ok¹.#[ok¹]] 
-→ 
-{#E}MayGroupRule1[$[{#E}Get, #key], #key,  ok¹.#[ok¹]];
-
-∀ a.{$String:ContentEntry} 
-MayGroupRule1[ContentEntry, $String, ok¹::OK_SORT.$sort[a]] :: a;
-
-{#E}MayGroupRule1[RULES[#rules], #key, ok¹.#[ok¹]]
-→ 
-// TODO: crsx3 interpreter does not lazily evaluate the arguments... 
-//If[Or[IsEmpty[#rules], And[IsSingleton[#rules], AllMetaInPatternRule[Head[#rules]]]],
-//   {#E}#[OK],
-//   {#E}GroupRule[#key, #rules, ok¹.#[ok¹]]];
-{#E}MayGroupRule2[Or[IsEmpty[#rules], And[IsSingleton[#rules], AllMetaInPatternRule[Head[#rules]]]], #key, #rules, ok¹.#[ok¹]];
-
-∀ a.{$String:ContentEntry} 
-MayGroupRule2[Boolean, $String, $List[Crsx_ruleDeclaration_sort], ok¹::OK_SORT.$sort[a]] :: a;
-
-{#E}MayGroupRule2[TRUE , #key, #rules, ok¹.#[ok¹]] → {#E}#[OK];
-{#E}MayGroupRule2[FALSE, #key, #rules, ok¹.#[ok¹]] → {#E}GroupRule[#key, #rules, ok¹.#[ok¹]];
-
-∀ a.{$String:ContentEntry} 
-GroupRule[$String, $List[Crsx_ruleDeclaration_sort], ok¹::OK_SORT.$sort[a]] :: a;
-  
-{#E}GroupRule[#key, #rules, ok¹.#[ok¹]] 
-→ 
-{#E; #key:RULES[(Dispatch[#rules];)]}#[OK];
-
-// Create the dispatch rule.
-Dispatch[$List[Crsx_ruleDeclaration_sort]] :: Crsx_ruleDeclaration_sort;
+/* Convert rule */
+NDecl[%decl⟦ rule ##constructor ##args? → ##term* ⟧]
+→ %cdecl+⟦ rule ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟨cterms?: NMaybeArgs[#args?]⟩ → ⟨cterm: NContractum[#term*]⟩ ⟧;
  
-// Constructor must have at least one argument, otherwise GroupRule wouldn't be called.
-Dispatch[(%ruleDeclaration⟦ ##option? ##properties? ##constructor [ ##term* ] → ##contractum ⟧; #rules)]
-→ 
-%ruleDeclaration⟦ 
-  ⟨properties?: DispatchProperties[#properties?]⟩ ##constructor [ ⟨term*:DispatchPatternArgs[#term*, 0]⟩ ] 
-  →
-  dispatch ⟨properties?: DispatchProperties[#properties?]⟩ ##constructor [ ⟨term*: DispatchPatternArgs[#term*, 0]⟩ ]  
-    ⟨dispatchCases: DispatchCases[(%ruleDeclaration⟦ ##option? ##properties? ##constructor [ ##term* ] → ##contractum ⟧; #rules)]⟩
-    delay
-⟧;
-
-// Output properties if any
-DispatchProperties[$List[Crsx_properties_sort]] :: $List[Crsx_properties_sort];
-
-DispatchProperties[%properties?⟦                    ⟧] → %properties?⟦         ⟧;
-DispatchProperties[%properties?⟦ {                } ⟧] → %properties?⟦         ⟧;
-DispatchProperties[%properties?⟦ { ##propertyList } ⟧] → %properties?⟦ {#$P$E} ⟧; 
-
-DispatchPatternArgs[$List[Crsx_term_sort], $Numeric] :: $List[Crsx_term_sort];
+// ---- Enum
 
-DispatchPatternArgs[%term*⟦                ⟧, #count] → %term*⟦⟧;
-  
-DispatchPatternArgs[%term*⟦ ##term ##term* ⟧, #count]
-→
-%term*⟦ ⟨term: DispatchPatternTerm[#term, #count, %freeTerm*⟦⟧]⟩ ⟨term*: DispatchPatternArgs[#term*, $[Plus, #count, 1]] ⟩ ⟧;
- 
-DispatchPatternTerm[Crsx_term_sort, $Numeric, $List[Crsx_freeTerm_sort]] :: Crsx_term_sort;
+NVariants[$List[Crsx_variant_sort]] :: $List[Core_cform_sort];
 
-DispatchPatternTerm[%term⟦ ##freeTerm ⟧, #count, #freeTerm*]
-→
-%term⟦ ⟨freeTerm: DispatchPatternFreeTerm[#freeTerm, #count, #freeTerm*]⟩ ⟧;
+NVariants[%variant+⟦   ⟧]                   
+→ %cform*⟦ ⟧; 
 
-DispatchPatternTerm[%term⟦ ##binder ##nextBinder ⟧, #count, #freeTerm*]
-→ 
-DispatchPatternBinder[#binder, #nextBinder, #count, #freeTerm*];
+NVariants[%variant+⟦ | ##constructor ##variantArgs? ##variant+ ⟧]
+→ %cform*⟦ ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟨csorts?: NMaybeVariantArgs[#variantArgs?]⟩ ⟨cform*: NVariants[#variant+]⟩ ⟧; 
 
-DispatchPatternFreeTerm[Crsx_freeTerm_sort, $Numeric, $List[Crsx_freeTerm_sort]] :: Crsx_freeTerm_sort;
+NVariants[%variant+⟦ | var ##variant+ ⟧]
+→ %cform*⟦ allows-variable ⟨cform*: NVariants[#variant+]⟩ ⟧; 
 
-DispatchPatternFreeTerm[#freeTerm, #count, #freeTerm*]
-→
-%freeTerm⟦ ⟨METAVAR: $[:, "#$P$", $[FormatNumber, #count]]⟩ ⟨freeArguments?: DispatchMetaArgsOpt[#freeTerm*]⟩ ⟧;
+NMaybeVariantArgs[$List[Crsx_variantArgs_sort]] :: $List[Core_csorts_sort];
+NMaybeVariantArgs[%variantArgs?⟦   ⟧]           → %csorts?⟦ ⟧; 
+NMaybeVariantArgs[%variantArgs?⟦ ( ##sorts ) ⟧] → %csorts?⟦ ( ⟨csort*: NSorts[#sorts]⟩ ) ⟧; 
 
-DispatchPatternBinder[Crsx_binder_sort, Crsx_nextBinder_sort, $Numeric, $List[Crsx_freeTerm_sort]] :: Crsx_term_sort;
+// ---- Sort reference
 
-DispatchPatternBinder[%binder⟦ ##annotations? ##VARIABLE ##linear? ##functional? ##varsort?  ⟧, #nextBinder, #count, #freeTerm*] 
-→
-%term⟦ ##annotations? ##VARIABLE ##linear? ##functional? ##varsort? 
-        ⟨nextBinder: DispatchPatternNextBinder[#nextBinder, #count, Concat[#freeTerm*, (%freeTerm⟦ ##VARIABLE ##linear? ##functional? ⟧; )]]⟩ ⟧;
+NSorts[$List[Crsx_sort_sort]] :: $List[Core_sort_sort];
+NSorts[#sorts] → Map[sort.NSort[sort], #sorts];
 
-DispatchPatternNextBinder[Crsx_nextBinder_sort, $Numeric, $List[Crsx_freeTerm_sort]] :: Crsx_nextBinder_sort;
+NSort[Crsx_sort_sort] :: Core_sort_sort;
+NSort[%sort⟦ ##sortScope? ##constructor ##sortParams? ⟧] 
+→ %csort⟦ ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟧;
 
-DispatchPatternNextBinder[%nextBinder⟦ . ##freeTerm ⟧, #count, #freeTerm*] → %nextBinder⟦ . ⟨freeTerm: DispatchPatternFreeTerm[#freeTerm, #count, #freeTerm*] ⟩ ⟧;
+NSort[%sort⟦ ##sortScope? ##VARIABLE ⟧] 
+→ %csort⟦ ##VARIABLE ⟧;
 
-DispatchPatternNextBinder[%nextBinder⟦ ##annotations? ##VARIABLE ##linear? ##functional? ##varsort? ##nextBinder ⟧, #count, #freeTerm*]
-→
-%nextBinder⟦ ##annotations? ##VARIABLE ##linear? ##functional? ##varsort? 
-        ⟨nextBinder: DispatchPatternNextBinder[#nextBinder, #count, Concat[#freeTerm*, (%freeTerm⟦ ##annotations? ##VARIABLE ##linear? ##functional? ⟧; )]]⟩  ⟧;
+NMaybeSortParams[$List[Crsx_sortParams_sort]] :: $List[Core_csortvars_sort];
+NMaybeSortParams[%sortParams?⟦                  ⟧]    → %csortvars?⟦ ⟧; 
+NMaybeSortParams[%sortParams?⟦ < ##variable_TOK+ > ⟧] → %csortvars?⟦ ∀ ##variable_TOK+ . ⟧; // TODO: fix metaparser ugly _TOK
 
-DispatchMetaArgsOpt[$List[Crsx_freeTerms_S1_sort]] :: $List[Crsx_freeArguments_sort];
+// ---- Function declaration
 
-DispatchMetaArgsOpt[%freeTerm*⟦                        ⟧] → %freeArguments?⟦ ⟧;
-DispatchMetaArgsOpt[%freeTerm*⟦ ##freeTerm ##freeTerm* ⟧] → %freeArguments?⟦ [ ⟨freeTerm*: %freeTerm*⟦ ##freeTerm ##freeTerm* ⟧ ⟩ ] ⟧;
+/* Extract constructor from fixity */
+GetConstructor[Crsx_fnFixity_sort] :: Crsx_constructor_sort;
+GetConstructor[%fnFixity⟦ ##FIXITY ##NUMBER ##constructor ⟧] → #constructor;
+GetConstructor[%fnFixity⟦ ##constructor ⟧]                   → #constructor;
 
-DispatchCases[$List[Crsx_ruleDeclaration_sort]] :: $List[Crsx_dispatchCase_sort];
+NMaybeParamDecls[$List[Crsx_fnParamDecls_sort]] :: $List[Core_csorts_sort];
+NMaybeParamDecls[%fnParamDecls?⟦                ⟧] → %csorts?⟦⟧;
+NMaybeParamDecls[%fnParamDecls?⟦ (            ) ⟧] → %csorts?⟦⟧;
+NMaybeParamDecls[%fnParamDecls?⟦ ( ##fnParam* ) ⟧] → %csorts?⟦ ( ⟨csort*: Map[param.NParam[param], #fnParam*]⟩ ) ⟧;
 
-DispatchCases[(             )] → %dispatchCase*⟦ ⟧;
-DispatchCases[(#rule; #rules)] → %dispatchCase*⟦ ⟨ruleDeclaration: #rule⟩ ⟨dispatchCase*: DispatchCases[#rules]⟩ ⟧;
+NParam[Crsx_fnParam_sort] :: Core_csort_sort;
+NParam[%fnParam⟦ ##METAVAR : ##sort ⟧] → NSort[#sort];
+NParam[%fnParam⟦ ##sort             ⟧] → NSort[#sort];
 
-/*
- * Normalize rule. 
- *
- * Performs the following simplifications:
- * - Expand concrete syntax. For now only support Crsx3 ways. In Crsx4, the category is replaced by the term sort which can (at some point) be inferred.
- * - Rewrite primitives to external function call.
- */
-∀ a.{$String:ContentEntry} 
-NormalizeRuleKey[OK_SORT, $String /* Rule key */, ok¹::OK_SORT.$sort[a]] :: a;
-
-{#E}NormalizeRuleKey[OK, #key, ok¹.#[ok¹]] → {#E}NormalizeRuleKey1[$[{#E}Get, #key], #key, ok¹.#[ok¹]];
- 
-∀ a.{$String:ContentEntry} 
-NormalizeRuleKey1[ContentEntry, $String /* Rule key */, ok¹::OK_SORT.$sort[a]] :: a;
-
-{#E}NormalizeRuleKey1[RULES[#rules], #key, ok¹.#[ok¹]] 
-→ 
-{#E; #key: RULES[{#E}NormalizeRules[#rules]]}#[OK];
-
-{$String:ContentEntry} 
-NormalizeRules[$List[Crsx_ruleDeclaration_sort]] :: $List[Crsx_ruleDeclaration_sort];
-
-//{#E}NormalizeRules[(#rule1; #rule2; #rules)] → $[Error, "Internal error: only one rule allowed per function constructor in core."]; 
-
-{#E}NormalizeRules[(#rule;)] → ({#E}NormalizeRule[#rule];);
-
-{$String:ContentEntry} 
-NormalizeRule[Crsx_ruleDeclaration_sort] :: Crsx_ruleDeclaration_sort;
-
-{#E}NormalizeRule[%ruleDeclaration⟦ ##option? ##properties? ##constructor ##arguments? → ##freeTerm ⟧]
-→ 
-%ruleDeclaration⟦ 
-  ##option? ⟨properties?: {#E}NormalizePropertiesOpt[#properties?]⟩ ##constructor ⟨arguments?: {#E}NormalizeArgumentsOpt[#arguments?]⟩ 
-  →
-  ⟨freeTerm: {#E}NormalizeFreeTerm[#freeTerm]⟩
-⟧;
-
-{$String:ContentEntry} 
-NormalizePropertiesOpt[$List[Crsx_property_sort]] :: $List[Crsx_property_sort];
-
-{#E}NormalizePropertiesOpt[%properties?⟦                    ⟧]  → %properties?⟦    ⟧;
-{#E}NormalizePropertiesOpt[%properties?⟦ {                } ⟧]  → %properties?⟦ {} ⟧;
-{#E}NormalizePropertiesOpt[%properties?⟦ { ##propertyList } ⟧]  → %properties?⟦ { ⟨property*: {#E}NormalizeProperties[#propertyList]⟩ } ⟧;
+NMaybeBody[$List[Crsx_fnBody_sort], Crsx_constructor_sort, $List[Crsx_fnParamDecls_sort]] :: $List[Core_cdecl_sort];
 
-{$String:ContentEntry} 
-NormalizeProperties[$List[Crsx_property_sort]] :: $List[Crsx_property_sort];
+NMaybeBody[%fnBody?⟦           ⟧, #constructor, #paramDecls?] 
+→ %cdecl+⟦⟧;
 
-// TODO: traverse properties
-{#E}NormalizeProperties[#properties] → #properties;
-
-{$String:ContentEntry} 
-NormalizeArgumentsOpt[$List[Crsx_arguments_sort]] :: $List[Crsx_arguments_sort];
+NMaybeBody[%fnBody?⟦ → ##term* ⟧, #constructor, #paramDecls?] 
+→ %cdecl+⟦ rule ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟨cterms?: NMaybePatternArgs[#paramDecls?]⟩ → ⟨cterm: NContractum[#term*]⟩ ⟧;
 
-{#E}NormalizeArgumentsOpt[%arguments?⟦             ⟧] → %arguments?⟦⟧;
-{#E}NormalizeArgumentsOpt[%arguments?⟦ [         ] ⟧] → %arguments?⟦⟧;
-{#E}NormalizeArgumentsOpt[%arguments?⟦ [ ##terms ] ⟧] → %arguments?⟦ [ ⟨term*: NormalizeTerms[#terms]⟩ ] ⟧;
+NMaybePatternArgs[$List[Crsx_fnParamDecls_sort]] :: $List[Core_cterms_sort];
+NMaybePatternArgs[%fnParamDecls?⟦                ⟧]  → %cterms?⟦⟧;
+NMaybePatternArgs[%fnParamDecls?⟦ (            ) ⟧]  → %cterms?⟦⟧;
+NMaybePatternArgs[%fnParamDecls?⟦ ( ##fnParam* ) ⟧]  → %cterms?⟦ ( ⟨cterm*: Map[param.NPatternArg[param], #fnParam*]⟩ ) ⟧;
 
-{$String:ContentEntry} 
-NormalizeTerms[$List[Crsx_term_sort]] :: $List[Crsx_term_sort];
+NPatternArg[Crsx_fnParam_sort] :: Core_cterm_sort;
+NPatternArg[%fnParam⟦ ##METAVAR : ##sort ⟧] → %cterm⟦ ##METAVAR ⟧;
+//NPatternArg[%fnParam⟦ ##sort             ⟧] → %cterm⟦ ##METAVAR ⟧;
 
-{#E}NormalizeTerms[%term*⟦                ⟧] → %term*⟦⟧;
-{#E}NormalizeTerms[%term*⟦ ##term ##term* ⟧] → %term*⟦ ⟨term: {#E}NormalizeTerm[#term] ⟩ ⟨term*: {#E}NormalizeTerms[#term*]⟩ ⟧;
- 
-{$String:ContentEntry} 
-NormalizeTerm[Crsx_term_sort] :: Crsx_term_sort;
-
-{#E}NormalizeTerm[%term⟦ ##freeTerm            ⟧] → %term⟦ ⟨freeTerm: {#E}NormalizeFreeTerm[#freeTerm] ⟩ ⟧;
-{#E}NormalizeTerm[%term⟦ ##binder ##nextBinder ⟧] → %term⟦ ##binder ⟨nextBinder: {#E}NormalizeNextBinder[#nextBinder]⟩ ⟧;
+// ---- Terms
 
-{$String:ContentEntry}
-NormalizeNextBinder[Crsx_nextBinder_sort] :: Crsx_nextBinder_sort;
+NContractum[$List[Crsx_term_sort]] :: Core_term_sort;
 
-{#E}NormalizeNextBinder[%nextBinder⟦ ##binder ##nextBinder ⟧] →  %nextBinder⟦ ##binder ⟨nextBinder: {#E}NormalizeNextBinder[#nextBinder]⟩ ⟧;
-{#E}NormalizeNextBinder[%nextBinder⟦ . ##freeTerm          ⟧] →  %nextBinder⟦ . ⟨freeTerm: {#E}NormalizeFreeTerm[#freeTerm]⟩ ⟧;
+// Just a single term
+NContractum[%term*⟦ ##term                   ⟧] → NTerm[#term]; 
 
-{$String:ContentEntry}
-NormalizeFreeTerm[Crsx_freeTerm_sort] :: Crsx_freeTerm_sort;
+// This is a list... TODO
+NContractum[%term*⟦ ##term , ##term2 ##term* ⟧] → NTerm[#term];
 
-// Construction     
-{#E}NormalizeFreeTerm[%freeTerm⟦ ##annotations? ##properties? ##constructor ##arguments? ⟧] 
-→
-{#E}NormalizeConstructor[IsPrimitive[#constructor], #annotations?, #properties?, #constructor, #arguments?]; 
+NTerm[Crsx_term_sort] :: Core_term_sort;
 
-// Construction one argument     
-{#E}NormalizeFreeTerm[%freeTerm⟦ ##annotations? ##properties? ##constructor ##term ⟧] 
-→
-{#E}NormalizeFreeTerm[%freeTerm⟦ ##annotations? ##properties? ##constructor [ ##term ] ⟧];
+NTerm[%term⟦ ##constructor ##args? ⟧]
+→ %cterm⟦ ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟨cterms?: NMaybeArgs[#args?]⟩ ⟧;
 
-// Literal     
-{#E}NormalizeFreeTerm[%freeTerm⟦ ##annotations? ##properties? ##literal ⟧] 
-→
-%freeTerm⟦ ##annotations? ⟨properties?: {#E}NormalizePropertiesOpt[#properties?]⟩ ##literal ⟧;
+NTerm[%term⟦ ##STRING ⟧]
+→ %cterm⟦ ##STRING ⟧;
 
-// List     
-{#E}NormalizeFreeTerm[%freeTerm⟦ ##annotations? ##list ⟧] 
-→ 
-{#E}NormalizeFreeTerm[DesugarList[#list]]; 
+NTerm[%term⟦ ##NUMBER ⟧]
+→ %cterm⟦ ##NUMBER ⟧;
 
-// variable     
-{#E}NormalizeFreeTerm[%freeTerm⟦ ##annotations? ##variable ⟧] 
-→
-%freeTerm⟦ ##annotations? ##variable ⟧;
+NTerm[%term⟦ ##groupOrList ⟧]
+→ NGroupOrList[#groupOrList];
 
-// struct     
-{#E}NormalizeFreeTerm[%freeTerm⟦ ##annotations? { ##property* } ⟧] 
-→
-%freeTerm⟦ ##annotations? { ⟨property*: {#E}NormalizeProperties[#property*]⟩ } ⟧; 
+NTerm[%term⟦ ##VARIABLE ⟧]
+→ %cterm⟦ ##VARIABLE ⟧;
 
-// Metavariable
-{#E}NormalizeFreeTerm[%freeTerm⟦ ##annotations? ##properties? ##METAVAR ##freeArguments? ⟧] 
-→
-%freeTerm⟦ ##annotations? ⟨properties?: {#E}NormalizePropertiesOpt[#properties?]⟩ ##METAVAR 
-                    ⟨freeArguments?: {#E}NormalizeFreeArgumentsOpt[#freeArguments?]⟩ ⟧; 
+NTerm[%term⟦ ##METAVAR ##apply? ⟧] 
+→ %cterm⟦ ##METAVAR ⟨cterms?: NMaybeApply[#apply?]⟩ ⟧;
 
-// Concrete
-// TODO: preserve annotations
-{#E}NormalizeFreeTerm[%freeTerm⟦ ##annotations? ##concrete ⟧] 
-→
-{#E}NormalizeConcrete[#concrete];
+NTerm[%term⟦ ##CONCRETE ⟧] 
+→ NConcrete[BeforeFirst[#CONCRETE, "⟦"], BeforeFirst[AfterFirst[#CONCRETE, "⟦"], "⟧"]];
 
-// dispatch expression
-{#E}NormalizeFreeTerm[%freeTerm⟦ ##annotations? ##properties? ##dispatch ⟧] 
-→
-%freeTerm⟦ ##annotations? ⟨properties?: {#E}NormalizePropertiesOpt[#properties?]⟩ ⟨dispatch: {#E}NormalizeDispatch[#dispatch]⟩ ⟧;
-
-{$String:ContentEntry}
-NormalizeConstructor[Boolean, $List[Crsx_annotations_sort], $List[Crsx_properties_sort], Crsx_constructor_sort, $List[Crsx_arguments_sort]] :: Crsx_freeTerm_sort;
-
-{#E}NormalizeConstructor[TRUE, #annotations?, #properties?2, #constructor, %arguments?⟦ [ ##properties? ##constructor2 ##term* ] ⟧]
-→
-{#E}NormalizeConstructor[FALSE, #annotations?, #properties?2, #constructor, %arguments?⟦ [ ##properties? ⟨constructor: MakeBuiltin[#constructor2]⟩ ##term* ]⟧];
-
-{#E}NormalizeConstructor[FALSE, #annotations?, #properties?, #constructor, #arguments?]
-→
-%freeTerm⟦ ##annotations? ⟨properties?: {#E}NormalizePropertiesOpt[#properties?]⟩ ##constructor 
-                          ⟨arguments?: {#E}NormalizeArgumentsOpt[#arguments?]⟩ ⟧;
-
-MakeBuiltin[Crsx_constructor_sort] :: Crsx_constructor_sort;
-
-MakeBuiltin[%constructor⟦ ##CONSTRUCTOR ⟧] → %constructor⟦ ⟨CONSTRUCTOR: $[:, "Builtin$", #CONSTRUCTOR]⟩ ⟧;
-MakeBuiltin[%constructor⟦ :             ⟧] → %constructor⟦ Builtin$Colon ⟧;
-
-
-{$String:ContentEntry} 
-NormalizeFreeArgumentsOpt[$List[Crsx_freeArguments_sort]] :: $List[Crsx_freeArguments_sort];
-
-{#E}NormalizeFreeArgumentsOpt[%freeArguments?⟦                 ⟧] → %freeArguments?⟦⟧;
-{#E}NormalizeFreeArgumentsOpt[%freeArguments?⟦ [             ] ⟧] → %freeArguments?⟦⟧;
-{#E}NormalizeFreeArgumentsOpt[%freeArguments?⟦ [ ##freeTerms ] ⟧] → %freeArguments?⟦ [ ⟨freeTerms: NormalizeFreeTerms[#freeTerms]⟩ ] ⟧;
-
-{$String:ContentEntry}
-NormalizeFreeTerms[$List[Crsx_freeTerm_sort]] :: $List[Crsx_freeTerm_sort];
-
-{#E}NormalizeFreeTerms[%freeTerm*⟦                        ⟧] → %freeTerm*⟦⟧;
-{#E}NormalizeFreeTerms[%freeTerm*⟦ ##freeTerm ##freeTerm* ⟧] → %freeTerm*⟦ ⟨freeTerm: {#E}NormalizeFreeTerm[#freeTerm] ⟩ ⟨freeTerm*: {#E}NormalizeFreeTerms[#freeTerm*]⟩ ⟧;
-
-NormalizeConcrete[Crsx_concrete_sort] :: Crsx_freeTerm_sort;
-
-{#E}NormalizeConcrete[%concrete⟦ ##CATEGORY ##CONCRETE ⟧]    
-→ // TODO: Optimize!
-{#E}NormalizeFreeTerm[ParseToTerm["freeTerm", ParseToString[RemoveFirstChar[#CATEGORY], RemoveFirstChar[RemoveLastChar[#CONCRETE]]]]];
-//{#E}NormalizeFreeTerm[ParseString["freeTerm", Show[ParseString[RemoveFirstChar[#CATEGORY], RemoveFirstChar[RemoveLastChar[#CONCRETE]]]]]];
-//
-//{#E}NormalizeConcrete[%concrete⟦ ##CATEGORY ##CONCRETE2 ⟧] 
-//→ // TODO: Optimize!
-//$[Trace, $[:, "Parse concrete2 ", #CONCRETE2], {#E}NormalizeFreeTerm[ParseToTerm["freeTerm", ParseToString[RemoveFirstChar[#CATEGORY], RemoveFirstChar[RemoveLastChar[#CONCRETE2]]]]]];
-////{#E}NormalizeFreeTerm[ParseString["freeTerm", Show[ParseString[RemoveFirstChar[#CATEGORY], RemoveFirstChar[RemoveLastChar[#CONCRETE]]]]]];
-
-
-NormalizeDispatch[Crsx_dispatch_sort] :: Crsx_dispatch_sort;
-
-{#E}NormalizeDispatch[%dispatch⟦ dispatch ##freeTerm ##dispatchCase* ##delayCase?⟧]
-→
-%dispatch⟦ dispatch ⟨freeTerm: {#E}NormalizeFreeTerm[#freeTerm]⟩ ⟨dispatchCase*: {#E}NormalizeDispatchCases[#dispatchCase*]⟩ ##delayCase? ⟧;
-
-NormalizeDispatchCases[$List[Crsx_dispatchCase_sort]] :: $List[Crsx_dispatchCase_sort];
-
-{#E}NormalizeDispatchCases[%dispatchCase*⟦⟧] → %dispatchCase*⟦⟧;
-
-{#E}NormalizeDispatchCases[%dispatchCase*⟦ ##ruleDeclaration ##dispatchCase* ⟧]
-→
-%dispatchCase*⟦ ⟨ruleDeclaration: {#E}NormalizeRule[#ruleDeclaration]⟩ ⟨dispatchCase*: {#E}NormalizeDispatchCases[#dispatchCase*]⟩ ⟧;
+NMaybeArgs[$List[Crsx_args_sort]] :: $List[Core_cterms_sort];
+NMaybeArgs[%args?⟦              ⟧] → %cterms?⟦⟧;
+NMaybeArgs[%args?⟦ (          ) ⟧] → %cterms?⟦⟧;
+NMaybeArgs[%args?⟦ ( ##scope* ) ⟧] → %cterms?⟦ ( ⟨cterm*: Map[scope.NScope[scope], #scope*]⟩ ) ⟧;
+
+NScope[Crsx_scope_sort] :: Core_cterm_sort;
+NScope[%scope⟦ ##term      ⟧] → NTerm[#term];
+NScope[%scope⟦ [ ##binders ⟧] → NBinders[#binders];
+
+NBinders[Crsx_binders_sort] :: Core_cterm_sort;
+NBinders[%binders⟦ ##VARIABLE ##binders ⟧] → %cterm⟦ [ x ] ⟨cterm: NBinders[#binders]⟩ ⟧;
+NBinders[%binders⟦ ] -> ##term          ⟧] → NTerm[#term];
+
+NMaybeApply[$List[Crsx_apply_sort]] :: $List[Core_cterms_sort];
+NMaybeApply[%apply?⟦             ⟧] → %cterms?⟦⟧;
+NMaybeApply[%apply?⟦ (         ) ⟧] → %cterms?⟦⟧;
+NMaybeApply[%apply?⟦ ( ##term* ) ⟧] → %cterms?⟦ ( ⟨cterm*: Map[term.NTerm[term], #term*]⟩ ) ⟧;
+
+NGroupOrList[Crsx_groupOrList_sort] :: Core_cterm_sort;
+NGroupOrList[%groupOrList⟦ ()                           ⟧] → %cterm⟦ $Nil ⟧;
+NGroupOrList[%groupOrList⟦ ( ##term )                   ⟧] → NTerm[#term];
+NGroupOrList[%groupOrList⟦ ( ##term , )                 ⟧] → %cterm⟦ $Cons( ⟨cterm: NTerm[#term]⟩, $Nil) ⟧;
+NGroupOrList[%groupOrList⟦ ( ##term , ##term2 ##term+ ) ⟧] → NList[%term+⟦ ##term , ##term2 ##term+ ⟧];
+
+NList[$List[Crsx_term_sort]] :: Core_cterm_sort;
+NList[%term+⟦                          ⟧] → %cterm⟦ $Nil ⟧;
+NList[%term+⟦ ##term , ##term2 ##term+ ⟧] → %cterm⟦ $Cons( ⟨cterm: NTerm[#term]⟩, $Cons(⟨cterm: NTerm[#term2]⟩, ⟨cterm: NList[#term+]⟩) ) ⟧;
+
+// Big hack to get it working until bootstrapping.
+// parse-locations=0 must be specified when running crsx3
+NConcrete[$String, $String] :: Core_cterm_sort;
+NConcrete[#category, #text] → ParseToTerm["cterm", Replace[Replace[Replace[ParseToString[#category, #text], "[", "("], "]", ")"], "¹", " "]];
+
+// ----- Tokens
+
+NConstructor[Crsx_constructor_sort] :: $String;
+NConstructor[%constructor⟦ ##CONSTRUCTOR ⟧] → #CONSTRUCTOR;
 
 )]
