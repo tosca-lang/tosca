@@ -85,6 +85,7 @@ PutModule[System[#mainurl, #modules], #url, #module]
 /* Add rule to module content. Always succeed. 
 */ 
 PutRule[MAP[$String, $List[Core_cdecl_sort]], Core_cdecl_sort] :: MAP[$String, $List[Core_cdecl_sort]];
+-[Data[#rules]]:
 PutRule[#rules, {#L}%cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧]
 → PutRule1[MapGet[#rules, #CONSTRUCTOR], #rules, #CONSTRUCTOR, {#L}%cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧];
 
@@ -98,6 +99,7 @@ PutRule1[SOME[#rulesForCons], #rules, #constructor, #rule]
 /*  Add data sort to module content. Fail if data sort already exists. 
 */ 
 PutDataSort[MAP[$String, Core_cdecl_sort], Core_cdecl_sort] :: MAP[$String, Core_cdecl_sort];
+-[Data[#data]]:
 PutDataSort[#data, {#L}%cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧]
 → PutDataSort1[MapGet[#data, #CONSTRUCTOR], #data, #CONSTRUCTOR,  {#L}%cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧];
 
@@ -111,6 +113,7 @@ PutDataSort1[SOME[#datasort], #data, #constructor, #rule]
 /* Add function sort to module content. 
  */
 PutFuncSort[MAP[$String, Core_cdecl_sort], Core_ccdecl_sort] :: MAP[$String, Core_cdecl_sort];
+-[Data[#func]]:
 PutFuncSort[#func, {#L}%cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧]
 → PutFuncSort1[MapGet[#func, #CONSTRUCTOR], #func, #CONSTRUCTOR,  {#L}%cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧];
 

@@ -6,3 +6,7 @@ rule And(True, #)    → #
 
 func Bool Main
 rule Main → And(True, True)
+
+func ∀ a b . List(a) Map([b]a, List(b)) 
+//rule Map([x]#(x), Nil)          → Nil
+rule Map([x]#(x), Cons(#1, #2)) → Cons( #(#1), Map([x]#(x), #2))

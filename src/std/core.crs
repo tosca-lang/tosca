@@ -61,6 +61,15 @@ UnwrapBoolean[Boolean] :: $Boolean ;
 UnwrapBoolean[TRUE]  → $True;
 UnwrapBoolean[FALSE] → $False;
 
+
+/*
+   Apply the function when condition is true, otherwise just evaluate to value.
+ */
+∀ a.ApplyIf[a /* value */, $Boolean /* condition */, x::a.$Sort[a] /* function */] :: $Sort[a];
+
+ApplyIf[#value, $True, x.#[x]]  → #[#value];
+ApplyIf[#value, $False, x.#[x]] → #value;
+
 // --- Debugging
 
 ∀ a . Trace[a] :: a;

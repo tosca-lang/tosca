@@ -97,12 +97,12 @@ importDecl
 */
 
 sortDecl
-     : ENUM constructor sortVars? (OR variant)+          /* [CORE] Variant sort declaration */
-     | STRUCT constructor sortVars? (AND sortMap)+       /* [CORE] map sort definition */ 
+     : ENUM constructor sortParams? (OR variant)+          /* [CORE] Variant sort declaration */
+     | STRUCT constructor sortParams? (AND sortMap)+       /* [CORE] map sort definition */ 
      ;
 
-sortVars
-    : LT variable+ GT                                    /* [CORE] Sort variables. */
+sortParams
+    : LT VARIABLE+ GT                                      /* [CORE] Formal sort parameters. */ 
     ;
 
 /*
@@ -144,20 +144,21 @@ sort
     ;
 
 sortScope
-    : LSQUARE sort+ RSQUARE FNTYPE
+    // TODO: fix meta parser and replace sort* by sort+
+    : LSQUARE sort* RSQUARE FNTYPE
     ;
 
 paramSort
-    : constructor sortParams?               /* [CORE] Parameterized sort */
-    | variable
+    : constructor sortArgs?               /* [CORE] Parameterized sort */
+    | VARIABLE
     ;
 
-sortParams
-    : LT VARIABLE+ GT                   /* [CORE] Sort Parameters */
+sortArgs
+    : LT sort+ GT                         /* [CORE] Sort arguments */
     ;
-
+    
 sorts
-    : sort (COMMA sorts)*             /* [CORE] List of sort */
+    : sort (COMMA sorts)*                 /* [CORE] List of sort */
     ;
 
 // Rule Declaration
@@ -248,7 +249,7 @@ scope
     ;
 
 binders
-    : VARIABLE<binder=x> binders<binds=x>
+    : VARIABLE<boundvar=x> binders<bound=x>
     | RSQUARE FNTYPE term[0]
     ;
 
@@ -258,13 +259,15 @@ apply
 
 groupOrList
     : LPAR RPAR                                       /* [SUGAR] Empty list */
-    | LPAR term[0] RPAR                               /* [SUGAR] Grouped term */
     | LPAR term[0] COMMA RPAR                         /* [SUGAR] Single term list */
-    | LPAR term[0] (COMMA term[0])+ RPAR              /* [SUGAR] Multiple terms list */
+    | LPAR term[0] (COMMA term[0])* RPAR              /* [SUGAR] Grouped term/Multiple terms list */
+ // TODO: enable below when meta parser handle + properly.
+ //   | LPAR term[0] RPAR                               /* [SUGAR] Grouped term */
+//    | LPAR term[0] (COMMA term[0])+ RPAR              /* [SUGAR] Multiple terms list */
     ;
 
 variable                                              /* [CORE] */
-    : VARIABLE<symbol>  
+    : VARIABLE<variable>  
     ;
 
 literal
@@ -371,7 +374,7 @@ fragment Upper    : [A-Z];
 fragment Lower    : [a-z];
 fragment Alpha    : [a-zA-Z];
 fragment Decimal  : '-'? [0-9]+ ('.' [0-9]+)? | '.' [0-9]+;
-fragment Other    : '-' | [$_+/|`~!@^&*=?/>.:];
+fragment Other    : '-' | [$_+/|`~!@^&*=?/.:]; // TODO: >
 fragment Unicode  : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
 fragment UnicodeS : ~[\u0000-\u00FF\uD800-\uDBFF\u27e6\u27e7\u27e8\u27e9] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
 fragment Ebnf     : '*' | '?' | '+';

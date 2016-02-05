@@ -11,7 +11,7 @@ $Use["std/env.crs"];
 ∀ a b . MAP[a,b] ::=( {a : b}MAP; );
 
 ∀ a b . MapPut[MAP[a,b], a /* Key */, b /* Value */] :: MAP[a,b] ;
--[Data[#key]]: MapPut[{#map}MAP, #key, #value] →  {#map; #key:#value}MAP;
+-[Data[#key, #value]]: MapPut[{#map}MAP, #key, #value] →  {#map; #key:#value}MAP;
 
 ∀ a b . MapGet[MAP[a,b], a /* Key */] :: Option[b];
 -[Data[#key], Free[x::a]]: MapGet[{#map}MAP, $[NotMatch, x, #key]] → {#map}GetSome[#key];

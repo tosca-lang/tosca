@@ -37,7 +37,7 @@ NDecls[#cdecl+]
 NDecl[Crsx_decl_sort] :: $List[Core_cdecl_sort];
 
 /* Convert enum to data sort */
-NDecl[%decl⟦ enum ##constructor ##sortVars? ##variant+ ⟧]
+NDecl[%decl⟦ enum ##constructor ##sortParams? ##variant+ ⟧]
 → %cdecl+⟦ data ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ( ⟨cform*: NVariants[#variant+]⟩ ) ⟧; 
 
 /* Convert function.
@@ -72,15 +72,35 @@ NMaybeVariantArgs[%variantArgs?⟦ ( ##sorts ) ⟧] → %csorts?⟦ ( ⟨csort*:
 
 // ---- Sort reference
 
-NSorts[$List[Crsx_sort_sort]] :: $List[Core_sort_sort];
+NSorts[$List[Crsx_sort_sort]] :: $List[Core_csort_sort];
 NSorts[#sorts] → Map[sort.NSort[sort], #sorts];
 
-NSort[Crsx_sort_sort] :: Core_sort_sort;
-NSort[%sort⟦ ##sortScope? ##constructor ##sortParams? ⟧] 
-→ %csort⟦ ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟧;
+NSort[Crsx_sort_sort] :: Core_csort_sort;
+NSort[%sort⟦ ##sortScope? ##constructor ##sortArgs? ⟧] 
+→ NMaybeSortScope[#sortScope?, NParamSort[#constructor, #sortArgs?]];
 
 NSort[%sort⟦ ##sortScope? ##VARIABLE ⟧] 
-→ %csort⟦ ##VARIABLE ⟧;
+→ NMaybeSortScope[#sortScope?, %csort⟦ ##VARIABLE ⟧];
+
+NMaybeSortScope[$List[Crsx_sortScope_sort], Core_csort_sort] :: Core_csort_sort;
+NMaybeSortScope[%sortScope?⟦ ⟧, #csort] 
+→ #csort;
+
+NMaybeSortScope[%sortScope?⟦ [ ##sort* ] -> ⟧, #csort] 
+→ NSortScope[#sort*, #csort];
+
+NSortScope[$List[Crsx_sort_sort], Core_csort_sort] :: Core_csort_sort;
+NSortScope[%sort*⟦ ⟧, #csort]
+→ #csort;
+
+NSortScope[%sort*⟦ ##sort ##sort* ⟧, #csort]
+→ %csort⟦ [ ⟨csort: NSort[#sort]⟩ ] ⟨csort: NSortScope[#sort*, #csort]⟩ ⟧;
+
+NParamSort[Crsx_constructor_sort, $List[Crsx_sortArgs_sort]] :: Core_sort_sort;
+
+// TODO: the code gen for now generated untyped code so ignore #sortArgs? here
+NParamSort[#constructor, #sortArgs?] 
+→ %csort⟦ ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟧;
 
 NMaybeSortParams[$List[Crsx_sortParams_sort]] :: $List[Core_csortvars_sort];
 NMaybeSortParams[%sortParams?⟦                  ⟧]    → %csortvars?⟦ ⟧; 
@@ -162,7 +182,7 @@ NScope[%scope⟦ ##term      ⟧] → NTerm[#term];
 NScope[%scope⟦ [ ##binders ⟧] → NBinders[#binders];
 
 NBinders[Crsx_binders_sort] :: Core_cterm_sort;
-NBinders[%binders⟦ ##VARIABLE ##binders ⟧] → %cterm⟦ [ x ] ⟨cterm: NBinders[#binders]⟩ ⟧;
+NBinders[%binders⟦ ##VARIABLE ##binders ⟧] → %cterm⟦ [ x ] ⟨cterm: NBinders[#binders[x]]⟩ ⟧;
 NBinders[%binders⟦ ] -> ##term          ⟧] → NTerm[#term];
 
 NMaybeApply[$List[Crsx_apply_sort]] :: $List[Core_cterms_sort];
@@ -174,11 +194,14 @@ NGroupOrList[Crsx_groupOrList_sort] :: Core_cterm_sort;
 NGroupOrList[%groupOrList⟦ ()                           ⟧] → %cterm⟦ $Nil ⟧;
 NGroupOrList[%groupOrList⟦ ( ##term )                   ⟧] → NTerm[#term];
 NGroupOrList[%groupOrList⟦ ( ##term , )                 ⟧] → %cterm⟦ $Cons( ⟨cterm: NTerm[#term]⟩, $Nil) ⟧;
-NGroupOrList[%groupOrList⟦ ( ##term , ##term2 ##term+ ) ⟧] → NList[%term+⟦ ##term , ##term2 ##term+ ⟧];
+NGroupOrList[%groupOrList⟦ ( ##term , ##term2 ##term* ) ⟧] → NList[%term*⟦ ##term , ##term2 ##term* ⟧];
 
 NList[$List[Crsx_term_sort]] :: Core_cterm_sort;
-NList[%term+⟦                          ⟧] → %cterm⟦ $Nil ⟧;
-NList[%term+⟦ ##term , ##term2 ##term+ ⟧] → %cterm⟦ $Cons( ⟨cterm: NTerm[#term]⟩, $Cons(⟨cterm: NTerm[#term2]⟩, ⟨cterm: NList[#term+]⟩) ) ⟧;
+// TODO: fix meta parser to handle (+) properly. For now cannot match against one item.
+// TODO: robustness
+NList[%term*⟦                 ⟧] → %cterm⟦ $Nil ⟧;
+NList[%term*⟦ ##aterm ... ⟧] → NTerm[%term⟦ ⟨aterm: #aterm⟩ ⟧];
+NList[%term*⟦ ##term ##term*  ⟧] → %cterm⟦ $Cons( ⟨cterm: NTerm[#term]⟩, ⟨cterm: NList[#term*]⟩ ) ⟧;
 
 // Big hack to get it working until bootstrapping.
 // parse-locations=0 must be specified when running crsx3

@@ -59,6 +59,7 @@ import static org.crsx.runtime.Primitives.*;
 
 /* Generate class for the given module */ 
 JavaUnit[$String, Module] :: Text;
+-[Data[#rules, #datasorts, #funcsorts]]:
 JavaUnit[#mainurl, Module[#url, Loaded[LoadedContent[#rules, #datasorts, #funcsorts]]]] 
 → %n⟦
 @SuppressWarnings("unused")«JavaClassVisibility[#mainurl, #url]» class †«ClassName[#url]»

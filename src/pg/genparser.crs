@@ -77,7 +77,6 @@ $Lax;
 
 $Use["pg/ANTLR.crs"];
 $Use["pg/util.crs"];
-$Use["std/function.crs"];
 $Use["std/list.crs"];
 $Use["std/core.crs"];
 $Use["std/string.crs"];

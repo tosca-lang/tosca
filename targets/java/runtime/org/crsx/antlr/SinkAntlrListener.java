@@ -25,6 +25,8 @@ import net.sf.crsx.CRSException;
 import net.sf.crsx.Constructor;
 import net.sf.crsx.Sink;
 import net.sf.crsx.generic.GenericFactory;
+import net.sf.crsx.util.ExtensibleMap;
+import net.sf.crsx.util.LinkedExtensibleMap;
 
 /**
  * Create CRSX term from ANTLR parse events.
@@ -438,7 +440,7 @@ public class SinkAntlrListener implements ParseTreeListener
 				sink = sink.startMetaApplication(metaname).endMetaApplication();
 			else
 				sink4 = sink4.startMetaApplication(metaname).endMetaApplication();
-			
+
 			sort = TokenSort.STRING;
 		}
 		else
@@ -594,12 +596,12 @@ public class SinkAntlrListener implements ParseTreeListener
 							break;
 						case TERM :
 							String metaname = fixupMetachar(context.getText());
-							
+
 							if (sink != null)
 								sink = sink.startMetaApplication(metaname);
 							else
 								sink4 = sink4.startMetaApplication(metaname);
-							
+
 							// Add directly bound variable.
 							// REVISIT: should be user-specified.
 							for (Object variable : bounds)
@@ -611,12 +613,12 @@ public class SinkAntlrListener implements ParseTreeListener
 								else
 									sink4 = sink4.use((Variable) variable);
 							}
-							
+
 							if (sink != null)
 								sink = sink.endMetaApplication();
 							else
 								sink4 = sink4.endMetaApplication();
-							
+
 							break;
 						default :
 							break;
@@ -647,7 +649,7 @@ public class SinkAntlrListener implements ParseTreeListener
 						try
 						{
 							sink = factory.parser(factory).parse(
-									sink, null, reader, "", token.getLine(), token.getCharPositionInLine(), null);
+									sink, null, reader, "", token.getLine(), token.getCharPositionInLine(), toCrsx3Bound());
 						}
 						catch (CRSException | IOException e)
 						{
@@ -674,13 +676,28 @@ public class SinkAntlrListener implements ParseTreeListener
 	}
 
 	/**
+	 * Convert bound variable structure to one compatible with crsx3
+	 * @return
+	 */
+	private ExtensibleMap<String, net.sf.crsx.Variable> toCrsx3Bound()
+	{
+		ExtensibleMap<String, net.sf.crsx.Variable> map = new LinkedExtensibleMap<>();
+		for (Object v : bounds)
+		{
+			if (v instanceof net.sf.crsx.Variable)
+				map = map.extend(((net.sf.crsx.Variable) v).name(), (net.sf.crsx.Variable) v);
+		};
+		return map;
+	}
+
+	/**
 	 * Convert parser specific metacharacter to Crsx meta character (#).
 	 */
 	protected String fixupMetachar(String metavar)
 	{
-		return "#" + metavar.substring(metachar.length());		
+		return "#" + metavar.substring(metachar.length());
 	}
-	
+
 	// Utility classes
 
 	class MutableInt
