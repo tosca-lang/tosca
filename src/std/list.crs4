@@ -2,6 +2,7 @@
 
 import Std::Core 
 import Std::Pair 
+import Std::Num 
 
 // Sort list definition.
 //∀ a.List ->= ( $Cons(a, List<a>)  $Nil  ) 
@@ -274,7 +275,7 @@ rule MapM2([state x] -> #(state, x), #state, (#1, #s...), #rs) → MapM3(#(#stat
 
 func MapM3<a b c>(Pair<a c>, [a b] -> Pair<a c>, List<b>, List<c>) -> Pair<a List<c>> 
 rule MapM3(PairCons(#nstate, #r), [state x] ->#(state, x), #s, #rs) 
-→ MMap2([state x] -> #(state, x), #nstate, #s, Append(#r, #rs)) 
+→ MapM2([state x] -> #(state, x), #nstate, #s, Append(#r, #rs)) 
 
 /* Monadic map with continuation. Apply each item in list to the function taking a state and an element,
    evaluating to a new state and a value. Apply the next element with the new state.

@@ -7,6 +7,7 @@ List[(
 
 $Use["std/core.crs"];
 $Use["std/pair.crs"];
+$Use["std/num.crs"];
 
 // Sort list definition.
 //∀ a.$List ::= ( $Cons[a, $List[a]]; $Nil; );
@@ -279,7 +280,7 @@ MapM2[state x.#[state, x], #state, (), #rs]      → PairCons[#state, #rs];
 MapM2[state x.#[state, x], #state, (#1;#s), #rs] → MapM3[#[#state, #1], state x.#[state, x], #s, #rs];
 
 ∀ a b c. MapM3[Pair[a, c], state::a x::b.Pair[a, c], $List[b], $List[c]] :: Pair[a, $List[c]];
-MapM3[PairCons[#nstate, #r], state x.#[state, x], #s, #rs] → MMap2[state x.#[state, x], #nstate, #s, Append[#r, #rs]];
+MapM3[PairCons[#nstate, #r], state x.#[state, x], #s, #rs] → MapM2[state x.#[state, x], #nstate, #s, Append[#r, #rs]];
 
 /* Monadic map with continuation. Apply each item in list to the function taking a state and an element,
    evaluating to a new state and a value. Apply the next element with the new state.

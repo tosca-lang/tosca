@@ -425,7 +425,7 @@ $[If, $[StringEqual, $[Trim, #sub], ""], %n⟦⟧, %n⟦†«#sep»†«#sub»�
 PathToImport[$String] :: Text;
 
 PathToImport[#name] 
-→ $[Trace, PathToImport2[$[If, $[StartsWith, #name, "Std::"], "org.crsx.compiler", $[Get, "javabasepackage", ""]], PathToDot[DownCaseFirst[#name]]]];
+→ PathToImport2[$[If, $[StartsWith, #name, "Std::"], "org.crsx.compiler", $[Get, "javabasepackage", ""]], PathToDot[DownCaseFirst[#name]]];
 
 PathToImport2[$String, $String] :: Text;
 
