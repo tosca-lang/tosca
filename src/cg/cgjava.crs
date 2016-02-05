@@ -60,14 +60,22 @@ import static org.crsx.runtime.Primitives.*;
 /* Generate class for the given module */ 
 JavaUnit[$String, Module] :: Text;
 -[Data[#rules, #datasorts, #funcsorts]]:
-JavaUnit[#mainurl, Module[#url, Loaded[LoadedContent[#rules, #datasorts, #funcsorts]]]] 
+JavaUnit[#mainurl, Module[#url, Loaded[LoadedContent[#imports, #rules, #datasorts, #funcsorts]]]] 
 → %n⟦
-@SuppressWarnings("unused")«JavaClassVisibility[#mainurl, #url]» class †«ClassName[#url]»
+«TextFold[Map[import.JavaImport[import], #imports], %n⟨⟩]»
+
+@SuppressWarnings("unused")
+«JavaClassVisibility[#mainurl, #url]» class †«ClassName[#url]»
 {⟦«TextFold[Map[sort.JavaDataDesc[sort], MapValues[#datasorts]], %n⟨⟩]»
 «TextFold[Map[sort.JavaFuncDesc[ClassName[#url], sort], MapValues[#funcsorts]], %n⟨⟩]»
 «TextFold[Map[cons.JavaMethod[cons, #rules, #datasorts, #funcsorts], MapKeys[#rules]], %n⟨⟩]»
 «InitModule[#datasorts, #funcsorts]»⟧
 }⟧;
+
+JavaImport[$String] :: Text;
+JavaImport[#name] 
+→ %n⟦
+import static «PathToImport[#name]».*;⟧;
 
 JavaClassVisibility[$String, $String] :: Text;
 JavaClassVisibility[#mainurl, #url] 
@@ -412,30 +420,28 @@ PackageDeclaration3[$String, $String] :: Text;
 PackageDeclaration3[#sep, #sub] 
 →
 $[If, $[StringEqual, $[Trim, #sub], ""], %n⟦⟧, %n⟦†«#sep»†«#sub»⟧];
-//
-//// Print java import
-//PathToImport[Crsx_constructor_sort] :: Text;
-//
-//PathToImport[%constructor⟦ ##CONSTRUCTOR ⟧] 
-//→ 
-//PathToImport2[$[If, $[StartsWith, #CONSTRUCTOR, "std/"], "org.crsx.compiler", $[Get, "javabasepackage", ""]], PathToDot[#CONSTRUCTOR]];
-//
-//PathToImport2[$String, $String] :: Text;
-//
-//-[Data[#package, #name]] : 
-//PathToImport2[#package, #name] 
-//→ 
-//%n⟦«StringToText[#package]».«StringToText[#name]»⟧;
-//
-//PathToDot[$String] :: $String;
-//PathToDot[#path] → PathToDot2[Replace[BeforeLast[#path, "."], "/", "."]];
-//
-//PathToDot2[$String] :: $String;
-//-[Data[#subpackage]]: PathToDot2[#subpackage] 
-//→ 
-//$[If, $[Contains, #subpackage, "."],
-//    ConcatString[ConcatString[BeforeLast[#subpackage, "."], "."], UpCaseFirst[AfterLast[#subpackage, "."]]],
-//    UpCaseFirst[#subpackage]];
+
+// Print java import
+PathToImport[$String] :: Text;
+
+PathToImport[#name] 
+→ $[Trace, PathToImport2[$[If, $[StartsWith, #name, "Std::"], "org.crsx.compiler", $[Get, "javabasepackage", ""]], PathToDot[DownCaseFirst[#name]]]];
+
+PathToImport2[$String, $String] :: Text;
+
+-[Data[#package, #name]] : 
+PathToImport2[#package, #name] 
+→  %n⟦«StringToText[#package]».«StringToText[#name]»⟧;
+
+PathToDot[$String] :: $String;
+PathToDot[#path] → PathToDot2[Replace[#path, "::", "."]];
+
+PathToDot2[$String] :: $String;
+-[Data[#subpackage]]: PathToDot2[#subpackage] 
+→ 
+$[If, $[Contains, #subpackage, "."],
+    ConcatString[ConcatString[BeforeLast[#subpackage, "."], "."], UpCaseFirst[AfterLast[#subpackage, "."]]],
+    UpCaseFirst[#subpackage]];
 
 // Print class name
 ClassName[$String] :: $String;

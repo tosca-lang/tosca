@@ -1,7 +1,7 @@
 /* Copyright (c) 2015 IBM Corporation. */
 
-//$Use("std/core.crs") 
-//$Use("std/pair.crs") 
+import Std::Core 
+import Std::Pair 
 
 // Sort list definition.
 //∀ a.List ->= ( $Cons(a, List<a>)  $Nil  ) 
@@ -134,7 +134,7 @@ func ListEqual<a b>( [a b] -> Boolean, List<a>, List<b> ) -> Boolean
 rule ListEqual([x y] -> #C(x,y), (          ), (          )) → TRUE 
 rule ListEqual([x y] -> #C(x,y), (#x, #xs...), (          )) → FALSE 
 rule ListEqual([x y] -> #C(x,y), (          ), (#y, #ys...)) → FALSE 
-rule ListEqual([x y] -> #C(x,y), (#x, #xs...), (#y, #ys/..)) → And(#C(#x, #y), ListEqual([x y] -> #C(x,y), #xs, #ys))  
+rule ListEqual([x y] -> #C(x,y), (#x, #xs...), (#y, #ys...)) → And(#C(#x, #y), ListEqual([x y] -> #C(x,y), #xs, #ys))  
 
 /* `ConditionalInsert(#Condition, #X, #XS)`
    @param  `#Condition` condition for inserting the element

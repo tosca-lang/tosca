@@ -63,6 +63,7 @@ private boolean isPostfix(String op, int currentp) {
 }
 
 {
+  // Builtin operator for matching list tail.
   fixities.put("...", "postfix");
   precedences.put("...", 2);
 }
@@ -76,8 +77,8 @@ crsx
 
 decl
     //: moduleDecl
-    //| importDecl
-    : sortDecl
+    : importDecl
+    | sortDecl
     | ruleDecl
     | fnDecl
     ;
@@ -87,14 +88,12 @@ decl
 moduleDecl
     : MODULE constructor
     ;
-
-importDecl
-    : IMPORT constructor                                 /* [SUGAR: same as IMPORT MODULE] *
-    | IMPORT MODULE constructor                          /* [CORE] *
-    | IMPORT GRAMMAR constructor                         /* [CORE] *
-    ;
-
 */
+importDecl
+    : IMPORT constructor                                 /* [SUGAR: same as IMPORT MODULE] */
+    | IMPORT MODULE constructor                          /* [CORE] */
+    | IMPORT GRAMMAR constructor                         /* [CORE] */
+    ;
 
 sortDecl
      : ENUM constructor sortParams? (OR variant)+          /* [CORE] Variant sort declaration */

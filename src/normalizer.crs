@@ -36,6 +36,14 @@ NDecls[#cdecl+]
 
 NDecl[Crsx_decl_sort] :: $List[Core_cdecl_sort];
 
+/* Convert import module */
+NDecl[%decl⟦ import ##constructor ⟧]
+→ %cdecl+⟦ import module ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟧;
+
+/* Convert import module */
+NDecl[%decl⟦ import module ##constructor ⟧]
+→ %cdecl+⟦ import module ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟧; 
+
 /* Convert enum to data sort */
 NDecl[%decl⟦ enum ##constructor ##sortParams? ##variant+ ⟧]
 → %cdecl+⟦ data ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ( ⟨cform*: NVariants[#variant+]⟩ ) ⟧; 

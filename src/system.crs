@@ -44,6 +44,7 @@ Content ::= (
 /* The actual module content. Sorts and rules are indexed for fast lookup. */
 LoadedContent ::= (
     LoadedContent[
+           $List[$String /* Constructor */],                       /* Imports */
            MAP[$String /* Constructor */, $List[Core_cdecl_sort]], /* Rules */
            MAP[$String /* Constructor */, Core_cdecl_sort],        /* DataSorts */ 
            MAP[$String /* Constructor */, Core_cdecl_sort]         /* FuncSorts */];
@@ -133,19 +134,23 @@ PutFuncSort1[SOME[#datasort], #func, #constructor, #rule]
  */
 LoadCore[Core_ccrsx_sort] :: LoadedContent;
 LoadCore[%ccrsx⟦ ##cdecl+ ⟧]
-→ LoadDecls[#cdecl+, MAP, MAP, MAP];
+→ LoadDecls[#cdecl+, (), MAP, MAP, MAP];
 
-LoadDecls[$List[Core_cdecl_sort]] :: LoadedContent;
-LoadDecls[%cdecl+⟦⟧, #rules, #data, #func] 
-→ LoadedContent[#rules, #data, #func];
+LoadDecls[$List[Core_cdecl_sort], $List[$String], MAP[$String, $List[Core_cdecl_sort]], 
+           MAP[$String, Core_cdecl_sort], MAP[$String, Core_cdecl_sort] ] :: LoadedContent;
+LoadDecls[%cdecl+⟦⟧, #imports, #rules, #data, #func] 
+→ LoadedContent[#imports, #rules, #data, #func];
 
-LoadDecls[%cdecl+⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ##cdecl+ ⟧, #rules, #data, #func] 
-→ LoadDecls[#cdecl+, #rules, PutDataSort[#data, %cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧], #func];
+LoadDecls[%cdecl+⟦ import module ##CONSTRUCTOR ##cdecl+ ⟧, #imports, #rules, #data, #func] 
+→ LoadDecls[#cdecl+, (#CONSTRUCTOR; #imports), #rules, #data, #func];
 
-LoadDecls[%cdecl+⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ##cdecl+ ⟧, #rules, #data, #func] 
-→ LoadDecls[#cdecl+, #rules, #data, PutFuncSort[#func, %cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧]];
+LoadDecls[%cdecl+⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ##cdecl+ ⟧, #imports, #rules, #data, #func] 
+→ LoadDecls[#cdecl+, #imports, #rules, PutDataSort[#data, %cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧], #func];
 
-LoadDecls[%cdecl+⟦ rule ##cterm → ##cterm2 ##cdecl+  ⟧, #rules, #data, #func] 
-→ LoadDecls[#cdecl+, PutRule[#rules, %cdecl⟦ rule  ##cterm → ##cterm2 ⟧], #data, #func];
+LoadDecls[%cdecl+⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ##cdecl+ ⟧, #imports, #rules, #data, #func] 
+→ LoadDecls[#cdecl+, #imports, #rules, #data, PutFuncSort[#func, %cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧]];
+
+LoadDecls[%cdecl+⟦ rule ##cterm → ##cterm2 ##cdecl+  ⟧, #imports, #rules, #data, #func] 
+→ LoadDecls[#cdecl+, #imports, PutRule[#rules, %cdecl⟦ rule  ##cterm → ##cterm2 ⟧], #data, #func];
 
 )]

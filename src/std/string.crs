@@ -37,6 +37,13 @@ UpCaseFirst[$String] :: $String;
 UpCaseFirst[#string] → $[:, $[UpCase, $[Substring, #string, 0, 1]], $[Substring, #string, 1]]; 
 
 /*
+ * Make sure the given string first character is lower case
+ */
+DownCaseFirst[$String] :: $String;
+DownCaseFirst[#string] → $[:, $[DownCase, $[Substring, #string, 0, 1]], $[Substring, #string, 1]]; 
+
+
+/*
  * Returns given string without its first character
  */
 RemoveFirstChar[$String] :: $String; 
