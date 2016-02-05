@@ -43,7 +43,7 @@ func Not(Boolean) -> Boolean
 rule Not(TRUE)  → FALSE
 rule Not(FALSE) → TRUE
 
-func Equal(String, String) -> Boolean
+func Equal(eager String, eager String) -> Boolean
 
 func Eq<a>(a, a) -> Boolean
 //rule  Eq(#X,#Y) → $(If, $(Equal,#X,#Y), TRUE, FALSE),

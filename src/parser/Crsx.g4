@@ -185,8 +185,9 @@ fnParams
     : fnParam (COMMA fnParam)*
     ;
 
+
 fnParam
-    : fnParamName? sort
+    : fnParamName? EAGER? sort
     ;
 
 fnParamName
@@ -330,6 +331,7 @@ FUNC            : 'func';
 ENUM            : 'enum';
 STRUCT          : 'struct';
 DISPATCH        : 'dispatch';
+EAGER           : 'eager';
 COMMA           : ',';
 LPAR            : '(';
 RPAR            : ')';
