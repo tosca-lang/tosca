@@ -83,7 +83,7 @@ Concat[(#1;#s), #tail] → (#1 ; Concat[#s, #tail]) ;
 
 /* Flatten list of lists 
 */
-∀ a.Flatten[$List[$List[a]]] :: List[a] ;
+∀ a.Flatten[$List[$List[a]]] :: $List[a] ;
 Flatten[()]       → () ;
 Flatten[(#1;#s) ] → Concat[#1, Flatten[#s]];
 

@@ -65,10 +65,9 @@ UnwrapBoolean[FALSE] → $False;
 /*
    Apply the function when condition is true, otherwise just evaluate to value.
  */
-∀ a.ApplyIf[a /* value */, $Boolean /* condition */, x::a.$Sort[a] /* function */] :: $Sort[a];
-
+∀ a.ApplyIf[a /* value */, $Boolean /* condition */, x::a.$sort[a] /* function */] :: a;
 ApplyIf[#value, $True, x.#[x]]  → #[#value];
-ApplyIf[#value, $False, x.#[x]] → #value;
+ApplyIf[#value, $False, x.#[x]] → #value; 
 
 // --- Debugging
 
