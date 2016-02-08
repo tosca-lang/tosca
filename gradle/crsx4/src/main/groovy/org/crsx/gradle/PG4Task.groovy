@@ -52,8 +52,12 @@ class PG4Task extends DefaultTask {
 			if (sort)
 			{	
 				// .nterm -> sort
+				
 				String sortt = basename + '.crs' // generate sort
 				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.antlr.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakeSorts', 'output=' + sortt ])
+				
+				String sortt4 = basename + '.crs4' // generate sort for crsx4
+                crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.antlr.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakeSorts', 'crsx4', 'output=' + sortt4 ])
 			}
 			
 			if (parsers)

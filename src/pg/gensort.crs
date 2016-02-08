@@ -33,14 +33,22 @@ MakeGrammarSpec[ANTLR_grammarSpec_sort] :: Text;
 
 MakeModuleId[ANTLR_grammarSpec_sort] :: Text;
 {#E}MakeModuleId[#id, ok.#[ok]] 
-→ %n⟦/* Generated File. */
+→ $[IfDef, "crsx4",
+%n⟦/* Generated File. */
+import Std::Text
+import Std::Core
+import Std::List
+
+«{#E; "@id": STRING[#id]}#[OK]»⟧,
+
+%n⟦/* Generated File. */
 †«#id»[(
 $CheckGrammar["net.sf.crsx.text.Text"];
 $Use["std/text.crs"];
 $Use["std/core.crs"];
 $Use["std/list.crs"];
 
-«{#E; "@id": STRING[#id]}#[OK]»↲)]⟧; // TODO: must match CRSX syntax
+«{#E; "@id": STRING[#id]}#[OK]»↲)]⟧]; // TODO: must match CRSX syntax
 
 /* `MakeRuleSpec[#rule, #cont] :: Text`
    Generates sort and printer for grammar rule 
@@ -64,13 +72,20 @@ MakeRuleSpec[ANTLR_ruleSpec_sort, Cont[Text]] :: Text;
  */
 MakeSort[ANTLR_ruleSpec_sort, Cont[Text]] :: Text;
  {#E}MakeSort[#ruleBlock, #cont] 
-→ %n⟦¶¶«{#E}MakeSortName» ::= («
+→ $[IfDef, "crsx4", %n⟦¶¶enum «{#E}MakeSortName» «
    {#E; "@sortname" : TEXT[{#E}MakeSortName]; 
         "@sort"     : TEXT[%n⟪⟫];
         "@pt-name"  : TEXT[{#E}MakePrinterName]; 
         "@pt-rules" : TEXT[%n⟪⟫];
         "@pt-subs"  : TEXT[%n⟪⟫];
-   }MakeForms[#ruleBlock, ok¹.MakeSortTail[ok¹, #cont]]»⟧;
+   }MakeForms[#ruleBlock, ok¹.MakeSortTail[ok¹, #cont]]»⟧,
+%n⟦¶¶«{#E}MakeSortName» ::= («
+   {#E; "@sortname" : TEXT[{#E}MakeSortName]; 
+        "@sort"     : TEXT[%n⟪⟫];
+        "@pt-name"  : TEXT[{#E}MakePrinterName]; 
+        "@pt-rules" : TEXT[%n⟪⟫];
+        "@pt-subs"  : TEXT[%n⟪⟫];
+   }MakeForms[#ruleBlock, ok¹.MakeSortTail[ok¹, #cont]]»⟧];
 
 // Retrieves the sort and printer from the environment and construct text
 MakeSortTail[OK_SORT, Cont[Text]] :: Text;
@@ -80,7 +95,9 @@ MakeSortTail[OK_SORT, Cont[Text]] :: Text;
      "@pt-rules": TEXT[#printerRules];   
      "@pt-subs" : TEXT[#printerSubs];}
 MakeSortTail[OK, #cont] 
-→ %n⟦«#sort»);¶¶«#printerName»[«#sortname»] :: Text;«#printerRules»«#printerSubs»«{#E}ApplyCont[#cont]»⟧;
+→ $[IfDef, "crsx4",
+%n⟦«#sort»¶¶func «#printerName»(«#sortname») -> Text«#printerRules»«#printerSubs»«{#E}ApplyCont[#cont]»⟧,
+%n⟦«#sort»);¶¶«#printerName»[«#sortname»] :: Text;«#printerRules»«#printerSubs»«{#E}ApplyCont[#cont]»⟧];
 
 // 
 MakeForms[ANTLR_ruleBlock_sort, ok::OK_SORT.Text] :: Text;
@@ -102,13 +119,20 @@ MakeRuleAltList_S1s[OK_SORT, $Numeric, $List[ANTLR_ruleAltList_S1_sort], ok::OK_
 MakeForm[ANTLR_alternative_sort, $Numeric, Boolean, ok::OK_SORT.Text] :: Text;
 
 {#E; "@sort":TEXT[#sort]}MakeForm[{#L}%alternative⟦ #element* ⟧, #count, #unique, ok¹ count¹.#[ok¹, count¹]] 
-→ {#E; 
+→ $[IfDef, "crsx4", {#E; 
+    "@sort"    : TEXT[%n⟦«#sort» | «{#E}MakeAlternativeName[#count, #unique]»⟧];
+    "@freshes" : TEXTS[()]; // Printer rule fresh variable
+    "@plhs"    : TEXTS[()]; // Printer rule lhs arguments
+    "@prhs"    : TEXTS[()]; // Printer rule rhs  
+    "@inblock" : NO 
+  }MaybeMakeArguments[#element*, ok¹.MakePrintingRule[ok¹, {#E}MakeAlternativeName[#count, #unique], o2¹.#[o2¹, $[Plus, #count, 1]]]],
+{#E; 
     "@sort"    : TEXT[%n⟦«#sort»«{#E}MakeAlternativeName[#count, #unique]»⟧];
     "@freshes" : TEXTS[()]; // Printer rule fresh variable
     "@plhs"    : TEXTS[()]; // Printer rule lhs arguments
     "@prhs"    : TEXTS[()]; // Printer rule rhs  
     "@inblock" : NO 
-  }MaybeMakeArguments[#element*, ok¹.MakePrintingRule[ok¹, {#E}MakeAlternativeName[#count, #unique], o2¹.#[o2¹, $[Plus, #count, 1]]]];
+  }MaybeMakeArguments[#element*, ok¹.MakePrintingRule[ok¹, {#E}MakeAlternativeName[#count, #unique], o2¹.#[o2¹, $[Plus, #count, 1]]]]];
 
 //
 MakePrintingRule[OK_SORT, Text, ok::OK_SORT.Text] :: Text;
@@ -120,7 +144,9 @@ MakePrintingRule[OK_SORT, Text, ok::OK_SORT.Text] :: Text;
   "@prhs"     : TEXTS[#printerRuleRHS]}
 MakePrintingRule[OK, #altName, ok¹.#[ok¹]] 
 → {#E; 
-    "@pt-rules" : TEXT[%n⟦«#printerRules»¶«MakePrintFreshes[#freshes]»«#printerName»[«#altName»[«ReverseTextFold[#printerRuleLHS, %n⟪, ⟫]»]] → «Text-Text[Text-ReverseConcat[#printerRuleRHS]]»;⟧]; 
+    "@pt-rules" : TEXT[$[IfDef, "crsx4",
+                   %n⟦«#printerRules»¶«MakePrintFreshes[#freshes]»rule «#printerName»(«#altName»(«ReverseTextFold[#printerRuleLHS, %n⟪, ⟫]»)) → «Text-Text[Text-ReverseConcat[#printerRuleRHS]]»⟧, 
+                   %n⟦«#printerRules»¶«MakePrintFreshes[#freshes]»«#printerName»[«#altName»[«ReverseTextFold[#printerRuleLHS, %n⟪, ⟫]»]] → «Text-Text[Text-ReverseConcat[#printerRuleRHS]]»;⟧]]; 
   }#[OK];
 
 //
@@ -129,29 +155,41 @@ MakePrintFreshes[()]
 → %n⟦⟧;
 
 MakePrintFreshes[(#fresh; #freshes)] 
-→ %n⟦-[Fresh[«TextFold[(#fresh; #freshes), %n⟪, ⟫]»]]:¶⟧;
+→ $[IfDef, "crsx4",
+%n⟦⟧,
+%n⟦-[Fresh[«TextFold[(#fresh; #freshes), %n⟪, ⟫]»]]:¶⟧];
 
 /* Iterates over the elements (maybe none) of an alternative. 
  */
 MaybeMakeArguments[$List[ANTLR_element_sort], ok::OK_SORT.Text] :: Text;
 
 {#E; "@sort":TEXT[#sort]}MaybeMakeArguments[(), ok¹.#[ok¹]] 
-→ {#E;"@sort": TEXT[%n⟦«#sort»;⟧]}#[OK];
+→ {#E;"@sort": TEXT[$[IfDef, "crsx4", %n⟦«#sort»⟧, %n⟦«#sort»;⟧]]}#[OK];
 
 {#E; "@sort":TEXT[#sort]}MaybeMakeArguments[%element*⟨ #element #element* ⟩, ok¹.#[ok¹]] 
-→ {#E; 
+→ $[IfDef, "crsx4",
+{#E; 
+    "@sort"       : TEXT[%n⟦«#sort»(⟧];    // Have at least one alternative
+    "@sep"        : TEXT[%n⟦⟧];         // Current separator between data forms
+    "@block-count": NUM[0];             // Count the number of subrules for generating unique names
+    "@sublist"    : WRAPPER[x.x];       // Use to unfused elements  
+    "@binders"    : TEXTS[()];          // Collect <binds> variables
+  }MakeArguments[OK, 1, %element*⟨ #element #element* ⟩, ok¹.MakeCloseArguments[ok¹, o2¹.#[o2¹]]],
+
+{#E; 
     "@sort"       : TEXT[%n⟦«#sort»[⟧]; // Have at least one alternative: open bracket
     "@sep"        : TEXT[%n⟦⟧];         // Current separator between data forms
     "@block-count": NUM[0];            // Count the number of subrules for generating unique names
     "@sublist"    : WRAPPER[x.x];      // Use to unfused elements  
     "@binders"    : TEXTS[()];         // Collect <binds> variables
-  }MakeArguments[OK, 1, %element*⟨ #element #element* ⟩, ok¹.MakeCloseArguments[ok¹, o2¹.#[o2¹]]];
+  }MakeArguments[OK, 1, %element*⟨ #element #element* ⟩, ok¹.MakeCloseArguments[ok¹, o2¹.#[o2¹]]]];
 
 /* Done iterating over alternative elements. Close sort bracket 
 */
 MakeCloseArguments[OK_SORT, ok::OK_SORT.Text] :: Text;
 {#E; "@sort":TEXT[#sort]}MakeCloseArguments[OK, o2¹.#[o2¹]] 
-→ {#E; "@sort":TEXT[%n⟦«#sort»]; ⟧]}#[OK];
+→ 
+{#E; "@sort":TEXT[$[IfDef, "crsx4", %n⟦«#sort»)⟧, %n⟦«#sort»]; ⟧]]}#[OK];
 
 //
 MakeArguments[OK_SORT, $Numeric, $List[ANTLR_element_sort], ok¹::OK_SORT.Text] :: Text;
@@ -176,8 +214,8 @@ MaybeMakeArgument[Boolean /* fused? */, Boolean /* sugar? */, ANTLR_element_sort
  */
 {#E; "@prhs": TEXTS[#printerRHS]; "@index": INDEX[#index]}
 MaybeMakeArgument[TRUE, FALSE, #element, #count, ok¹ count.#[ok¹, count]]  
-→ {#E; "@sublist": WRAPPER[x.%n⟦Tail[«x»]⟧]; 
-       "@prhs": TEXTS[({#E}MakeRulerefText[UnSOME[GetRefElement[#element, (), #index]], #count, (), FALSE, x.%n⟦Head[«x»]⟧]; #printerRHS)]
+→{#E; "@sublist": WRAPPER[x.$[IfDef, "crsx4", %n⟦Tail(«x»)⟧, %n⟦Tail[«x»]⟧]]; 
+       "@prhs": TEXTS[({#E}MakeRulerefText[UnSOME[GetRefElement[#element, (), #index]], #count, (), FALSE, x.$[IfDef, "crsx4", %n⟦Head(«x»)⟧, %n⟦Head[«x»]⟧]]; #printerRHS)]
   }#[OK, #count];
 
 // The argument is sugar. Continue: it won't be added to sort but to printer.
@@ -221,7 +259,7 @@ MakeBinderArgument[$String, $String, Option[$String], $Numeric, ok¹::OK_SORT co
 }MakeBinderArgument[#binder, #key, SOME[#ruleref], #count, ok¹ count.#[ok¹, count]]
 → {#E;   
     #key       : BINDER[#ruleref];
-    "@freshes" : TEXTS[(%n⟦†«#binder» :: $String⟧; #freshes)];
+    "@freshes" : TEXTS[($[IfDef, "crsx4", %n⟦†«#binder» -> String⟧, %n⟦†«#binder» :: $String⟧]; #freshes)];
     "@prhs"    : TEXTS[(Text-Embed[%n⟦$[Show, †«#binder»]⟧]; #rhs)];
   }#[OK, #count];
 
@@ -234,11 +272,17 @@ MaybeMakeBindsArgument[$List[ElementOption], ANTLR_element_sort, $Numeric, ok¹:
 
 {#E; "@sort":TEXT[#sort]; "@sep":TEXT[#sep]}
 MaybeMakeBindsArgument[(#binds; #bindss), #element, #count, ok¹ count.#[ok¹, count]] 
-→ {#E; 
+→ $[IfDef, "crsx4", {#E; 
+    "@sort"    : TEXT[%n⟦«#sort»⟧]; 
+    "@sep"     : TEXT[%n⟦-> ⟧]
+  }MakeBindsArguments[OK, (#binds; #bindss), ok¹.
+   MakeRawArgument[ok¹, #element, #count, ok¹ count.#[ok¹, count]]],
+
+{#E; 
     "@sort"    : TEXT[%n⟦«#sort»«#sep»⟧]; 
     "@sep"     : TEXT[%n⟦. ⟧]
   }MakeBindsArguments[OK, (#binds; #bindss), ok¹.
-   MakeRawArgument[ok¹, #element, #count, ok¹ count.#[ok¹, count]]]; 
+   MakeRawArgument[ok¹, #element, #count, ok¹ count.#[ok¹, count]]]]; 
 
 MakeBindsArguments[OK_SORT, $List[ElementOption], ok¹::OK_SORT.Text] :: Text;
 
@@ -254,8 +298,9 @@ MakeBindsArgument[$String, ok¹::OK_SORT.Text] :: Text;
   "@sort"    : TEXT[#sort];
   "@binders" : TEXTS[#binders];
 }MakeBindsArgument[#binder, ok¹.#[ok¹]] 
-→ {#E; 
-    "@sort"    : TEXT[%n⟦«#sort» †«#binder» :: $String⟧];
+→
+{#E; 
+    "@sort"    : TEXT[ $[IfDef, "crsx4", %n⟦«#sort» †«#binder» -> String⟧, %n⟦«#sort» †«#binder» :: $String⟧]];
     "@binders" : TEXTS[(%n⟦†«#binder»⟧; #binders)];
   }#[OK];
 
@@ -279,10 +324,15 @@ MakeRawArgument[OK_SORT, ANTLR_element_sort, $Numeric, ok¹::OK_SORT count::$Num
 
 {#E; "@sort":TEXT[#sort]; "@sep":TEXT[#sep]}
 MakeRawArgument[OK, #element, #count, ok¹ count.#[ok¹, count]] 
-→ {#E; 
+→ $[IfDef, "crsx4",
+{#E; 
     "@sort" : TEXT[%n⟦«#sort»«#sep»⟧]; 
     "@sep"  : TEXT[%n⟦, ⟧]
-  }MakeArgument[#element, #count, ok¹.#[ok¹, $[Plus, #count, 1]]];
+  }MakeArgument[#element, #count, ok¹.#[ok¹, $[Plus, #count, 1]]],
+{#E; 
+    "@sort" : TEXT[%n⟦«#sort»«#sep»⟧]; 
+    "@sep"  : TEXT[%n⟦, ⟧]
+  }MakeArgument[#element, #count, ok¹.#[ok¹, $[Plus, #count, 1]]]];
 
 //
 MakeArgument[ANTLR_element_sort, $Numeric, ok¹::OK_SORT.Text] :: Text;
@@ -315,7 +365,7 @@ MakeArgFromAtom[ANTLR_atom_sort, Boolean /* Is list? */, $Numeric, ok::OK_SORT.T
  
 {#E; "@sort": TEXT[#sort]; "@plhs": TEXTS[#printerLHS]; "@prhs": TEXTS[#printerRHS]}
 MakeArgFromAtom[{#L}%atom⟦ #STRING_LITERAL #elementOptions? ⟧, TRUE, #count, ok¹.#[ok¹]] 
-→ {#E; "@sort":TEXT[%n⟦«#sort»$List[$String]⟧]; 
+→ {#E; "@sort":TEXT[$[IfDef, "crsx4", %n⟦«#sort»List<String>⟧, %n⟦«#sort»$List[$String]⟧]]; 
        "@plhs": TEXTS[(MakeMetaVar[#count, (), FALSE]; #printerLHS)]; 
        "@prhs": TEXTS[(MakeTerminalText[#count, (), TRUE]; #printerRHS)]
   }#[OK];
@@ -330,7 +380,8 @@ MakeArgFromAtom[{#L}%atom⟦ #STRING_LITERAL #elementOptions? ⟧, FALSE, #coun
 // List of token ref.
 {#E; "@sort": TEXT[#sort]; "@plhs": TEXTS[#printerLHS]; "@prhs": TEXTS[#printerRHS]}
 MakeArgFromAtom[{#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧, TRUE, #count, ok¹.#[ok¹]] 
-→ {#E; "@sort":TEXT[%n⟦«#sort»$List[$String]⟧]; 
+→ 
+{#E; "@sort":TEXT[$[IfDef, "crsx4", %n⟦«#sort»List<String>⟧, %n⟦«#sort»$List[$String]⟧]]; 
        "@plhs": TEXTS[(MakeMetaVar[#count, (), FALSE]; #printerLHS)];
        "@prhs": TEXTS[(MakeTerminalText[#count, (), TRUE]; #printerRHS)]
   }#[OK];
@@ -341,7 +392,7 @@ MakeArgFromAtom[{#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧, FALSE, #count, ok
 
 {#E; "@sort": TEXT[#sort]; "@plhs": TEXTS[#printerLHS]; "@prhs": TEXTS[#printerRHS]; "@sublist": WRAPPER[x.#wrap[x]]}
 MakeArgFromAtom[{#L}%atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, TRUE, #count, ok¹.#[ok¹]] 
-→ {#E; "@sort": TEXT[%n⟦«#sort»$List[«MakeSortName2[{#E}EnvString["@id"], #RULE_REF]»]⟧]; 
+→ {#E; "@sort": TEXT[$[IfDef, "crsx4", %n⟦«#sort»List<«MakeSortName2[{#E}EnvString["@id"], #RULE_REF]»>⟧, %n⟦«#sort»$List[«MakeSortName2[{#E}EnvString["@id"], #RULE_REF]»]⟧]]; 
        "@plhs": TEXTS[(MakeMetaVar[#count, (), FALSE]; #printerLHS)]; 
        "@prhs": TEXTS[({#E}MakeRulerefText[#RULE_REF, #count, (), TRUE, x.#wrap[x]]; #printerRHS)]}#[OK];
 
@@ -350,7 +401,7 @@ MakeArgFromAtom[{#L}%atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, TRUE, 
   "@prhs": TEXTS[#printerRHS]; "@sublist": WRAPPER[x.#wrap[x]];
   "@binders": TEXTS[#binders]
 }MakeArgFromAtom[{#L}%atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, FALSE, #count, ok¹.#[ok¹]] 
-→ {#E; "@sort": TEXT[%n⟦«#sort»«MakeSortName2[{#E}EnvString["@id"], #RULE_REF]»⟧]; 
+→ {#E; "@sort": TEXT[$[IfDef, "crsx4", %n⟦«#sort»«MakeSortName2[{#E}EnvString["@id"], #RULE_REF]»⟧, %n⟦«#sort»«MakeSortName2[{#E}EnvString["@id"], #RULE_REF]»⟧]];
        "@plhs": TEXTS[(MakeMetaVar[#count, #binders, FALSE]; #printerLHS)];  
        "@prhs": TEXTS[({#E}MakeRulerefText[#RULE_REF, #count, #binders, FALSE, x.#wrap[x]]; #printerRHS)]}#[OK];
 
@@ -392,16 +443,21 @@ MakeArgFromSuffixedBlock2[$String, $String, Pair[Text, Text], $Numeric, ok¹::OK
 
 {#E; "@sort": TEXT[#sort]; "@id": STRING[#id]; "@plhs": TEXTS[#printerLHS]; "@prhs": TEXTS[#printerRHS]; "@sublist": WRAPPER[x.#wrap[x]]; "@pt-subs":TEXT[#ptsubs]}
 MakeArgFromSuffixedBlock2[#blockRuleRef, #ruleRef, PairCons[#blocksort, #printer], #count, ok¹.#[ok¹]]
-→ {#E; "@sort": TEXT[%n⟦«#sort»$List[«MakeSortName2[#id, #ruleRef]»]⟧]; 
+→ {#E; "@sort": TEXT[$[IfDef, "crsx4", %n⟦«#sort»List<«MakeSortName2[#id, #ruleRef]»>⟧, %n⟦«#sort»$List[«MakeSortName2[#id, #ruleRef]»]⟧]]; 
        "@plhs": TEXTS[(MakeMetaVar[#count, (), FALSE]; #printerLHS)]; 
        "@prhs": TEXTS[({#E}MakeRulerefText[#blockRuleRef, #count, (), TRUE, x.#wrap[x]]; #printerRHS)];
        "@pt-subs": TEXT[%n⟨‹#ptsubs›‹#blocksort›‹#printer›⟩]}#[OK];
 
 MakeSortForBlock[$String, Text, $String, $StringEntry] :: Pair[Text/* sort */, Text /* printer */]; 
 MakeSortForBlock[#id, #name, #ruleRef, TEXTS[#prhs]] 
-→ PairCons[
+→ $[IfDef, "crsx4",
+PairCons[
+  %n⟦¶func «#name»(«MakeSortName2[#id, #ruleRef]») -> Text⟧, 
+  %n⟦¶rule «#name»[#1] → «Text-Text[Text-ReverseConcat[#prhs]]»⟧],
+
+PairCons[
   %n⟦¶«#name»[«MakeSortName2[#id, #ruleRef]»] :: Text;⟧, 
-  %n⟦¶«#name»[#1] → «Text-Text[Text-ReverseConcat[#prhs]]»;⟧];
+  %n⟦¶«#name»[#1] → «Text-Text[Text-ReverseConcat[#prhs]]»;⟧]];
 
 // Helpers
 
@@ -483,7 +539,7 @@ MakeMetaArgs[(#arg;#args)] → %n⟦[«ReverseTextFold[(#arg;#args), %n⟪, ⟫]
 // 
 MakeMetaBinders[List[Text]] :: Text; 
 MakeMetaBinders[()]           → %n⟦⟧; 
-MakeMetaBinders[(#arg;#args)] → %n⟦«ReverseTextFold[(#arg;#args), %n⟪ ⟫]».⟧; 
+MakeMetaBinders[(#arg;#args)] → $[IfDef, "crsx4", %n⟦«ReverseTextFold[(#arg;#args), %n⟪ ⟫]»->⟧, %n⟦«ReverseTextFold[(#arg;#args), %n⟪ ⟫]».⟧]; 
 
 //
 MakeTerminalText[$Numeric, $List[Text], Boolean] :: Text; 
@@ -491,7 +547,9 @@ MakeTerminalText[#count, #binders, FALSE]
 → Text-String[MakeMetaVar[#count, #binders, TRUE]];
 
 MakeTerminalText[#count, (), TRUE] 
-→ Text-Embed[%n⟦TextFold[Map[x.StringToText[x], «MakeMetaVar[#count, (), TRUE]»], «Text-Text[%n⟪ ⟫]»]⟧];
+→ $[IfDef, "crsx4",
+    Text-Embed[%n⟦TextFold(Map([x] -> StringToText(x), «MakeMetaVar[#count, (), TRUE]»), «Text-Text[%n⟪ ⟫]»)⟧],
+    Text-Embed[%n⟦TextFold[Map[x.StringToText[x], «MakeMetaVar[#count, (), TRUE]»], «Text-Text[%n⟪ ⟫]»]⟧]];
 
 MakeRulerefText[$String, $Numeric, $List[Text], Boolean, x::Text.Text] :: Text; 
 
@@ -499,7 +557,9 @@ MakeRulerefText[$String, $Numeric, $List[Text], Boolean, x::Text.Text] :: Text;
 → Text-Embed[%n⟦«{#E; "@ruleRef": STRING[#Ruleref]}MakePrinterName»[«#wrap[MakeMetaVar[#count, #binders, TRUE]]»]⟧];
 
 {#E}MakeRulerefText[#ruleRef, #count, (), TRUE, x.#wrap[x]] 
-→ Text-Embed[%n⟦TextFold[Map[x.«{#E; "@ruleRef": STRING[#ruleRef]}MakePrinterName»[x], «#wrap[MakeMetaVar[#count, (), TRUE]]»], «Text-Text[%n⟪ ⟫]»]⟧];
+→ $[IfDef, "crsx4",
+Text-Embed[%n⟦TextFold(Map([x] ->«{#E; "@ruleRef": STRING[#ruleRef]}MakePrinterName»(x), «#wrap[MakeMetaVar[#count, (), TRUE]]»), «Text-Text[%n⟪ ⟫]»)⟧],
+Text-Embed[%n⟦TextFold[Map[x.«{#E; "@ruleRef": STRING[#ruleRef]}MakePrinterName»[x], «#wrap[MakeMetaVar[#count, (), TRUE]]»], «Text-Text[%n⟪ ⟫]»]⟧]];
 
 /* Generate an unique fake rule name for block. */
 MakeBlockRuleName[$String, $Numeric] :: $String;

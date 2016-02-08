@@ -42,7 +42,6 @@ cdecl
     | IMPORT GRAMMAR CONSTRUCTOR                            /* Import grammar declaration */
     ;
 
-
 // -- Sorts
 
 /* 'csortvars' is not inlined because
@@ -66,6 +65,7 @@ TODO:  make change to meta parser to directly support $List(cform) with either
 cforms
     :  LPAR cform (COMMA cform)* RPAR                  /* List of forms */
     ;
+
 
 /*
 %MS: Why is there a separation between form and sort?
