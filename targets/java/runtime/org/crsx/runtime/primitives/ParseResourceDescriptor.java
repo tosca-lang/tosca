@@ -14,9 +14,9 @@ import org.crsx.runtime.Sink;
 import org.crsx.runtime.Term;
 
 /**
- * $[ParseResource, #category, #name] 
+ * ParseResource(#category : eager String, #name : eager String) 
  * 
- * evaluates to the term obtained by getting and parsing the #name resource as a #category term.
+ * Evaluates to the term obtained by getting and parsing the #name resource as a #category term.
  *	
  *  @author Lionel Villard
  */
@@ -38,7 +38,7 @@ public class ParseResourceDescriptor extends ConstructionDescriptor
 	public boolean step(Sink sink, Term term)
 	{
 		assert term.sub(0).descriptor() == this;
-		assert term.arity() == 3 : "$[ParseResource, #category, #name] : missing arguments.";
+		assert term.arity() == 3 : "ParseResource(#category, #name) : missing arguments.";
 
 		final Context context = sink.context();
 		final String category = force(context, term.sub(1)).symbol();
