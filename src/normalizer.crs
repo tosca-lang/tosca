@@ -76,7 +76,7 @@ NVariants[%variant+⟦ | var ##variant+ ⟧]
 
 NMaybeVariantArgs[$List[Crsx_variantArgs_sort]] :: $List[Core_csorts_sort];
 NMaybeVariantArgs[%variantArgs?⟦   ⟧]           → %csorts?⟦ ⟧; 
-NMaybeVariantArgs[%variantArgs?⟦ ( ##sorts ) ⟧] → %csorts?⟦ ( ⟨csort*: NSorts[#sorts]⟩ ) ⟧; 
+NMaybeVariantArgs[%variantArgs?⟦ ( ##sort* ) ⟧] → %csorts?⟦ ( ⟨csort*: NSorts[#sort*]⟩ ) ⟧; 
 
 // ---- Sort reference
 
@@ -104,7 +104,7 @@ NSortScope[%sort*⟦ ⟧, #csort]
 NSortScope[%sort*⟦ ##sort ##sort* ⟧, #csort]
 → %csort⟦ [ ⟨csort: NSort[#sort]⟩ ] ⟨csort: NSortScope[#sort*, #csort]⟩ ⟧;
 
-NParamSort[Crsx_constructor_sort, $List[Crsx_sortArgs_sort]] :: Core_sort_sort;
+NParamSort[Crsx_constructor_sort, $List[Crsx_sortArgs_sort]] :: Core_csort_sort;
 
 // TODO: the code gen for now generated untyped code so ignore #sortArgs? here
 NParamSort[#constructor, #sortArgs?] 
@@ -149,7 +149,7 @@ NPatternArg[%fnParam⟦ ##METAVAR : ##sort ⟧] → %cterm⟦ ##METAVAR ⟧;
 
 // ---- Terms
 
-NContractum[$List[Crsx_term_sort]] :: Core_term_sort;
+NContractum[$List[Crsx_term_sort]] :: Core_cterm_sort;
 
 // Just a single term
 NContractum[%term*⟦ ##term                   ⟧] → NTerm[#term]; 
@@ -157,7 +157,7 @@ NContractum[%term*⟦ ##term                   ⟧] → NTerm[#term];
 // This is a list... TODO
 NContractum[%term*⟦ ##term , ##term2 ##term* ⟧] → NTerm[#term];
 
-NTerm[Crsx_term_sort] :: Core_term_sort;
+NTerm[Crsx_term_sort] :: Core_cterm_sort;
 
 NTerm[%term⟦ ##constructor ##args? ⟧]
 → %cterm⟦ ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟨cterms?: NMaybeArgs[#args?]⟩ ⟧;

@@ -72,7 +72,7 @@ private boolean isPostfix(String op, int currentp) {
 
 // A CRSX file is a module declaration and a list of declarations
 crsx
-    : decl+ EOF                    /* [CORE] */
+    : decl+                     /* [CORE] */
     ;
 
 decl
@@ -157,7 +157,7 @@ sortArgs
     ;
     
 sorts
-    : sort (COMMA sorts)*                 /* [CORE] List of sort */
+    : sort (COMMA sort)*                 /* [CORE] List of sort */
     ;
 
 // Rule Declaration

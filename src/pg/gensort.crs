@@ -290,7 +290,8 @@ MakeArgument[ANTLR_element_sort, $Numeric, ok¹::OK_SORT.Text] :: Text;
 // labeled element with optional ebnf suffix
 {#E; "@plhs": TEXTS[#printerLHS]; "@inblock":#inblock; "@binders": TEXTS[#binders]}
 MakeArgument[{#L}%element⟦ #labeledElement #element_A1_S1 ⟧, #count, ok¹.#[ok¹]] 
-→ {#E; "@plhs": TEXTS[(MakeMetaVar[#count, #binders, FALSE]; #printerLHS)]}MakeArgFromAtom[GetAtom[#labeledElement], MapToList1[#element_A1_S1, #inblock], #count, ok¹.#[ok¹]];
+//→ {#E; "@plhs": TEXTS[(MakeMetaVar[#count, #binders, FALSE]; #printerLHS)]}MakeArgFromAtom[GetAtom[#labeledElement], MapToList1[#element_A1_S1, #inblock], #count, ok¹.#[ok¹]];
+→ {#E}MakeArgFromAtom[GetAtom[#labeledElement], MapToList1[#element_A1_S1, #inblock], #count, ok¹.#[ok¹]];
 
 // atom with optional ebnf
 {#E; "@inblock":#inblock}
@@ -389,17 +390,17 @@ MakeArgFromSuffixedBlock1[SOME[#ruleRef], #element*, #blkcnt, #count, ok¹.#[ok�
 
 MakeArgFromSuffixedBlock2[$String, $String, Pair[Text, Text], $Numeric, ok¹::OK_SORT.Text] :: Text; 
 
-{#E; "@sort": TEXT[#sort]; "@id": STRING[#id]; "@plhs": TEXTS[#printerLHS]; "@prhs": TEXTS[#printerRHS]; "@sublist": WRAPPER[x.#wrap[x]]}
+{#E; "@sort": TEXT[#sort]; "@id": STRING[#id]; "@plhs": TEXTS[#printerLHS]; "@prhs": TEXTS[#printerRHS]; "@sublist": WRAPPER[x.#wrap[x]]; "@pt-subs":TEXT[#ptsubs]}
 MakeArgFromSuffixedBlock2[#blockRuleRef, #ruleRef, PairCons[#blocksort, #printer], #count, ok¹.#[ok¹]]
 → {#E; "@sort": TEXT[%n⟦«#sort»$List[«MakeSortName2[#id, #ruleRef]»]⟧]; 
        "@plhs": TEXTS[(MakeMetaVar[#count, (), FALSE]; #printerLHS)]; 
        "@prhs": TEXTS[({#E}MakeRulerefText[#blockRuleRef, #count, (), TRUE, x.#wrap[x]]; #printerRHS)];
-       "@pt-subs": TEXT[%n⟨‹#blocksort›‹#printer›⟩]}#[OK];
+       "@pt-subs": TEXT[%n⟨‹#ptsubs›‹#blocksort›‹#printer›⟩]}#[OK];
 
 MakeSortForBlock[$String, Text, $String, $StringEntry] :: Pair[Text/* sort */, Text /* printer */]; 
 MakeSortForBlock[#id, #name, #ruleRef, TEXTS[#prhs]] 
 → PairCons[
-  %n⟦¶«#name»[«MakePrinterName2[#id, #ruleRef]»] :: Text;⟧, 
+  %n⟦¶«#name»[«MakeSortName2[#id, #ruleRef]»] :: Text;⟧, 
   %n⟦¶«#name»[#1] → «Text-Text[Text-ReverseConcat[#prhs]]»;⟧];
 
 // Helpers

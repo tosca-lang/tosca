@@ -33,10 +33,6 @@ Text-String[#TermText] → %n⟦†«"\u2020\u2020"»†«"\u00ab\u00ab"»« #Te
 Text-Text[Text] :: Text ;
 Text-Text[#content] → Text-User["n", #content] ;
 
-// Concat texts 
-Text-Concat[$List[Text]] :: Text;
-Text-Concat[#list] → Text-ConcatSep[#list, %n⟦⟧];
-
 /* `Text-ConcatPair[#Pair]`
  * Concat pair of `Text`
 */
