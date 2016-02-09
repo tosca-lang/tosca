@@ -451,10 +451,11 @@ MakeMetaRules[PARSER, #RULE_REF, #resolved]        → ();
 
 MakeMetaRules[METAPARSER, #RULE_REF, #resolved]    → MakeMetaRulesMetaParser[IsList[#RULE_REF], #RULE_REF]; 
  
+-[Data[#resolved]]:
 MakeMetaRules[METALEXER, #RULE_REF, #resolved]     
 → ( 
       %ruleSpec⟨ ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩  : CRSX_META_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, "'"]⟩[0-9]* ; ⟩;
-      %ruleSpec⟨ ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩  : CRSX_START_EMBED_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, ":'"]⟩  -> pushMode(CrsxEmbed); ⟩;
+      %ruleSpec⟨ ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩  : CRSX_START_EMBED_CHAR ⟨STRING_LITERAL: $[If, $[Equal, #resolved, $[Get, "defaultRule", ""]], "", $[:, "'", #resolved, ":'"]]⟩  -> pushMode(CrsxEmbed); ⟩;
   );
 
 MakeMetaRulesMetaParser[Boolean, $String /* RULE_REF */] :: $List[ANTLR_ruleSpec_sort];

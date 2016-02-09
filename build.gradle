@@ -48,6 +48,7 @@ task textParsers(type: PG4Task) {
     source = file('src/text/Text4.g4')
     generatedFileDir = file('src/text')
     metaPrefix = '##'
+    defaultRule = 'CHARS'
 }
 
 task cleanCoreParsers(overwrite : true) {} 

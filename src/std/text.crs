@@ -21,17 +21,17 @@ AsText[#text] → #text ;
 // Fragment denoting term embedded in user language text.
 //
 Text-Embed[Text<!--Term-->] :: Text ;
-Text-Embed[#TermText] → %n⟦†«"\u00ab\u00ab"»« #TermText »†«"\u00bb\u00bb"»⟧ ;
+Text-Embed[#TermText] → $[IfDef, "crsx4", %n⟦†«"\u27e8"»« #TermText »†«"\u27e9"»⟧, %n⟦†«"\u00ab\u00ab"»« #TermText »†«"\u00bb\u00bb"»⟧] ;
 
 // Fragment denoting string embedded in user language text.
 //
 Text-String[Text<!--String-->] :: Text ;
-Text-String[#TermText] → %n⟦†«"\u2020\u2020"»†«"\u00ab\u00ab"»« #TermText »†«"\u00bb\u00bb"»⟧ ;
+Text-String[#TermText] → $[IfDef, "crsx4", %n⟦†«"\u2020\u2020"»†«"\u27e8"»« #TermText »†«"\u27e9"»⟧, %n⟦†«"\u2020\u2020"»†«"\u00ab\u00ab"»« #TermText »†«"\u00bb\u00bb"»⟧] ;
 
 // Fragment to be parsed as generated text (to be printed).
 //
 Text-Text[Text] :: Text ;
-Text-Text[#content] → Text-User["n", #content] ;
+Text-Text[#content] → Text-User[$[IfDef, "crsx4", "text", "n"], #content] ;
 
 /* `Text-ConcatPair[#Pair]`
  * Concat pair of `Text`

@@ -540,7 +540,7 @@ MakeMetaArgs[(#arg;#args)]
 // 
 MakeMetaBinders[List[Text]] :: Text; 
 MakeMetaBinders[()]           → %n⟦⟧; 
-MakeMetaBinders[(#arg;#args)] → $[IfDef, "crsx4", %n⟦«ReverseTextFold[(#arg;#args), %n⟪ ⟫]»->⟧, %n⟦«ReverseTextFold[(#arg;#args), %n⟪ ⟫]».⟧]; 
+MakeMetaBinders[(#arg;#args)] → $[IfDef, "crsx4", %n⟦[«ReverseTextFold[(#arg;#args), %n⟪ ⟫]»]->⟧, %n⟦«ReverseTextFold[(#arg;#args), %n⟪ ⟫]».⟧]; 
 
 //
 MakeTerminalText[$Numeric, $List[Text], Boolean] :: Text; 

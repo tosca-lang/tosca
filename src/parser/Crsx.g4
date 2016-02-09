@@ -268,7 +268,7 @@ apply
 groupOrList
     : LPAR RPAR                                       /* [SUGAR] Empty list */
     | LPAR term[0] COMMA RPAR                         /* [SUGAR] Single term list */
-    | LPAR term[0] (COMMA term[0])* RPAR              /* [SUGAR] Grouped term/Multiple terms list */
+    | LPAR terms RPAR                                 /* [SUGAR] Grouped term/Multiple terms list */
  // TODO: enable below when meta parser handle + properly.
  //   | LPAR term[0] RPAR                               /* [SUGAR] Grouped term */
 //    | LPAR term[0] (COMMA term[0])+ RPAR              /* [SUGAR] Multiple terms list */

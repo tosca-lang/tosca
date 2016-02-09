@@ -708,7 +708,7 @@ public class SinkAntlrListener implements ParseTreeListener
 			CrsxMetaParser parser = new CrsxMetaParser(input);
 			parser.setBuildParseTree(false);
 			
-			TermParserListener listener = new TermParserListener(sink);
+			TermParserListener listener = new TermParserListener(factory, sink);
 			parser.addParseListener(listener);
 
 			parser.addErrorListener(new DiagnosticErrorListener(true));

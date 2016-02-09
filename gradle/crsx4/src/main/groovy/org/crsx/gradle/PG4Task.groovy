@@ -25,6 +25,11 @@ class PG4Task extends DefaultTask {
 	@Optional
 	String metaPrefix = ""
 	
+	@Input
+    @Optional
+    String defaultRule = ""
+    
+	
 	@TaskAction
 	def generate() {
 		if (sort || parsers)
@@ -76,10 +81,11 @@ class PG4Task extends DefaultTask {
 				args << 'rules=pg/genparser.crs'
 				args << "input=${nterm}"
 				args << 'wrapper=MakeMetaLexer'
-				args << "output=${metalexer}"
-				if (!"".equals(metaPrefix))
+                args << "output=${metalexer}"
+                if (!"".equals(metaPrefix))
 					args << "metaprefix=${metaPrefix}"
-					
+			    if (!"".equals(defaultRule))
+                    args << "defaultRule=${defaultRule}"
 				crsx3runner.run(args)
 				
 				// .nterm -> meta parser
