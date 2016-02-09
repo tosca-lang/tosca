@@ -42,7 +42,8 @@ Text-ConcatPair[PairCons[#1, #2]] → %n⟦«#1»«#2»⟧;
 // Fragment to be parsed as user language text.
 //
 Text-User[$String<!--ParsePrefix-->, Text<!-- Unparsed -->] :: Text ;
-Text-User[#ParsePrefix, #Unparsed] →  %n⟦%†«#ParsePrefix»†«"\u27e6\u27e6"»« #Unparsed »†«"\u27e7\u27e7"»⟧ ;
+Text-User[#ParsePrefix, #Unparsed] 
+→ $[IfDef, "crsx4", %n⟦†«#ParsePrefix»†«"\u27e6\u27e6"»« #Unparsed »†«"\u27e7\u27e7"»⟧, %n⟦%†«#ParsePrefix»†«"\u27e6\u27e6"»« #Unparsed »†«"\u27e7\u27e7"»⟧] ;
 
 Text-Token[$String] :: Text;
 -[Data[#t]] : Text-Token[#t] → %n⟦†« #t »⟧ ; 

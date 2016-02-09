@@ -11,12 +11,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.DiagnosticErrorListener;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.TokenSource;
+import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.crsx.parser.CrsxMetaLexer;
+import org.crsx.parser.CrsxMetaParser;
 import org.crsx.runtime.Primitives;
 import org.crsx.runtime.Variable;
 
@@ -191,6 +199,9 @@ public class SinkAntlrListener implements ParseTreeListener
 	/** Listener state? */
 	private State state;
 
+	/** Is embedded code crsx4?  */
+	private boolean embedCrsx4;
+
 	/**
 	 * Create an crsx ANTLR listener for CRSX3
 	 * @param factory
@@ -217,6 +228,8 @@ public class SinkAntlrListener implements ParseTreeListener
 
 		this.binderNames = new HashMap<>();
 		this.bounds = new ArrayDeque<>();
+
+		this.embedCrsx4 = prefix.equals("Text4_");
 	}
 
 	/**
@@ -239,6 +252,7 @@ public class SinkAntlrListener implements ParseTreeListener
 		this.metachar = metachar;
 		this.state = State.PARSE;
 		this.sort = TokenSort.STRING;
+		this.embedCrsx4 = prefix.equals("Text4_");
 	}
 
 	/**
@@ -646,14 +660,21 @@ public class SinkAntlrListener implements ParseTreeListener
 
 					if (sink != null)
 					{
-						try
+						if (embedCrsx4)
 						{
-							sink = factory.parser(factory).parse(
-									sink, null, reader, "", token.getLine(), token.getCharPositionInLine(), toCrsx3Bound());
+							parseCrsx4Term(reader);
 						}
-						catch (CRSException | IOException e)
+						else
 						{
-							throw new RuntimeException(e);
+							try
+							{
+								sink = factory.parser(factory).parse(
+										sink, null, reader, "", token.getLine(), token.getCharPositionInLine(), toCrsx3Bound());
+							}
+							catch (CRSException | IOException e)
+							{
+								throw new RuntimeException(e);
+							}
 						}
 					}
 					else
@@ -673,6 +694,32 @@ public class SinkAntlrListener implements ParseTreeListener
 			default :
 				break;
 		}
+	}
+
+	private void parseCrsx4Term(Reader reader)
+	{
+		try
+		{
+			CharStream stream = new ANTLRInputStream(reader);
+
+			TokenSource source = new CrsxMetaLexer(stream);
+			TokenStream input = new CommonTokenStream(source);
+
+			CrsxMetaParser parser = new CrsxMetaParser(input);
+			parser.setBuildParseTree(false);
+			
+			TermParserListener listener = new TermParserListener(sink);
+			parser.addParseListener(listener);
+
+			parser.addErrorListener(new DiagnosticErrorListener(true));
+			parser.term_EOF();
+			sink = listener.sink3;
+		}
+		catch (IOException e)
+		{
+			assert false : "Unreachable";
+		}
+
 	}
 
 	/**

@@ -29,6 +29,18 @@ UnSOME[SOME[#]] → #;
 HasOption[NONE]    → FALSE;
 HasOption[SOME[#]] → TRUE;
 
+/* `GetSome[#key]`
+   Lookup string entry
+ */
+∀ a.{$String:a}GetSome[$String] :: Option[a];
+-[Data[#key]]: {#E}GetSome[#key] → $[{#E}IfDef, #key, SOME[$[{#E}Get, #key]], NONE];  
+
+/* `ThenGetSome[#key]`
+   Delay variant of `GetSome`
+ */
+∀ a.{$String:$Any}ThenGetSome[OK_SORT, $String] :: Option[a];
+{#E}ThenGetSome[OK, #key] → {#E}GetSome[#key];  
+
 // --- Boolean
 
 Boolean ::=( TRUE; FALSE; );

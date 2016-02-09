@@ -115,7 +115,7 @@ BeforeLast2[#Before, #Sep, #After]
 ∀ a.ParseToString[$String, $String] :: a;
 
 -[Data[#category, #string]]: 
-ParseToString[#category, #string] → $[Show, $[ParseText, #category, #string]]; // TODO: line information.
+ParseToString[#category, #string] → $[Show, $[ParseText, #category, $[Trace, #string]]]; // TODO: line information.
 
 ∀ a.ParseToTerm[$String, $String] :: a;
 

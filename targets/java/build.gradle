@@ -85,8 +85,27 @@ project(':parsers') {
 		packageName = 'org.crsx.antlr'
 	}
 	
+	
+    task textMetaParser(type: Antlr4Task) {
+        description = 'Generate Java Text meta parser'
+        lexer = file(srcDir + '/text/Text4MetaLexer.g4')
+        grammar = file(srcDir + '/text/Text4MetaParser.g4')
+        generatedFileDir = file('org/crsx/text')
+        packageName = 'org.crsx.text'
+        superClass = 'org.crsx.antlr.Crsx3Parser'
+    }
+    
+    task textTermParser(type: Antlr4Task) {
+        description = 'Generate Java Text term parser'   
+        grammar = file(srcDir + '/text/Text4Term.g4')
+        generatedFileDir = file('org/crsx/text')
+        packageName = 'org.crsx.text'
+    }
+    
+	
 	//-- Meta task to build all parsers.
-	task buildParsers(dependsOn: ['coreMetaParser', 'coreTermParser', 'crsxMetaParser', 'crsxTermParser', 'antlrMetaParser', 'antlrAntlrTermParser']) 
+	task buildParsers(dependsOn: ['coreMetaParser', 'coreTermParser', 'crsxMetaParser', 'crsxTermParser',
+	    'antlrMetaParser', 'antlrAntlrTermParser', 'textMetaParser', 'textTermParser']) 
 }
 
 project(':compiler') {

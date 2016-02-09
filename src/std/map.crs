@@ -6,7 +6,7 @@
  */
 Map[(
 
-$Use["std/env.crs"];
+$Use["std/core.crs"];
 
 ∀ a b . MAP[a,b] ::=( {a : b}MAP; );
 

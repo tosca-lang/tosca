@@ -12,7 +12,7 @@
  */
 Trivial[(
 
-$Use["std/env.crs"];
+$Use["std/core.crs"];
 $Use["pg/util.crs"];
 
 // Helper sort for TrivialElements

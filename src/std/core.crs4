@@ -6,6 +6,24 @@ enum OK_SORT | OK
 
 enum $StringEntry | STRING($String)
 
+// --- Map primitives
+
+func IfDef<a b>(eager {a: b}, eager a /* Key */) -> Boolean
+
+
+func MapPut<a b>(eager {a: b}, eager a /* Key */, eager b /* Value */) -> {a: b}
+
+/* Get map value. Key cannot be a variable */
+func MapGet<a b>(eager {a: b}, eager a /* Key */) -> Option<b>
+
+// TODO: really want to match a syntactic variable, not a semantic one.
+func MapGetVar<a b>(eager {a: b}, a /* Variable Key */) -> Option<b>
+
+func MapKeys<a b>({a: b}) -> List<a>
+
+func MapValues<a b>({a: b}) -> List<b>
+
+
 // --- Optional value
 
 enum Option<a> | SOME(a) | NONE
@@ -22,6 +40,12 @@ rule UnSOME(SOME(#)) → #
 func HasOption<a>(Option<a>) -> Boolean
 rule HasOption(NONE)    → FALSE
 rule HasOption(SOME(#)) → TRUE
+
+/* `GetSome(#map, #key)`
+   Lookup string entry
+ */
+func GetSome<a b>(eager a, eager String) -> Option<b>
+rule GetSome(#map, #key) → IfDef(#map, #key, SOME(MapGet(#map, #key)), NONE)  
 
 // --- Boolean
 

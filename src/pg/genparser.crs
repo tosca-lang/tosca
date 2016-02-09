@@ -69,7 +69,8 @@
  *
  * where tail capture the rest of a list.
  * 
- *  
+ * Know issues
+ * - conflicting ebnf rules. s (C s)* and s* will both map to either s (C s)* or s*, whichever comes last.
  */
 MakeParser[(
 

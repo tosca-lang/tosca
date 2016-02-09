@@ -118,7 +118,7 @@ variant
     ;
 
 variantArgs
-    : LPAR sorts RPAR
+    : LPAR sorts? RPAR
     ;
 
 // Map type
@@ -143,17 +143,17 @@ sort
     ;
 
 sortScope
-    // TODO: fix meta parser and replace sort* by sort+
-    : LSQUARE sort* RSQUARE FNTYPE
+    : LSQUARE sorts RSQUARE FNTYPE
     ;
 
 paramSort
     : constructor sortArgs?               /* [CORE] Parameterized sort */
+    | LCURLY sortMap RCURLY
     | VARIABLE
     ;
 
 sortArgs
-    : LT sort+ GT                         /* [CORE] Sort arguments */
+    : LT sorts GT                         /* [CORE] Sort arguments */
     ;
     
 sorts
@@ -225,14 +225,22 @@ nterm[int p]
 aterm
     // enable when crsx is capable of parsing input using the term parser, not the meta parser which does not include semantic predicates
     // : { isPrefix(_input.LT(1).getText())}? op=constructor term[nextp($op.text)]   /* [SUGAR] Prefixed term */
-    : {!isPrefix(_input.LT(1).getText())}? constructor args?                      /* [CORE] Construction with zero or more args */
+    : {!isPrefix(_input.LT(1).getText())}? cons                                     /* [CORE] Construction with zero or more args */
     | literal                                         /* [CORE]  Literal construction */
     | groupOrList                                     /* [SUGAR] Grouped expression */
     | variable                                        /* [CORE]  Variable */
     | map
-    | METAVAR apply?                                  /* [CORE]  Meta variable. */
+    | metapp                                          /* [CORE]  Meta application. */
     | dispatch                                        /* [CORE]  Dispatch expression */
     | concrete                                        /* [SUGAR] Concrete syntax */
+    ;
+
+cons
+    : constructor args?
+    ;
+
+metapp
+    :  METAVAR apply? 
     ;
 
 args
@@ -366,6 +374,7 @@ METAVAR         : '#' (Alpha | Digit | '-' | '_' | Unicode)* Ebnf? Digit*; // '$
 STRING          :  '"' ('\\"'|~'"')* '"';
 
 NUMBER          : Decimal;
+
 
 fragment StartConstructorChar : Upper | Other | UnicodeS;
 fragment ConstructorChar      : Alpha | Digit | Other | Unicode;

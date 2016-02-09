@@ -10,7 +10,6 @@ System[(
 $Lax;
 
 $Use["std/core.crs"];
-$Use["std/env.crs"];
 $Use["std/list.crs"];
 $Use["std/map.crs"];
 $Use["core/Core.crs"];

@@ -1,7 +1,7 @@
 // Copyright (c) 2015 IBM Corporation.
 import org.crsx.gradle.*
 
-defaultTasks 'coreParsers', 'crsxParsers'
+defaultTasks 'coreParsers', 'crsxParsers', 'textParsers'
 
 apply plugin:'base'
 
@@ -43,8 +43,16 @@ task crsxParsers(type: PG4Task) {
     metaPrefix = '##'
 }
 
+task textParsers(type: PG4Task) {
+    description 'Generate Text term and meta parsers'
+    source = file('src/text/Text4.g4')
+    generatedFileDir = file('src/text')
+    metaPrefix = '##'
+}
+
 task cleanCoreParsers(overwrite : true) {} 
 task cleanCrsxParsers(overwrite : true) {} 
+task cleanTextParsers(overwrite : true) {} 
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.2'

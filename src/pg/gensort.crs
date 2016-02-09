@@ -259,8 +259,8 @@ MakeBinderArgument[$String, $String, Option[$String], $Numeric, ok¹::OK_SORT co
 }MakeBinderArgument[#binder, #key, SOME[#ruleref], #count, ok¹ count.#[ok¹, count]]
 → {#E;   
     #key       : BINDER[#ruleref];
-    "@freshes" : TEXTS[($[IfDef, "crsx4", %n⟦†«#binder» -> String⟧, %n⟦†«#binder» :: $String⟧]; #freshes)];
-    "@prhs"    : TEXTS[(Text-Embed[%n⟦$[Show, †«#binder»]⟧]; #rhs)];
+    "@freshes" : TEXTS[($[IfDef, "crsx4", %n⟦[String]⟧, %n⟦†«#binder» :: $String⟧]; #freshes)];
+    "@prhs"    : TEXTS[(Text-Embed[$[IfDef, "crsx4", %n⟦Show(†«#binder»)⟧, %n⟦$[Show, †«#binder»]⟧]]; #rhs)];
   }#[OK, #count];
 
 // Check element option is list of <bound=variable>
@@ -273,8 +273,8 @@ MaybeMakeBindsArgument[$List[ElementOption], ANTLR_element_sort, $Numeric, ok¹:
 {#E; "@sort":TEXT[#sort]; "@sep":TEXT[#sep]}
 MaybeMakeBindsArgument[(#binds; #bindss), #element, #count, ok¹ count.#[ok¹, count]] 
 → $[IfDef, "crsx4", {#E; 
-    "@sort"    : TEXT[%n⟦«#sort»⟧]; 
-    "@sep"     : TEXT[%n⟦-> ⟧]
+    "@sort"    : TEXT[%n⟦«#sort»[⟧]; 
+    "@sep"     : TEXT[%n⟦] -> ⟧]
   }MakeBindsArguments[OK, (#binds; #bindss), ok¹.
    MakeRawArgument[ok¹, #element, #count, ok¹ count.#[ok¹, count]]],
 
@@ -300,7 +300,7 @@ MakeBindsArgument[$String, ok¹::OK_SORT.Text] :: Text;
 }MakeBindsArgument[#binder, ok¹.#[ok¹]] 
 →
 {#E; 
-    "@sort"    : TEXT[ $[IfDef, "crsx4", %n⟦«#sort» †«#binder» -> String⟧, %n⟦«#sort» †«#binder» :: $String⟧]];
+    "@sort"    : TEXT[ $[IfDef, "crsx4", %n⟦«#sort» String⟧, %n⟦«#sort» †«#binder» :: $String⟧]];
     "@binders" : TEXTS[(%n⟦†«#binder»⟧; #binders)];
   }#[OK];
 
@@ -453,7 +453,7 @@ MakeSortForBlock[#id, #name, #ruleRef, TEXTS[#prhs]]
 → $[IfDef, "crsx4",
 PairCons[
   %n⟦¶func «#name»(«MakeSortName2[#id, #ruleRef]») -> Text⟧, 
-  %n⟦¶rule «#name»[#1] → «Text-Text[Text-ReverseConcat[#prhs]]»⟧],
+  %n⟦¶rule «#name»(#1) → «Text-Text[Text-ReverseConcat[#prhs]]»⟧],
 
 PairCons[
   %n⟦¶«#name»[«MakeSortName2[#id, #ruleRef]»] :: Text;⟧, 
@@ -534,7 +534,8 @@ MakeMetaVar[#count, #binders, #applyOnly]
 // 
 MakeMetaArgs[List[Text]] :: Text; 
 MakeMetaArgs[()]           → %n⟦⟧; 
-MakeMetaArgs[(#arg;#args)] → %n⟦[«ReverseTextFold[(#arg;#args), %n⟪, ⟫]»]⟧; 
+MakeMetaArgs[(#arg;#args)] 
+→ $[IfDef, "crsx4",%n⟦(«ReverseTextFold[(#arg;#args), %n⟪, ⟫]»)⟧, %n⟦[«ReverseTextFold[(#arg;#args), %n⟪, ⟫]»]⟧]; 
 
 // 
 MakeMetaBinders[List[Text]] :: Text; 
@@ -554,7 +555,10 @@ MakeTerminalText[#count, (), TRUE]
 MakeRulerefText[$String, $Numeric, $List[Text], Boolean, x::Text.Text] :: Text; 
 
 {#E}MakeRulerefText[#Ruleref, #count, #binders, FALSE, x.#wrap[x]] 
-→ Text-Embed[%n⟦«{#E; "@ruleRef": STRING[#Ruleref]}MakePrinterName»[«#wrap[MakeMetaVar[#count, #binders, TRUE]]»]⟧];
+→ Text-Embed[
+ $[IfDef, "crsx4",
+       %n⟦«{#E; "@ruleRef": STRING[#Ruleref]}MakePrinterName»(«#wrap[MakeMetaVar[#count, #binders, TRUE]]»)⟧,
+       %n⟦«{#E; "@ruleRef": STRING[#Ruleref]}MakePrinterName»[«#wrap[MakeMetaVar[#count, #binders, TRUE]]»]⟧]];
 
 {#E}MakeRulerefText[#ruleRef, #count, (), TRUE, x.#wrap[x]] 
 → $[IfDef, "crsx4",
