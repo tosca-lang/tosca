@@ -1,0 +1,12 @@
+
+(
+/* error */
+Assert[ VarDemoUnify[ PairCons[ %cterm⟦ [x]x ⟧,
+                                %cterm⟦ [y]y ⟧]]];
+Assert[ CVariable ];
+
+Assert [ StringVariables ];
+
+Assert [CTerm];
+
+)

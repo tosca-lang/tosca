@@ -1,0 +1,36 @@
+VarDemo [(
+
+$Use["core/Core.crs"];
+$Use["std/core.crs"];
+
+/* Reproduce Error with Fresh Variable: 
+  Assert[ VarDemoUnify[ PairCons[ %cterm⟦ [x]x ⟧, %cterm⟦ [y]y ⟧]]] →  
+  Assert[
+   PairCons[
+    Core_cterm_A3[Core_cvariable[¹x, ()]],
+    Core_cterm_A3[Core_cvariable[¹y, ()]]]];
+ */
+-[Fresh[z :: $String]] :
+VarDemoUnify[PairCons[ %cterm⟦ [ ##VARIABLE  ] ##cterm ⟧, 
+                       %cterm⟦ [ ##VARIABLE2 ] ##cterm2 ⟧]]
+→ PairCons[#cterm[z], #cterm2[z]];
+
+/* Tests with Equality for fresh Core_cvariable_sort */
+-[Fresh[z :: Core_cvariable_sort]] : 
+CVariable → CompareCVariable[z,z];
+
+CompareCVariable[#1, #2] → Container["The two variables are:", Print[#1], Print[#2], "and they are equal?" ,$[SameVariable, #1, #2]];
+
+/* Tests with Equality for fresh $String */
+-[Fresh[z :: $String]] : 
+StringVariables → CompareString[z,z];
+
+CompareString[#1, #2] → Container["The two variables are:", Print[#1], Print[#2], "and they are equal?"  , $[SameVariable, #1, #2]];
+
+/* Tests with Equality for fresh Core_cerm_sort */
+-[Fresh[z :: Core_cterm_sort ]] : 
+CTerm → CompareCTerm[z,z];
+
+CompareCTerm[#1, #2] → Container["The two variables are:", Print[#1], Print[#2], "and they are equal?"  , $[SameVariable, #1, #2]];
+
+)]
