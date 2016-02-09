@@ -281,7 +281,7 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 		public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e)
 		{
 			error = true;
-			//		super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e);
+			//super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e);
 		}
 
 		@Override

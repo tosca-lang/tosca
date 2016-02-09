@@ -35,9 +35,10 @@ MakeModuleId[ANTLR_grammarSpec_sort] :: Text;
 {#E}MakeModuleId[#id, ok.#[ok]] 
 → $[IfDef, "crsx4",
 %n⟦/* Generated File. */
-import Std::Text
+import Text::Text4
 import Std::Core
 import Std::List
+import Std::Text
 
 «{#E; "@id": STRING[#id]}#[OK]»⟧,
 
