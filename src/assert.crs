@@ -19,10 +19,11 @@ $Use["std/num.crs"];
 $Use["std/pair.crs"];
 
 //$Use["unification/unification.crs"];
-$Use["unification/state.crs"];
+//$Use["unification/state.crs"];
 
 $Use["utils/crsxequs.crs"];
 $Use["utils/termops.crs"];
+$Use["utils/crsxvardemo.crs"];
 
 //$Use["utils/wrap.crs"];
 //$Use["utils/unwrap.crs"];
