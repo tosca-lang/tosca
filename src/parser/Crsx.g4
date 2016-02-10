@@ -353,7 +353,7 @@ COLON           : ':';
 OR              : '|';
 AND             : '&';
 ARROW           : '→';
-VAR             : 'var';
+VAR             : 'allows-variable';
 LSQUARE         : '[';
 RSQUARE         : ']';
 FNTYPE          : '->';
@@ -362,7 +362,7 @@ NOT             : '¬';
 
 FIXITY          : 'infix' | 'infixr' | 'infixl' | 'postfix' | 'prefix';
 
-CONCRETE        : Lower+ Ebnf? '\u27e6' (CONCRETE|.)*? '\u27e7';   // category⟦ ⟧
+CONCRETE        : Lower (Alpha | Digit | '-' | '_')* Ebnf? '\u27e6' (CONCRETE|.)*? '\u27e7';   // category⟦ ⟧
 
 CONSTRUCTOR     : StartConstructorChar ConstructorChar* // '$' is for internal use only.
                 | '<' [Other] ConstructorChar*;
@@ -390,5 +390,5 @@ fragment Ebnf     : '*' | '?' | '+';
 
 WS               : [ \t\r\n\f]+ -> channel(HIDDEN) ;
 
-BLOCK_COMMENT    : '/*' .*? ('*/' | EOF)    -> channel(HIDDEN);
+BLOCK_COMMENT    : '/*' (BLOCK_COMMENT|.)*? ('*/' | EOF)    -> channel(HIDDEN);
 LINE_COMMENT     : '//' ~[\r\n]*            -> channel(HIDDEN);

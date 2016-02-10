@@ -655,13 +655,15 @@ public class SinkAntlrListener implements ParseTreeListener
 					// Last character is closing the embedded section: trim it.
 					text = text.trim();
 					text = text.substring(0, text.length() - 1);
-
+					
 					Reader reader = new StringReader(text);
 
 					if (sink != null)
 					{
 						if (embedCrsx4)
 						{
+							System.out.println("parse embedded: " + text);
+
 							parseCrsx4Term(reader);
 						}
 						else

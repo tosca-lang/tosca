@@ -63,13 +63,18 @@ rule RemoveLastChar(#string) → Substring(#string, 0, Minus(Length(#string), 1)
 /*
  * Trim leading and trailing spaces
  */
-func /* extern */ Trim(eager $String) -> $String 
+extern func Trim(eager $String) -> $String 
 
-func /* extern */ Replace(eager $String, eager $String, eager $String) -> $String 
+extern func Replace(eager $String, eager $String, eager $String) -> $String 
 
-func /* extern */ AfterFirst(eager $String, eager $String) -> $String 
+extern func AfterFirst(eager $String, eager $String) -> $String 
 
 func AfterLast(eager $String, eager $String) -> $String 
+
+extern func Escape(String, String, String) -> String
+extern func FormatNumber(String, String, String) -> String
+extern func Mangle(String, String, String) -> String
+
 
 rule AfterLast(#string, #sep)
 → If(Contains(#string, #sep), 

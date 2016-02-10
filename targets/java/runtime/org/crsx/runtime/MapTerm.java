@@ -6,7 +6,7 @@ package org.crsx.runtime;
  * 
  * @author Lionel Villard
  */
-public class Map extends Term
+public class MapTerm extends Term
 {
 
 	@Override

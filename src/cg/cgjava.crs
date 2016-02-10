@@ -136,7 +136,7 @@ JavaSigArgs[#env, %csort*⟦ [ ##csort ] ##csort2 ##csort* ⟧, #rules]
 
 -[Fresh[map::Text]]:
 JavaSigArgs[#env, %csort*⟦ { ##cmapsort* } ##csort*  ⟧, #rules]
-→ %n⟦, Map «map»«JavaSigArgs[AddParam[#env, map], #csort*, #rules]»⟧;
+→ %n⟦, MapTerm «map»«JavaSigArgs[AddParam[#env, map], #csort*, #rules]»⟧;
 
 JavaBody[JavaEnv, $List[Core_cdecl_sort]] :: Text;
 JavaBody[#env, #rules]
@@ -193,7 +193,8 @@ if («#term».descriptor() != «Descriptor[#CONSTRUCTOR]»)
 }«JavaPatternMaybeSubs[#env, #cterms?, #term, env.#[env]]»⟧;
 
 JavaPatternTerm[#env, %cterm⟦ ##cliteral ⟧, #term, #storage, env.#[env]]
-→ $[Error, "Internal error: invalid pattern matching on literal"];
+→ %n⟦⟧;
+//→ $[Error, "Internal error: invalid pattern matching on literal"];
 
 // REVISIT: bound variable reordering, ie. [x][y]#(y, x)
 // For now only accepts patterns of the form [x]...[y]#(x, ... y)
