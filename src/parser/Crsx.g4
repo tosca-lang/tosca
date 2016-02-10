@@ -101,7 +101,7 @@ sortDecl
      ;
 
 sortParams
-    : LT VARIABLE+ GT                                      /* [CORE] Formal sort parameters. */ 
+    : LT VARIABLE+ GT                                               /* [CORE] Formal sort parameters. */ 
     ;
 
 /*
@@ -118,7 +118,17 @@ variant
     ;
 
 variantArgs
-    : LPAR sorts? RPAR
+    : LPAR variantSorts? RPAR
+    ;
+    
+variantSorts
+    : variantSort (COMMA variantSort)* 
+    ;
+
+// TODO: variantSort is needed to avoid conflict with sort* below. Metaparser needs to be fixed.
+
+variantSort
+    : sort
     ;
 
 // Map type
@@ -128,14 +138,6 @@ sortMap
     | sort COLON sort
     ;
 
-/*
-// Function type
-
-fnSortParams
-     : sort (COMMA sort)*                         /* [CORE] *
-     ;
-*/
-
 // Sort Reference
 
 sort
@@ -143,7 +145,7 @@ sort
     ;
 
 sortScope
-    : LSQUARE sorts RSQUARE FNTYPE
+    : LSQUARE sort* RSQUARE FNTYPE
     ;
 
 paramSort
@@ -153,13 +155,9 @@ paramSort
     ;
 
 sortArgs
-    : LT sorts GT                         /* [CORE] Sort arguments */
+    : LT sort* GT                         /* [CORE] Sort arguments */
     ;
     
-sorts
-    : sort (COMMA sort)*                 /* [CORE] List of sort */
-    ;
-
 // Rule Declaration
 
 ruleDecl
@@ -252,7 +250,7 @@ scopes
     ;
 
 scope
-    : LSQUARE binders                                    /* [CORE]  Scoped term  */
+    : LSQUARE binders                                /* [CORE]  Scoped term  */
     | term[0]                                        /* [CORE]  No-scoped term */
     ;
 

@@ -131,7 +131,7 @@ rule PickFirst1(FALSE, #1, #s, [x] -> #(x)) → PickFirst(#s, [x] -> #(x))
    @return `TRUE` if the elements of `#XS` are equal to the elements of `#YS` 
            wrt the supplied condition for equality `#C`
 */
-func ListEqual<a b>( [a b] -> Boolean, List<a>, List<b> ) -> Boolean 
+func ListEqual<a b>([a b] -> Boolean, List<a>, List<b> ) -> Boolean 
 rule ListEqual([x y] -> #C(x,y), (          ), (          )) → TRUE 
 rule ListEqual([x y] -> #C(x,y), (#x, #xs...), (          )) → FALSE 
 rule ListEqual([x y] -> #C(x,y), (          ), (#y, #ys...)) → FALSE 

@@ -75,13 +75,13 @@ NVariants[%variant+⟦ | var ##variant+ ⟧]
 → %cform*⟦ allows-variable ⟨cform*: NVariants[#variant+]⟩ ⟧; 
 
 NMaybeVariantArgs[$List[Crsx_variantArgs_sort]] :: $List[Core_csorts_sort];
-NMaybeVariantArgs[%variantArgs?⟦   ⟧]           → %csorts?⟦ ⟧; 
-NMaybeVariantArgs[%variantArgs?⟦ ( ##sort* ) ⟧] → %csorts?⟦ ( ⟨csort*: NSorts[#sort*]⟩ ) ⟧; 
+NMaybeVariantArgs[%variantArgs?⟦   ⟧]                 → %csorts?⟦ ⟧; 
+NMaybeVariantArgs[%variantArgs?⟦ ( ##variantSort* ) ⟧] → %csorts?⟦ ( ⟨csort*: Map[x.NVariantSort[x], #variantSort*]⟩ ) ⟧; 
+
+NVariantSort[Crsx_variantSort_sort] :: Core_csort_sort;
+NVariantSort[%variantSort⟦ ##sort ⟧] → NSort[#sort];
 
 // ---- Sort reference
-
-NSorts[$List[Crsx_sort_sort]] :: $List[Core_csort_sort];
-NSorts[#sorts] → Map[sort.NSort[sort], #sorts];
 
 NSort[Crsx_sort_sort] :: Core_csort_sort;
 NSort[%sort⟦ ##sortScope? ##constructor ##sortArgs? ⟧] 
@@ -111,7 +111,7 @@ NParamSort[#constructor, #sortArgs?]
 → %csort⟦ ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟧;
 
 NMaybeSortParams[$List[Crsx_sortParams_sort]] :: $List[Core_csortvars_sort];
-NMaybeSortParams[%sortParams?⟦                  ⟧]    → %csortvars?⟦ ⟧; 
+NMaybeSortParams[%sortParams?⟦                  ⟧] → %csortvars?⟦ ⟧; 
 NMaybeSortParams[%sortParams?⟦ < ##variable_TOK+ > ⟧] → %csortvars?⟦ ∀ ##variable_TOK+ . ⟧; // TODO: fix metaparser ugly _TOK
 
 // ---- Function declaration
