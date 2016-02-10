@@ -167,7 +167,7 @@ ruleDecl
 // Function declaration, signature and optional body
 
 fnDecl
-    : FUNC fnFixity sortParams? fnParamDecls? FNTYPE sort fnBody?   /* [SUGAR]  function declaration  */
+    : EXTERN? FUNC fnFixity sortParams? fnParamDecls? FNTYPE sort fnBody?   /* [SUGAR]  function declaration  */
     ;
 
 fnFixity
@@ -338,6 +338,7 @@ ENUM            : 'enum';
 STRUCT          : 'struct';
 DISPATCH        : 'dispatch';
 EAGER           : 'eager';
+EXTERN          : 'extern';
 COMMA           : ',';
 LPAR            : '(';
 RPAR            : ')';

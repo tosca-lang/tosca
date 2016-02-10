@@ -114,8 +114,8 @@ PutDataSort1[SOME[#datasort], #data, #constructor, #rule]
  */
 PutFuncSort[MAP[$String, Core_cdecl_sort], Core_cdecl_sort] :: MAP[$String, Core_cdecl_sort];
 -[Data[#func]]:
-PutFuncSort[#func, %cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧]
-→ PutFuncSort1[MapGet[#func, #CONSTRUCTOR], #func, #CONSTRUCTOR,  %cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧];
+PutFuncSort[#func, %cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧]
+→ PutFuncSort1[MapGet[#func, #CONSTRUCTOR], #func, #CONSTRUCTOR,  %cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧];
 
 PutFuncSort1[Option[Core_cdecl_sort], MAP[$String, Core_cdecl_sort], $String, Core_cdecl_sort] :: MAP[$String, Core_cdecl_sort];
 PutFuncSort1[NONE, #func, #constructor, #decl]
@@ -146,8 +146,8 @@ LoadDecls[%cdecl+⟦ import module ##CONSTRUCTOR ##cdecl+ ⟧, #imports, #rules,
 LoadDecls[%cdecl+⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ##cdecl+ ⟧, #imports, #rules, #data, #func] 
 → LoadDecls[#cdecl+, #imports, #rules, PutDataSort[#data, %cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧], #func];
 
-LoadDecls[%cdecl+⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ##cdecl+ ⟧, #imports, #rules, #data, #func] 
-→ LoadDecls[#cdecl+, #imports, #rules, #data, PutFuncSort[#func, %cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧]];
+LoadDecls[%cdecl+⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ##cdecl+ ⟧, #imports, #rules, #data, #func] 
+→ LoadDecls[#cdecl+, #imports, #rules, #data, PutFuncSort[#func, %cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧]];
 
 LoadDecls[%cdecl+⟦ rule ##cterm → ##cterm2 ##cdecl+  ⟧, #imports, #rules, #data, #func] 
 → LoadDecls[#cdecl+, #imports, PutRule[#rules, %cdecl⟦ rule  ##cterm → ##cterm2 ⟧], #data, #func];

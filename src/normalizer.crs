@@ -51,9 +51,9 @@ NDecl[%decl⟦ enum ##constructor ##sortParams? ##variant+ ⟧]
 /* Convert function.
    Fixity is only used by the parser and can be eliminated. Still need to access the constructor
 */
-NDecl[%decl⟦ func ##fnFixity ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧]
+NDecl[%decl⟦ ##extern_TOK? func ##fnFixity ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧]
 → %cdecl+⟦ 
-  func ⟨csortvars?: NMaybeSortParams[#sortParams?]⟩ ⟨csort: NSort[#sort]⟩ ⟨CONSTRUCTOR: NConstructor[GetConstructor[#fnFixity]]⟩  ⟨csorts?: NMaybeParamDecls[#fnParamDecls?]⟩ 
+  ##extern_TOK? func ⟨csortvars?: NMaybeSortParams[#sortParams?]⟩ ⟨csort: NSort[#sort]⟩ ⟨CONSTRUCTOR: NConstructor[GetConstructor[#fnFixity]]⟩  ⟨csorts?: NMaybeParamDecls[#fnParamDecls?]⟩ 
   ⟨cdecl+: NMaybeBody[#fnBody?, GetConstructor[#fnFixity], #fnParamDecls?]⟩ 
 ⟧; 
 
@@ -89,6 +89,10 @@ NSort[%sort⟦ ##sortScope? ##constructor ##sortArgs? ⟧]
 
 NSort[%sort⟦ ##sortScope? ##VARIABLE ⟧] 
 → NMaybeSortScope[#sortScope?, %csort⟦ ##VARIABLE ⟧];
+
+// Just normalize to any map.
+NSort[%sort⟦ { ##sortMap }⟧] 
+→ %csort⟦ { String : String } ⟧;
 
 NMaybeSortScope[$List[Crsx_sortScope_sort], Core_csort_sort] :: Core_csort_sort;
 NMaybeSortScope[%sortScope?⟦ ⟧, #csort] 
