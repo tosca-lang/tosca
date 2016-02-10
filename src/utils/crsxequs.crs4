@@ -1,0 +1,41 @@
+/* 
+ * Implements equality functions for some crsx constructs
+ *
+ * @author : m schett
+ * 
+ */
+
+import Std::String
+import Std::Core
+
+/* ConstructorEqual 
+  @param  constructor `c1` 
+  @param  constructor `c2`
+  @return TRUE, iff the constructor symbol `c1` is the same as the constructor symbol `c2`, 
+          FALSE otherwise   
+*/
+func ConstructorEqual($String /* Core_constructor_sort */, $String /* Core_constructor_sort */) -> Boolean
+rule ConstructorEqual(#CONSTRUCTOR, #CONSTRUCTOR2) → StringEqual(#CONSTRUCTOR, #CONSTRUCTOR2)
+
+/* MetaVariableEqual 
+  @param  meta variable `#1` 
+  @param  meta variable `#2`
+  @return TRUE, iff the meta variable `#1` is the same as the meta variable `#2`, 
+          FALSE otherwise   
+*/
+func MetaVariableEqual($String /* Crsx_METAVAR_sort */, $String /* Crsx_METAVAR_sort */) -> Boolean
+rule MetaVariableEqual(#METAVAR, #METAVAR2) → StringEqual(#METAVAR, #METAVAR2)
+
+/* VariableEqual 
+  @param  cvariable `v1` 
+  @param  cvariable `v2`
+  @return TRUE, iff the variable `v1` is the same as the variable `v2`, 
+          FALSE otherwise   
+  @note   BUGGY --- ask LV plus functional marker should be optional
+*/
+func VariableEqual(Core_cvariable_sort, Core_cvariable_sort) -> Boolean
+rule VariableEqual(%cvariable⟦ ##VARIABLE ⟧, %cvariable⟦ ##VARIABLE2 ⟧) → FooVariableEqual //WrapBoolean($(SameVariable, #VARIABLE, #VARIABLE2))
+//StringEqual(#VARIABLE, #VARIABLE2)
+
+
+))

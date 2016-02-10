@@ -1,0 +1,29 @@
+/*
+ * @author : m schett
+ */
+
+(
+
+/* **Constructor Equality** */
+
+Assert( TRUE,
+        ConstructorEqual(A,A)
+      ),
+
+Assert( FALSE,
+        ConstructorEqual(A,B)
+      ),
+
+Assert( FALSE,
+        VariableEqual(%cvariable⟦ x ⟧, %cvariable⟦ y ⟧)
+       ),
+
+/* ** Variable Equality** */
+Assert( TRUE,
+        VariableEqual(%cvariable⟦ x ⟧, %cvariable⟦ x ⟧)
+       ),
+
+Assert(  
+        Print(%cvariable⟦ x ⟧, %cvariable⟦ x ⟧)
+       )
+)
