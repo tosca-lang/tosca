@@ -209,7 +209,7 @@ JavaPatternTerm[#env, %cterm⟦ [ ##VARIABLE ] ##cterm ⟧, #term, PARAMETER, en
 -[Data[#env, #term], Fresh[boundvar::Text, var::Core_cterm_sort]]:
 JavaPatternTerm[#env, %cterm⟦ [ ##VARIABLE ] ##cterm ⟧, #term, ARGUMENT, env.#[env]] 
 → %n⟦
-Variable «boundvar» = «#term».binders()[];«JavaPatternTerm[AddVar[#env, var, Bound[boundvar]], #cterm[var], #term, ARGUMENT, env.#[env]]»⟧;
+Variable «boundvar» = «GetParent[#env]».binders(«GetSubIndex[#env]»)[«Text-Integer[GetSubBinderIndex[#env]]»];«JavaPatternTerm[IncSubBinderIndex[AddVar[#env, var, Bound[boundvar]]], #cterm[var], #term, ARGUMENT, env.#[env]]»⟧;
 
 // Pattern matching on construction arguments (subterms).
 JavaPatternMaybeSubs[JavaEnv, $List[Core_cterms_sort], Text, env::JavaEnv.Text] :: Text;
@@ -228,7 +228,7 @@ JavaPatternSubs[#env, %cterm*⟦⟧, #term, #index, env.#[env]]
 -[Fresh[sub::Text]]:
 JavaPatternSubs[#env, %cterm*⟦ ##cterm ##cterm* ⟧, #term, #index, env.#[env]]
 → %n⟦
-Term «sub» = «#term».sub(«Text-Integer[#index]»).ref();«JavaPatternTerm[#env, #cterm, sub, ARGUMENT, env.JavaPatternSubs[env, #cterm*, #term, NumberPlus[#index, 1], env.#[env]]]»⟧;
+Term «sub» = «#term».sub(«Text-Integer[#index]»).ref();«JavaPatternTerm[SetSubBinderIndex[SetParent[SetSubIndex[#env, Text-Integer[#index]], #term], 0], #cterm, sub, ARGUMENT, env.JavaPatternSubs[env, #cterm*, #term, NumberPlus[#index, 1], env.#[env]]]»⟧;
 
 // --- Variable pattern matching outside of meta
 
@@ -320,7 +320,21 @@ JavaSendMaybeTerms[#env, %cterms?⟦ ( ##cterm* ) ⟧] → TextFold[Map[term.Jav
 
 JavaSendVariable[JavaEnv, $String, env::JavaEnv.Text] :: Text;
 JavaSendVariable[#env, #var, env.#[env]]
-→ %n⟦¶«GetSink[#env]».use(«GetVar[#env, #var]»);«#[#env]»⟧;
+→ JavaSendFreeOrFreshVar[MaybeGetVar[#env, #var], #env, env.#[env]];
+
+JavaSendFreeOrFreshVar[Option[VarEntry], JavaEnv, env::JavaEnv.Text] :: Text;
+
+// Not in tn the env: fresh variable. 
+-[Fresh[jvar::Text]]:
+JavaSendFreeOrFreshVar[NONE, #env, env.#[env]]
+→ %n⟦
+Variable «jvar» = «GetSink[#env]».context().makeVariable("x"); «GetSink[#env]».use(«jvar»);«#[#env]»⟧;
+
+// In the env: free or bound variable.
+JavaSendFreeOrFreshVar[SOME[#varEntry], #env, env.#[env]]
+→ %n⟦
+«GetSink[#env]».use(«UnVarVar[#varEntry]»);«#[#env]»⟧;
+
 
 // ---- SEND metavar
 
@@ -456,19 +470,23 @@ VarEntry  ::= ( Free[Text /* Java var */]; Bound[Text /* Java var */]; Fresh[Tex
 MetaEntry ::= ( MetaVar[Text /* Java variable associated with the meta variable*/, 
                         $List[Text] /* Java variables associated to the meta variable bound variables */]; );
 
-JavaEnvEntry ::= ( EText[Text]; ETexts[$List[Text]]; EBool[$Boolean]; EMapMeta[MAP[$String, MetaEntry]]; EMapVar[MAP[$String /* TODO: Core_cvariable_sort when metaparser is fixed */, VarEntry]]; );
+JavaEnvEntry ::= ( ENum[$Numeric]; EText[Text]; ETexts[$List[Text]]; EBool[$Boolean]; EMapMeta[MAP[$String, MetaEntry]]; 
+    EMapVar[MAP[$String /* TODO: Core_cvariable_sort when metaparser is fixed */, VarEntry]]; );
 
 {$String:JavaEnvEntry} 
 JavaEnv ::= ( JavaEnv; );
 
 NewEnv :: JavaEnv;
-NewEnv → { "sink"   : EText[%n⟦⟧];   /* Current sink. */
-           "params" : ETexts[()];    /* Java method arguments. */
-           "thunk"  : ETexts[()];    /* thunk arguments */
-           "label"  : EText[%n⟦⟧];   /* Current pattern block label. */
-           "tail"   : EBool[$True];  /* Tail? */
-           "meta"   : EMapMeta[MAP];  /* Map meta variable to java variables */
-           "vars"   : EMapVar[MAP];  /* Map variable to VarEntry */
+NewEnv → { "sink"        : EText[%n⟦⟧];   /* Current sink. */
+           "params"      : ETexts[()];    /* Java method arguments. */
+           "thunk"       : ETexts[()];    /* thunk arguments */
+           "label"       : EText[%n⟦⟧];   /* Current pattern block label. */
+           "tail"        : EBool[$True];  /* Tail? */
+           "meta"        : EMapMeta[MAP]; /* Map meta variable to java variables */
+           "vars"        : EMapVar[MAP];  /* Map variable to VarEntry */
+           "parent"      : EText[%n⟦⟧];   /* Sub parent (if any) */
+           "subindex"    : EText[%n⟦⟧];   /* Sub index */
+           "binderindex" : ENum[0];   /* Current sub binder index */
          }JavaEnv;
 
 // --- Java printing helpers
@@ -500,6 +518,9 @@ SetValue[JavaEnv, $String, JavaEnvEntry] :: JavaEnv;
 -[Data[#value]]: 
 SetValue[{#env}JavaEnv, #key, #value]
 → {#env; #key: #value}JavaEnv;
+
+UnNum[JavaEnvEntry] :: $Numeric;
+UnNum[ENum[#]] → #;
 
 UnText[JavaEnvEntry] :: Text;
 UnText[EText[#]] → #;
@@ -613,5 +634,39 @@ MaybeGetVar[#env, #var] → MapGetVar[GetVars[#env], #var];
 AddVar[JavaEnv, $String /* TODO: Core_cvariable_sort */, VarEntry] :: JavaEnv;
 AddVar[{#env}JavaEnv, #var, #entry]
 → {#env; "vars": EMapVar[MapPut[GetVars[{#env}JavaEnv], #var, #entry]]}JavaEnv;
+
+
+// --- Parent term
+
+GetParent[JavaEnv] :: Text;
+GetParent[#env] → GetValue[#env, "parent", x.UnText[x]];
+
+SetParent[JavaEnv, Text] :: JavaEnv;
+SetParent[{#env}JavaEnv, #parent]
+→ {#env; "parent": EText[#parent]}JavaEnv;
+
+// --- sub index
+
+GetSubIndex[JavaEnv] :: Text;
+GetSubIndex[#env] → GetValue[#env, "subindex", x.UnText[x]];
+
+SetSubIndex[JavaEnv, Text] :: JavaEnv;
+SetSubIndex[{#env}JavaEnv, #parent]
+→ {#env; "subindex": EText[#parent]}JavaEnv;
+
+// --- sub binder index
+
+GetSubBinderIndex[JavaEnv] :: $Numeric;
+GetSubBinderIndex[#env] → GetValue[#env, "binderindex", x.UnNum[x]];
+
+SetSubBinderIndex[JavaEnv, $Numeric] :: JavaEnv;
+SetSubBinderIndex[{#env}JavaEnv, #index]
+→ {#env; "binderindex": ENum[#index]}JavaEnv;
+
+IncSubBinderIndex[JavaEnv] :: JavaEnv;
+IncSubBinderIndex[{#env}JavaEnv]
+→ {#env; "binderindex": ENum[Plus[GetSubBinderIndex[{#env}JavaEnv], 1]]}JavaEnv;
+
+
 
 )]
