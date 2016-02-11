@@ -7,12 +7,12 @@
 
 (
 
-Assert[ (%ruleDeclaration⟦ F[#X_1] → #X_1  ⟧;),
-        RenameRules[ (%ruleDeclaration⟦ F[#X] → #X ⟧;) ]
+Assert[ (%cdecl⟦ rule F(#X_1) → #X_1  ⟧;),
+        RenameRules[ (%cdecl⟦ rule F(#X) → #X ⟧;) ]
       ];
 
-Assert[ (%ruleDeclaration⟦ F[#X_1] → #X_1 ⟧; %ruleDeclaration⟦ F[#X_2,#Y_2] → #X_2 ⟧ ;),
-        RenameRules[ (%ruleDeclaration⟦ F[#X] → #X ⟧; %ruleDeclaration⟦ F[#X,#Y] → #X ⟧ ;)]
+Assert[ (%cdecl⟦ rule F(#X_1) → #X_1 ⟧; %cdecl⟦ rule F(#X_2,#Y_2) → #X_2 ⟧ ;),
+        RenameRules[ (%cdecl⟦ rule F(#X) → #X ⟧; %cdecl⟦ F(#X,#Y) → #X ⟧ ;)]
       ];
 
 )

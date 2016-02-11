@@ -1,0 +1,47 @@
+/*
+ * @author : m schett
+ */
+
+(
+Assert(  Vars((),(),()) ,
+        Variables(%cterm⟦ A ⟧)
+      ),
+
+Assert(  Vars((),(),( %cvariable⟦ x ⟧, )) ,
+        Variables(%cterm⟦ x ⟧)
+      ),
+
+Assert(  Vars((),( %cvariable⟦ x ⟧, ), ()) ,
+         Variables(%cterm⟦ [x]x ⟧)
+      ),
+/*
+Assert(  Vars((),( %cvariable⟦ x ⟧, ), ( %cvariable⟦ x ⟧, )) ,
+        Variables(%cterm⟦ F(x, [x]x) ⟧)
+      ),
+
+Assert( Vars((),( %cvariable⟦ x ⟧, ), ( %cvariable⟦ x ⟧, )) ,
+        Variables(%cterm⟦ F([x]x, x) ⟧)
+      ),
+
+Assert(  Vars(( "#", ),( %cvariable⟦ x ⟧, ), ( %cvariable⟦ x ⟧, )) ,
+        Variables(%cterm⟦ F(x, [x]#(x)) ⟧)
+      ),
+
+
+Assert( ( %cvariable⟦ z ⟧, %cvariable⟦ y ⟧, %cvariable⟦ x ⟧, ) ,
+        FreeVariables(%cterm⟦ F(x, [x]#(x), y, G(z)) ⟧)
+      ),
+
+Assert( Vars(("#",),( %cvariable⟦ x ⟧, %cvariable⟦ x ⟧, ), ( %cvariable⟦ z ⟧, )),
+        Variables(%cterm⟦ F([x]#(x), [x]x, z) ⟧)
+      ),
+
+Assert( Vars((),( %cvariable⟦ x ⟧, %cvariable⟦ x ⟧, ), ()) ,
+        Variables(%cterm⟦ F([x]G([x] H(x))) ⟧)
+      ),
+
+Assert( ( "#Y", "#X",),
+         MetaVariables( %cterm⟦ F(#X, #Y) ⟧ )
+       ),
+*/
+)

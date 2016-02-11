@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *  
+ * @author : m schett
+ * @date   : 08/15/2015
+ */
+
+(
+Assert( %cterm⟦ A ⟧,
+        Rename( "t1_", %cterm⟦ A ⟧ )
+      );
+
+
+Assert( %cterm⟦ F(#X_1) ⟧,
+        Rename( "_1", %cterm⟦ F(#X) ⟧ )
+      );
+
+Assert( %cterm⟦ F(#X_1, #Y_1) ⟧,
+        Rename( "_1", %cterm⟦ F(#X,#Y) ⟧ )
+      );
+
+/* Expected Error */
+Assert( Error,
+        RenameHelper[ "_1", ( %cvariable⟦ x ⟧ ;), %cterm⟦ [x]F(x,y)⟧ )
+      );
+
+
+/* Expected Error */
+Assert( Error,
+        RenameHelper[ "_1", ( ), %cterm⟦ [x] C([x] F(x))⟧ )
+      );
+
+
+/* Expected Error */
+Assert( Error,
+        RenameHelper[ "_1", ( ), %cterm⟦ [y][y] F(x) ⟧ )
+      );
+
+/* Expected Error */
+Assert( Error,
+        RenameHelper[ "_1", ( ), %cterm⟦ [x][z][z] F(z)⟧ )
+      );
+
+)

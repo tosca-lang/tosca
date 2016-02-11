@@ -1,0 +1,26 @@
+/*
+ * @author : m schett
+ * @date   : 2016-02-03
+ */
+
+(
+Assert( %cterm⟦ F(A) ⟧ ,
+        Lhs(%cdecl⟦ rule F(A) → B  ⟧)
+      ),
+
+Assert( %cterm⟦ F(#X,#Y) ⟧ ,
+        Lhs(%cdecl⟦ rule F(#X,#Y) → #X  ⟧)
+      ),
+
+Assert( %cterm⟦ F([x]x) ⟧ ,
+        Lhs(%cdecl⟦ rule F([x]x) → A  ⟧)
+      ),
+
+Assert( %cterm⟦ F([x][y]x) ⟧ ,
+        Lhs(%cdecl⟦ rule F([x][y]x) → A  ⟧)
+      ),
+
+Assert( %cterm⟦ F(x) ⟧ ,
+        Lhs(%cdecl⟦ rule F(x) → x  ⟧)
+      ),
+)

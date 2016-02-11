@@ -1,0 +1,15 @@
+/*
+ * @author : m schett
+ */
+
+(
+
+Assert( (%cdecl⟦ F(#X_1) → #X_1  ⟧ ),
+        RenameRules( (%cdecl⟦ rule F(#X) → #X ⟧) ]
+      ),
+
+Assert( (%cdecl⟦rule F(#X_1) → #X_1 ⟧, %cdecl⟦ rule F(#X_2,#Y_2) → #X_2 ⟧, ),
+        RenameRules( (%cdecl⟦rule F(#X) → #X ⟧, %cdecl⟦rule F(#X,#Y) → #X ⟧, )]
+      ),
+
+)
