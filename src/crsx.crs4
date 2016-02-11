@@ -1,0 +1,44 @@
+// Copyright (c) 2015 IBM Corporation.
+/*
+ CRSX command line
+*/
+
+import System
+import Normalizer
+import Cg::Cgjava
+import Std::Core
+import Std::List
+import Std::String
+
+//--- API
+
+/* Compile the Crsx program located to the given url 
+   @param `$String` a url
+   @return a compile Crsx program in Java (for now)
+*/
+func Compile($String) -> Text   
+rule Compile(#url) 
+→ CompileSystem(InitSystem(#url)) 
+
+func CompileSystem(System) -> Text   
+rule CompileSystem(#system) 
+→ MaybeLoadModule(#system, PickNotLoaded(#system)) 
+
+func MaybeLoadModule(System, Option<Module>) -> Text 
+
+// Done loading all modules. Generate code.  
+rule MaybeLoadModule(#system, NONE) 
+→ CrsxToJava(#system)   
+
+rule MaybeLoadModule(#system, SOME(Module(#url, NOTLOADED)))
+→ CompileSystem(PutModule(#system, #url, Module(#url, LoadModule(#url)))) 
+
+func LoadModule($String) -> Content 
+rule LoadModule(#url) 
+→ Loaded(LoadCore(If(EndsWith(#url, ".crsc"), ParseCore(#url), ParseCrsx(#url)))) 
+
+func ParseCore($String) -> Core_ccrsx_sort 
+rule ParseCore(#url) → ParseResource("ccrsx", #url) 
+
+func ParseCrsx($String) -> Core_ccrsx_sort 
+rule ParseCrsx(#url) → ToCore(#url, ParseResource("crsx", #url)) 

@@ -6,23 +6,9 @@ enum OK_SORT | OK
 
 enum $StringEntry | STRING($String)
 
-// --- Map primitives
+// --- External Environment
 
-func IfDef<a b>(eager {a: b}, eager a /* Key */) -> Boolean
-
-
-func MapPut<a b>(eager {a: b}, eager a /* Key */, eager b /* Value */) -> {a: b}
-
-/* Get map value. Key cannot be a variable */
-func MapGet<a b>(eager {a: b}, eager a /* Key */) -> Option<b>
-
-// TODO: really want to match a syntactic variable, not a semantic one.
-func MapGetVar<a b>(eager {a: b}, a /* Variable Key */) -> Option<b>
-
-func MapKeys<a b>({a: b}) -> List<a>
-
-func MapValues<a b>({a: b}) -> List<b>
-
+extern func IfDef<a b c>(eager {a: b}, eager a /* Key */, c, c) -> c
 
 // --- Optional value
 
@@ -40,12 +26,6 @@ rule UnSOME(SOME(#)) → #
 func HasOption<a>(Option<a>) -> Boolean
 rule HasOption(NONE)    → FALSE
 rule HasOption(SOME(#)) → TRUE
-
-/* `GetSome(#map, #key)`
-   Lookup string entry
- */
-func GetSome<a b>(eager a, eager String) -> Option<b>
-rule GetSome(#map, #key) → IfDef(#map, #key, SOME(MapGet(#map, #key)), NONE)  
 
 // --- Boolean
 
@@ -67,16 +47,13 @@ func Not(Boolean) -> Boolean
 rule Not(TRUE)  → FALSE
 rule Not(FALSE) → TRUE
 
-func Equal(eager String, eager String) -> Boolean
-
-func Eq<a>(a, a) -> Boolean
-//rule  Eq(#X,#Y) → $(If, $(Equal,#X,#Y), TRUE, FALSE),
+extern func Equal<a b>(eager a, eager b) -> Boolean
 
 // --- Debugging
 
-func /* extern */ Trace<a>(a) -> a
+extern func Trace<a>(eager a) -> a
+
+extern func Show<a>(a) -> String
 
 // -- Error
-func Error<a>(String) -> a
-
-func /* extern */ Show<a>(a) -> String
+extern func Error<a>(String) -> a

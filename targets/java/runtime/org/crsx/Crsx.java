@@ -94,7 +94,7 @@ public class Crsx
 
 		buildEnv.put("rules", rules);
 		buildEnv.put("build-dir", buildir);
-//		build(buildEnv);
+		build(buildEnv);
 
 		// Compute output class name
 

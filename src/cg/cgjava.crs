@@ -91,8 +91,12 @@ JavaFormDesc[%cform⟦ ##CONSTRUCTOR ##csorts? ⟧]
 final public static ConstructionDescriptor «Descriptor[#CONSTRUCTOR]» = makeData(«Text-QuoteEscape[#CONSTRUCTOR]»);⟧;
 
 JavaFuncDesc[$String, Core_cdecl_sort] :: Text;
-JavaFuncDesc[#classname, %cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧]
-→ %n⟦final public static DynamicFunctionDescriptor «Descriptor[#CONSTRUCTOR]» = makeFunction(«Text-QuoteEscape[#CONSTRUCTOR]», †«#classname».class, "«ToJavaId[#CONSTRUCTOR]»");⟧; 
+JavaFuncDesc[#classname, %cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧]
+→ %n⟦final public static DynamicFunctionDescriptor «Descriptor[#CONSTRUCTOR]» = makeFunction(«Text-QuoteEscape[#CONSTRUCTOR]», †«#classname»«JavaExtern[#extern_TOK?]».class, "«ToJavaId[#CONSTRUCTOR]»");⟧; 
+
+JavaExtern[Core_extern_sort] :: Text;
+JavaExtern[%extern_TOK?⟦⟧] → %n⟦⟧;
+JavaExtern[%extern_TOK?⟦ extern⟧] → %n⟦Extern⟧;
 
 /* Generate methods for module rules */ 
 JavaMethod[$String, MAP[$String, $List[Core_cdecl_sort]],  
@@ -101,7 +105,7 @@ JavaMethod[#constructor, #rules, #datasorts, #funcsorts]
 → %n⟦final public static boolean «JavaMethodSig[UnSOME[MapGet[#funcsorts, #constructor]], UnSOME[MapGet[#rules, #constructor]]]»⟧;
 
 JavaMethodSig[Core_cdecl_sort, $List[Core_cdecl_sort]] :: Text;
-JavaMethodSig[%cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #rules] 
+JavaMethodSig[%cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #rules] 
 → %n⟦«ToJavaId[#CONSTRUCTOR]»(Sink sink«JavaSigMaybeArgs[
                 SetSink[AddThunk[AddThunk[NewEnv, %n⟦sink⟧], Descriptor[#CONSTRUCTOR]], %n⟦sink⟧], #csorts?, #rules]»⟧;  // )
 
@@ -130,9 +134,9 @@ JavaSigArgs[#env, %csort*⟦ ##VARIABLE ##csort* ⟧, #rules] // Sort variable
 JavaSigArgs[#env, %csort*⟦ [ ##csort ] ##csort2 ##csort* ⟧, #rules]
 → %n⟦, Variable «var»«JavaSigArgs[AddParam[#env, var], (#csort2; #csort*), #rules]»⟧;
 
-// TODO
-JavaSigArgs[#env, %csort*⟦ { ##cmapsort* }  ⟧, #rules]
-→ %n⟦⟧;
+-[Fresh[map::Text]]:
+JavaSigArgs[#env, %csort*⟦ { ##cmapsort* } ##csort*  ⟧, #rules]
+→ %n⟦, MapTerm «map»«JavaSigArgs[AddParam[#env, map], #csort*, #rules]»⟧;
 
 JavaBody[JavaEnv, $List[Core_cdecl_sort]] :: Text;
 JavaBody[#env, #rules]
@@ -189,7 +193,8 @@ if («#term».descriptor() != «Descriptor[#CONSTRUCTOR]»)
 }«JavaPatternMaybeSubs[#env, #cterms?, #term, env.#[env]]»⟧;
 
 JavaPatternTerm[#env, %cterm⟦ ##cliteral ⟧, #term, #storage, env.#[env]]
-→ $[Error, "Internal error: invalid pattern matching on literal"];
+→ %n⟦⟧;
+//→ $[Error, "Internal error: invalid pattern matching on literal"];
 
 // REVISIT: bound variable reordering, ie. [x][y]#(y, x)
 // For now only accepts patterns of the form [x]...[y]#(x, ... y)
@@ -283,25 +288,36 @@ JavaContractum[#env, #term]
 JavaSendTerm[JavaEnv, Core_cterm_sort, env::JavaEnv.Text] :: Text;
 
 JavaSendTerm[#env, %cterm⟦ ##CONSTRUCTOR ##cterms? ⟧, env.#[env]]
-→ JavaSendConstruction[#env, #CONSTRUCTOR, #cterms?, env.#[env]];
+→ JavaMaybeSendBinds[#env, env.JavaSendConstruction[env, #CONSTRUCTOR, #cterms?, env.#[env]]];
 
 JavaSendTerm[#env, %cterm⟦ ##cliteral ⟧, env.#[env]]
-→ %n⟦¶«GetSink[#env]».literal(«Literal[#cliteral]»);«#[#env]»⟧;
+→ JavaMaybeSendBinds[#env, env.%n⟦«GetSink[#env]».literal(«Literal[#cliteral]»);«#[env]»⟧];
 
 JavaSendTerm[#env, %cterm⟦ ##VARIABLE ⟧, env.#[env]] 
-→ JavaSendVariable[#env, #VARIABLE, env.#[env]];
+→ JavaMaybeSendBinds[#env, env.JavaSendVariable[env, #VARIABLE, env.#[env]]];
 
 JavaSendTerm[#env, %cterm⟦ ##METAVAR ##cterms? ⟧, env.#[env]] 
-→ JavaSendMeta[#env, #METAVAR, #cterms?, env.#[env]];
+→ JavaMaybeSendBinds[#env, env.JavaSendMeta[env, #METAVAR, #cterms?, env.#[env]]];
 
 -[Fresh[jvar::Text, var::Core_cterm_sort]]:
 JavaSendTerm[#env, %cterm⟦ [ ##VARIABLE ] ##cterm ⟧, env.#[env]]  
 → %n⟦
-Variable «jvar» = «GetSink[#env]».context().makeVariable("x");«JavaSendTerm[AddVar[#env, var, Fresh[jvar]], #cterm[var], env.#[env]]»⟧;
+Variable «jvar» = «GetSink[#env]».context().makeVariable("x");«
+  JavaSendTerm[AddBinder[AddVar[#env, var, Bound[jvar]], jvar], #cterm[var], env.#[env]]»⟧;
 
 JavaSendEndTerm[$Boolean] :: Text;
 JavaSendEndTerm[$True]  → %n⟦return true;⟧;
 JavaSendEndTerm[$False] → %n⟦⟧;
+
+JavaMaybeSendBinds[JavaEnv, env::JavaEnv.Text] :: Text;
+JavaMaybeSendBinds[#env, env.#[env]]
+→ %n⟦«JavaSendBinds[#env, GetBinders[#env]]»«#[SetBinders[#env, ()]]»⟧;
+
+JavaSendBinds[JavaEnv, $List[Text]] :: Text;
+JavaSendBinds[#env, (           )] → %n⟦⟧;
+JavaSendBinds[#env, (#var; #vars)] 
+→ %n⟦
+«GetSink[#env]».binds(new Variable[] { «TextFold[(#var; #vars), %n⟦, ⟧]» });⟧;
 
 // ---- SEND construction
 
@@ -417,7 +433,7 @@ RegisterDataForm[%cform⟦ ##CONSTRUCTOR ##csorts? ⟧]
 context.register(«Descriptor[#CONSTRUCTOR]»);⟧;
 
 RegisterFuncSort[Core_cdecl_sort] :: Text;
-RegisterFuncSort[%cdecl⟦ func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧]
+RegisterFuncSort[%cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧]
 → %n⟦
 context.register(«Descriptor[#CONSTRUCTOR]»);⟧; 
 
@@ -486,7 +502,8 @@ NewEnv → { "sink"        : EText[%n⟦⟧];   /* Current sink. */
            "vars"        : EMapVar[MAP];  /* Map variable to VarEntry */
            "parent"      : EText[%n⟦⟧];   /* Sub parent (if any) */
            "subindex"    : EText[%n⟦⟧];   /* Sub index */
-           "binderindex" : ENum[0];   /* Current sub binder index */
+           "binderindex" : ENum[0];       /* Current sub binder index */
+           "binders"     : ETexts[()];    /* Binders list being constructed in contraction */
          }JavaEnv;
 
 // --- Java printing helpers
@@ -667,6 +684,17 @@ IncSubBinderIndex[JavaEnv] :: JavaEnv;
 IncSubBinderIndex[{#env}JavaEnv]
 → {#env; "binderindex": ENum[Plus[GetSubBinderIndex[{#env}JavaEnv], 1]]}JavaEnv;
 
+
+// --- Binders
+
+GetBinders[JavaEnv] :: $List[Text];
+GetBinders[#env] → GetValue[#env, "binders", x.UnTexts[x]];
+
+SetBinders[JavaEnv, $List[Text]] :: JavaEnv;
+SetBinders[{#env}JavaEnv, #binders] → {#env; "binders": ETexts[#binders]}JavaEnv;
+
+AddBinder[JavaEnv, Text] :: JavaEnv;
+AddBinder[{#env}JavaEnv, #binders] → {#env; "binders": ETexts[Append[#binders, GetBinders[{#env}JavaEnv]]]}JavaEnv;
 
 
 )]

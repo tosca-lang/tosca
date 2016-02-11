@@ -309,5 +309,34 @@ public abstract class ConstructionDescriptor
 			throw new RuntimeException("Literals do not  have step function");
 		}
 	}
+	
+	/**
+	 * Represent a map construction.
+	 */
+	protected static class MapDescriptor extends ConstructionDescriptor
+	{
+		protected static MapDescriptor singleton = new MapDescriptor();
+	
+		private MapDescriptor()
+		{}
+	
+		@Override
+		public String symbol()
+		{
+			return "Map";
+		}
+	
+		@Override
+		public boolean isFunction()
+		{
+			return false;
+		}
+	
+		@Override
+		public boolean step(Sink sink, Term data)
+		{
+			throw new RuntimeException("Maps do not  have step function");
+		}
+	}
 
 }

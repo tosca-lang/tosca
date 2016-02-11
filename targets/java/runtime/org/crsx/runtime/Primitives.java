@@ -39,14 +39,7 @@ import org.crsx.runtime.primitives.UpCaseDescriptor;
  */
 public class Primitives
 {
-	// Boolean
-	final public static ConstructionDescriptor _M__sTrue = makeData("$True");
-	final public static ConstructionDescriptor _M__sFalse = makeData("$False");
 
-	// List
-	final public static ConstructionDescriptor _M__sCons = makeData("$Cons");
-	final public static ConstructionDescriptor _M__sNil = makeData("$Nil");
-	
 	// All primitives
 	final public static ConstructionDescriptor _M_Builtin_sTrace = new TraceDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sError = new ErrorDescriptor();

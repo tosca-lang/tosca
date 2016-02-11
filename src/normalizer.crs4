@@ -1,0 +1,222 @@
+// Copyright (c) 2016 IBM Corporation.
+/*
+ * Normalize CRSX programs to Core CRSX.
+ *
+ * Eliminate syntactic sugars and perform various checks.
+ *
+ * In particular:
+ * - Expand sorted concrete syntax
+ */
+
+import Parser::Crsx
+import Core::Core 
+import Std::Core 
+import Std::String
+import Std::List 
+import Std::Num 
+
+// ----- API
+
+// Convert Crsx to Core
+func ToCore(String, Crsx_crsx_sort) -> Core_ccrsx_sort 
+rule ToCore(#filename, crsx⟦ ##decl+ ⟧) 
+→ ccrsx⟦ ⟨cdecl+: NDecls[#decl+]⟩ ⟧ 
+
+// ----- Declarations
+
+func NDecls(List<Crsx_decl_sort>) -> List<Core_cdecl_sort> 
+rule NDecls(#cdecl+) 
+→ Flatten(Map([x] -> NDecl(x), #cdecl+)) 
+
+func NDecl(Crsx_decl_sort) -> List<Core_cdecl_sort> 
+
+/* Convert import module */
+rule NDecl(decl⟦ import ##constructor ⟧)
+→ cdecl+⟦ import module ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟧ 
+
+/* Convert import module */
+rule NDecl(decl⟦ import module ##constructor ⟧)
+→ cdecl+⟦ import module ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟧  
+
+/* Convert enum to data sort */
+rule NDecl(decl⟦ enum ##constructor ##sortParams? ##variant+ ⟧)
+→ cdecl+⟦ data ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ( ⟨cform*: NVariants[#variant+]⟩ ) ⟧  
+
+/* Convert function.
+   Fixity is only used by the parser and can be eliminated. Still need to access the constructor
+*/
+rule NDecl(decl⟦ ##extern_TOK? func ##fnFixity ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
+→ cdecl+⟦ 
+  ##extern_TOK? func ⟨csortvars?: NMaybeSortParams[#sortParams?]⟩ ⟨csort: NSort[#sort]⟩ ⟨CONSTRUCTOR: NConstructor[GetConstructor[#fnFixity]]⟩  ⟨csorts?: NMaybeParamDecls[#fnParamDecls?]⟩ 
+  ⟨cdecl+: NMaybeBody[#fnBody?, GetConstructor[#fnFixity], #fnParamDecls?]⟩ 
+⟧ 
+
+/* Convert rule */
+rule NDecl(decl⟦ rule ##constructor ##args? → ##term* ⟧)
+→ cdecl+⟦ rule ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟨cterms?: NMaybeArgs[#args?]⟩ → ⟨cterm: NContractum[#term*]⟩ ⟧ 
+ 
+// ---- Enum
+
+func NVariants(List<Crsx_variant_sort>) -> List<Core_cform_sort> 
+
+rule NVariants(variant+⟦   ⟧)                   
+→ cform*⟦ ⟧  
+
+rule NVariants(variant+⟦ | ##constructor ##variantArgs? ##variant+ ⟧)
+→ cform*⟦ ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟨csorts?: NMaybeVariantArgs[#variantArgs?]⟩ ⟨cform*: NVariants[#variant+]⟩ ⟧  
+
+rule NVariants(variant+⟦ | allows-variable ##variant+ ⟧)
+→ cform*⟦ allows-variable ⟨cform*: NVariants[#variant+]⟩ ⟧  
+
+func NMaybeVariantArgs(List<Crsx_variantArgs_sort>) -> List<Core_csorts_sort>
+rule NMaybeVariantArgs(variantArgs?⟦  ⟧ ) → csorts?⟦⟧  
+rule NMaybeVariantArgs(variantArgs?⟦ ( ##variantSort* ) ⟧) → csorts?⟦ ( ⟨csort*: Map[x.NVariantSort[x], #variantSort*]⟩ ) ⟧  
+
+func NVariantSort(Crsx_variantSort_sort) -> Core_csort_sort 
+rule NVariantSort(variantSort⟦ ##sort ⟧) → NSort(#sort) 
+
+// ---- Sort reference
+
+func NSort(Crsx_sort_sort) -> Core_csort_sort 
+rule NSort(sort⟦ ##sortScope? ##constructor ##sortArgs? ⟧) 
+→ NMaybeSortScope(#sortScope?, NParamSort(#constructor, #sortArgs?)) 
+
+rule NSort(sort⟦ ##sortScope? ##VARIABLE ⟧) 
+→ NMaybeSortScope(#sortScope?, csort⟦ ##VARIABLE ⟧) 
+
+// Just normalize to any map.
+rule NSort(sort⟦ { ##sortMap }⟧) 
+→ csort⟦ { String : String } ⟧ 
+
+func NMaybeSortScope(List<Crsx_sortScope_sort>, Core_csort_sort) -> Core_csort_sort 
+rule NMaybeSortScope(sortScope?⟦ ⟧, #csort) 
+→ #csort 
+
+rule NMaybeSortScope(sortScope?⟦ [ ##sort* ] -> ⟧, #csort) 
+→ NSortScope(#sort*, #csort) 
+
+func NSortScope(List<Crsx_sort_sort>, Core_csort_sort) -> Core_csort_sort 
+rule NSortScope(sort*⟦ ⟧, #csort)
+→ #csort 
+
+rule NSortScope(sort*⟦ ##sort ##sort* ⟧, #csort)
+→ csort⟦ [ ⟨csort: NSort[#sort]⟩ ] ⟨csort: NSortScope[#sort*, #csort]⟩ ⟧ 
+
+func NParamSort(Crsx_constructor_sort, List<Crsx_sortArgs_sort>) -> Core_csort_sort 
+
+// TODO: the code gen for now generated untyped code so ignore #sortArgs? here
+rule NParamSort(#constructor, #sortArgs?) 
+→ csort⟦ ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟧ 
+
+func NMaybeSortParams(List<Crsx_sortParams_sort>) -> List<Core_csortvars_sort> 
+rule NMaybeSortParams(sortParams?⟦                  ⟧) → csortvars?⟦ ⟧  
+rule NMaybeSortParams(sortParams?⟦ < ##variable_TOK+ > ⟧) → csortvars?⟦ ∀ ##variable_TOK+ . ⟧  // TODO: fix metaparser ugly _TOK
+
+// ---- Function declaration
+
+/* Extract constructor from fixity */
+func GetConstructor(Crsx_fnFixity_sort) -> Crsx_constructor_sort 
+rule GetConstructor(fnFixity⟦ ##FIXITY ##NUMBER ##constructor ⟧) → #constructor 
+rule GetConstructor(fnFixity⟦ ##constructor ⟧)                   → #constructor 
+
+func NMaybeParamDecls(List<Crsx_fnParamDecls_sort>) -> List<Core_csorts_sort> 
+rule NMaybeParamDecls(fnParamDecls?⟦                ⟧) → csorts?⟦⟧ 
+rule NMaybeParamDecls(fnParamDecls?⟦ (            ) ⟧) → csorts?⟦⟧ 
+rule NMaybeParamDecls(fnParamDecls?⟦ ( ##fnParam* ) ⟧) → csorts?⟦ ( ⟨csort*: Map[x.NParam[x], #fnParam*]⟩ ) ⟧ 
+
+func NParam(Crsx_fnParam_sort) -> Core_csort_sort 
+rule NParam(fnParam⟦ ##METAVAR : ##eager_TOK? ##sort ⟧) → NSort(#sort) 
+rule NParam(fnParam⟦ ##eager_TOK? ##sort             ⟧) → NSort(#sort) 
+
+func NMaybeBody(List<Crsx_fnBody_sort>, Crsx_constructor_sort, List<Crsx_fnParamDecls_sort>) -> List<Core_cdecl_sort> 
+
+rule NMaybeBody(fnBody?⟦           ⟧, #constructor, #paramDecls?) 
+→ cdecl+⟦⟧ 
+
+rule NMaybeBody(fnBody?⟦ → ##term* ⟧, #constructor, #paramDecls?) 
+→ cdecl+⟦ rule ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟨cterms?: NMaybePatternArgs[#paramDecls?]⟩ → ⟨cterm: NContractum[#term*]⟩ ⟧ 
+
+func NMaybePatternArgs(List<Crsx_fnParamDecls_sort>) -> List<Core_cterms_sort> 
+rule NMaybePatternArgs(fnParamDecls?⟦                ⟧)  → cterms?⟦⟧ 
+rule NMaybePatternArgs(fnParamDecls?⟦ (            ) ⟧)  → cterms?⟦⟧ 
+rule NMaybePatternArgs(fnParamDecls?⟦ ( ##fnParam* ) ⟧)  → cterms?⟦ ( ⟨cterm*: Map[x.NPatternArg[x], #fnParam*]⟩ ) ⟧ 
+
+func NPatternArg(Crsx_fnParam_sort) -> Core_cterm_sort 
+rule NPatternArg(fnParam⟦ ##METAVAR : ##sort ⟧) → cterm⟦ ##METAVAR ⟧ 
+//NPatternArg(fnParam⟦ ##sort             ⟧) → cterm⟦ ##METAVAR ⟧ 
+
+// ---- Terms
+
+func NContractum(List<Crsx_term_sort>) -> Core_cterm_sort 
+
+// Just a single term
+rule NContractum(term*⟦ ##term                   ⟧) → NTerm(#term)  
+
+// This is a list... TODO
+rule NContractum(term*⟦ ##term , ##term2 ##term* ⟧) → NTerm(#term) 
+
+func NTerm(Crsx_term_sort) -> Core_cterm_sort 
+
+rule NTerm(term⟦ ##constructor ##args? ⟧)
+→ cterm⟦ ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟨cterms?: NMaybeArgs[#args?]⟩ ⟧ 
+
+rule NTerm(term⟦ ##STRING ⟧)
+→ cterm⟦ ##STRING ⟧ 
+
+rule NTerm(term⟦ ##NUMBER ⟧)
+→ cterm⟦ ##NUMBER ⟧ 
+
+rule NTerm(term⟦ ##groupOrList ⟧)
+→ NGroupOrList(#groupOrList) 
+
+rule NTerm(term⟦ ##VARIABLE ⟧)
+→ cterm⟦ ##VARIABLE ⟧ 
+
+rule NTerm(term⟦ ##METAVAR ##apply? ⟧) 
+→ cterm⟦ ##METAVAR ⟨cterms?: NMaybeApply[#apply?]⟩ ⟧ 
+
+rule NTerm(term⟦ ##CONCRETE ⟧) 
+→ NConcrete(BeforeFirst(#CONCRETE, "⟦"), BeforeLast(AfterFirst(#CONCRETE, "⟦"), "⟧")) 
+
+func NMaybeArgs(List<Crsx_args_sort>) -> List<Core_cterms_sort> 
+rule NMaybeArgs(args?⟦              ⟧) → cterms?⟦⟧ 
+rule NMaybeArgs(args?⟦ (          ) ⟧) → cterms?⟦⟧ 
+rule NMaybeArgs(args?⟦ ( ##scope* ) ⟧) → cterms?⟦ ( ⟨cterm*: Map[x.NScope[x], #scope*]⟩ ) ⟧ 
+
+func NScope(Crsx_scope_sort) -> Core_cterm_sort 
+rule NScope(scope⟦ ##term      ⟧) → NTerm(#term) 
+rule NScope(scope⟦ [ ##binders ⟧) → NBinders(#binders) 
+
+func NBinders(Crsx_binders_sort) -> Core_cterm_sort 
+rule NBinders(Crsx_binders_A1([x] -> #binders(x))) → cterm⟦ [ x ] ⟨cterm: NBinders[#binders[x]]⟩ ⟧ 
+
+//rule NBinders(binders⟦ ##VARIABLE ##binders ⟧) → cterm⟦ [ x ] ⟨cterm: NBinders[#binders[x]]⟩ ⟧ 
+rule NBinders(binders⟦ ] -> ##term          ⟧) → NTerm(#term) 
+
+func NMaybeApply(List<Crsx_apply_sort>) -> List<Core_cterms_sort> 
+rule NMaybeApply(apply?⟦             ⟧) → cterms?⟦⟧ 
+rule NMaybeApply(apply?⟦ (         ) ⟧) → cterms?⟦⟧ 
+rule NMaybeApply(apply?⟦ ( ##term* ) ⟧) → cterms?⟦ ( ⟨cterm*: Map[x.NTerm[x], #term*]⟩ ) ⟧ 
+
+func NGroupOrList(Crsx_groupOrList_sort) -> Core_cterm_sort 
+rule NGroupOrList(groupOrList⟦ ()                           ⟧) → cterm⟦ Nil ⟧ 
+rule NGroupOrList(groupOrList⟦ ( ##term )                   ⟧) → NTerm(#term) 
+rule NGroupOrList(groupOrList⟦ ( ##term , )                 ⟧) → cterm⟦ Cons( ⟨cterm: NTerm[#term]⟩, Nil) ⟧ 
+rule NGroupOrList(groupOrList⟦ ( ##term , ##term2 ##term* ) ⟧) → NList(term*⟦ ##term , ##term2 ##term* ⟧) 
+
+func NList(List<Crsx_term_sort>) -> Core_cterm_sort 
+// TODO: fix meta parser to handle (+) properly. For now cannot match against one item.
+// TODO: robustness
+rule NList(term*⟦                 ⟧) → cterm⟦ Nil ⟧ 
+rule NList(term*⟦ ##aterm ... ⟧) → NTerm(term⟦ ⟨aterm: #aterm⟩ ⟧) 
+rule NList(term*⟦ ##term ##term*  ⟧) → cterm⟦ Cons( ⟨cterm: NTerm[#term]⟩, ⟨cterm: NList[#term*]⟩ ) ⟧ 
+
+// Big hack to get it working until bootstrapping.
+// parse-locations=0 must be specified when running crsx3
+func NConcrete(String, String) -> Core_cterm_sort 
+rule NConcrete(#category, #text) → ParseToTerm("cterm", Replace(Replace(Replace(Replace(ParseToString(#category, #text), "(", "("), ")", ")"), "¹", " "), "x .", "(x)")) 
+
+// ----- Tokens
+
+func NConstructor(Crsx_constructor_sort) -> String 
+rule NConstructor(constructor⟦ ##CONSTRUCTOR ⟧) → #CONSTRUCTOR 

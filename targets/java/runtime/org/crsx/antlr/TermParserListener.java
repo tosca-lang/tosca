@@ -213,6 +213,7 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 					String category = text.substring(0, i);
 					text = text.substring(i + 1, text.length() - 1);
 
+					System.out.println("parse embedded: " + text);
 					Reader reader = new StringReader(text);
 
 					//if (sink3 != null)
