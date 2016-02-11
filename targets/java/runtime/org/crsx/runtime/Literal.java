@@ -51,9 +51,7 @@ public class Literal extends Construction
 	@Override
 	public void copy(Sink sink, boolean discard)
 	{
-		if (properties() != null)
-			properties().ref().copy(sink, discard);
-
+	
 		sink.literal(value);
 
 		if (discard)

@@ -199,17 +199,17 @@ rule NMaybeApply(apply?⟦ (         ) ⟧) → cterms?⟦⟧
 rule NMaybeApply(apply?⟦ ( ##term* ) ⟧) → cterms?⟦ ( ⟨cterm*: Map[x.NTerm[x], #term*]⟩ ) ⟧ 
 
 func NGroupOrList(Crsx_groupOrList_sort) -> Core_cterm_sort 
-rule NGroupOrList(groupOrList⟦ ()                           ⟧) → cterm⟦ $Nil ⟧ 
+rule NGroupOrList(groupOrList⟦ ()                           ⟧) → cterm⟦ Nil ⟧ 
 rule NGroupOrList(groupOrList⟦ ( ##term )                   ⟧) → NTerm(#term) 
-rule NGroupOrList(groupOrList⟦ ( ##term , )                 ⟧) → cterm⟦ $Cons( ⟨cterm: NTerm[#term]⟩, $Nil) ⟧ 
+rule NGroupOrList(groupOrList⟦ ( ##term , )                 ⟧) → cterm⟦ Cons( ⟨cterm: NTerm[#term]⟩, Nil) ⟧ 
 rule NGroupOrList(groupOrList⟦ ( ##term , ##term2 ##term* ) ⟧) → NList(term*⟦ ##term , ##term2 ##term* ⟧) 
 
 func NList(List<Crsx_term_sort>) -> Core_cterm_sort 
 // TODO: fix meta parser to handle (+) properly. For now cannot match against one item.
 // TODO: robustness
-rule NList(term*⟦                 ⟧) → cterm⟦ $Nil ⟧ 
+rule NList(term*⟦                 ⟧) → cterm⟦ Nil ⟧ 
 rule NList(term*⟦ ##aterm ... ⟧) → NTerm(term⟦ ⟨aterm: #aterm⟩ ⟧) 
-rule NList(term*⟦ ##term ##term*  ⟧) → cterm⟦ $Cons( ⟨cterm: NTerm[#term]⟩, ⟨cterm: NList[#term*]⟩ ) ⟧ 
+rule NList(term*⟦ ##term ##term*  ⟧) → cterm⟦ Cons( ⟨cterm: NTerm[#term]⟩, ⟨cterm: NList[#term*]⟩ ) ⟧ 
 
 // Big hack to get it working until bootstrapping.
 // parse-locations=0 must be specified when running crsx3

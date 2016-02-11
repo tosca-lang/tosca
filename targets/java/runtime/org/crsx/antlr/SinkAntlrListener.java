@@ -302,7 +302,7 @@ public class SinkAntlrListener implements ParseTreeListener
 			if (sink != null)
 				sink = sink.start(nil).end();
 			else
-				sink4 = sink4.start(Primitives._M__sNil).end();
+				sink4 = sink4.start(org.crsx.compiler.std.List._M_Nil).end();
 		}
 
 		int count = consCount.pop().v;
@@ -545,7 +545,7 @@ public class SinkAntlrListener implements ParseTreeListener
 				if (sink != null)
 					sink = sink.start(cons);
 				else
-					sink4 = sink4.start(Primitives._M__sCons);
+					sink4 = sink4.start(org.crsx.compiler.std.List._M_Cons);
 
 				consCount.peek().v++;
 			}
@@ -589,7 +589,7 @@ public class SinkAntlrListener implements ParseTreeListener
 							if (sink != null)
 								sink = sink.start(cons);
 							else
-								sink4 = sink4.start(Primitives._M__sCons);
+								sink4 = sink4.start(org.crsx.compiler.std.List._M_Cons);
 
 							consCount.peek().v++;
 						}

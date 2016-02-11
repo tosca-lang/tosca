@@ -229,41 +229,7 @@ public class BufferSink extends Sink
 	@Override
 	public BufferSink copy(Term term)
 	{
-		// If identical properties then just share!
-		if (term.kind() == Kind.VARIABLE_USE || properties == term.properties())
-		{
-			if (properties != null)
-			{
-				properties.release();
-				properties = null;
-			}
-
-			addSub(term); // transfer ref
-			return this;
-		}
-
-		if (term.properties() != null && properties != null)
-			throw new RuntimeException("Cannot merge properties, yet");
-
-		// We have a construction with different properties so must update the root term.
-		if (term.refcount() == 1)
-		{
-			// Reuse original term (with updated properties).
-			if (properties != null)
-			{
-				assert term.properties() == null;
-				((Construction) term).properties = properties; // transfer ref
-				properties = null;
-			}
-			addSub(term); // transfer ref
-		}
-		else
-		{
-			// Have different properties and cannot update inplace. Really need to copy.
-			IdentityHashMap<Variable, Term> map = new IdentityHashMap<>();
-			term.substituteTo(this, map);
-		}
-
+		addSub(term); // transfer ref
 		return this;
 	}
 
@@ -272,5 +238,5 @@ public class BufferSink extends Sink
 	{
 		return (BufferSink) super.substitute(term, variable, substitute);
 	}
- 
+
 }

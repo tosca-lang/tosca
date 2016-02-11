@@ -270,25 +270,37 @@ rule JavaContractum(#env, #term)
 func JavaSendTerm({String : JavaEnvEntry}, Core_cterm_sort, [{String : JavaEnvEntry}] -> Text) -> Text
 
 rule JavaSendTerm(#env, cterm⟦ ##CONSTRUCTOR ##cterms? ⟧, [env]->#(env))
-→ JavaSendConstruction(#env, #CONSTRUCTOR, #cterms?, [env]->#(env)) 
+→ JavaMaybeSendBinds(#env, [env] -> JavaSendConstruction(env, #CONSTRUCTOR, #cterms?, [env]->#(env)))
 
 rule JavaSendTerm(#env, cterm⟦ ##cliteral ⟧, [env]->#(env))
-→ text⟦¶⟨GetSink(#env)⟩.literal(⟨Literal(#cliteral)⟩) ⟨#(#env)⟩⟧ 
+→ JavaMaybeSendBinds(#env, [env] -> text⟦⟨GetSink(#env)⟩.literal(⟨Literal(#cliteral)⟩) ⟨#(env)⟩⟧) 
 
 rule JavaSendTerm(#env, cterm⟦ ##VARIABLE ⟧, [env]->#(env)) 
-→ JavaSendVariable(#env, #VARIABLE, [env]->#(env)) 
+→ JavaMaybeSendBinds(#env, [env] -> JavaSendVariable(env, #VARIABLE, [env]->#(env)))
 
 rule JavaSendTerm(#env, cterm⟦ ##METAVAR ##cterms? ⟧, [env]->#(env)) 
-→ JavaSendMeta(#env, #METAVAR, #cterms?, [env]->#(env)) 
+→ JavaMaybeSendBinds(#env, [env] -> JavaSendMeta(env, #METAVAR, #cterms?, [env]->#(env)))
 
 //rule JavaSendTerm(#env, cterm⟦ [ ##VARIABLE ] ##cterm ⟧, [env]->#(env))  
 rule JavaSendTerm(#env, Core_cterm_A6([x] -> #cterm(x)), [env]->#(env))  
 → text⟦
-Variable ⟨jvar⟩ = ⟨GetSink(#env)⟩.context().makeVariable("x") ⟨JavaSendTerm(AddVar(#env, var, Fresh(jvar)), #cterm(var), [x] -> #(x))⟩⟧ 
+Variable ⟨jvar⟩ = ⟨GetSink(#env)⟩.context().makeVariable("x");⟨
+JavaSendTerm(AddBinder(AddVar(#env, var, Bound(jvar)), jvar), #cterm(var), [x] -> #(x))⟩⟧ 
 
 func JavaSendEndTerm(Boolean) -> Text
 rule JavaSendEndTerm(TRUE)  → text⟦return true ⟧ 
 rule JavaSendEndTerm(FALSE) → text⟦⟧ 
+
+
+func JavaMaybeSendBinds({String : JavaEnvEntry}, [JavaEnv] -> Text) -> Text
+rule JavaMaybeSendBinds(#env, [env] -> #(env))
+→ text⟦⟨JavaSendBinds(#env, GetBinders(#env))⟩⟨#(SetBinders(#env, ()))⟩⟧
+
+func JavaSendBinds(JavaEnv, List<Text>) -> Text
+rule JavaSendBinds(#env, (              )) → text⟦⟧
+rule JavaSendBinds(#env, (#var, #vars...)) 
+→ text⟦
+⟨GetSink(#env)⟩.binds(new Variable[] { ⟨TextFold((#var, #vars), text⟦, ⟧)⟩ });⟧
 
 // ---- SEND construction
 
@@ -460,7 +472,8 @@ rule NewEnv →
     MapPut2("parent"      , EText(text⟦⟧),    /* Sub parent (if any) */ 
     MapPut2("subindex"    , EText(text⟦⟧),    /* Sub index */
     MapPut2("binderindex" , ENum(0),     /* Current sub binder index */
-    NewEnv))))))))))
+    MapPut2("binders"     , ETexts(()),    /* Binders list being constructed in contraction */
+    NewEnv)))))))))))
     
 
 // --- Java printing helpers
@@ -639,4 +652,15 @@ rule SetSubBinderIndex(#env, #index)
 func IncSubBinderIndex({String : JavaEnvEntry}) -> {String : JavaEnvEntry}
 rule IncSubBinderIndex(#env)
 → SetValue(#env, "binderindex", ENum(Plus(GetSubBinderIndex(#env), 1))) 
+
+// --- Binders
+
+func GetBinders({String : JavaEnvEntry}) -> List<Text>
+rule GetBinders(#env) → GetValue(#env, "binders", [x] -> UnTexts(x))
+
+func SetBinders({String : JavaEnvEntry}, List<Text>) -> {String : JavaEnvEntry}
+rule SetBinders(#env, #binders) → SetValue(#env, "binders", ETexts(#binders))
+
+func AddBinder({String : JavaEnvEntry}, Text) -> {String : JavaEnvEntry}
+rule AddBinder(#env, #binders) → SetValue(#env, "binders", ETexts(Append(#binders, GetBinders(#env))))
 

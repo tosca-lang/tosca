@@ -25,6 +25,11 @@ final public class VariableUse extends Term
 		this.variable = variable;
 	}
 
+	public Variable variable()
+	{
+		return variable;
+	}
+	
 	@Override
 	public Kind kind()
 	{

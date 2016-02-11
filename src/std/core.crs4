@@ -8,7 +8,7 @@ enum $StringEntry | STRING($String)
 
 // --- External Environment
 
-extern func IfDef<a b>(eager {a: b}, eager a /* Key */) -> Boolean
+extern func IfDef<a b c>(eager {a: b}, eager a /* Key */, c, c) -> c
 
 // --- Optional value
 
@@ -47,14 +47,11 @@ func Not(Boolean) -> Boolean
 rule Not(TRUE)  → FALSE
 rule Not(FALSE) → TRUE
 
-extern func Equal(eager String, eager String) -> Boolean
-
-func Eq<a>(a, a) -> Boolean
-//rule  Eq(#X,#Y) → $(If, $(Equal,#X,#Y), TRUE, FALSE),
+extern func Equal<a b>(eager a, eager b) -> Boolean
 
 // --- Debugging
 
-extern func Trace<a>(a) -> a
+extern func Trace<a>(eager a) -> a
 
 extern func Show<a>(a) -> String
 

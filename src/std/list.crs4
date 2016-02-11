@@ -5,7 +5,7 @@ import Std::Pair
 import Std::Num 
 
 // Sort list definition.
-//∀ a.List ->= ( $Cons(a, List<a>)  $Nil  ) 
+enum List<a> | Cons(a, List<a>) | Nil 
 
 /* 
  * Basic List Operations  
@@ -90,7 +90,7 @@ rule Flatten((#1, #s...)) → Concat(#1, Flatten(#s))
    @note   read "#X is element of #XS to remember the order of the parameters"
 */
 func Elem<a>(a , List<a>) -> Boolean 
-rule Elem(#X, #XS) → Foldr([x y] -> Or(Eq(#X, x), y), FALSE, #XS) 
+rule Elem(#X, #XS) → Foldr([x y] -> Or(Equal(#X, x), y), FALSE, #XS) 
 
 /* `Insert(#X, #XS)`
    @param  `#X`  element
@@ -162,7 +162,7 @@ rule ContainsDuplicates((#H, #T...)) → Or(Elem(#H, #T), ContainsDuplicates(#T)
 */
 func RemoveDuplicates<a>(List<a>) -> List<a> 
 rule RemoveDuplicates(())           → () 
-rule RemoveDuplicates((#X, #XS...)) → Insert(#X, RemoveDuplicates(Filter([x] -> Not(Eq(x,#X)), #XS))) 
+rule RemoveDuplicates((#X, #XS...)) → Insert(#X, RemoveDuplicates(Filter([x] -> Not(Equal(x,#X)), #XS))) 
 
 /* `Length(#XS)`
    @param  `#XS` list
@@ -219,7 +219,7 @@ rule Zip((#X, #XS...), (#Y, #YS...)) → (PairCons(#X,#Y), Zip(#XS,#YS))
 */
 func LookUp<a b>(a, List<Pair<a b>>) -> List<b> 
 //-( Data(#KeyValueList) ) :
-rule LookUp(#Key, #KeyValueList) → Map([x] -> Snd(x), Filter([pair] -> Eq(#Key, Fst(pair)), #KeyValueList)) 
+rule LookUp(#Key, #KeyValueList) → Map([x] -> Snd(x), Filter([pair] -> Equal(#Key, Fst(pair)), #KeyValueList)) 
 
 /* DelEntry
    @param  `#Key`          of the key-value pairs to delete
@@ -227,7 +227,7 @@ rule LookUp(#Key, #KeyValueList) → Map([x] -> Snd(x), Filter([pair] -> Eq(#Key
    @return a list of `#KeyValueList`, where all entries with `#Key` are deleted
  */
 func DelEntry<a b>(a, List<Pair<a b>> ) -> List<Pair<a b>>  
-rule DelEntry(#Key, #KeyValueList) → Filter([pair] -> Not(Eq(Fst(pair), #Key)), #KeyValueList) 
+rule DelEntry(#Key, #KeyValueList) → Filter([pair] -> Not(Equal(Fst(pair), #Key)), #KeyValueList) 
 
 /* `Partition([x] ->#C(x), #XS)`
     @param `[x] ->#C(x)` a condition to partition
@@ -277,60 +277,6 @@ func MapM3<a b c>(Pair<a c>, [a b] -> Pair<a c>, List<b>, List<c>) -> Pair<a Lis
 rule MapM3(PairCons(#nstate, #r), [state x] ->#(state, x), #s, #rs) 
 → MapM2([state x] -> #(state, x), #nstate, #s, Append(#r, #rs)) 
 
-/* Monadic map with continuation. Apply each item in list to the function taking a state and an element,
-   evaluating to a new state and a value. Apply the next element with the new state.
-   When the list is exhaustive, call continuation with state.
-   @param `state->a x->b.Pair<a c>` the function to apply
-   @param `a` the initial state
-   @param `List<b>` the list of elements to apply
-   @param `List<b>` the list of elements to apply
-   @return a pair containing the end state and the a list containing resulting values.
- */
-
-/* MS prevents sort
-func MapC<a b c>(state->a x->b.Pair<a c>, a, List<b>, state->a.$sort(c)) -> List(c) 
-rule MapC(state [x] ->#(state, x), #state, (),      state.#c(state)) → (#c(#state) ) 
-rule MapC(state [x] ->#(state, x), #state, (#1 #s), state.#c(state)) → MapC2(#(#state, #1), state [x] ->#(state, x), #s, state.#c(state)) 
-
-
-func MapC2<a b c>(Pair<a c>, state->a x->b.Pair<a c>, a, List<b>, state->a.$sort(c)) -> List(c) 
-rule MapC2(PairCons(#newstate, #1), state [x] ->#(state, x), #s, state.#c(state)) → (#1  MapC(state [x] ->#(state, x), #newstate, #s, state.#c(state))) 
-*/
-/*
-// 
-//∀ a.Cont(a) ->= ( CONT(ok¹->OK_SORT.$sort(a))   ) 
-
-/* `{#}ApplyCont(#cont)`
-   @param #cont continutation to apply
- */
- /*
-∀ a. {$String:$String}ApplyCont(Cont(a)) -> a 
-rule {#E}ApplyCont(CONT(ok¹.#(ok¹))) → {#E}#(OK) 
-*/
-
-/* `SeqMap(x c.#(x,c), #L, ok.#D(ok))`
-    Apply each item in list #L to function #, as a continuation, passing the environment along
- */
- /*
-∀ a b. {$String:$Any}SeqMap(x->a c->Cont(b). $sort(b), List<a>, ok->OK_SORT.$sort(b)) -> b  
-rule {#E}SeqMap(x c.#(x, c), #list, ok¹.#done(ok¹)) → {#E}SeqMap1(OK, x c.#(x, c), #list, ok¹.#done(ok¹)) 
-
-// Internal
-∀ a b. {$String:$StringEntrySort} SeqMap1(OK_SORT, x->a c->Cont(b). $sort(b), List<a>, ok¹->OK_SORT.$sort(b)) -> b  
-rule {#E}SeqMap1(OK, x c.#(x, c), ()     , ok¹.#done(ok¹)) → {#E}#done(OK) 
-rule {#E}SeqMap1(OK, x c.#(x, c), (#1 #s), ok¹.#done(ok¹)) → {#E}#(#1, CONT(ok¹.SeqMap1(ok¹, x c.#(x, c), #s,  ok¹.#done(ok¹)))) 
-
-/* `ThenSeqMap(ok, x c.#(x,c), #L, ok.#D(ok))`
-   Delay variant of `SeqMap`
- 
-∀ a b. {$String:$Any}ThenSeqMap(OK_SORT, x->a c->Cont(b). $sort(b), List<a>, ok->OK_SORT.$sort(b)) -> b  
-rule {#E}ThenSeqMap(OK, x c.#(x, c), #list, ok¹.#done(ok¹)) → {#E}SeqMap(x c.#(x, c), #list, ok¹.#done(ok¹)) 
-
-*/
-
-/* 
- * Filter 
- */
 
 /* `Filter([x] ->#C(x), #XS)`
     @param  `[x] ->#C(x)` a function which takes an element of the list as input and returns a `Boolean` 

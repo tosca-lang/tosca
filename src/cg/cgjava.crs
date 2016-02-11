@@ -288,25 +288,36 @@ JavaContractum[#env, #term]
 JavaSendTerm[JavaEnv, Core_cterm_sort, env::JavaEnv.Text] :: Text;
 
 JavaSendTerm[#env, %cterm⟦ ##CONSTRUCTOR ##cterms? ⟧, env.#[env]]
-→ JavaSendConstruction[#env, #CONSTRUCTOR, #cterms?, env.#[env]];
+→ JavaMaybeSendBinds[#env, env.JavaSendConstruction[env, #CONSTRUCTOR, #cterms?, env.#[env]]];
 
 JavaSendTerm[#env, %cterm⟦ ##cliteral ⟧, env.#[env]]
-→ %n⟦¶«GetSink[#env]».literal(«Literal[#cliteral]»);«#[#env]»⟧;
+→ JavaMaybeSendBinds[#env, env.%n⟦«GetSink[#env]».literal(«Literal[#cliteral]»);«#[env]»⟧];
 
 JavaSendTerm[#env, %cterm⟦ ##VARIABLE ⟧, env.#[env]] 
-→ JavaSendVariable[#env, #VARIABLE, env.#[env]];
+→ JavaMaybeSendBinds[#env, env.JavaSendVariable[env, #VARIABLE, env.#[env]]];
 
 JavaSendTerm[#env, %cterm⟦ ##METAVAR ##cterms? ⟧, env.#[env]] 
-→ JavaSendMeta[#env, #METAVAR, #cterms?, env.#[env]];
+→ JavaMaybeSendBinds[#env, env.JavaSendMeta[env, #METAVAR, #cterms?, env.#[env]]];
 
 -[Fresh[jvar::Text, var::Core_cterm_sort]]:
 JavaSendTerm[#env, %cterm⟦ [ ##VARIABLE ] ##cterm ⟧, env.#[env]]  
 → %n⟦
-Variable «jvar» = «GetSink[#env]».context().makeVariable("x");«JavaSendTerm[AddVar[#env, var, Fresh[jvar]], #cterm[var], env.#[env]]»⟧;
+Variable «jvar» = «GetSink[#env]».context().makeVariable("x");«
+  JavaSendTerm[AddBinder[AddVar[#env, var, Bound[jvar]], jvar], #cterm[var], env.#[env]]»⟧;
 
 JavaSendEndTerm[$Boolean] :: Text;
 JavaSendEndTerm[$True]  → %n⟦return true;⟧;
 JavaSendEndTerm[$False] → %n⟦⟧;
+
+JavaMaybeSendBinds[JavaEnv, env::JavaEnv.Text] :: Text;
+JavaMaybeSendBinds[#env, env.#[env]]
+→ %n⟦«JavaSendBinds[#env, GetBinders[#env]]»«#[SetBinders[#env, ()]]»⟧;
+
+JavaSendBinds[JavaEnv, $List[Text]] :: Text;
+JavaSendBinds[#env, (           )] → %n⟦⟧;
+JavaSendBinds[#env, (#var; #vars)] 
+→ %n⟦
+«GetSink[#env]».binds(new Variable[] { «TextFold[(#var; #vars), %n⟦, ⟧]» });⟧;
 
 // ---- SEND construction
 
@@ -491,7 +502,8 @@ NewEnv → { "sink"        : EText[%n⟦⟧];   /* Current sink. */
            "vars"        : EMapVar[MAP];  /* Map variable to VarEntry */
            "parent"      : EText[%n⟦⟧];   /* Sub parent (if any) */
            "subindex"    : EText[%n⟦⟧];   /* Sub index */
-           "binderindex" : ENum[0];   /* Current sub binder index */
+           "binderindex" : ENum[0];       /* Current sub binder index */
+           "binders"     : ETexts[()];    /* Binders list being constructed in contraction */
          }JavaEnv;
 
 // --- Java printing helpers
@@ -672,6 +684,17 @@ IncSubBinderIndex[JavaEnv] :: JavaEnv;
 IncSubBinderIndex[{#env}JavaEnv]
 → {#env; "binderindex": ENum[Plus[GetSubBinderIndex[{#env}JavaEnv], 1]]}JavaEnv;
 
+
+// --- Binders
+
+GetBinders[JavaEnv] :: $List[Text];
+GetBinders[#env] → GetValue[#env, "binders", x.UnTexts[x]];
+
+SetBinders[JavaEnv, $List[Text]] :: JavaEnv;
+SetBinders[{#env}JavaEnv, #binders] → {#env; "binders": ETexts[#binders]}JavaEnv;
+
+AddBinder[JavaEnv, Text] :: JavaEnv;
+AddBinder[{#env}JavaEnv, #binders] → {#env; "binders": ETexts[Append[#binders, GetBinders[{#env}JavaEnv]]]}JavaEnv;
 
 
 )]
