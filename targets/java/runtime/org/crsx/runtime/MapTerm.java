@@ -327,30 +327,42 @@ public class MapTerm extends Construction
 
 	public boolean sendKeys(Sink sink)
 	{
-		named.forEach((key, value) -> {
-			sink.start(List._M_Cons).literal(key);
-		});
+		if (named != null)
+		{
+			named.forEach((key, value) -> {
+				sink.start(List._M_Cons).literal(key);
+			});
+		}
 		
 		sink.start(List._M_Nil).end();
-
-		named.forEach((key, value) -> {
-			sink.end();
-		});
+		
+		if (named != null)
+		{
+			named.forEach((key, value) -> {
+				sink.end();
+			});
+		}
 
 		return true;
 	}
 
 	public boolean sendValues(Sink sink)
 	{
-		named.forEach((key, value) -> {
-			sink.start(List._M_Cons).copy(value.ref());
-		});
+		if (named != null)
+		{
+			named.forEach((key, value) -> {
+				sink.start(List._M_Cons).copy(value.ref());
+			});
+		}
 		
 		sink.start(List._M_Nil).end();
-
-		named.forEach((key, value) -> {
-			sink.end();
-		});
+		
+		if (named != null)
+		{
+			named.forEach((key, value) -> {
+				sink.end();
+			});
+		}
 		return true;
 	}
 

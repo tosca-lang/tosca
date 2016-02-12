@@ -1,7 +1,7 @@
 import Std::Core
 
-/* extern */ func Plus(Numeric, Numeric) -> Numeric
-/* extern */ func Minus(Numeric, Numeric) -> Numeric
+extern func Plus(Numeric, Numeric) -> Numeric
+extern func Minus(Numeric, Numeric) -> Numeric
 
 // Compare the 2 numeric values 
 func NumberEqual(Numeric, Numeric) -> Boolean

@@ -66,7 +66,7 @@ rule JavaUnit(#mainurl, Module(#url, Loaded(LoadedContent(#imports, #rules, #dat
 func JavaImport(String) -> Text
 rule JavaImport(#name) 
 → text⟦
-import static ⟨PathToImport(#name)⟩.* ⟧ 
+import static ⟨PathToImport(#name)⟩.*;⟧ 
 
 func JavaClassVisibility(String, String) -> Text
 rule JavaClassVisibility(#mainurl, #url) 
@@ -100,7 +100,7 @@ rule JavaMethod(#constructor, #rules, #datasorts, #funcsorts)
 func JavaMethodSig(Core_cdecl_sort, List<Core_cdecl_sort>) -> Text
 rule JavaMethodSig(cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #rules) 
 → text⟦⟨ToJavaId(#CONSTRUCTOR)⟩(Sink sink⟨JavaSigMaybeArgs(
-                SetSink(AddThunk(AddThunk(NewEnv, text⟦sink⟧), Descriptor(#CONSTRUCTOR)), text⟦sink⟧), #csorts?, #rules)⟩⟧   // )
+                SetSink(AddThunk(AddThunk(NewEnv, text⟦sink⟧), Descriptor(#CONSTRUCTOR)), text⟦sink⟧), Trace(#csorts?), #rules)⟩⟧   // )
 
 func JavaSigMaybeArgs({String : JavaEnvEntry}, List<Core_csorts_sort>, List<Core_cdecl_sort>) -> Text
 rule JavaSigMaybeArgs(#env, csorts?⟦⟧, #rules)
@@ -121,8 +121,10 @@ rule JavaSigArgs(#env, csort*⟦ ##CONSTRUCTOR ##csorts? ##csort* ⟧, #rules)
 rule JavaSigArgs(#env, csort*⟦ ##VARIABLE ##csort* ⟧, #rules) // Sort variable
 → text⟦, Term ⟨term⟩⟨JavaSigArgs(AddParam(#env, term), #csort*, #rules)⟩⟧ 
 
-//rule JavaSigArgs(#env, csort*⟦ ( ##csort ) ##csort2 ##csort* ⟧, #rules)
-//→ text⟦, Variable ⟨var⟩⟨JavaSigArgs(AddParam(#env, var), (#csort2, #csort*), #rules)⟩⟧ 
+
+//rule JavaSigArgs(#env, csort*⟦ [ ##csort ] ##csort2 ##csort* ⟧, #rules)
+rule JavaSigArgs(#env, Cons(Core_csort_A3(#csort, #csort2), #csort*), #rules)
+→ text⟦, Variable ⟨var⟩⟨JavaSigArgs(AddParam(#env, var), (#csort2, #csort*), #rules)⟩⟧ 
 
 rule JavaSigArgs(#env, csort*⟦ { ##cmapsort* } ##csort*  ⟧, #rules)
 → text⟦, Term ⟨map⟩⟨JavaSigArgs(AddParam(#env, map), #csort*, #rules)⟩⟧ 

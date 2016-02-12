@@ -119,7 +119,7 @@ project(':compiler') {
 	}
 	
 	dependencies {
-		if (project.hasProperty('crsx3')) {
+		if (project.hasProperty('dev')) {
 			crsx4 files('../../../src')     // the interpreter always uses the development rules
 			crsx4 files('../build')       // with the current parser. 
 		}  else {
@@ -131,7 +131,7 @@ project(':compiler') {
 	
 	crsx4 {
 		//sources = fileTree(dir: '../../../src', include: ['std/*.crs4', 'cg/*.crs4', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', '*.crs4'])
-		sources = fileTree(dir: '../../../src', include: ['std/core.crs4'])
+		sources = fileTree(dir: '../../../src', include: ['std/pair.crs4'])
 		outputDir = project.hasProperty('crsx3') ? file('org/crsx/compiler') : file('.')
 		packageName = 'org.crsx.compiler'
 		usecompiler = !project.hasProperty('crsx3')
