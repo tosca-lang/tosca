@@ -179,9 +179,6 @@ public abstract class ConstructionDescriptor
 		{
 			int i = 0;
 
-			if (args[i] instanceof Properties || args[i] == null)
-				sink.properties((Properties) args[i++]);
-
 			sink.start(this);
 
 			while (i < args.length)

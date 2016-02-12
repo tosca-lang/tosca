@@ -13,9 +13,12 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.crsx.parser.CrsxMetaParser.BindersContext;
 import org.crsx.parser.CrsxMetaParser.ConcreteContext;
 import org.crsx.parser.CrsxMetaParser.ConsContext;
+import org.crsx.parser.CrsxMetaParser.GroupOrListContext;
 import org.crsx.parser.CrsxMetaParser.LiteralContext;
+import org.crsx.parser.CrsxMetaParser.MapContext;
 import org.crsx.parser.CrsxMetaParser.MetappContext;
 import org.crsx.parser.CrsxMetaParser.ScopeContext;
+import org.crsx.parser.CrsxMetaParser.TermContext;
 import org.crsx.parser.CrsxMetaParser.VariableContext;
 import org.crsx.parser.CrsxMetaParserBaseListener;
 
@@ -26,10 +29,14 @@ import net.sf.crsx.Variable;
 import net.sf.crsx.generic.GenericFactory;
 import net.sf.crsx.util.ExtensibleMap;
 import net.sf.crsx.util.LinkedExtensibleMap;
+import net.sf.crsx.util.TraceSink;
 
 /**
- * Antlr listener producing Crsx4 term compatible with Crsx3 internal term model.
- *  
+ * Antlr listener producing term internal representation
+ * 
+ * <p>Only support crsx3 for now.
+ * <p>Does not support grouped term and custom operators
+ * 
  * @author Lionel Villard
  */
 public class TermParserListener extends CrsxMetaParserBaseListener
@@ -38,64 +45,146 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 	final static private Object MARKER = new Object();
 
 	enum State {
-		SKIP, CONS, LITERAL, VAR, BINDER, METAVAR, CONCRETE
+		SKIP, CONS, LITERAL, VAR, BINDER, METAVAR, CONCRETE, GROUPORLIST, IN_GROUPORLIST, TERM
 	};
+
+
+	private GenericFactory factory;
 
 	public Sink sink3;
 
-	State state;
+	ArrayDeque<State> state = new ArrayDeque<>();
 
 	/** In scope variables. */
 	private ArrayDeque<Object> bounds = new ArrayDeque<>();
 
 	private ArrayList<Variable> binders;
 
-	private GenericFactory factory;
-
+	/** Count the number of terms in list */
+	private ArrayDeque<Integer> consCount = new ArrayDeque<>();
+	
+	// Constructors
+	
 	public TermParserListener(GenericFactory factory, Sink sink3)
 	{
 		this.sink3 = sink3;
 		this.factory = factory;
-		this.state = State.SKIP;
+		state.push(State.SKIP);
 	}
 
-	@Override
-	public void enterMetapp(MetappContext ctx)
-	{
-		state = State.METAVAR;
-	}
-
-	@Override
-	public void exitMetapp(MetappContext ctx)
-	{
-		sink3 = sink3.endMetaApplication();
-	}
-
-	@Override
-	public void enterLiteral(LiteralContext ctx)
-	{
-		state = State.LITERAL;
-	}
-
-	@Override
-	public void exitLiteral(LiteralContext ctx)
-	{
-		sink3 = sink3.end();
-		state = State.SKIP;
-	}
+	// ---  {!isPrefix(_input.LT(1).getText())}? cons    
 
 	@Override
 	public void enterCons(ConsContext ctx)
 	{
-		state = State.CONS;
+		state.push(State.CONS); // Expect a terminal representing the constructor name
 	}
 
 	@Override
 	public void exitCons(ConsContext ctx)
 	{
 		sink3 = sink3.end();
-		state = State.SKIP;
+		state.pop();
 	}
+
+	// --- literal
+
+	@Override
+	public void enterLiteral(LiteralContext ctx)
+	{
+		state.push(State.LITERAL); // Expect a terminal representing the literal
+	}
+
+	@Override
+	public void exitLiteral(LiteralContext ctx)
+	{
+		sink3 = sink3.end();
+		state.pop();
+	}
+
+	// --- groupOrList
+
+	@Override
+	public void enterGroupOrList(GroupOrListContext ctx)
+	{
+		state.push(State.GROUPORLIST); // Expect the terminal (
+		consCount.push(0);
+	}
+
+	@Override
+	public void exitGroupOrList(GroupOrListContext ctx)
+	{
+		int count = consCount.pop();
+		
+		// Send list terminator
+		sink3 = sink3.start(sink3.makeConstructor("$Nil")).end();
+		
+		// And close all $Cons
+		while (count-- > 0)
+			sink3 = sink3.end();
+		
+		state.pop();
+	}
+
+	// --- variable
+
+	@Override
+	public void enterVariable(VariableContext ctx)
+	{
+		state.push(State.VAR); // Next terminal is a variable
+	}
+
+	@Override
+	public void exitVariable(VariableContext ctx)
+	{
+		state.pop();
+	}
+
+	// --- map
+
+	@Override
+	public void enterMap(MapContext ctx)
+	{
+		throw new RuntimeException("Not implemented");
+	}
+
+	@Override
+	public void exitMap(MapContext ctx)
+	{
+		throw new RuntimeException("Not implemented");
+	}
+
+	// --- metapp
+
+	@Override
+	public void enterMetapp(MetappContext ctx)
+	{
+		state.push(State.METAVAR);
+	}
+
+	@Override
+	public void exitMetapp(MetappContext ctx)
+	{
+		sink3 = sink3.endMetaApplication();
+
+		state.pop();
+	}
+
+	// --- concrete
+
+	@Override
+	public void enterConcrete(ConcreteContext ctx)
+	{
+		state.push(State.CONCRETE);
+	}
+	
+	@Override
+	public void exitConcrete(ConcreteContext ctx)
+	{
+		state.pop();
+	}
+
+	// --- scope
 
 	@Override
 	public void enterScope(ScopeContext ctx)
@@ -111,46 +200,48 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 		while (bounds.peek() != MARKER)
 			bounds.pop();
 	}
+	
+	// --- binders
 
 	@Override
 	public void enterBinders(BindersContext ctx)
 	{
-		state = State.BINDER;
+		state.push(State.BINDER);
 	}
 
 	@Override
 	public void exitBinders(BindersContext ctx)
-	{}
+	{
+		state.pop();
+	}
+
+	// ---  
 
 	@Override
-	public void enterVariable(VariableContext ctx)
+	public void enterTerm(TermContext ctx)
 	{
-		state = State.VAR;
+		if (state.peek() == State.IN_GROUPORLIST)
+		{
+			int count = consCount.pop();
+			consCount.push(count + 1);
+			
+			// TODO: Should delay by using a buffer before sending $Cons when supporting grouped expression.
+			sink3 = sink3.start(sink3.makeConstructor("$Cons"));
+		}
+		state.push(State.TERM);	
+			
 	}
 
 	@Override
-	public void exitVariable(VariableContext ctx)
+	public void exitTerm(TermContext ctx)
 	{
-		state = State.SKIP;
-	}
-
-	@Override
-	public void enterConcrete(ConcreteContext ctx)
-	{
-		state = State.CONCRETE;
-	}
-
-	@Override
-	public void exitConcrete(ConcreteContext ctx)
-	{
-		// TODO Auto-generated method stub
-		super.exitConcrete(ctx);
+		state.pop();
 	}
 
 	@Override
 	public void visitTerminal(TerminalNode node)
 	{
-		switch (state)
+		switch (state.peek())
 		{
 			case BINDER :
 				if (node.getText().equals("]"))
@@ -168,17 +259,23 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 					bounds.push(binder);
 					binders.add(binder);
 				}
+				state.pop();
+				state.push(State.SKIP);
 				break;
 			case CONS :
 				sink3 = sink3.start(sink3.makeConstructor(node.getText()));
-				break;
-			case SKIP :
+				state.pop();
+				state.push(State.SKIP);
 				break;
 			case METAVAR :
 				sink3 = sink3.startMetaApplication(node.getText());
+				state.pop();
+				state.push(State.SKIP);
 				break;
 			case LITERAL :
 				sink3 = sink3.start(sink3.makeLiteral(node.getText(), CRS.STRING_SORT));
+				state.pop();
+				state.push(State.SKIP);
 				break;
 			case VAR :
 				final String varname = node.getText();
@@ -202,6 +299,8 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 
 					sink3 = sink3.use(sink3.makeVariable(varname, false));
 				}
+				state.pop();
+				state.push(State.SKIP);
 				break;
 			case CONCRETE :
 
@@ -213,7 +312,7 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 					String category = text.substring(0, i);
 					text = text.substring(i + 1, text.length() - 1);
 
-					System.out.println("parse embedded: " + text);
+					//System.out.println("parse embedded: " + text);
 					Reader reader = new StringReader(text);
 
 					//if (sink3 != null)
@@ -232,14 +331,28 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 					}
 
 				}
+				state.pop();
+				state.push(State.SKIP);
 				break;
-
+			case GROUPORLIST :
+				// Receive first group list token. Must be (
+				assert node.getText().equals("(");
+				state.pop();
+				state.push(State.IN_GROUPORLIST);
+				break;
+			case IN_GROUPORLIST :
+				// either a COMMA or RPAR. Ignore.
+				break;
+			case SKIP:
+				// EOF
+				break;
+				
 			default :
 				assert false : "Unreachable";
 				break;
 
 		}
-		state = State.SKIP;
+		 
 	}
 
 	/**

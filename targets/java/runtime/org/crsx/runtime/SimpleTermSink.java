@@ -19,7 +19,7 @@ public class SimpleTermSink extends Sink
 	final Context context;
 
 	/** Where the term goes. */
-	final FormattingAppendable appendable;
+	final Appendable appendable;
 
 	/** Stack of scopes. */
 	private ArrayDeque<Integer> stack = new ArrayDeque<>();
@@ -40,10 +40,11 @@ public class SimpleTermSink extends Sink
 	public SimpleTermSink(Context context, Appendable target)
 	{
 		this.context = context;
-		if (target instanceof FormattingAppendable)
-			appendable = (FormattingAppendable) target;
-		else
-			appendable = FormattingAppendable.format(target, Integer.MAX_VALUE, 0, Integer.MAX_VALUE);
+		this.appendable = target;
+//		if (target instanceof FormattingAppendable)
+//			appendable = (FormattingAppendable) target;
+//		else
+//			appendable = FormattingAppendable.format(target, Integer.MAX_VALUE, 0, Integer.MAX_VALUE);
 	}
 
 	// Methods.
@@ -52,14 +53,14 @@ public class SimpleTermSink extends Sink
 	private void enter() throws IOException
 	{
 		stack.push(count);
-		appendable.open("");
+		//appendable.open("");
 		count = 0;
 	}
 
 	/** Helper to leave new argument list. */
 	private void leave() throws IOException
 	{
-		appendable.close(count == 0 ? "" : "]");
+	//	appendable.close(count == 0 ? "" : "]");
 		count = stack.pop();
 	}
 
@@ -100,8 +101,8 @@ public class SimpleTermSink extends Sink
 		try
 		{
 			leave();
-			if (stack.isEmpty())
-				appendable.flush();
+			//if (stack.isEmpty())
+			//	appendable.flush();
 		}
 		catch (IOException e)
 		{}

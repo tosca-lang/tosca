@@ -63,10 +63,8 @@ rule Tail((#, #s...)) → #s
    @param `List<a>` the list
    @param `Numeric` the index
  */
-func At<a>(List<a>, Numeric) -> Option<a> 
+func At<a>(List<a>, eager Numeric) -> Option<a> 
 rule At((), #i)    → NONE 
-
-//-(Data(#i)):
 rule At((#, #s...), #i) → If(Equal(#i, 0), SOME(#), At(#s, Minus(#i, 1))) 
 
 /*
@@ -74,7 +72,7 @@ rule At((#, #s...), #i) → If(Equal(#i, 0), SOME(#), At(#s, Minus(#i, 1)))
 */
 func Concat(List<a>, List<a>) -> List<a>  
 rule Concat((), #tail         ) → #tail  
-rule Concat((#1, #s...), #tail) → (#1, Concat(#s, #tail))  
+rule Concat((#1, #s...), #tail) → (#1, Concat(#s, #tail)...)  
 
 /* Flatten list of lists 
 */
@@ -99,7 +97,7 @@ rule Elem(#X, #XS) → Foldr([x y] -> Or(Equal(#X, x), y), FALSE, #XS)
    @note   read "insert #X in #XS to remember the order of the parameters"
 */
 func Insert<a>(a, List<a>) -> List<a> 
-rule Insert(#X, #XS) → (#X, #XS) 
+rule Insert(#X, #XS) → (#X, #XS...) 
 
 /* 
    Append element to list.
@@ -108,8 +106,8 @@ rule Insert(#X, #XS) → (#X, #XS)
    @return a new list, where the element is inserted at the end of the list
 */
 func Append<a>(a, List<a>) -> List<a> 
-rule Append(#x, ())          → (#x) 
-rule Append(#x, (#1, #s...)) → (#1, Append(#x, #s)) 
+rule Append(#x, ())          → (#x,) 
+rule Append(#x, (#1, #s...)) → (#1, Append(#x, #s)...) 
 
 /* 
    Pick first element matching condition 
@@ -162,7 +160,7 @@ rule ContainsDuplicates((#H, #T...)) → Or(Elem(#H, #T), ContainsDuplicates(#T)
 */
 func RemoveDuplicates<a>(List<a>) -> List<a> 
 rule RemoveDuplicates(())           → () 
-rule RemoveDuplicates((#X, #XS...)) → Insert(#X, RemoveDuplicates(Filter([x] -> Not(Equal(x,#X)), #XS))) 
+rule RemoveDuplicates((#X, #XS...)) → (#X, RemoveDuplicates(Filter([x] -> Not(Equal(x,#X)), #XS))...) 
 
 /* `Length(#XS)`
    @param  `#XS` list
@@ -210,15 +208,14 @@ func Zip<a b>(List<a>, List<b>) -> List<Pair<a b>>
 rule Zip(() ,      ())      → () 
 rule Zip(() ,      # )      → Error("ListExtension.Zip: second argument list was longer") 
 rule Zip(#  ,      ())      → Error("ListExtension.Zip: first argument list was longer") 
-rule Zip((#X, #XS...), (#Y, #YS...)) → (PairCons(#X,#Y), Zip(#XS,#YS)) 
+rule Zip((#X, #XS...), (#Y, #YS...)) → (PairCons(#X,#Y), Zip(#XS,#YS)...) 
 
 /* `LookUp( #Key, #KeyValueList)`
     @param `#Key`          a key
     @param `#KeyValueList` a list of key-value pairs
     @return a list of values associated to the `#Key` in `#KeyValueList` and returns the empty list, if `#Key` was not found  
 */
-func LookUp<a b>(a, List<Pair<a b>>) -> List<b> 
-//-( Data(#KeyValueList) ) :
+func LookUp<a b>(a, eager List<Pair<a b>>) -> List<b> 
 rule LookUp(#Key, #KeyValueList) → Map([x] -> Snd(x), Filter([pair] -> Equal(#Key, Fst(pair)), #KeyValueList)) 
 
 /* DelEntry
@@ -248,7 +245,7 @@ rule MatchPartition(FALSE, #X, PairCons(#TS, #FS)) → PairCons(#TS, Insert(#X,#
  */
 func Map<a b>([a] -> b, List<a>) -> List<b>  
 rule Map([x] -> #(x), ())          → ()  
-rule Map([x] -> #(x), (#1, #s...)) → (#(#1), Map([x] -> #(x), #s))  
+rule Map([x] -> #(x), (#1, #s...)) → (#(#1), Map([x] -> #(x), #s)...)  
 
 /* `Map2([x] ->#F(x), #XS)`
    @param   `[x] ->#F(x)` a function which takes one element of the list as input

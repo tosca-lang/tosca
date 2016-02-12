@@ -37,17 +37,17 @@ rule CrsxToJava(System(#url, #modules))
 func JavaUnits(String, List<Module>) -> Text
 rule JavaUnits(#url, #modules) 
 → text⟦/** Generated File */⟨PackageDeclaration⟩
-import static org.crsx.runtime.ConstructionDescriptor.makeData 
-import static org.crsx.runtime.ConstructionDescriptor.makeFunction 
-import static org.crsx.runtime.Normalizer.thunk 
-import static org.crsx.runtime.Normalizer.force 
-import static org.crsx.runtime.Normalizer.forceSub 
-import static org.crsx.runtime.Reference.safeRef 
-import static org.crsx.runtime.Term.isVariableUse  
+import static org.crsx.runtime.ConstructionDescriptor.makeData; 
+import static org.crsx.runtime.ConstructionDescriptor.makeFunction; 
+import static org.crsx.runtime.Normalizer.thunk; 
+import static org.crsx.runtime.Normalizer.force; 
+import static org.crsx.runtime.Normalizer.forceSub;
+import static org.crsx.runtime.Reference.safeRef;
+import static org.crsx.runtime.Term.isVariableUse;  
 
-import org.crsx.runtime.* 
-import org.crsx.runtime.ConstructionDescriptor.* 
-import static org.crsx.runtime.Primitives.* 
+import org.crsx.runtime.*;
+import org.crsx.runtime.ConstructionDescriptor.*;
+import static org.crsx.runtime.Primitives.*;
 ⟨TextFold(Map([x] -> JavaUnit(#url, x), #modules), text⟦⟧)⟩⟧ 
 
 /* Generate class for the given module */ 
@@ -61,7 +61,7 @@ rule JavaUnit(#mainurl, Module(#url, Loaded(LoadedContent(#imports, #rules, #dat
 {⟨TextFold(Map([x] ->JavaDataDesc(x), MapValues(#datasorts)), text⟦⟧)⟩
 ⟨TextFold(Map([x] ->JavaFuncDesc(ClassName(#url), x), MapValues(#funcsorts)), text⟦⟧)⟩
 ⟨TextFold(Map([x] ->JavaMethod(x, #rules, #datasorts, #funcsorts), MapKeys(#rules)), text⟦⟧)⟩
-⟨InitModule(#datasorts, #funcsorts)⟩
+⟨InitModule(#datasorts, #funcsorts, #imports)⟩
 }⟧
 
 func JavaImport(String) -> Text
@@ -80,11 +80,11 @@ rule JavaDataDesc(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 func JavaFormDesc(Core_cform_sort) -> Text
 rule JavaFormDesc(cform⟦ ##CONSTRUCTOR ##csorts? ⟧) 
 → text⟦
-final public static ConstructionDescriptor ⟨Descriptor(#CONSTRUCTOR)⟩ = makeData(⟨Text-QuoteEscape(#CONSTRUCTOR)⟩) ⟧ 
+final public static ConstructionDescriptor ⟨Descriptor(#CONSTRUCTOR)⟩ = makeData(⟨Text-QuoteEscape(#CONSTRUCTOR)⟩);⟧ 
 
 func JavaFuncDesc(String, Core_cdecl_sort) -> Text
 rule JavaFuncDesc(#classname, cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
-→ text⟦final public static DynamicFunctionDescriptor ⟨Descriptor(#CONSTRUCTOR)⟩ = makeFunction(⟨Text-QuoteEscape(#CONSTRUCTOR)⟩, †⟨#classname⟩⟨JavaExtern(#extern_TOK?)⟩.class, "⟨ToJavaId(#CONSTRUCTOR)⟩") ⟧  
+→ text⟦final public static DynamicFunctionDescriptor ⟨Descriptor(#CONSTRUCTOR)⟩ = makeFunction(⟨Text-QuoteEscape(#CONSTRUCTOR)⟩, †⟨#classname⟩⟨JavaExtern(#extern_TOK?)⟩.class, "⟨ToJavaId(#CONSTRUCTOR)⟩");⟧  
 
 func JavaExtern(Core_extern_sort) -> Text
 rule JavaExtern(extern_TOK?⟦⟧) → text⟦⟧ 
@@ -124,7 +124,7 @@ rule JavaSigArgs(#env, csort*⟦ ##VARIABLE ##csort* ⟧, #rules) // Sort variab
 //→ text⟦, Variable ⟨var⟩⟨JavaSigArgs(AddParam(#env, var), (#csort2, #csort*), #rules)⟩⟧ 
 
 rule JavaSigArgs(#env, csort*⟦ { ##cmapsort* } ##csort*  ⟧, #rules)
-→ text⟦, MapTerm ⟨map⟩⟨JavaSigArgs(AddParam(#env, map), #csort*, #rules)⟩⟧ 
+→ text⟦, Term ⟨map⟩⟨JavaSigArgs(AddParam(#env, map), #csort*, #rules)⟩⟧ 
 
 func JavaBody({String : JavaEnvEntry}, List<Core_cdecl_sort>) -> Text
 rule JavaBody(#env, #rules)
@@ -137,7 +137,7 @@ return ⟨Thunk(GetThunk(#env))⟩
 
 /* Generates code creating fallback thunk */
 func Thunk(List<Text>) -> Text
-rule Thunk(#texts) → text⟦thunk(⟨TextFold(#texts, text⟦, ⟧)⟩)⟧ 
+rule Thunk(#texts) → text⟦thunk(⟨TextFold(#texts, text⟦, ⟧)⟩);⟧ 
 
 func JavaBodyRule({String : JavaEnvEntry}, Core_cdecl_sort) -> Text
 rule JavaBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR → ##cterm2 ⟧)
@@ -172,10 +172,10 @@ func JavaPatternTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, Text /* Cur
 
 rule JavaPatternTerm(#env, cterm⟦ ##CONSTRUCTOR ##cterms? ⟧, #term, #storage, [env]->#(env))
 → text⟦
-⟨#term⟩ = force(sink.context(), ⟨#term⟩) 
+⟨#term⟩ = force(sink.context(), ⟨#term⟩); 
 if (⟨#term⟩.descriptor() != ⟨Descriptor(#CONSTRUCTOR)⟩)
 {
-  break ⟨GetLabel(#env)⟩ 
+  break ⟨GetLabel(#env)⟩; 
 }⟨JavaPatternMaybeSubs(#env, #cterms?, #term, [x] -> #(x))⟩⟧ 
 
 rule JavaPatternTerm(#env, cterm⟦ ##cliteral ⟧, #term, #storage, [env]->#(env))
@@ -198,7 +198,7 @@ rule JavaPatternTerm(#env, Core_cterm_A6([x] -> #cterm(x)), #term, PARAMETER, [e
 rule JavaPatternTerm(#env, Core_cterm_A6([x] -> #cterm(x)), #term, ARGUMENT, [env]->#(env)) 
 //rule JavaPatternTerm(#env, cterm⟦ [ ##VARIABLE ] ##cterm ⟧, #term, ARGUMENT, [env]->#(env)) 
 → text⟦
-Variable ⟨boundvar⟩ = ⟨GetParent(#env)⟩.binders(⟨GetSubIndex(#env)⟩)(⟨Text-Integer(GetSubBinderIndex(#env))⟩) ⟨JavaPatternTerm(IncSubBinderIndex(AddVar(#env, var, Bound(boundvar))), #cterm(var), #term, ARGUMENT, [x]->#(x))⟩⟧ 
+Variable ⟨boundvar⟩ = ⟨GetParent(#env)⟩.binders(⟨GetSubIndex(#env)⟩)(⟨Text-Integer(GetSubBinderIndex(#env))⟩);⟨JavaPatternTerm(IncSubBinderIndex(AddVar(#env, var, Bound(boundvar))), #cterm(var), #term, ARGUMENT, [x]->#(x))⟩⟧ 
 
 // Pattern matching on construction arguments (subterms).
 func JavaPatternMaybeSubs({String : JavaEnvEntry}, List<Core_cterms_sort>, Text, [{String : JavaEnvEntry}] -> Text) -> Text
@@ -216,7 +216,7 @@ rule JavaPatternSubs(#env, cterm*⟦⟧, #term, #index, [env]->#(env))
 
 rule JavaPatternSubs(#env, cterm*⟦ ##cterm ##cterm* ⟧, #term, #index, [env]->#(env))
 → text⟦
-Term ⟨sub⟩ = ⟨#term⟩.sub(⟨Text-Integer(#index)⟩).ref() ⟨JavaPatternTerm(SetSubBinderIndex(SetParent(SetSubIndex(#env, Text-Integer(#index)), #term), 0), #cterm, sub, ARGUMENT, [x] -> JavaPatternSubs(x, #cterm*, #term, NumberPlus(#index, 1), [x] -> #(x)))⟩⟧ 
+Term ⟨sub⟩ = ⟨#term⟩.sub(⟨Text-Integer(#index)⟩).ref();⟨JavaPatternTerm(SetSubBinderIndex(SetParent(SetSubIndex(#env, Text-Integer(#index)), #term), 0), #cterm, sub, ARGUMENT, [x] -> JavaPatternSubs(x, #cterm*, #term, NumberPlus(#index, 1), [x] -> #(x)))⟩⟧ 
 
 // --- Variable pattern matching outside of meta
 
@@ -225,17 +225,17 @@ func JavaPatternVariable(Option<VarEntry>, {String : JavaEnvEntry}, String /* TO
 // First variable occurrence: the term is a variable use.
 rule JavaPatternVariable(NONE, #env, #variable, #term, [env]->#(env)) 
 → text⟦
-Variable ⟨var⟩ = ⟨#term⟩.variable() ⟨#(AddVar(#env, #variable, Free(var)))⟩⟧ 
+Variable ⟨var⟩ = ⟨#term⟩.variable();⟨#(AddVar(#env, #variable, Free(var)))⟩⟧ 
 
 // Bound variable
 // TODO: update term's parent with evaluated term.
 // TODO: release acquired references.
 rule JavaPatternVariable(SOME(Bound(#javavar)), #env, #variable, #term, [env]->#(env)) 
 → text⟦
-⟨#term⟩ = force(⟨GetSink(#env)⟩.context(), ⟨#term⟩) 
+⟨#term⟩ = force(⟨GetSink(#env)⟩.context(), ⟨#term⟩);
 if (!isVariableUse(⟨#term⟩) || ⟨#javavar⟩ != ⟨#term⟩.variable()) 
 {
-  break ⟨GetLabel(#env)⟩ 
+  break ⟨GetLabel(#env)⟩; 
 }⟨#(#env)⟩⟧ 
 
 // --- pattern matching inside meta
@@ -288,19 +288,19 @@ Variable ⟨jvar⟩ = ⟨GetSink(#env)⟩.context().makeVariable("x");⟨
 JavaSendTerm(AddBinder(AddVar(#env, var, Bound(jvar)), jvar), #cterm(var), [x] -> #(x))⟩⟧ 
 
 func JavaSendEndTerm(Boolean) -> Text
-rule JavaSendEndTerm(TRUE)  → text⟦return true ⟧ 
+rule JavaSendEndTerm(TRUE)  → text⟦return true;⟧ 
 rule JavaSendEndTerm(FALSE) → text⟦⟧ 
 
 
 func JavaMaybeSendBinds({String : JavaEnvEntry}, [JavaEnv] -> Text) -> Text
 rule JavaMaybeSendBinds(#env, [env] -> #(env))
-→ text⟦⟨JavaSendBinds(#env, GetBinders(#env))⟩⟨#(SetBinders(#env, ()))⟩⟧
+→ text⟦⟨JavaSendBinds(#env, GetBinders(#env))⟩⟨#(SetBinders(#env, Nil))⟩⟧
 
 func JavaSendBinds(JavaEnv, List<Text>) -> Text
 rule JavaSendBinds(#env, (              )) → text⟦⟧
 rule JavaSendBinds(#env, (#var, #vars...)) 
 → text⟦
-⟨GetSink(#env)⟩.binds(new Variable[] { ⟨TextFold((#var, #vars), text⟦, ⟧)⟩ });⟧
+⟨GetSink(#env)⟩.binds(new Variable[] { ⟨TextFold( Cons(#var, #vars) , text⟦, ⟧)⟩ });⟧
 
 // ---- SEND construction
 
@@ -308,8 +308,8 @@ func JavaSendConstruction({String : JavaEnvEntry}, String, List<Core_cterms_sort
 
 rule JavaSendConstruction(#env, #constructor, #cterms?, [env]->#(env))
 → text⟦
-⟨GetSink(#env)⟩.start(⟨Descriptor(#constructor)⟩) ⟨JavaSendMaybeTerms(UnsetTail(#env), #cterms?)⟩
-⟨GetSink(#env)⟩.end() ⟨#(#env)⟩⟧ 
+⟨GetSink(#env)⟩.start(⟨Descriptor(#constructor)⟩);⟨JavaSendMaybeTerms(UnsetTail(#env), #cterms?)⟩
+⟨GetSink(#env)⟩.end();⟨#(#env)⟩⟧ 
 
 func JavaSendMaybeTerms({String : JavaEnvEntry}, List<Core_cterms_sort>) -> Text
 rule JavaSendMaybeTerms(#env, cterms?⟦              ⟧) → text⟦⟧ 
@@ -326,12 +326,12 @@ func JavaSendFreeOrFreshVar(Option<VarEntry>, {String : JavaEnvEntry}, [{String 
 // Not in tn the env: fresh variable. 
 rule JavaSendFreeOrFreshVar(NONE, #env, [env]->#(env))
 → text⟦
-Variable ⟨jvar⟩ = ⟨GetSink(#env)⟩.context().makeVariable("x")  ⟨GetSink(#env)⟩.use(⟨jvar⟩) ⟨#(#env)⟩⟧ 
+Variable ⟨jvar⟩ = ⟨GetSink(#env)⟩.context().makeVariable("x"); ⟨GetSink(#env)⟩.use(⟨jvar⟩) ⟨#(#env)⟩⟧ 
 
 // In the env: free or bound variable.
 rule JavaSendFreeOrFreshVar(SOME(#varEntry), #env, [env]->#(env))
 → text⟦
-⟨GetSink(#env)⟩.use(⟨UnVarVar(#varEntry)⟩) ⟨#(#env)⟩⟧ 
+⟨GetSink(#env)⟩.use(⟨UnVarVar(#varEntry)⟩);⟨#(#env)⟩⟧ 
 
 
 // ---- SEND metavar
@@ -341,7 +341,7 @@ func JavaSendMeta({String : JavaEnvEntry}, String, List<Core_cterms_sort>, [{Str
 // No argument -> just send value.
 rule JavaSendMeta(#env, #metavar, cterms?⟦⟧, [env]->#(env)) 
 → text⟦
-⟨GetSink(#env)⟩.copy(⟨GetMetaVar(#env, #metavar)⟩.ref()) ⟨#(#env)⟩⟧ 
+⟨GetSink(#env)⟩.copy(⟨GetMetaVar(#env, #metavar)⟩.ref());⟨#(#env)⟩⟧ 
 
 // With arguments -> substitute.
 // Start by computing arguments and then call substitute.
@@ -351,7 +351,7 @@ rule JavaSendMeta(#env, #metavar, cterms?⟦ ( ##cterm* ) ⟧, [env]->#(env))
 func JavaSendSubstitutes({String : JavaEnvEntry}, String, List<Text>) -> Text
 rule JavaSendSubstitutes(#env, #metavar, #substitutes)
 → text⟦
-⟨GetSink(#env)⟩.substitute(⟨GetMetaVar(#env, #metavar)⟩.ref(), new Variable() { ⟨TextFold(GetMetaArgs(#env, #metavar), text⟦, ⟧)⟩ }, new Term() {⟨TextFold(#substitutes, text⟦, ⟧)⟩}) ⟧ 
+⟨GetSink(#env)⟩.substitute(⟨GetMetaVar(#env, #metavar)⟩.ref(), new Variable() { ⟨TextFold(GetMetaArgs(#env, #metavar), text⟦, ⟧)⟩ }, new Term() {⟨TextFold(#substitutes, text⟦, ⟧)⟩});⟧ 
 
 // ---- Contraction - set mode
 
@@ -371,8 +371,8 @@ func JavaSetTerm({String : JavaEnvEntry}, Core_cterm_sort, [Text] -> Text) -> Te
 
 rule JavaSetTerm(#env, #cterm, [jterm] -> #(jterm))
 → text⟦Term ⟨term⟩ {
-BufferSink ⟨buffer⟩ = ⟨GetSink(#env)⟩.context().makeBuffer() ⟨JavaSendTerm(SetSink(#env, buffer), #cterm, [x] -> text⟦⟧)⟩
-⟨term⟩ = ⟨buffer⟩.term()
+BufferSink ⟨buffer⟩ = ⟨GetSink(#env)⟩.context().makeBuffer();⟨JavaSendTerm(SetSink(#env, buffer), #cterm, [x] -> text⟦⟧)⟩
+⟨term⟩ = ⟨buffer⟩.term();
 }⟨#(term)⟩⟧ 
 
 // ----- initModule
@@ -380,20 +380,26 @@ BufferSink ⟨buffer⟩ = ⟨GetSink(#env)⟩.context().makeBuffer() ⟨JavaSend
 /* Generate code initializing a module.
    Dynamically register data and function descriptors.
 */
-func InitModule({ String : Core_cdecl_sort }, { String : Core_cdecl_sort }) -> Text
+func InitModule({ String : Core_cdecl_sort }, { String : Core_cdecl_sort }, List<String>) -> Text
 
-rule InitModule(#data, #func) 
+rule InitModule(#data, #func, #imports) 
 → text⟦
-private static boolean initialized = false 
+private static boolean initialized = false; 
 public static void init(Context context)
 {
 if (!initialized) 
 {
-⟨TextFold(Map([x] -> RegisterDataSort(x), MapValues(#data)), text⟦⟧)⟩⟨TextFold(Map([x] -> RegisterFuncSort(x), MapValues(#func)), text⟦⟧)⟩
-initialized = true 
+⟨TextFold(Map([x] -> RegisterDataSort(x), MapValues(#data)), text⟦⟧)⟩
+⟨TextFold(Map([x] -> RegisterFuncSort(x), MapValues(#func)), text⟦⟧)⟩
+⟨TextFold(Map([x] -> RegisterImport(x),   #imports), text⟦⟧)⟩
+initialized = true; 
 }
 }⟧ 
 
+func RegisterImport(eager String) -> Text
+rule RegisterImport(#name)
+→ text⟦
+⟨PathToImport(#name)⟩.init(context);⟧
 
 func RegisterDataSort(Core_cdecl_sort) -> Text
 rule RegisterDataSort(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
@@ -402,21 +408,21 @@ rule RegisterDataSort(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 func RegisterDataForm(Core_cform_sort) -> Text
 rule RegisterDataForm(cform⟦ ##CONSTRUCTOR ##csorts? ⟧) 
 → text⟦
-context.register(⟨Descriptor(#CONSTRUCTOR)⟩) ⟧ 
+context.register(⟨Descriptor(#CONSTRUCTOR)⟩);⟧ 
 
 func RegisterFuncSort(Core_cdecl_sort) -> Text
 rule RegisterFuncSort(cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
 → text⟦
-context.register(⟨Descriptor(#CONSTRUCTOR)⟩) ⟧  
+context.register(⟨Descriptor(#CONSTRUCTOR)⟩);⟧  
 
 /* Print package declaration */
 func PackageDeclaration -> Text
-rule PackageDeclaration → PackageDeclaration2(Get("javabasepackage", ""), Get("javapackage", "")) 
+rule PackageDeclaration → PackageDeclaration2(GetEnv("javabasepackage", ""), GetEnv("javapackage", "")) 
 
 func PackageDeclaration2(String, String) -> Text
 rule PackageDeclaration2(#base, #sub) 
 → text⟦
-package †⟨#base⟩⟨PackageDeclaration3(If(StringEqual(Trim, #base), ""),"", "."), #sub)⟩ ⟧ 
+package †⟨#base⟩⟨PackageDeclaration3(If(StringEqual(Trim(#base), ""),"", "."), #sub)⟩;⟧ 
 
 func PackageDeclaration3(String, String) -> Text
 rule PackageDeclaration3(#sep, #sub) 
@@ -426,7 +432,7 @@ rule PackageDeclaration3(#sep, #sub)
 func PathToImport(String) -> Text
 
 rule PathToImport(#name) 
-→ PathToImport2(If(StartsWith(#name, "Std->"), "org.crsx.compiler", Get("javabasepackage", "")), PathToDot(DownCaseFirst(#name))) 
+→ PathToImport2(If(StartsWith(#name, "Std->"), "org.crsx.compiler", GetEnv("javabasepackage", "")), PathToDot(DownCaseFirst(#name))) 
 
 func PathToImport2(String, String) -> Text
 
@@ -473,7 +479,7 @@ rule NewEnv →
     MapPut2("subindex"    , EText(text⟦⟧),    /* Sub index */
     MapPut2("binderindex" , ENum(0),     /* Current sub binder index */
     MapPut2("binders"     , ETexts(()),    /* Binders list being constructed in contraction */
-    NewEnv)))))))))))
+    MapNew)))))))))))
     
 
 // --- Java printing helpers
@@ -499,7 +505,7 @@ rule ToJavaIdString(#name) → Text-Mangle(#name)
 
 func GetValue<a>({String : JavaEnvEntry}, String, [{String : JavaEnvEntry}] -> a) -> a
 rule GetValue(#env, #key, [x] -> #unwrap(x))
-→ #unwrap(MapGet(#env, #key)) 
+→ #unwrap(UnSOME(MapGet(#env, #key))) 
 
 func SetValue({String : JavaEnvEntry}, String, eager JavaEnvEntry) -> {String : JavaEnvEntry}
 rule SetValue(#env, #key, #value)

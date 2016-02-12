@@ -38,19 +38,19 @@ rule UnString(#string) → Rescape(#string)
 /*
  * Make sure the given string first character is upper case
  */
-func UpCaseFirst($String) -> $String 
-rule UpCaseFirst(#string) → ConcatString(UpCase(Substring(#string, 0, 1)), Substring(#string, 1))  
+func UpCaseFirst($String) -> String 
+rule UpCaseFirst(#string) → If(Equal(#string, ""), "", ConcatString(UpCase(Substring(#string, 0, 1)), Substring(#string, 1)))  
 
 /*
  * Make sure the given string first character is lower case
  */
-func DownCaseFirst($String) -> $String 
-rule DownCaseFirst(#string) → ConcatString(DownCase(Substring(#string, 0, 1)), Substring(#string, 1))  
+func DownCaseFirst($String) ->$String 
+rule DownCaseFirst(#string) → If(Equal(#string, ""), "",ConcatString(DownCase(Substring(#string, 0, 1)), Substring(#string, 1))) 
 
 /*
  * Returns given string without its first character
  */
-func RemoveFirstChar(eager $String) -> $String  
+func RemoveFirstChar(eager String) -> $String  
 rule RemoveFirstChar(#string) → Substring(#string, 1) 
 
 

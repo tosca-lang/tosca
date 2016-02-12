@@ -69,7 +69,7 @@ JavaUnit[#mainurl, Module[#url, Loaded[LoadedContent[#imports, #rules, #datasort
 {⟦«TextFold[Map[sort.JavaDataDesc[sort], MapValues[#datasorts]], %n⟨⟩]»
 «TextFold[Map[sort.JavaFuncDesc[ClassName[#url], sort], MapValues[#funcsorts]], %n⟨⟩]»
 «TextFold[Map[cons.JavaMethod[cons, #rules, #datasorts, #funcsorts], MapKeys[#rules]], %n⟨⟩]»
-«InitModule[#datasorts, #funcsorts]»⟧
+«InitModule[#datasorts, #funcsorts, #imports]»⟧
 }⟧;
 
 JavaImport[$String] :: Text;
@@ -136,7 +136,7 @@ JavaSigArgs[#env, %csort*⟦ [ ##csort ] ##csort2 ##csort* ⟧, #rules]
 
 -[Fresh[map::Text]]:
 JavaSigArgs[#env, %csort*⟦ { ##cmapsort* } ##csort*  ⟧, #rules]
-→ %n⟦, MapTerm «map»«JavaSigArgs[AddParam[#env, map], #csort*, #rules]»⟧;
+→ %n⟦, Term «map»«JavaSigArgs[AddParam[#env, map], #csort*, #rules]»⟧;
 
 JavaBody[JavaEnv, $List[Core_cdecl_sort]] :: Text;
 JavaBody[#env, #rules]
@@ -399,25 +399,27 @@ BufferSink «buffer» = «GetSink[#env]».context().makeBuffer();«JavaSendTerm[
 /* Generate code initializing a module.
    Dynamically register data and function descriptors.
 */
-InitModule[MAP[$String, Core_cdecl_sort], MAP[$String, Core_cdecl_sort]] :: Text;
+InitModule[MAP[$String, Core_cdecl_sort], MAP[$String, Core_cdecl_sort], List[$String]] :: Text;
 
-InitModule[#data, #func] 
+InitModule[#data, #func, #imports] 
 → %n⟦
 private static boolean initialized = false;
 public static void init(Context context)
 {⟦
 if (!initialized) 
 {⟦
-«TextFold[Map[sort.RegisterDataSort[sort], MapValues[#data]], %n⟨⟩]»«TextFold[Map[sort.RegisterFuncSort[sort], MapValues[#func]], %n⟨⟩]»
+«TextFold[Map[sort.RegisterDataSort[sort], MapValues[#data]], %n⟨⟩]»
+«TextFold[Map[sort.RegisterFuncSort[sort], MapValues[#func]], %n⟨⟩]»
+«TextFold[Map[sort.RegisterImport[sort],   #imports], %n⟨⟩]»
 initialized = true;⟧
 }⟧
 }⟧;
 
-//Register[%declaration⟦ import module ##constructor ; ⟧] 
-//→
-//%n⟦
-//«PathToImport[#constructor]».init(context);⟧;
-//// TODO: unify path resolution
+RegisterImport[$String] :: Text; 
+RegisterImport[#name] 
+→ %n⟦
+«PathToImport[#name]».init(context);⟧;
+// TODO: unify path resolution
 //Register[%declaration⟦ import grammar ##CONSTRUCTOR ; ⟧] 
 //→
 //%n⟦⟧;

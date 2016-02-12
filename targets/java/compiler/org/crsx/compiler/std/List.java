@@ -67,7 +67,7 @@ public class List
 	final public static DynamicFunctionDescriptor _M_Zip = makeFunction("Zip", List.class, "_M_Zip");
 	final public static DynamicFunctionDescriptor _M_IsEmpty = makeFunction("IsEmpty", List.class, "_M_IsEmpty");
 
-	final public static boolean _M_Foldr(Sink sink, Variable var, Variable var_57, Term term, Term term_3, Term term_79)
+	final public static boolean _M_Foldr(Sink sink, Variable var, Variable var_83, Term term, Term term_99, Term term_66)
 	{
 		if (sink.context().sd++ < 256)
 		{
@@ -75,125 +75,121 @@ public class List
 			{
 				/* #F=term */
 				/* #Z=term */
-				term_79 = force(sink.context(), term_79);
-				if (term_79.descriptor() != _M_Nil)
+				term_66 = force(sink.context(), term_66);
+				if (term_66.descriptor() != _M_Nil)
 				{
 					break label;
 				}
-				sink.copy(term_3.ref());
+				sink.copy(term_99.ref());
 				return true;
 			}
-			label_54 :
+			label_75 :
 			{
 				/* #F=term */
 				/* #Z=term */
-				term_79 = force(sink.context(), term_79);
-				if (term_79.descriptor() != _M_Cons)
+				term_66 = force(sink.context(), term_66);
+				if (term_66.descriptor() != _M_Cons)
 				{
-					break label_54;
+					break label_75;
 				}
-				Term sub = term_79.sub(0).ref();
+				Term sub = term_66.sub(0).ref();
 				/* #H=sub */
-				Term sub_11 = term_79.sub(1).ref();
+				Term sub_37 = term_66.sub(1).ref();
 				/* #T=sub */Term jterm;
 				{
 					BufferSink buffer = sink.context().makeBuffer();
 					buffer.copy(sub.ref());
 					jterm = buffer.term();
 				}
-				Term jterm_25;
+				Term jterm_66;
 				{
-					BufferSink buffer_36 = sink.context().makeBuffer();
-					buffer_36.start(_M_Foldr);
-					Variable jvar = buffer_36.context().makeVariable("x");
-					Variable jvar_17 = buffer_36.context().makeVariable("x");
-					buffer_36.binds(new Variable[]
-						{jvar, jvar_17});
-					Term jterm_3;
+					BufferSink buffer_13 = sink.context().makeBuffer();
+					buffer_13.start(_M_Foldr);
+					Variable jvar = buffer_13.context().makeVariable("x");
+					Variable jvar_88 = buffer_13.context().makeVariable("x");
+					buffer_13.binds(new Variable[]
+						{jvar, jvar_88});
+					Term jterm_18;
 					{
-						BufferSink buffer_60 = buffer_36.context().makeBuffer();
-						buffer_60.use(jvar);
-						jterm_3 = buffer_60.term();
+						BufferSink buffer_21 = buffer_13.context().makeBuffer();
+						buffer_21.use(jvar);
+						jterm_18 = buffer_21.term();
 					}
-					Term jterm_7;
+					Term jterm_90;
 					{
-						BufferSink buffer_41 = buffer_36.context().makeBuffer();
-						buffer_41.use(jvar_17);
-						jterm_7 = buffer_41.term();
+						BufferSink buffer_72 = buffer_13.context().makeBuffer();
+						buffer_72.use(jvar_88);
+						jterm_90 = buffer_72.term();
 					}
-					buffer_36.substitute(term.ref(), new Variable[]
-						{var, var_57}, new Term[]
-						{jterm_3, jterm_7});
-					buffer_36.copy(term_3.ref());
-					buffer_36.copy(sub_11.ref());
-					buffer_36.end();
-					jterm_25 = buffer_36.term();
+					buffer_13.substitute(term.ref(), new Variable[]
+						{var, var_83}, new Term[]
+						{jterm_18, jterm_90});
+					buffer_13.copy(term_99.ref());
+					buffer_13.copy(sub_37.ref());
+					buffer_13.end();
+					jterm_66 = buffer_13.term();
 				}
 				sink.substitute(term.ref(), new Variable[]
-					{var, var_57}, new Term[]
-					{jterm, jterm_25});
+					{var, var_83}, new Term[]
+					{jterm, jterm_66});
 				return true;
 			}
 		}
 		return thunk(sink, _M_Foldr);
 	}
 
-	final public static boolean _M_Map(Sink sink, Variable var_96, Term term_46, Term term_22)
+	final public static boolean _M_Map(Sink sink, Variable var_17, Term term_41, Term term_0)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_67 :
+			label_78 :
 			{
 				/* #=term */
-				term_22 = force(sink.context(), term_22);
-				if (term_22.descriptor() != _M_Nil)
+				term_0 = force(sink.context(), term_0);
+				if (term_0.descriptor() != _M_Nil)
 				{
-					break label_67;
+					break label_78;
 				}
 				sink.start(_M_Nil);
 				sink.end();
 				return true;
 			}
-			label_22 :
+			label_80 :
 			{
 				/* #=term */
-				term_22 = force(sink.context(), term_22);
-				if (term_22.descriptor() != _M_Cons)
+				term_0 = force(sink.context(), term_0);
+				if (term_0.descriptor() != _M_Cons)
 				{
-					break label_22;
+					break label_80;
 				}
-				Term sub_21 = term_22.sub(0).ref();
+				Term sub_55 = term_0.sub(0).ref();
 				/* #1=sub */
-				Term sub_83 = term_22.sub(1).ref();
+				Term sub_3 = term_0.sub(1).ref();
 				/* #s=sub */
 				sink.start(_M_Cons);
-				Term jterm_0;
+				Term jterm_43;
 				{
-					BufferSink buffer_57 = sink.context().makeBuffer();
-					buffer_57.copy(sub_21.ref());
-					jterm_0 = buffer_57.term();
+					BufferSink buffer_64 = sink.context().makeBuffer();
+					buffer_64.copy(sub_55.ref());
+					jterm_43 = buffer_64.term();
 				}
-				sink.substitute(term_46.ref(), new Variable[]
-					{var_96}, new Term[]
-					{jterm_0});
-				sink.start(_M_Cons);
+				sink.substitute(term_41.ref(), new Variable[]
+					{var_17}, new Term[]
+					{jterm_43});
 				sink.start(_M_Map);
-				Variable jvar_19 = sink.context().makeVariable("x");
+				Variable jvar_47 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_19});
-				Term jterm_95;
+					{jvar_47});
+				Term jterm_58;
 				{
-					BufferSink buffer_33 = sink.context().makeBuffer();
-					buffer_33.use(jvar_19);
-					jterm_95 = buffer_33.term();
+					BufferSink buffer_80 = sink.context().makeBuffer();
+					buffer_80.use(jvar_47);
+					jterm_58 = buffer_80.term();
 				}
-				sink.substitute(term_46.ref(), new Variable[]
-					{var_96}, new Term[]
-					{jterm_95});
-				sink.copy(sub_83.ref());
-				sink.end();
-				sink.start(_M_Nil);
-				sink.end();
+				sink.substitute(term_41.ref(), new Variable[]
+					{var_17}, new Term[]
+					{jterm_58});
+				sink.copy(sub_3.ref());
 				sink.end();
 				sink.end();
 				return true;
@@ -202,32 +198,32 @@ public class List
 		return thunk(sink, _M_Map);
 	}
 
-	final public static boolean _M_LookUp(Sink sink, Term term_7, Term term_58)
+	final public static boolean _M_LookUp(Sink sink, Term term_74, Term term_49)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_9 :
+			label_54 :
 			{
 				/* #Key=term */
 				/* #KeyValueList=term */
 				sink.start(_M_Map);
-				Variable jvar_9 = sink.context().makeVariable("x");
+				Variable jvar_72 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_9});
+					{jvar_72});
 				sink.start(_M_Snd);
-				sink.use(jvar_9);
+				sink.use(jvar_72);
 				sink.end();
 				sink.start(_M_Filter);
-				Variable jvar_74 = sink.context().makeVariable("x");
+				Variable jvar_91 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_74});
+					{jvar_91});
 				sink.start(_M_Equal);
-				sink.copy(term_7.ref());
+				sink.copy(term_74.ref());
 				sink.start(_M_Fst);
-				sink.use(jvar_74);
+				sink.use(jvar_91);
 				sink.end();
 				sink.end();
-				sink.copy(term_58.ref());
+				sink.copy(term_49.ref());
 				sink.end();
 				sink.end();
 				return true;
@@ -236,27 +232,27 @@ public class List
 		return thunk(sink, _M_LookUp);
 	}
 
-	final public static boolean _M_DelEntry(Sink sink, Term term_41, Term term_82)
+	final public static boolean _M_DelEntry(Sink sink, Term term_87, Term term_26)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_34 :
+			label_10 :
 			{
 				/* #Key=term */
 				/* #KeyValueList=term */
 				sink.start(_M_Filter);
-				Variable jvar_84 = sink.context().makeVariable("x");
+				Variable jvar_64 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_84});
+					{jvar_64});
 				sink.start(_M_Not);
 				sink.start(_M_Equal);
 				sink.start(_M_Fst);
-				sink.use(jvar_84);
+				sink.use(jvar_64);
 				sink.end();
-				sink.copy(term_41.ref());
+				sink.copy(term_87.ref());
 				sink.end();
 				sink.end();
-				sink.copy(term_82.ref());
+				sink.copy(term_26.ref());
 				sink.end();
 				return true;
 			}
@@ -264,35 +260,35 @@ public class List
 		return thunk(sink, _M_DelEntry);
 	}
 
-	final public static boolean _M_Filter(Sink sink, Variable var_1, Term term_93, Term term_78)
+	final public static boolean _M_Filter(Sink sink, Variable var_22, Term term_13, Term term_53)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_85 :
+			label_47 :
 			{
 				/* #C=term */
 				/* #XS=term */
 				sink.start(_M_Foldr);
-				Variable jvar_87 = sink.context().makeVariable("x");
-				Variable jvar_4 = sink.context().makeVariable("x");
+				Variable jvar_97 = sink.context().makeVariable("x");
+				Variable jvar_11 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_87, jvar_4});
+					{jvar_97, jvar_11});
 				sink.start(_M_ConditionalInsert);
-				Term jterm_22;
+				Term jterm_63;
 				{
-					BufferSink buffer_77 = sink.context().makeBuffer();
-					buffer_77.use(jvar_87);
-					jterm_22 = buffer_77.term();
+					BufferSink buffer_65 = sink.context().makeBuffer();
+					buffer_65.use(jvar_97);
+					jterm_63 = buffer_65.term();
 				}
-				sink.substitute(term_93.ref(), new Variable[]
-					{var_1}, new Term[]
-					{jterm_22});
-				sink.use(jvar_87);
-				sink.use(jvar_4);
+				sink.substitute(term_13.ref(), new Variable[]
+					{var_22}, new Term[]
+					{jterm_63});
+				sink.use(jvar_97);
+				sink.use(jvar_11);
 				sink.end();
 				sink.start(_M_Nil);
 				sink.end();
-				sink.copy(term_78.ref());
+				sink.copy(term_53.ref());
 				sink.end();
 				return true;
 			}
@@ -300,37 +296,37 @@ public class List
 		return thunk(sink, _M_Filter);
 	}
 
-	final public static boolean _M_MapM(Sink sink, Variable var_12, Variable var_99, Term term_60, Term term_35, Term term_74)
+	final public static boolean _M_MapM(Sink sink, Variable var_29, Variable var_48, Term term_12, Term term_57, Term term_6)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_33 :
+			label_72 :
 			{
 				/* #=term */
 				/* #state=term */
 				/* #s=term */
 				sink.start(_M_MapM2);
-				Variable jvar_76 = sink.context().makeVariable("x");
-				Variable jvar_7 = sink.context().makeVariable("x");
+				Variable jvar_20 = sink.context().makeVariable("x");
+				Variable jvar_93 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_76, jvar_7});
+					{jvar_20, jvar_93});
+				Term jterm_55;
+				{
+					BufferSink buffer_52 = sink.context().makeBuffer();
+					buffer_52.use(jvar_20);
+					jterm_55 = buffer_52.term();
+				}
 				Term jterm_83;
 				{
-					BufferSink buffer_81 = sink.context().makeBuffer();
-					buffer_81.use(jvar_76);
-					jterm_83 = buffer_81.term();
+					BufferSink buffer_86 = sink.context().makeBuffer();
+					buffer_86.use(jvar_93);
+					jterm_83 = buffer_86.term();
 				}
-				Term jterm_35;
-				{
-					BufferSink buffer_20 = sink.context().makeBuffer();
-					buffer_20.use(jvar_7);
-					jterm_35 = buffer_20.term();
-				}
-				sink.substitute(term_60.ref(), new Variable[]
-					{var_12, var_99}, new Term[]
-					{jterm_83, jterm_35});
-				sink.copy(term_35.ref());
-				sink.copy(term_74.ref());
+				sink.substitute(term_12.ref(), new Variable[]
+					{var_29, var_48}, new Term[]
+					{jterm_55, jterm_83});
+				sink.copy(term_57.ref());
+				sink.copy(term_6.ref());
 				sink.start(_M_Nil);
 				sink.end();
 				sink.end();
@@ -340,24 +336,24 @@ public class List
 		return thunk(sink, _M_MapM);
 	}
 
-	final public static boolean _M_Length(Sink sink, Term term_5)
+	final public static boolean _M_Length(Sink sink, Term term_86)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_6 :
+			label_30 :
 			{
 				/* #XS=term */
 				sink.start(_M_IWrapFoldlP);
 				Variable jvar_82 = sink.context().makeVariable("x");
-				Variable jvar_2 = sink.context().makeVariable("x");
+				Variable jvar_57 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_82, jvar_2});
+					{jvar_82, jvar_57});
 				sink.start(_M_NumberPlus);
 				sink.literal(1);
-				sink.use(jvar_2);
+				sink.use(jvar_57);
 				sink.end();
 				sink.literal(0);
-				sink.copy(term_5.ref());
+				sink.copy(term_86.ref());
 				sink.end();
 				return true;
 			}
@@ -365,31 +361,31 @@ public class List
 		return thunk(sink, _M_Length);
 	}
 
-	final public static boolean _M_IsNotEmpty(Sink sink, Term term_16)
+	final public static boolean _M_IsNotEmpty(Sink sink, Term term_17)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_59 :
+			label_26 :
 			{
-				term_16 = force(sink.context(), term_16);
-				if (term_16.descriptor() != _M_Nil)
+				term_17 = force(sink.context(), term_17);
+				if (term_17.descriptor() != _M_Nil)
 				{
-					break label_59;
+					break label_26;
 				}
 				sink.start(_M_FALSE);
 				sink.end();
 				return true;
 			}
-			label_80 :
+			label_12 :
 			{
-				term_16 = force(sink.context(), term_16);
-				if (term_16.descriptor() != _M_Cons)
+				term_17 = force(sink.context(), term_17);
+				if (term_17.descriptor() != _M_Cons)
 				{
-					break label_80;
+					break label_12;
 				}
-				Term sub_68 = term_16.sub(0).ref();
+				Term sub_16 = term_17.sub(0).ref();
 				/* #=sub */
-				Term sub_46 = term_16.sub(1).ref();
+				Term sub_35 = term_17.sub(1).ref();
 				/* #s=sub */ sink.start(_M_TRUE);
 				sink.end();
 				return true;
@@ -398,42 +394,42 @@ public class List
 		return thunk(sink, _M_IsNotEmpty);
 	}
 
-	final public static boolean _M_Append(Sink sink, Term term_171, Term term_97)
+	final public static boolean _M_Append(Sink sink, Term term_98, Term term_81)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_146 :
+			label_43 :
 			{
 				/* #x=term */
-				term_97 = force(sink.context(), term_97);
-				if (term_97.descriptor() != _M_Nil)
+				term_81 = force(sink.context(), term_81);
+				if (term_81.descriptor() != _M_Nil)
 				{
-					break label_146;
+					break label_43;
 				}
-				sink.copy(term_171.ref());
-				return true;
-			}
-			label_223 :
-			{
-				/* #x=term */
-				term_97 = force(sink.context(), term_97);
-				if (term_97.descriptor() != _M_Cons)
-				{
-					break label_223;
-				}
-				Term sub_66 = term_97.sub(0).ref();
-				/* #1=sub */
-				Term sub_51 = term_97.sub(1).ref();
-				/* #s=sub */
 				sink.start(_M_Cons);
-				sink.copy(sub_66.ref());
-				sink.start(_M_Cons);
-				sink.start(_M_Append);
-				sink.copy(term_171.ref());
-				sink.copy(sub_51.ref());
-				sink.end();
+				sink.copy(term_98.ref());
 				sink.start(_M_Nil);
 				sink.end();
+				sink.end();
+				return true;
+			}
+			label_44 :
+			{
+				/* #x=term */
+				term_81 = force(sink.context(), term_81);
+				if (term_81.descriptor() != _M_Cons)
+				{
+					break label_44;
+				}
+				Term sub_52 = term_81.sub(0).ref();
+				/* #1=sub */
+				Term sub_22 = term_81.sub(1).ref();
+				/* #s=sub */
+				sink.start(_M_Cons);
+				sink.copy(sub_52.ref());
+				sink.start(_M_Append);
+				sink.copy(term_98.ref());
+				sink.copy(sub_22.ref());
 				sink.end();
 				sink.end();
 				return true;
@@ -442,34 +438,34 @@ public class List
 		return thunk(sink, _M_Append);
 	}
 
-	final public static boolean _M_IsSingleton(Sink sink, Term term_11)
+	final public static boolean _M_IsSingleton(Sink sink, Term term_43)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_40 :
+			label_88 :
 			{
-				term_11 = force(sink.context(), term_11);
-				if (term_11.descriptor() != _M_Nil)
+				term_43 = force(sink.context(), term_43);
+				if (term_43.descriptor() != _M_Nil)
 				{
-					break label_40;
+					break label_88;
 				}
 				sink.start(_M_FALSE);
 				sink.end();
 				return true;
 			}
-			label_13 :
+			label_139 :
 			{
-				term_11 = force(sink.context(), term_11);
-				if (term_11.descriptor() != _M_Cons)
+				term_43 = force(sink.context(), term_43);
+				if (term_43.descriptor() != _M_Cons)
 				{
-					break label_13;
+					break label_139;
 				}
-				Term sub_35 = term_11.sub(0).ref();
+				Term sub_60 = term_43.sub(0).ref();
 				/* #=sub */
-				Term sub_95 = term_11.sub(1).ref();
+				Term sub_78 = term_43.sub(1).ref();
 				/* #s=sub */
 				sink.start(_M_IsEmpty);
-				sink.copy(sub_95.ref());
+				sink.copy(sub_78.ref());
 				sink.end();
 				return true;
 			}
@@ -477,46 +473,46 @@ public class List
 		return thunk(sink, _M_IsSingleton);
 	}
 
-	final public static boolean _M_RemoveDuplicates(Sink sink, Term term_43)
+	final public static boolean _M_RemoveDuplicates(Sink sink, Term term_108)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_3 :
+			label_1 :
 			{
-				term_43 = force(sink.context(), term_43);
-				if (term_43.descriptor() != _M_Nil)
+				term_108 = force(sink.context(), term_108);
+				if (term_108.descriptor() != _M_Nil)
 				{
-					break label_3;
+					break label_1;
 				}
 				sink.start(_M_Nil);
 				sink.end();
 				return true;
 			}
-			label_4 :
+			label_97 :
 			{
-				term_43 = force(sink.context(), term_43);
-				if (term_43.descriptor() != _M_Cons)
+				term_108 = force(sink.context(), term_108);
+				if (term_108.descriptor() != _M_Cons)
 				{
-					break label_4;
+					break label_97;
 				}
-				Term sub_79 = term_43.sub(0).ref();
+				Term sub_34 = term_108.sub(0).ref();
 				/* #X=sub */
-				Term sub_74 = term_43.sub(1).ref();
+				Term sub_15 = term_108.sub(1).ref();
 				/* #XS=sub */
-				sink.start(_M_Insert);
-				sink.copy(sub_79.ref());
+				sink.start(_M_Cons);
+				sink.copy(sub_34.ref());
 				sink.start(_M_RemoveDuplicates);
 				sink.start(_M_Filter);
-				Variable jvar_80 = sink.context().makeVariable("x");
+				Variable jvar_8 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_80});
+					{jvar_8});
 				sink.start(_M_Not);
 				sink.start(_M_Equal);
-				sink.use(jvar_80);
-				sink.copy(sub_79.ref());
+				sink.use(jvar_8);
+				sink.copy(sub_34.ref());
 				sink.end();
 				sink.end();
-				sink.copy(sub_74.ref());
+				sink.copy(sub_15.ref());
 				sink.end();
 				sink.end();
 				sink.end();
@@ -526,77 +522,77 @@ public class List
 		return thunk(sink, _M_RemoveDuplicates);
 	}
 
-	final public static boolean _M_MapM2(Sink sink, Variable var_72, Variable var_95, Term term_42, Term term_1, Term term_89, Term term_40)
+	final public static boolean _M_MapM2(Sink sink, Variable var_57, Variable var_81, Term term_31, Term term_10, Term term_75, Term term_3)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_73 :
+			label_35 :
 			{
 				/* #=term */
 				/* #state=term */
-				term_89 = force(sink.context(), term_89);
-				if (term_89.descriptor() != _M_Nil)
+				term_75 = force(sink.context(), term_75);
+				if (term_75.descriptor() != _M_Nil)
 				{
-					break label_73;
+					break label_35;
 				}
 				/* #rs=term */
 				sink.start(_M_PairCons);
-				sink.copy(term_1.ref());
-				sink.copy(term_40.ref());
+				sink.copy(term_10.ref());
+				sink.copy(term_3.ref());
 				sink.end();
 				return true;
 			}
-			label_96 :
+			label_49 :
 			{
 				/* #=term */
 				/* #state=term */
-				term_89 = force(sink.context(), term_89);
-				if (term_89.descriptor() != _M_Cons)
+				term_75 = force(sink.context(), term_75);
+				if (term_75.descriptor() != _M_Cons)
 				{
-					break label_96;
+					break label_49;
 				}
-				Term sub_55 = term_89.sub(0).ref();
+				Term sub_5 = term_75.sub(0).ref();
 				/* #1=sub */
-				Term sub_25 = term_89.sub(1).ref();
+				Term sub_20 = term_75.sub(1).ref();
 				/* #s=sub */
 				/* #rs=term */
 				sink.start(_M_MapM3);
-				Term jterm_8;
+				Term jterm_25;
 				{
-					BufferSink buffer_44 = sink.context().makeBuffer();
-					buffer_44.copy(term_1.ref());
-					jterm_8 = buffer_44.term();
+					BufferSink buffer_24 = sink.context().makeBuffer();
+					buffer_24.copy(term_10.ref());
+					jterm_25 = buffer_24.term();
 				}
-				Term jterm_86;
+				Term jterm_60;
 				{
-					BufferSink buffer_10 = sink.context().makeBuffer();
-					buffer_10.copy(sub_55.ref());
-					jterm_86 = buffer_10.term();
+					BufferSink buffer_75 = sink.context().makeBuffer();
+					buffer_75.copy(sub_5.ref());
+					jterm_60 = buffer_75.term();
 				}
-				sink.substitute(term_42.ref(), new Variable[]
-					{var_72, var_95}, new Term[]
-					{jterm_8, jterm_86});
-				Variable jvar_44 = sink.context().makeVariable("x");
-				Variable jvar_72 = sink.context().makeVariable("x");
+				sink.substitute(term_31.ref(), new Variable[]
+					{var_57, var_81}, new Term[]
+					{jterm_25, jterm_60});
+				Variable jvar_9 = sink.context().makeVariable("x");
+				Variable jvar_37 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_44, jvar_72});
-				Term jterm_48;
+					{jvar_9, jvar_37});
+				Term jterm_11;
 				{
-					BufferSink buffer_64 = sink.context().makeBuffer();
-					buffer_64.use(jvar_44);
-					jterm_48 = buffer_64.term();
+					BufferSink buffer_69 = sink.context().makeBuffer();
+					buffer_69.use(jvar_9);
+					jterm_11 = buffer_69.term();
 				}
-				Term jterm_73;
+				Term jterm_15;
 				{
-					BufferSink buffer_66 = sink.context().makeBuffer();
-					buffer_66.use(jvar_72);
-					jterm_73 = buffer_66.term();
+					BufferSink buffer_82 = sink.context().makeBuffer();
+					buffer_82.use(jvar_37);
+					jterm_15 = buffer_82.term();
 				}
-				sink.substitute(term_42.ref(), new Variable[]
-					{var_72, var_95}, new Term[]
-					{jterm_48, jterm_73});
-				sink.copy(sub_25.ref());
-				sink.copy(term_40.ref());
+				sink.substitute(term_31.ref(), new Variable[]
+					{var_57, var_81}, new Term[]
+					{jterm_11, jterm_15});
+				sink.copy(sub_20.ref());
+				sink.copy(term_3.ref());
 				sink.end();
 				return true;
 			}
@@ -604,49 +600,49 @@ public class List
 		return thunk(sink, _M_MapM2);
 	}
 
-	final public static boolean _M_MapM3(Sink sink, Term term_13, Variable var_7, Variable var_37, Term term_83, Term term_55, Term term_19)
+	final public static boolean _M_MapM3(Sink sink, Term term_63, Variable var_135, Variable var_13, Term term_33, Term term_35, Term term_77)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_62 :
+			label_152 :
 			{
-				term_13 = force(sink.context(), term_13);
-				if (term_13.descriptor() != _M_PairCons)
+				term_63 = force(sink.context(), term_63);
+				if (term_63.descriptor() != _M_PairCons)
 				{
-					break label_62;
+					break label_152;
 				}
-				Term sub_3 = term_13.sub(0).ref();
+				Term sub_81 = term_63.sub(0).ref();
 				/* #nstate=sub */
-				Term sub_57 = term_13.sub(1).ref();
+				Term sub_11 = term_63.sub(1).ref();
 				/* #r=sub */
 				/* #=term */
 				/* #s=term */
 				/* #rs=term */
 				sink.start(_M_MapM2);
-				Variable jvar_18 = sink.context().makeVariable("x");
-				Variable jvar_75 = sink.context().makeVariable("x");
+				Variable jvar_66 = sink.context().makeVariable("x");
+				Variable jvar_21 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_18, jvar_75});
-				Term jterm_29;
+					{jvar_66, jvar_21});
+				Term jterm_91;
 				{
-					BufferSink buffer_18 = sink.context().makeBuffer();
-					buffer_18.use(jvar_18);
-					jterm_29 = buffer_18.term();
+					BufferSink buffer_10 = sink.context().makeBuffer();
+					buffer_10.use(jvar_66);
+					jterm_91 = buffer_10.term();
 				}
-				Term jterm_26;
+				Term jterm_54;
 				{
-					BufferSink buffer_91 = sink.context().makeBuffer();
-					buffer_91.use(jvar_75);
-					jterm_26 = buffer_91.term();
+					BufferSink buffer_67 = sink.context().makeBuffer();
+					buffer_67.use(jvar_21);
+					jterm_54 = buffer_67.term();
 				}
-				sink.substitute(term_83.ref(), new Variable[]
-					{var_7, var_37}, new Term[]
-					{jterm_29, jterm_26});
-				sink.copy(sub_3.ref());
-				sink.copy(term_55.ref());
+				sink.substitute(term_33.ref(), new Variable[]
+					{var_135, var_13}, new Term[]
+					{jterm_91, jterm_54});
+				sink.copy(sub_81.ref());
+				sink.copy(term_35.ref());
 				sink.start(_M_Append);
-				sink.copy(sub_57.ref());
-				sink.copy(term_19.ref());
+				sink.copy(sub_11.ref());
+				sink.copy(term_77.ref());
 				sink.end();
 				sink.end();
 				return true;
@@ -655,36 +651,36 @@ public class List
 		return thunk(sink, _M_MapM3);
 	}
 
-	final public static boolean _M_Flatten(Sink sink, Term term_37)
+	final public static boolean _M_Flatten(Sink sink, Term term_34)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_16 :
+			label_39 :
 			{
-				term_37 = force(sink.context(), term_37);
-				if (term_37.descriptor() != _M_Nil)
+				term_34 = force(sink.context(), term_34);
+				if (term_34.descriptor() != _M_Nil)
 				{
-					break label_16;
+					break label_39;
 				}
 				sink.start(_M_Nil);
 				sink.end();
 				return true;
 			}
-			label_10 :
+			label_71 :
 			{
-				term_37 = force(sink.context(), term_37);
-				if (term_37.descriptor() != _M_Cons)
+				term_34 = force(sink.context(), term_34);
+				if (term_34.descriptor() != _M_Cons)
 				{
-					break label_10;
+					break label_71;
 				}
-				Term sub_158 = term_37.sub(0).ref();
+				Term sub_51 = term_34.sub(0).ref();
 				/* #1=sub */
-				Term sub_30 = term_37.sub(1).ref();
+				Term sub_6 = term_34.sub(1).ref();
 				/* #s=sub */
 				sink.start(_M_Concat);
-				sink.copy(sub_158.ref());
+				sink.copy(sub_51.ref());
 				sink.start(_M_Flatten);
-				sink.copy(sub_30.ref());
+				sink.copy(sub_6.ref());
 				sink.end();
 				sink.end();
 				return true;
@@ -693,49 +689,49 @@ public class List
 		return thunk(sink, _M_Flatten);
 	}
 
-	final public static boolean _M_PickFirst1(Sink sink, Term term_17, Term term_65, Term term_4, Variable var_98, Term term_99)
+	final public static boolean _M_PickFirst1(Sink sink, Term term_40, Term term_42, Term term_50, Variable var_9, Term term_183)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_17 :
+			label_51 :
 			{
-				term_17 = force(sink.context(), term_17);
-				if (term_17.descriptor() != _M_TRUE)
+				term_40 = force(sink.context(), term_40);
+				if (term_40.descriptor() != _M_TRUE)
 				{
-					break label_17;
+					break label_51;
 				}
 				/* #1=term */
 				/* #s=term */
 				/* #=term */
 				sink.start(_M_SOME);
-				sink.copy(term_65.ref());
+				sink.copy(term_42.ref());
 				sink.end();
 				return true;
 			}
-			label_58 :
+			label_98 :
 			{
-				term_17 = force(sink.context(), term_17);
-				if (term_17.descriptor() != _M_FALSE)
+				term_40 = force(sink.context(), term_40);
+				if (term_40.descriptor() != _M_FALSE)
 				{
-					break label_58;
+					break label_98;
 				}
 				/* #1=term */
 				/* #s=term */
 				/* #=term */
 				sink.start(_M_PickFirst);
-				sink.copy(term_4.ref());
-				Variable jvar_48 = sink.context().makeVariable("x");
+				sink.copy(term_50.ref());
+				Variable jvar_42 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_48});
-				Term jterm_34;
+					{jvar_42});
+				Term jterm_157;
 				{
-					BufferSink buffer_13 = sink.context().makeBuffer();
-					buffer_13.use(jvar_48);
-					jterm_34 = buffer_13.term();
+					BufferSink buffer_11 = sink.context().makeBuffer();
+					buffer_11.use(jvar_42);
+					jterm_157 = buffer_11.term();
 				}
-				sink.substitute(term_99.ref(), new Variable[]
-					{var_98}, new Term[]
-					{jterm_34});
+				sink.substitute(term_183.ref(), new Variable[]
+					{var_9}, new Term[]
+					{jterm_157});
 				sink.end();
 				return true;
 			}
@@ -743,71 +739,71 @@ public class List
 		return thunk(sink, _M_PickFirst1);
 	}
 
-	final public static boolean _M_Foldl(Sink sink, Variable var_8, Variable var_31, Term term_98, Term term_191, Term term_183)
+	final public static boolean _M_Foldl(Sink sink, Variable var_59, Variable var_88, Term term_38, Term term_112, Term term_172)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_110 :
+			label_194 :
 			{
 				/* #F=term */
 				/* #Z=term */
-				term_183 = force(sink.context(), term_183);
-				if (term_183.descriptor() != _M_Nil)
+				term_172 = force(sink.context(), term_172);
+				if (term_172.descriptor() != _M_Nil)
 				{
-					break label_110;
+					break label_194;
 				}
-				sink.copy(term_191.ref());
+				sink.copy(term_112.ref());
 				return true;
 			}
-			label_68 :
+			label_41 :
 			{
 				/* #F=term */
 				/* #Z=term */
-				term_183 = force(sink.context(), term_183);
-				if (term_183.descriptor() != _M_Cons)
+				term_172 = force(sink.context(), term_172);
+				if (term_172.descriptor() != _M_Cons)
 				{
-					break label_68;
+					break label_41;
 				}
-				Term sub_96 = term_183.sub(0).ref();
+				Term sub_84 = term_172.sub(0).ref();
 				/* #H=sub */
-				Term sub_67 = term_183.sub(1).ref();
+				Term sub_196 = term_172.sub(1).ref();
 				/* #T=sub */
 				sink.start(_M_Foldl);
-				Variable jvar_13 = sink.context().makeVariable("x");
-				Variable jvar_21 = sink.context().makeVariable("x");
+				Variable jvar_44 = sink.context().makeVariable("x");
+				Variable jvar_65 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_13, jvar_21});
-				Term jterm_88;
+					{jvar_44, jvar_65});
+				Term jterm_39;
 				{
-					BufferSink buffer_74 = sink.context().makeBuffer();
-					buffer_74.use(jvar_13);
-					jterm_88 = buffer_74.term();
+					BufferSink buffer_70 = sink.context().makeBuffer();
+					buffer_70.use(jvar_44);
+					jterm_39 = buffer_70.term();
 				}
-				Term jterm_42;
+				Term jterm_36;
 				{
-					BufferSink buffer_26 = sink.context().makeBuffer();
-					buffer_26.use(jvar_21);
-					jterm_42 = buffer_26.term();
+					BufferSink buffer_94 = sink.context().makeBuffer();
+					buffer_94.use(jvar_65);
+					jterm_36 = buffer_94.term();
 				}
-				sink.substitute(term_98.ref(), new Variable[]
-					{var_8, var_31}, new Term[]
-					{jterm_88, jterm_42});
-				Term jterm_85;
+				sink.substitute(term_38.ref(), new Variable[]
+					{var_59, var_88}, new Term[]
+					{jterm_39, jterm_36});
+				Term jterm_2;
 				{
-					BufferSink buffer_31 = sink.context().makeBuffer();
-					buffer_31.copy(sub_96.ref());
-					jterm_85 = buffer_31.term();
+					BufferSink buffer_81 = sink.context().makeBuffer();
+					buffer_81.copy(sub_84.ref());
+					jterm_2 = buffer_81.term();
 				}
-				Term jterm_175;
+				Term jterm_33;
 				{
-					BufferSink buffer_191 = sink.context().makeBuffer();
-					buffer_191.copy(term_191.ref());
-					jterm_175 = buffer_191.term();
+					BufferSink buffer_78 = sink.context().makeBuffer();
+					buffer_78.copy(term_112.ref());
+					jterm_33 = buffer_78.term();
 				}
-				sink.substitute(term_98.ref(), new Variable[]
-					{var_8, var_31}, new Term[]
-					{jterm_85, jterm_175});
-				sink.copy(sub_67.ref());
+				sink.substitute(term_38.ref(), new Variable[]
+					{var_59, var_88}, new Term[]
+					{jterm_2, jterm_33});
+				sink.copy(sub_196.ref());
 				sink.end();
 				return true;
 			}
@@ -815,39 +811,39 @@ public class List
 		return thunk(sink, _M_Foldl);
 	}
 
-	final public static boolean _M_ContainsDuplicates(Sink sink, Term term_53)
+	final public static boolean _M_ContainsDuplicates(Sink sink, Term term_153)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_28 :
+			label_17 :
 			{
-				term_53 = force(sink.context(), term_53);
-				if (term_53.descriptor() != _M_Nil)
+				term_153 = force(sink.context(), term_153);
+				if (term_153.descriptor() != _M_Nil)
 				{
-					break label_28;
+					break label_17;
 				}
 				sink.start(_M_FALSE);
 				sink.end();
 				return true;
 			}
-			label_70 :
+			label_37 :
 			{
-				term_53 = force(sink.context(), term_53);
-				if (term_53.descriptor() != _M_Cons)
+				term_153 = force(sink.context(), term_153);
+				if (term_153.descriptor() != _M_Cons)
 				{
-					break label_70;
+					break label_37;
 				}
-				Term sub_123 = term_53.sub(0).ref();
+				Term sub_47 = term_153.sub(0).ref();
 				/* #H=sub */
-				Term sub_93 = term_53.sub(1).ref();
+				Term sub_94 = term_153.sub(1).ref();
 				/* #T=sub */
 				sink.start(_M_Or);
 				sink.start(_M_Elem);
-				sink.copy(sub_123.ref());
-				sink.copy(sub_93.ref());
+				sink.copy(sub_47.ref());
+				sink.copy(sub_94.ref());
 				sink.end();
 				sink.start(_M_ContainsDuplicates);
-				sink.copy(sub_93.ref());
+				sink.copy(sub_94.ref());
 				sink.end();
 				sink.end();
 				return true;
@@ -856,96 +852,96 @@ public class List
 		return thunk(sink, _M_ContainsDuplicates);
 	}
 
-	final public static boolean _M_IfEmpty(Sink sink, Term term_51, Term term_94, Term term_155)
+	final public static boolean _M_IfEmpty(Sink sink, Term term_88, Term term_24, Term term_71)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_64 :
+			label_33 :
 			{
-				term_51 = force(sink.context(), term_51);
-				if (term_51.descriptor() != _M_Nil)
+				term_88 = force(sink.context(), term_88);
+				if (term_88.descriptor() != _M_Nil)
 				{
-					break label_64;
+					break label_33;
 				}
-				/* #1=term */ /* #2=term */ sink.copy(term_94.ref());
+				/* #1=term */ /* #2=term */ sink.copy(term_24.ref());
 				return true;
 			}
-			label_20 :
+			label_143 :
 			{
-				term_51 = force(sink.context(), term_51);
-				if (term_51.descriptor() != _M_Cons)
+				term_88 = force(sink.context(), term_88);
+				if (term_88.descriptor() != _M_Cons)
 				{
-					break label_20;
+					break label_143;
 				}
-				Term sub_223 = term_51.sub(0).ref();
+				Term sub_178 = term_88.sub(0).ref();
 				/* #=sub */
-				Term sub_24 = term_51.sub(1).ref();
+				Term sub_82 = term_88.sub(1).ref();
 				/* #s=sub */
-				/* #1=term */ /* #2=term */ sink.copy(term_155.ref());
+				/* #1=term */ /* #2=term */ sink.copy(term_71.ref());
 				return true;
 			}
 		}
 		return thunk(sink, _M_IfEmpty);
 	}
 
-	final public static boolean _M_Head(Sink sink, Term term_76)
+	final public static boolean _M_Head(Sink sink, Term term_62)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_69 :
+			label_34 :
 			{
-				term_76 = force(sink.context(), term_76);
-				if (term_76.descriptor() != _M_Nil)
+				term_62 = force(sink.context(), term_62);
+				if (term_62.descriptor() != _M_Nil)
 				{
-					break label_69;
+					break label_34;
 				}
 				sink.start(_M_Error);
 				sink.literal("Head of empty list");
 				sink.end();
 				return true;
 			}
-			label_65 :
+			label_2 :
 			{
-				term_76 = force(sink.context(), term_76);
-				if (term_76.descriptor() != _M_Cons)
+				term_62 = force(sink.context(), term_62);
+				if (term_62.descriptor() != _M_Cons)
 				{
-					break label_65;
+					break label_2;
 				}
-				Term sub_44 = term_76.sub(0).ref();
+				Term sub_184 = term_62.sub(0).ref();
 				/* #=sub */
-				Term sub_65 = term_76.sub(1).ref();
-				/* #s=sub */ sink.copy(sub_44.ref());
+				Term sub_83 = term_62.sub(1).ref();
+				/* #s=sub */ sink.copy(sub_184.ref());
 				return true;
 			}
 		}
 		return thunk(sink, _M_Head);
 	}
 
-	final public static boolean _M_Partition(Sink sink, Variable var_3, Term term_31, Term term_70)
+	final public static boolean _M_Partition(Sink sink, Variable var_36, Term term_78, Term term_82)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_155 :
+			label_57 :
 			{
 				/* #C=term */
 				/* #XS=term */
 				sink.start(_M_Foldr);
-				Variable jvar_45 = sink.context().makeVariable("x");
-				Variable jvar_91 = sink.context().makeVariable("x");
+				Variable jvar_75 = sink.context().makeVariable("x");
+				Variable jvar_23 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_45, jvar_91});
+					{jvar_75, jvar_23});
 				sink.start(_M_MatchPartition);
-				Term jterm_77;
+				Term jterm_196;
 				{
-					BufferSink buffer_43 = sink.context().makeBuffer();
-					buffer_43.use(jvar_45);
-					jterm_77 = buffer_43.term();
+					BufferSink buffer_35 = sink.context().makeBuffer();
+					buffer_35.use(jvar_75);
+					jterm_196 = buffer_35.term();
 				}
-				sink.substitute(term_31.ref(), new Variable[]
-					{var_3}, new Term[]
-					{jterm_77});
-				sink.use(jvar_45);
-				sink.use(jvar_91);
+				sink.substitute(term_78.ref(), new Variable[]
+					{var_36}, new Term[]
+					{jterm_196});
+				sink.use(jvar_75);
+				sink.use(jvar_23);
 				sink.end();
 				sink.start(_M_PairCons);
 				sink.start(_M_Nil);
@@ -953,7 +949,7 @@ public class List
 				sink.start(_M_Nil);
 				sink.end();
 				sink.end();
-				sink.copy(term_70.ref());
+				sink.copy(term_82.ref());
 				sink.end();
 				return true;
 			}
@@ -961,127 +957,127 @@ public class List
 		return thunk(sink, _M_Partition);
 	}
 
-	final public static boolean _M_ListEqual(Sink sink, Variable var_71, Variable var_86, Term term_80, Term term_27, Term term_67)
+	final public static boolean _M_ListEqual(Sink sink, Variable var_54, Variable var_187, Term term_97, Term term_76, Term term_28)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_2 :
+			label_95 :
 			{
 				/* #C=term */
-				term_27 = force(sink.context(), term_27);
-				if (term_27.descriptor() != _M_Nil)
+				term_76 = force(sink.context(), term_76);
+				if (term_76.descriptor() != _M_Nil)
 				{
-					break label_2;
+					break label_95;
 				}
-				term_67 = force(sink.context(), term_67);
-				if (term_67.descriptor() != _M_Nil)
+				term_28 = force(sink.context(), term_28);
+				if (term_28.descriptor() != _M_Nil)
 				{
-					break label_2;
+					break label_95;
 				}
 				sink.start(_M_TRUE);
 				sink.end();
 				return true;
 			}
-			label_57 :
+			label_159 :
 			{
 				/* #C=term */
-				term_27 = force(sink.context(), term_27);
-				if (term_27.descriptor() != _M_Cons)
+				term_76 = force(sink.context(), term_76);
+				if (term_76.descriptor() != _M_Cons)
 				{
-					break label_57;
+					break label_159;
 				}
-				Term sub_27 = term_27.sub(0).ref();
+				Term sub_62 = term_76.sub(0).ref();
 				/* #x=sub */
-				Term sub_48 = term_27.sub(1).ref();
+				Term sub_183 = term_76.sub(1).ref();
 				/* #xs=sub */
-				term_67 = force(sink.context(), term_67);
-				if (term_67.descriptor() != _M_Nil)
+				term_28 = force(sink.context(), term_28);
+				if (term_28.descriptor() != _M_Nil)
 				{
-					break label_57;
+					break label_159;
 				}
 				sink.start(_M_FALSE);
 				sink.end();
 				return true;
 			}
-			label_35 :
+			label_15 :
 			{
 				/* #C=term */
-				term_27 = force(sink.context(), term_27);
-				if (term_27.descriptor() != _M_Nil)
+				term_76 = force(sink.context(), term_76);
+				if (term_76.descriptor() != _M_Nil)
 				{
-					break label_35;
+					break label_15;
 				}
-				term_67 = force(sink.context(), term_67);
-				if (term_67.descriptor() != _M_Cons)
+				term_28 = force(sink.context(), term_28);
+				if (term_28.descriptor() != _M_Cons)
 				{
-					break label_35;
+					break label_15;
 				}
-				Term sub_36 = term_67.sub(0).ref();
+				Term sub_4 = term_28.sub(0).ref();
 				/* #y=sub */
-				Term sub_40 = term_67.sub(1).ref();
+				Term sub_192 = term_28.sub(1).ref();
 				/* #ys=sub */ sink.start(_M_FALSE);
 				sink.end();
 				return true;
 			}
-			label_181 :
+			label_76 :
 			{
 				/* #C=term */
-				term_27 = force(sink.context(), term_27);
-				if (term_27.descriptor() != _M_Cons)
+				term_76 = force(sink.context(), term_76);
+				if (term_76.descriptor() != _M_Cons)
 				{
-					break label_181;
+					break label_76;
 				}
-				Term sub_18 = term_27.sub(0).ref();
+				Term sub_65 = term_76.sub(0).ref();
 				/* #x=sub */
-				Term sub_77 = term_27.sub(1).ref();
+				Term sub_7 = term_76.sub(1).ref();
 				/* #xs=sub */
-				term_67 = force(sink.context(), term_67);
-				if (term_67.descriptor() != _M_Cons)
+				term_28 = force(sink.context(), term_28);
+				if (term_28.descriptor() != _M_Cons)
 				{
-					break label_181;
+					break label_76;
 				}
-				Term sub_20 = term_67.sub(0).ref();
+				Term sub_42 = term_28.sub(0).ref();
 				/* #y=sub */
-				Term sub_87 = term_67.sub(1).ref();
+				Term sub_66 = term_28.sub(1).ref();
 				/* #ys=sub */
 				sink.start(_M_And);
-				Term jterm_58;
+				Term jterm_178;
 				{
-					BufferSink buffer_9 = sink.context().makeBuffer();
-					buffer_9.copy(sub_18.ref());
-					jterm_58 = buffer_9.term();
+					BufferSink buffer_20 = sink.context().makeBuffer();
+					buffer_20.copy(sub_65.ref());
+					jterm_178 = buffer_20.term();
 				}
-				Term jterm_38;
+				Term jterm_37;
 				{
-					BufferSink buffer_80 = sink.context().makeBuffer();
-					buffer_80.copy(sub_20.ref());
-					jterm_38 = buffer_80.term();
+					BufferSink buffer_129 = sink.context().makeBuffer();
+					buffer_129.copy(sub_42.ref());
+					jterm_37 = buffer_129.term();
 				}
-				sink.substitute(term_80.ref(), new Variable[]
-					{var_71, var_86}, new Term[]
-					{jterm_58, jterm_38});
+				sink.substitute(term_97.ref(), new Variable[]
+					{var_54, var_187}, new Term[]
+					{jterm_178, jterm_37});
 				sink.start(_M_ListEqual);
-				Variable jvar_47 = sink.context().makeVariable("x");
-				Variable jvar_183 = sink.context().makeVariable("x");
+				Variable jvar_6 = sink.context().makeVariable("x");
+				Variable jvar_86 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_47, jvar_183});
-				Term jterm_32;
+					{jvar_6, jvar_86});
+				Term jterm_21;
 				{
-					BufferSink buffer_54 = sink.context().makeBuffer();
-					buffer_54.use(jvar_47);
-					jterm_32 = buffer_54.term();
+					BufferSink buffer_84 = sink.context().makeBuffer();
+					buffer_84.use(jvar_6);
+					jterm_21 = buffer_84.term();
 				}
-				Term jterm_40;
+				Term jterm_183;
 				{
-					BufferSink buffer_25 = sink.context().makeBuffer();
-					buffer_25.use(jvar_183);
-					jterm_40 = buffer_25.term();
+					BufferSink buffer_19 = sink.context().makeBuffer();
+					buffer_19.use(jvar_86);
+					jterm_183 = buffer_19.term();
 				}
-				sink.substitute(term_80.ref(), new Variable[]
-					{var_71, var_86}, new Term[]
-					{jterm_32, jterm_40});
-				sink.copy(sub_77.ref());
-				sink.copy(sub_87.ref());
+				sink.substitute(term_97.ref(), new Variable[]
+					{var_54, var_187}, new Term[]
+					{jterm_21, jterm_183});
+				sink.copy(sub_7.ref());
+				sink.copy(sub_66.ref());
 				sink.end();
 				sink.end();
 				return true;
@@ -1090,37 +1086,37 @@ public class List
 		return thunk(sink, _M_ListEqual);
 	}
 
-	final public static boolean _M_IfSingleton(Sink sink, Term term_88, Term term_10, Term term_0)
+	final public static boolean _M_IfSingleton(Sink sink, Term term_29, Term term_54, Term term_18)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_71 :
+			label_156 :
 			{
-				term_88 = force(sink.context(), term_88);
-				if (term_88.descriptor() != _M_Nil)
+				term_29 = force(sink.context(), term_29);
+				if (term_29.descriptor() != _M_Nil)
 				{
-					break label_71;
+					break label_156;
 				}
-				/* #1=term */ /* #2=term */ sink.copy(term_0.ref());
+				/* #1=term */ /* #2=term */ sink.copy(term_18.ref());
 				return true;
 			}
-			label_72 :
+			label_305 :
 			{
-				term_88 = force(sink.context(), term_88);
-				if (term_88.descriptor() != _M_Cons)
+				term_29 = force(sink.context(), term_29);
+				if (term_29.descriptor() != _M_Cons)
 				{
-					break label_72;
+					break label_305;
 				}
-				Term sub_31 = term_88.sub(0).ref();
+				Term sub_38 = term_29.sub(0).ref();
 				/* #=sub */
-				Term sub_62 = term_88.sub(1).ref();
+				Term sub_87 = term_29.sub(1).ref();
 				/* #s=sub */
 				/* #1=term */
 				/* #2=term */
 				sink.start(_M_IfEmpty);
-				sink.copy(sub_62.ref());
-				sink.copy(term_10.ref());
-				sink.copy(term_0.ref());
+				sink.copy(sub_87.ref());
+				sink.copy(term_54.ref());
+				sink.copy(term_18.ref());
 				sink.end();
 				return true;
 			}
@@ -1128,14 +1124,14 @@ public class List
 		return thunk(sink, _M_IfSingleton);
 	}
 
-	final public static boolean _M_Tail(Sink sink, Term term_115)
+	final public static boolean _M_Tail(Sink sink, Term term_161)
 	{
 		if (sink.context().sd++ < 256)
 		{
 			label_61 :
 			{
-				term_115 = force(sink.context(), term_115);
-				if (term_115.descriptor() != _M_Nil)
+				term_161 = force(sink.context(), term_161);
+				if (term_161.descriptor() != _M_Nil)
 				{
 					break label_61;
 				}
@@ -1144,62 +1140,62 @@ public class List
 				sink.end();
 				return true;
 			}
-			label_272 :
+			label_189 :
 			{
-				term_115 = force(sink.context(), term_115);
-				if (term_115.descriptor() != _M_Cons)
+				term_161 = force(sink.context(), term_161);
+				if (term_161.descriptor() != _M_Cons)
 				{
-					break label_272;
+					break label_189;
 				}
-				Term sub_73 = term_115.sub(0).ref();
+				Term sub_49 = term_161.sub(0).ref();
 				/* #=sub */
-				Term sub_91 = term_115.sub(1).ref();
-				/* #s=sub */ sink.copy(sub_91.ref());
+				Term sub_95 = term_161.sub(1).ref();
+				/* #s=sub */ sink.copy(sub_95.ref());
 				return true;
 			}
 		}
 		return thunk(sink, _M_Tail);
 	}
 
-	final public static boolean _M_At(Sink sink, Term term_30, Term term_129)
+	final public static boolean _M_At(Sink sink, Term term_11, Term term_151)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_39 :
+			label_25 :
 			{
-				term_30 = force(sink.context(), term_30);
-				if (term_30.descriptor() != _M_Nil)
+				term_11 = force(sink.context(), term_11);
+				if (term_11.descriptor() != _M_Nil)
 				{
-					break label_39;
+					break label_25;
 				}
 				/* #i=term */ sink.start(_M_NONE);
 				sink.end();
 				return true;
 			}
-			label_12 :
+			label_45 :
 			{
-				term_30 = force(sink.context(), term_30);
-				if (term_30.descriptor() != _M_Cons)
+				term_11 = force(sink.context(), term_11);
+				if (term_11.descriptor() != _M_Cons)
 				{
-					break label_12;
+					break label_45;
 				}
-				Term sub_99 = term_30.sub(0).ref();
+				Term sub_126 = term_11.sub(0).ref();
 				/* #=sub */
-				Term sub_58 = term_30.sub(1).ref();
+				Term sub_8 = term_11.sub(1).ref();
 				/* #s=sub */
 				/* #i=term */
 				sink.start(_M_If);
 				sink.start(_M_Equal);
-				sink.copy(term_129.ref());
+				sink.copy(term_151.ref());
 				sink.literal(0);
 				sink.end();
 				sink.start(_M_SOME);
-				sink.copy(sub_99.ref());
+				sink.copy(sub_126.ref());
 				sink.end();
 				sink.start(_M_At);
-				sink.copy(sub_58.ref());
+				sink.copy(sub_8.ref());
 				sink.start(_M_Minus);
-				sink.copy(term_129.ref());
+				sink.copy(term_151.ref());
 				sink.literal(1);
 				sink.end();
 				sink.end();
@@ -1210,34 +1206,34 @@ public class List
 		return thunk(sink, _M_At);
 	}
 
-	final public static boolean _M_Map2(Sink sink, Variable var_59, Term term_54, Term term_95)
+	final public static boolean _M_Map2(Sink sink, Variable var_7, Term term_150, Term term_80)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_260 :
+			label_92 :
 			{
 				/* #F=term */
 				/* #XS=term */
 				sink.start(_M_Foldr);
-				Variable jvar_81 = sink.context().makeVariable("x");
-				Variable jvar_28 = sink.context().makeVariable("x");
+				Variable jvar_22 = sink.context().makeVariable("x");
+				Variable jvar_170 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_81, jvar_28});
+					{jvar_22, jvar_170});
 				sink.start(_M_Insert);
-				Term jterm_41;
+				Term jterm_79;
 				{
-					BufferSink buffer_28 = sink.context().makeBuffer();
-					buffer_28.use(jvar_81);
-					jterm_41 = buffer_28.term();
+					BufferSink buffer_18 = sink.context().makeBuffer();
+					buffer_18.use(jvar_22);
+					jterm_79 = buffer_18.term();
 				}
-				sink.substitute(term_54.ref(), new Variable[]
-					{var_59}, new Term[]
-					{jterm_41});
-				sink.use(jvar_28);
+				sink.substitute(term_150.ref(), new Variable[]
+					{var_7}, new Term[]
+					{jterm_79});
+				sink.use(jvar_170);
 				sink.end();
 				sink.start(_M_Nil);
 				sink.end();
-				sink.copy(term_95.ref());
+				sink.copy(term_80.ref());
 				sink.end();
 				return true;
 			}
@@ -1245,30 +1241,30 @@ public class List
 		return thunk(sink, _M_Map2);
 	}
 
-	final public static boolean _M_Intersect(Sink sink, Term term_101, Term term_175)
+	final public static boolean _M_Intersect(Sink sink, Term term_211, Term term_101)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_161 :
+			label_59 :
 			{
 				/* #XS=term */
 				/* #YS=term */
 				sink.start(_M_Foldr);
-				Variable jvar_95 = sink.context().makeVariable("x");
-				Variable jvar_67 = sink.context().makeVariable("x");
+				Variable jvar_3 = sink.context().makeVariable("x");
+				Variable jvar_45 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_95, jvar_67});
+					{jvar_3, jvar_45});
 				sink.start(_M_ConditionalInsert);
 				sink.start(_M_Elem);
-				sink.use(jvar_95);
-				sink.copy(term_175.ref());
+				sink.use(jvar_3);
+				sink.copy(term_101.ref());
 				sink.end();
-				sink.use(jvar_95);
-				sink.use(jvar_67);
+				sink.use(jvar_3);
+				sink.use(jvar_45);
 				sink.end();
 				sink.start(_M_Nil);
 				sink.end();
-				sink.copy(term_101.ref());
+				sink.copy(term_211.ref());
 				sink.end();
 				return true;
 			}
@@ -1276,41 +1272,37 @@ public class List
 		return thunk(sink, _M_Intersect);
 	}
 
-	final public static boolean _M_Concat(Sink sink, Term term_280, Term term_186)
+	final public static boolean _M_Concat(Sink sink, Term term_5, Term term_19)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_129 :
+			label_87 :
 			{
-				term_280 = force(sink.context(), term_280);
-				if (term_280.descriptor() != _M_Nil)
+				term_5 = force(sink.context(), term_5);
+				if (term_5.descriptor() != _M_Nil)
 				{
-					break label_129;
+					break label_87;
 				}
-				/* #tail=term */ sink.copy(term_186.ref());
+				/* #tail=term */ sink.copy(term_19.ref());
 				return true;
 			}
-			label_83 :
+			label_109 :
 			{
-				term_280 = force(sink.context(), term_280);
-				if (term_280.descriptor() != _M_Cons)
+				term_5 = force(sink.context(), term_5);
+				if (term_5.descriptor() != _M_Cons)
 				{
-					break label_83;
+					break label_109;
 				}
-				Term sub_61 = term_280.sub(0).ref();
+				Term sub_2 = term_5.sub(0).ref();
 				/* #1=sub */
-				Term sub_15 = term_280.sub(1).ref();
+				Term sub_39 = term_5.sub(1).ref();
 				/* #s=sub */
 				/* #tail=term */
 				sink.start(_M_Cons);
-				sink.copy(sub_61.ref());
-				sink.start(_M_Cons);
+				sink.copy(sub_2.ref());
 				sink.start(_M_Concat);
-				sink.copy(sub_15.ref());
-				sink.copy(term_186.ref());
-				sink.end();
-				sink.start(_M_Nil);
-				sink.end();
+				sink.copy(sub_39.ref());
+				sink.copy(term_19.ref());
 				sink.end();
 				sink.end();
 				return true;
@@ -1319,29 +1311,29 @@ public class List
 		return thunk(sink, _M_Concat);
 	}
 
-	final public static boolean _M_Elem(Sink sink, Term term_156, Term term_26)
+	final public static boolean _M_Elem(Sink sink, Term term_95, Term term_64)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_144 :
+			label_102 :
 			{
 				/* #X=term */
 				/* #XS=term */
 				sink.start(_M_Foldr);
-				Variable jvar_61 = sink.context().makeVariable("x");
-				Variable jvar_36 = sink.context().makeVariable("x");
+				Variable jvar_70 = sink.context().makeVariable("x");
+				Variable jvar_89 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_61, jvar_36});
+					{jvar_70, jvar_89});
 				sink.start(_M_Or);
 				sink.start(_M_Equal);
-				sink.copy(term_156.ref());
-				sink.use(jvar_61);
+				sink.copy(term_95.ref());
+				sink.use(jvar_70);
 				sink.end();
-				sink.use(jvar_36);
+				sink.use(jvar_89);
 				sink.end();
 				sink.start(_M_FALSE);
 				sink.end();
-				sink.copy(term_26.ref());
+				sink.copy(term_64.ref());
 				sink.end();
 				return true;
 			}
@@ -1349,18 +1341,18 @@ public class List
 		return thunk(sink, _M_Elem);
 	}
 
-	final public static boolean _M_Union(Sink sink, Term term_2, Term term_72)
+	final public static boolean _M_Union(Sink sink, Term term_16, Term term_30)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_1 :
+			label_90 :
 			{
 				/* #XS=term */
 				/* #YS=term */
 				sink.start(_M_RemoveDuplicates);
 				sink.start(_M_Concat);
-				sink.copy(term_2.ref());
-				sink.copy(term_72.ref());
+				sink.copy(term_16.ref());
+				sink.copy(term_30.ref());
 				sink.end();
 				sink.end();
 				return true;
@@ -1369,54 +1361,50 @@ public class List
 		return thunk(sink, _M_Union);
 	}
 
-	final public static boolean _M_ConditionalInsert(Sink sink, Term term_62, Term term_114, Term term_69)
+	final public static boolean _M_ConditionalInsert(Sink sink, Term term_109, Term term_280, Term term_68)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_75 :
+			label_94 :
 			{
-				term_62 = force(sink.context(), term_62);
-				if (term_62.descriptor() != _M_TRUE)
+				term_109 = force(sink.context(), term_109);
+				if (term_109.descriptor() != _M_TRUE)
 				{
-					break label_75;
+					break label_94;
 				}
 				/* #X=term */
 				/* #XS=term */
 				sink.start(_M_Insert);
-				sink.copy(term_114.ref());
-				sink.copy(term_69.ref());
+				sink.copy(term_280.ref());
+				sink.copy(term_68.ref());
 				sink.end();
 				return true;
 			}
-			label_147 :
+			label_135 :
 			{
-				term_62 = force(sink.context(), term_62);
-				if (term_62.descriptor() != _M_FALSE)
+				term_109 = force(sink.context(), term_109);
+				if (term_109.descriptor() != _M_FALSE)
 				{
-					break label_147;
+					break label_135;
 				}
-				/* #X=term */ /* #XS=term */ sink.copy(term_69.ref());
+				/* #X=term */ /* #XS=term */ sink.copy(term_68.ref());
 				return true;
 			}
 		}
 		return thunk(sink, _M_ConditionalInsert);
 	}
 
-	final public static boolean _M_Insert(Sink sink, Term term_195, Term term_176)
+	final public static boolean _M_Insert(Sink sink, Term term_168, Term term_89)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_104 :
+			label_69 :
 			{
 				/* #X=term */
 				/* #XS=term */
 				sink.start(_M_Cons);
-				sink.copy(term_195.ref());
-				sink.start(_M_Cons);
-				sink.copy(term_176.ref());
-				sink.start(_M_Nil);
-				sink.end();
-				sink.end();
+				sink.copy(term_168.ref());
+				sink.copy(term_89.ref());
 				sink.end();
 				return true;
 			}
@@ -1424,37 +1412,37 @@ public class List
 		return thunk(sink, _M_Insert);
 	}
 
-	final public static boolean _M_IWrapFoldlP(Sink sink, Variable var_77, Variable var_84, Term term_118, Term term_21, Term term_68)
+	final public static boolean _M_IWrapFoldlP(Sink sink, Variable var_67, Variable var_76, Term term_61, Term term_21, Term term_167)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_77 :
+			label_81 :
 			{
 				/* #F=term */
 				/* #Z=term */
 				/* #XS=term */
 				sink.start(_M_FoldlP);
-				Variable jvar_125 = sink.context().makeVariable("x");
-				Variable jvar_41 = sink.context().makeVariable("x");
+				Variable jvar_58 = sink.context().makeVariable("x");
+				Variable jvar_40 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_125, jvar_41});
-				Term jterm_60;
+					{jvar_58, jvar_40});
+				Term jterm_4;
 				{
-					BufferSink buffer_73 = sink.context().makeBuffer();
-					buffer_73.use(jvar_125);
-					jterm_60 = buffer_73.term();
+					BufferSink buffer_3 = sink.context().makeBuffer();
+					buffer_3.use(jvar_58);
+					jterm_4 = buffer_3.term();
 				}
-				Term jterm_89;
+				Term jterm_72;
 				{
-					BufferSink buffer_29 = sink.context().makeBuffer();
-					buffer_29.use(jvar_41);
-					jterm_89 = buffer_29.term();
+					BufferSink buffer_83 = sink.context().makeBuffer();
+					buffer_83.use(jvar_40);
+					jterm_72 = buffer_83.term();
 				}
-				sink.substitute(term_118.ref(), new Variable[]
-					{var_77, var_84}, new Term[]
-					{jterm_60, jterm_89});
+				sink.substitute(term_61.ref(), new Variable[]
+					{var_67, var_76}, new Term[]
+					{jterm_4, jterm_72});
 				sink.copy(term_21.ref());
-				sink.copy(term_68.ref());
+				sink.copy(term_167.ref());
 				sink.end();
 				return true;
 			}
@@ -1462,58 +1450,58 @@ public class List
 		return thunk(sink, _M_IWrapFoldlP);
 	}
 
-	final public static boolean _M_MatchPartition(Sink sink, Term term_12, Term term_14, Term term_38)
+	final public static boolean _M_MatchPartition(Sink sink, Term term_2, Term term_73, Term term_131)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_30 :
+			label_120 :
 			{
-				term_12 = force(sink.context(), term_12);
-				if (term_12.descriptor() != _M_TRUE)
+				term_2 = force(sink.context(), term_2);
+				if (term_2.descriptor() != _M_TRUE)
 				{
-					break label_30;
+					break label_120;
 				}
 				/* #X=term */
-				term_38 = force(sink.context(), term_38);
-				if (term_38.descriptor() != _M_PairCons)
+				term_131 = force(sink.context(), term_131);
+				if (term_131.descriptor() != _M_PairCons)
 				{
-					break label_30;
+					break label_120;
 				}
-				Term sub_28 = term_38.sub(0).ref();
+				Term sub_297 = term_131.sub(0).ref();
 				/* #TS=sub */
-				Term sub_94 = term_38.sub(1).ref();
+				Term sub_70 = term_131.sub(1).ref();
 				/* #FS=sub */
 				sink.start(_M_PairCons);
 				sink.start(_M_Insert);
-				sink.copy(term_14.ref());
-				sink.copy(sub_28.ref());
+				sink.copy(term_73.ref());
+				sink.copy(sub_297.ref());
 				sink.end();
-				sink.copy(sub_94.ref());
+				sink.copy(sub_70.ref());
 				sink.end();
 				return true;
 			}
-			label_94 :
+			label_255 :
 			{
-				term_12 = force(sink.context(), term_12);
-				if (term_12.descriptor() != _M_FALSE)
+				term_2 = force(sink.context(), term_2);
+				if (term_2.descriptor() != _M_FALSE)
 				{
-					break label_94;
+					break label_255;
 				}
 				/* #X=term */
-				term_38 = force(sink.context(), term_38);
-				if (term_38.descriptor() != _M_PairCons)
+				term_131 = force(sink.context(), term_131);
+				if (term_131.descriptor() != _M_PairCons)
 				{
-					break label_94;
+					break label_255;
 				}
-				Term sub_171 = term_38.sub(0).ref();
+				Term sub_25 = term_131.sub(0).ref();
 				/* #TS=sub */
-				Term sub_170 = term_38.sub(1).ref();
+				Term sub_92 = term_131.sub(1).ref();
 				/* #FS=sub */
 				sink.start(_M_PairCons);
-				sink.copy(sub_171.ref());
+				sink.copy(sub_25.ref());
 				sink.start(_M_Insert);
-				sink.copy(term_14.ref());
-				sink.copy(sub_170.ref());
+				sink.copy(term_73.ref());
+				sink.copy(sub_92.ref());
 				sink.end();
 				sink.end();
 				return true;
@@ -1522,71 +1510,71 @@ public class List
 		return thunk(sink, _M_MatchPartition);
 	}
 
-	final public static boolean _M_FoldlP(Sink sink, Variable var_167, Variable var_19, Term term_164, Term term_59, Term term_134)
+	final public static boolean _M_FoldlP(Sink sink, Variable var_39, Variable var_62, Term term_189, Term term_27, Term term_166)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_41 :
+			label_56 :
 			{
 				/* #F=term */
 				/* #Z=term */
-				term_134 = force(sink.context(), term_134);
-				if (term_134.descriptor() != _M_Nil)
+				term_166 = force(sink.context(), term_166);
+				if (term_166.descriptor() != _M_Nil)
 				{
-					break label_41;
+					break label_56;
 				}
-				sink.copy(term_59.ref());
+				sink.copy(term_27.ref());
 				return true;
 			}
-			label_93 :
+			label_74 :
 			{
 				/* #F=term */
 				/* #Z=term */
-				term_134 = force(sink.context(), term_134);
-				if (term_134.descriptor() != _M_Cons)
+				term_166 = force(sink.context(), term_166);
+				if (term_166.descriptor() != _M_Cons)
 				{
-					break label_93;
+					break label_74;
 				}
-				Term sub_90 = term_134.sub(0).ref();
+				Term sub_372 = term_166.sub(0).ref();
 				/* #H=sub */
-				Term sub_43 = term_134.sub(1).ref();
+				Term sub_108 = term_166.sub(1).ref();
 				/* #T=sub */
 				sink.start(_M_FoldlP);
-				Variable jvar_56 = sink.context().makeVariable("x");
-				Variable jvar_89 = sink.context().makeVariable("x");
+				Variable jvar_7 = sink.context().makeVariable("x");
+				Variable jvar_26 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_56, jvar_89});
-				Term jterm_97;
+					{jvar_7, jvar_26});
+				Term jterm_45;
 				{
 					BufferSink buffer_50 = sink.context().makeBuffer();
-					buffer_50.use(jvar_56);
-					jterm_97 = buffer_50.term();
+					buffer_50.use(jvar_7);
+					jterm_45 = buffer_50.term();
 				}
-				Term jterm_92;
+				Term jterm_259;
 				{
-					BufferSink buffer_63 = sink.context().makeBuffer();
-					buffer_63.use(jvar_89);
-					jterm_92 = buffer_63.term();
+					BufferSink buffer_146 = sink.context().makeBuffer();
+					buffer_146.use(jvar_26);
+					jterm_259 = buffer_146.term();
 				}
-				sink.substitute(term_164.ref(), new Variable[]
-					{var_167, var_19}, new Term[]
-					{jterm_97, jterm_92});
-				Term jterm_67;
+				sink.substitute(term_189.ref(), new Variable[]
+					{var_39, var_62}, new Term[]
+					{jterm_45, jterm_259});
+				Term jterm_130;
 				{
-					BufferSink buffer_79 = sink.context().makeBuffer();
-					buffer_79.copy(sub_90.ref());
-					jterm_67 = buffer_79.term();
+					BufferSink buffer_57 = sink.context().makeBuffer();
+					buffer_57.copy(sub_372.ref());
+					jterm_130 = buffer_57.term();
 				}
-				Term jterm_2;
+				Term jterm_74;
 				{
-					BufferSink buffer_14 = sink.context().makeBuffer();
-					buffer_14.copy(term_59.ref());
-					jterm_2 = buffer_14.term();
+					BufferSink buffer_114 = sink.context().makeBuffer();
+					buffer_114.copy(term_27.ref());
+					jterm_74 = buffer_114.term();
 				}
-				sink.substitute(term_164.ref(), new Variable[]
-					{var_167, var_19}, new Term[]
-					{jterm_67, jterm_2});
-				sink.copy(sub_43.ref());
+				sink.substitute(term_189.ref(), new Variable[]
+					{var_39, var_62}, new Term[]
+					{jterm_130, jterm_74});
+				sink.copy(sub_108.ref());
 				sink.end();
 				return true;
 			}
@@ -1594,57 +1582,57 @@ public class List
 		return thunk(sink, _M_FoldlP);
 	}
 
-	final public static boolean _M_PickFirst(Sink sink, Term term_63, Variable var_123, Term term_91)
+	final public static boolean _M_PickFirst(Sink sink, Term term_124, Variable var_72, Term term_72)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_107 :
+			label_68 :
 			{
-				term_63 = force(sink.context(), term_63);
-				if (term_63.descriptor() != _M_Nil)
+				term_124 = force(sink.context(), term_124);
+				if (term_124.descriptor() != _M_Nil)
 				{
-					break label_107;
+					break label_68;
 				}
 				/* #=term */ sink.start(_M_NONE);
 				sink.end();
 				return true;
 			}
-			label_162 :
+			label_9 :
 			{
-				term_63 = force(sink.context(), term_63);
-				if (term_63.descriptor() != _M_Cons)
+				term_124 = force(sink.context(), term_124);
+				if (term_124.descriptor() != _M_Cons)
 				{
-					break label_162;
+					break label_9;
 				}
-				Term sub_53 = term_63.sub(0).ref();
+				Term sub_186 = term_124.sub(0).ref();
 				/* #1=sub */
-				Term sub_144 = term_63.sub(1).ref();
+				Term sub_193 = term_124.sub(1).ref();
 				/* #s=sub */
 				/* #=term */
 				sink.start(_M_PickFirst1);
-				Term jterm_123;
+				Term jterm_64;
 				{
-					BufferSink buffer_95 = sink.context().makeBuffer();
-					buffer_95.copy(sub_53.ref());
-					jterm_123 = buffer_95.term();
+					BufferSink buffer_33 = sink.context().makeBuffer();
+					buffer_33.copy(sub_186.ref());
+					jterm_64 = buffer_33.term();
 				}
-				sink.substitute(term_91.ref(), new Variable[]
-					{var_123}, new Term[]
-					{jterm_123});
-				sink.copy(sub_53.ref());
-				sink.copy(sub_144.ref());
-				Variable jvar_98 = sink.context().makeVariable("x");
+				sink.substitute(term_72.ref(), new Variable[]
+					{var_72}, new Term[]
+					{jterm_64});
+				sink.copy(sub_186.ref());
+				sink.copy(sub_193.ref());
+				Variable jvar_39 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_98});
-				Term jterm_6;
+					{jvar_39});
+				Term jterm_48;
 				{
-					BufferSink buffer_278 = sink.context().makeBuffer();
-					buffer_278.use(jvar_98);
-					jterm_6 = buffer_278.term();
+					BufferSink buffer_39 = sink.context().makeBuffer();
+					buffer_39.use(jvar_39);
+					jterm_48 = buffer_39.term();
 				}
-				sink.substitute(term_91.ref(), new Variable[]
-					{var_123}, new Term[]
-					{jterm_6});
+				sink.substitute(term_72.ref(), new Variable[]
+					{var_72}, new Term[]
+					{jterm_48});
 				sink.end();
 				return true;
 			}
@@ -1652,25 +1640,25 @@ public class List
 		return thunk(sink, _M_PickFirst);
 	}
 
-	final public static boolean _M_Reverse(Sink sink, Term term_242)
+	final public static boolean _M_Reverse(Sink sink, Term term_9)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_44 :
+			label_66 :
 			{
 				/* #XS=term */
 				sink.start(_M_Foldl);
-				Variable jvar_51 = sink.context().makeVariable("x");
-				Variable jvar_15 = sink.context().makeVariable("x");
+				Variable jvar_142 = sink.context().makeVariable("x");
+				Variable jvar_62 = sink.context().makeVariable("x");
 				sink.binds(new Variable[]
-					{jvar_51, jvar_15});
+					{jvar_142, jvar_62});
 				sink.start(_M_Insert);
-				sink.use(jvar_51);
-				sink.use(jvar_15);
+				sink.use(jvar_142);
+				sink.use(jvar_62);
 				sink.end();
 				sink.start(_M_Nil);
 				sink.end();
-				sink.copy(term_242.ref());
+				sink.copy(term_9.ref());
 				sink.end();
 				return true;
 			}
@@ -1678,31 +1666,31 @@ public class List
 		return thunk(sink, _M_Reverse);
 	}
 
-	final public static boolean _M_Null(Sink sink, Term term_141)
+	final public static boolean _M_Null(Sink sink, Term term_44)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_11 :
+			label_170 :
 			{
-				term_141 = force(sink.context(), term_141);
-				if (term_141.descriptor() != _M_Nil)
+				term_44 = force(sink.context(), term_44);
+				if (term_44.descriptor() != _M_Nil)
 				{
-					break label_11;
+					break label_170;
 				}
 				sink.start(_M_TRUE);
 				sink.end();
 				return true;
 			}
-			label_90 :
+			label_195 :
 			{
-				term_141 = force(sink.context(), term_141);
-				if (term_141.descriptor() != _M_Cons)
+				term_44 = force(sink.context(), term_44);
+				if (term_44.descriptor() != _M_Cons)
 				{
-					break label_90;
+					break label_195;
 				}
-				Term sub_98 = term_141.sub(0).ref();
+				Term sub_99 = term_44.sub(0).ref();
 				/* #H=sub */
-				Term sub_227 = term_141.sub(1).ref();
+				Term sub_33 = term_44.sub(1).ref();
 				/* #T=sub */ sink.start(_M_FALSE);
 				sink.end();
 				return true;
@@ -1711,32 +1699,32 @@ public class List
 		return thunk(sink, _M_Null);
 	}
 
-	final public static boolean _M_Zip(Sink sink, Term term_33, Term term_254)
+	final public static boolean _M_Zip(Sink sink, Term term_85, Term term_55)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_79 :
+			label_46 :
 			{
-				term_33 = force(sink.context(), term_33);
-				if (term_33.descriptor() != _M_Nil)
+				term_85 = force(sink.context(), term_85);
+				if (term_85.descriptor() != _M_Nil)
 				{
-					break label_79;
+					break label_46;
 				}
-				term_254 = force(sink.context(), term_254);
-				if (term_254.descriptor() != _M_Nil)
+				term_55 = force(sink.context(), term_55);
+				if (term_55.descriptor() != _M_Nil)
 				{
-					break label_79;
+					break label_46;
 				}
 				sink.start(_M_Nil);
 				sink.end();
 				return true;
 			}
-			label_8 :
+			label_115 :
 			{
-				term_33 = force(sink.context(), term_33);
-				if (term_33.descriptor() != _M_Nil)
+				term_85 = force(sink.context(), term_85);
+				if (term_85.descriptor() != _M_Nil)
 				{
-					break label_8;
+					break label_115;
 				}
 				/* #=term */
 				sink.start(_M_Error);
@@ -1744,51 +1732,47 @@ public class List
 				sink.end();
 				return true;
 			}
-			label_95 :
+			label_113 :
 			{
 				/* #=term */
-				term_254 = force(sink.context(), term_254);
-				if (term_254.descriptor() != _M_Nil)
+				term_55 = force(sink.context(), term_55);
+				if (term_55.descriptor() != _M_Nil)
 				{
-					break label_95;
+					break label_113;
 				}
 				sink.start(_M_Error);
 				sink.literal("ListExtension.Zip: first argument list was longer");
 				sink.end();
 				return true;
 			}
-			label_88 :
+			label_110 :
 			{
-				term_33 = force(sink.context(), term_33);
-				if (term_33.descriptor() != _M_Cons)
+				term_85 = force(sink.context(), term_85);
+				if (term_85.descriptor() != _M_Cons)
 				{
-					break label_88;
+					break label_110;
 				}
-				Term sub_13 = term_33.sub(0).ref();
+				Term sub_36 = term_85.sub(0).ref();
 				/* #X=sub */
-				Term sub_5 = term_33.sub(1).ref();
+				Term sub_21 = term_85.sub(1).ref();
 				/* #XS=sub */
-				term_254 = force(sink.context(), term_254);
-				if (term_254.descriptor() != _M_Cons)
+				term_55 = force(sink.context(), term_55);
+				if (term_55.descriptor() != _M_Cons)
 				{
-					break label_88;
+					break label_110;
 				}
-				Term sub_188 = term_254.sub(0).ref();
+				Term sub_129 = term_55.sub(0).ref();
 				/* #Y=sub */
-				Term sub_8 = term_254.sub(1).ref();
+				Term sub_57 = term_55.sub(1).ref();
 				/* #YS=sub */
 				sink.start(_M_Cons);
 				sink.start(_M_PairCons);
-				sink.copy(sub_13.ref());
-				sink.copy(sub_188.ref());
+				sink.copy(sub_36.ref());
+				sink.copy(sub_129.ref());
 				sink.end();
-				sink.start(_M_Cons);
 				sink.start(_M_Zip);
-				sink.copy(sub_5.ref());
-				sink.copy(sub_8.ref());
-				sink.end();
-				sink.start(_M_Nil);
-				sink.end();
+				sink.copy(sub_21.ref());
+				sink.copy(sub_57.ref());
 				sink.end();
 				sink.end();
 				return true;
@@ -1797,31 +1781,31 @@ public class List
 		return thunk(sink, _M_Zip);
 	}
 
-	final public static boolean _M_IsEmpty(Sink sink, Term term_34)
+	final public static boolean _M_IsEmpty(Sink sink, Term term_20)
 	{
 		if (sink.context().sd++ < 256)
 		{
-			label_108 :
+			label_86 :
 			{
-				term_34 = force(sink.context(), term_34);
-				if (term_34.descriptor() != _M_Nil)
+				term_20 = force(sink.context(), term_20);
+				if (term_20.descriptor() != _M_Nil)
 				{
-					break label_108;
+					break label_86;
 				}
 				sink.start(_M_TRUE);
 				sink.end();
 				return true;
 			}
-			label_66 :
+			label_297 :
 			{
-				term_34 = force(sink.context(), term_34);
-				if (term_34.descriptor() != _M_Cons)
+				term_20 = force(sink.context(), term_20);
+				if (term_20.descriptor() != _M_Cons)
 				{
-					break label_66;
+					break label_297;
 				}
-				Term sub_125 = term_34.sub(0).ref();
+				Term sub_198 = term_20.sub(0).ref();
 				/* #=sub */
-				Term sub_124 = term_34.sub(1).ref();
+				Term sub_101 = term_20.sub(1).ref();
 				/* #s=sub */ sink.start(_M_FALSE);
 				sink.end();
 				return true;
@@ -1877,6 +1861,9 @@ public class List
 			context.register(_M_Null);
 			context.register(_M_Zip);
 			context.register(_M_IsEmpty);
+			org.crsx.compiler.std.Num.init(context);
+			org.crsx.compiler.std.Pair.init(context);
+			org.crsx.compiler.std.Core.init(context);
 			initialized = true;
 		}
 	}

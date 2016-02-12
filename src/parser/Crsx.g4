@@ -366,7 +366,7 @@ CONCRETE        : Lower (Alpha | Digit | '-' | '_')* Ebnf? '\u27e6' (CONCRETE|.)
 
 CONSTRUCTOR     : StartConstructorChar ConstructorChar* // '$' is for internal use only.
                 | '<' [Other] ConstructorChar*;
-VARIABLE        : Lower (Lower | Digit | '-' | '_')*;
+VARIABLE        : Lower (Alpha | Digit | '-' | '_')*;
 
 METAVAR         : '#' (Alpha | Digit | '-' | '_' | Unicode)* Ebnf? Digit*; // '$' is for internal use only
 

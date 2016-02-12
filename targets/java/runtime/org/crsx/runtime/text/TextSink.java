@@ -5,6 +5,8 @@ package org.crsx.runtime.text;
 import java.io.IOException;
 import java.util.ArrayDeque;
 
+import org.crsx.compiler.std.Text;
+import org.crsx.compiler.text.Text4;
 import org.crsx.runtime.ConstructionDescriptor;
 import org.crsx.runtime.Context;
 import org.crsx.runtime.FormattingAppendable;
@@ -94,10 +96,9 @@ public class TextSink extends Sink
 	/** Whether given constructor descriptor is a text one */
 	final protected boolean isTextDescriptor(ConstructionDescriptor desc)
 	{
-		return false; // TODO
-//		return desc == Text._M__sTextChars
-//				|| desc == Text._M__sTextBreak || desc == Text._M__sTextIndent || desc == Text._M__sTextEmbed
-//				|| desc == Text._M__sTextString || desc == Text._M__sTextCons || desc == Text._M__sTextNil;
+		return desc == Text4._M_Text4_xcontent_xA1 
+				|| desc == Text4._M_Text4_xcontent_xA2 || desc == Text4._M_Text4_xcontent_xA3 || desc == Text4._M_Text4_xcontent_xA4
+				|| desc == Text4._M_Text4_xtext_xA1 || desc == Text4._M_Text4_xtext_xA2;
 	}
 
 	// Overrides Sink
@@ -113,17 +114,17 @@ public class TextSink extends Sink
 			{
 				// outputting text and receiving text. 
 
-//				if (descriptor == Text._M__sTextIndent)
-//				{
-//					indent += 2;
-//				}
+				//				if (descriptor == Text._M__sTextIndent)
+				//				{
+				//					indent += 2;
+				//				}
 			}
 			else
 			{
 				// outputting text and but not receiving text. This is the beginning of a cookie. Switch to term mode.
-				print("« ");
+				print("⟨");
 
-				termSink.start(descriptor);;
+				termSink.start(descriptor);
 			}
 		}
 		else
@@ -131,7 +132,7 @@ public class TextSink extends Sink
 			if (isText)
 			{
 				// outputting term and receiving text. Switch to embedded text mode
-				printIndent("%n⟦");
+				printIndent("(text⟦");
 			}
 			else
 			{
@@ -158,15 +159,15 @@ public class TextSink extends Sink
 			if (isText)
 			{
 				// outputting text and receiving text. 
-//				if (descriptor == Text._M__sTextIndent)
-//				{
-//					indent -= 2;
-//				}
+				//				if (descriptor == Text._M__sTextIndent)
+				//				{
+				//					indent -= 2;
+				//				}
 			}
 			else
 			{
 				// outputting text and but not receiving text. This is the end of a cookie. Switch to text mode.
-				print("» ");
+				print("⟩");
 			}
 		}
 		else
@@ -192,7 +193,7 @@ public class TextSink extends Sink
 		{
 			// This is really bad as the term is even not inside the sort value space.
 			// Switch to term mode
-			print("« ");
+			print("⟨");
 
 			inText.pop();
 			inText.push(false);
@@ -212,7 +213,7 @@ public class TextSink extends Sink
 			print(variable.name());
 		else
 			termSink.use(variable);
-		
+
 		return this;
 	}
 
@@ -243,14 +244,14 @@ public class TextSink extends Sink
 		if (inText())
 		{
 			// in text mode -> switch to term mode.
-			print("« ");
+			print("⟨");
 
 			inText.pop();
 			inText.push(false);
 		}
-		
+
 		termSink.startMetaApplication(name);
-		
+
 		return this;
 	}
 
@@ -259,13 +260,13 @@ public class TextSink extends Sink
 	{
 		descriptors.pop();
 		inText.pop();
-		
+
 		termSink.endMetaApplication();
 
 		if (inText())
 		{
 			// were in text mode -> terminate term mode.
-			print("»");
+			print("⟩");
 		}
 
 		return this;

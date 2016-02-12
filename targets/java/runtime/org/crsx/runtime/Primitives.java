@@ -18,7 +18,6 @@ import org.crsx.runtime.primitives.IfDescriptor;
 import org.crsx.runtime.primitives.LengthDescriptor;
 import org.crsx.runtime.primitives.MangleDescriptor;
 import org.crsx.runtime.primitives.MinusDescriptor;
-import org.crsx.runtime.primitives.ParseResourceDescriptor;
 import org.crsx.runtime.primitives.PlusDescriptor;
 import org.crsx.runtime.primitives.ReplaceDescriptor;
 import org.crsx.runtime.primitives.RescapeDescriptor;
@@ -49,10 +48,8 @@ public class Primitives
 	final public static ConstructionDescriptor _M_Builtin_sIfDef = new IfDefDescriptor();
 	final public static ConstructionDescriptor _M_Builtin_sShow = makeData("Show");
 	final public static ConstructionDescriptor _M_Builtin_sGet = new GetDescriptor();
-	final public static ConstructionDescriptor _M_Get = new GetDescriptor(); // Somehow {#E}Get is not recognized as primitive.
 	
 	final public static ConstructionDescriptor _M_Builtin_sParseText = makeData("ParseText");
-	final public static ConstructionDescriptor _M_Builtin_sParseResource = new ParseResourceDescriptor();
 	
 	final public static ConstructionDescriptor _M_Builtin_sColon = new ColonDescriptor();
 

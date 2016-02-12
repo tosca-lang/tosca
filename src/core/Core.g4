@@ -194,7 +194,7 @@ NOT             : '¬';
 
 CONSTRUCTOR     : StartConstructorChar ConstructorChar* // '$' is for internal use only.
                 | '<' [Other] ConstructorChar*;
-VARIABLE        : Lower (Lower | Digit | '-' | '_')*;
+VARIABLE        : Lower (Alpha | Digit | '-' | '_')*;
 
 METAVAR         : '#' (Alpha | Digit | '-' | '_' | Unicode)* Ebnf? Digit*; // '$' is for internal use only
 

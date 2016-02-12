@@ -30,12 +30,6 @@ public class MapExtern
 		return true;
 	}
 
-	final public static boolean _M_MapKeys(Sink sink, Term map)
-	{
-		map = Normalizer.normalize(sink.context(), map);
-		return ((MapTerm) map).sendKeys(sink);
-	}
-
 	final public static boolean _M_MapGetVar(Sink sink, Term map, Term key)
 	{
 		map = Normalizer.normalize(sink.context(), map);
@@ -52,11 +46,21 @@ public class MapExtern
 	{
 		map = Normalizer.normalize(sink.context(), map);
 		key = Normalizer.normalize(sink.context(), key);
+		if (map.refcount() > 1)
+			map = ((MapTerm) map).extend();
+		
 		((MapTerm) map).addNamedProperty(key.symbol(), value);
+		
 		sink.copy(map);
 		return true;
 	}
 
+	final public static boolean _M_MapKeys(Sink sink, Term map)
+	{
+		map = Normalizer.normalize(sink.context(), map);
+		return ((MapTerm) map).sendKeys(sink);
+	}
+	
 	final public static boolean _M_MapValues(Sink sink, Term map)
 	{
 		map = Normalizer.normalize(sink.context(), map);

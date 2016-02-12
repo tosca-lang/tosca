@@ -25,7 +25,6 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.crsx.parser.CrsxMetaLexer;
 import org.crsx.parser.CrsxMetaParser;
-import org.crsx.runtime.Primitives;
 import org.crsx.runtime.Variable;
 
 import net.sf.crsx.CRS;
@@ -285,7 +284,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	/**
 	 * Receive the notification the next sequence of tokens are list items.
 	 * 
-	 * <p>Constructs nested $Cons[..., ...] and $Nil terms. 
+	 * <p>Constructs nested Cons(..., ...) and Nil terms. 
 	 * 
 	 * @param context
 	 */
@@ -551,7 +550,7 @@ public class SinkAntlrListener implements ParseTreeListener
 			}
 			else
 			{
-				// Following events fill the second $Cons argument
+				// Following events fill the second Cons argument
 			}
 		}
 
@@ -662,7 +661,7 @@ public class SinkAntlrListener implements ParseTreeListener
 					{
 						if (embedCrsx4)
 						{
-							System.out.println("parse embedded: " + text);
+							//System.out.println("parse embedded: " + text);
 
 							parseCrsx4Term(reader);
 						}
@@ -700,6 +699,8 @@ public class SinkAntlrListener implements ParseTreeListener
 
 	private void parseCrsx4Term(Reader reader)
 	{
+		// TODO: custom operators
+		
 		try
 		{
 			CharStream stream = new ANTLRInputStream(reader);

@@ -2,9 +2,12 @@
 
 package org.crsx.compiler.std;
 
+import static org.crsx.runtime.Normalizer.forceSub;
+
 import org.crsx.runtime.Context;
 import org.crsx.runtime.MapTerm;
 import org.crsx.runtime.Normalizer;
+import org.crsx.runtime.Properties;
 import org.crsx.runtime.Sink;
 import org.crsx.runtime.Term;
 
@@ -36,6 +39,21 @@ public class CoreExtern
 		return false;
 	}
 
+	final public static boolean _M_GetEnv(Sink sink, Term key, Term def)
+	{
+		final Context context = sink.context();
+
+		key = Normalizer.normalize(context, key);
+
+		java.lang.String value = System.getProperty(key.symbol());
+		sink.literal(value == null ? "" : value);
+
+		key.release();
+		def.release();
+
+		return false;
+	}
+
 	final public static boolean _M_Show(Sink sink, Term term)
 	{
 		sink.literal(term.toString());
@@ -53,7 +71,7 @@ public class CoreExtern
 		term2.release();
 		return true;
 	}
-	
+
 	final public static boolean _M_Trace(Sink sink, Term term)
 	{
 		System.out.println(term);

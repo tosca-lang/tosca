@@ -27,13 +27,10 @@ public class MapTerm extends Construction
 	/** String to term mapping */
 	protected Map<String, Term> named;
 
-
 	/**  */
 	public MapTerm()
-	{
-	}
+	{}
 
-	
 	/** @param parent properties. The reference is transferred. */
 	protected MapTerm(MapTerm parent)
 	{
@@ -100,7 +97,6 @@ public class MapTerm extends Construction
 	{
 		return new MapTerm(ref());
 	}
- 
 
 	@Override
 	public void copy(Sink sink, boolean discard)
@@ -157,52 +153,52 @@ public class MapTerm extends Construction
 	 */
 	protected void substituteTo(Sink sink, Map<Variable, Term> substitutes)
 	{
-//		if (substitutes.isEmpty())
-//			sink.copy(this); // Transfer properties ref
-//		else
-//		{
-//			if (parent != null)
-//				parent.ref().substituteTo(sink, substitutes);
-//
-//			final Context context = sink.context();
-//
-//			if (named != null)
-//			{
-//				named.forEach((String name, Term term) -> {
-//					Term nterm = term.ref().substitute(context, substitutes);
-//					sink.propertyNamed(name, nterm); // consume nterm reference
-//				});
-//			}
-//
-//			if (variables != null)
-//			{
-//				variables.forEach((Variable var, Term term) -> {
-//					Variable key = var;
-//					Term substitute = substitutes.get(var);
-//					if (substitute != null)
-//					{
-//						if (substitute.kind() == Kind.VARIABLE_USE)
-//						{
-//							// This is a substitution of a variable for a variable!
-//							key = ((VariableUse) substitute).variable;
-//						}
-//						else
-//						{
-//							// The variable is substituted by a term. 
-//							// TODO: remove key?
-//						}
-//					}
-//
-//					// Substitute value
-//					Term nterm = term.ref().substitute(context, substitutes);
-//
-//					// And send..
-//					sink.propertyVariable(key.ref(), nterm); // consume nterm reference
-//				});
-//			}
-//			// Done with this instance
-//			release();
-//		}
+		//		if (substitutes.isEmpty())
+		//			sink.copy(this); // Transfer properties ref
+		//		else
+		//		{
+		//			if (parent != null)
+		//				parent.ref().substituteTo(sink, substitutes);
+		//
+		//			final Context context = sink.context();
+		//
+		//			if (named != null)
+		//			{
+		//				named.forEach((String name, Term term) -> {
+		//					Term nterm = term.ref().substitute(context, substitutes);
+		//					sink.propertyNamed(name, nterm); // consume nterm reference
+		//				});
+		//			}
+		//
+		//			if (variables != null)
+		//			{
+		//				variables.forEach((Variable var, Term term) -> {
+		//					Variable key = var;
+		//					Term substitute = substitutes.get(var);
+		//					if (substitute != null)
+		//					{
+		//						if (substitute.kind() == Kind.VARIABLE_USE)
+		//						{
+		//							// This is a substitution of a variable for a variable!
+		//							key = ((VariableUse) substitute).variable;
+		//						}
+		//						else
+		//						{
+		//							// The variable is substituted by a term. 
+		//							// TODO: remove key?
+		//						}
+		//					}
+		//
+		//					// Substitute value
+		//					Term nterm = term.ref().substitute(context, substitutes);
+		//
+		//					// And send..
+		//					sink.propertyVariable(key.ref(), nterm); // consume nterm reference
+		//				});
+		//			}
+		//			// Done with this instance
+		//			release();
+		//		}
 	}
 
 	/**
@@ -323,8 +319,6 @@ public class MapTerm extends Construction
 		return false;
 	}
 
-
-
 	@Override
 	public ConstructionDescriptor descriptor()
 	{
@@ -333,17 +327,31 @@ public class MapTerm extends Construction
 
 	public boolean sendKeys(Sink sink)
 	{
+		named.forEach((key, value) -> {
+			sink.start(List._M_Cons).literal(key);
+		});
+		
 		sink.start(List._M_Nil).end();
+
+		named.forEach((key, value) -> {
+			sink.end();
+		});
+
 		return true;
 	}
-
 
 	public boolean sendValues(Sink sink)
 	{
-
+		named.forEach((key, value) -> {
+			sink.start(List._M_Cons).copy(value.ref());
+		});
+		
 		sink.start(List._M_Nil).end();
+
+		named.forEach((key, value) -> {
+			sink.end();
+		});
 		return true;
 	}
-
 
 }

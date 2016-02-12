@@ -31,9 +31,14 @@ public class Normalizer
 	{
 		assert term.descriptor() != null;
 
+		context.sd = 0;
 		if (context.verbose >= 1)
+		{
 			System.out.println(term.symbol());
-		
+			if (context.verbose >= 2)
+				System.out.println(term);
+		}				
+				
 		return term.descriptor().step(sink, term);
 	}
 

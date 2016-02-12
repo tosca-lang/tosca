@@ -155,6 +155,11 @@ public class Crsx
 		buildEnv.put("term", "\"" + rules + "\"");
 		buildEnv.put("output", output);
 
+		// TODO: generic solution
+		String javabasepackage = env.get("javabasepackage");
+		if (javabasepackage != null)
+			System.setProperty("javabasepackage", javabasepackage);
+		
 		rewrite(buildEnv, null);
 
 		// Can compile now.
