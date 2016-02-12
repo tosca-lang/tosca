@@ -85,9 +85,11 @@ func JavaFuncDesc(String, Core_cdecl_sort) -> Text
 rule JavaFuncDesc(#classname, cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
 → text⟦final public static DynamicFunctionDescriptor ⟨Descriptor(#CONSTRUCTOR)⟩ = makeFunction(⟨Text-QuoteEscape(#CONSTRUCTOR)⟩, †⟨#classname⟩⟨JavaExtern(#extern_TOK?)⟩.class, "⟨ToJavaId(#CONSTRUCTOR)⟩");⟧  
 
-func JavaExtern(Core_extern_sort) -> Text
+func JavaExtern(List<Core_extern_sort>) -> Text
 rule JavaExtern(extern_TOK?⟦⟧) → text⟦⟧ 
-rule JavaExtern(extern_TOK?⟦ extern⟧) → text⟦Extern⟧ 
+// Something is wrong with this rule.
+//rule JavaExtern(extern_TOK?⟦ extern ⟧) → text⟦Extern⟧ 
+rule JavaExtern(( #extern )) → text⟦Extern⟧ 
 
 /* Generate methods for module rules */ 
 func JavaMethod(String, {String : List<Core_cdecl_sort>},  
