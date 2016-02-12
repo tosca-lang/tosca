@@ -15,7 +15,7 @@ buildscript {
 }
 
 // -- Build the term and meta parsers
-//    3 set of parsers are generated: Crsx4, Core Crsx and Antlr
+//    3 set of parsers are generated: Crsx4, Core and Antlr
 project(':parsers') {
 	// Note: the current directory is now 'parsers'
 	
@@ -101,12 +101,13 @@ project(':parsers') {
         generatedFileDir = file('org/crsx/text')
         packageName = 'org.crsx.text'
     }
-    
-	
+    	
 	//-- Meta task to build all parsers.
 	task buildParsers(dependsOn: ['coreMetaParser', 'coreTermParser', 'crsxMetaParser', 'crsxTermParser',
 	    'antlrMetaParser', 'antlrAntlrTermParser', 'textMetaParser', 'textTermParser']) 
 }
+
+// -- Generate the crsx4 compiler from .crs4 source code.
 
 project(':compiler') {
 	apply plugin:'org.crsx.gradle.crsx4'
@@ -118,21 +119,26 @@ project(':compiler') {
 	}
 	
 	dependencies {
-		crsx4 files('../../../src')   // the interpreter always uses the development rules
-		crsx4 files('../build')       // with the current parser. 
-	//	crsx4 'org.crsx:crsx:4.0.0-ALPHA@jar' 
-		crsx4 'org.crsx:crsx3@jar'
+		if (project.hasProperty('crsx3')) {
+			crsx4 files('../../../src')     // the interpreter always uses the development rules
+			crsx4 files('../build')       // with the current parser. 
+		}  else {
+			crsx4 'org.crsx:crsx:4.0.0-ALPHA@jar' 
+		}
+		crsx4 'org.crsx:crsx3@jar' // Temporary
 		crsx4 'org.antlr:antlr4:4.5'
 	}
 	
 	crsx4 {
-		sources = fileTree(dir: '../../../src', include: '**/*.crs', exclude: ['resolver.crs', '**/pg/*.crs', 'text/*.crs'])
-		outputDir = file('org/crsx/compiler')
+		//sources = fileTree(dir: '../../../src', include: ['std/*.crs4', 'cg/*.crs4', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', '*.crs4'])
+		sources = fileTree(dir: '../../../src', include: ['std/core.crs4'])
+		outputDir = project.hasProperty('crsx3') ? file('org/crsx/compiler') : file('.')
 		packageName = 'org.crsx.compiler'
+		usecompiler = !project.hasProperty('crsx3')
 	}	
 }
 
-// --- Java compilation/packaging
+// --- Java compilation and packaging
 
 apply plugin:'java'
 
@@ -158,7 +164,7 @@ sourceSets {
             srcDir 'compiler'
         }
 		
-		// Include CRSX4 source code for interpreter mode.
+		// Include CRSX4 source code for interpreter mode. Temporary.
 		resources {
 			srcDir '../../src'
 			include '**/*.crs'

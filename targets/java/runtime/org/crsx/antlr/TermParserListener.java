@@ -72,7 +72,7 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 		this.factory = factory;
 		this.freshes = freshes;
 		this.bounds = bounds;
-		
+
 		state.push(State.SKIP);
 	}
 
@@ -276,10 +276,15 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 				state.pop();
 				state.push(State.SKIP);
 				break;
-			case LITERAL :
-				sink3 = sink3.start(sink3.makeLiteral(node.getText(), CRS.STRING_SORT));
+			case LITERAL : {
+				String literal = node.getText();
+				if (literal.length() > 0 && literal.charAt(0) == '"')
+					literal = literal.substring(1).substring(0, literal.length() - 2);
+
+				sink3 = sink3.start(sink3.makeLiteral(literal, CRS.STRING_SORT));
 				state.pop();
 				state.push(State.SKIP);
+			}
 				break;
 			case VAR :
 				final String varname = node.getText();

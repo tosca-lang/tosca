@@ -98,13 +98,13 @@ public class Crsx
 
 		// Compute output class name
 
-		String output = targetJavaFilename(rules, buildir, false);
+		String output = targetJavaFilename(rules, buildir, null, null, false);
 		File outputClassFile = new File(output);
 		output = outputClassFile.getName().replace(".java", ""); // TODO package
 
 		// For testing only
 		output = "tests." + output;
-		
+
 		Map<String, Object> internal = new HashMap<>();
 
 		// Compute classloader
@@ -124,6 +124,9 @@ public class Crsx
 		System.out.println("\n<args> are:");
 		System.out.println("  rules=<filename>          the name of the crsx file to compile.");
 		System.out.println("  build-dir=<directory>     where to store the resulting files.");
+		System.out.println("  only-source               only produce source file, no executable.");
+		System.out.println("  javabasepackage=<name>    base Java package name.");
+		System.out.println("  javapackage=<name>        sub Java package name.");
 
 		System.exit(0);
 	}
@@ -131,6 +134,7 @@ public class Crsx
 	/* Build a crsx system */
 	static void build(Map<String, String> env)
 	{
+		// Input rules to compile
 		String rules = env.get("rules");
 		if (rules == null)
 			fatal("Missing rules filename. Add rules=<filename>", null);
@@ -139,31 +143,34 @@ public class Crsx
 		if (!rulesFile.exists())
 			fatal("Input file not found", null);
 
+		// For java target (and there is no other targets for now)
+		// get base package and sub package name.
+		String javabasepackage = env.get("javabasepackage");
+		String javapackage = env.get("javapackage");
 		String dest = env.get("build-dir");
-		String output = targetJavaFilename(rules, dest, true);
+		String output = targetJavaFilename(rules, dest, javabasepackage, javapackage, true);
 
 		Map<String, String> buildEnv = new HashMap<>(env);
 
-		// Produce java source file.
+		// First: Produce java source file.
+
 		buildEnv.put("class", "org.crsx.compiler.Crsx");
 		buildEnv.put("wrapper", "Compile");
-
-		buildEnv.put("grammar", "org.crsx.core.CoreMetaParser,org.crsx.parser.CrsxMetaParser"); // Temporary.
-	
+		buildEnv.put("grammar", "org.crsx.core.CoreMetaParser,org.crsx.parser.CrsxMetaParser,org.crsx.text.Text4MetaParser"); // Temporary.
 		buildEnv.put("sink", "org.crsx.runtime.text.TextSink");
-
 		buildEnv.put("term", "\"" + rules + "\"");
 		buildEnv.put("output", output);
 
-		// TODO: generic solution
-		String javabasepackage = env.get("javabasepackage");
 		if (javabasepackage != null)
 			System.setProperty("javabasepackage", javabasepackage);
-		
+		if (javapackage != null)
+			System.setProperty("javapackage", javapackage);
+
 		rewrite(buildEnv, null);
 
-		// Can compile now.
-		compileJava(Arrays.asList(new File(output)));
+		// Second: Compile produced Java file.
+		if (env.get("only-source") == null)
+			compileJava(Arrays.asList(new File(output)));
 	}
 
 	/* 
@@ -172,12 +179,18 @@ public class Crsx
 	 * @param dest target directory
 	 * @param makeDirs whether to make destination directories.
 	 */
-	static String targetJavaFilename(String input, String dest, boolean makeDirs)
+	static String targetJavaFilename(String input, String dest, String basepackage, String pkg, boolean makeDirs)
 	{
 		final File inputFile = new File(input);
 
 		if (dest == null)
 			dest = inputFile.getAbsoluteFile().getParentFile().getAbsolutePath();
+
+		// Offset destination considering package
+		if (basepackage != null)
+			dest += File.separator + basepackage.replace('.', File.separatorChar);
+		if (pkg != null)
+			dest += File.separator + pkg.replace('.', File.separatorChar);
 
 		if (makeDirs)
 		{
@@ -188,13 +201,9 @@ public class Crsx
 		// Compute output java filename
 		String output = inputFile.getName().replace(".crsc", ".java").replace(".crs4", ".java").replace(".crs", ".java");
 		output = Character.toUpperCase(output.charAt(0)) + output.substring(1); // First character must be upper case.
-		
-		// For testing: put always in tests/
-		
-		output = dest + File.separator + "tests" + File.separator + output; // dest / output.java
-		
-		
-		
+
+		output = dest + File.separator + output; // dest / output.java
+
 		return output;
 	}
 

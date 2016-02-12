@@ -166,7 +166,7 @@ final public class Context
 	{
 		if (!parserNames.contains(parserClassname))
 		{
-			ClassLoader loader = parserClassLoader == null ? ClassLoader.getSystemClassLoader() : parserClassLoader;
+			ClassLoader loader = parserClassLoader == null ? Context.class.getClassLoader() : parserClassLoader;
 			try
 			{
 				Class<?> parserClass = loader.loadClass(parserClassname);
@@ -202,6 +202,7 @@ final public class Context
 			}
 			catch (ClassNotFoundException | InstantiationException | IllegalAccessException e)
 			{
+				System.out.println("Warning: parser " + e.getLocalizedMessage() + " cannot be loaded.");
 				return false;
 			}
 		

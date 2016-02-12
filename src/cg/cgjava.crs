@@ -416,10 +416,10 @@ public static void init(Context context)
 {⟦
 if (!initialized) 
 {⟦
+initialized = true;
 «TextFold[Map[sort.RegisterDataSort[sort], MapValues[#data]], %n⟨⟩]»
 «TextFold[Map[sort.RegisterFuncSort[sort], MapValues[#func]], %n⟨⟩]»
-«TextFold[Map[sort.RegisterImport[sort],   #imports], %n⟨⟩]»
-initialized = true;⟧
+«TextFold[Map[sort.RegisterImport[sort],   #imports], %n⟨⟩]»⟧
 }⟧
 }⟧;
 
@@ -457,6 +457,7 @@ PackageDeclaration2[#base, #sub]
 package †«#base»«PackageDeclaration3[$[If, $[StringEqual, $[Trim, #base], ""],"", "."], #sub]»;⟧;
 
 PackageDeclaration3[$String, $String] :: Text;
+-[Data[#sep, #sub]]:
 PackageDeclaration3[#sep, #sub] 
 →
 $[If, $[StringEqual, $[Trim, #sub], ""], %n⟦⟧, %n⟦†«#sep»†«#sub»⟧];

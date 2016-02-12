@@ -399,10 +399,10 @@ public static void init(Context context)
 {
 if (!initialized) 
 {
+initialized = true; 
 ⟨TextFold(Map([x] -> RegisterDataSort(x), MapValues(#data)), text⟦⟧)⟩
 ⟨TextFold(Map([x] -> RegisterFuncSort(x), MapValues(#func)), text⟦⟧)⟩
 ⟨TextFold(Map([x] -> RegisterImport(x),   #imports), text⟦⟧)⟩
-initialized = true; 
 }
 }⟧ 
 
@@ -442,7 +442,7 @@ rule PackageDeclaration3(#sep, #sub)
 func PathToImport(String) -> Text
 
 rule PathToImport(#name) 
-→ PathToImport2(If(StartsWith(#name, "Std->"), "org.crsx.compiler", GetEnv("javabasepackage", "")), PathToDot(DownCaseFirst(#name))) 
+→ PathToImport2(If(StartsWith(#name, "Std::"), "org.crsx.compiler", GetEnv("javabasepackage", "")), PathToDot(DownCaseFirst(#name))) 
 
 func PathToImport2(String, String) -> Text
 
@@ -450,7 +450,7 @@ rule PathToImport2(#package, #name)
 →  text⟦⟨StringToText(#package)⟩.⟨StringToText(#name)⟩⟧ 
 
 func PathToDot(String) -> String
-rule PathToDot(#path) → PathToDot2(Replace(#path, "->", ".")) 
+rule PathToDot(#path) → PathToDot2(Replace(#path, "::", ".")) 
 
 func PathToDot2(String) -> String
 rule PathToDot2(#subpackage) 

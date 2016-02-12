@@ -2,7 +2,7 @@
 package org.crsx.gradle
 
 import java.lang.reflect.Method
-
+import org.gradle.api.tasks.*
 /**
  * Dynamically load a class and run main(). 
  * 
