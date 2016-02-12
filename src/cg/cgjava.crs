@@ -54,7 +54,6 @@ import static org.crsx.runtime.Term.isVariableUse;
 
 import org.crsx.runtime.*;
 import org.crsx.runtime.ConstructionDescriptor.*;
-import static org.crsx.runtime.Primitives.*;
 «TextFold[Map[module.JavaUnit[#url, module], #modules], %n⟨⟩]»⟧;
 
 /* Generate class for the given module */ 

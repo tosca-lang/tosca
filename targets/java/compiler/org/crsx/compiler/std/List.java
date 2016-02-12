@@ -2,21 +2,33 @@
 
 package org.crsx.compiler.std;
 
+import static org.crsx.compiler.std.Core._M_And;
+import static org.crsx.compiler.std.Core._M_Equal;
+import static org.crsx.compiler.std.Core._M_Error;
+import static org.crsx.compiler.std.Core._M_FALSE;
+import static org.crsx.compiler.std.Core._M_If;
+import static org.crsx.compiler.std.Core._M_NONE;
+import static org.crsx.compiler.std.Core._M_Not;
+import static org.crsx.compiler.std.Core._M_Or;
+import static org.crsx.compiler.std.Core._M_SOME;
+import static org.crsx.compiler.std.Core._M_TRUE;
+import static org.crsx.compiler.std.Num._M_Minus;
+import static org.crsx.compiler.std.Num._M_NumberPlus;
+import static org.crsx.compiler.std.Pair._M_Fst;
+import static org.crsx.compiler.std.Pair._M_PairCons;
+import static org.crsx.compiler.std.Pair._M_Snd;
 import static org.crsx.runtime.ConstructionDescriptor.makeData;
 import static org.crsx.runtime.ConstructionDescriptor.makeFunction;
-import static org.crsx.runtime.Normalizer.thunk;
 import static org.crsx.runtime.Normalizer.force;
-import static org.crsx.runtime.Normalizer.forceSub;
-import static org.crsx.runtime.Reference.safeRef;
-import static org.crsx.runtime.Term.isVariableUse;
+import static org.crsx.runtime.Normalizer.thunk;
 
-import org.crsx.runtime.*;
-import org.crsx.runtime.ConstructionDescriptor.*;
-import static org.crsx.runtime.Primitives.*;
-
-import static org.crsx.compiler.std.Num.*;
-import static org.crsx.compiler.std.Pair.*;
-import static org.crsx.compiler.std.Core.*;
+import org.crsx.runtime.BufferSink;
+import org.crsx.runtime.ConstructionDescriptor;
+import org.crsx.runtime.ConstructionDescriptor.DynamicFunctionDescriptor;
+import org.crsx.runtime.Context;
+import org.crsx.runtime.Sink;
+import org.crsx.runtime.Term;
+import org.crsx.runtime.Variable;
 
 @SuppressWarnings("unused")
 public class List

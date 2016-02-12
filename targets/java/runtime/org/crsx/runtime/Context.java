@@ -63,8 +63,6 @@ final public class Context
 		this.descriptors = new HashMap<>(2048);
 		this.parsers = new HashMap<>(128);
 		this.parserNames = new HashSet<>();
-
-		Primitives.init(this);
 	}
 
 	/**
