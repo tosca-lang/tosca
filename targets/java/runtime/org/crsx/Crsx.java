@@ -148,8 +148,8 @@ public class Crsx
 		buildEnv.put("class", "org.crsx.compiler.Crsx");
 		buildEnv.put("wrapper", "Compile");
 
-		buildEnv.put("grammar", "org.crsx.parser.CrsxMetaParser"); // Temporary.
-		buildEnv.put("grammar", "org.crsx.core.CoreMetaParser"); // Temporary.
+		buildEnv.put("grammar", "org.crsx.core.CoreMetaParser,org.crsx.parser.CrsxMetaParser"); // Temporary.
+	
 		buildEnv.put("sink", "org.crsx.runtime.text.TextSink");
 
 		buildEnv.put("term", "\"" + rules + "\"");
@@ -186,7 +186,7 @@ public class Crsx
 		}
 
 		// Compute output java filename
-		String output = inputFile.getName().replace(".crsc", ".java").replace(".crs", ".java");
+		String output = inputFile.getName().replace(".crsc", ".java").replace(".crs4", ".java").replace(".crs", ".java");
 		output = Character.toUpperCase(output.charAt(0)) + output.substring(1); // First character must be upper case.
 		
 		// For testing: put always in tests/
@@ -425,7 +425,7 @@ public class Crsx
 			String[] array = grammars.split(",");
 			for (int i = 0; i < array.length; i++)
 			{
-				context.registerParser(array[i]);
+				context.registerParser(array[i].trim());
 			}
 		}
 

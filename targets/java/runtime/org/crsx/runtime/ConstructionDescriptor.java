@@ -242,7 +242,8 @@ public abstract class ConstructionDescriptor
 				args[argp++] = term.sub(i).ref();
 			}
 
-			assert argp == method.getParameterCount() : method.getName() + " not fully bound.";
+			// Remaining argument will be set to null.
+			//assert argp == method.getParameterCount() : method.getName() + " not fully bound.";
 
 			term.release(); // done with the thunk
 

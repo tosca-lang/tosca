@@ -56,6 +56,9 @@ public class CoreExtern
 
 	final public static boolean _M_Show(Sink sink, Term term)
 	{
+		final Context context = sink.context();
+		term = Normalizer.normalize(context, term);
+	
 		sink.literal(term.toString());
 		return true;
 	}
@@ -74,6 +77,8 @@ public class CoreExtern
 
 	final public static boolean _M_Trace(Sink sink, Term term)
 	{
+		final Context context = sink.context();
+		term = Normalizer.normalize(context, term);
 		System.out.println(term);
 		sink.copy(term);
 		return true;

@@ -335,7 +335,7 @@ func JavaSendFreeOrFreshVar(Option<VarEntry>, {String : JavaEnvEntry}, [{String 
 // Not in tn the env: fresh variable. 
 rule JavaSendFreeOrFreshVar(NONE, #env, [env]->#(env))
 → text⟦
-Variable ⟨jvar⟩ = ⟨GetSink(#env)⟩.context().makeVariable("x"); ⟨GetSink(#env)⟩.use(⟨jvar⟩) ⟨#(#env)⟩⟧ 
+Variable ⟨jvar⟩ = ⟨GetSink(#env)⟩.context().makeVariable("x"); ⟨GetSink(#env)⟩.use(⟨jvar⟩);⟨#(#env)⟩⟧ 
 
 // In the env: free or bound variable.
 rule JavaSendFreeOrFreshVar(SOME(#varEntry), #env, [env]->#(env))

@@ -1,0 +1,11 @@
+enum Bool | True | False
+
+func And(#left : Bool, #right : Bool) -> Bool
+rule And(True, True) → True
+rule And(True, #)    → #
+
+func Main -> Bool 
+→ And(True, True)
+
+
+ 

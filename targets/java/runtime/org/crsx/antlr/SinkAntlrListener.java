@@ -255,6 +255,11 @@ public class SinkAntlrListener implements ParseTreeListener
 		this.metachar = metachar;
 		this.state = State.PARSE;
 		this.sort = TokenSort.STRING;
+	
+		this.binderNames = new HashMap<>();
+		this.bounds = new ArrayDeque<>();
+		this.freshes = new ArrayDeque<>();
+		
 		this.embedCrsx4 = prefix.equals("Text4_");
 	}
 
@@ -463,6 +468,7 @@ public class SinkAntlrListener implements ParseTreeListener
 		else
 		{
 			// This is a binder occurrence. Resolve and emit
+			assert bounds != null;
 			Optional<Object> variable = bounds.stream().filter(var -> {
 				if (var == MARKER)
 					return false;

@@ -214,7 +214,7 @@ rule NList(term*⟦ ##term ##term*  ⟧) → cterm⟦ Cons( ⟨cterm: NTerm[#ter
 // Big hack to get it working until bootstrapping.
 // parse-locations=0 must be specified when running crsx3
 func NConcrete(String, String) -> Core_cterm_sort 
-rule NConcrete(#category, #text) → ParseToTerm("cterm", Replace(Replace(Replace(Replace(ParseToString(#category, #text), "(", "("), ")", ")"), "¹", " "), "x .", "(x)")) 
+rule NConcrete(#category, #text) → ParseToTerm("cterm", Replace(Replace(Replace(Replace(ParseToString(#category, #text), "[", "("), "]", ")"), "¹", " "), "x .", "[x]")) 
 
 // ----- Tokens
 

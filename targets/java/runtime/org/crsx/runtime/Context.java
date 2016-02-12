@@ -189,8 +189,14 @@ final public class Context
 				}
 
 				parser.categories().forEach(category -> {
+					
 					if (parsers.get(category) != null)
-						throw new RuntimeException("Error: duplicate parser category: " + category);
+					{
+						// Temporary: just issue a warning until have proper parser scoping mechanism
+						System.out.println("Warning:duplicate parser category: " + category);
+						//	throw new RuntimeException("Error: duplicate parser category: " + category);
+					}
+					
 					parsers.put(category, parser);
 				});
 				
