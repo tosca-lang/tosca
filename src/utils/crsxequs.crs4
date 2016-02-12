@@ -34,8 +34,6 @@ rule MetaVariableEqual(#METAVAR, #METAVAR2) → StringEqual(#METAVAR, #METAVAR2)
   @note   BUGGY --- ask LV plus functional marker should be optional
 */
 func VariableEqual(Core_cvariable_sort, Core_cvariable_sort) -> Boolean
-rule VariableEqual(%cvariable⟦ ##VARIABLE ⟧, %cvariable⟦ ##VARIABLE2 ⟧) → SameVariable(#VARIABLE, #VARIABLE2)
-//StringEqual(#VARIABLE, #VARIABLE2)
+rule VariableEqual( cvariable⟦ ##VARIABLE ⟧, cvariable⟦ ##VARIABLE2 ⟧) → SameVariable(#VARIABLE, #VARIABLE2)
+/* StringEqual(#VARIABLE, #VARIABLE2) */
 
-
-))

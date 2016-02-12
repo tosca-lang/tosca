@@ -1,0 +1,235 @@
+/* 
+ * @author : m schett
+ */
+
+import Std::List
+import Std::String
+import Core::Core 
+import Std::Core 
+
+/* ***************************************************** */
+/*  MISC                                                 */
+/* ***************************************************** */
+
+/* Lhs
+   @param `rule` a rule declaration
+   @return `lhs` the **term** `lhs` which is the left-hand side of the rule
+*/
+func Lhs(Core_cdecl_sort) -> Core_cterm_sort
+rule Lhs(cdecl⟦ rule ##cterm → ##cterm2 ⟧) → cterm⟦ ##cterm ⟧
+
+/* unwrap core_termS to a list of core_term */
+
+func Unwrap(List<Core_cterms_sort>) -> List<Core_cterm_sort>
+rule Unwrap(((Core_cterms(#),)) → #
+rule Unwrap(()) → ()
+
+/* wrap a List of core_term to core_termS */
+
+func Wrap(List<Core_cterm_sort>) -> List<Core_cterms_sort>
+rule Wrap( () ) → ()
+rule Wrap( (#1,#2...) ) → (Core_cterms((#1,#2)))
+
+
+/* get a variable from a core_term */
+func ToVariable(Core_cterm_sort) -> Core_cvariable_sort
+rule ToVariable(cterm⟦ ##VARIABLE ⟧) →  cvariable⟦ ##VARIABLE ⟧ 
+
+
+/* ***************************************************** */
+/*  RENAMING                                             */
+/* ***************************************************** */
+
+/* TODO-2016-02-03: does not handle assoc case */
+
+/* Rename
+   @param `suffix` a string, which serves as suffix for the meta variables
+   @param `term`   a term in which the meta variables will be renamed
+   @return `term'` in which all meta variables `#X` are renamed to
+                   `#Xsuffix` 
+   @throws error if it encounters a nested bound variable with the same name
+           e.g., [x]F([x]G(x))
+   @note   prefixing with a String did not work
+ */
+func Rename(String, Core_cterm_sort) -> Core_cterm_sort
+rule Rename(#suffix, #term) → RenameHelper(#suffix, (), #term)
+  func RenameHelper(String, List<Core_cvariable_sort>, Core_cterm_sort) -> Core_cterm_sort
+  /* case: constructor */ 
+  rule RenameHelper(#suffix, #BVs, cterm⟦ ##CONSTRUCTOR ##cterms? ⟧ ) 
+  → cterm⟦ ##CONSTRUCTOR 
+             ⟨cterms?: Wrap[Map[x . RenameHelper[#suffix, #BVs, x], Unwrap[#cterms?]]] ⟩ ⟧ 
+
+  /* case: literal */
+  rule RenameHelper(#suffix, #BVs, cterm⟦ ##cliteral ⟧) → cterm⟦ ##cliteral ⟧ 
+  /* case: variable */
+  rule RenameHelper( #suffix, #BVs, cterm⟦ ##cvariable ⟧ ) 
+  → cterm⟦ ##cvariable ⟧ 
+  
+  /* case: meta var */
+  /* offending 1 */
+  rule RenameHelper(#suffix, #BVs, cterm⟦ ##METAVAR ##cterms? ⟧ )
+  → cterm⟦ ⟨METAVAR: ConcatString[ #METAVAR, #suffix]⟩ ⟨cterms?: Wrap[Map[ x . RenameHelper[#suffix,#BVs,x], Unwrap[#cterms?]]] ⟩ ⟧    
+  
+/* TODO-2016-02-03: problem with bound terms */
+  
+  /* case: bound term */
+  /* offending 2 */
+  rule RenameHelper(#suffix, #BVs, cterm⟦ [ ##VARIABLE ] ##cterm ⟧) 
+  →  FooRenameHelper 
+  
+   /* DetectNestedBinders(Elem( ToVariable(x) , #BVs), #suffix, #BVs, ToVariable(x), #cterm(x)) */
+   /* according to Nipkow93, Sec. 5, nested binders with the same name are a problem */
+
+   func DetectNestedBinders(Boolean, String, List<Core_cvariable_sort>, Core_cvariable_sort, Core_cterm_sort) -> Core_cterm_sort
+   rule DetectNestedBinders(FALSE, #suffix, #BVs, #VARIABLE, #cterm) 
+   → cterm⟦ [ ##VARIABLE ] ⟨cterm: RenameHelper[#suffix, Insert[#VARIABLE, #BVs], #cterm] ⟩ ⟧
+   rule DetectNestedBinders(TRUE, #suffix, #BVs, #VARIABLE, #t) 
+   → Error(ConcatString("Rename: The term contains nested abstractions, e.g., [x]C([x]x). The offending variable is: ", Show(#VARIABLE)) ) 
+   
+   
+
+   
+/* RenameRule
+   @param `suffix` a string, which serves as suffix for all meta variables
+   @param `rule`   a rule in which the meta variables will be renamed
+   @return `rule'` in which all meta variables `#X` are renamed to `#Xsuffix` 
+   @note   see (Rename) 
+*/
+func RenameRule(String, Core_cdecl_sort) -> Core_cdecl_sort
+rule RenameRule(#suff, cdecl⟦ rule ##cterm → ##cterm2 ⟧) 
+→ cdecl⟦ rule ⟨cterm: Rename[#suff, #cterm]⟩ → ⟨cterm: Rename[#suff, #cterm2]⟩ ⟧
+
+/* RenameRules 
+   @param  `rules`    a list of rules in which the meta variables will be renamed
+   @return `rules'`  in which all meta variables `#X` are renamed to `#X_n`, whereby `n` in `1..Length(rules)`
+   @note   see (RenameRule) 
+*/
+func RenameRules(List<Core_cdecl_sort>) -> List<Core_cdecl_sort>
+rule RenameRules(#rules) → RenameRulesHelper(1, #rules)
+  func RenameRulesHelper($Numeric, List<Core_cdecl_sort>) ->  List<Core_cdecl_sort>
+  rule RenameRulesHelper(#_, ()) → ()
+  rule RenameRulesHelper(#n, (#r,#rules...)) → Insert( RenameRule(ConcatString("_", Show(#n)),#r), RenameRulesHelper(NumberPlus(#n,1), #rules))
+
+
+
+/* ***************************************************** */
+/*  VARIABLES                                            */
+/* ***************************************************** */
+
+
+/* VARS
+  data sort to hold meta variables, bound variables, and free variables
+ */
+enum VARS |  Vars( List<String>,              /* meta variables  */ 
+                   List<Core_cvariable_sort>,   /* bound variables */ 
+                   List<Core_cvariable_sort>) /* free Variables  */ 
+
+/* FreeVariables
+   @param  `t` a term 
+   @return the list of free variables in `t`
+   @note   contains duplicates, if variable occurs more than once
+*/
+func FreeVariables(Core_cterm_sort) -> List<Core_cvariable_sort>
+rule FreeVariables( #t ) → MatchFreeVariables( Variables(#t) )
+  func MatchFreeVariables(VARS) -> List<Core_cvariable_sort>
+  rule MatchFreeVariables(Vars(#M, #BV, #FV)) → #FV
+
+func MetaVariables(Core_cterm_sort) -> List<String /* Core_METAVAR_sort */>
+rule MetaVariables( #t ) → MatchMetaVariables( Variables(#t) )
+  func MatchMetaVariables(VARS) -> List< String /* Core_METAVAR_sort */>
+  rule MatchMetaVariables(Vars(#M, #BV, #FV)) → #M
+
+/* Variables
+   @param  `t` a term
+   @return `VARS` which hold in  
+           1. component: meta variables of `t`
+           2. component: bound variables of `t`  
+           3. component: free variables of `t`
+   @note that the components may contain duplicates, in particular if `t` is not linear
+*/
+func Variables(Core_cterm_sort) -> VARS
+rule Variables( #term ) →  VariablesHelperBoundVar((), #term )
+  /* needed to carry the bound variables throughout the computation */
+  func VariablesHelperBoundVar(List<Core_cvariable_sort>, Core_cterm_sort) -> VARS
+  rule VariablesHelperBoundVar(#BV, #t) 
+  → VariablesHelper(Vars((),(),()), #BV, #t)
+
+  /* case: constructor */
+  func VariablesHelper(VARS, List<Core_cvariable_sort>, Core_cterm_sort) -> VARS
+  rule VariablesHelper(Vars(#M, #BV, #FV), #_, cterm⟦ ##CONSTRUCTOR ##cterms? ⟧ )  
+  → ConcatVars(Vars(#M, #BV, #FV),           
+               Map( [t] -> VariablesHelperBoundVar(#BV,t), Unwrap(#cterms?))) 
+  /* case: meta variable */
+  rule VariablesHelper(Vars(#M, #BV, #FV), #_, cterm⟦  ##METAVAR ##cterms? ⟧ )
+  → ConcatVars(Vars(Insert(#METAVAR,#M), #BV, #FV),
+               Map( [t] -> VariablesHelperBoundVar(#BV,t), Unwrap(#cterms?)))
+
+  // TODO-2016-02-03: problem with bound term
+  /* case: bound term */
+  rule VariablesHelper(Vars(#M, #BV, #FV), #currBV, cterm⟦ [ ##VARIABLE ] ##cterm ⟧) 
+  → FooVariablesHelper
+  //VariablesHelper(Vars(#M, Insert(ToVariable(x), #BV), #FV), Insert(ToVariable(x), #currBV), #cterm(x))
+  
+  /* case: variable */
+  rule VariablesHelper(#VARS, #currBV, cterm⟦ ##cvariable ⟧) 
+  → MatchVariablesHelper(Elem(#cvariable, #currBV), #cvariable, #VARS)
+    /* match whether variable is bound in this branch or not */
+      func MatchVariablesHelper(Boolean, Core_cvariable_sort, VARS ) -> VARS 
+      rule MatchVariablesHelper(TRUE,  #variable, #VARS             ) → #VARS
+      rule MatchVariablesHelper(FALSE, #variable, Vars(#M, #BV, #FV)) → Vars(#M, #BV, Insert(#variable,#FV)) 
+
+/* ConcatVARS
+   @param  `VARS`  an accumulator of VARS
+   @param  `VARSs` an list of VARS
+   @return the component-wise concatenation of each `VARS'` in `VARSs` to `VAR` 
+*/
+func ConcatVars(VARS, List<VARS>) -> VARS
+rule ConcatVars(#VARS, #VARSs) → FoldlP( [vars varsacc] -> ConcatVARSHelper(vars, varsacc), #VARS, #VARSs)
+  func ConcatVARSHelper(VARS, VARS) -> VARS
+  rule ConcatVARSHelper(Vars(#M, #BV, #FV), Vars(#M2, #BV2, #FV2)) 
+  → Vars(Concat(#M, #M2), Concat(#BV, #BV2), Concat(#FV, #FV2))
+
+/* ***************************************************** */
+/*  Experimental Foldl                                   */
+/* ***************************************************** */
+
+// experimental/work in progress to fold over a term 
+
+func TermFoldl<a>( [Core_cvariable_sort] -> a,
+                   [String  List<a>] -> a, /* for meta variables*/
+                   [String  List<a>] -> a, /* for constructor terms */
+                    Core_cterm_sort ) -> a
+
+/* case constructor */
+rule TermFoldl([v] -> #V(v), [m xs] -> #M(m,xs), [c ts] -> #F(c,ts), cterm⟦ ##CONSTRUCTOR ##cterms? ⟧ ) 
+→ #F(#CONSTRUCTOR, Map( [t] -> TermFoldl( [v] -> #V(v), [m xs] -> #M(m,xs), [c ts] -> #F(c,ts), t), Unwrap(#cterms?)))
+
+/* case: meta var */
+rule TermFoldl([v] -> #V(v), [m xs] -> #M(m,xs), [c ts] -> #F(c,ts), cterm⟦ ##METAVAR ##cterms? ⟧ )
+→ #M(#METAVAR, Map( [t] -> TermFoldl( [v] -> #V(v), [m xs] -> #M(m,xs), [c ts] -> #F(c,ts), t), Unwrap(#cterms?))  )
+  
+
+// TODO-2016-02-03: problem with bound term
+/* case: bound term */
+rule TermFoldl([v] -> #V(v), [m xs] -> #M(m,xs), [c ts] -> #F(c,ts),  cterm⟦ [ ##VARIABLE ] ##cterm  ⟧)
+→ FooTermFoldl 
+  //#B(#VARIABLE, TermFoldl([v] -> #V(v), [m xs] -> #M(m,xs), [c ts] -> #F(c,ts), #cterm ))
+
+/* case: variable */
+rule TermFoldl([v] -> #V(v), [m xs] -> #M(m,xs), [c ts] -> #F(c,ts), cterm⟦ ##cvariable ⟧ ) 
+→ #V(#cvariable) 
+
+// to use/test for Termfoldl with i.e.,
+// TermFoldl( x . Var(x), x ys . Meta(x,ys), c bs. Const(c,bs),  #term) == #term
+func Var( Core_cvariable_sort ) -> Core_cterm_sort
+rule Var( #cvariable ) → cterm⟦ ##cvariable ⟧
+
+func Meta( String, List<Core_cterms_sort>) -> Core_cterm_sort
+rule Meta(#METAVAR, #cterms?) → cterm⟦ ##METAVAR  ##cterms? ⟧
+ 
+func Const( String /*Core_constructor_sort */, List<Core_cterms_sort>) -> Core_cterm_sort
+rule Const( #CONSTRUCTOR, #cterms? ) → cterm⟦ ##CONSTRUCTOR ##cterms? ⟧
+
+
+  
+  
