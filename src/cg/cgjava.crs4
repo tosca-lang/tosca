@@ -71,7 +71,7 @@ import static ⟨PathToImport(#name)⟩.* ⟧
 
 func JavaClassVisibility(String, String) -> Text
 rule JavaClassVisibility(#mainurl, #url) 
-→ If(Equal(#mainurl, #url), text⟦¶public⟧, text⟦¶static⟧) 
+→ If(Equal(#mainurl, #url), text⟦public⟧, text⟦static⟧) 
 
 func JavaDataDesc(Core_cdecl_sort) -> Text
 rule JavaDataDesc(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
@@ -186,7 +186,7 @@ rule JavaPatternTerm(#env, cterm⟦ ##cliteral ⟧, #term, #storage, [env]->#(en
 // For now only accepts patterns of the form (x)...(y)#(x, ... y)
 rule JavaPatternTerm(#env, cterm⟦ ##METAVAR ##cterms? ⟧, #term, #storage, [env]->#(env))
 → text⟦
-/* ⟨Text-CommentToken(#METAVAR)⟩=⟨Text-CommentToken($(Show, #term))⟩ */⟨JavaPatternMaybeMetaArgs(#env, #METAVAR, #cterms?, #term, [x] -> #(x))⟩⟧   
+/* ⟨Text-CommentToken(#METAVAR)⟩=⟨Text-CommentToken(Show(#term))⟩ */⟨JavaPatternMaybeMetaArgs(#env, #METAVAR, #cterms?, #term, [x] -> #(x))⟩⟧   
 
 rule JavaPatternTerm(#env, cterm⟦ ##VARIABLE ⟧, #term, #storage, [env]->#(env)) 
 → JavaPatternVariable(MaybeGetVar(#env, #VARIABLE), #env, #VARIABLE, #term, [env]->#(env)) 
@@ -263,7 +263,7 @@ rule JavaFindBoundVar(#env, cterm⟦ ##VARIABLE ⟧)
 
 func JavaContractum({String : JavaEnvEntry}, Core_cterm_sort) -> Text
 rule JavaContractum(#env, #term) 
-→ JavaSendTerm(#env, #term, [env] -> JavaSendEndTerm(GetTail(env))) 
+→ JavaSendTerm(#env, #term, [env] -> text⟦return true;⟧) 
 
 // ---- Contraction - send mode
 
@@ -287,11 +287,6 @@ rule JavaSendTerm(#env, Core_cterm_A6([x] -> #cterm(x)), [env]->#(env))
 Variable ⟨jvar⟩ = ⟨GetSink(#env)⟩.context().makeVariable("x");⟨
 JavaSendTerm(AddBinder(AddVar(#env, var, Bound(jvar)), jvar), #cterm(var), [x] -> #(x))⟩⟧ 
 
-func JavaSendEndTerm(Boolean) -> Text
-rule JavaSendEndTerm(TRUE)  → text⟦return true;⟧ 
-rule JavaSendEndTerm(FALSE) → text⟦⟧ 
-
-
 func JavaMaybeSendBinds({String : JavaEnvEntry}, [JavaEnv] -> Text) -> Text
 rule JavaMaybeSendBinds(#env, [env] -> #(env))
 → text⟦⟨JavaSendBinds(#env, GetBinders(#env))⟩⟨#(SetBinders(#env, Nil))⟩⟧
@@ -308,12 +303,26 @@ func JavaSendConstruction({String : JavaEnvEntry}, String, List<Core_cterms_sort
 
 rule JavaSendConstruction(#env, #constructor, #cterms?, [env]->#(env))
 → text⟦
-⟨GetSink(#env)⟩.start(⟨Descriptor(#constructor)⟩);⟨JavaSendMaybeTerms(UnsetTail(#env), #cterms?)⟩
-⟨GetSink(#env)⟩.end();⟨#(#env)⟩⟧ 
+⟨GetSink(#env)⟩.start(⟨Descriptor(#constructor)⟩);⟨
+  JavaSendMaybeTerms(UnsetTail(#env), #cterms?, [x] -> JavaSendEndConstruction(x, [x] -> #(x)))⟩⟧
 
-func JavaSendMaybeTerms({String : JavaEnvEntry}, List<Core_cterms_sort>) -> Text
-rule JavaSendMaybeTerms(#env, cterms?⟦              ⟧) → text⟦⟧ 
-rule JavaSendMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧) → TextFold(Map([x] -> JavaSendTerm(#env, x, [x] -> text⟦⟧), #cterm*), text⟦⟧) 
+func JavaSendEndConstruction(JavaEnv, [JavaEnv] -> Text) -> Text
+rule JavaSendEndConstruction(#env, [env] -> #(env))
+→ text⟦⟨GetSink(#env)⟩.end();⟨#(#env)⟩⟧
+
+func JavaSendMaybeTerms({String : JavaEnvEntry}, List<Core_cterms_sort>, [{String : JavaEnvEntry}] -> Text) -> Text
+rule JavaSendMaybeTerms(#env, cterms?⟦              ⟧, [env]->#(env)) 
+→ #(#env) 
+
+rule JavaSendMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, [env]->#(env)) 
+→ JavaSendTerms(#env, #cterm*, [env] -> #(env))
+
+func JavaSendTerms({String : JavaEnvEntry}, List<Core_cterm_sort>,  [{String : JavaEnvEntry}] -> Text) -> Text
+rule JavaSendTerms(#env, cterm*⟦⟧, [env] -> #(env))
+→ #(#env)
+
+rule JavaSendTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, [env] -> #(env))
+→ JavaSendTerm(#env, #cterm, [env] -> JavaSendTerms(env, #cterm*, [env] -> #(env)))
 
 // ---- SEND scope variable
 

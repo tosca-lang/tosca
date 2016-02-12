@@ -29,7 +29,6 @@ import net.sf.crsx.Variable;
 import net.sf.crsx.generic.GenericFactory;
 import net.sf.crsx.util.ExtensibleMap;
 import net.sf.crsx.util.LinkedExtensibleMap;
-import net.sf.crsx.util.TraceSink;
 
 /**
  * Antlr listener producing term internal representation
@@ -48,7 +47,6 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 		SKIP, CONS, LITERAL, VAR, BINDER, METAVAR, CONCRETE, GROUPORLIST, IN_GROUPORLIST, TERM
 	};
 
-
 	private GenericFactory factory;
 
 	public Sink sink3;
@@ -56,19 +54,25 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 	ArrayDeque<State> state = new ArrayDeque<>();
 
 	/** In scope variables. */
-	private ArrayDeque<Object> bounds = new ArrayDeque<>();
+	private ArrayDeque<Object> bounds;
+
+	/** Fresh variables */
+	private ArrayDeque<Object> freshes;
 
 	private ArrayList<Variable> binders;
 
 	/** Count the number of terms in list */
 	private ArrayDeque<Integer> consCount = new ArrayDeque<>();
-	
+
 	// Constructors
-	
-	public TermParserListener(GenericFactory factory, Sink sink3)
+
+	public TermParserListener(GenericFactory factory, Sink sink3, ArrayDeque<Object> bounds, ArrayDeque<Object> freshes)
 	{
 		this.sink3 = sink3;
 		this.factory = factory;
+		this.freshes = freshes;
+		this.bounds = bounds;
+		
 		state.push(State.SKIP);
 	}
 
@@ -115,14 +119,14 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 	public void exitGroupOrList(GroupOrListContext ctx)
 	{
 		int count = consCount.pop();
-		
+
 		// Send list terminator
 		sink3 = sink3.start(sink3.makeConstructor("$Nil")).end();
-		
+
 		// And close all $Cons
 		while (count-- > 0)
 			sink3 = sink3.end();
-		
+
 		state.pop();
 	}
 
@@ -177,7 +181,7 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 	{
 		state.push(State.CONCRETE);
 	}
-	
+
 	@Override
 	public void exitConcrete(ConcreteContext ctx)
 	{
@@ -200,7 +204,7 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 		while (bounds.peek() != MARKER)
 			bounds.pop();
 	}
-	
+
 	// --- binders
 
 	@Override
@@ -224,12 +228,12 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 		{
 			int count = consCount.pop();
 			consCount.push(count + 1);
-			
+
 			// TODO: Should delay by using a buffer before sending $Cons when supporting grouped expression.
 			sink3 = sink3.start(sink3.makeConstructor("$Cons"));
 		}
-		state.push(State.TERM);	
-			
+		state.push(State.TERM);
+
 	}
 
 	@Override
@@ -279,7 +283,8 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 				break;
 			case VAR :
 				final String varname = node.getText();
-				// This is a binder occurrence. Resolve and emit
+
+				// This is a binder occurrence or a fresh variable. Resolve and emit
 				Optional<Object> variable = bounds.stream().filter(var -> {
 					if (var == MARKER)
 						return false;
@@ -287,18 +292,23 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 					return ((net.sf.crsx.Variable) var).name().equals(varname);
 				}).findFirst();
 
-				if (variable.isPresent())
+				if (!variable.isPresent())
 				{
-					// Binder exists -> emit variable use
-
-					sink3 = sink3.use((net.sf.crsx.Variable) variable.get());
+					// Try among fresh variables
+					variable = freshes.stream().filter(var -> {
+						return ((net.sf.crsx.Variable) var).name().equals(varname);
+					}).findFirst();
 				}
-				else
+
+				if (!variable.isPresent())
 				{
-					// Binder does not exists: emit fresh variable.
-
-					sink3 = sink3.use(sink3.makeVariable(varname, false));
+					// Create new fresh variable.
+					variable = Optional.of(sink3.makeVariable(varname, false));
+					freshes.push(variable.get());
 				}
+
+				sink3 = sink3.use((net.sf.crsx.Variable) variable.get());
+
 				state.pop();
 				state.push(State.SKIP);
 				break;
@@ -343,16 +353,16 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 			case IN_GROUPORLIST :
 				// either a COMMA or RPAR. Ignore.
 				break;
-			case SKIP:
+			case SKIP :
 				// EOF
 				break;
-				
+
 			default :
 				assert false : "Unreachable";
 				break;
 
 		}
-		 
+
 	}
 
 	/**
@@ -363,6 +373,11 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 	{
 		ExtensibleMap<String, net.sf.crsx.Variable> map = new LinkedExtensibleMap<>();
 		for (Object v : bounds)
+		{
+			if (v instanceof net.sf.crsx.Variable)
+				map = map.extend(((net.sf.crsx.Variable) v).name(), (net.sf.crsx.Variable) v);
+		};
+		for (Object v : freshes)
 		{
 			if (v instanceof net.sf.crsx.Variable)
 				map = map.extend(((net.sf.crsx.Variable) v).name(), (net.sf.crsx.Variable) v);

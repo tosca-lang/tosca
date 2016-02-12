@@ -189,8 +189,11 @@ public class SinkAntlrListener implements ParseTreeListener
 	/** Map binder id to binder name */
 	private HashMap<String, String> binderNames;
 
-	/** In scope variables. */
+	/** In scope bound variables. */
 	private ArrayDeque<Object> bounds;
+
+	/** In scope fresh variables. */
+	private ArrayDeque<Object> freshes;
 
 	/** Current token sort */
 	private TokenSort sort;
@@ -227,6 +230,7 @@ public class SinkAntlrListener implements ParseTreeListener
 
 		this.binderNames = new HashMap<>();
 		this.bounds = new ArrayDeque<>();
+		this.freshes = new ArrayDeque<>();
 
 		this.embedCrsx4 = prefix.equals("Text4_");
 	}
@@ -469,22 +473,31 @@ public class SinkAntlrListener implements ParseTreeListener
 					return ((net.sf.crsx.Variable) var).name().equals(binderName);
 			}).findFirst();
 
-			if (variable.isPresent())
+			if (!variable.isPresent())
 			{
-				// Binder exists -> emit variable use
-				if (sink == null)
-					sink4 = sink4.use((Variable) variable.get());
-				else
-					sink = sink.use((net.sf.crsx.Variable) variable.get());
+				// Try among fresh variables
+				variable = freshes.stream().filter(var -> {
+					return ((net.sf.crsx.Variable) var).name().equals(binderName);
+				}).findFirst();
 			}
+
+			if (!variable.isPresent())
+			{
+				// Create new fresh variable.
+				if (sink == null)
+					variable = Optional.of(new Variable(binderName));
+				else
+					variable = Optional.of(sink.makeVariable(binderName, false));
+
+				freshes.push(variable.get());
+			}
+
+			// Can now emit variable
+			if (sink == null)
+				sink4 = sink4.use((Variable) variable.get());
 			else
-			{
-				// Binder does not exists: emit fresh variable.
-				if (sink == null)
-					sink4 = sink4.use(new Variable(binderName));
-				else
-					sink = sink.use(factory.makeVariable(binderName, false));
-			}
+				sink = sink.use((net.sf.crsx.Variable) variable.get());
+
 		}
 		state = State.PARSE;
 	}
@@ -654,7 +667,7 @@ public class SinkAntlrListener implements ParseTreeListener
 					// Last character is closing the embedded section: trim it.
 					text = text.trim();
 					text = text.substring(0, text.length() - 1);
-					
+
 					Reader reader = new StringReader(text);
 
 					if (sink != null)
@@ -700,7 +713,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	private void parseCrsx4Term(Reader reader)
 	{
 		// TODO: custom operators
-		
+
 		try
 		{
 			CharStream stream = new ANTLRInputStream(reader);
@@ -710,8 +723,8 @@ public class SinkAntlrListener implements ParseTreeListener
 
 			CrsxMetaParser parser = new CrsxMetaParser(input);
 			parser.setBuildParseTree(false);
-			
-			TermParserListener listener = new TermParserListener(factory, sink);
+
+			TermParserListener listener = new TermParserListener(factory, sink, bounds, freshes);
 			parser.addParseListener(listener);
 
 			parser.addErrorListener(new DiagnosticErrorListener(true));
@@ -733,6 +746,11 @@ public class SinkAntlrListener implements ParseTreeListener
 	{
 		ExtensibleMap<String, net.sf.crsx.Variable> map = new LinkedExtensibleMap<>();
 		for (Object v : bounds)
+		{
+			if (v instanceof net.sf.crsx.Variable)
+				map = map.extend(((net.sf.crsx.Variable) v).name(), (net.sf.crsx.Variable) v);
+		};
+		for (Object v : freshes)
 		{
 			if (v instanceof net.sf.crsx.Variable)
 				map = map.extend(((net.sf.crsx.Variable) v).name(), (net.sf.crsx.Variable) v);

@@ -281,7 +281,7 @@ JavaFindBoundVar[#env, %cterm⟦ ##VARIABLE ⟧]
 
 JavaContractum[JavaEnv, Core_cterm_sort] :: Text;
 JavaContractum[#env, #term] 
-→ JavaSendTerm[#env, #term, env.JavaSendEndTerm[GetTail[env]]];
+→ JavaSendTerm[#env, #term, env.%n⟦return true;⟧];
 
 // ---- Contraction - send mode
 
@@ -305,10 +305,6 @@ JavaSendTerm[#env, %cterm⟦ [ ##VARIABLE ] ##cterm ⟧, env.#[env]]
 Variable «jvar» = «GetSink[#env]».context().makeVariable("x");«
   JavaSendTerm[AddBinder[AddVar[#env, var, Bound[jvar]], jvar], #cterm[var], env.#[env]]»⟧;
 
-JavaSendEndTerm[$Boolean] :: Text;
-JavaSendEndTerm[$True]  → %n⟦return true;⟧;
-JavaSendEndTerm[$False] → %n⟦⟧;
-
 JavaMaybeSendBinds[JavaEnv, env::JavaEnv.Text] :: Text;
 JavaMaybeSendBinds[#env, env.#[env]]
 → %n⟦«JavaSendBinds[#env, GetBinders[#env]]»«#[SetBinders[#env, ()]]»⟧;
@@ -325,32 +321,45 @@ JavaSendConstruction[JavaEnv, $String, $List[Core_cterms_sort], env::JavaEnv.Tex
 
 JavaSendConstruction[#env, #constructor, #cterms?, env.#[env]]
 → %n⟦
-«GetSink[#env]».start(«Descriptor[#constructor]»);«JavaSendMaybeTerms[UnsetTail[#env], #cterms?]»
-«GetSink[#env]».end();«#[#env]»⟧;
+«GetSink[#env]».start(«Descriptor[#constructor]»);«
+  JavaSendMaybeTerms[UnsetTail[#env], #cterms?, env.JavaSendEndConstruction[env, env.#[env]]]»⟧;
 
-JavaSendMaybeTerms[JavaEnv, $List[Core_cterms_sort]] :: Text;
-JavaSendMaybeTerms[#env, %cterms?⟦              ⟧] → %n⟦⟧;
-JavaSendMaybeTerms[#env, %cterms?⟦ ( ##cterm* ) ⟧] → TextFold[Map[term.JavaSendTerm[#env, term, env.%n⟦⟧], #cterm*], %n⟦⟧];
+JavaSendEndConstruction[JavaEnv, env::JavaEnv.Text] :: Text;
+JavaSendEndConstruction[#env, env.#[env]]
+→ %n⟦«GetSink[#env]».end();«#[#env]»⟧;
+
+JavaSendMaybeTerms[JavaEnv, $List[Core_cterms_sort], env::JavaEnv.Text] :: Text;
+JavaSendMaybeTerms[#env, %cterms?⟦              ⟧, env.#[env]] 
+→ #[#env];
+
+JavaSendMaybeTerms[#env, %cterms?⟦ ( ##cterm* ) ⟧, env.#[env]] 
+→ JavaSendTerms[#env, #cterm*, env.#[env]];
+
+JavaSendTerms[JavaEnv, $List[Core_cterm_sort], env::JavaEnv.Text] :: Text;
+JavaSendTerms[#env, %cterm*⟦                  ⟧, env.#[env]] 
+→ #[#env];
+
+JavaSendTerms[#env, %cterm*⟦ ##cterm ##cterm* ⟧, env.#[env]] 
+→ JavaSendTerm[#env, #cterm, env.JavaSendTerms[env, #cterm*, env.#[env]]];
 
 // ---- SEND scope variable
 
 JavaSendVariable[JavaEnv, $String, env::JavaEnv.Text] :: Text;
 JavaSendVariable[#env, #var, env.#[env]]
-→ JavaSendFreeOrFreshVar[MaybeGetVar[#env, #var], #env, env.#[env]];
+→ JavaSendFreeOrFreshVar[MaybeGetVar[#env, #var], #env, #var, env.#[env]];
 
-JavaSendFreeOrFreshVar[Option[VarEntry], JavaEnv, env::JavaEnv.Text] :: Text;
+JavaSendFreeOrFreshVar[Option[VarEntry], JavaEnv, $String, env::JavaEnv.Text] :: Text;
 
 // Not in tn the env: fresh variable. 
 -[Fresh[jvar::Text]]:
-JavaSendFreeOrFreshVar[NONE, #env, env.#[env]]
+JavaSendFreeOrFreshVar[NONE, #env, #var, env.#[env]]
 → %n⟦
-Variable «jvar» = «GetSink[#env]».context().makeVariable("x"); «GetSink[#env]».use(«jvar»);«#[#env]»⟧;
+Variable «jvar» = «GetSink[#env]».context().makeVariable("x"); «GetSink[#env]».use(«jvar»);«#[AddVar[#env, #var, Fresh[jvar]]]»⟧;
 
 // In the env: free or bound variable.
-JavaSendFreeOrFreshVar[SOME[#varEntry], #env, env.#[env]]
+JavaSendFreeOrFreshVar[SOME[#varEntry], #env, #var, env.#[env]]
 → %n⟦
 «GetSink[#env]».use(«UnVarVar[#varEntry]»);«#[#env]»⟧;
-
 
 // ---- SEND metavar
 

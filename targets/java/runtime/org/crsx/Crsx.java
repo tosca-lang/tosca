@@ -188,7 +188,13 @@ public class Crsx
 		// Compute output java filename
 		String output = inputFile.getName().replace(".crsc", ".java").replace(".crs", ".java");
 		output = Character.toUpperCase(output.charAt(0)) + output.substring(1); // First character must be upper case.
-		output = dest + File.separator + output; // dest / output.java
+		
+		// For testing: put always in tests/
+		
+		output = dest + File.separator + "tests" + File.separator + output; // dest / output.java
+		
+		
+		
 		return output;
 	}
 
