@@ -21,11 +21,8 @@ public class MapTerm extends Construction
 	/** Extended Map */
 	protected MapTerm parent;
 
-	/** variable to term mapping */
-	protected Map<Variable, Term> variables;
-
-	/** String to term mapping */
-	protected Map<String, Term> named;
+	/** String/Variable to term mapping */
+	protected Map<Object, Term> map;
 
 	/**  */
 	public MapTerm()
@@ -45,8 +42,8 @@ public class MapTerm extends Construction
 	public Term lookup(String key)
 	{
 		Term value = null;
-		if (named != null)
-			value = named.get(key);
+		if (map != null)
+			value = map.get(key);
 
 		if (value == null && parent != null)
 			value = parent.lookup(key);
@@ -62,8 +59,8 @@ public class MapTerm extends Construction
 	public Term lookup(Variable key)
 	{
 		Term value = null;
-		if (variables != null)
-			value = variables.get(key);
+		if (map != null)
+			value = map.get(key);
 
 		if (value == null && parent != null)
 			value = parent.lookup(key);
@@ -112,34 +109,7 @@ public class MapTerm extends Construction
 	 */
 	protected void copy(Sink sink, boolean discard, HashSet<String> names, IdentityHashMap<Variable, Boolean> vars)
 	{
-		if (variables != null)
-		{
-			for (Entry<Variable, Term> entry : variables.entrySet())
-			{
-				if (!vars.containsKey(entry.getKey()))
-				{
-					sink.propertyVariable(entry.getKey(), entry.getValue().ref());
-					vars.put(entry.getKey(), true);
-				}
-			}
-		}
-		if (named != null)
-		{
-			for (Entry<String, Term> entry : named.entrySet())
-			{
-				if (!names.contains(entry.getKey()))
-				{
-					sink.propertyNamed(entry.getKey(), entry.getValue().ref());
-					names.add(entry.getKey());
-				}
-			}
-		}
-
-		if (parent != null)
-			parent.ref().copy(sink, discard, names, vars);
-
-		if (discard)
-			release();
+		throw new RuntimeException("Not implemented");
 	}
 
 	/**
@@ -153,6 +123,8 @@ public class MapTerm extends Construction
 	 */
 	protected void substituteTo(Sink sink, Map<Variable, Term> substitutes)
 	{
+		throw new RuntimeException("Not implemented");
+
 		//		if (substitutes.isEmpty())
 		//			sink.copy(this); // Transfer properties ref
 		//		else
@@ -209,10 +181,10 @@ public class MapTerm extends Construction
 	 */
 	public void addNamedProperty(String name, Term term)
 	{
-		if (named == null)
-			named = new HashMap<>();
+		if (map == null)
+			map = new HashMap<>();
 
-		named.put(name, term);
+		map.put(name, term);
 	}
 
 	/**
@@ -223,10 +195,24 @@ public class MapTerm extends Construction
 	 */
 	public void addVariableProperty(Variable variable, Term term)
 	{
-		if (variables == null)
-			variables = new IdentityHashMap<>();
+		if (map == null)
+			map = new HashMap<>();
 
-		variables.put(variable, term);
+		map.put(variable, term);
+	}
+
+	/**
+	 * Add property
+	 * 
+	 * @param key. The property key. If key is a variable use, add as a variable entry. 
+	 * @param term the associated value. The reference is used.
+	 */
+	public void addProperty(Term key, Term term)
+	{
+		if (key instanceof VariableUse)
+			addVariableProperty(((VariableUse) key).variable(), term);
+		else
+			addNamedProperty(key.symbol(), term);
 	}
 
 	@Override
@@ -238,21 +224,12 @@ public class MapTerm extends Construction
 			parent = null;
 		}
 
-		if (variables != null)
+		if (map != null)
 		{
-			variables.forEach((Variable var, Term u) -> {
-				var.release();
+			map.forEach((Object key, Term u) -> {
 				u.release();
 			});
-			variables = null;
-		}
-
-		if (variables != null)
-		{
-			named.forEach((String key, Term u) -> {
-				u.release();
-			});
-			named = null;
+			map = null;
 		}
 
 		super.free();
@@ -266,25 +243,17 @@ public class MapTerm extends Construction
 	 */
 	protected void print(Appendable out, HashSet<String> names, IdentityHashMap<Variable, Boolean> vars) throws IOException
 	{
-		if (variables != null)
+
+		if (map != null)
 		{
-			for (Entry<Variable, Term> entry : variables.entrySet())
-			{
-				if (!vars.containsKey(entry.getKey()))
-				{
-					out.append(entry.getKey().name).append(":").append(entry.getValue().toString()).append(";");
-					vars.put(entry.getKey(), true);
-				}
-			}
-		}
-		if (named != null)
-		{
-			for (Entry<String, Term> entry : named.entrySet())
+			for (Entry<Object, Term> entry : map.entrySet())
 			{
 				if (!names.contains(entry.getKey()))
 				{
-					out.append('"').append(entry.getKey()).append('"').append(":").append(entry.getValue().toString()).append(";");
-					names.add(entry.getKey());
+					out.append('"').append(entry.getKey().toString()).append('"').append(":").append(
+							entry.getValue().toString()).append(";");
+					if (entry.getKey() instanceof String)
+						names.add((String) entry.getKey());
 				}
 			}
 		}
@@ -327,18 +296,18 @@ public class MapTerm extends Construction
 
 	public boolean sendKeys(Sink sink)
 	{
-		if (named != null)
+		if (map != null)
 		{
-			named.forEach((key, value) -> {
+			map.forEach((key, value) -> {
 				sink.start(List._M_Cons).literal(key);
 			});
 		}
-		
+
 		sink.start(List._M_Nil).end();
-		
-		if (named != null)
+
+		if (map != null)
 		{
-			named.forEach((key, value) -> {
+			map.forEach((key, value) -> {
 				sink.end();
 			});
 		}
@@ -348,18 +317,18 @@ public class MapTerm extends Construction
 
 	public boolean sendValues(Sink sink)
 	{
-		if (named != null)
+		if (map != null)
 		{
-			named.forEach((key, value) -> {
+			map.forEach((key, value) -> {
 				sink.start(List._M_Cons).copy(value.ref());
 			});
 		}
-		
+
 		sink.start(List._M_Nil).end();
-		
-		if (named != null)
+
+		if (map != null)
 		{
-			named.forEach((key, value) -> {
+			map.forEach((key, value) -> {
 				sink.end();
 			});
 		}

@@ -298,7 +298,7 @@ func JavaSendBinds(JavaEnv, List<Text>) -> Text
 rule JavaSendBinds(#env, (              )) → text⟦⟧
 rule JavaSendBinds(#env, (#var, #vars...)) 
 → text⟦
-⟨GetSink(#env)⟩.binds(new Variable[] { ⟨TextFold( Cons(#var, #vars) , text⟦, ⟧)⟩ });⟧
+⟨GetSink(#env)⟩.binds(new Variable⟨JavaSendBrackets⟩ { ⟨TextFold( Cons(#var, #vars) , text⟦, ⟧)⟩ });⟧
 
 // ---- SEND construction
 
@@ -363,7 +363,12 @@ rule JavaSendMeta(#env, #metavar, cterms?⟦ ( ##cterm* ) ⟧, [env]->#(env))
 func JavaSendSubstitutes({String : JavaEnvEntry}, String, List<Text>) -> Text
 rule JavaSendSubstitutes(#env, #metavar, #substitutes)
 → text⟦
-⟨GetSink(#env)⟩.substitute(⟨GetMetaVar(#env, #metavar)⟩.ref(), new Variable() { ⟨TextFold(GetMetaArgs(#env, #metavar), text⟦, ⟧)⟩ }, new Term() {⟨TextFold(#substitutes, text⟦, ⟧)⟩});⟧ 
+⟨GetSink(#env)⟩.substitute(⟨GetMetaVar(#env, #metavar)⟩.ref(), new Variable⟨JavaSendBrackets⟩ { ⟨TextFold(GetMetaArgs(#env, #metavar), text⟦, ⟧)⟩ }, new Term⟨JavaSendBrackets⟩ {⟨TextFold(#substitutes, text⟦, ⟧)⟩});⟧ 
+
+// Temporary hack till get rid of mix crsx3/crsx4 mode
+func JavaSendBrackets -> Text
+rule JavaSendBrackets → Text4_text_A1(Text4_content_A1("[]"), Text4_text_A2)
+
 
 // ---- Contraction - set mode
 
@@ -382,7 +387,7 @@ rule JavaSetTerms2(#env, cterm*⟦ ##cterm ##cterm* ⟧, #jterms, [terms] -> #(t
 func JavaSetTerm({String : JavaEnvEntry}, Core_cterm_sort, [Text] -> Text) -> Text
 
 rule JavaSetTerm(#env, #cterm, [jterm] -> #(jterm))
-→ text⟦Term ⟨term⟩ {
+→ text⟦Term ⟨term⟩;{
 BufferSink ⟨buffer⟩ = ⟨GetSink(#env)⟩.context().makeBuffer();⟨JavaSendTerm(SetSink(#env, buffer), #cterm, [x] -> text⟦⟧)⟩
 ⟨term⟩ = ⟨buffer⟩.term();
 }⟨#(term)⟩⟧ 

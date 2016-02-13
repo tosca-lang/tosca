@@ -11,6 +11,12 @@ import org.crsx.runtime.VariableUse;
 public class MapExtern
 {
 
+	final public static boolean _M_MapNew(Sink sink)
+	{
+		sink.copy(new MapTerm());
+		return true;
+	}
+
 	final public static boolean _M_MapGet(Sink sink, Term map, Term key)
 	{
 		map = Normalizer.normalize(sink.context(), map);
@@ -24,9 +30,16 @@ public class MapExtern
 		return true;
 	}
 
-	final public static boolean _M_MapNew(Sink sink)
+	final public static boolean _M_MapPut(Sink sink, Term map, Term key, Term value)
 	{
-		sink.copy(new MapTerm());
+		map = Normalizer.normalize(sink.context(), map);
+		key = Normalizer.normalize(sink.context(), key);
+		if (map.refcount() > 1)
+			map = ((MapTerm) map).extend();
+
+		((MapTerm) map).addProperty(key, value);
+
+		sink.copy(map);
 		return true;
 	}
 
@@ -42,25 +55,12 @@ public class MapExtern
 		return true;
 	}
 
-	final public static boolean _M_MapPut(Sink sink, Term map, Term key, Term value)
-	{
-		map = Normalizer.normalize(sink.context(), map);
-		key = Normalizer.normalize(sink.context(), key);
-		if (map.refcount() > 1)
-			map = ((MapTerm) map).extend();
-		
-		((MapTerm) map).addNamedProperty(key.symbol(), value);
-		
-		sink.copy(map);
-		return true;
-	}
-
 	final public static boolean _M_MapKeys(Sink sink, Term map)
 	{
 		map = Normalizer.normalize(sink.context(), map);
 		return ((MapTerm) map).sendKeys(sink);
 	}
-	
+
 	final public static boolean _M_MapValues(Sink sink, Term map)
 	{
 		map = Normalizer.normalize(sink.context(), map);
