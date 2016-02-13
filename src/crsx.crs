@@ -19,7 +19,9 @@ $Use["std/string.crs"];
 */
 Compile[$String] :: Text;  
 Compile[#url] 
-→ CompileSystem[InitSystem[#url]];
+→ $[IfDef, "to-core",
+    CompileToCore[#url], 
+    CompileSystem[InitSystem[#url]]];
 
 CompileSystem[System] :: Text;  
 CompileSystem[#system] 
@@ -43,5 +45,13 @@ ParseCore[#url] → $[ParseResource, "ccrsx", #url];
 
 ParseCrsx[$String] :: Core_ccrsx_sort;
 ParseCrsx[#url] → ToCore[#url, $[ParseResource, "crsx", #url]];
+
+//--- Compilation to Core (for debugging)
+
+CompileToCore[$String] :: Text;  
+CompileToCore[#url] 
+→ Core_Print_ccrsx[ParseCrsx[#url]];
+//→ ParseCrsx[#url];
+
 
 )]

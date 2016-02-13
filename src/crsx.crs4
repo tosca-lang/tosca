@@ -9,6 +9,7 @@ import Cg::Cgjava
 import Std::Core
 import Std::List
 import Std::String
+import Core::Core
 
 //--- API
 
@@ -18,7 +19,9 @@ import Std::String
 */
 func Compile($String) -> Text   
 rule Compile(#url) 
-→ CompileSystem(InitSystem(#url)) 
+→ IfDef("to-core",
+    CompileToCore(#url), 
+    CompileSystem(InitSystem(#url))) 
 
 func CompileSystem(System) -> Text   
 rule CompileSystem(#system) 
@@ -42,3 +45,11 @@ rule ParseCore(#url) → ParseResource("ccrsx", #url)
 
 func ParseCrsx($String) -> Core_ccrsx_sort 
 rule ParseCrsx(#url) → ToCore(#url, ParseResource("crsx", #url)) 
+
+
+//--- Compilation to Core (for debugging)
+
+func CompileToCore(String) -> Text  
+rule CompileToCore(#url) 
+//→ Core_Print_ccrsx(ParseCrsx(#url))
+→ ParseCrsx(#url)

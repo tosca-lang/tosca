@@ -7,12 +7,6 @@
 <listEntry value="1"/>
 </listAttribute>
 <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
-<listAttribute key="org.eclipse.jdt.launching.CLASSPATH">
-<listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;runtimeClasspathEntry containerPath=&quot;org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8&quot; javaProject=&quot;crsx4&quot; path=&quot;1&quot; type=&quot;4&quot;/&gt;&#10;"/>
-<listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;runtimeClasspathEntry path=&quot;3&quot; projectName=&quot;crsx3&quot; type=&quot;1&quot;/&gt;&#10;"/>
-<listEntry value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;runtimeClasspathEntry id=&quot;org.eclipse.jdt.launching.classpathentry.defaultClasspath&quot;&gt;&#10;&lt;memento exportedEntriesOnly=&quot;false&quot; project=&quot;crsx4&quot;/&gt;&#10;&lt;/runtimeClasspathEntry&gt;&#10;"/>
-</listAttribute>
-<booleanAttribute key="org.eclipse.jdt.launching.DEFAULT_CLASSPATH" value="false"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="net.sf.crsx.run.Crsx"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="&quot;grammar=('net.sf.crsx.text.Text';'org.crsx.parser.CrsxMetaParser';'org.crsx.core.CoreMetaParser';)&quot; &#10;rules=crsx.crs&#10;term=\&quot;crsx.crs4\&quot;&#10;wrapper=Compile&#10;output=../targets/java/compiler/org/crsx/compiler/Crsx.java&#10;sink=net.sf.crsx.text.TextSink&#10;javapackage=&#10;omit-properties&#10;parse-locations=0&#10;javabasepackage=org.crsx.compiler"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="crsx4"/>

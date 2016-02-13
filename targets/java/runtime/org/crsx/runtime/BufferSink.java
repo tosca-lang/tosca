@@ -56,7 +56,7 @@ public class BufferSink extends Sink
 	 */
 	public Term term()
 	{
-		assert term != null : "incomplete term construction";
+		assert term != null : "incomplete term construction ";
 		return term;
 	}
 
@@ -97,7 +97,7 @@ public class BufferSink extends Sink
 		subbinders.push(new ArrayList<>(5));
 		return this;
 	}
-
+	
 	@Override
 	public BufferSink end()
 	{
@@ -114,6 +114,9 @@ public class BufferSink extends Sink
 			((FixedConstruction) c).subs = subs.toArray(asub);
 			Variable[][] abinders = new Variable[subs.size()][];
 			((FixedConstruction) c).binders = subbinders.toArray(abinders);
+		
+			// Basic type checking.
+			assert !c.symbol().equals("Cons") || subs.size() == 2 : "Wrong number of subs for Cons";
 		}
 
 		if (terms.isEmpty())

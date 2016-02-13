@@ -137,9 +137,6 @@ public abstract class ConstructionDescriptor
 		/** The static method to invoke */
 		protected Method method;
 
-		/** Whether this constructor needs properties */
-		final protected boolean hasProperties;
-
 		public DynamicFunctionDescriptor(String symbol, Class<?> cls, String methodName)
 		{
 			this.symbol = symbol;
@@ -154,22 +151,9 @@ public abstract class ConstructionDescriptor
 				// This is a declared sort without actual rules.
 				// Output a warning
 				System.out.println("Warning: Function sort " + symbol + " is declared but has no rules. Ignored");
-
-				hasProperties = false;
 			}
 			else
-			{
-				// Introspect to see if Properties is needed
-				Parameter[] params = method.getParameters();
-				if (params.length >= 4)
-				{
-					hasProperties = params[3].getType().isAssignableFrom(Properties.class);
-				}
-				else
-					hasProperties = false;
-
-				assert method != null;
-			}
+			{}
 		}
 
 		/**
@@ -224,13 +208,7 @@ public abstract class ConstructionDescriptor
 
 			args[0] = sink; // sink
 			int argp = 1;
-
-			if (hasProperties)
-			{
-				args[argp] = Reference.safeRef(term.properties());
-				argp++;
-			}
-
+ 
 			for (int i = 0; i < term.arity(); i++)
 			{
 				Variable[] binders = term.binders(i);
@@ -285,51 +263,51 @@ public abstract class ConstructionDescriptor
 	protected static class LiteralDescriptor extends ConstructionDescriptor
 	{
 		protected static LiteralDescriptor singleton = new LiteralDescriptor();
-	
+
 		private LiteralDescriptor()
 		{}
-	
+
 		@Override
 		public String symbol()
 		{
 			return "$Literal";
 		}
-	
+
 		@Override
 		public boolean isFunction()
 		{
 			return false;
 		}
-	
+
 		@Override
 		public boolean step(Sink sink, Term data)
 		{
 			throw new RuntimeException("Literals do not  have step function");
 		}
 	}
-	
+
 	/**
 	 * Represent a map construction.
 	 */
 	protected static class MapDescriptor extends ConstructionDescriptor
 	{
 		protected static MapDescriptor singleton = new MapDescriptor();
-	
+
 		private MapDescriptor()
 		{}
-	
+
 		@Override
 		public String symbol()
 		{
 			return "Map";
 		}
-	
+
 		@Override
 		public boolean isFunction()
 		{
 			return false;
 		}
-	
+
 		@Override
 		public boolean step(Sink sink, Term data)
 		{

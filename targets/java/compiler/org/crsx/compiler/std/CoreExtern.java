@@ -2,41 +2,35 @@
 
 package org.crsx.compiler.std;
 
-import static org.crsx.runtime.Normalizer.forceSub;
-
 import org.crsx.runtime.Context;
 import org.crsx.runtime.MapTerm;
 import org.crsx.runtime.Normalizer;
-import org.crsx.runtime.Properties;
 import org.crsx.runtime.Sink;
 import org.crsx.runtime.Term;
 
 public class CoreExtern
 {
 
-	final public static boolean _M_IfDef(Sink sink, Term map, Term key, Term t, Term f)
+	final public static boolean _M_IfDef(Sink sink, Term key, Term t, Term f)
 	{
 		final Context context = sink.context();
 
-		map = Normalizer.normalize(context, map);
 		key = Normalizer.normalize(context, key);
-
-		if (map instanceof MapTerm)
+		java.lang.String value = System.getProperty(key.symbol());
+		if (value != null)
 		{
-			if (((MapTerm) map).lookup(key) != null)
-			{
-				sink.copy(t);
-				f.release();
-			}
-			else
-			{
-				sink.copy(f);
-				t.release();
-			}
+
+			sink.copy(t);
+			f.release();
+		}
+		else
+		{
+			sink.copy(f);
+			t.release();
 		}
 
-		map.release();
-		return false;
+		key.release();
+		return true;
 	}
 
 	final public static boolean _M_GetEnv(Sink sink, Term key, Term def)
@@ -51,14 +45,14 @@ public class CoreExtern
 		key.release();
 		def.release();
 
-		return false;
+		return true;
 	}
 
 	final public static boolean _M_Show(Sink sink, Term term)
 	{
 		final Context context = sink.context();
 		term = Normalizer.normalize(context, term);
-	
+
 		sink.literal(term.toString());
 		return true;
 	}

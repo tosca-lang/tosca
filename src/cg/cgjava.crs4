@@ -124,7 +124,7 @@ rule JavaSigArgs(#env, csort*⟦ ##VARIABLE ##csort* ⟧, #rules) // Sort variab
 
 //rule JavaSigArgs(#env, csort*⟦ [ ##csort ] ##csort2 ##csort* ⟧, #rules)
 rule JavaSigArgs(#env, Cons(Core_csort_A3(#csort, #csort2), #csort*), #rules)
-→ text⟦, Variable ⟨var⟩⟨JavaSigArgs(AddParam(#env, var), (#csort2, #csort*), #rules)⟩⟧ 
+→ text⟦, Variable ⟨var⟩⟨JavaSigArgs(AddParam(#env, var), Cons(#csort2, #csort*), #rules)⟩⟧ 
 
 rule JavaSigArgs(#env, csort*⟦ { ##cmapsort* } ##csort*  ⟧, #rules)
 → text⟦, Term ⟨map⟩⟨JavaSigArgs(AddParam(#env, map), #csort*, #rules)⟩⟧ 

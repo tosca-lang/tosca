@@ -166,6 +166,9 @@ public class Crsx
 		if (javapackage != null)
 			System.setProperty("javapackage", javapackage);
 
+		if (env.get("tocore") != null)
+			System.setProperty("to-core", "1");
+		
 		rewrite(buildEnv, null);
 
 		// Second: Compile produced Java file.
@@ -328,7 +331,7 @@ public class Crsx
 		Context context = new Context();
 
 		setProperty(context, "verbose", env);
-
+		
 		// load compiled CRSX
 		String name = env.get("class");
 
