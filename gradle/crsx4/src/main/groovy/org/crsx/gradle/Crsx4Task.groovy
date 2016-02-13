@@ -31,7 +31,6 @@ class Crsx4Task extends DefaultTask {
 	@TaskAction
 	def generate(IncrementalTaskInputs inputs) {
 		logger.info("crsx4 classpath: ${project.configurations.crsx4.files}")
-		MainRunner crsxrunner = new MainRunner(project.configurations.crsx4.files, usecompiler ? "org.crsx.Crsx": "net.sf.crsx.run.Crsx")
 		
 		inputs.outOfDate { change ->
 			def source = change.file
@@ -49,9 +48,8 @@ class Crsx4Task extends DefaultTask {
 				args << 'build'
 				args << "rules=${source}"
 				args << "only-source"
-				args << "build-dir=${outputDir}"
-			}
-			else {
+				args << "build-dir=${outputDir}" 
+			} else {
 				def dest = computeDestination(source)
 				
 				args << 'sink=net.sf.crsx.text.TextSink'
@@ -70,14 +68,15 @@ class Crsx4Task extends DefaultTask {
 			
 			logger.debug "run with args" + " " + args
 			
+			MainRunner crsxrunner = new MainRunner(project.configurations.crsx4.files, usecompiler ? "org.crsx.Crsx": "net.sf.crsx.run.Crsx")
 			crsxrunner.run(args)
 		}
 		
 		inputs.removed { change ->
 			def source = change.file
 			logger.lifecycle "removed: ${source}"
-			def dest = file(computeDestination(source))
-			delete dest
+			//def dest = file(computeDestination(source))
+			//delete dest
 		}
 
 	}

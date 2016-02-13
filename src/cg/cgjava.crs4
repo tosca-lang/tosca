@@ -100,7 +100,7 @@ rule JavaMethod(#constructor, #rules, #datasorts, #funcsorts)
 func JavaMethodSig(Core_cdecl_sort, List<Core_cdecl_sort>) -> Text
 rule JavaMethodSig(cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #rules) 
 → text⟦⟨ToJavaId(#CONSTRUCTOR)⟩(Sink sink⟨JavaSigMaybeArgs(
-                SetSink(AddThunk(AddThunk(NewEnv, text⟦sink⟧), Descriptor(#CONSTRUCTOR)), text⟦sink⟧), Trace(#csorts?), #rules)⟩⟧   // )
+                SetSink(AddThunk(AddThunk(NewEnv, text⟦sink⟧), Descriptor(#CONSTRUCTOR)), text⟦sink⟧), #csorts?, #rules)⟩⟧   // )
 
 func JavaSigMaybeArgs({String : JavaEnvEntry}, List<Core_csorts_sort>, List<Core_cdecl_sort>) -> Text
 rule JavaSigMaybeArgs(#env, csorts?⟦⟧, #rules)
