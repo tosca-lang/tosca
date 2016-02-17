@@ -214,7 +214,8 @@ public class SinkAntlrListener implements ParseTreeListener
 	 * @param metachar  Language specific meta variable prefix
 	 * @param parser
 	 */
-	public SinkAntlrListener(GenericFactory factory, Sink sink, String prefix, String metachar, Parser parser, Map<String, org.crsx.runtime.Variable> bounds)
+	public SinkAntlrListener(GenericFactory factory, Sink sink, String prefix, String metachar, Parser parser,
+			Map<String, org.crsx.runtime.Variable> bounds)
 	{
 		this.factory = factory;
 		this.sink = sink;
@@ -247,7 +248,8 @@ public class SinkAntlrListener implements ParseTreeListener
 	 * @param metachar  Language specific meta variable prefix
 	 * @param parser
 	 */
-	public SinkAntlrListener(org.crsx.runtime.Sink sink, String prefix, String metachar, Parser parser, Map<String, org.crsx.runtime.Variable> bounds)
+	public SinkAntlrListener(org.crsx.runtime.Sink sink, String prefix, String metachar, Parser parser,
+			Map<String, org.crsx.runtime.Variable> bounds)
 	{
 		this.sink4 = sink;
 		this.consCount = new ArrayDeque<>();
@@ -635,8 +637,11 @@ public class SinkAntlrListener implements ParseTreeListener
 								sendLocation(context.getSymbol());
 
 								String t = context.getText();
-								if (t.length() > 0 && t.charAt(0) == '"')
+
+								// HACK: should not unquote here!
+								if (t.length() > 0 && t.charAt(0) == '"' &&  t.charAt(t.length() - 1) == '"')
 									t = t.substring(1).substring(0, t.length() - 2);
+								
 								sink4 = sink4.literal(t);
 							}
 							break;
@@ -736,7 +741,7 @@ public class SinkAntlrListener implements ParseTreeListener
 								t3str = t3str.replace("[", "(").replace("]", ")").replace("x .", "[x] ->");
 
 								parseCrsx4Term(new StringReader(t3str));
-					
+
 							}
 							catch (CRSException | IOException e)
 							{
@@ -784,7 +789,7 @@ public class SinkAntlrListener implements ParseTreeListener
 			parser.term_EOF();
 			sink = listener.sink3;
 			sink4 = listener.sink4;
-			
+
 		}
 		catch (IOException e)
 		{
@@ -812,7 +817,7 @@ public class SinkAntlrListener implements ParseTreeListener
 		};
 		return map;
 	}
- 
+
 	/**
 	 * Convert parser specific metacharacter to Crsx meta character (#).
 	 */

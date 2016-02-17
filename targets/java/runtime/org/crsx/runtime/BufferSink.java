@@ -117,12 +117,12 @@ public class BufferSink extends Sink
 			Variable[][] abinders = new Variable[subs.size()][];
 			((FixedConstruction) c).binders = subbinders.toArray(abinders);
 		
-//			if (c.descriptor() == Cgjava._M_JavaSendTerm && (subs.size() != 3 || subbinders.get(2) == null))
-//			{
-//				assert subs.size() == 3;
-//				
-//				assert subbinders.get(2) != null;
-//			}
+			if (c.descriptor() == Cgjava._M_JavaSendTerm && (subs.size() != 3 || subbinders.get(2) == null))
+			{
+				assert subs.size() == 3;
+				
+				assert subbinders.get(2) != null;
+			}
 			
 			// Basic type checking.
 			assert !c.symbol().equals("Cons") || subs.size() == 2 : "Wrong number of subs for Cons";
@@ -144,6 +144,7 @@ public class BufferSink extends Sink
 
 		terms.push(meta);
 		subs.push(new ArrayList<>(5));
+		subbinders.push(new ArrayList<>(5)); // TODO: use dummy array
 		return this;
 	}
 
@@ -152,6 +153,7 @@ public class BufferSink extends Sink
 	{
 		Term meta = terms.pop();
 		ArrayList<Term> subs = this.subs.pop();
+		subbinders.pop();
 
 		if (subs.size() > 0)
 		{

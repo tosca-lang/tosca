@@ -325,9 +325,10 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 				break;
 			case LITERAL : {
 				String literal = node.getText();
-				if (literal.length() > 0 && literal.charAt(0) == '"')
+				// HACK: should not unquote here!
+				if (literal.length() > 0 && literal.charAt(0) == '"' && literal.charAt(literal.length() - 1) == '"')
 					literal = literal.substring(1).substring(0, literal.length() - 2);
-
+			
 				if (sink3 == null)
 					sink4 = sink4.literal(literal);
 				else
