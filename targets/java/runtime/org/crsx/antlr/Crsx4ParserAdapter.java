@@ -4,9 +4,11 @@ package org.crsx.antlr;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Map;
 
 import org.crsx.runtime.Parser;
 import org.crsx.runtime.Sink;
+import org.crsx.runtime.Variable;
 
 /**
  * Crsx4 parser backed-by a Crsx3 parser
@@ -37,7 +39,7 @@ class Crsx4ParserAdapter implements Parser
 	}
 
 	@Override
-	public Sink parse(Sink sink, String category, Reader reader, String unit, int line, int column)
+	public Sink parse(Sink sink, String category, Reader reader, String unit, int line, int column, Map<String, org.crsx.runtime.Variable> bounds)
 	{
 		category = parser.supportCategory(category);
 		if (category == null)
@@ -52,7 +54,7 @@ class Crsx4ParserAdapter implements Parser
 			throw new RuntimeException(e);
 		}
 		
-		SinkAntlrListener listener = new SinkAntlrListener(sink, parser._prefix(), parser._metachar(), parser);
+		SinkAntlrListener listener = new SinkAntlrListener(sink, parser._prefix(), parser._metachar(), parser, bounds);
 		//setTrace(true);
 		parser.addParseListener(listener);
 

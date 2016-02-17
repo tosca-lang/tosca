@@ -223,7 +223,7 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 		//
 		//		setBuildParseTree(false);
 
-		SinkAntlrListener listener = new SinkAntlrListener(factory, sink, _prefix(), _metachar(), this);
+		SinkAntlrListener listener = new SinkAntlrListener(factory, sink, _prefix(), _metachar(), this, null);
 		//setTrace(true);
 		addParseListener(listener);
 

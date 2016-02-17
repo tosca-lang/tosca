@@ -7,6 +7,8 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -395,7 +397,7 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 					{
 						sink4 = sink4.context().getParser(category).parse(
 								sink4, category, new StringReader(text), "", node.getSymbol().getLine(),
-								node.getSymbol().getCharPositionInLine());
+								node.getSymbol().getCharPositionInLine(), toCrsx4Bound());
 					}
 					else
 					{
@@ -454,6 +456,26 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 		{
 			if (v instanceof net.sf.crsx.Variable)
 				map = map.extend(((net.sf.crsx.Variable) v).name(), (net.sf.crsx.Variable) v);
+		};
+		return map;
+	}
+
+	/**
+	 * Convert bound variable structure to one compatible with crsx4
+	 * @return
+	 */
+	private Map<String, Variable> toCrsx4Bound()
+	{
+		HashMap<String, Variable> map = new HashMap<>();
+		for (Object v : bounds)
+		{
+			if (v instanceof Variable)
+				map.put(((Variable) v).name(), (Variable) v);
+		};
+		for (Object v : freshes)
+		{
+			if (v instanceof Variable)
+				map.put(((Variable) v).name(), (Variable) v);
 		};
 		return map;
 	}

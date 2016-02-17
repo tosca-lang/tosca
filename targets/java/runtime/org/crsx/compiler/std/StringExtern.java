@@ -312,7 +312,7 @@ public class StringExtern
 
 		try
 		{
-			parser.parse(sink, category, new FileReader(name), null, 0, 0);
+			parser.parse(sink, category, new FileReader(name), null, 0, 0, null);
 		}
 		catch (FileNotFoundException e)
 		{
@@ -334,7 +334,7 @@ public class StringExtern
 		if (parser == null)
 			throw new RuntimeException("Fatal error: no parser found for category " + category);
 
-		parser.parse(sink, category, new StringReader(text), null, 0, 0);
+		parser.parse(sink, category, new StringReader(text), null, 0, 0, null);
 
 		term1.release();
 		term2.release();
@@ -352,12 +352,12 @@ public class StringExtern
 			throw new RuntimeException("Fatal error: no parser found for category " + category);
 
 		BufferSink parsed = context.makeBuffer();
-		parser.parse(parsed, category, new StringReader(text), null, 0, 0);
+		parser.parse(parsed, category, new StringReader(text), null, 0, 0, null);
 		Term result = parsed.term();
 		java.lang.String textResult = result.toString4();
 	//	System.out.println(textResult);
 		parser = context.getParser("term");
-		parser.parse(sink, "term", new StringReader(textResult), null, 0, 0);
+		parser.parse(sink, "term", new StringReader(textResult), null, 0, 0, null);
 		
 		term1.release();
 		term2.release();

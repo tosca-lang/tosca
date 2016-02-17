@@ -3,6 +3,7 @@
 package org.crsx.runtime;
 
 import java.io.Reader;
+import java.util.Map;
 
 import net.sf.crsx.Factory;
  
@@ -34,10 +35,11 @@ public interface Parser
 	 * @param unit to identify the source of the compilation unit (null for none)
 	 * @param line number of the first line (1-based)
 	 * @param column of the first column (1- based)
+	 * @param map 
 	 * @param bound variables that are bound in the context (null allowed if none) TODO
 	 * @return sink after it has been sent the read term
 	 */
-	public Sink parse(Sink sink, String category, Reader reader, String unit, int line, int column);
+	public Sink parse(Sink sink, String category, Reader reader, String unit, int line, int column, Map<String, Variable> bounds);
 
 	/** Set verbosity of parser (to track down grammar errors). */
 	public void setParserVerbose(boolean verbose);

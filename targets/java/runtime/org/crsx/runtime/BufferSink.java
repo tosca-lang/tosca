@@ -6,6 +6,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 
+import org.crsx.compiler.cg.Cgjava;
 import org.crsx.runtime.Term.Kind;
 
 /**
@@ -88,6 +89,7 @@ public class BufferSink extends Sink
 	@Override
 	public BufferSink start(ConstructionDescriptor desc)
 	{
+		
 		Construction c = new FixedConstruction(desc, properties);
 		addSub(c);
 		properties = null;
@@ -115,6 +117,13 @@ public class BufferSink extends Sink
 			Variable[][] abinders = new Variable[subs.size()][];
 			((FixedConstruction) c).binders = subbinders.toArray(abinders);
 		
+//			if (c.descriptor() == Cgjava._M_JavaSendTerm && (subs.size() != 3 || subbinders.get(2) == null))
+//			{
+//				assert subs.size() == 3;
+//				
+//				assert subbinders.get(2) != null;
+//			}
+			
 			// Basic type checking.
 			assert !c.symbol().equals("Cons") || subs.size() == 2 : "Wrong number of subs for Cons";
 		}

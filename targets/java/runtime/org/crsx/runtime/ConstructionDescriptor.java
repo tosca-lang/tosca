@@ -6,6 +6,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
 
+import org.crsx.compiler.cg.Cgjava;
+
 /**
  * Represent a construction type.
  * 
@@ -163,6 +165,9 @@ public abstract class ConstructionDescriptor
 		{
 			int i = 0;
 
+			if (this == Cgjava._M_JavaSendTerms)
+				System.out.println("Got it");
+			
 			sink.start(this);
 
 			while (i < args.length)

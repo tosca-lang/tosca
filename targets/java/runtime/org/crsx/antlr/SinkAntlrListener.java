@@ -8,6 +8,7 @@ import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -213,7 +214,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	 * @param metachar  Language specific meta variable prefix
 	 * @param parser
 	 */
-	public SinkAntlrListener(GenericFactory factory, Sink sink, String prefix, String metachar, Parser parser)
+	public SinkAntlrListener(GenericFactory factory, Sink sink, String prefix, String metachar, Parser parser, Map<String, org.crsx.runtime.Variable> bounds)
 	{
 		this.factory = factory;
 		this.sink = sink;
@@ -231,6 +232,8 @@ public class SinkAntlrListener implements ParseTreeListener
 
 		this.binderNames = new HashMap<>();
 		this.bounds = new ArrayDeque<>();
+		if (bounds != null)
+			this.bounds.addAll(bounds.values());
 		this.freshes = new ArrayDeque<>();
 
 		this.embedCrsx4 = prefix.equals("Text4_");
@@ -244,7 +247,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	 * @param metachar  Language specific meta variable prefix
 	 * @param parser
 	 */
-	public SinkAntlrListener(org.crsx.runtime.Sink sink, String prefix, String metachar, Parser parser)
+	public SinkAntlrListener(org.crsx.runtime.Sink sink, String prefix, String metachar, Parser parser, Map<String, org.crsx.runtime.Variable> bounds)
 	{
 		this.sink4 = sink;
 		this.consCount = new ArrayDeque<>();
@@ -259,6 +262,8 @@ public class SinkAntlrListener implements ParseTreeListener
 
 		this.binderNames = new HashMap<>();
 		this.bounds = new ArrayDeque<>();
+		if (bounds != null)
+			this.bounds.addAll(bounds.values());
 		this.freshes = new ArrayDeque<>();
 
 		this.embedCrsx4 = prefix.equals("Text4_");
@@ -728,12 +733,10 @@ public class SinkAntlrListener implements ParseTreeListener
 								String t3str = t3.toString();
 
 								// Transform to crsx4
-								t3str = t3str.replace("[", "(").replace("]", ")").replace(".x", "[x]");
+								t3str = t3str.replace("[", "(").replace("]", ")").replace("x .", "[x] ->");
 
-								//System.out.println(t3str);
-								sink4 = sink4.context().getParser("term").parse(
-										sink4, "term", new StringReader(t3str), "", token.getLine(), token.getCharPositionInLine());
-
+								parseCrsx4Term(new StringReader(t3str));
+					
 							}
 							catch (CRSException | IOException e)
 							{
@@ -781,6 +784,7 @@ public class SinkAntlrListener implements ParseTreeListener
 			parser.term_EOF();
 			sink = listener.sink3;
 			sink4 = listener.sink4;
+			
 		}
 		catch (IOException e)
 		{
@@ -808,7 +812,7 @@ public class SinkAntlrListener implements ParseTreeListener
 		};
 		return map;
 	}
-
+ 
 	/**
 	 * Convert parser specific metacharacter to Crsx meta character (#).
 	 */

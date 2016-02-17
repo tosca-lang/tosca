@@ -140,6 +140,8 @@ final public class Context
 	 */
 	public void register(ConstructionDescriptor desc)
 	{
+		if (descriptors.get(desc.symbol()) != null)
+			System.out.println("Warning: data symbol already registered: " + desc.symbol());
 		descriptors.put(desc.symbol(), desc);
 	}
 
