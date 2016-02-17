@@ -340,17 +340,17 @@ rule JavaSendTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, [env] -> #(env))
 
 func JavaSendVariable(eager {String : JavaEnvEntry}, String, [{String : JavaEnvEntry}] -> Text) -> Text
 rule JavaSendVariable(#env, #var, [env]->#(env))
-→ JavaSendFreeOrFreshVar(MaybeGetVar(#env, #var), #env, [env]->#(env)) 
+→ JavaSendFreeOrFreshVar(MaybeGetVar(#env, #var), #env, #var, [env]->#(env)) 
 
-func JavaSendFreeOrFreshVar(Option<VarEntry>, eager {String : JavaEnvEntry}, [{String : JavaEnvEntry}] -> Text) -> Text
+func JavaSendFreeOrFreshVar(Option<VarEntry>, eager {String : JavaEnvEntry}, String, [{String : JavaEnvEntry}] -> Text) -> Text
 
 // Not in tn the env: fresh variable. 
-rule JavaSendFreeOrFreshVar(NONE, #env, [env]->#(env))
+rule JavaSendFreeOrFreshVar(NONE, #env, #var, [env]->#(env))
 → text⟦
-Variable ⟨jvar⟩ = ⟨GetSink(#env)⟩.context().makeVariable("x"); ⟨GetSink(#env)⟩.use(⟨jvar⟩);⟨#(#env)⟩⟧ 
+Variable ⟨jvar⟩ = ⟨GetSink(#env)⟩.context().makeVariable("x"); ⟨GetSink(#env)⟩.use(⟨jvar⟩);⟨#(AddVar(#env, #var, Fresh(jvar)))⟩⟧ 
 
 // In the env: free or bound variable.
-rule JavaSendFreeOrFreshVar(SOME(#varEntry), #env, [env]->#(env))
+rule JavaSendFreeOrFreshVar(SOME(#varEntry), #env, #var, [env]->#(env))
 → text⟦
 ⟨GetSink(#env)⟩.use(⟨UnVarVar(#varEntry)⟩);⟨#(#env)⟩⟧ 
 
