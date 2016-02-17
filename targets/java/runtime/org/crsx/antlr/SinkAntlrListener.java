@@ -32,6 +32,7 @@ import net.sf.crsx.CRSException;
 import net.sf.crsx.Constructor;
 import net.sf.crsx.Sink;
 import net.sf.crsx.generic.GenericFactory;
+import net.sf.crsx.util.Buffer;
 import net.sf.crsx.util.ExtensibleMap;
 import net.sf.crsx.util.LinkedExtensibleMap;
 
@@ -255,11 +256,11 @@ public class SinkAntlrListener implements ParseTreeListener
 		this.metachar = metachar;
 		this.state = State.PARSE;
 		this.sort = TokenSort.STRING;
-	
+
 		this.binderNames = new HashMap<>();
 		this.bounds = new ArrayDeque<>();
 		this.freshes = new ArrayDeque<>();
-		
+
 		this.embedCrsx4 = prefix.equals("Text4_");
 	}
 
@@ -408,7 +409,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	 */
 	public void enterBinder(ParserRuleContext context, String name)
 	{
-		assert !tail : "Cannot declare a binder is a list tail";
+		assert!tail : "Cannot declare a binder is a list tail";
 		assert binderId == null : "Cannot nest binders";
 
 		state = State.NAME;
@@ -423,7 +424,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	public void exitBinder(ParserRuleContext context)
 	{
 		assert state == State.NAME;
-		assert !tail : "Cannot declare a binder is a list tail";
+		assert!tail : "Cannot declare a binder is a list tail";
 		assert binderId != null : "Missing enterBinder notification";
 
 		binderNames.put(binderId, binderName);
@@ -438,7 +439,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	 */
 	public void enterSymbol(ParserRuleContext context)
 	{
-		assert !tail : "Cannot declare a binder is a list tail";
+		assert!tail : "Cannot declare a binder is a list tail";
 		assert binderId == null : "Cannot nest binders";
 
 		binderName = "";
@@ -452,7 +453,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	public void exitSymbol(ParserRuleContext context)
 	{
 		assert state == State.NAME;
-		assert !tail : "Cannot declare a name in a list tail";
+		assert!tail : "Cannot declare a name in a list tail";
 
 		if (sort == TokenSort.TERM)
 		{
@@ -483,7 +484,11 @@ public class SinkAntlrListener implements ParseTreeListener
 			{
 				// Try among fresh variables
 				variable = freshes.stream().filter(var -> {
-					return ((net.sf.crsx.Variable) var).name().equals(binderName);
+					if (sink == null)
+						return ((Variable) var).name().equals(binderName);
+					else
+						return ((net.sf.crsx.Variable) var).name().equals(binderName);
+
 				}).findFirst();
 			}
 
@@ -545,7 +550,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	 */
 	public void exitBinds(ParserRuleContext context)
 	{
-		assert !bounds.isEmpty() : "Unbalanced use of enterBinds/exitBinds";
+		assert!bounds.isEmpty() : "Unbalanced use of enterBinds/exitBinds";
 
 		while (bounds.pop() != MARKER);
 	}
@@ -623,7 +628,11 @@ public class SinkAntlrListener implements ParseTreeListener
 							else
 							{
 								sendLocation(context.getSymbol());
-								sink4 = sink4.literal(context.getText());
+
+								String t = context.getText();
+								if (t.length() > 0 && t.charAt(0) == '"')
+									t = t.substring(1).substring(0, t.length() - 2);
+								sink4 = sink4.literal(t);
 							}
 							break;
 						case TERM :
@@ -699,8 +708,39 @@ public class SinkAntlrListener implements ParseTreeListener
 					}
 					else
 					{
-						sink4 = sink4.context().getParser("freeTerm").parse(
-								sink4, "freeTerm", reader, "", token.getLine(), token.getCharPositionInLine());
+						if (embedCrsx4)
+						{
+							parseCrsx4Term(reader);
+						}
+						else
+						{
+							factory = new GenericFactory();
+							// Temporary: parse using crsx3 classic parser
+							Buffer buffer = new Buffer(factory);
+
+							try
+							{
+
+								factory.parser(factory).parse(
+										buffer.sink(), null, reader, "", token.getLine(), token.getCharPositionInLine(),
+										toCrsx3Bound());
+								net.sf.crsx.Term t3 = buffer.term(true);
+								String t3str = t3.toString();
+
+								// Transform to crsx4
+								t3str = t3str.replace("[", "(").replace("]", ")").replace(".x", "[x]");
+
+								//System.out.println(t3str);
+								sink4 = sink4.context().getParser("term").parse(
+										sink4, "term", new StringReader(t3str), "", token.getLine(), token.getCharPositionInLine());
+
+							}
+							catch (CRSException | IOException e)
+							{
+								throw new RuntimeException(e);
+							}
+
+						}
 					}
 				}
 				state = State.PARSE;
@@ -730,12 +770,17 @@ public class SinkAntlrListener implements ParseTreeListener
 			CrsxMetaParser parser = new CrsxMetaParser(input);
 			parser.setBuildParseTree(false);
 
-			TermParserListener listener = new TermParserListener(factory, sink, bounds, freshes);
+			TermParserListener listener;
+			if (sink == null)
+				listener = new TermParserListener(sink4, bounds, freshes);
+			else
+				listener = new TermParserListener(factory, sink, bounds, freshes);
 			parser.addParseListener(listener);
 
 			parser.addErrorListener(new DiagnosticErrorListener(true));
 			parser.term_EOF();
 			sink = listener.sink3;
+			sink4 = listener.sink4;
 		}
 		catch (IOException e)
 		{

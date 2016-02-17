@@ -49,6 +49,7 @@ import static org.crsx.runtime.ConstructionDescriptor.makeFunction;
 import static org.crsx.runtime.Normalizer.thunk;
 import static org.crsx.runtime.Normalizer.force;
 import static org.crsx.runtime.Normalizer.forceSub;
+import static org.crsx.runtime.Normalizer.normalize;
 import static org.crsx.runtime.Reference.safeRef;
 import static org.crsx.runtime.Term.isVariableUse; 
 
@@ -113,38 +114,47 @@ JavaSigMaybeArgs[#env, %csorts?⟦⟧, #rules]
 → JavaBody[#env, #rules];
 
 JavaSigMaybeArgs[#env, %csorts?⟦ ( ##csort* ) ⟧, #rules]
-→ JavaSigArgs[#env, #csort*, #rules];
+→ JavaSigArgs[#env, #csort*, $False, #rules];
 
 // Generate method signature and record the argument names in the environment, as an ordered list.
-JavaSigArgs[JavaEnv, $List[Core_csort_sort], $List[Core_cdecl_sort]] :: Text;
+JavaSigArgs[JavaEnv, $List[Core_csort_sort], $Boolean /* Is sort data? */, $List[Core_cdecl_sort]] :: Text;
 
-JavaSigArgs[#env, %csort*⟦ ⟧, #rules]
+JavaSigArgs[#env, %csort*⟦ ⟧, #data, #rules]
 → JavaBody[#env, #rules];
 
 -[Fresh[term::Text]]:
-JavaSigArgs[#env, %csort*⟦ ##CONSTRUCTOR ##csorts? ##csort* ⟧, #rules]
-→ %n⟦, Term «term»«JavaSigArgs[AddParam[#env, term], #csort*, #rules]»⟧;
+JavaSigArgs[#env, %csort*⟦ ##CONSTRUCTOR ##csorts? ##csort* ⟧, #data, #rules]
+→ %n⟦, Term «term»«JavaSigArgs[AddThunk[AddParam[AddMaybeData[#env, #data, term], term], term], #csort*, $False, #rules]»⟧;
 
 -[Fresh[term::Text]]:
-JavaSigArgs[#env, %csort*⟦ ##VARIABLE ##csort* ⟧, #rules] // Sort variable
-→ %n⟦, Term «term»«JavaSigArgs[AddParam[#env, term], #csort*, #rules]»⟧;
+JavaSigArgs[#env, %csort*⟦ ##VARIABLE ##csort* ⟧, #data, #rules] // Sort variable
+→ %n⟦, Term «term»«JavaSigArgs[AddThunk[AddParam[AddMaybeData[#env, #data, term], term], term], #csort*, $False, #rules]»⟧;
 
 -[Fresh[var::Text]]:
-JavaSigArgs[#env, %csort*⟦ [ ##csort ] ##csort2 ##csort* ⟧, #rules]
-→ %n⟦, Variable «var»«JavaSigArgs[AddParam[#env, var], (#csort2; #csort*), #rules]»⟧;
+JavaSigArgs[#env, %csort*⟦ [ ##csort ] ##csort2 ##csort* ⟧, #data, #rules]
+→ %n⟦, Variable «var»«JavaSigArgs[AddThunk[AddParam[#env, var], var], (#csort2; #csort*), #data, #rules]»⟧;
 
 -[Fresh[map::Text]]:
-JavaSigArgs[#env, %csort*⟦ { ##cmapsort* } ##csort*  ⟧, #rules]
-→ %n⟦, Term «map»«JavaSigArgs[AddParam[#env, map], #csort*, #rules]»⟧;
+JavaSigArgs[#env, %csort*⟦ { ##cmapsort* } ##csort*  ⟧, #data, #rules]
+→ %n⟦, Term «map»«JavaSigArgs[AddThunk[AddParam[AddMaybeData[#env, #data, map], map], map], #csort*, $False, #rules]»⟧;
+
+JavaSigArgs[#env, %csort*⟦ data ##csort ##csort*  ⟧, #data, #rules]
+→ JavaSigArgs[#env, (#csort; #csort*), $True, #rules];
 
 JavaBody[JavaEnv, $List[Core_cdecl_sort]] :: Text;
 JavaBody[#env, #rules]
 → %n⟦) 
 {⟦if («GetSink[#env]».context().sd ++ < 256) {⟦
+«TextFold[Map[term.JavaApplyData[GetSink[#env], term], GetData[#env]], %n⟨⟩]»
 «TextFold[Map[rule.JavaBodyRule[#env, rule], #rules], %n⟨⟩]»⟧
 }
 return «Thunk[GetThunk[#env]]»;⟧
 }⟧;
+
+// Generate code to normalize arguments marked as 'data'
+JavaApplyData[Text, Text] :: Text;
+JavaApplyData[#sink, #term]
+→ %n⟦«#term» = normalize(«#sink».context(), «#term»);⟧;
 
 /* Generates code creating fallback thunk */
 Thunk[$List[Text]] :: Text;
@@ -515,6 +525,7 @@ NewEnv → { "sink"        : EText[%n⟦⟧];   /* Current sink. */
            "subindex"    : EText[%n⟦⟧];   /* Sub index */
            "binderindex" : ENum[0];       /* Current sub binder index */
            "binders"     : ETexts[()];    /* Binders list being constructed in contraction */
+           "data"        : ETexts[()];    /* List of parameters marked as data */
          }JavaEnv;
 
 // --- Java printing helpers
@@ -695,7 +706,6 @@ IncSubBinderIndex[JavaEnv] :: JavaEnv;
 IncSubBinderIndex[{#env}JavaEnv]
 → {#env; "binderindex": ENum[Plus[GetSubBinderIndex[{#env}JavaEnv], 1]]}JavaEnv;
 
-
 // --- Binders
 
 GetBinders[JavaEnv] :: $List[Text];
@@ -707,5 +717,16 @@ SetBinders[{#env}JavaEnv, #binders] → {#env; "binders": ETexts[#binders]}JavaE
 AddBinder[JavaEnv, Text] :: JavaEnv;
 AddBinder[{#env}JavaEnv, #binders] → {#env; "binders": ETexts[Append[#binders, GetBinders[{#env}JavaEnv]]]}JavaEnv;
 
+// --- Parameter marked as data
+
+GetData[JavaEnv] :: $List[Text];
+GetData[#env] → GetValue[#env, "data", x.UnTexts[x]];
+
+AddMaybeData[JavaEnv, $Boolean, Text] :: JavaEnv;
+AddMaybeData[{#env}JavaEnv, $False, #term]
+→ {#env}JavaEnv;
+
+AddMaybeData[{#env}JavaEnv, $True, #term]
+→ {#env; "data": ETexts[Append[#term, GetData[{#env}JavaEnv]]]}JavaEnv;
 
 )]

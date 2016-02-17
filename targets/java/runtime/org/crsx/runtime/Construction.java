@@ -188,4 +188,34 @@ public abstract class Construction extends Term
 		}
 		return builder.toString();
 	}
+	@Override
+	public String toString4()
+	{
+		StringBuilder builder = new StringBuilder();
+		builder.append(descriptor().symbol());
+		final int arity = arity();
+		if (arity > 0)
+		{
+			builder.append("(");
+			for (int i = 0; i < arity; i++)
+			{
+				if (i != 0)
+					builder.append(", ");
+
+				Term sub = sub(i);
+				Variable[] subbinders = binders(i);
+				if (subbinders != null && subbinders.length > 0)
+				{
+					builder.append("[");
+					for (int j = 0; j < subbinders.length; j++)
+						builder.append(subbinders[j]).append(" ");
+			
+					builder.append("] -> ");
+				}
+				builder.append(sub.toString4());
+			}
+			builder.append(")");
+		}
+		return builder.toString();
+	}
 }

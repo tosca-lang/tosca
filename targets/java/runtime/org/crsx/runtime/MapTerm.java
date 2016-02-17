@@ -18,21 +18,12 @@ import org.crsx.compiler.std.List;
  */
 public class MapTerm extends Construction
 {
-	/** Extended Map */
-	protected MapTerm parent;
-
 	/** String/Variable to term mapping */
 	protected Map<Object, Term> map;
 
 	/**  */
 	public MapTerm()
 	{}
-
-	/** @param parent properties. The reference is transferred. */
-	protected MapTerm(MapTerm parent)
-	{
-		this.parent = parent;
-	}
 
 	/**
 	 * Lookup named property value
@@ -44,9 +35,6 @@ public class MapTerm extends Construction
 		Term value = null;
 		if (map != null)
 			value = map.get(key);
-
-		if (value == null && parent != null)
-			value = parent.lookup(key);
 
 		return value;
 	}
@@ -61,9 +49,6 @@ public class MapTerm extends Construction
 		Term value = null;
 		if (map != null)
 			value = map.get(key);
-
-		if (value == null && parent != null)
-			value = parent.lookup(key);
 
 		return value;
 	}
@@ -92,7 +77,10 @@ public class MapTerm extends Construction
 	 */
 	public MapTerm extend()
 	{
-		return new MapTerm(ref());
+		MapTerm copy = new MapTerm();
+		if (map != null)
+			copy.map = new HashMap<>(map);
+		return copy;
 	}
 
 	@Override
@@ -109,7 +97,8 @@ public class MapTerm extends Construction
 	 */
 	protected void copy(Sink sink, boolean discard, HashSet<String> names, IdentityHashMap<Variable, Boolean> vars)
 	{
-		throw new RuntimeException("Not implemented");
+	//	sink.copy(this.ref());
+		//throw new RuntimeException("Not implemented");
 	}
 
 	/**
@@ -123,7 +112,9 @@ public class MapTerm extends Construction
 	 */
 	protected void substituteTo(Sink sink, Map<Variable, Term> substitutes)
 	{
-		throw new RuntimeException("Not implemented");
+		sink.copy(this);
+		
+		//throw new RuntimeException("Not implemented");
 
 		//		if (substitutes.isEmpty())
 		//			sink.copy(this); // Transfer properties ref
@@ -218,13 +209,7 @@ public class MapTerm extends Construction
 	@Override
 	public void free()
 	{
-		if (parent != null)
-		{
-			parent.release();
-			parent = null;
-		}
-
-		if (map != null)
+	 	if (map != null)
 		{
 			map.forEach((Object key, Term u) -> {
 				u.release();
@@ -256,10 +241,7 @@ public class MapTerm extends Construction
 						names.add((String) entry.getKey());
 				}
 			}
-		}
-
-		if (parent != null)
-			parent.print(out, names, vars);
+		} 
 	}
 
 	@Override
@@ -280,7 +262,52 @@ public class MapTerm extends Construction
 
 		return builder.append('}').toString();
 	}
+	
+	/**
+	 * Print out properties. Eliminate duplicates.
+	 * @param out
+	 * @param names
+	 * @throws IOException 
+	 */
+	protected void print4(Appendable out, HashSet<String> names, IdentityHashMap<Variable, Boolean> vars) throws IOException
+	{
 
+		if (map != null)
+		{
+			for (Entry<Object, Term> entry : map.entrySet())
+			{
+				if (!names.contains(entry.getKey()))
+				{
+					out.append('"').append(entry.getKey().toString()).append('"').append(":").append(
+							entry.getValue().toString4());
+					if (entry.getKey() instanceof String)
+						names.add((String) entry.getKey());
+				}
+			}
+		} 
+	}
+
+
+	@Override
+	public String toString4()
+	{
+		StringBuilder builder = new StringBuilder();
+		builder.append("{");
+
+		HashSet<String> names = new HashSet<>();
+		IdentityHashMap<Variable, Boolean> vars = new IdentityHashMap<Variable, Boolean>();
+
+		try
+		{
+			print4(builder, names, vars);
+		}
+		catch (IOException e)
+		{}
+
+		return builder.append('}').toString();
+	}
+	
+	
 	@Override
 	protected boolean deepEquals(Term other, Map<Variable, Variable> renamings)
 	{
@@ -301,6 +328,7 @@ public class MapTerm extends Construction
 			map.forEach((key, value) -> {
 				sink.start(List._M_Cons).literal(key);
 			});
+			
 		}
 
 		sink.start(List._M_Nil).end();
@@ -334,5 +362,6 @@ public class MapTerm extends Construction
 		}
 		return true;
 	}
+
 
 }

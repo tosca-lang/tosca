@@ -130,10 +130,10 @@ project(':compiler') {
 	}
 	
 	crsx4 {
-		//sources = fileTree(dir: '../../../src', include: ['core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4'])
-		sources = fileTree(dir: '../../../src', include: ['std/pair.crs4', 'std/core.crs4', 'std/list.crs4'])
-		outputDir = project.hasProperty('crsx3') ? file('org/crsx/compiler') : file('../compiler2')
-		packageName = 'org.crsx.compiler'
+		sources = fileTree(dir: '../../../src', include: ['core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'cg/*.crs4', '*.crs4'])
+		//sources = fileTree(dir: '../../../src', include: ['std/pair.crs4', 'std/core.crs4', 'std/list.crs4'])
+		outputDir = project.hasProperty('crsx3') ? file('org/crsx/compiler') : file('../compiler3')
+		packageName = project.hasProperty('crsx3') ? 'org.crsx.compiler' : 'org.crsx.compiler'
 		usecompiler = !project.hasProperty('crsx3')
 	}	
 }

@@ -99,4 +99,10 @@ public class MetaApplication extends Term
 		return metaVariable;
 	}
 
+	@Override
+	public String toString4()
+	{
+		return metaVariable;
+	}
+
 }

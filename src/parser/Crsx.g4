@@ -185,7 +185,11 @@ fnParams
 
 
 fnParam
-    : fnParamName? EAGER? sort
+    : fnParamName? eager? sort
+    ;
+
+eager
+    : EAGER
     ;
 
 fnParamName

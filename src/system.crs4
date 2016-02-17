@@ -130,7 +130,7 @@ rule LoadDecls(cdecl+⟦⟧, #imports, #rules, #data, #func)
 → LoadedContent(#imports, #rules, #data, #func) 
 
 rule LoadDecls(cdecl+⟦ import module ##CONSTRUCTOR ##cdecl+ ⟧, #imports, #rules, #data, #func) 
-→ LoadDecls(#cdecl+, (#CONSTRUCTOR, #imports...), #rules, #data, #func) 
+→ LoadDecls(#cdecl+, Cons(#CONSTRUCTOR, #imports), #rules, #data, #func) 
 
 rule LoadDecls(cdecl+⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ##cdecl+ ⟧, #imports, #rules, #data, #func) 
 → LoadDecls(#cdecl+, #imports, #rules, PutDataSort(#data, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧), #func) 

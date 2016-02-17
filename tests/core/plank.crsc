@@ -2,7 +2,7 @@
 // N is natural number sort
 data N ( Z, S(N) )
 func N Plus(N, N)
-rule Plus(Z,   #2) → #2 
+rule Plus(Z, #2) → #2 
 rule Plus(S(#1), #2) → S( Plus(#1,#2) )
 
 // Parametric List
@@ -38,12 +38,12 @@ func ∀ a b. Γ(a,b) Union( Γ(a,b), Γ(a,b) )
 rule Union(Env({:#1}), Env({:#2})) → Env({:#1,:#2})
 
 // Booleans with conditional.  
-data Bool ( True, False)
+data Bool (True, False)
 func ∀ a. a If(Bool, a, a)
 
 // Pick number. 
 
-func Int Pick(List(Int), [Int][Int]Bool) 
+func Int Pick(List(Int), @Eager([Int][Int]Bool)) 
 rule Pick(#, [x][y]#pick(x,y)) → Pick2(#, [x][y]#pick(x,y), 1)
 
 func Int Pick2(List(Int), [Int][Int]Bool, Int) 

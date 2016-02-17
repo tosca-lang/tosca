@@ -1,6 +1,6 @@
 data Bool ( True, False )
 
-func Bool And(Bool, Bool) 
+func Bool And(data Bool, data Bool) 
 rule And(True, True) → True
 rule And(True, #)    → #
 

@@ -67,7 +67,13 @@ public class Literal extends Construction
 	@Override
 	public String toString()
 	{
-		return '"' + value.toString() + '"';
+		return StringUtils.quoteJava(value.toString());
+	}
+	
+	@Override
+	public String toString4()
+	{
+		return StringUtils.quoteJava(value.toString());
 	}
 
 }

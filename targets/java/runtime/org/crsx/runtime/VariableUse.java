@@ -83,4 +83,10 @@ final public class VariableUse extends Term
 		return variable.toString();
 	}
 
+	@Override
+	public String toString4()
+	{
+		return variable.toString();
+	}
+
 }

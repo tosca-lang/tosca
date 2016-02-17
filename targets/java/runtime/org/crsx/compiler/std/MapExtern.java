@@ -21,38 +21,51 @@ public class MapExtern
 	{
 		map = Normalizer.normalize(sink.context(), map);
 		key = Normalizer.normalize(sink.context(), key);
-		Term value = ((MapTerm) map).lookup(key);
-		if (value == null)
-			sink.start(Core._M_NONE).end();
-		else
-			sink.start(Core._M_SOME).copy(value.ref()).end();
+		if (map instanceof MapTerm)
+		{
+			Term value = ((MapTerm) map).lookup(key);
+			if (value == null)
+				sink.start(Core._M_NONE).end();
+			else
+				sink.start(Core._M_SOME).copy(value.ref()).end();
 
-		return true;
+			return true;
+		}
+
+		return Normalizer.thunk(sink, Map._M_MapGet, map, key);
 	}
 
 	final public static boolean _M_MapPut(Sink sink, Term map, Term key, Term value)
 	{
 		map = Normalizer.normalize(sink.context(), map);
 		key = Normalizer.normalize(sink.context(), key);
-		if (map.refcount() > 1)
-			map = ((MapTerm) map).extend();
+		if (map instanceof MapTerm)
+		{
+			if (map.refcount() > 1)
+				map = ((MapTerm) map).extend();
 
-		((MapTerm) map).addProperty(key, value);
+			((MapTerm) map).addProperty(key, value);
 
-		sink.copy(map);
-		return true;
+			sink.copy(map);
+			return true;
+		}
+		return Normalizer.thunk(sink, Map._M_MapPut, map, key, value);
 	}
 
 	final public static boolean _M_MapGetVar(Sink sink, Term map, Term key)
 	{
 		map = Normalizer.normalize(sink.context(), map);
 		key = Normalizer.normalize(sink.context(), key);
-		Term value = ((MapTerm) map).lookup(((VariableUse) key).variable());
-		if (value == null)
-			sink.start(Core._M_NONE).end();
-		else
-			sink.start(Core._M_SOME).copy(value.ref()).end();
-		return true;
+		if (map instanceof MapTerm)
+		{
+			Term value = ((MapTerm) map).lookup(((VariableUse) key).variable());
+			if (value == null)
+				sink.start(Core._M_NONE).end();
+			else
+				sink.start(Core._M_SOME).copy(value.ref()).end();
+			return true;
+		}
+		return Normalizer.thunk(sink, Map._M_MapGetVar, map, key);
 	}
 
 	final public static boolean _M_MapKeys(Sink sink, Term map)

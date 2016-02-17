@@ -98,7 +98,7 @@ func BeforeLast2(eager $String, $String, eager $String) -> $String
 rule BeforeLast2(#Before, #Sep, #After)
 → If(StringEqual(#After, ""), 
     #Before,
-    ConcatString(#Before, #Sep, #After)) 
+    ConcatString(#Before, ConcatString(#Sep, #After))) 
 
 // --- Parsing
 
@@ -108,5 +108,4 @@ extern func ParseResource<a>(eager $String, eager $String) -> a
 func ParseToString(eager $String, eager $String) -> $String 
 rule ParseToString(#category, #string) → Show(ParseText(#category, #string))  // TODO: line information.
 
-func ParseToTerm<a>(eager $String, eager $String) -> a 
-rule ParseToTerm(#category, #string) → ParseText(#category, #string)  // TODO: line information.
+extern func ParseToMetaTerm<a>(eager $String, eager $String) -> a 

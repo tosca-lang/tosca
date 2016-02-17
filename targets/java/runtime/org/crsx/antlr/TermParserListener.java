@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.crsx.compiler.std.List;
 import org.crsx.parser.CrsxMetaParser.BindersContext;
 import org.crsx.parser.CrsxMetaParser.ConcreteContext;
 import org.crsx.parser.CrsxMetaParser.ConsContext;
@@ -21,11 +22,11 @@ import org.crsx.parser.CrsxMetaParser.ScopeContext;
 import org.crsx.parser.CrsxMetaParser.TermContext;
 import org.crsx.parser.CrsxMetaParser.VariableContext;
 import org.crsx.parser.CrsxMetaParserBaseListener;
+import org.crsx.runtime.Variable;
 
 import net.sf.crsx.CRS;
 import net.sf.crsx.CRSException;
 import net.sf.crsx.Sink;
-import net.sf.crsx.Variable;
 import net.sf.crsx.generic.GenericFactory;
 import net.sf.crsx.util.ExtensibleMap;
 import net.sf.crsx.util.LinkedExtensibleMap;
@@ -50,6 +51,7 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 	private GenericFactory factory;
 
 	public Sink sink3;
+	public org.crsx.runtime.Sink sink4;
 
 	ArrayDeque<State> state = new ArrayDeque<>();
 
@@ -59,7 +61,7 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 	/** Fresh variables */
 	private ArrayDeque<Object> freshes;
 
-	private ArrayList<Variable> binders;
+	private ArrayList<Object> binders;
 
 	/** Count the number of terms in list */
 	private ArrayDeque<Integer> consCount = new ArrayDeque<>();
@@ -70,6 +72,15 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 	{
 		this.sink3 = sink3;
 		this.factory = factory;
+		this.freshes = freshes;
+		this.bounds = bounds;
+
+		state.push(State.SKIP);
+	}
+
+	public TermParserListener(org.crsx.runtime.Sink sink4, ArrayDeque<Object> bounds, ArrayDeque<Object> freshes)
+	{
+		this.sink4 = sink4;
 		this.freshes = freshes;
 		this.bounds = bounds;
 
@@ -87,7 +98,10 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 	@Override
 	public void exitCons(ConsContext ctx)
 	{
-		sink3 = sink3.end();
+		if (sink3 == null)
+			sink4 = sink4.end();
+		else
+			sink3 = sink3.end();
 		state.pop();
 	}
 
@@ -97,13 +111,6 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 	public void enterLiteral(LiteralContext ctx)
 	{
 		state.push(State.LITERAL); // Expect a terminal representing the literal
-	}
-
-	@Override
-	public void exitLiteral(LiteralContext ctx)
-	{
-		sink3 = sink3.end();
-		state.pop();
 	}
 
 	// --- groupOrList
@@ -121,11 +128,19 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 		int count = consCount.pop();
 
 		// Send list terminator
-		sink3 = sink3.start(sink3.makeConstructor("$Nil")).end();
+		if (sink3 == null)
+			sink4 = sink4.start(List._M_Nil).end();
+		else
+			sink3 = sink3.start(sink3.makeConstructor("$Nil")).end();
 
 		// And close all $Cons
 		while (count-- > 0)
-			sink3 = sink3.end();
+		{
+			if (sink3 == null)
+				sink4 = sink4.end();
+			else
+				sink3 = sink3.end();
+		}
 
 		state.pop();
 	}
@@ -169,7 +184,10 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 	@Override
 	public void exitMetapp(MetappContext ctx)
 	{
-		sink3 = sink3.endMetaApplication();
+		if (sink3 == null)
+			sink4 = sink4.endMetaApplication();
+		else
+			sink3 = sink3.endMetaApplication();
 
 		state.pop();
 	}
@@ -230,7 +248,10 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 			consCount.push(count + 1);
 
 			// TODO: Should delay by using a buffer before sending $Cons when supporting grouped expression.
-			sink3 = sink3.start(sink3.makeConstructor("$Cons"));
+			if (sink3 == null)
+				sink4 = sink4.start(List._M_Cons);
+			else
+				sink3 = sink3.start(sink3.makeConstructor("$Cons"));
 		}
 		state.push(State.TERM);
 
@@ -252,27 +273,51 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 				{
 					if (binders.size() > 0)
 					{
-						net.sf.crsx.Variable[] bs = new net.sf.crsx.Variable[binders.size()];
-						binders.toArray(bs);
-						sink3 = sink3.binds(bs);
+						if (sink3 == null)
+						{
+							org.crsx.runtime.Variable[] bs = new org.crsx.runtime.Variable[binders.size()];
+							binders.toArray(bs);
+							sink4 = sink4.binds(bs);
+						}
+						else
+						{
+							net.sf.crsx.Variable[] bs = new net.sf.crsx.Variable[binders.size()];
+							binders.toArray(bs);
+							sink3 = sink3.binds(bs);
+						}
 					}
 				}
 				else
 				{
-					net.sf.crsx.Variable binder = sink3.makeVariable(node.getText(), false);
-					bounds.push(binder);
-					binders.add(binder);
+					if (sink3 == null)
+					{
+						org.crsx.runtime.Variable binder = new org.crsx.runtime.Variable(node.getText());
+						bounds.push(binder);
+						binders.add(binder);
+					}
+					else
+					{
+						net.sf.crsx.Variable binder = sink3.makeVariable(node.getText(), false);
+						bounds.push(binder);
+						binders.add(binder);
+					}
 				}
 				state.pop();
 				state.push(State.SKIP);
 				break;
 			case CONS :
-				sink3 = sink3.start(sink3.makeConstructor(node.getText()));
+				if (sink3 == null)
+					sink4 = sink4.start(sink4.context().lookupDescriptor(node.getText()));
+				else
+					sink3 = sink3.start(sink3.makeConstructor(node.getText()));
 				state.pop();
 				state.push(State.SKIP);
 				break;
 			case METAVAR :
-				sink3 = sink3.startMetaApplication(node.getText());
+				if (sink3 == null)
+					sink4 = sink4.startMetaApplication(node.getText());
+				else
+					sink3 = sink3.startMetaApplication(node.getText());
 				state.pop();
 				state.push(State.SKIP);
 				break;
@@ -281,7 +326,11 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 				if (literal.length() > 0 && literal.charAt(0) == '"')
 					literal = literal.substring(1).substring(0, literal.length() - 2);
 
-				sink3 = sink3.start(sink3.makeLiteral(literal, CRS.STRING_SORT));
+				if (sink3 == null)
+					sink4 = sink4.literal(literal);
+				else
+					sink3 = sink3.start(sink3.makeLiteral(literal, CRS.STRING_SORT)).end();
+
 				state.pop();
 				state.push(State.SKIP);
 			}
@@ -294,6 +343,9 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 					if (var == MARKER)
 						return false;
 
+					if (var instanceof Variable)
+						return ((Variable) var).name().equals(varname);
+
 					return ((net.sf.crsx.Variable) var).name().equals(varname);
 				}).findFirst();
 
@@ -301,6 +353,9 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 				{
 					// Try among fresh variables
 					variable = freshes.stream().filter(var -> {
+						if (var instanceof Variable)
+							return ((Variable) var).name().equals(varname);
+
 						return ((net.sf.crsx.Variable) var).name().equals(varname);
 					}).findFirst();
 				}
@@ -308,17 +363,23 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 				if (!variable.isPresent())
 				{
 					// Create new fresh variable.
-					variable = Optional.of(sink3.makeVariable(varname, false));
+					if (sink3 == null)
+						variable = Optional.of(new Variable(varname));
+					else
+						variable = Optional.of(sink3.makeVariable(varname, false));
+
 					freshes.push(variable.get());
 				}
 
-				sink3 = sink3.use((net.sf.crsx.Variable) variable.get());
+				if (sink3 == null)
+					sink4 = sink4.use((Variable) variable.get());
+				else
+					sink3 = sink3.use((net.sf.crsx.Variable) variable.get());
 
 				state.pop();
 				state.push(State.SKIP);
 				break;
 			case CONCRETE :
-
 				String text = node.getText();
 				if (text.length() > 1)
 				{
@@ -330,7 +391,13 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 					//System.out.println("parse embedded: " + text);
 					Reader reader = new StringReader(text);
 
-					//if (sink3 != null)
+					if (sink3 == null)
+					{
+						sink4 = sink4.context().getParser(category).parse(
+								sink4, category, new StringReader(text), "", node.getSymbol().getLine(),
+								node.getSymbol().getCharPositionInLine());
+					}
+					else
 					{
 
 						try
@@ -359,6 +426,7 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 				// either a COMMA or RPAR. Ignore.
 				break;
 			case SKIP :
+			case TERM :
 				// EOF
 				break;
 

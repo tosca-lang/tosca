@@ -14,21 +14,21 @@ enum List<a> | Cons(a, List<a>) | Nil
 /* @return `TRUE` if list is empty
  */
 func IsEmpty<a>(List<a>) -> Boolean  
-rule IsEmpty(()        ) → TRUE  
-rule IsEmpty((#, #s...)) → FALSE  
+rule IsEmpty(()         ) → TRUE  
+rule IsEmpty(Cons(#, #s)) → FALSE  
 
 /* @return `TRUE` if list is not empty
  */
 func IsNotEmpty<a>(List<a>) -> Boolean  
 rule IsNotEmpty(()        ) → FALSE  
-rule IsNotEmpty((#, #s...)) → TRUE  
+rule IsNotEmpty(Cons(#, #s)) → TRUE  
 
 
 /* TRUE if list is empty
  */
 func IfEmpty<a b>(List<a>, b, b) -> b  
 rule IfEmpty(()        , #1, #2) → #1  
-rule IfEmpty((#, #s...), #1, #2) → #2  
+rule IfEmpty(Cons(#, #s), #1, #2) → #2  
 
 /* `Null(#XS)`
    @param `#XS` list
@@ -37,27 +37,26 @@ rule IfEmpty((#, #s...), #1, #2) → #2
 */ 
 func Null<a>(List<a>) -> Boolean 
 rule Null( () )          → TRUE 
-rule Null( (#H, #T...) ) → FALSE 
+rule Null( Cons(#H, #T) ) → FALSE 
 
 // TRUE is list is a singleton
 func IsSingleton<a>(List<a>) -> Boolean  
 rule IsSingleton(()        ) → FALSE  
-rule IsSingleton((#, #s...)) → IsEmpty(#s)  
+rule IsSingleton(Cons(#, #s)) → IsEmpty(#s)  
 
-// 
 func IfSingleton(List<a>, b, b) -> b  
 rule IfSingleton(()        , #1, #2) → #2  
-rule IfSingleton((#, #s...), #1, #2) → IfEmpty(#s, #1, #2)  
+rule IfSingleton(Cons(#, #s), #1, #2) → IfEmpty(#s, #1, #2)  
 
 /* @return head of the list */
 func Head(List<a>) -> a  
 rule Head(()        ) → Error("Head of empty list")  
-rule Head((#, #s...)) → #  
+rule Head(Cons(#, #s)) → #  
 
 // Tail for the list
 func Tail<a>(List<a>) -> List<a>  
 rule Tail(()        ) → Error("Tail of empty list")  
-rule Tail((#, #s...)) → #s  
+rule Tail(Cons(#, #s)) → #s  
 
 /* Get element at given index (zero-based), or NONE
    @param `List<a>` the list
@@ -65,20 +64,20 @@ rule Tail((#, #s...)) → #s
  */
 func At<a>(List<a>, eager Numeric) -> Option<a> 
 rule At((), #i)    → NONE 
-rule At((#, #s...), #i) → If(Equal(#i, 0), SOME(#), At(#s, Minus(#i, 1))) 
+rule At(Cons(#, #s), #i) → If(Equal(#i, 0), SOME(#), At(#s, Minus(#i, 1))) 
 
 /*
   Concat the two list 
 */
 func Concat(List<a>, List<a>) -> List<a>  
 rule Concat((), #tail         ) → #tail  
-rule Concat((#1, #s...), #tail) → (#1, Concat(#s, #tail)...)  
+rule Concat(Cons(#1, #s), #tail) → Cons(#1, Concat(#s, #tail))  
 
 /* Flatten list of lists 
 */
 func Flatten<a>(List<List<a>>) -> List<a>  
 rule Flatten(())          → ()  
-rule Flatten((#1, #s...)) → Concat(#1, Flatten(#s)) 
+rule Flatten(Cons(#1, #s)) → Concat(#1, Flatten(#s)) 
 
 /* `Elem(#X,#XS)`
    @param  `#X`  element
@@ -97,7 +96,7 @@ rule Elem(#X, #XS) → Foldr([x y] -> Or(Equal(#X, x), y), FALSE, #XS)
    @note   read "insert #X in #XS to remember the order of the parameters"
 */
 func Insert<a>(a, List<a>) -> List<a> 
-rule Insert(#X, #XS) → (#X, #XS...) 
+rule Insert(#X, #XS) → Cons(#X, #XS) 
 
 /* 
    Append element to list.
@@ -107,7 +106,7 @@ rule Insert(#X, #XS) → (#X, #XS...)
 */
 func Append<a>(a, List<a>) -> List<a> 
 rule Append(#x, ())          → (#x,) 
-rule Append(#x, (#1, #s...)) → (#1, Append(#x, #s)...) 
+rule Append(#x, Cons(#1, #s)) → Cons(#1, Append(#x, #s)) 
 
 /* 
    Pick first element matching condition 
@@ -116,7 +115,7 @@ rule Append(#x, (#1, #s...)) → (#1, Append(#x, #s)...)
 */
 func PickFirst<a>(List<a>, [x] -> Boolean) -> Option<a> 
 rule PickFirst((         ), [x] -> #(x)) → NONE 
-rule PickFirst((#1, #s...), [x] -> #(x)) → PickFirst1(#(#1), #1, #s, [x] -> #(x)) 
+rule PickFirst(Cons(#1, #s), [x] -> #(x)) → PickFirst1(#(#1), #1, #s, [x] -> #(x)) 
 
 func PickFirst1<a>(Boolean, a, List<a>, [x] -> Boolean) -> Option<a> 
 rule PickFirst1(TRUE,  #1, #s, [x] -> #(x)) → SOME(#1) 
@@ -131,9 +130,9 @@ rule PickFirst1(FALSE, #1, #s, [x] -> #(x)) → PickFirst(#s, [x] -> #(x))
 */
 func ListEqual<a b>([a b] -> Boolean, List<a>, List<b> ) -> Boolean 
 rule ListEqual([x y] -> #C(x,y), (          ), (          )) → TRUE 
-rule ListEqual([x y] -> #C(x,y), (#x, #xs...), (          )) → FALSE 
-rule ListEqual([x y] -> #C(x,y), (          ), (#y, #ys...)) → FALSE 
-rule ListEqual([x y] -> #C(x,y), (#x, #xs...), (#y, #ys...)) → And(#C(#x, #y), ListEqual([x y] -> #C(x,y), #xs, #ys))  
+rule ListEqual([x y] -> #C(x,y), Cons(#x, #xs), (          )) → FALSE 
+rule ListEqual([x y] -> #C(x,y), (          ), Cons(#y, #ys)) → FALSE 
+rule ListEqual([x y] -> #C(x,y), Cons(#x, #xs), Cons(#y, #ys)) → And(#C(#x, #y), ListEqual([x y] -> #C(x,y), #xs, #ys))  
 
 /* `ConditionalInsert(#Condition, #X, #XS)`
    @param  `#Condition` condition for inserting the element
@@ -152,7 +151,7 @@ rule ConditionalInsert(FALSE, #X, #XS) → #XS
 */
 func ContainsDuplicates<a>(List<a>) -> Boolean 
 rule ContainsDuplicates(()         ) → FALSE 
-rule ContainsDuplicates((#H, #T...)) → Or(Elem(#H, #T), ContainsDuplicates(#T)) 
+rule ContainsDuplicates(Cons(#H, #T)) → Or(Elem(#H, #T), ContainsDuplicates(#T)) 
 
 /* `RemoveDuplicates(#XS)`
    @param  `#XS` list
@@ -160,7 +159,7 @@ rule ContainsDuplicates((#H, #T...)) → Or(Elem(#H, #T), ContainsDuplicates(#T)
 */
 func RemoveDuplicates<a>(List<a>) -> List<a> 
 rule RemoveDuplicates(())           → () 
-rule RemoveDuplicates((#X, #XS...)) → (#X, RemoveDuplicates(Filter([x] -> Not(Equal(x,#X)), #XS))...) 
+rule RemoveDuplicates(Cons(#X, #XS)) → Cons(#X, RemoveDuplicates(Filter([x] -> Not(Equal(x,#X)), #XS))) 
 
 /* `Length(#XS)`
    @param  `#XS` list
@@ -208,7 +207,7 @@ func Zip<a b>(List<a>, List<b>) -> List<Pair<a b>>
 rule Zip(() ,      ())      → () 
 rule Zip(() ,      # )      → Error("ListExtension.Zip: second argument list was longer") 
 rule Zip(#  ,      ())      → Error("ListExtension.Zip: first argument list was longer") 
-rule Zip((#X, #XS...), (#Y, #YS...)) → (PairCons(#X,#Y), Zip(#XS,#YS)...) 
+rule Zip(Cons(#X, #XS), Cons(#Y, #YS)) → Cons(PairCons(#X,#Y), Zip(#XS,#YS)) 
 
 /* `LookUp( #Key, #KeyValueList)`
     @param `#Key`          a key
@@ -245,7 +244,7 @@ rule MatchPartition(FALSE, #X, PairCons(#TS, #FS)) → PairCons(#TS, Insert(#X,#
  */
 func Map<a b>([a] -> b, List<a>) -> List<b>  
 rule Map([x] -> #(x), ())          → ()  
-rule Map([x] -> #(x), (#1, #s...)) → (#(#1), Map([x] -> #(x), #s)...)  
+rule Map([x] -> #(x), Cons(#1, #s)) → Cons(#(#1), Map([x] -> #(x), #s))  
 
 /* `Map2([x] ->#F(x), #XS)`
    @param   `[x] ->#F(x)` a function which takes one element of the list as input
@@ -268,7 +267,7 @@ rule MapM([state x] -> #(state, x), #state, #s) → MapM2([state x] ->#(state, x
 
 func MapM2<a b c>([a b] -> Pair<a c>, a, List<b>, List<c>) -> Pair<a List<c>> 
 rule MapM2([state x] -> #(state, x), #state, (         ), #rs) → PairCons(#state, #rs) 
-rule MapM2([state x] -> #(state, x), #state, (#1, #s...), #rs) → MapM3(#(#state, #1), [state x] -> #(state, x), #s, #rs) 
+rule MapM2([state x] -> #(state, x), #state, Cons(#1, #s), #rs) → MapM3(#(#state, #1), [state x] -> #(state, x), #s, #rs) 
 
 func MapM3<a b c>(Pair<a c>, [a b] -> Pair<a c>, List<b>, List<c>) -> Pair<a List<c>> 
 rule MapM3(PairCons(#nstate, #r), [state x] ->#(state, x), #s, #rs) 
@@ -295,13 +294,12 @@ rule Filter([x] -> #C(x), #XS) → Foldr([x y] -> ConditionalInsert(#C(x), x, y)
 */
 func Foldl<a b>([a b] -> b, b, List<a>) -> b 
 rule Foldl ([x y] -> #F(x,y), #Z, (         )) → #Z 
-rule Foldl ([x y] -> #F(x,y), #Z, (#H, #T...)) → Foldl([x y] -> #F(x,y), #F(#H,#Z), #T) 
+rule Foldl ([x y] -> #F(x,y), #Z, Cons(#H, #T)) → Foldl([x y] -> #F(x,y), #F(#H,#Z), #T) 
 
 /* 
   @note `InterpreterWrap` for `FoldP` enforcing computation of argument list `#XS` 
 */
 func IWrapFoldlP<a b>([a b] -> b, b, List<a>) -> b
-// Data(#XS) 
 rule IWrapFoldlP([x y] -> #F(x,y), #Z, #XS) 
 → FoldlP([x y] -> #F(x,y), #Z, #XS) 
 
@@ -312,11 +310,9 @@ rule IWrapFoldlP([x y] -> #F(x,y), #Z, #XS)
     @return  a list, where the the function `#F` is applied left associatively to all `#X` in `#XS` starting from the accumulator `#Z`, which is evaluated at each intermediate step
     @note    as `Foldl` but forces intermediate data computation 
 */
-func FoldlP<a b>([a b] -> b, b, List<a>) -> b 
-//-(Data(#Z)) : 
-rule FoldlP ([x y] -> #F(x,y), #Z, ()) → #Z 
-//-(Data(#Z)) : 
-rule FoldlP ([x y] -> #F(x,y), #Z, (#H, #T...)) → FoldlP([x y] -> #F(x,y), #F(#H,#Z), #T) 
+func FoldlP<a b>([a b] -> b, eager b, List<a>) -> b 
+rule FoldlP ([x y] -> #F(x,y), #Z, ()) → #Z  
+rule FoldlP ([x y] -> #F(x,y), #Z, Cons(#H, #T)) → FoldlP([x y] -> #F(x,y), #F(#H,#Z), #T) 
 
 
 /* `Foldr([x y] -> #F(x,y), #Z, #XS): 
@@ -328,5 +324,4 @@ rule FoldlP ([x y] -> #F(x,y), #Z, (#H, #T...)) → FoldlP([x y] -> #F(x,y), #F(
 */
 func Foldr<a b>([a b] -> b, b, List<a>) -> b 
 rule Foldr ([x y] -> #F(x,y), #Z, ()) → #Z 
-rule Foldr ([x y] -> #F(x,y), #Z, (#H, #T...)) → #F(#H, Foldr([x y] ->  #F(x,y), #Z, #T)) 
-
+rule Foldr ([x y] -> #F(x,y), #Z, Cons(#H, #T)) → #F(#H, Foldr([x y] ->  #F(x,y), #Z, #T)) 

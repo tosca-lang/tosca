@@ -96,6 +96,7 @@ csort
     | VARIABLE                                      /* Sort variable  */ 
     | LSQUARE csort RSQUARE csort                   /* Bound variable sort */ 
     | LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sorts */ 
+    | DATA csort                                    /* Data sort annotation. Indicate value is normalized */ 
     ;
     
 cmapsort
@@ -174,7 +175,6 @@ ALLOWS_VARIABLE : 'allows-variable';
 MODULE          : 'module';
 IMPORT          : 'import';
 GRAMMAR         : 'grammar';
-EAGER           : 'eager';
 EXTERN          : 'extern';
 COLON           : ':';
 ARROW           : '→';

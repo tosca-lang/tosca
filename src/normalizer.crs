@@ -115,7 +115,7 @@ NParamSort[#constructor, #sortArgs?]
 → %csort⟦ ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟧;
 
 NMaybeSortParams[$List[Crsx_sortParams_sort]] :: $List[Core_csortvars_sort];
-NMaybeSortParams[%sortParams?⟦                  ⟧] → %csortvars?⟦ ⟧; 
+NMaybeSortParams[%sortParams?⟦                     ⟧] → %csortvars?⟦ ⟧; 
 NMaybeSortParams[%sortParams?⟦ < ##variable_TOK+ > ⟧] → %csortvars?⟦ ∀ ##variable_TOK+ . ⟧; // TODO: fix metaparser ugly _TOK
 
 // ---- Function declaration
@@ -131,8 +131,10 @@ NMaybeParamDecls[%fnParamDecls?⟦ (            ) ⟧] → %csorts?⟦⟧;
 NMaybeParamDecls[%fnParamDecls?⟦ ( ##fnParam* ) ⟧] → %csorts?⟦ ( ⟨csort*: Map[param.NParam[param], #fnParam*]⟩ ) ⟧;
 
 NParam[Crsx_fnParam_sort] :: Core_csort_sort;
-NParam[%fnParam⟦ ##METAVAR : ##eager_TOK? ##sort ⟧] → NSort[#sort];
-NParam[%fnParam⟦ ##eager_TOK? ##sort             ⟧] → NSort[#sort];
+NParam[%fnParam⟦ ##METAVAR : ##sort        ⟧] → NSort[#sort];
+NParam[%fnParam⟦ ##METAVAR : eager ##sort  ⟧] → %csort⟦ data ⟨csort: NSort[#sort]⟩ ⟧;
+NParam[%fnParam⟦ ##sort                    ⟧] → NSort[#sort];
+NParam[%fnParam⟦ eager ##sort              ⟧] → %csort⟦ data ⟨csort: NSort[#sort]⟩ ⟧;
 
 NMaybeBody[$List[Crsx_fnBody_sort], Crsx_constructor_sort, $List[Crsx_fnParamDecls_sort]] :: $List[Core_cdecl_sort];
 

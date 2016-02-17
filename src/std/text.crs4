@@ -54,17 +54,17 @@ func Text-Mangle(eager $String) -> Text
 rule Text-Mangle(#t) → text⟦†⟨ Mangle(#t) ⟩⟧  
 
 func TextFold(List<Text>, Text) -> Text 
-rule TextFold(()     , #sep) → text⟦⟧  
-rule TextFold((#1, #s...), #sep) → text⟦⟨ #1 ⟩⟨ TextFold1(#s, #sep) ⟩⟧  
+rule TextFold(()         , #sep) → text⟦⟧  
+rule TextFold(Cons(#1, #s), #sep) → text⟦⟨ #1 ⟩⟨ TextFold1(#s, #sep) ⟩⟧  
 
 func TextFold1(List<Text>, Text) -> Text 
 rule TextFold1(()     , #sep) → text⟦⟧  
-rule TextFold1((#1, #s...), #sep) → text⟦⟨ #sep ⟩⟨ #1 ⟩⟨ TextFold1(#s, #sep) ⟩⟧  
+rule TextFold1(Cons(#1, #s), #sep) → text⟦⟨ #sep ⟩⟨ #1 ⟩⟨ TextFold1(#s, #sep) ⟩⟧  
 
 func ReverseTextFold(List<Text>, Text) -> Text 
 rule ReverseTextFold(()        , #sep) → text⟦⟧  
-rule ReverseTextFold((#1,)     , #sep) → text⟦⟨ #1 ⟩⟧  
-rule ReverseTextFold((#1, #2, #s...), #sep) → text⟦⟨ ReverseTextFold((#2, #s), #sep) ⟩⟨ #sep ⟩⟨ #1 ⟩⟧  
+rule ReverseTextFold(Cons(#1,Nil)     , #sep) → text⟦⟨ #1 ⟩⟧  
+rule ReverseTextFold(Cons(#1, Cons(#2, #s)), #sep) → text⟦⟨ ReverseTextFold((#2, #s), #sep) ⟩⟨ #sep ⟩⟨ #1 ⟩⟧  
 
 // -- Conversion
 

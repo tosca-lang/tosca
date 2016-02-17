@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.StringReader;
 
+import org.crsx.runtime.BufferSink;
 import org.crsx.runtime.Construction;
 import org.crsx.runtime.Context;
 import org.crsx.runtime.Normalizer;
@@ -339,4 +340,28 @@ public class StringExtern
 		term2.release();
 		return true;
 	}
+	
+	final public static boolean _M_ParseToMetaTerm(Sink sink, Term term1, Term term2)
+	{
+		final Context context = sink.context();
+		final java.lang.String category = Normalizer.normalize(context, term1).symbol();
+		final java.lang.String text = Normalizer.normalize(context, term2).symbol();
+
+		Parser parser = context.getParser(category);
+		if (parser == null)
+			throw new RuntimeException("Fatal error: no parser found for category " + category);
+
+		BufferSink parsed = context.makeBuffer();
+		parser.parse(parsed, category, new StringReader(text), null, 0, 0);
+		Term result = parsed.term();
+		java.lang.String textResult = result.toString4();
+	//	System.out.println(textResult);
+		parser = context.getParser("term");
+		parser.parse(sink, "term", new StringReader(textResult), null, 0, 0);
+		
+		term1.release();
+		term2.release();
+		return true;
+	}
+		
 }

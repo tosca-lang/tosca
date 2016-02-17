@@ -286,4 +286,5 @@ public abstract class Term extends Reference
 	 */
 	protected abstract boolean deepEquals(Term other, Map<Variable, Variable> renamings);
 
+	public abstract String toString4();
 }
