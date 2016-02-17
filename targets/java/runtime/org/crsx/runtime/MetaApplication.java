@@ -29,7 +29,7 @@ public class MetaApplication extends Term
 	}
 
 	// Overrides
-	
+
 	@Override
 	public Kind kind()
 	{
@@ -43,6 +43,12 @@ public class MetaApplication extends Term
 	}
 
 	@Override
+	public Term sub(int i)
+	{
+		return subs[i];
+	}
+
+	@Override
 	public void copy(Sink sink, boolean discard)
 	{
 		sink.startMetaApplication(metaVariable);
@@ -51,7 +57,7 @@ public class MetaApplication extends Term
 			subs[i].copy(sink, discard);
 
 		sink.endMetaApplication();
-		
+
 		if (discard)
 			release();
 	}
@@ -96,13 +102,47 @@ public class MetaApplication extends Term
 	@Override
 	public String toString()
 	{
-		return metaVariable;
+		StringBuilder builder = new StringBuilder();
+
+		builder.append(metaVariable);
+		final int arity = arity();
+		if (arity > 0)
+		{
+			builder.append("[");
+			for (int i = 0; i < arity; i++)
+			{
+				if (i != 0)
+					builder.append(", ");
+
+				Term sub = sub(i);
+				builder.append(sub.toString());
+			}
+			builder.append("]");
+		}
+		return builder.toString();
 	}
 
 	@Override
 	public String toString4()
 	{
-		return metaVariable;
+		StringBuilder builder = new StringBuilder();
+
+		builder.append(metaVariable);
+		final int arity = arity();
+		if (arity > 0)
+		{
+			builder.append("(");
+			for (int i = 0; i < arity; i++)
+			{
+				if (i != 0)
+					builder.append(", ");
+
+				Term sub = sub(i);
+				builder.append(sub.toString4());
+			}
+			builder.append(")");
+		}
+		return builder.toString();
 	}
 
 }
