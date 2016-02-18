@@ -9,7 +9,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 
-
 class Crsx4Task extends DefaultTask {
 
 	@InputFiles
@@ -29,7 +28,7 @@ class Crsx4Task extends DefaultTask {
 
 	@Input
 	@Optional
-	boolean command = 'build'
+	String command = 'build'
 	
 	@Input
 	@Optional
@@ -43,41 +42,44 @@ class Crsx4Task extends DefaultTask {
 			def source = change.file
 			logger.lifecycle "process ${source}"
 			
-			def args = []
+			def jargs = []
 			def subpackage = ""
 			
 			// Compute subpackage name. 
 			subpackage = source.parentFile.absolutePath.replace("${sources.dir}", '').replace('/', '.')
 			if (!"".equals(subpackage))
 				subpackage = subpackage.replaceFirst('.', '')
-			
+				
 			if (usecompiler) {
-				args << ${command}
-				args << "rules=${source}"
+				jargs << command
+				jargs << "rules=${source}"
 				if (sourceOnly)
-					args << "only-source"
-				args << "build-dir=${outputDir}" 
+					jargs << "only-source"
+				jargs << "build-dir=${outputDir}" 
 			} else {
 				def dest = computeDestination(source)
 				
-				args << 'sink=net.sf.crsx.text.TextSink'
-				args << 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.parser.CrsxMetaParser\';\'org.crsx.core.CoreMetaParser\';\'org.crsx.text.Text4MetaParser\';)'
-				args << 'rules=crsx.crs'
+				jargs << 'sink=net.sf.crsx.text.TextSink'
+				jargs << 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.parser.CrsxMetaParser\';\'org.crsx.core.CoreMetaParser\';\'org.crsx.text.Text4MetaParser\';)'
+				jargs << 'rules=crsx.crs'
 			
-				args << "term=\"${source}\""
-				args << "output=${dest}"
-				args << "wrapper=Compile"
+				jargs << "term=\"${source}\""
+				jargs << "output=${dest}"
+				jargs << "wrapper=Compile"
 			}
 						
 			if (!"".equals(packageName))
-				args << "javabasepackage=${packageName}"
+				jargs << "javabasepackage=${packageName}"
 			if (!"".equals(subpackage))
-				args << "javapackage=${subpackage}"
+				jargs << "javapackage=${subpackage}"
 			
-			logger.debug "run crsx with args" + " " + args
+			logger.debug "run crsx with args" + " " + jargs
 			
-			MainRunner crsxrunner = new MainRunner(project.configurations.crsx4.files, usecompiler ? "org.crsx.Crsx": "net.sf.crsx.run.Crsx")
-			crsxrunner.run(args)
+			 project.javaexec {
+				main      = usecompiler ? "org.crsx.Crsx": "net.sf.crsx.run.Crsx"
+				classpath = project.files(project.configurations.crsx4.files)
+				args      = jargs
+			}
 		}
 		
 		inputs.removed { change ->

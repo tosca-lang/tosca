@@ -50,6 +50,7 @@ public class Crsx
 	{
 		addCommand("run", Crsx::run, Crsx::helpRun);
 		addCommand("build", Crsx::build, Crsx::helpBuild);
+		addCommand("test", Crsx::test, Crsx::helpTest);
 	}
 
 	static void addCommand(String name, Consumer<Map<String, String>> command, Runnable help)
@@ -67,19 +68,32 @@ public class Crsx
 		System.out.println("\nThe commands are:");
 		System.out.println("  build         Build a crsx system.");
 		System.out.println("  run           Run a crsx system. Build it if necessary");
+		System.out.println("  test          Run the tests defined in the crsx system ");
 		System.out.println("\nFor additional help, type java -jar crsx4.jar command help.");
 		System.exit(0);
 	}
 
-	public static void helpRun()
+	/**
+	 * Print common options
+	 */
+	static void helpCommon()
+	{
+		System.out.println("  rules=<filename>          the crsx system filename. Cannot be used with option class");
+		System.out.println(
+				"  class=<classname>         the name of the compiled crsx system to run. Cannot be used with option rules");
+		System.out.println("  build-dir=<directory>     where to store the intermediate files. Default is current directory");
+		System.out.println("  javabasepackage=<name>    Java base package name of generated Java files");
+		System.out.println("  javapackage=<name>        Java sub package name of generated Java files");
+
+	}
+
+	static void helpRun()
 	{
 		System.out.println("Usage: java -jar <crsx.jar> run [<args>]");
 		System.out.println("where <args> must be at least either rules or class");
 		System.out.println("\n<args> are:");
-		System.out.println("  rules=<filename>          the name of the crsx system to compile and run");
-		System.out.println("  class=<classname>         the name of the compiled crsx system to run");
+		helpCommon();
 		System.out.println("  term=<term>               the input term. Optional");
-		System.out.println("  build-dir=<directory>     where to store the build files. Default is current directory");
 		System.out.println("  wrapper=<name>            input term wrapper. Default is Main");
 
 		System.exit(0);
@@ -105,7 +119,7 @@ public class Crsx
 
 			// First: build
 
-			Map<String, String> buildEnv = new HashMap<>(env);
+			Map<String, String> buildEnv = new HashMap<>();
 
 			buildEnv.put("rules", rules);
 			buildEnv.put("build-dir", buildir);
@@ -116,9 +130,7 @@ public class Crsx
 
 			build(buildEnv);
 
-			String output = targetJavaFilename(rules, buildir, javabasepackage, javapackage, false);
-			File outputClassFile = new File(output);
-			clazz = outputClassFile.getName().replace(".java", "");
+			clazz = targetClassFilename(rules, javabasepackage, javapackage);
 			classLoader = classLoader(rules, buildir);
 		}
 
@@ -141,11 +153,8 @@ public class Crsx
 	{
 		System.out.println("Usage: java -jar <crsx.jar> build [<args>]");
 		System.out.println("\n<args> are:");
-		System.out.println("  rules=<filename>          the name of the crsx file to compile.");
-		System.out.println("  build-dir=<directory>     where to store the resulting files.");
+		helpCommon();
 		System.out.println("  only-source               only produce source file, no executable.");
-		System.out.println("  javabasepackage=<name>    base Java package name.");
-		System.out.println("  javapackage=<name>        sub Java package name.");
 
 		System.exit(0);
 	}
@@ -195,8 +204,24 @@ public class Crsx
 			compileJava(Arrays.asList(new File(output)));
 	}
 
+	public static void helpTest()
+	{
+		System.out.println("Usage: java -jar <crsx.jar> test [<args>]");
+		System.out.println("\n<args> are:");
+		helpCommon();
+
+		System.exit(0);
+	}
+
+	/* Test a crsx system */
+	static void test(Map<String, String> env)
+	{
+		env.put("wrapper", "Tests");
+		run(env);
+	}
+
 	/* 
-	 * Get the name of the target java file
+	 * Get the absolute name of the target java file
 	 * @param input input crsx file
 	 * @param dest target directory
 	 * @param makeDirs whether to make destination directories.
@@ -230,6 +255,36 @@ public class Crsx
 	}
 
 	/* 
+	 * Get the relative name of the target class file
+	 * @param input input crsx file
+	 * @param dest target directory
+	 * @param makeDirs whether to make destination directories.
+	 */
+	static String targetClassFilename(String input, String basepackage, String pkg)
+	{
+		final File inputFile = new File(input);
+
+		String name = "";
+		// Offset destination considering package
+		if (basepackage != null)
+			name += basepackage;
+		if (pkg != null)
+		{
+			if (!name.equals(""))
+				name += ".";
+			name += pkg;
+		}
+
+		// Compute output java filename
+		String output = inputFile.getName().replace(".crsc", "").replace(".crs4", "").replace(".crs", "");
+		output = Character.toUpperCase(output.charAt(0)) + output.substring(1); // First character must be upper case.
+
+		name += "." + output; // dest / Output
+
+		return name;
+	}
+
+	/* 
 	 * Get the classloader needed to compile and run the given crsx file.
 	 * 
 	 * @param input input crsx file
@@ -248,7 +303,7 @@ public class Crsx
 		try
 		{
 			return new URLClassLoader(new URL[]
-				{destFile.getAbsoluteFile().toURI().toURL()});
+				{destFile.getAbsoluteFile().toURI().toURL(), new File(crsxPath()).toURI().toURL()});
 		}
 		catch (MalformedURLException e)
 		{
@@ -261,7 +316,10 @@ public class Crsx
 	static void compileJava(List<File> filesToCompile)
 	{
 		List<String> optionList = new ArrayList<String>();
-		optionList.addAll(Arrays.asList("-classpath", System.getProperty("java.class.path")));
+
+		// Need the crsx runtime and the generated parser on the classpath
+		optionList.add("-classpath");
+		optionList.add(crsxPath());
 
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
@@ -275,6 +333,37 @@ public class Crsx
 		{
 			System.exit(0);
 		}
+
+		try
+		{
+			stdFileManager.close();
+		}
+		catch (IOException e)
+		{
+			fatal("Error while closing Java compiler tool file manager", e);
+
+		}
+	}
+
+	/** Gets the path of this class */
+	static String crsxPath()
+	{
+		URL url = Crsx.class.getResource("/org/crsx/Crsx.class");
+
+		if (url == null || url.getProtocol() == null)
+			fatal("Couldn't determine org.crsx.Crsx location", null);
+
+		if (url.getProtocol().equals("file"))
+		{
+			return url.getPath().replace("/org/crsx/Crsx.class", "");
+		}
+		if (url.getProtocol().equals("jar"))
+		{
+			String path = url.getPath();
+			return path.replace("file:", "").replace("!/org/crsx/Crsx.class", "");
+		}
+		fatal("Couldn't determine org.crsx.Crsx location (unsupported protocol)", null);
+		return null;
 	}
 
 	/** 
@@ -387,7 +476,6 @@ public class Crsx
 			wrapper = context.lookupDescriptor(wrapperName);
 			if (wrapper == null)
 				warning("wrapper " + wrapperName + " not found. Ignore.");
-
 		}
 
 		BufferSink buffer = context.makeBuffer();
@@ -517,10 +605,10 @@ public class Crsx
 	/** Parse crsx4 term and send result to sink */
 	static void parseTerm(Sink sink, String inputname)
 	{
-		try 
+		try
 		{
-			ParsingUtils.parseTerm(sink, inputname); 
-	 	}
+			ParsingUtils.parseTerm(sink, inputname);
+		}
 		catch (IOException e)
 		{
 			fatal("error while loading input file " + inputname, e);
