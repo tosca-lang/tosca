@@ -2,10 +2,8 @@
 
 package org.crsx;
 
-import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
@@ -33,6 +31,7 @@ import org.crsx.runtime.ConstructionDescriptor;
 import org.crsx.runtime.Context;
 import org.crsx.runtime.CrsxLexer;
 import org.crsx.runtime.Normalizer;
+import org.crsx.runtime.ParsingUtils;
 import org.crsx.runtime.Sink;
 import org.crsx.runtime.StringUtils;
 import org.crsx.runtime.Term;
@@ -67,7 +66,7 @@ public class Crsx
 		System.out.println("Usage: java -jar <crsx.jar> <command> [<args>]");
 		System.out.println("\nThe commands are:");
 		System.out.println("  build         Build a crsx system.");
-		System.out.println("  run           Run a crsx system.");
+		System.out.println("  run           Run a crsx system. Build it if necessary");
 		System.out.println("\nFor additional help, type java -jar crsx4.jar command help.");
 		System.exit(0);
 	}
@@ -75,11 +74,13 @@ public class Crsx
 	public static void helpRun()
 	{
 		System.out.println("Usage: java -jar <crsx.jar> run [<args>]");
+		System.out.println("where <args> must be at least either rules or class");
 		System.out.println("\n<args> are:");
-		System.out.println("  term=<term>               the input term");
-		System.out.println("  rules=<filename>          the name of the crsx file to compile and run.");
-		System.out.println("  output=<filename>         the name of the crsx file to compile and run.");
-		System.out.println("  build-dir=<directory>     where to store the build files.");
+		System.out.println("  rules=<filename>          the name of the crsx system to compile and run");
+		System.out.println("  class=<classname>         the name of the compiled crsx system to run");
+		System.out.println("  term=<term>               the input term. Optional");
+		System.out.println("  build-dir=<directory>     where to store the build files. Default is current directory");
+		System.out.println("  wrapper=<name>            input term wrapper. Default is Main");
 
 		System.exit(0);
 	}
@@ -87,35 +88,53 @@ public class Crsx
 	/* Build and run a crsx system */
 	static void run(Map<String, String> env)
 	{
-		Map<String, String> buildEnv = new HashMap<>(env);
-
+		String clazz = env.get("class");
 		String rules = env.get("rules");
-		String buildir = env.get("build-dir");
+		ClassLoader classLoader = null;
 
-		buildEnv.put("rules", rules);
-		buildEnv.put("build-dir", buildir);
-		build(buildEnv);
+		if (clazz == null && rules == null)
+			helpRun();
+		if (clazz != null && rules != null)
+			helpRun();
 
-		// Compute output class name
+		if (rules != null)
+		{
+			String buildir = env.get("build-dir");
+			String javabasepackage = env.get("javabasepackage");
+			String javapackage = env.get("javapackage");
 
-		String output = targetJavaFilename(rules, buildir, null, null, false);
-		File outputClassFile = new File(output);
-		output = outputClassFile.getName().replace(".java", ""); // TODO package
+			// First: build
 
-		// For testing only
-		output = "tests." + output;
+			Map<String, String> buildEnv = new HashMap<>(env);
 
-		Map<String, Object> internal = new HashMap<>();
+			buildEnv.put("rules", rules);
+			buildEnv.put("build-dir", buildir);
+			if (javabasepackage != null)
+				buildEnv.put("javabasepackage", javabasepackage);
+			if (javapackage != null)
+				buildEnv.put("javapackage", javapackage);
 
-		// Compute classloader
-		ClassLoader classLoader = classLoader(rules, buildir);
+			build(buildEnv);
+
+			String output = targetJavaFilename(rules, buildir, javabasepackage, javapackage, false);
+			File outputClassFile = new File(output);
+			clazz = outputClassFile.getName().replace(".java", "");
+			classLoader = classLoader(rules, buildir);
+		}
+
+		// Second: run
+
+		Map<String, Object> runEnv = new HashMap<>();
+
 		if (classLoader != null)
-			internal.put("classloader", classLoader);
+			runEnv.put("classloader", classLoader);
 
-		env.put("class", output);
-		env.put("wrapper", "Main");
+		env.put("class", clazz);
 
-		rewrite(env, internal);
+		String wrapper = env.get("wrapper");
+		env.put("wrapper", wrapper == null ? "Main" : wrapper);
+
+		rewrite(env, runEnv);
 	}
 
 	public static void helpBuild()
@@ -168,7 +187,7 @@ public class Crsx
 
 		if (env.get("tocore") != null)
 			System.setProperty("to-core", "1");
-		
+
 		rewrite(buildEnv, null);
 
 		// Second: Compile produced Java file.
@@ -253,7 +272,9 @@ public class Crsx
 
 		Boolean result = task.call();
 		if (!result)
+		{
 			System.exit(0);
+		}
 	}
 
 	/** 
@@ -331,7 +352,7 @@ public class Crsx
 		Context context = new Context();
 
 		setProperty(context, "verbose", env);
-		
+
 		// load compiled CRSX
 		String name = env.get("class");
 
@@ -355,9 +376,7 @@ public class Crsx
 		}
 		catch (Exception e)
 		{
-			System.out.println("Error while initializing the CRSX system.");
-			e.printStackTrace();
-			System.exit(0);
+			fatal("problem occurred while initializing the CRSX system", e);
 		}
 
 		// Wrap input term (if specified)
@@ -367,7 +386,7 @@ public class Crsx
 		{
 			wrapper = context.lookupDescriptor(wrapperName);
 			if (wrapper == null)
-				System.out.println("Warning: wrapper " + wrapperName + " not found.");
+				warning("wrapper " + wrapperName + " not found. Ignore.");
 
 		}
 
@@ -412,14 +431,7 @@ public class Crsx
 			if (input != null)
 			{
 				// TODO: parser categories
-				try (Reader reader = new BufferedReader(new FileReader(input)))
-				{
-					new CrsxLexer(reader).scanTerm(buffer, reader);
-				}
-				catch (IOException e)
-				{
-					printUsage();
-				}
+				parseTerm(buffer, input);
 			}
 		}
 
@@ -457,9 +469,7 @@ public class Crsx
 			}
 			catch (IOException e)
 			{
-				System.out.println("Error while opening the output.");
-				e.printStackTrace();
-				System.exit(0);
+				fatal("error while opening the output " + outputEntry, e);
 			}
 		}
 
@@ -476,9 +486,7 @@ public class Crsx
 			}
 			catch (Exception e)
 			{
-				System.out.println("Error while initializing the sink.");
-				e.printStackTrace();
-				System.exit(0);
+				fatal("error while initializing " + sinkName + ".", e);
 			}
 		}
 		else
@@ -489,23 +497,35 @@ public class Crsx
 			}
 			catch (IOException e)
 			{
-				System.out.println("Error while appending the result to the output.");
-				e.printStackTrace();
-				System.exit(0);
+				fatal("error while appending the result to the output", e);
 			}
 		}
 
 		if (output instanceof Closeable && output != System.out)
+		{
 			try
 			{
 				((Closeable) output).close();
 			}
 			catch (IOException e)
 			{
-				System.out.println("Error while closing the output.");
-				e.printStackTrace();
-				System.exit(0);
+				fatal("error while closing the output", e);
 			}
+		}
+	}
+
+	/** Parse crsx4 term and send result to sink */
+	static void parseTerm(Sink sink, String inputname)
+	{
+		try 
+		{
+			ParsingUtils.parseTerm(sink, inputname); 
+	 	}
+		catch (IOException e)
+		{
+			fatal("error while loading input file " + inputname, e);
+		}
+
 	}
 
 	/** Set context field value to what the corresponding value in the environment */

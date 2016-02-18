@@ -6,6 +6,14 @@ enum OK_SORT | OK
 
 enum $StringEntry | STRING($String)
 
+// --- Evaluation
+
+/**
+ * Evaluate the input 
+ */
+func Eval<a>(eager a) -> a
+rule Eval(#) → #
+
 // --- External Environment
 
 extern func IfDef<a b c>(eager {a: b}, eager a /* Key */, c, c) -> c

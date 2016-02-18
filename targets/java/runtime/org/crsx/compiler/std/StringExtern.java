@@ -3,6 +3,7 @@ package org.crsx.compiler.std;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.StringReader;
 
 import org.crsx.runtime.BufferSink;
@@ -10,6 +11,7 @@ import org.crsx.runtime.Construction;
 import org.crsx.runtime.Context;
 import org.crsx.runtime.Normalizer;
 import org.crsx.runtime.Parser;
+import org.crsx.runtime.ParsingUtils;
 import org.crsx.runtime.Sink;
 import org.crsx.runtime.StringUtils;
 import org.crsx.runtime.Term;
@@ -340,7 +342,7 @@ public class StringExtern
 		term2.release();
 		return true;
 	}
-	
+
 	final public static boolean _M_ParseToMetaTerm(Sink sink, Term term1, Term term2)
 	{
 		final Context context = sink.context();
@@ -355,13 +357,31 @@ public class StringExtern
 		parser.parse(parsed, category, new StringReader(text), null, 0, 0, null);
 		Term result = parsed.term();
 		java.lang.String textResult = result.toString4();
-	//	System.out.println(textResult);
+		//	System.out.println(textResult);
 		parser = context.getParser("term");
 		parser.parse(sink, "term", new StringReader(textResult), null, 0, 0, null);
-		
+
 		term1.release();
 		term2.release();
 		return true;
 	}
-		
+
+	final public static boolean _M_ParseTerm(Sink sink, Term term1)
+	{
+		final Context context = sink.context();
+		final java.lang.String inputname = Normalizer.normalize(context, term1).symbol();
+
+		try
+		{
+			ParsingUtils.parseTerm(sink, inputname);
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
+
+		term1.release();
+		return true;
+	}
+
 }

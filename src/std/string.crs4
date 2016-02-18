@@ -108,4 +108,6 @@ extern func ParseResource<a>(eager $String, eager $String) -> a
 func ParseToString(eager $String, eager $String) -> $String 
 rule ParseToString(#category, #string) → Show(ParseText(#category, #string))  // TODO: line information.
 
+extern func ParseTerm<a>(eager String /* file location */) -> a 
+
 extern func ParseToMetaTerm<a>(eager $String, eager $String) -> a 

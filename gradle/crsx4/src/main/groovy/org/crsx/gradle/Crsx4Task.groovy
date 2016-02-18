@@ -1,4 +1,4 @@
-// Copyright (c) 2015 IBM Corporation.
+// Copyright (c) 2015-2016 IBM Corporation.
 package org.crsx.gradle
 
 import java.io.File; 
@@ -27,6 +27,13 @@ class Crsx4Task extends DefaultTask {
 	@Optional
 	boolean usecompiler = false
 
+	@Input
+	@Optional
+	boolean command = 'build'
+	
+	@Input
+	@Optional
+	boolean sourceOnly = true
 	
 	@TaskAction
 	def generate(IncrementalTaskInputs inputs) {
@@ -34,7 +41,7 @@ class Crsx4Task extends DefaultTask {
 		
 		inputs.outOfDate { change ->
 			def source = change.file
-			logger.lifecycle "compile ${source}"
+			logger.lifecycle "process ${source}"
 			
 			def args = []
 			def subpackage = ""
@@ -45,9 +52,10 @@ class Crsx4Task extends DefaultTask {
 				subpackage = subpackage.replaceFirst('.', '')
 			
 			if (usecompiler) {
-				args << 'build'
+				args << ${command}
 				args << "rules=${source}"
-				args << "only-source"
+				if (sourceOnly)
+					args << "only-source"
 				args << "build-dir=${outputDir}" 
 			} else {
 				def dest = computeDestination(source)
@@ -66,7 +74,7 @@ class Crsx4Task extends DefaultTask {
 			if (!"".equals(subpackage))
 				args << "javapackage=${subpackage}"
 			
-			logger.debug "run with args" + " " + args
+			logger.debug "run crsx with args" + " " + args
 			
 			MainRunner crsxrunner = new MainRunner(project.configurations.crsx4.files, usecompiler ? "org.crsx.Crsx": "net.sf.crsx.run.Crsx")
 			crsxrunner.run(args)

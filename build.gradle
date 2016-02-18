@@ -1,7 +1,21 @@
-// Copyright (c) 2015 IBM Corporation.
+// Copyright (c) 2015-2016 IBM Corporation.
+
+/**
+ * Main Gradle build. 
+ * 
+ * The default tasks is snapshot, which creates a candidate crsx4 distibution jar file is targets/java/dist.
+ * 
+ * By default, the snapshot is created from crsx4 source files compiled using a previous crsx4 stable build.
+ * 
+ * There are various ways of overriding the default behavior by specifiying -P option on the gradle command line.
+ * These options are:
+ * - dev : use latest crsx4 class files stored in targets/java/build
+ * - crsx3: use crsx3 source files 
+ */
+
 import org.crsx.gradle.*
 
-defaultTasks 'coreParsers', 'crsxParsers', 'textParsers'
+defaultTasks 'snapshot'
 
 apply plugin:'base'
 
@@ -18,16 +32,18 @@ buildscript {
 apply plugin:'org.crsx.gradle.crsx4'
 
 repositories {
-    flatDir { dirs 'targets/java/dist' } // where to find crsx4.jar
+    flatDir { dirs 'targets/java/dist' } // where to find crsx4 jars
     flatDir { dirs 'targets/java/lib' }  // where to find crsx3.jar
     mavenCentral() // Where to find ANTLR  
 }
 
 dependencies {
-    crsx4 project.hasProperty('dev') ? files('targets/java/build', 'src') : 'org.crsx:crsx:4.0+@jar' 
+    crsx4 project.hasProperty('dev') ? files('targets/java/build', 'src') : 'org.crsx:crsx:4.0.0-ALPHA@jar' 
     crsx4 'org.crsx:crsx3@jar'
     crsx4 'org.antlr:antlr4:4.5' 
 }
+
+// --- Generate all meta and term parsers
 
 task coreParsers(type: PG4Task) {
     description "Generate Core term and meta parsers"
@@ -51,10 +67,12 @@ task textParsers(type: PG4Task) {
     defaultRule = 'CHARS'
 }
 
+// --- To make sure we don't delete something important by accident
 task cleanCoreParsers(overwrite : true) {} 
 task cleanCrsxParsers(overwrite : true) {} 
 task cleanTextParsers(overwrite : true) {} 
 
+// --- The Gradle wrapper.
 task wrapper(type: Wrapper) {
     gradleVersion = '2.2'
 }

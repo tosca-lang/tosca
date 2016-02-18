@@ -1,0 +1,32 @@
+// Copyright (c) 2015 IBM Corporation.
+/*
+ *  CRSX Java target build file.
+ */
+import org.crsx.gradle.*
+
+apply plugin:'org.crsx.gradle.crsx4'
+	
+repositories {
+	flatDir { dirs '../targets/java/dist' } // crsx4 
+}
+//	
+//dependencies {
+//	crsx4 'org.crsx:crsx:4.0.0-SNAPSHOT@jar'
+////		crsx4 'org.crsx:crsx3@jar'
+////		crsx4 'org.antlr:antlr4:4.5'
+//}
+	
+task runTest(type: Crsx4Task) {
+	sources = fileTree(dir: 'basic', include: 'test0.crs')
+	outputDir = file('results/org/crsx/tests')
+	packageName = 'org.crsx.tests'
+	usecompiler = true
+}	
+
+//repositories {
+//    flatDir { dirs "../targets/java/dist/"}
+//}
+
+dependencies {
+    crsx4 'org.crsx:crsx:4.0.0-SNAPSHOT@jar'
+}

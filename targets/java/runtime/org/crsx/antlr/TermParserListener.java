@@ -24,6 +24,7 @@ import org.crsx.parser.CrsxMetaParser.ScopeContext;
 import org.crsx.parser.CrsxMetaParser.TermContext;
 import org.crsx.parser.CrsxMetaParser.VariableContext;
 import org.crsx.parser.CrsxMetaParserBaseListener;
+import org.crsx.runtime.BufferSink;
 import org.crsx.runtime.Variable;
 
 import net.sf.crsx.CRS;
@@ -78,6 +79,11 @@ public class TermParserListener extends CrsxMetaParserBaseListener
 		this.bounds = bounds;
 
 		state.push(State.SKIP);
+	}
+
+	public TermParserListener(org.crsx.runtime.Sink sink)
+	{
+		this(sink, new ArrayDeque<>(), new ArrayDeque<>());
 	}
 
 	public TermParserListener(org.crsx.runtime.Sink sink4, ArrayDeque<Object> bounds, ArrayDeque<Object> freshes)
