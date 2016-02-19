@@ -245,7 +245,7 @@ ANTLR_Print_lexerElement[ANTLR_lexerElement_sort] :: Text;
 ANTLR_Print_lexerElement[ANTLR_lexerElement_A1[#1, #2]] → %n⟪ «ANTLR_Print_labeledLexerElement[#1]» «TextFold[Map[x.ANTLR_Print_ebnfSuffix[x], #2], %n⟪ ⟫]»⟫;
 ANTLR_Print_lexerElement[ANTLR_lexerElement_A2[#1, #2]] → %n⟪ «ANTLR_Print_lexerAtom[#1]» «TextFold[Map[x.ANTLR_Print_ebnfSuffix[x], #2], %n⟪ ⟫]»⟫;
 ANTLR_Print_lexerElement[ANTLR_lexerElement_A3[#1, #2]] → %n⟪ «ANTLR_Print_lexerBlock[#1]» «TextFold[Map[x.ANTLR_Print_ebnfSuffix[x], #2], %n⟪ ⟫]»⟫;
-ANTLR_Print_lexerElement[ANTLR_lexerElement_A4[#1, #2]] → %n⟪ †«#1» «TextFold[Map[x.StringToText[x], #2], %n⟪ ⟫]»⟫;
+ANTLR_Print_lexerElement[ANTLR_lexerElement_A4[#1, #2]] → %n⟪ †«#1»«TextFold[Map[x.StringToText[x], #2], %n⟪ ⟫]»⟫;
 
 ANTLR_labeledLexerElement_sort ::= (ANTLR_labeledLexerElement[ANTLR_id_sort, ANTLR_labeledLexerElement_S1_sort, ANTLR_labeledLexerElement_S2_sort]; );
 
@@ -374,7 +374,7 @@ ANTLR_Print_lexerAtom[ANTLR_lexerAtom_A2[#1]] → %n⟪ «ANTLR_Print_terminal[#
 ANTLR_Print_lexerAtom[ANTLR_lexerAtom_A3[#1]] → %n⟪ †«#1»⟫;
 ANTLR_Print_lexerAtom[ANTLR_lexerAtom_A4[#1]] → %n⟪ «ANTLR_Print_notSet[#1]»⟫;
 ANTLR_Print_lexerAtom[ANTLR_lexerAtom_A5[#1]] → %n⟪ †«#1»⟫;
-ANTLR_Print_lexerAtom[ANTLR_lexerAtom_A6[#1, #2]] → %n⟪ †«#1» «TextFold[Map[x.ANTLR_Print_elementOptions[x], #2], %n⟪ ⟫]»⟫;
+ANTLR_Print_lexerAtom[ANTLR_lexerAtom_A6[#1, #2]] → %n⟪ †«#1»«TextFold[Map[x.ANTLR_Print_elementOptions[x], #2], %n⟪ ⟫]»⟫;
 
 ANTLR_atom_sort ::= (ANTLR_atom_A1[ANTLR_range_sort]; ANTLR_atom_A2[ANTLR_terminal_sort]; ANTLR_atom_A3[ANTLR_ruleref_sort]; ANTLR_atom_A4[ANTLR_notSet_sort]; ANTLR_atom_A5[$String, $List[ANTLR_elementOptions_sort]]; );
 

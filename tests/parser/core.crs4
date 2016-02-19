@@ -1,0 +1,26 @@
+// Copyright (c) 2016 IBM Corporation.
+
+/* Test core TransScript parser features */
+
+/* Test empty comment, not to conflict with the // operator */
+
+//
+
+import Std::Core
+
+enum MyList<a>      
+    | MyCons(a, List<a>)    
+    | MyNil
+
+enum Statement
+    | Let(Expr, [Expr] -> Expr)     
+    | Var(String)
+    | allows-variable 
+
+
+type Expr
+    | Plus(Expr, Expr)
+    | Number(Integer)
+
+func Tests -> Boolean
+rule Tests → TRUE 

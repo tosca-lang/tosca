@@ -402,6 +402,7 @@ ConcatSome[{#I}GetConstantLexerElement[#lexerElement], {#I}GetConstantLexerEleme
 
 // Extract atom and recurse
 {#I}GetConstantLabeledLexerElement[%labeledLexerElement⟦ #id #labeledLexerElement_S1 #lexerAtom ⟧] → {#I}GetConstantLexerAtom[#lexerAtom];
+
 //
 //// Extract block and recurse
 //{#I}GetConstantLabeledLexerElement[%labeledLexerElement⟦ #id #labeledLexerElement_S1 #block ⟧] → {#I}GetConstantLexerBlock[#block];
