@@ -70,8 +70,8 @@ private boolean isPostfix(String op, int currentp) {
 
 }
 
-// A CRSX file is a module declaration and a list of declarations
-crsx
+// A TransScript program is a module declaration and a list of declarations
+transscript
     : decl+                     /* [CORE] */
     ;
 

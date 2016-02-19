@@ -18,8 +18,9 @@ import Std::Num
 // ----- API
 
 // Convert TransScript to Core
-func ToCore(String, Crsx_crsx_sort) -> Core_ccrsx_sort 
-rule ToCore(#filename, crsx⟦ ##decl+ ⟧) 
+func ToCore(String, TransScript_transscript_sort) -> Core_ccrsx_sort 
+rule ToCore(#filename, transscript⟦ ##decl+ ⟧) 
+//rule ToCore(#filename, crsx⟦ ##decl+ ⟧) 
 → ccrsx⟦ ⟨cdecl+: NDecls[#decl+]⟩ ⟧ 
 
 // ----- Declarations

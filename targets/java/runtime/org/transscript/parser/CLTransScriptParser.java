@@ -46,7 +46,7 @@ public class CLTransScriptParser
 			//parser.setTrace(true);
 		
 			parser.addErrorListener(new DiagnosticErrorListener(true));
-			parser.crsx();
+			parser.transscript();
 		}
 		catch (FileNotFoundException e)
 		{

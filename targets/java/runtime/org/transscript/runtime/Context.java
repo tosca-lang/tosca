@@ -2,6 +2,7 @@
 
 package org.transscript.runtime;
 
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
@@ -32,16 +33,10 @@ final public class Context
 	 */
 	public int verbose = 0;
 
-	
 	/**
 	 * Construction descriptors, indexed by qualified name
 	 */
 	public HashMap<String, ConstructionDescriptor> descriptors;
-
-	/**
-	 * Parser classloader
-	 */
-	protected URLClassLoader parserClassLoader;
 
 	/**
 	 * Registered parsers
@@ -52,6 +47,11 @@ final public class Context
 	 * Parsers, indexed by category
 	 */
 	protected HashMap<String, Parser> parsers;
+
+	/**
+	 * Overloaded boot parsers, indexed by category
+	 */
+	protected HashMap<String, Parser> bootParsers;
 
 	// --- Constructors
 
@@ -151,9 +151,23 @@ final public class Context
 	 * Add the list of URLs to search for parser classes.
 	 *  
 	 */
-	public void addParserURLs(URL[] urls)
+	public void registerBootParsers(URL[] urls)
 	{
-		parserClassLoader = URLClassLoader.newInstance(urls);
+		try (ChildURLClassLoader loader = new ChildURLClassLoader(urls, Context.class.getClassLoader()))
+		{
+			bootParsers = new HashMap<>();
+			Class<?> parserClass = loader.loadClass("org.transscript.parser.TransScriptMetaParser");
+			registerCategories(parserClass, bootParsers);
+			parserClass = loader.loadClass("org.transscript.core.CoreMetaParser");
+			registerCategories(parserClass, bootParsers);
+			parserClass = loader.loadClass("org.transscript.text.Text4MetaParser");
+			registerCategories(parserClass, bootParsers);
+		}
+		catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IOException e)
+		{
+			System.out.println("Warning: parser " + e.getLocalizedMessage() + " cannot be loaded.");
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -168,58 +182,106 @@ final public class Context
 	{
 		if (!parserNames.contains(parserClassname))
 		{
-			ClassLoader loader = parserClassLoader == null ? Context.class.getClassLoader() : parserClassLoader;
+			ClassLoader loader = Context.class.getClassLoader();
 			try
 			{
 				Class<?> parserClass = loader.loadClass(parserClassname);
+				registerCategories(parserClass, parsers);
 
-				Parser parser;
-				if (Crsx3Parser.class.isAssignableFrom(parserClass))
-				{
-					Crsx3Parser oldParser = (Crsx3Parser) parserClass.newInstance();
-					parser = oldParser.asCrsx4Parser();
-				}
-				else if (Parser.class.isAssignableFrom(parserClass))
-				{
-					parser = (Parser) parserClass.newInstance();
-				}
-				else
-				{
-					throw new RuntimeException(parserClassname + " is not a valid parser.");
-				}
-
-				parser.categories().forEach(category -> {
-					
-					if (parsers.get(category) != null)
-					{
-						// Temporary: just issue a warning until have proper parser scoping mechanism
-						System.out.println("Warning:duplicate parser category: " + category);
-						//	throw new RuntimeException("Error: duplicate parser category: " + category);
-					}
-					
-					parsers.put(category, parser);
-				});
-				
 				parserNames.add(parserClassname);
 			}
 			catch (ClassNotFoundException | InstantiationException | IllegalAccessException e)
 			{
 				System.out.println("Warning: parser " + e.getLocalizedMessage() + " cannot be loaded.");
+				e.printStackTrace();
 				return false;
 			}
-		
+
 		}
 		return true;
+	}
+
+	/* Load categories from parser */
+	static protected void registerCategories(Class<?> parserClass, HashMap<String, Parser> categories)
+			throws InstantiationException, IllegalAccessException
+	{
+		Parser parser;
+		if (Crsx3Parser.class.isAssignableFrom(parserClass))
+		{
+			Crsx3Parser oldParser = (Crsx3Parser) parserClass.newInstance();
+			parser = oldParser.asCrsx4Parser();
+		}
+		else if (Parser.class.isAssignableFrom(parserClass))
+		{
+			parser = (Parser) parserClass.newInstance();
+		}
+		else
+		{
+			throw new RuntimeException(parserClass.getName() + " is not a valid parser.");
+		}
+
+		parser.categories().forEach(category -> {
+
+			if (categories.get(category) != null)
+			{
+				// Temporary: just issue a warning until have proper parser scoping mechanism
+				System.out.println("Warning:duplicate parser category: " + category);
+				//	throw new RuntimeException("Error: duplicate parser category: " + category);
+			}
+
+			categories.put(category, parser);
+		});
 	}
 
 	/**
 	 * Gets the parser capable of parsing the given category
 	 * @param category
+	 * @param boot if true, try to get overloaded boot parser first.
 	 * @return the parser or null if the no parser handle the given category
 	 */
-	final public Parser getParser(String category)
+	final public Parser getParser(String category, boolean boot)
 	{
-		Parser parser = parsers.get(category);
+		Parser parser = null;
+		if (boot && bootParsers != null)
+			parser = bootParsers.get(category);
+		if (parser == null)
+			parser = parsers.get(category);
 		return parser == null ? null : parser.parser();
+	}
+
+	/**
+	* This class delegates (child then parent) for the findClass method for a URLClassLoader.
+	* We need this because findClass is protected in URLClassLoader
+	*/
+	private static class ChildURLClassLoader extends URLClassLoader
+	{
+		private ClassLoader realParent;
+
+		public ChildURLClassLoader(URL[] urls, ClassLoader realParent)
+		{
+			super(urls, null);
+
+			this.realParent = realParent;
+		}
+
+		@Override
+		public Class<?> findClass(String name) throws ClassNotFoundException
+		{
+			if (name.startsWith("org.transscript.parser.TransScript"))
+			{
+				try
+				{
+					// first try to use the URLClassLoader findClass
+					return super.findClass(name);
+				}
+				catch (ClassNotFoundException e)
+				{
+					// if that fails, we ask our real parent classloader to load the class (we give up)
+					return realParent.loadClass(name);
+				}
+			}
+
+			return realParent.loadClass(name);
+		}
 	}
 }

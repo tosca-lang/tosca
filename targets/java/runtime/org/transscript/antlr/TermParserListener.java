@@ -401,7 +401,7 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 
 					if (sink3 == null)
 					{
-						sink4 = sink4.context().getParser(category).parse(
+						sink4 = sink4.context().getParser(category, false).parse(
 								sink4, category, new StringReader(text), "", node.getSymbol().getLine(),
 								node.getSymbol().getCharPositionInLine(), toCrsx4Bound());
 					}

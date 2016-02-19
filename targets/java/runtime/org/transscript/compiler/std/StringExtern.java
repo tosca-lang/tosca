@@ -308,7 +308,7 @@ public class StringExtern
 		final java.lang.String category = Normalizer.normalize(context, term1).symbol();
 		final java.lang.String name = Normalizer.normalize(context, term2).symbol();
 
-		Parser parser = context.getParser(category);
+		Parser parser = context.getParser(category, false);
 		if (parser == null)
 			throw new RuntimeException("Fatal error: no parser found for category " + category);
 
@@ -332,7 +332,7 @@ public class StringExtern
 		final java.lang.String category = Normalizer.normalize(context, term1).symbol();
 		final java.lang.String text = Normalizer.normalize(context, term2).symbol();
 
-		Parser parser = context.getParser(category);
+		Parser parser = context.getParser(category, false);
 		if (parser == null)
 			throw new RuntimeException("Fatal error: no parser found for category " + category);
 
@@ -349,7 +349,7 @@ public class StringExtern
 		final java.lang.String category = Normalizer.normalize(context, term1).symbol();
 		final java.lang.String text = Normalizer.normalize(context, term2).symbol();
 
-		Parser parser = context.getParser(category);
+		Parser parser = context.getParser(category, true); // Get latest boot parser.
 		if (parser == null)
 			throw new RuntimeException("Fatal error: no parser found for category " + category);
 
@@ -358,7 +358,7 @@ public class StringExtern
 		Term result = parsed.term();
 		java.lang.String textResult = result.toString4();
 		//	System.out.println(textResult);
-		parser = context.getParser("term");
+		parser = context.getParser("term", false);
 		parser.parse(sink, "term", new StringReader(textResult), null, 0, 0, null);
 
 		term1.release();

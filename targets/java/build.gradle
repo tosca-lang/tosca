@@ -110,7 +110,7 @@ task compileTransScript(type: TransScriptTask) {
 	outputDir   = project.hasProperty('crsx3') ? file('compiler/org/transscript/compiler') : file('compiler')
 	packageName = 'org.transscript.compiler' 
 	usecompiler = !project.hasProperty('crsx3')
-	bootparserpath = "build" // override TransScript parser location.
+	bootparserpath = "file:build/" // override TransScript parsers location.
 }
 	
 // --- Java compilation and packaging
@@ -121,8 +121,8 @@ compileJava {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 	
-	dependsOn 'buildParsers'
-	dependsOn 'compileTransScript'
+	dependsOn 'buildParsers'    
+	dependsOn 'compileTransScript' // TODO: needs parsers to be compiled! For now refresh eclipse before compileTransScript is invoked.
 }
 
 //clean.dependsOn cleanBuildTransScriptParsers

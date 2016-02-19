@@ -614,7 +614,7 @@ public class Tool
 	{
 		if (paths != null)
 		{
-			context.addParserURLs(Arrays.asList(paths.split(",")).stream().map(path -> {
+			context.registerBootParsers(Arrays.asList(paths.split(",")).stream().map(path -> {
 				try
 				{
 					return new URL(path);
