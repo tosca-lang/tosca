@@ -47,8 +47,8 @@ task coreTermParser(type: Antlr4Task, dependsOn: ':coreParsers') {
 
 task transScriptMetaParser(type: Antlr4Task, dependsOn: ':transScriptParsers') {
 	description = 'Generate Java TransScript meta parser'
-	lexer = file(transScriptSrc + '/parser/CrsxMetaLexer.g4')
-	grammar = file(transScriptSrc + '/parser/CrsxMetaParser.g4')
+	lexer = file(transScriptSrc + '/parser/TransScriptMetaLexer.g4')
+	grammar = file(transScriptSrc + '/parser/TransScriptMetaParser.g4')
 	generatedFileDir = file('parsers/org/transscript/parser')
 	packageName = 'org.transscript.parser'
 	superClass = 'org.transscript.antlr.Crsx3Parser'
@@ -56,7 +56,7 @@ task transScriptMetaParser(type: Antlr4Task, dependsOn: ':transScriptParsers') {
 
 task transScriptTermParser(type: Antlr4Task, , dependsOn: ':transScriptParsers') {
 	description = 'Generate Java TransScript term parser'
-	grammar = file(transScriptSrc + '/parser/CrsxTerm.g4')
+	grammar = file(transScriptSrc + '/parser/TransScriptTerm.g4')
 	generatedFileDir = file('parsers/org/transscript/parser')
 	packageName = 'org.transscript.parser'
 }
@@ -110,6 +110,7 @@ task compileTransScript(type: TransScriptTask) {
 	outputDir   = project.hasProperty('crsx3') ? file('compiler/org/transscript/compiler') : file('compiler')
 	packageName = 'org.transscript.compiler' 
 	usecompiler = !project.hasProperty('crsx3')
+	bootparserpath = "build" // override TransScript parser location.
 }
 	
 // --- Java compilation and packaging
@@ -120,8 +121,8 @@ compileJava {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 	
-	//dependsOn 'buildParsers'
-	//dependsOn 'compileTransScript'
+	dependsOn 'buildParsers'
+	dependsOn 'compileTransScript'
 }
 
 //clean.dependsOn cleanBuildTransScriptParsers

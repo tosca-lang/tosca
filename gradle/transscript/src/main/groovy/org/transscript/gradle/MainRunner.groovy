@@ -3,6 +3,8 @@ package org.transscript.gradle
 
 import java.lang.reflect.Method
 import org.gradle.api.tasks.*
+import org.gradle.api.file.FileCollection
+import org.gradle.api.Project
 /**
  * Dynamically load a class and run main(). 
  * 
@@ -10,23 +12,26 @@ import org.gradle.api.tasks.*
  */
 class MainRunner {
 	
+	Project project_
+	
 	/* The class containing main */
-	Class mainclass
+	String classname_
 	
-	/* The classloader to use */
-	URLClassLoader classLoader
+	/* The classpath to use */
+	FileCollection classpath_
 	
-	MainRunner(Set<File> classpath, String classname) {
-		classLoader = new URLClassLoader(classpath.collect({file -> file.toURI().toURL()}) as URL[], MainRunner.class.getClassLoader());
-		mainclass = new GroovyClassLoader(classLoader).loadClass(classname);
+	MainRunner(Project project, Set<File> classpath, String classname) {
+		project_ = project
+		classname_ = classname
+		classpath_ = project.files(classpath)
 	}
 	
-	public void run(List<String> args) {
-		def thread = Thread.start { 
-			Thread.currentThread().setContextClassLoader(classLoader);
-			mainclass.main(args as String[])
-		}
-		thread.join()
+	public void run(List<String> jargs) {
+		project_.javaexec {
+			main = classname_
+			classpath = classpath_
+			args      = jargs
+		}	
 	}
 
 }

@@ -17,7 +17,7 @@ import Std::Num
 
 // ----- API
 
-// Convert Crsx to Core
+// Convert TransScript to Core
 func ToCore(String, Crsx_crsx_sort) -> Core_ccrsx_sort 
 rule ToCore(#filename, crsx⟦ ##decl+ ⟧) 
 → ccrsx⟦ ⟨cdecl+: NDecls[#decl+]⟩ ⟧ 
@@ -190,7 +190,7 @@ rule NScope(scope⟦ ##term      ⟧) → NTerm(#term)
 rule NScope(scope⟦ [ ##binders ⟧) → NBinders(#binders) 
 
 func NBinders(Crsx_binders_sort) -> Core_cterm_sort 
-rule NBinders(Crsx_binders_A1([x] -> #binders(x))) → cterm⟦ [ x ] ⟨cterm: NBinders[#binders[x]]⟩ ⟧ 
+rule NBinders(TransScript_binders_A1([x] -> #binders(x))) → cterm⟦ [ x ] ⟨cterm: NBinders[#binders[x]]⟩ ⟧ 
 
 //rule NBinders(binders⟦ ##VARIABLE ##binders ⟧) → cterm⟦ [ x ] ⟨cterm: NBinders[#binders[x]]⟩ ⟧ 
 rule NBinders(binders⟦ ] -> ##term          ⟧) → NTerm(#term) 

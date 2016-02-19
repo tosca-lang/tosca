@@ -83,12 +83,6 @@ decl
     | fnDecl
     ;
 
-/*
-
-moduleDecl
-    : MODULE constructor
-    ;
-*/
 importDecl
     : IMPORT constructor                                 /* [SUGAR: same as IMPORT MODULE] */
     | IMPORT MODULE constructor                          /* [CORE] */
@@ -103,12 +97,6 @@ sortDecl
 sortParams
     : LT VARIABLE+ GT                                               /* [CORE] Formal sort parameters. */ 
     ;
-
-/*
-fixity[String c]
-    : f=FIXITY p=NUMBER { addOp($c, $f.text, $p.int); }
-    ;
-*/
 
 // Variant type
 

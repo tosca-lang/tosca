@@ -35,10 +35,10 @@ class PG4Task extends DefaultTask {
 		if (sort || parsers)
 		{
 			// Configure PG runner
-			MainRunner pgrunner = new MainRunner(project.configurations.transscript.files, "org.crsx.antlr.PG")
+			MainRunner pgrunner = new MainRunner(project, project.configurations.transscript.files, "org.transscript.antlr.PG")
 			
 			// Configure Crsx3 runner
-			MainRunner crsx3runner = new MainRunner(project.configurations.transscript.files, "net.sf.crsx.run.Crsx")
+			MainRunner crsx3runner = new MainRunner(project, project.configurations.transscript.files, "net.sf.crsx.run.Crsx")
 				
 			// Generate grammars.
 			String absname = source.absolutePath
@@ -52,28 +52,28 @@ class PG4Task extends DefaultTask {
 			
 			// .term -> .nterm
 			String nterm = absname + '.nterm' // normalize grammar
-			crsx3runner.run([ 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.antlr.ANTLRMeta\';)', 'rules=pg/normalizer.crs', 'input=' + term, 'wrapper=Normalize', 'output=' + nterm ])
+			crsx3runner.run([ 'grammar=(\'net.sf.crsx.text.Text\';\'org.transscript.antlr.ANTLRMeta\';)', 'rules=pg/normalizer.crs', 'input=' + term, 'wrapper=Normalize', 'output=' + nterm ])
 			
 			if (sort)
 			{	
 				// .nterm -> sort
 				
 				String sortt = basename + '.crs' // generate sort
-				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.antlr.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakeSorts', 'output=' + sortt ])
+				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.transscript.antlr.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakeSorts', 'output=' + sortt ])
 				
 				String sortt4 = basename + '.crs4' // generate sort for transscript
-                crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.antlr.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakeSorts', 'crsx4', 'output=' + sortt4 ])
+                crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.transscript.antlr.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakeSorts', 'crsx4', 'output=' + sortt4 ])
 			}
 			
 			if (parsers)
 			{
 				def commonargs = []
 				commonargs << 'sink=net.sf.crsx.text.TextSink'
-				commonargs << 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.antlr.ANTLRMeta\';)'
+				commonargs << 'grammar=(\'net.sf.crsx.text.Text\';\'org.transscript.antlr.ANTLRMeta\';)'
 			
 				// .nterm -> term lexer/parser
 				String termparser = basename + 'Term.g4'
-				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.crsx.antlr.ANTLRMeta\';)', 'rules=pg/genparser.crs', 'input=' + nterm, 'wrapper=MakeParser', 'output=' + termparser ])
+				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.transscript.antlr.ANTLRMeta\';)', 'rules=pg/genparser.crs', 'input=' + nterm, 'wrapper=MakeParser', 'output=' + termparser ])
 					
 				// .nterm -> meta lexer
 				String metalexer = basename + 'MetaLexer.g4' // generate meta lexer

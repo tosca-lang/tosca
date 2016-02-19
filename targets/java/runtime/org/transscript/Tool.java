@@ -85,6 +85,8 @@ public class Tool
 		System.out.println("  build-dir=<directory>     where to store the intermediate files. Default is current directory");
 		System.out.println("  javabasepackage=<name>    Java base package name of generated Java files");
 		System.out.println("  javapackage=<name>        Java sub package name of generated Java files");
+		System.out.println(
+				"  bootparserpath=<name>     where to look for builtin parsers. Only used for bootstrapping TransScript");
 
 	}
 
@@ -183,9 +185,11 @@ public class Tool
 
 		// First: Produce java source file.
 
-		buildEnv.put("class", "org.transscript.compiler.Tool");
+		buildEnv.put("class", "org.transscript.compiler.Crsx");
 		buildEnv.put("wrapper", "Compile");
-		buildEnv.put("grammar", "org.transscript.core.CoreMetaParser,org.transscript.parser.TransScriptMetaParser,org.transscript.text.Text4MetaParser"); // Temporary.
+		buildEnv.put(
+				"grammar",
+				"org.transscript.core.CoreMetaParser,org.transscript.parser.TransScriptMetaParser,org.transscript.text.Text4MetaParser"); // Temporary.
 		buildEnv.put("sink", "org.transscript.runtime.text.TextSink");
 		buildEnv.put("term", "\"" + rules + "\"");
 		buildEnv.put("output", output);
@@ -197,6 +201,8 @@ public class Tool
 
 		if (env.get("tocore") != null)
 			System.setProperty("to-core", "1");
+
+		buildEnv.put("bootparserpath", env.get("bootparserpath"));
 
 		rewrite(buildEnv, null);
 
@@ -442,6 +448,7 @@ public class Tool
 		Context context = new Context();
 
 		setProperty(context, "verbose", env);
+		setBootParserPath(context, env.get("bootparserpath"));
 
 		String name = env.get("class");
 
@@ -599,6 +606,25 @@ public class Tool
 			{
 				fatal("error while closing the output", e);
 			}
+		}
+	}
+
+	/* Set TransScript parsers classpath */
+	private static void setBootParserPath(Context context, String paths)
+	{
+		if (paths != null)
+		{
+			context.addParserURLs(Arrays.asList(paths.split(",")).stream().map(path -> {
+				try
+				{
+					return new URL(path);
+				}
+				catch (Exception e)
+				{
+					fatal("Invalid URL specified in bootparserpath: " + path, e);
+					return null;
+				}
+			}).toArray(URL[]::new));
 		}
 	}
 
