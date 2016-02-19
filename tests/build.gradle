@@ -2,9 +2,9 @@
 /*
  *  CRSX Java target build file.
  */
-import org.crsx.gradle.*
+import org.transscript.gradle.*
 
-apply plugin:'org.crsx.gradle.crsx4'
+apply plugin:'org.transscript.gradle'
 	
 repositories {
 	flatDir { dirs '../targets/java/dist' } // crsx4 
@@ -13,17 +13,17 @@ repositories {
 }
 
 dependencies {
-	crsx4 'org.crsx:crsx:4.0.0-SNAPSHOT@jar' // Test against the latest snapshot. 
+	transscript 'org.transscript:transscript:1.0.0-SNAPSHOT@jar' // Test against the latest snapshot. 
 	//crsx4 'org.crsx:crsx3@jar'
 	//crsx4 'org.antlr:antlr4:4.5'
 }
 
 // -- Basic testing
 
-task smoketest(type: Crsx4Task) {
+task smoketest(type: TransScriptTask) {
 	command = 'test'
 	sources = fileTree(dir: 'basic', include: 'test0.crs4')
 	outputDir = file('results')
-	packageName = 'org.crsx.tests'
+	packageName = 'org.transscript.tests'
 	usecompiler = true
 }	

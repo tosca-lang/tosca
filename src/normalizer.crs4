@@ -8,7 +8,7 @@
  * - Expand sorted concrete syntax
  */
 
-import Parser::Crsx
+import Parser::TransScript
 import Core::Core 
 import Std::Core 
 import Std::String

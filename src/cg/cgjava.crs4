@@ -37,17 +37,17 @@ rule CrsxToJava(System(#url, #modules))
 func JavaUnits(String, List<Module>) -> Text
 rule JavaUnits(#url, #modules) 
 → text⟦/** Generated File */⟨PackageDeclaration⟩
-import static org.crsx.runtime.ConstructionDescriptor.makeData; 
-import static org.crsx.runtime.ConstructionDescriptor.makeFunction; 
-import static org.crsx.runtime.Normalizer.thunk; 
-import static org.crsx.runtime.Normalizer.force; 
-import static org.crsx.runtime.Normalizer.forceSub;
-import static org.crsx.runtime.Normalizer.normalize;
-import static org.crsx.runtime.Reference.safeRef;
-import static org.crsx.runtime.Term.isVariableUse;  
+import static org.transscript.runtime.ConstructionDescriptor.makeData; 
+import static org.transscript.runtime.ConstructionDescriptor.makeFunction; 
+import static org.transscript.runtime.Normalizer.thunk; 
+import static org.transscript.runtime.Normalizer.force; 
+import static org.transscript.runtime.Normalizer.forceSub;
+import static org.transscript.runtime.Normalizer.normalize;
+import static org.transscript.runtime.Reference.safeRef;
+import static org.transscript.runtime.Term.isVariableUse;  
 
-import org.crsx.runtime.*;
-import org.crsx.runtime.ConstructionDescriptor.*;
+import org.transscript.runtime.*;
+import org.transscript.runtime.ConstructionDescriptor.*;
 ⟨TextFold(Map([x] -> JavaUnit(#url, x), #modules), text⟦⟧)⟩⟧ 
 
 /* Generate class for the given module */ 
@@ -458,7 +458,7 @@ rule PackageDeclaration3(#sep, #sub)
 func PathToImport(String) -> Text
 
 rule PathToImport(#name) 
-→ PathToImport2(If(StartsWith(#name, "Std::"), "org.crsx.compiler", GetEnv("javabasepackage", "")), PathToDot(DownCaseFirst(#name))) 
+→ PathToImport2(If(StartsWith(#name, "Std::"), "org.transscript.compiler", GetEnv("javabasepackage", "")), PathToDot(DownCaseFirst(#name))) 
 
 func PathToImport2(String, String) -> Text
 

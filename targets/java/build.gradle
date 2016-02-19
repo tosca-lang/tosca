@@ -2,16 +2,16 @@
 /*
  *  CRSX Java target build file.
  */
-import org.crsx.gradle.*
+import org.transscript.gradle.*
 
 defaultTasks 'dist'
 
 
 // --- Generate Java parsers based on Antlr specifications
 
-apply plugin:'org.crsx.gradle.crsx4'
+apply plugin:'org.transscript.gradle'
 	
-def crsx4src = '../../src'
+def transScriptSrc = '../../src'
 
 
 repositories {
@@ -21,94 +21,94 @@ repositories {
 }
 
 dependencies {
-	crsx4  project.hasProperty('dev') ? files(crsx4src, "build") : 'org.crsx:crsx:4.0.0-ALPHA@jar' 
-	crsx4 'org.crsx:crsx3@jar'
-	crsx4 'org.antlr:antlr4:4.5'
+	transscript  project.hasProperty('dev') ? files(transScriptSrc, "build") : 'org.transscript:transscript:1.0.0-ALPHA@jar' 
+	transscript 'org.crsx:crsx3@jar'
+	transscript 'org.antlr:antlr4:4.5'
 }
 
 def commonCore = {
-	generatedFileDir = file('parsers/org/crsx/core')
-	packageName = 'org.crsx.core'
+	generatedFileDir = file('parsers/org/transscript/core')
+	packageName = 'org.transscript.core'
 }
 
 task coreMetaParser(type: Antlr4Task, dependsOn: ':coreParsers') {
 	configure commonCore
 	description = 'Generate Java Core meta parser'
-	lexer = file(crsx4src + '/core/CoreMetaLexer.g4')
-	grammar = file(crsx4src + '/core/CoreMetaParser.g4')
-	superClass = 'org.crsx.antlr.Crsx3Parser'
+	lexer = file(transScriptSrc + '/core/CoreMetaLexer.g4')
+	grammar = file(transScriptSrc + '/core/CoreMetaParser.g4')
+	superClass = 'org.transscript.antlr.Crsx3Parser'
 }
 
 task coreTermParser(type: Antlr4Task, dependsOn: ':coreParsers') {
 	configure commonCore
 	description = 'Generate Java Core term parser'
-	grammar = file(crsx4src + '/core/CoreTerm.g4')
+	grammar = file(transScriptSrc + '/core/CoreTerm.g4')
 }
 
-task crsxMetaParser(type: Antlr4Task, dependsOn: ':crsxParsers') {
-	description = 'Generate Java Crsx meta parser'
-	lexer = file(crsx4src + '/parser/CrsxMetaLexer.g4')
-	grammar = file(crsx4src + '/parser/CrsxMetaParser.g4')
-	generatedFileDir = file('parsers/org/crsx/parser')
-	packageName = 'org.crsx.parser'
-	superClass = 'org.crsx.antlr.Crsx3Parser'
+task transScriptMetaParser(type: Antlr4Task, dependsOn: ':transScriptParsers') {
+	description = 'Generate Java TransScript meta parser'
+	lexer = file(transScriptSrc + '/parser/CrsxMetaLexer.g4')
+	grammar = file(transScriptSrc + '/parser/CrsxMetaParser.g4')
+	generatedFileDir = file('parsers/org/transscript/parser')
+	packageName = 'org.transscript.parser'
+	superClass = 'org.transscript.antlr.Crsx3Parser'
 }
 
-task crsxTermParser(type: Antlr4Task, , dependsOn: ':crsxParsers') {
-	description = 'Generate Java Crsx term parser'
-	grammar = file(crsx4src + '/parser/CrsxTerm.g4')
-	generatedFileDir = file('parsers/org/crsx/parser')
-	packageName = 'org.crsx.parser'
+task transScriptTermParser(type: Antlr4Task, , dependsOn: ':transScriptParsers') {
+	description = 'Generate Java TransScript term parser'
+	grammar = file(transScriptSrc + '/parser/CrsxTerm.g4')
+	generatedFileDir = file('parsers/org/transscript/parser')
+	packageName = 'org.transscript.parser'
 }
 
 task antlrMetaParser(type: Antlr4Task) {
 	description = 'Generate Antlr4 Java meta parser'
-	lexer = file(crsx4src + '/pg/ANTLRMetaLexer.g4')
-	grammar = file(crsx4src + '/pg/ANTLRMeta.g4')
-	generatedFileDir = file('parsers/org/crsx/antlr')
-	packageName = 'org.crsx.antlr'
-	superClass = 'org.crsx.antlr.Crsx3Parser'
+	lexer = file(transScriptSrc + '/pg/ANTLRMetaLexer.g4')
+	grammar = file(transScriptSrc + '/pg/ANTLRMeta.g4')
+	generatedFileDir = file('parsers/org/transscript/antlr')
+	packageName = 'org.transscript.antlr'
+	superClass = 'org.transscript.antlr.Crsx3Parser'
 }
 
 task antlrAntlrTermParser(type: Antlr4Task) {
 	description = 'Generate Antlr4 Java term parser.'
-	lexer = file(crsx4src + '/pg/ANTLRTermLexer.g4')
-	grammar = file(crsx4src + '/pg/ANTLRTerm.g4')
-	generatedFileDir = file('parsers/org/crsx/antlr')
-	packageName = 'org.crsx.antlr'
+	lexer = file(transScriptSrc + '/pg/ANTLRTermLexer.g4')
+	grammar = file(transScriptSrc + '/pg/ANTLRTerm.g4')
+	generatedFileDir = file('parsers/org/transscript/antlr')
+	packageName = 'org.transscript.antlr'
 }
 
 
 task textMetaParser(type: Antlr4Task, dependsOn: ':textParsers') {
 	description = 'Generate Java Text meta parser'
-	lexer = file(crsx4src + '/text/Text4MetaLexer.g4')
-	grammar = file(crsx4src + '/text/Text4MetaParser.g4')
-	generatedFileDir = file('parsers/org/crsx/text')
-	packageName = 'org.crsx.text'
-	superClass = 'org.crsx.antlr.Crsx3Parser'
+	lexer = file(transScriptSrc + '/text/Text4MetaLexer.g4')
+	grammar = file(transScriptSrc + '/text/Text4MetaParser.g4')
+	generatedFileDir = file('parsers/org/transscript/text')
+	packageName = 'org.transscript.text'
+	superClass = 'org.transscript.antlr.Crsx3Parser'
 }
 
 task textTermParser(type: Antlr4Task, dependsOn: ':textParsers') {
 	description = 'Generate Java Text term parser'
-	grammar = file(crsx4src + '/text/Text4Term.g4')
-	generatedFileDir = file('parsers/org/crsx/text')
-	packageName = 'org.crsx.text'
+	grammar = file(transScriptSrc + '/text/Text4Term.g4')
+	generatedFileDir = file('parsers/org/transscript/text')
+	packageName = 'org.transscript.text'
 }
 	
 //-- Meta task to build all parsers.
 task buildParsers(
-	description: "Generate Java meta and term parsers for Crsx, Core and Text",
-    dependsOn: ['coreMetaParser', 'coreTermParser', 'crsxMetaParser', 'crsxTermParser',
+	description: "Generate Java meta and term parsers for TransScript, Core and Text",
+    dependsOn: ['coreMetaParser', 'coreTermParser', 'transScriptMetaParser', 'transScriptTermParser',
 	            'antlrMetaParser', 'antlrAntlrTermParser', 'textMetaParser', 'textTermParser'])
 	
 	
-// -- Generate the crsx4 compiler from .crs4 source code.
+// -- Generate the TransScript compiler from .tsc source code.
 	
-task compileCrsx4(type: Crsx4Task) {
-	description = "Compile Crsx4 to Java source files."
-	sources     = fileTree(dir: crsx4src, include: ['core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'cg/*.crs4', '*.crs4', 'test/*.crs4'])
-	outputDir   = project.hasProperty('crsx3') ? file('compiler/org/crsx/compiler') : file('compiler')
-	packageName = project.hasProperty('crsx3') ? 'org.crsx.compiler' : 'org.crsx.compiler'
+task compileTransScript(type: TransScriptTask) {
+	description = "Compile TransScript to Java source files."
+	sources     = fileTree(dir: transScriptSrc, include: ['core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'cg/*.crs4', '*.crs4', 'test/*.crs4'])
+	outputDir   = project.hasProperty('crsx3') ? file('compiler/org/transscript/compiler') : file('compiler')
+	packageName = 'org.transscript.compiler' 
 	usecompiler = !project.hasProperty('crsx3')
 }
 	
@@ -120,15 +120,15 @@ compileJava {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 	
-	dependsOn 'buildParsers'
-	dependsOn 'compileCrsx4'
+	//dependsOn 'buildParsers'
+	//dependsOn 'compileTransScript'
 }
 
-//clean.dependsOn cleanBuildCrsxParsers
+//clean.dependsOn cleanBuildTransScriptParsers
 //clean.dependsOn cleanBuildAntlrParsers
 
-group = 'org.crsx'
-version = '4.0.0-SNAPSHOT'
+group = 'org.transscript'
+version = '1.0.0-SNAPSHOT'
 
 sourceSets {
     main {
@@ -138,7 +138,7 @@ sourceSets {
             srcDir 'compiler'
         }
 		
-		// Include CRSX4 source code for interpreter mode. Temporary.
+		// Include TransScript source code for interpreter mode. Temporary.
 		resources {
 			srcDir '../../src'
 			include '**/*.crs'
@@ -152,9 +152,9 @@ dependencies {
 }
 
 jar {
-	baseName 'crsx'
+	baseName 'transscript'
 	manifest {
-		attributes("Main-Class" : "org.crsx.Crsx", "Class-Path" : "../lib/crsx3.jar ../lib/antlr-runtime-4.5.jar")
+		attributes("Main-Class" : "org.transscript.Tool", "Class-Path" : "../lib/crsx3.jar ../lib/antlr-runtime-4.5.jar")
 	}
 }
 
