@@ -15,14 +15,14 @@ import Core::Core
 // --- System representation. 
 
 /* A Crsx system as a list of modules */
-enum System | System($String /* Initial url */, {$String : Module}) 
+enum System | System(String /* Initial url */, {String : Module}) 
 
 /* Initialize system with main module */
-func InitSystem($String) -> System 
+func InitSystem(String) -> System 
 rule InitSystem(#url) → System(#url, MapPut(MapNew, #url, Module(#url, NOTLOADED))) 
   
 /* A Crsx module  */
-enum Module | Module($String /* filename/module id */, Content /* of module */)  
+enum Module | Module(String /* filename/module id */, Content /* of module */)  
 
 // --- module representation
 
@@ -34,10 +34,10 @@ enum Content
 /* The actual module content. Sorts and rules are indexed for fast lookup. */
 enum LoadedContent | 
     LoadedContent(
-           $List<$String /* Constructor */>,                       /* Imports */
-           { $String /* Constructor */ : $List<Core_cdecl_sort>},  /* Rules */
-           {$String /* Constructor */ : Core_cdecl_sort},        /* DataSorts */ 
-           {$String /* Constructor */ : Core_cdecl_sort})        /* FuncSorts */ 
+           List<String /* Constructor */>,                       /* Imports */
+           { String /* Constructor */ : List<Core_cdecl_sort>},  /* Rules */
+           {String /* Constructor */ : Core_cdecl_sort},        /* DataSorts */ 
+           {String /* Constructor */ : Core_cdecl_sort})        /* FuncSorts */ 
  
 
 // --- System lookup functions.
@@ -46,7 +46,7 @@ enum LoadedContent |
   Gets module for given url.
   @return A module or NONE 
  */
-func LookupModule(System, $String /* url */) -> Option<Module> 
+func LookupModule(System, String /* url */) -> Option<Module> 
 rule LookupModule(System(#mainurl, #modules), #url) 
 → MapGet(#modules, #url) 
 
@@ -67,7 +67,7 @@ rule IsNotLoaded(Module(#url, Loaded(#c))) → FALSE
 /* 
   Put module for given url into system.
  */
-func PutModule(System, $String, Module) -> System 
+func PutModule(System, String, Module) -> System 
 rule PutModule(System(#mainurl, #modules), #url, #module) 
 → System(#mainurl, MapPut(#modules, #url, #module)) 
 
@@ -75,11 +75,11 @@ rule PutModule(System(#mainurl, #modules), #url, #module)
 
 /* Add rule to module content. Always succeed. 
 */ 
-func  PutRule(eager { String : $List<Core_cdecl_sort>}, Core_cdecl_sort) -> { String : $List<Core_cdecl_sort> }  
+func  PutRule(eager { String : List<Core_cdecl_sort>}, Core_cdecl_sort) -> { String : List<Core_cdecl_sort> }  
 rule PutRule(#rules, cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
 → PutRule1(MapGet(#rules, #CONSTRUCTOR), #rules, #CONSTRUCTOR, cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧) 
 
-func PutRule1(Option<$List<Core_cdecl_sort>>, { String : List<Core_cdecl_sort>}, String, Core_cdecl_sort) -> { String : List<Core_cdecl_sort> } 
+func PutRule1(Option<List<Core_cdecl_sort>>, { String : List<Core_cdecl_sort>}, String, Core_cdecl_sort) -> { String : List<Core_cdecl_sort> } 
 rule PutRule1(NONE, #rules, #constructor, #rule)
 → MapPut(#rules, #constructor, (#rule,)) 
 
@@ -105,7 +105,7 @@ func PutFuncSort(eager { String : Core_cdecl_sort }, Core_cdecl_sort) -> {String
 rule PutFuncSort(#func, cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
 → PutFuncSort1(MapGet(#func, #CONSTRUCTOR), #func, #CONSTRUCTOR,  cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧) 
 
-func PutFuncSort1(Option<Core_cdecl_sort>, { String : Core_cdecl_sort }, $String, Core_cdecl_sort) -> { String : Core_cdecl_sort} 
+func PutFuncSort1(Option<Core_cdecl_sort>, { String : Core_cdecl_sort }, String, Core_cdecl_sort) -> { String : Core_cdecl_sort} 
 rule PutFuncSort1(NONE, #func, #constructor, #decl)
 → MapPut(#func, #constructor, #decl) 
 

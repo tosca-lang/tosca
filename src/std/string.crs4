@@ -9,67 +9,67 @@ import Std::Num
 
 // --- Wrapper
 
-//String | ( String($String)  ) 
+//String | ( String(String)  ) 
 
 // --- Querying
 
-extern func Contains($String /* string */, $String /* search string */) -> Boolean  
+extern func Contains(String /* string */, String /* search string */) -> Boolean  
 
-extern func Length($String /* string */) -> Numeric  
+extern func Length(String /* string */) -> Numeric  
 
-extern func StartsWith($String /* string */, $String /* search string */) -> Boolean  
+extern func StartsWith(String /* string */, String /* search string */) -> Boolean  
 
-extern func EndsWith($String /* string */, $String /* search string */) -> Boolean  
+extern func EndsWith(String /* string */, String /* search string */) -> Boolean  
 
-extern func StringEqual($String /* string */, $String /* other string */) -> Boolean  
+extern func StringEqual(String /* string */, String /* other string */) -> Boolean  
 
 // --- Mutation
 
-extern func ConcatString($String, $String) -> $String 
+extern func ConcatString(String, String) -> String 
 
-extern func Rescape(eager $String) -> $String 
-extern func UpCase(eager $String) -> $String 
-extern func DownCase(eager $String) -> $String 
-extern func Substring(eager $String, eager Numeric, eager $Numeric) -> $String 
+extern func Rescape(eager String) -> String 
+extern func UpCase(eager String) -> String 
+extern func DownCase(eager String) -> String 
+extern func Substring(eager String, eager Numeric, eager Numeric) -> String 
 
-func UnString(eager $String) -> $String  
+func UnString(eager String) -> String  
 rule UnString(#string) → Rescape(#string)  
 
 /*
  * Make sure the given string first character is upper case
  */
-func UpCaseFirst($String) -> String 
+func UpCaseFirst(String) -> String 
 rule UpCaseFirst(#string) → If(Equal(#string, ""), "", ConcatString(UpCase(Substring(#string, 0, 1)), Substring(#string, 1)))  
 
 /*
  * Make sure the given string first character is lower case
  */
-func DownCaseFirst($String) ->$String 
+func DownCaseFirst(String) ->String 
 rule DownCaseFirst(#string) → If(Equal(#string, ""), "",ConcatString(DownCase(Substring(#string, 0, 1)), Substring(#string, 1))) 
 
 /*
  * Returns given string without its first character
  */
-func RemoveFirstChar(eager String) -> $String  
+func RemoveFirstChar(eager String) -> String  
 rule RemoveFirstChar(#string) → Substring(#string, 1) 
 
 
 /*
  * Returns given string without its last character
  */
-func RemoveLastChar(eager $String) -> $String  
+func RemoveLastChar(eager String) -> String  
 rule RemoveLastChar(#string) → Substring(#string, 0, Minus(Length(#string), 1)) 
 
 /*
  * Trim leading and trailing spaces
  */
-extern func Trim(eager $String) -> $String 
+extern func Trim(eager String) -> String 
 
-extern func Replace(eager $String, eager $String, eager $String) -> $String 
+extern func Replace(eager String, eager String, eager String) -> String 
 
-extern func AfterFirst(eager $String, eager $String) -> $String 
+extern func AfterFirst(eager String, eager String) -> String 
 
-func AfterLast(eager $String, eager $String) -> $String 
+func AfterLast(eager String, eager String) -> String 
 
 extern func Escape(String, String, String) -> String
 extern func FormatNumber(Numeric) -> String
@@ -82,19 +82,19 @@ rule AfterLast(#string, #sep)
     #string) 
 
 // Internal helper.
-func AfterLast2(eager $String, $String) -> $String 
+func AfterLast2(eager String, String) -> String 
 rule AfterLast2(#string, #sep) → AfterLast(#string, #sep) 
 
-extern func BeforeFirst(eager $String, eager $String) -> $String 
+extern func BeforeFirst(eager String, eager String) -> String 
 
-func BeforeLast(eager $String, eager $String) -> $String 
+func BeforeLast(eager String, eager String) -> String 
 
 rule BeforeLast(#String, #Sep)
 → If(Contains(#String, #Sep), 
     BeforeLast2(BeforeFirst(#String, #Sep), #Sep, BeforeLast(AfterFirst(#String, #Sep), #Sep)),
     "") 
 
-func BeforeLast2(eager $String, $String, eager $String) -> $String 
+func BeforeLast2(eager String, String, eager String) -> String 
 rule BeforeLast2(#Before, #Sep, #After)
 → If(StringEqual(#After, ""), 
     #Before,
@@ -102,12 +102,12 @@ rule BeforeLast2(#Before, #Sep, #After)
 
 // --- Parsing
 
-extern func ParseText<a>(eager $String, eager $String) -> a
-extern func ParseResource<a>(eager $String, eager $String) -> a
+extern func ParseText<a>(eager String, eager String) -> a
+extern func ParseResource<a>(eager String, eager String) -> a
 
-func ParseToString(eager $String, eager $String) -> $String 
+func ParseToString(eager String, eager String) -> String 
 rule ParseToString(#category, #string) → Show(ParseText(#category, #string))  // TODO: line information.
 
 extern func ParseTerm<a>(eager String /* file location */) -> a 
 
-extern func ParseToMetaTerm<a>(eager $String, eager $String) -> a 
+extern func ParseToMetaTerm<a>(eager String, eager String) -> a 

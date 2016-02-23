@@ -12,14 +12,14 @@
  */
 grammar TransScript;
 
-// Support for infix, infixr, infixl, postfix and prefix operators.
-// This is based on Keith Clarke, "The top-down parsing of expressions".
+
 
 // The code below is Java. It's simple enough to be ported to other languages.
-
 @header {
 import java.util.*;
 }
+
+// Operator precedence climbing. 
 
 @members {
 /** Fixity for each operator operator */
@@ -198,10 +198,11 @@ term[int p]
     : aterm nterm[p]*
     ;
 
+// Next term
 nterm[int p]
     : // infixl infixr infix case
       {isAnyInfix(_input.LT(1).getText(), $p)}?
-      op=constructor
+      op=operator
       term[nextp($op.text)]
 
       // infix case, no assoc, stop trying to match more infix operator
@@ -209,13 +210,12 @@ nterm[int p]
     |
       // postfix case
       {isPostfix(_input.LT(1).getText(), $p)}?
-      constructor
+      operator
     ;
-
+    
+// Atom term
 aterm
-    // enable when crsx is capable of parsing input using the term parser, not the meta parser which does not include semantic predicates
-    // : { isPrefix(_input.LT(1).getText())}? op=constructor term[nextp($op.text)]   /* [SUGAR] Prefixed term */
-    : {!isPrefix(_input.LT(1).getText())}? cons                                     /* [CORE] Construction with zero or more args */
+    : cons                                            /* [CORE] Construction with zero or more args */
     | literal                                         /* [CORE]  Literal construction */
     | groupOrList                                     /* [SUGAR] Grouped expression */
     | variable                                        /* [CORE]  Variable */
@@ -223,6 +223,8 @@ aterm
     | metapp                                          /* [CORE]  Meta application. */
     | dispatch                                        /* [CORE]  Dispatch expression */
     | concrete                                        /* [SUGAR] Concrete syntax */
+    | { isPrefix(_input.LT(1).getText())}? 
+      op=operator term[nextp($op.text)]               /* [SUGAR] Prefixed term */
     ;
 
 cons
@@ -242,8 +244,8 @@ scopes
     ;
 
 scope
-    : LSQUARE binders                                /* [CORE]  Scoped term  */
-    | term[0]                                        /* [CORE]  No-scoped term */
+    : LSQUARE binders                                  /* [CORE]  Scoped term  */
+    | term[0]                                          /* [CORE]  No-scoped term */
     ;
 
 binders
@@ -307,15 +309,14 @@ kv
 
 constructor
     : CONSTRUCTOR
-    | symbols                                               /* [CORE: non-reserved symbols] */
     ;
 
-symbols                                                     /* [CORE] */
-    : COLON
-    | LT
-    | GT
+operator
+    : OPERATOR
+    | COLON
     | OR
     | AND
+    | NOT
     ;
 
 // Lexer rules
@@ -354,28 +355,38 @@ NOT             : '¬';
 
 FIXITY          : 'infix' | 'infixr' | 'infixl' | 'postfix' | 'prefix';
 
-CONCRETE        : Lower (Alpha | Digit | '-' | '_')* Ebnf? '\u27e6' (CONCRETE|.)*? '\u27e7';   // category⟦ ⟧
+// Make sure // and /* are not operators
+OPERATOR          : OpHead Operator*
+                  | '/'
+                  | '/' (OpCommon | '$' | '_') Operator*
+                  ;
 
-CONSTRUCTOR     : StartConstructorChar ConstructorChar* // '$' is for internal use only.
-                | '<' [Other] ConstructorChar*;
-VARIABLE        : Lower (Alpha | Digit | '-' | '_')*;
+CONCRETE          : Lower (Alpha | Digit | '-' | '_')* Ebnf? '\u27e6' (CONCRETE|.)*? '\u27e7';   // category⟦ ⟧
 
-METAVAR         : '#' (Alpha | Digit | '-' | '_' | Unicode)* Ebnf? Digit*; // '$' is for internal use only
+CONSTRUCTOR       : ConsHead ConsChar*  Ebnf?;     // '$' is for internal use only.
+                
+VARIABLE          : Lower (Alpha | Digit | '-' | '_')*;
 
-STRING          :  '"' ('\\"'|~'"')* '"';
+METAVAR           : '#' (Alpha | Digit | '-' | '_' | Unicode)* Ebnf? Digit*; // '$' is for internal use only
 
-NUMBER          : Decimal;
+STRING            :  '"' ('\\"'|~'"')* '"';
 
+NUMBER            : Decimal;
 
-fragment StartConstructorChar : Upper | Other | UnicodeS;
-fragment ConstructorChar      : Alpha | Digit | Other | Unicode;
+fragment ConsHead : Upper | UnicodeS | '_' | '$';     
+fragment ConsChar : Alpha | Digit | Unicode | '_' | '-' | '$' | ':';
 
 fragment Digit    : [0-9];
 fragment Upper    : [A-Z];
 fragment Lower    : [a-z];
 fragment Alpha    : [a-zA-Z];
 fragment Decimal  : '-'? [0-9]+ ('.' [0-9]+)? | '.' [0-9]+;
-fragment Other    : '-' | [$_+/|`~!@^&*=?/.:]; // TODO: >
+
+fragment OpHead   : OpCommon;      
+fragment Operator : OpCommon | '$' | '_' | '/';
+
+fragment OpCommon : '-' | [+/|`~!@^&*=?.:<]; // TODO: allow > but for now conflict with sort params. One solution is to allow >>> as infix operator only with mandatory space      
+
 fragment Unicode  : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
 fragment UnicodeS : ~[\u0000-\u00FF\uD800-\uDBFF\u27e6\u27e7\u27e8\u27e9] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
 fragment Ebnf     : '*' | '?' | '+';

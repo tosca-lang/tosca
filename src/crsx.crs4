@@ -14,10 +14,10 @@ import Core::Core
 //--- API
 
 /* Compile the Crsx program located to the given url 
-   @param `$String` a url
+   @param `String` a url
    @return a compile Crsx program in Java (for now)
 */
-func Compile($String) -> Text   
+func Compile(String) -> Text   
 rule Compile(#url) 
 → IfDef("to-core",
     CompileToCore(#url), 
@@ -36,14 +36,14 @@ rule MaybeLoadModule(#system, NONE)
 rule MaybeLoadModule(#system, SOME(Module(#url, NOTLOADED)))
 → CompileSystem(PutModule(#system, #url, Module(#url, LoadModule(#url)))) 
 
-func LoadModule($String) -> Content 
+func LoadModule(String) -> Content 
 rule LoadModule(#url) 
 → Loaded(LoadCore(If(EndsWith(#url, ".crsc"), ParseCore(#url), ParseCrsx(#url)))) 
 
-func ParseCore($String) -> Core_ccrsx_sort 
+func ParseCore(String) -> Core_ccrsx_sort 
 rule ParseCore(#url) → ParseResource("ccrsx", #url) 
 
-func ParseCrsx($String) -> Core_ccrsx_sort 
+func ParseCrsx(String) -> Core_ccrsx_sort 
 rule ParseCrsx(#url) → ToCore(#url, ParseResource("transscript", #url)) 
 
 

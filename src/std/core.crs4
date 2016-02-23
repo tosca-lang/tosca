@@ -2,9 +2,6 @@
 
 enum OK_SORT | OK
 
-// --- Builtin string entry
-
-enum $StringEntry | STRING($String)
 
 // --- Evaluation
 

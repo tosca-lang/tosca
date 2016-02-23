@@ -31,26 +31,26 @@ rule Text-ConcatPair(PairCons(#1, #2)) → text⟦⟨#1⟩⟨#2⟩⟧
 
 // Fragment to be parsed as user language text.
 
-func Text-User($String, Text) -> Text  
+func Text-User(String, Text) -> Text  
 rule Text-User(#ParsePrefix, #Unparsed) 
 → text⟦†⟨#ParsePrefix⟩†⟨"\u27e6\u27e6"⟩⟨ #Unparsed ⟩†⟨"\u27e7\u27e7"⟩⟧
 
-func Text-Token(eager $String) -> Text 
+func Text-Token(eager String) -> Text 
 rule Text-Token(#t) → text⟦†⟨ #t ⟩⟧   
 
-func Text-CommentToken(eager $String) -> Text 
+func Text-CommentToken(eager String) -> Text 
 rule Text-CommentToken(#t) → text⟦†⟨ Replace(#t,"*/","*_/") ⟩⟧   
 
-func Text-Comment(eager $String) -> Text 
+func Text-Comment(eager String) -> Text 
 rule Text-Comment(#t) → text⟦†⟨ ConcatString("/*", Replace(#t,"*/","*_/"), "*/") ⟩⟧  
 
-func Text-QuoteEscape(eager $String) -> Text 
+func Text-QuoteEscape(eager String) -> Text 
 rule Text-QuoteEscape(#t) → text⟦†⟨ Escape(#t) ⟩⟧ 
 
-func Text-Integer(eager $Numeric) -> Text 
+func Text-Integer(eager Numeric) -> Text 
 rule Text-Integer(#t) → text⟦†⟨ FormatNumber(#t) ⟩⟧  
 
-func Text-Mangle(eager $String) -> Text 
+func Text-Mangle(eager String) -> Text 
 rule Text-Mangle(#t) → text⟦†⟨ Mangle(#t) ⟩⟧  
 
 func TextFold(List<Text>, Text) -> Text 
@@ -68,11 +68,11 @@ rule ReverseTextFold(Cons(#1, Cons(#2, #s)), #sep) → text⟦⟨ ReverseTextFol
 
 // -- Conversion
 
-func StringToText($String) -> Text  
+func StringToText(String) -> Text  
 rule StringToText(#) → text⟦†⟨#⟩⟧  
 
-func NumberToText(eager $Numeric) -> Text 
+func NumberToText(eager Numeric) -> Text 
 rule NumberToText(#n) → text⟦†⟨FormatNumber(#n)⟩⟧ 
 
-func TextToString(eager Text) -> $String  
+func TextToString(eager Text) -> String  
 rule TextToString(#) → Show(#)  

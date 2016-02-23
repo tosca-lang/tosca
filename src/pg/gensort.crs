@@ -415,7 +415,7 @@ MakeArgFromTokenRef[Boolean, $String, $Numeric, ok¹::OK_SORT.Text] :: Text;
     "@sort": TEXT[#sort]; "@plhs": TEXTS[#printerLHS]; "@prhs": TEXTS[#printerRHS]; 
     "@binders": TEXTS[#binders]
 }MakeArgFromTokenRef[FALSE, #token, #count, ok¹.#[ok¹]] 
-→ {#E; "@sort": TEXT[%n⟦«#sort»$String⟧]; 
+→ {#E; "@sort": TEXT[%n⟦«#sort»String⟧]; 
        "@plhs": TEXTS[(MakeMetaVar[#count, #binders, FALSE]; #printerLHS)]; 
        "@prhs": TEXTS[(MakeTerminalText[#count, #binders, FALSE]; #printerRHS)]}#[OK];
 

@@ -43,7 +43,7 @@ rule PostOrder( Branch( #N, #succs)) → Concat(Foldr( [s ss] -> Concat(PostOrde
 */
 func InsertNode([n n] -> Pos<l>, n, List<Tree<n l>>) -> List<Tree<n l>>
 rule InsertNode([n1 n2] -> #C(n1, n2), #n1, ()) → ( Branch(#n1, ()), )
-rule InsertNode([n1 n2] -> #C(n1, n2), #n1, (#t, #ts...)) → MatchInsertNode( #C(#n1, Root(#t)), [n1 n2] -> #C(n1, n2), #n1, #t, #ts)
+rule InsertNode([n1 n2] -> #C(n1, n2), #n1, Cons(#t, #ts)) → MatchInsertNode( #C(#n1, Root(#t)), [n1 n2] -> #C(n1, n2), #n1, #t, #ts)
 
   /* `MatchInsertNode(#pos, [n1 n2] -> #C(n1, n2), #n1, #t, #ts)`
      @param #pos            indicates the position, i.e.,`Above`, `Below`, `Parallel`, or `UnInsertable`
@@ -101,7 +101,7 @@ rule InsertNode([n1 n2] -> #C(n1, n2), #n1, (#t, #ts...)) → MatchInsertNode( #
     rule InsertNodeSuccs([n1 n2] -> #C(n1, n2), #l, #n1, ())  
       → ( PairCons( #l , Branch(#n1, ())), )
     // branch case: multiple successors
-    rule InsertNodeSuccs([n1 n2] -> #C(n1, n2), #l1, #n1, (#s, #ss...))
+    rule InsertNodeSuccs([n1 n2] -> #C(n1, n2), #l1, #n1, Cons(#s, #ss))
       →  MatchInsertNodeSuccs(#C(#n1, Root(Snd(#s))), [n1 n2] -> #C(n1, n2), #n1, #l1, #s, #ss)
 
       /* `MatchInsertNodeSuccs`
@@ -139,7 +139,7 @@ rule InsertNode([n1 n2] -> #C(n1, n2), #n1, (#t, #ts...)) → MatchInsertNode( #
       func ProjectBelow(List<a>) -> a
       rule ProjectBelow((#s,))       → #s
       rule ProjectBelow(())          → Error("The node has not been inserted below.")
-      rule ProjectBelow((#s,#ss...)) → Error("There was more than one successor.") 
+      rule ProjectBelow(Cons(#s,#ss)) → Error("There was more than one successor.") 
     
       // try to insert `#n1` **parallel** to `#s`, i.e, in the remaining `#ss`
       rule MatchInsertNodeSuccs( Parallel, [n1 n2] -> #C(n1, n2), #n1, #l, #s, #ss) 

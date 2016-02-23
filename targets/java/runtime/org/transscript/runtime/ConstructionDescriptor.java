@@ -1,4 +1,4 @@
-// Copyright (c) 2014 IBM Corporation.
+// Copyright (c) 2014-2016 IBM Corporation.
 
 package org.transscript.runtime;
 
@@ -14,7 +14,7 @@ public abstract class ConstructionDescriptor
 {
 
 	/**
-	 * Make a data type
+	 * Make a dynamically-typed data
 	 */
 	public static ConstructionDescriptor makeData(String symbol)
 	{
@@ -58,7 +58,7 @@ public abstract class ConstructionDescriptor
 	public abstract boolean step(Sink sink, Term term);
 
 	/**
-	 * Represent a data construction.
+	 * Represent a untyped data construction.
 	 */
 	public static class DataDescriptor extends ConstructionDescriptor
 	{
@@ -88,7 +88,9 @@ public abstract class ConstructionDescriptor
 			throw new RuntimeException("Data term does not have a step function");
 		}
 	}
-
+	 
+	
+	
 	/**
 	 * Represent a function construction.
 	 */
