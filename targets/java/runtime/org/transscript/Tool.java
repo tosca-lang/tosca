@@ -253,7 +253,7 @@ public class Tool
 		}
 
 		// Compute output java filename
-		String output = inputFile.getName().replace(".crsc", ".java").replace(".crs4", ".java").replace(".crs", ".java");
+		String output = inputFile.getName().replace(".crsc", ".java").replace(".crs4", ".java").replace(".crs", ".java").replace(".tsc", ".java");
 		output = Character.toUpperCase(output.charAt(0)) + output.substring(1); // First character must be upper case.
 
 		output = dest + File.separator + output; // dest / output.java
@@ -283,7 +283,7 @@ public class Tool
 		}
 
 		// Compute output java filename
-		String output = inputFile.getName().replace(".crsc", "").replace(".crs4", "").replace(".crs", "");
+		String output = inputFile.getName().replace(".crsc", "").replace(".crs4", "").replace(".crs", "").replace(".tsc", "");
 		output = Character.toUpperCase(output.charAt(0)) + output.substring(1); // First character must be upper case.
 
 		name += "." + output; // dest / Output

@@ -99,7 +99,7 @@ class TransScriptTask extends DefaultTask {
 		
 	/** Compute the name of the generated java file */
 	def computeDestination(File source) { 
-		def dest = source.absolutePath.replace((String) sources.dir, (String) outputDir).replace(".crs4", ".java");
+		def dest = source.absolutePath.replace((String) sources.dir, (String) outputDir).replace(".crs4", ".java")..replace(".tsc", ".java");
 		def lastSlash = dest.lastIndexOf('/');
 		if (lastSlash != -1)
 			dest = dest[0..lastSlash] + dest[lastSlash + 1].toUpperCase() + dest[lastSlash + 2..-1]

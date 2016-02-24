@@ -1,0 +1,16 @@
+/* Copyright (c) 2016 IBM Corporation. */
+
+/*
+ * Collection of utility functions for translation between Languages.
+ */
+
+ /*
+  */
+extern func ToJavaMethodName(String) -> String
+
+extern func ToJavaClassName(String) -> String
+
+/*
+ * Convert string to a valid Java type parameter.
+ */
+extern func ToJavaTypeParameter(String) -> String
