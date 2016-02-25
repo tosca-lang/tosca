@@ -1,0 +1,81 @@
+/*
+ * @author : m schett
+ */
+
+import Std::Core
+import Std::List
+import Std::Pair
+import Std::Tree
+
+/* $Use("unification/mgu.crs") */
+import Unification::Mgu
+/* $Use("unification/unification.crs") */
+import Unification::Unification
+/* $Use("utils/termops.crs") */
+import Utils::Termops
+/*$Use("utils/crsxequs.crs") */
+import Utils::Crsxequs
+
+/* Disclaimer: Work in Progress ---
+   2015/11/13: still preliminary
+               but first 'specificity tree' computed (see SpecificityTree.term)
+               next steps: 1. more testing 
+                           2. the mgu has maybe redundant meta variables, check that out.
+ */
+
+enum OverlapOrder   /* the terms do not unify */
+                    INCOMPARABLE   
+                    /* the terms are a renaming of each other */
+                  | RENAMING      //areVariants  
+                    /* the first term Is(An)Instance of the second term, 
+                        wrt. to the given substitution (one of those things is redundant) */
+                  | IsInstance(Core_cterm_sort, Mgu, Core_cterm_sort)
+                    /* the first term Is(A)Generalization of the second term */
+                  | IsGeneralization(Core_cterm_sort, Mgu, Core_cterm_sort)
+                   /* the first term and the second term unify with the given mgu,
+                      but neither is an instance of the other */
+                    AreParallel(Core_cterm_sort, Mgu, Core_cterm_sort)
+
+func ComputeOverlapOrder(Core_cterm_sort, Core_cterm_sort ) -> OverlapOrder
+rule ComputeOverlapOrder( #t1, #t2 ) → 
+   MatchUnifier(UnifyTerms(#t1, #t2), #t1, #t2)
+   /* checks whether a unifier between #t1 and #t2 exists */
+   func MatchUnifier(Mgu, Core_cterm_sort, Core_cterm_sort) -> OverlapOrder
+   MatchUnifier(FAIL,         #t1, #t2) → INCOMPARABLE
+   rule MatchUnifier(Mgu(#theta),  #t1, #t2) 
+   → MatchInstance(RestrictDomain(Mgu(#theta), #t1), 
+                   RestrictDomain(Mgu(#theta), #t2), Mgu(#theta), #t1, #t2)
+   /* if there is a unifier, it computes whether one term is an instance */
+   func MatchInstance(Option(Mgu), Option(Mgu), Mgu, Core_cterm_sort, Core_cterm_sort ) -> OverlapOrder
+   rule MatchInstance(NONE,        NONE,          #mgu,  #t1, #t2) → AreParallel(#t1, #mgu, #t2)
+   rule MatchInstance(SOME(#mgu1), SOME(#mgu2),   #mguP, #t1, #t2) → RENAMING
+   rule MatchInstance(SOME(#mgu1), NONE,          #mguP, #t1, #t2) → IsGeneralization(#t1, #mguP, #t2)
+   rule MatchInstance(NONE,        SOME(#mgu2),   #mguP, #t1, #t2) → IsInstance(#t1, #mguP, #t2)
+
+
+
+// input: a list of rules
+// output: a list of trees, ordered by instances
+func SpecificityTree(List<Core_cdecl_sort>) -> List<Tree<Core_cdecl_sort, Mgu>>
+rule SpecificityTree(#decls) 
+→ FoldlP(r rs . InsertRule(r, rs), (), #decls)
+
+
+func InsertRule(Core_cdecl_sort, List<Tree<Core_cdecl_sort, Mgu>>) -> List<Tree<Core_cdecl_sort, Mgu>>
+rule InsertRule( #r1, #t) → InsertNode( n1 n2 . CompareRules(n1,n2), #r1, #t)
+
+func CompareRules( Core_cdecl_sort, Core_cdecl_sort )-> Pos<Mgu>
+rule CompareRules(#r1, #r2) → MatchCompareRules(ComputeOverlapOrder(Lhs(#r1), Lhs(#r2)))
+
+  func MatchCompareRules(OverlapOrder) -> Pos<Mgu>
+  rule MatchCompareRules(INCOMPARABLE)                     → Parallel  
+  rule MatchCompareRules(RENAMING)                         → UnInsertable  
+  rule MatchCompareRules(IsInstance(#t1, #mgu, #t2))       → Below(#mgu) 
+  rule MatchCompareRules(IsGeneralization(#t1, #mgu, #t2)) → Above(#mgu) 
+  rule MatchCompareRules(AreParallel(#t1, #mgu, #t2))      → UnInsertable
+
+
+// input: a list of rules
+// output: a list of rules sorted by specificity
+func RulesBySpecificity( List<Core_cdecl_sort>) -> List<Core_cdecl_sort>
+rule RulesBySpecificity( #rules ) → Foldr( t rs. Concat(PostOrder(t),rs), (), SpecificityTree(#rules))
