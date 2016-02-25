@@ -205,6 +205,7 @@ public abstract class ConstructionDescriptor
 		@Override
 		public boolean step(Sink sink, Term term)
 		{
+			assert method != null : "No method found for function " + symbol();
 			Object[] args = new Object[method.getParameterCount()];
 
 			args[0] = sink; // sink
@@ -218,6 +219,7 @@ public abstract class ConstructionDescriptor
 					for (int j = 0; j < binders.length; j++)
 						args[argp++] = binders[j];
 				}
+				assert argp < args.length : "Too many arguments for function " + symbol();
 				args[argp++] = term.sub(i).ref();
 			}
 

@@ -88,13 +88,15 @@ public class StringExtern
 		final Context context = sink.context();
 		num = Normalizer.normalize(context, num);
 
-		if (!Construction.isConstant(num))
-			throw new RuntimeException("Invalid argument in FormatNumber");
+		if (Construction.isConstant(num))
+		{
+			sink.literal(num.symbol());
 
-		sink.literal(num.symbol());
+			num.release();
+			return true;
 
-		num.release();
-		return true;
+		}
+		return Normalizer.thunk(sink, String._M_FormatNumber, num);
 	}
 
 	final public static boolean _M_Length(Sink sink, Term str)
@@ -354,7 +356,15 @@ public class StringExtern
 			throw new RuntimeException("Fatal error: no parser found for category " + category);
 
 		BufferSink parsed = context.makeBuffer();
-		parser.parse(parsed, category, new StringReader(text), null, 0, 0, null);
+		try
+		{
+			parser.parse(parsed, category, new StringReader(text), null, 0, 0, null);
+		}
+		catch (RuntimeException e)
+		{
+			System.err.println("Error while parsing: " + text);
+			throw e;
+		}
 		Term result = parsed.term();
 		java.lang.String textResult = result.toString4();
 		//	System.out.println(textResult);

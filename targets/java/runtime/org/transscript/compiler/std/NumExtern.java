@@ -24,7 +24,7 @@ public class NumExtern
 		term2.release();
 		return false;
 	}
-	
+
 	final public static boolean _M_Minus(Sink sink, Term term1, Term term2)
 	{
 		final Context context = sink.context();
@@ -36,6 +36,27 @@ public class NumExtern
 		int v2 = Integer.parseInt(term2.symbol());
 
 		sink.literal(Integer.toString(v1 - v2));
+
+		term1.release();
+		term2.release();
+		return false;
+
+	}
+
+	final public static boolean _M_NumberLessThan(Sink sink, Term term1, Term term2)
+	{
+		final Context context = sink.context();
+
+		term1 = Normalizer.normalize(context, term1);
+		term2 = Normalizer.normalize(context, term2);
+
+		int v1 = Integer.parseInt(term1.symbol());
+		int v2 = Integer.parseInt(term2.symbol());
+
+		if (v1 < v2)
+			sink.start(Core._M_TRUE).end();
+		else
+			sink.start(Core._M_FALSE).end();
 
 		term1.release();
 		term2.release();

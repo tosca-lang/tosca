@@ -85,6 +85,7 @@ class TransScriptTask extends DefaultTask {
 				main      = usecompiler ? "org.transscript.Tool": "net.sf.crsx.run.Crsx"
 				classpath = project.files(project.configurations.transscript.files)
 				args      = jargs
+				jvmArgs   = ['-ea']
 			}
 		}
 		

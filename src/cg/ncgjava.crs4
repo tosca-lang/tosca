@@ -77,8 +77,6 @@ rule JavaUnit(#mainurl, Module(#url, Loaded(LoadedContent(#imports, #rules, #dat
   ⟨InitModule(#datasorts, #funcsorts, #imports)⟩
 }⟧
 
-/*   ⟨TextFold(Map([x] ->JavaTypedData(x), MapValues(#datasorts)), text⟦⟧)⟩ */
-
 func JavaImport(String) -> Text
 rule JavaImport(#name)
 → text⟦
@@ -88,28 +86,180 @@ func JavaClassVisibility(String, String) -> Text
 rule JavaClassVisibility(#mainurl, #url)
 → If(Equal(#mainurl, #url), text⟦public⟧, text⟦static⟧)
 
-//--- Translate enumerations to Java classes
+//--- Translate enumerations
 
+/* Generate class corresponding to the enum type */
 func JavaDataDesc(Core_cdecl_sort) -> Text
 rule JavaDataDesc(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 → text⟦
-public abstract static class ⟨ToJavaClassName(#CONSTRUCTOR)⟩ ⟨JavaEnumTypeParam(#csortvars?)⟩ {
+public abstract static class ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?)⟩ extends Construction
+{
+    ⟨TextFold(Map([x] -> FormToMethodNew(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
 
+    ⟨TextFold(Map([x] -> FormToClass(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
 }⟧
 
-
-func JavaEnumTypeParam(List<Core_csortvars_sort>) -> Text
-
-rule JavaEnumTypeParam(csortvars?⟦ ⟧)
-→ text⟦⟧
-
-rule JavaEnumTypeParam(csortvars?⟦ ∀ ##variable_TOK+ . ⟧)
-→ text⟦<⟨TextFold([x] -> ToJavaTypeParameter(x), #variable_TOK+, text⟦, ⟧)⟩>⟧
+/*public abstract <R> R match(⟨TextFold(Map([x] -> FormToParam(x), #cform*), text⟦, ⟧)⟩);*/
 
 
-func JavaFormDesc(Core_cform_sort) -> Text
-rule JavaFormDesc(cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
-→ text⟦final public static ConstructionDescriptor ⟨Descriptor(#CONSTRUCTOR)⟩ = makeData(⟨Text-QuoteEscape(#CONSTRUCTOR)⟩);⟧
+/* Generate a 'new' method for each enum value */
+func FormToMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
+  rule FormToMethodNew(#constructor, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts?⟧)
+  → text⟦
+      static ⟨SortParamToTypeParam(#csortvars?)⟩ ⟨ToJavaClassName(#constructor)⟩⟨SortParamToTypeParam(#csortvars?)⟩ ⟨ToJavaMethodName(ConcatString("new", #CONSTRUCTOR))⟩ (⟨MaybeSortsToFormalParams(#csorts?)⟩)
+      {
+        return new ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?)⟩(⟨MaybeSortsToArgs(#csorts?)⟩);
+      }⟧
+
+/*func FormToParam(Core_cform_sort) -> Text
+
+  rule FormToParam(Core_cform_sort) -> Text
+*/
+
+func FormToClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
+  rule FormToClass(#classname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  → text⟦
+      static public class ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?)⟩ extends ⟨ToJavaClassName(#classname)⟩⟨SortParamToTypeParam(#csortvars?)⟩
+      {
+          ⟨MaybeSortsToClassFields(#csorts?)⟩
+
+          private ⟨ToJavaClassName(#CONSTRUCTOR)⟩(⟨MaybeSortsToFormalParams(#csorts?)⟩)
+          {
+            ⟨MaybeSortsToInitFields(#csorts?)⟩
+          }
+
+      }⟧
+
+//--- Class fields
+
+func MaybeSortsToClassFields(List<Core_csorts_sort>) -> Text
+  rule MaybeSortsToClassFields(csorts?⟦⟧)
+  → text⟦⟧
+
+  rule MaybeSortsToClassFields(csorts?⟦ ( ##csort* ) ⟧)
+  → text⟦
+    /* Form arguments */
+    ⟨SortsToClassFields(#csort*, 1)⟩⟧
+
+func SortsToClassFields(List<Core_csort_sort>, Numeric) -> Text
+  rule SortsToClassFields(csort*⟦⟧, #index)
+  → text⟦⟧
+
+  rule SortsToClassFields(csort*⟦ ##csort ##csort* ⟧, #index)
+  → text⟦⟨SortToClassFields(SortToTypes(#csort), #index, 1)⟩⟨SortsToClassFields(#csort*, Plus(#index, 1))⟩⟧
+
+func SortToClassFields(List<Text>, eager Numeric, eager Numeric) -> Text
+  rule SortToClassFields(Cons(#type, Nil), #index, #subindex)
+  → text⟦⟨#type⟩ field⟨FieldSuffix(#index, #subindex)⟩;⟧
+
+  rule SortToClassFields(Cons(#type, #types), #index, #subindex)
+  → text⟦
+     ⟨#type⟩ var⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩;
+     ⟨SortToClassFields(#types, #index, Plus(#subindex, 1))⟩⟧
+
+//--- Class fields initialization
+
+func MaybeSortsToInitFields(List<Core_csorts_sort>) -> Text
+  rule MaybeSortsToInitFields(csorts?⟦⟧)
+  → text⟦⟧
+
+  rule MaybeSortsToInitFields(csorts?⟦ ( ##csort* ) ⟧)
+  → SortsToInitFields(#csort*, 1)
+
+func SortsToInitFields(List<Core_csort_sort>, Numeric) -> Text
+  rule SortsToInitFields(csort*⟦⟧, #index)
+  → text⟦⟧
+
+  rule SortsToInitFields(csort*⟦ ##csort ##csort* ⟧, #index)
+  → text⟦⟨SortToInitFields(SortToTypes(#csort), #index, 1)⟩⟨SortsToInitFields(#csort*, Plus(#index, 1))⟩⟧
+
+func SortToInitFields(List<Text>, eager Numeric, eager Numeric) -> Text
+  rule SortToInitFields(Cons(#type, Nil), #index, #subindex)
+  → text⟦this.field⟨FieldSuffix(#index, #subindex)⟩ = param⟨FieldSuffix(#index, #subindex)⟩;⟧
+
+  rule SortToInitFields(Cons(#type, #types), #index, #subindex)
+  → text⟦this.var⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩ = param⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩; ⟨SortToInitFields(#types, #index, Plus(#subindex, 1))⟩⟧
+
+//--- Sort to formal parameters
+
+func MaybeSortsToFormalParams(List<Core_csorts_sort>) -> Text
+  rule MaybeSortsToFormalParams(csorts?⟦⟧)
+  → text⟦⟧
+
+  rule MaybeSortsToFormalParams(csorts?⟦ ( ##csort*) ⟧)
+  → SortsToFormalParams(#csort*, 1, text⟦⟧)
+
+func SortsToFormalParams(List<Core_csort_sort>, Numeric, Text) -> Text
+  rule SortsToFormalParams(csort*⟦⟧, #index, #sep)
+  → text⟦⟧
+
+  rule SortsToFormalParams(csort*⟦ ##csort ##csort* ⟧, #index, #sep)
+  → text⟦⟨#sep⟩⟨SortToFormalParams(SortToTypes(#csort), #index, 1)⟩⟨SortsToFormalParams(#csort*, Plus(#index, 1), text⟦, ⟧)⟩⟧
+
+func SortToFormalParams(List<Text>, Numeric, Numeric) -> Text
+  rule SortToFormalParams(Cons(#type, Nil), #index, #subindex)
+  → text⟦⟨#type⟩ param⟨FieldSuffix(#index, #subindex)⟩⟧
+
+  rule SortToFormalParams(Cons(#type, #types), #index, #subindex)
+  → text⟦⟨#type⟩ param⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩, ⟨SortToFormalParams(#types, #index, Plus(#subindex, 1))⟩⟧
+
+//--- Sort to function call arguments
+
+func MaybeSortsToArgs(List<Core_csorts_sort>) -> Text
+  rule MaybeSortsToArgs(csorts?⟦⟧)
+  → text⟦⟧
+
+  rule MaybeSortsToArgs(csorts?⟦ ( ##csort*) ⟧)
+  → SortsToArgs(#csort*, 1, text⟦⟧)
+
+func SortsToArgs(List<Core_csort_sort>, Numeric, Text) -> Text
+  rule SortsToArgs(csort*⟦⟧, #index, #sep)
+  → text⟦⟧
+
+  rule SortsToArgs(csort*⟦ ##csort ##csort* ⟧, #index, #sep)
+  → text⟦⟨#sep⟩⟨SortToArgs(SortToTypes(#csort), #index, 1)⟩⟨SortsToArgs(#csort*, Plus(#index, 1), text⟦, ⟧)⟩⟧
+
+func SortToArgs(List<Text>, Numeric, Numeric) -> Text
+  rule SortToArgs(Cons(#type, Nil), #index, #subindex)
+  → text⟦param⟨FieldSuffix(#index, #subindex)⟩⟧
+
+  rule SortToArgs(Cons(#type, #types), #index, #subindex)
+  → text⟦param⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩, ⟨SortToArgs(#types, #index, Plus(#subindex, 1))⟩⟧
+
+//--- Helpers
+
+func FieldSuffix(Numeric, Numeric) -> Text
+  rule FieldSuffix(#index, #subindex)
+  → text⟦⟨NumberToText(#index)⟩⟨If( NumberEqual(#subindex, 1), text⟦⟧, text⟦_⟨NumberToText(#subindex)⟩⟧ )⟩⟧
+
+//---- Sort tranlation
+
+func SortParamToTypeParam(List<Core_csortvars_sort>) -> Text
+  rule SortParamToTypeParam(csortvars?⟦ ⟧)
+  → text⟦⟧
+
+  rule SortParamToTypeParam(csortvars?⟦ ∀ ##variable_TOK+ . ⟧)
+  → text⟦<⟨TextFold(Map([x] -> text⟦⟨ToJavaTypeParameter(x)⟩⟧, #variable_TOK+), text⟦, ⟧)⟩>⟧
+
+func MaybeSortsToTypeParams(List<Core_csorts_sort>) -> Text
+  rule MaybeSortsToTypeParams(csorts?⟦ ⟧)
+  → text⟦⟧
+
+  rule MaybeSortsToTypeParams(csorts?⟦ ( ##csort* )⟧)
+  → text⟦<⟨TextFold( Flatten(Map([x] -> SortToTypes(x), #csort*)), text⟦, ⟧)⟩>⟧
+
+func SortToTypes(Core_csort_sort) -> List<Text>
+  rule SortToTypes(csort⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  → Cons(text⟦⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨MaybeSortsToTypeParams(#csorts?)⟩⟧, Nil)
+
+  rule SortToTypes(csort⟦ ##VARIABLE ⟧)
+  → Cons(text⟦⟨ToJavaTypeParameter(#VARIABLE)⟩⟧, Nil)
+
+  rule SortToTypes(csort⟦ [ ##csort ] ##csort2 ⟧)
+  → Cons(text⟦Variable⟧, SortToTypes(#csort2))
+
+  rule SortToTypes(csort⟦ data ##csort ⟧)
+  → SortToTypes(#csort)
 
 func JavaFuncDesc(String, Core_cdecl_sort) -> Text
 rule JavaFuncDesc(#classname, cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)

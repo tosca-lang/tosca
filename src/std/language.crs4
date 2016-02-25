@@ -6,11 +6,11 @@
 
  /*
   */
-extern func ToJavaMethodName(String) -> String
+extern func ToJavaMethodName(eager String) -> String
 
-extern func ToJavaClassName(String) -> String
+extern func ToJavaClassName(eager String) -> String
 
 /*
  * Convert string to a valid Java type parameter.
  */
-extern func ToJavaTypeParameter(String) -> String
+extern func ToJavaTypeParameter(eager String) -> String

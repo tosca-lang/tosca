@@ -3,9 +3,9 @@ import Std::Core
 extern func Plus(Numeric, Numeric) -> Numeric
 extern func Minus(Numeric, Numeric) -> Numeric
 
-// Compare the 2 numeric values 
+// Compare the 2 numeric values
 func NumberEqual(Numeric, Numeric) -> Boolean
-rule NumberEqual(#1, #2) → If(Equal(#1, #2), TRUE, FALSE) 
+rule NumberEqual(#1, #2) → If(Equal(#1, #2), TRUE, FALSE)
 
 // Addition
 func NumberPlus(#1: Numeric, #2: Numeric) -> Numeric
@@ -14,3 +14,7 @@ func NumberPlus(#1: Numeric, #2: Numeric) -> Numeric
 // Subtraction
 func NumberMinus(#1: Numeric, #2: Numeric) -> Numeric
 → Minus(#1, #2)
+
+// LessThan
+extern func NumberLessThan(#1: Numeric, #2: Numeric) -> boolean
+extern func NumberGreaterThan(#1: Numeric, #2: Numeric) -> boolean

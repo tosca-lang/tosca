@@ -1,93 +1,93 @@
 /* Copyright (c) 2015 IBM Corporation. */
 
-import Std::Core 
-import Std::Pair 
-import Std::Num 
+import Std::Core
+import Std::Pair
+import Std::Num
 
 // Sort list definition.
-enum List<a> | Cons(a, List<a>) | Nil 
+enum List<a> | Cons(a, List<a>) | Nil
 
-/* 
- * Basic List Operations  
+/*
+ * Basic List Operations
  */
 
 /* @return `TRUE` if list is empty
  */
-func IsEmpty<a>(List<a>) -> Boolean  
-rule IsEmpty(()         ) → TRUE  
-rule IsEmpty(Cons(#, #s)) → FALSE  
+func IsEmpty<a>(List<a>) -> Boolean
+rule IsEmpty(()         ) → TRUE
+rule IsEmpty(Cons(#, #s)) → FALSE
 
 /* @return `TRUE` if list is not empty
  */
-func IsNotEmpty<a>(List<a>) -> Boolean  
-rule IsNotEmpty(()        ) → FALSE  
-rule IsNotEmpty(Cons(#, #s)) → TRUE  
+func IsNotEmpty<a>(List<a>) -> Boolean
+rule IsNotEmpty(()        ) → FALSE
+rule IsNotEmpty(Cons(#, #s)) → TRUE
 
 
 /* TRUE if list is empty
  */
-func IfEmpty<a b>(List<a>, b, b) -> b  
-rule IfEmpty(()        , #1, #2) → #1  
-rule IfEmpty(Cons(#, #s), #1, #2) → #2  
+func IfEmpty<a b>(List<a>, b, b) -> b
+rule IfEmpty(()        , #1, #2) → #1
+rule IfEmpty(Cons(#, #s), #1, #2) → #2
 
 /* `Null(#XS)`
    @param `#XS` list
    @return `TRUE`  if  #XS is the empty list
-           `FALSE` otherwise 
-*/ 
-func Null<a>(List<a>) -> Boolean 
-rule Null( () )          → TRUE 
-rule Null( Cons(#H, #T) ) → FALSE 
+           `FALSE` otherwise
+*/
+func Null<a>(List<a>) -> Boolean
+rule Null( () )          → TRUE
+rule Null( Cons(#H, #T) ) → FALSE
 
 // TRUE is list is a singleton
-func IsSingleton<a>(List<a>) -> Boolean  
-rule IsSingleton(()        ) → FALSE  
-rule IsSingleton(Cons(#, #s)) → IsEmpty(#s)  
+func IsSingleton<a>(List<a>) -> Boolean
+rule IsSingleton(()        ) → FALSE
+rule IsSingleton(Cons(#, #s)) → IsEmpty(#s)
 
-func IfSingleton(List<a>, b, b) -> b  
-rule IfSingleton(()        , #1, #2) → #2  
-rule IfSingleton(Cons(#, #s), #1, #2) → IfEmpty(#s, #1, #2)  
+func IfSingleton(List<a>, b, b) -> b
+rule IfSingleton(()        , #1, #2) → #2
+rule IfSingleton(Cons(#, #s), #1, #2) → IfEmpty(#s, #1, #2)
 
 /* @return head of the list */
-func Head(List<a>) -> a  
-rule Head(()        ) → Error("Head of empty list")  
-rule Head(Cons(#, #s)) → #  
+func Head(List<a>) -> a
+rule Head(()        ) → Error("Head of empty list")
+rule Head(Cons(#, #s)) → #
 
 // Tail for the list
-func Tail<a>(List<a>) -> List<a>  
-rule Tail(()        ) → Error("Tail of empty list")  
-rule Tail(Cons(#, #s)) → #s  
+func Tail<a>(List<a>) -> List<a>
+rule Tail(()        ) → Error("Tail of empty list")
+rule Tail(Cons(#, #s)) → #s
 
 /* Get element at given index (zero-based), or NONE
    @param `List<a>` the list
    @param `Numeric` the index
  */
-func At<a>(List<a>, eager Numeric) -> Option<a> 
-rule At((), #i)    → NONE 
-rule At(Cons(#, #s), #i) → If(Equal(#i, 0), SOME(#), At(#s, Minus(#i, 1))) 
+func At<a>(List<a>, eager Numeric) -> Option<a>
+rule At((), #i)    → NONE
+rule At(Cons(#, #s), #i) → If(Equal(#i, 0), SOME(#), At(#s, Minus(#i, 1)))
 
 /*
-  Concat the two list 
+  Concat the two list
 */
-func Concat(List<a>, List<a>) -> List<a>  
-rule Concat((), #tail         ) → #tail  
-rule Concat(Cons(#1, #s), #tail) → Cons(#1, Concat(#s, #tail))  
+func Concat(List<a>, List<a>) -> List<a>
+rule Concat((), #tail         ) → #tail
+rule Concat(Cons(#1, #s), #tail) → Cons(#1, Concat(#s, #tail))
 
-/* Flatten list of lists 
+/* Flatten list of lists
 */
-func Flatten<a>(List<List<a>>) -> List<a>  
-rule Flatten(())          → ()  
-rule Flatten(Cons(#1, #s)) → Concat(#1, Flatten(#s)) 
+func Flatten<a>(List<List<a>>) -> List<a>
+rule Flatten(())          → ()
+rule Flatten(Cons(#1, #s)) → Concat(#1, Flatten(#s))
 
 /* `Elem(#X,#XS)`
    @param  `#X`  element
    @param  `#XS` list
-   @return `TRUE`  if `#X` is element of `#XS`, i.e., occurs at least once, 
-           `FALSE` otherwise 
+   @return `TRUE`  if `#X` is element of `#XS`, i.e., occurs at least once,
+           `FALSE` otherwise
    @note   read "#X is element of #XS to remember the order of the parameters"
 */
-func Elem<a>(a , List<a>) -> Boolean 
-rule Elem(#X, #XS) → Foldr([x y] -> Or(Equal(#X, x), y), FALSE, #XS) 
+func Elem<a>(a , List<a>) -> Boolean
+rule Elem(#X, #XS) → Foldr([x y] -> Or(Equal(#X, x), y), FALSE, #XS)
 
 /* `Insert(#X, #XS)`
    @param  `#X`  element
@@ -95,78 +95,90 @@ rule Elem(#X, #XS) → Foldr([x y] -> Or(Equal(#X, x), y), FALSE, #XS)
    @return a new list, where `#X` is inserted at the head of `#XS`
    @note   read "insert #X in #XS to remember the order of the parameters"
 */
-func Insert<a>(a, List<a>) -> List<a> 
-rule Insert(#X, #XS) → Cons(#X, #XS) 
+func Insert<a>(a, List<a>) -> List<a>
+rule Insert(#X, #XS) → Cons(#X, #XS)
 
-/* 
+
+/* `Range(#FROM, #TO)`
+   @param  `#FROM` first number
+   @param  `#TO`
+   @return a new list of number from #FROM to #TO *all inclusive
+*/
+func Range(Number, Number) -> List<Number>
+rule Range(#from, #to)
+→ If( NumberLessThan(#from, #to),
+    Cons(#from, Range(Plus(#from, 1), #to)),
+    Cons(#to, Nil))
+
+/*
    Append element to list.
    @param  `a` element
    @param  `List<a>` list
    @return a new list, where the element is inserted at the end of the list
 */
-func Append<a>(a, List<a>) -> List<a> 
-rule Append(#x, ())          → (#x,) 
-rule Append(#x, Cons(#1, #s)) → Cons(#1, Append(#x, #s)) 
+func Append<a>(a, List<a>) -> List<a>
+rule Append(#x, ())          → (#x,)
+rule Append(#x, Cons(#1, #s)) → Cons(#1, Append(#x, #s))
 
-/* 
-   Pick first element matching condition 
+/*
+   Pick first element matching condition
    @param  `List<a>` list
    @return an element or NONE
 */
-func PickFirst<a>(List<a>, [x] -> Boolean) -> Option<a> 
-rule PickFirst((         ), [x] -> #(x)) → NONE 
-rule PickFirst(Cons(#1, #s), [x] -> #(x)) → PickFirst1(#(#1), #1, #s, [x] -> #(x)) 
+func PickFirst<a>(List<a>, [x] -> Boolean) -> Option<a>
+rule PickFirst((         ), [x] -> #(x)) → NONE
+rule PickFirst(Cons(#1, #s), [x] -> #(x)) → PickFirst1(#(#1), #1, #s, [x] -> #(x))
 
-func PickFirst1<a>(Boolean, a, List<a>, [x] -> Boolean) -> Option<a> 
-rule PickFirst1(TRUE,  #1, #s, [x] -> #(x)) → SOME(#1) 
-rule PickFirst1(FALSE, #1, #s, [x] -> #(x)) → PickFirst(#s, [x] -> #(x)) 
+func PickFirst1<a>(Boolean, a, List<a>, [x] -> Boolean) -> Option<a>
+rule PickFirst1(TRUE,  #1, #s, [x] -> #(x)) → SOME(#1)
+rule PickFirst1(FALSE, #1, #s, [x] -> #(x)) → PickFirst(#s, [x] -> #(x))
 
 /* `ListEqual([x y] -> #C(x, y), #XS, #YS)`
-   @param  `#C`  a condition to check for equality 
+   @param  `#C`  a condition to check for equality
    @param  `#XS` list
    @param  `#YS` list
-   @return `TRUE` if the elements of `#XS` are equal to the elements of `#YS` 
+   @return `TRUE` if the elements of `#XS` are equal to the elements of `#YS`
            wrt the supplied condition for equality `#C`
 */
-func ListEqual<a b>([a b] -> Boolean, List<a>, List<b> ) -> Boolean 
-rule ListEqual([x y] -> #C(x,y), (          ), (          )) → TRUE 
-rule ListEqual([x y] -> #C(x,y), Cons(#x, #xs), (          )) → FALSE 
-rule ListEqual([x y] -> #C(x,y), (          ), Cons(#y, #ys)) → FALSE 
-rule ListEqual([x y] -> #C(x,y), Cons(#x, #xs), Cons(#y, #ys)) → And(#C(#x, #y), ListEqual([x y] -> #C(x,y), #xs, #ys))  
+func ListEqual<a b>([a b] -> Boolean, List<a>, List<b> ) -> Boolean
+rule ListEqual([x y] -> #C(x,y), (          ), (          )) → TRUE
+rule ListEqual([x y] -> #C(x,y), Cons(#x, #xs), (          )) → FALSE
+rule ListEqual([x y] -> #C(x,y), (          ), Cons(#y, #ys)) → FALSE
+rule ListEqual([x y] -> #C(x,y), Cons(#x, #xs), Cons(#y, #ys)) → And(#C(#x, #y), ListEqual([x y] -> #C(x,y), #xs, #ys))
 
 /* `ConditionalInsert(#Condition, #X, #XS)`
    @param  `#Condition` condition for inserting the element
    @param  `#X`         element
    @param  `#XS`        list
-   @return if `#Condition` evaluates to TRUE it calls Insert(`#X`,`#XS`)  
+   @return if `#Condition` evaluates to TRUE it calls Insert(`#X`,`#XS`)
            otherwise `#XS`
 */
-func ConditionalInsert<a>(Boolean, a, List<a>) -> List<a>  
-rule ConditionalInsert(TRUE,  #X, #XS) → Insert(#X,#XS) 
-rule ConditionalInsert(FALSE, #X, #XS) → #XS 
+func ConditionalInsert<a>(Boolean, a, List<a>) -> List<a>
+rule ConditionalInsert(TRUE,  #X, #XS) → Insert(#X,#XS)
+rule ConditionalInsert(FALSE, #X, #XS) → #XS
 
 /* `ContainsDuplicates(#XS)`
    @param `#XS`   list
-   @return `TRUE` if `#XS` contains duplicate elements, `FALSE` otherwise 
+   @return `TRUE` if `#XS` contains duplicate elements, `FALSE` otherwise
 */
-func ContainsDuplicates<a>(List<a>) -> Boolean 
-rule ContainsDuplicates(()         ) → FALSE 
-rule ContainsDuplicates(Cons(#H, #T)) → Or(Elem(#H, #T), ContainsDuplicates(#T)) 
+func ContainsDuplicates<a>(List<a>) -> Boolean
+rule ContainsDuplicates(()         ) → FALSE
+rule ContainsDuplicates(Cons(#H, #T)) → Or(Elem(#H, #T), ContainsDuplicates(#T))
 
 /* `RemoveDuplicates(#XS)`
    @param  `#XS` list
    @return a duplicate free version of `#XS`
 */
-func RemoveDuplicates<a>(List<a>) -> List<a> 
-rule RemoveDuplicates(())           → () 
-rule RemoveDuplicates(Cons(#X, #XS)) → Cons(#X, RemoveDuplicates(Filter([x] -> Not(Equal(x,#X)), #XS))) 
+func RemoveDuplicates<a>(List<a>) -> List<a>
+rule RemoveDuplicates(())           → ()
+rule RemoveDuplicates(Cons(#X, #XS)) → Cons(#X, RemoveDuplicates(Filter([x] -> Not(Equal(x,#X)), #XS)))
 
 /* `Length(#XS)`
    @param  `#XS` list
-   @return length of `#XS` 
+   @return length of `#XS`
 */
-func Length<a>(List<a>) -> Numeric 
-rule Length(#XS) → IWrapFoldlP([x y] -> NumberPlus(1, y), 0, #XS) 
+func ListLength<a>(List<a>) -> Numeric
+rule ListLength(#XS) → IWrapFoldlP([x y] -> NumberPlus(1, y), 0, #XS)
 
 /* `Intersect(#XS, #YS)`
    @param  `#XS` list
@@ -175,76 +187,76 @@ rule Length(#XS) → IWrapFoldlP([x y] -> NumberPlus(1, y), 0, #XS)
    @note   if the first list contains duplicates, the resulting list will as well
            but not vice versa
 */
-func Intersect<a>(List<a>, List<a>) -> List<a> 
-rule Intersect(#XS, #YS) → Foldr([x zs] -> ConditionalInsert(Elem(x,#YS), x, zs), (), #XS)  
+func Intersect<a>(List<a>, List<a>) -> List<a>
+rule Intersect(#XS, #YS) → Foldr([x zs] -> ConditionalInsert(Elem(x,#YS), x, zs), (), #XS)
 
 /* `Union(#XS, #YS)`
    @param  `#XS` list
    @param  `#YS` list
    @return the union of `#XS` and `#YS`, in particular the duplicates are removed
 */
-func Union<a>(List<a>, List<a>) -> List<a> 
-rule Union(#XS, #YS) → RemoveDuplicates(Concat(#XS,#YS)) 
+func Union<a>(List<a>, List<a>) -> List<a>
+rule Union(#XS, #YS) → RemoveDuplicates(Concat(#XS,#YS))
 
 /* `Reverse(#XS)`
    @param  `#XS` list
-   @return the reverse list of `#XS` 
+   @return the reverse list of `#XS`
 */
-func Reverse<a>(List<a>) -> List<a> 
-rule Reverse(#XS) → Foldl([x xs] -> Insert(x, xs), (), #XS) 
+func Reverse<a>(List<a>) -> List<a>
+rule Reverse(#XS) → Foldl([x xs] -> Insert(x, xs), (), #XS)
 
-/* 
+/*
  * Zip
  */
 
 /* `Zip(#XS,#YS)`
    @param  `#XS` list
    @param  `#YS` list
-   @return a list of Pairs where the first argument is taken from `#XS` and the second argument from `#YS`. 
+   @return a list of Pairs where the first argument is taken from `#XS` and the second argument from `#YS`.
    @error: if `Length(#XS) != Length(#YS)`
 */
-func Zip<a b>(List<a>, List<b>) -> List<Pair<a b>> 
-rule Zip(() ,      ())      → () 
-rule Zip(() ,      # )      → Error("ListExtension.Zip: second argument list was longer") 
-rule Zip(#  ,      ())      → Error("ListExtension.Zip: first argument list was longer") 
-rule Zip(Cons(#X, #XS), Cons(#Y, #YS)) → Cons(PairCons(#X,#Y), Zip(#XS,#YS)) 
+func Zip<a b>(List<a>, List<b>) -> List<Pair<a b>>
+rule Zip(() ,      ())      → ()
+rule Zip(() ,      # )      → Error("ListExtension.Zip: second argument list was longer")
+rule Zip(#  ,      ())      → Error("ListExtension.Zip: first argument list was longer")
+rule Zip(Cons(#X, #XS), Cons(#Y, #YS)) → Cons(PairCons(#X,#Y), Zip(#XS,#YS))
 
 /* `LookUp( #Key, #KeyValueList)`
     @param `#Key`          a key
     @param `#KeyValueList` a list of key-value pairs
-    @return a list of values associated to the `#Key` in `#KeyValueList` and returns the empty list, if `#Key` was not found  
+    @return a list of values associated to the `#Key` in `#KeyValueList` and returns the empty list, if `#Key` was not found
 */
-func LookUp<a b>(a, eager List<Pair<a b>>) -> List<b> 
-rule LookUp(#Key, #KeyValueList) → Map([x] -> Snd(x), Filter([pair] -> Equal(#Key, Fst(pair)), #KeyValueList)) 
+func LookUp<a b>(a, eager List<Pair<a b>>) -> List<b>
+rule LookUp(#Key, #KeyValueList) → Map([x] -> Snd(x), Filter([pair] -> Equal(#Key, Fst(pair)), #KeyValueList))
 
 /* DelEntry
    @param  `#Key`          of the key-value pairs to delete
    @param  #KeyValueist` the key-value pairs
    @return a list of `#KeyValueList`, where all entries with `#Key` are deleted
  */
-func DelEntry<a b>(a, List<Pair<a b>> ) -> List<Pair<a b>>  
-rule DelEntry(#Key, #KeyValueList) → Filter([pair] -> Not(Equal(Fst(pair), #Key)), #KeyValueList) 
+func DelEntry<a b>(a, List<Pair<a b>> ) -> List<Pair<a b>>
+rule DelEntry(#Key, #KeyValueList) → Filter([pair] -> Not(Equal(Fst(pair), #Key)), #KeyValueList)
 
 /* `Partition([x] ->#C(x), #XS)`
     @param `[x] ->#C(x)` a condition to partition
     @param `XS`      the list to partition
-    @return a pair `PairCons(#Ts, #Fs)`, where the first component `#Ts` holds all 
+    @return a pair `PairCons(#Ts, #Fs)`, where the first component `#Ts` holds all
            elements of `#XS` for which `#C` evaluates to `TRUE` and the second compoent `#Fs`
-           holds all elements for `#C` evaluates to `FALSE` 
+           holds all elements for `#C` evaluates to `FALSE`
 */
 
-func Partition<a>([a] -> Boolean, List<a>) -> Pair<List<a> List<a>> 
-rule Partition([x] -> #C(x), #XS) → Foldr([x res] -> MatchPartition(#C(x), x, res ), PairCons((),()), #XS) 
+func Partition<a>([a] -> Boolean, List<a>) -> Pair<List<a> List<a>>
+rule Partition([x] -> #C(x), #XS) → Foldr([x res] -> MatchPartition(#C(x), x, res ), PairCons((),()), #XS)
 
-func MatchPartition<a>(Boolean, a, Pair<List<a> List<a>>) -> Pair<List<a> List<a>> 
-rule MatchPartition(TRUE,  #X, PairCons(#TS, #FS)) → PairCons(Insert(#X,#TS), #FS) 
-rule MatchPartition(FALSE, #X, PairCons(#TS, #FS)) → PairCons(#TS, Insert(#X,#FS)) 
+func MatchPartition<a>(Boolean, a, Pair<List<a> List<a>>) -> Pair<List<a> List<a>>
+rule MatchPartition(TRUE,  #X, PairCons(#TS, #FS)) → PairCons(Insert(#X,#TS), #FS)
+rule MatchPartition(FALSE, #X, PairCons(#TS, #FS)) → PairCons(#TS, Insert(#X,#FS))
 
 /* Apply each item in list to function
  */
-func Map<a b>([a] -> b, List<a>) -> List<b>  
-rule Map([x] -> #(x), ())          → ()  
-rule Map([x] -> #(x), Cons(#1, #s)) → Cons(#(#1), Map([x] -> #(x), #s))  
+func Map<a b>([a] -> b, List<a>) -> List<b>
+rule Map([x] -> #(x), ())          → ()
+rule Map([x] -> #(x), Cons(#1, #s)) → Cons(#(#1), Map([x] -> #(x), #s))
 
 /* `Map2([x] ->#F(x), #XS)`
    @param   `[x] ->#F(x)` a function which takes one element of the list as input
@@ -252,8 +264,8 @@ rule Map([x] -> #(x), Cons(#1, #s)) → Cons(#(#1), Map([x] -> #(x), #s))
    @returns a list where the function `#F` is applied to all elements `#X` in `#XS`
    @note    alternative implementation to `Map` based on `Foldr`
 */
-func Map2<a b>([a] -> b, List<a>) -> List<b> 
-rule Map2([x] -> #F(x), #XS) → Foldr([y ys] -> Insert(#F(y), ys), (), #XS) 
+func Map2<a b>([a] -> b, List<a>) -> List<b>
+rule Map2([x] -> #F(x), #XS) → Foldr([y ys] -> Insert(#F(y), ys), (), #XS)
 
 /* Monadic map. Apply each item in list to the function taking a state and an element,
    evaluating to a new state and a value. Apply the next element with the new state.
@@ -262,66 +274,66 @@ rule Map2([x] -> #F(x), #XS) → Foldr([y ys] -> Insert(#F(y), ys), (), #XS)
    @param `List<b>` the list of elements to apply
    @return a pair containing the end state and the a list containing resulting values.
  */
-func MapM<a b c>([a b] -> Pair<a c>, a, List<b>) -> Pair<a List<c>> 
-rule MapM([state x] -> #(state, x), #state, #s) → MapM2([state x] ->#(state, x), #state, #s, ()) 
+func MapM<a b c>([a b] -> Pair<a c>, a, List<b>) -> Pair<a List<c>>
+rule MapM([state x] -> #(state, x), #state, #s) → MapM2([state x] ->#(state, x), #state, #s, ())
 
-func MapM2<a b c>([a b] -> Pair<a c>, a, List<b>, List<c>) -> Pair<a List<c>> 
-rule MapM2([state x] -> #(state, x), #state, (         ), #rs) → PairCons(#state, #rs) 
-rule MapM2([state x] -> #(state, x), #state, Cons(#1, #s), #rs) → MapM3(#(#state, #1), [state x] -> #(state, x), #s, #rs) 
+func MapM2<a b c>([a b] -> Pair<a c>, a, List<b>, List<c>) -> Pair<a List<c>>
+rule MapM2([state x] -> #(state, x), #state, (         ), #rs) → PairCons(#state, #rs)
+rule MapM2([state x] -> #(state, x), #state, Cons(#1, #s), #rs) → MapM3(#(#state, #1), [state x] -> #(state, x), #s, #rs)
 
-func MapM3<a b c>(Pair<a c>, [a b] -> Pair<a c>, List<b>, List<c>) -> Pair<a List<c>> 
-rule MapM3(PairCons(#nstate, #r), [state x] ->#(state, x), #s, #rs) 
-→ MapM2([state x] -> #(state, x), #nstate, #s, Append(#r, #rs)) 
+func MapM3<a b c>(Pair<a c>, [a b] -> Pair<a c>, List<b>, List<c>) -> Pair<a List<c>>
+rule MapM3(PairCons(#nstate, #r), [state x] ->#(state, x), #s, #rs)
+→ MapM2([state x] -> #(state, x), #nstate, #s, Append(#r, #rs))
 
 
 /* `Filter([x] ->#C(x), #XS)`
-    @param  `[x] ->#C(x)` a function which takes an element of the list as input and returns a `Boolean` 
+    @param  `[x] ->#C(x)` a function which takes an element of the list as input and returns a `Boolean`
     @param  `#XS`     a list
     @return a list, where with only those `#X` in `#XS` where condition `#C(#X)` evaluates to `TRUE`
 */
-func Filter<a>([a] -> Boolean, List<a>) -> List<a> 
-rule Filter([x] -> #C(x), #XS) → Foldr([x y] -> ConditionalInsert(#C(x), x, y) , (), #XS) 
+func Filter<a>([a] -> Boolean, List<a>) -> List<a>
+rule Filter([x] -> #C(x), #XS) → Foldr([x y] -> ConditionalInsert(#C(x), x, y) , (), #XS)
 
-/* 
- * Folds 
+/*
+ * Folds
  */
 
 /* `Foldl([x y] -> #F(x,y), #Z, #XS)`
     @param  `[x y] -> #F(x, y)` a function which takes as first argument an element of `#XS` and `#Z` as a second.
     @param  `#Z`           the starting value of the accumulator
-    @param  `#XS`          a list   
+    @param  `#XS`          a list
     @return a value, where the the function `#F` is applied left associatively to all `#X` in `#XS` starting from the accumulator `#Z`
 */
-func Foldl<a b>([a b] -> b, b, List<a>) -> b 
-rule Foldl ([x y] -> #F(x,y), #Z, (         )) → #Z 
-rule Foldl ([x y] -> #F(x,y), #Z, Cons(#H, #T)) → Foldl([x y] -> #F(x,y), #F(#H,#Z), #T) 
+func Foldl<a b>([a b] -> b, b, List<a>) -> b
+rule Foldl ([x y] -> #F(x,y), #Z, (         )) → #Z
+rule Foldl ([x y] -> #F(x,y), #Z, Cons(#H, #T)) → Foldl([x y] -> #F(x,y), #F(#H,#Z), #T)
 
-/* 
-  @note `InterpreterWrap` for `FoldP` enforcing computation of argument list `#XS` 
+/*
+  @note `InterpreterWrap` for `FoldP` enforcing computation of argument list `#XS`
 */
 func IWrapFoldlP<a b>([a b] -> b, b, List<a>) -> b
-rule IWrapFoldlP([x y] -> #F(x,y), #Z, #XS) 
-→ FoldlP([x y] -> #F(x,y), #Z, #XS) 
+rule IWrapFoldlP([x y] -> #F(x,y), #Z, #XS)
+→ FoldlP([x y] -> #F(x,y), #Z, #XS)
 
 /* `FoldlP([x y] -> #F(x,y), #Z, #XS)`
     @param  `[x y] -> #F(x, y)` a function which takes as first argument an element of `#XS` and `#Z` as a second.
     @param  `#Z`           the starting value of the accumulator
-    @param  `#XS`          a list   
+    @param  `#XS`          a list
     @return  a list, where the the function `#F` is applied left associatively to all `#X` in `#XS` starting from the accumulator `#Z`, which is evaluated at each intermediate step
-    @note    as `Foldl` but forces intermediate data computation 
+    @note    as `Foldl` but forces intermediate data computation
 */
-func FoldlP<a b>([a b] -> b, eager b, List<a>) -> b 
-rule FoldlP ([x y] -> #F(x,y), #Z, ()) → #Z  
-rule FoldlP ([x y] -> #F(x,y), #Z, Cons(#H, #T)) → FoldlP([x y] -> #F(x,y), #F(#H,#Z), #T) 
+func FoldlP<a b>([a b] -> b, eager b, List<a>) -> b
+rule FoldlP ([x y] -> #F(x,y), #Z, ()) → #Z
+rule FoldlP ([x y] -> #F(x,y), #Z, Cons(#H, #T)) → FoldlP([x y] -> #F(x,y), #F(#H,#Z), #T)
 
 
-/* `Foldr([x y] -> #F(x,y), #Z, #XS): 
+/* `Foldr([x y] -> #F(x,y), #Z, #XS):
     @param  `[x y] -> #F(x, y)` a function which takes as first argument an element of `#XS` and `#Z` as a second.
     @param  `#Z`           the starting value of the accumulator
-    @param  `#XS`          a list   
+    @param  `#XS`          a list
     @return a list, where the the function `#F` is applied right associatively to all `#X` in `#XS` starting from the accumulator `#Z`
-    @note like Foldl, but right associative 
+    @note like Foldl, but right associative
 */
-func Foldr<a b>([a b] -> b, b, List<a>) -> b 
-rule Foldr ([x y] -> #F(x,y), #Z, ()) → #Z 
-rule Foldr ([x y] -> #F(x,y), #Z, Cons(#H, #T)) → #F(#H, Foldr([x y] ->  #F(x,y), #Z, #T)) 
+func Foldr<a b>([a b] -> b, b, List<a>) -> b
+rule Foldr ([x y] -> #F(x,y), #Z, ()) → #Z
+rule Foldr ([x y] -> #F(x,y), #Z, Cons(#H, #T)) → #F(#H, Foldr([x y] ->  #F(x,y), #Z, #T))
