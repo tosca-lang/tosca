@@ -10,7 +10,7 @@ defaultTasks 'dist'
 // --- Generate Java parsers based on Antlr specifications
 
 apply plugin:'org.transscript.gradle'
-	
+
 def transScriptSrc = '../../src'
 
 
@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-	transscript  project.hasProperty('dev') ? files(transScriptSrc, "build") : 'org.transscript:transscript:1.0.0-ALPHA@jar' 
+	transscript  project.hasProperty('dev') ? files(transScriptSrc, "build") : 'org.transscript:transscript:1.0.0-ALPHA@jar'
 	transscript 'org.crsx:crsx3@jar'
 	transscript 'org.antlr:antlr4:4.5'
 }
@@ -94,25 +94,25 @@ task textTermParser(type: Antlr4Task, dependsOn: ':textParsers') {
 	generatedFileDir = file('parsers/org/transscript/text')
 	packageName = 'org.transscript.text'
 }
-	
+
 //-- Meta task to build all parsers.
 task buildParsers(
 	description: "Generate Java meta and term parsers for TransScript, Core and Text",
     dependsOn: ['coreMetaParser', 'coreTermParser', 'transScriptMetaParser', 'transScriptTermParser',
 	            'antlrMetaParser', 'antlrAntlrTermParser', 'textMetaParser', 'textTermParser'])
-	
-	
+
+
 // -- Generate the TransScript compiler from .tsc source code.
-	
+
 task compileTransScript(type: TransScriptTask) {
 	description = "Compile TransScript to Java source files."
-	sources     = fileTree(dir: transScriptSrc, include: ['core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'cg/*.crs4', 'cg/*.tsc', '*.crs4', 'test/*.crs4'])
+	sources     = fileTree(dir: transScriptSrc, include: ['/*.crs4', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'cg/*.crs4', 'cg/*.tsc', '*.crs4', 'test/*.crs4'])
 	outputDir   = project.hasProperty('crsx3') ? file('compiler/org/transscript/compiler') : file('compiler')
-	packageName = 'org.transscript.compiler' 
+	packageName = 'org.transscript.compiler'
 	usecompiler = !project.hasProperty('crsx3')
 	bootparserpath = "file:build/" // override TransScript parsers location.
 }
-	
+
 // --- Java compilation and packaging
 
 apply plugin:'java'
@@ -120,8 +120,8 @@ apply plugin:'java'
 compileJava {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
-	
-	dependsOn 'buildParsers'    
+
+	dependsOn 'buildParsers'
 	dependsOn 'compileTransScript' // TODO: needs parsers to be compiled! For now refresh eclipse before compileTransScript is invoked.
 }
 
@@ -138,7 +138,7 @@ sourceSets {
             srcDir 'parsers'
             srcDir 'compiler'
         }
-		
+
 		// Include TransScript source code for interpreter mode. Temporary.
 		resources {
 			srcDir '../../src'
