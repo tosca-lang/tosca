@@ -51,6 +51,15 @@ public interface ConstructionDescriptor
 	{
 		return new DataDescriptor(symbol);
 	}
+	
+	/**
+	 * Make a typed data descriptor
+	 * @param symbol Global data symbol
+	 */
+	public static ConstructionDescriptor makeData(String symbol, int arity, Class<? extends Construction> clss)
+	{
+		return new DynamicDataDescriptor(symbol, arity, clss);
+	}
 
 	//	/**
 	//	 * Make a generic function descriptor 
@@ -84,6 +93,12 @@ public interface ConstructionDescriptor
 			this.symbol = symbol.intern();
 		}
 
+		public DataDescriptor(String symbol, int arity)
+		{
+			this.symbol = symbol.intern();
+			this.arity = arity;
+		}
+
 		@Override
 		public String symbol()
 		{
@@ -112,6 +127,36 @@ public interface ConstructionDescriptor
 		public int arity()
 		{
 			return arity;
+		}
+
+	}
+
+	/**
+	 * Dynamic data construction using Java reflection API to creat new instances.
+	 */
+	public static class DynamicDataDescriptor extends DataDescriptor
+	{
+		/** The class representing value of this descriptor */
+		protected Class<? extends Construction> clss;
+
+		public DynamicDataDescriptor(String symbol, int arity, Class<? extends Construction> clss)
+		{
+			super(symbol, arity);
+
+			this.clss = clss;
+		}
+
+		@Override
+		public Construction make()
+		{
+			try
+			{
+				return clss.newInstance();
+			}
+			catch (Exception e)
+			{
+				throw new RuntimeException(e); // Just propagate as it's a symptom a bad code generation.
+			}
 		}
 
 	}
@@ -291,7 +336,6 @@ public interface ConstructionDescriptor
 		}
 	}
 
-
 	/**
 	 * Represent a map construction.
 	 */
@@ -332,27 +376,27 @@ public interface ConstructionDescriptor
 			return 0;
 		}
 	}
-	
+
 	/**
 	 * Represents a step function
 	 */
-//	@FunctionalInterface
-//	public interface Step
-//	{
-//		/**
-//		 * Evaluate the function term within the given context.
-//		 * 
-//		 * <p>
-//		 * When the evaluation succeeds, the function term reference has been
-//		 * consumed by the step function. Otherwise it is left untouched.
-//		 *
-//		 * @param sink send the result to
-//		 * @param term thunk to evaluate. The reference is always consumed 
-//		 * 
-//		 * @return true is evaluation succeeded, false otherwise. 
-//		 */
-//		public abstract boolean run(Sink sink, Term term);
-//	}
-//
+	//	@FunctionalInterface
+	//	public interface Step
+	//	{
+	//		/**
+	//		 * Evaluate the function term within the given context.
+	//		 * 
+	//		 * <p>
+	//		 * When the evaluation succeeds, the function term reference has been
+	//		 * consumed by the step function. Otherwise it is left untouched.
+	//		 *
+	//		 * @param sink send the result to
+	//		 * @param term thunk to evaluate. The reference is always consumed 
+	//		 * 
+	//		 * @return true is evaluation succeeded, false otherwise. 
+	//		 */
+	//		public abstract boolean run(Sink sink, Term term);
+	//	}
+	//
 
 }

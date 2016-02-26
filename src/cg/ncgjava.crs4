@@ -66,11 +66,14 @@ rule JavaUnit(#mainurl, Module(#url, Loaded(LoadedContent(#imports, #rules, #dat
 @SuppressWarnings("unused")
 ⟨JavaClassVisibility(#mainurl, #url)⟩ class †⟨ClassName(#url)⟩ {
 
-  /* Enumerations */
-  ⟨TextFold( Map([x] ->JavaDataDesc(x), MapValues(#datasorts)), text⟦⟧)⟩
+  /* Enumeration descriptors */
+  ⟨TextFold(Map([x] ->EnumToDataDesc(x), MapValues(#datasorts)), text⟦⟧)⟩
 
   /* Function descriptors */
   ⟨TextFold(Map([x] ->JavaFuncDesc(ClassName(#url), x), MapValues(#funcsorts)), text⟦⟧)⟩
+
+  /* Typed enumerations */
+  ⟨TextFold( Map([x] ->EnumToClass(x), MapValues(#datasorts)), text⟦⟧)⟩
 
   ⟨TextFold(Map([x] ->JavaMethod(x, #rules, #datasorts, #funcsorts), MapKeys(#rules)), text⟦⟧)⟩
 
@@ -88,9 +91,22 @@ rule JavaClassVisibility(#mainurl, #url)
 
 //--- Translate enumerations
 
+/** Generate enumeration descriptors */
+func EnumToDataDesc(Core_cdecl_sort) -> Text
+rule EnumToDataDesc(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
+→ TextFold(Map([x] -> EnumFormToDesc(#CONSTRUCTOR, x), #cform*), text⟦⟧)
+
+func EnumFormToDesc(String, Core_cform_sort) -> Text
+rule EnumFormToDesc(#sortname, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+→ text⟦
+final public static ConstructionDescriptor ⟨Descriptor(#CONSTRUCTOR)⟩ = makeData(⟨Text-QuoteEscape(#CONSTRUCTOR)⟩, ⟨NumberToText(MaybeSortsCount(#csorts?))⟩, ⟨EnumToClassRef(#sortname, #CONSTRUCTOR)⟩);⟧
+
+func EnumToClassRef(String, String) -> Text
+  rule EnumToClassRef(#sortname, #formname) → text⟦⟨ToJavaClassName(#sortname)⟩.⟨ToJavaClassName(#formname)⟩.class⟧
+
 /* Generate class corresponding to the enum type */
-func JavaDataDesc(Core_cdecl_sort) -> Text
-rule JavaDataDesc(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
+func EnumToClass(Core_cdecl_sort) -> Text
+rule EnumToClass(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 → text⟦
 public abstract static class ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?)⟩ extends Construction
 {
@@ -123,11 +139,18 @@ func FormToClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
       {
           ⟨MaybeSortsToClassFields(#csorts?)⟩
 
-          private ⟨ToJavaClassName(#CONSTRUCTOR)⟩(⟨MaybeSortsToFormalParams(#csorts?)⟩)
+          ⟨If(NumberEqual(MaybeSortsCount(#csorts?), 0), text⟦⟧, text⟦public ⟨ToJavaClassName(#CONSTRUCTOR)⟩() {}⟧)⟩
+
+          public ⟨ToJavaClassName(#CONSTRUCTOR)⟩(⟨MaybeSortsToFormalParams(#csorts?)⟩)
           {
             ⟨MaybeSortsToInitFields(#csorts?)⟩
           }
 
+          @Override
+			    public ConstructionDescriptor descriptor()
+			    {
+				    return ⟨Descriptor(#CONSTRUCTOR)⟩;
+			    }
       }⟧
 
 //--- Class fields
@@ -231,6 +254,11 @@ func SortToArgs(List<Text>, Numeric, Numeric) -> Text
 func FieldSuffix(Numeric, Numeric) -> Text
   rule FieldSuffix(#index, #subindex)
   → text⟦⟨NumberToText(#index)⟩⟨If( NumberEqual(#subindex, 1), text⟦⟧, text⟦_⟨NumberToText(#subindex)⟩⟧ )⟩⟧
+
+
+func MaybeSortsCount(List<Core_csorts_sort>) -> Numeric
+  rule MaybeSortsCount(csorts?⟦⟧)             → 0
+  rule MaybeSortsCount(csorts?⟦ (##csort*) ⟧) → ListLength(#csort*)
 
 //---- Sort tranlation
 

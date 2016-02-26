@@ -85,7 +85,7 @@ public class GenericConstruction extends Construction
 		if (binders[i] == null)
 			binders[i] = new Variable[j + 1];
 		else if (binders[i].length <= j)
-			binders[j] = Arrays.copyOf(binders[j], j + 1);
+			binders[i] = Arrays.copyOf(binders[i], j + 1);
 
 		assert binders.length > i && binders[i].length > j;
 		binders[i][j] = binder;
