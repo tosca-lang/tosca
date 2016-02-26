@@ -1,7 +1,8 @@
-// Copyright (c) 2014 IBM Corporation.
+// Copyright (c) 2014-2016 IBM Corporation.
 
 package org.transscript.runtime;
 
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -46,6 +47,16 @@ public class MetaApplication extends Term
 	public Term sub(int i)
 	{
 		return subs[i];
+	}
+
+	@Override
+	public void setSub(int index, Term term)
+	{
+		// TODO: resizing should not be needed.
+		if (subs == null)
+			subs = new Term[index + 1];
+		else if (subs.length <= index)
+			subs = Arrays.copyOf(subs, index + 1);
 	}
 
 	@Override

@@ -10,24 +10,55 @@ import java.util.Arrays;
  * 
  * @author villardl
  */
-public abstract class ConstructionDescriptor
+public interface ConstructionDescriptor
 {
+	/**
+	 * @return A construction instance
+	 */
+	public Construction make();
 
 	/**
-	 * Make a dynamically-typed data
+	 * @return Construction symbol.
+	 */
+	public String symbol();
+
+	/**
+	 * @return Whether this construction represents a Function.
+	 */
+	public boolean isFunction();
+
+	/**
+	 * Evaluates function and send result to sink.
+	 * 
+	 * @param sink send the result to
+	 * @param term thunk to evaluate. The reference is consumed only  when evaluation succeed.
+	 * 
+	 * @return true is evaluation succeeded, false otherwise. 
+	 */
+	public boolean step(Sink sink, Term term);
+
+	/**
+	 * @return The number of subterms
+	 */
+	public int arity();
+
+	// Static helpers
+
+	/**
+	 * Make a generic data descriptor
 	 */
 	public static ConstructionDescriptor makeData(String symbol)
 	{
 		return new DataDescriptor(symbol);
 	}
 
-	/**
-	 * Make a function type
-	 */
-	public static ConstructionDescriptor makeFunction(String symbol, Step step)
-	{
-		return new FunctionDescriptor(symbol, step);
-	}
+	//	/**
+	//	 * Make a generic function descriptor 
+	//	 */
+	//	public static ConstructionDescriptor makeFunction(String symbol, Step step)
+	//	{
+	//		return new FunctionDescriptor(symbol, step);
+	//	}
 
 	/**
 	 * Make a function type.
@@ -38,32 +69,15 @@ public abstract class ConstructionDescriptor
 	}
 
 	/**
-	 * @return Construction symbol.
+	 * Generic Data construction.
 	 */
-	public abstract String symbol();
-
-	/**
-	 * @return Whether this construction represents a Function.
-	 */
-	public abstract boolean isFunction();
-
-	/**
-	 * Evaluates function and send result to sink.
-	 * 
-	 * @param sink send the result to
-	 * @param term thunk to evaluate. The reference is consumed only  when evaluation succeed.
-	 * 
-	 * @return true is evaluation succeeded, false otherwise. 
-	 */
-	public abstract boolean step(Sink sink, Term term);
-
-	/**
-	 * Represent a untyped data construction.
-	 */
-	public static class DataDescriptor extends ConstructionDescriptor
+	public static class DataDescriptor implements ConstructionDescriptor
 	{
 		/** Data symbol */
-		public String symbol;
+		protected String symbol;
+
+		/** Data arity */
+		protected int arity;
 
 		public DataDescriptor(String symbol)
 		{
@@ -87,50 +101,76 @@ public abstract class ConstructionDescriptor
 		{
 			throw new RuntimeException("Data term does not have a step function");
 		}
+
+		@Override
+		public Construction make()
+		{
+			return new GenericConstruction(this, null);
+		}
+
+		@Override
+		public int arity()
+		{
+			return arity;
+		}
+
 	}
-	 
-	
-	
+
 	/**
-	 * Represent a function construction.
+	 * Generic Function construction.
 	 */
-	public static class FunctionDescriptor extends ConstructionDescriptor
-	{
-		/** Function symbol */
-		public String symbol;
-
-		/** The step function */
-		public Step step;
-
-		public FunctionDescriptor(String symbol, Step step)
-		{
-			this.symbol = symbol.intern();
-			this.step = step;
-		}
-
-		@Override
-		public String symbol()
-		{
-			return symbol;
-		}
-
-		@Override
-		public boolean isFunction()
-		{
-			return true;
-		}
-
-		@Override
-		public boolean step(Sink sink, Term term)
-		{
-			return step.run(sink, term);
-		}
-	}
-
+	//	public static class FunctionDescriptor implements ConstructionDescriptor
+	//	{
+	//		/** Function symbol */
+	//		public String symbol;
+	//
+	//		/** The step function */
+	//		public Step step;
+	//		
+	//		/** Arity */
+	//		protected int arity;
+	//		
+	//		public FunctionDescriptor(String symbol, Step step)
+	//		{
+	//			this.symbol = symbol.intern();
+	//			this.step = step;
+	//		}
+	//
+	//		@Override
+	//		public String symbol()
+	//		{
+	//			return symbol;
+	//		}
+	//
+	//		@Override
+	//		public boolean isFunction()
+	//		{
+	//			return true;
+	//		}
+	//
+	//		@Override
+	//		public boolean step(Sink sink, Term term)
+	//		{
+	//			return step.run(sink, term);
+	//		}
+	//
+	//		@Override
+	//		public Construction make()
+	//		{
+	//			return new FixedConstruction(this, null);
+	//		}
+	//		
+	//		@Override
+	//		public int arity()
+	//		{
+	//			return arity;
+	//		}
+	//	}
+	//
 	/**
 	 * Represent a function construction relying an Java reflection API to unwrap term arguments.
 	 */
-	public static class DynamicFunctionDescriptor extends ConstructionDescriptor
+	public static class DynamicFunctionDescriptor implements ConstructionDescriptor
 	{
 		/** Function symbol */
 		protected String symbol;
@@ -163,7 +203,7 @@ public abstract class ConstructionDescriptor
 		public boolean thunk(Sink sink, Object... args)
 		{
 			int i = 0;
-	
+
 			sink.start(this);
 
 			while (i < args.length)
@@ -203,6 +243,12 @@ public abstract class ConstructionDescriptor
 		}
 
 		@Override
+		public int arity()
+		{
+			return method.getParameterCount() - 1; // First arg is sink
+		}
+
+		@Override
 		public boolean step(Sink sink, Term term)
 		{
 			assert method != null : "No method found for function " + symbol();
@@ -210,7 +256,7 @@ public abstract class ConstructionDescriptor
 
 			args[0] = sink; // sink
 			int argp = 1;
- 
+
 			for (int i = 0; i < term.arity(); i++)
 			{
 				Variable[] binders = term.binders(i);
@@ -237,62 +283,19 @@ public abstract class ConstructionDescriptor
 				throw new RuntimeException(e);
 			}
 		}
-	}
-
-	/**
-	 * Represents a step function
-	 */
-	@FunctionalInterface
-	public interface Step
-	{
-		/**
-		 * Evaluate the function term within the given context.
-		 * 
-		 * <p>
-		 * When the evaluation succeeds, the function term reference has been
-		 * consumed by the step function. Otherwise it is left untouched.
-		 *
-		 * @param sink send the result to
-		 * @param term thunk to evaluate. The reference is always consumed 
-		 * 
-		 * @return true is evaluation succeeded, false otherwise. 
-		 */
-		public abstract boolean run(Sink sink, Term term);
-	}
-
-	/**
-	 * Represent a literal construction.
-	 */
-	protected static class LiteralDescriptor extends ConstructionDescriptor
-	{
-		protected static LiteralDescriptor singleton = new LiteralDescriptor();
-
-		private LiteralDescriptor()
-		{}
 
 		@Override
-		public String symbol()
+		public Construction make()
 		{
-			return "$Literal";
-		}
-
-		@Override
-		public boolean isFunction()
-		{
-			return false;
-		}
-
-		@Override
-		public boolean step(Sink sink, Term data)
-		{
-			throw new RuntimeException("Literals do not  have step function");
+			return new GenericConstruction(this, null);
 		}
 	}
+
 
 	/**
 	 * Represent a map construction.
 	 */
-	protected static class MapDescriptor extends ConstructionDescriptor
+	public static class MapDescriptor implements ConstructionDescriptor
 	{
 		protected static MapDescriptor singleton = new MapDescriptor();
 
@@ -316,6 +319,40 @@ public abstract class ConstructionDescriptor
 		{
 			throw new RuntimeException("Maps do not  have step function");
 		}
+
+		@Override
+		public Construction make()
+		{
+			return new GenericConstruction(this, null);
+		}
+
+		@Override
+		public int arity()
+		{
+			return 0;
+		}
 	}
+	
+	/**
+	 * Represents a step function
+	 */
+//	@FunctionalInterface
+//	public interface Step
+//	{
+//		/**
+//		 * Evaluate the function term within the given context.
+//		 * 
+//		 * <p>
+//		 * When the evaluation succeeds, the function term reference has been
+//		 * consumed by the step function. Otherwise it is left untouched.
+//		 *
+//		 * @param sink send the result to
+//		 * @param term thunk to evaluate. The reference is always consumed 
+//		 * 
+//		 * @return true is evaluation succeeded, false otherwise. 
+//		 */
+//		public abstract boolean run(Sink sink, Term term);
+//	}
+//
 
 }

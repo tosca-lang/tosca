@@ -126,6 +126,7 @@ public class Tool
 
 			buildEnv.put("rules", rules);
 			buildEnv.put("build-dir", buildir);
+			buildEnv.put("verbose", env.get("verbose"));
 			if (javabasepackage != null)
 				buildEnv.put("javabasepackage", javabasepackage);
 			if (javapackage != null)
@@ -203,6 +204,7 @@ public class Tool
 			System.setProperty("to-core", "1");
 
 		buildEnv.put("bootparserpath", env.get("bootparserpath"));
+		buildEnv.put("verbose", env.get("verbose"));
 
 		rewrite(buildEnv, null);
 
@@ -253,7 +255,8 @@ public class Tool
 		}
 
 		// Compute output java filename
-		String output = inputFile.getName().replace(".crsc", ".java").replace(".crs4", ".java").replace(".crs", ".java").replace(".tsc", ".java");
+		String output = inputFile.getName().replace(".crsc", ".java").replace(".crs4", ".java").replace(".crs", ".java").replace(
+				".tsc", ".java");
 		output = Character.toUpperCase(output.charAt(0)) + output.substring(1); // First character must be upper case.
 
 		output = dest + File.separator + output; // dest / output.java

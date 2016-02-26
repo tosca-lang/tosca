@@ -3,14 +3,11 @@
 package org.transscript.runtime;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 
 /**
- * Dynamic term construction.
+ * Consume term events to construct in-memory term representation
  * 
- * <p>Does not rely on construction description (yet).
- * 
- * @author villardl
+ * @author Lionel Villard
  */
 public class BufferSink extends Sink
 {
@@ -24,20 +21,8 @@ public class BufferSink extends Sink
 	/** Term stack */
 	protected ArrayDeque<Term> terms;
 
-	/** Subs stack */
-	protected ArrayDeque<ArrayList<Term>> subs;
-
-	/** Sub binders stack */
-	protected ArrayDeque<ArrayList<Variable[]>> subbinders;
-
-	/** Binders to use for next sub */
-	protected Variable[] binders;
-
-	/** Properties to use for next sub */
-	protected Properties properties;
-
-	/** Whether properties needs to be extended before mutation */
-	protected boolean extend;
+	/** Sub current position stack */
+	protected ArrayDeque<Integer> subs;
 
 	/* */
 	public BufferSink(Context context)
@@ -45,7 +30,6 @@ public class BufferSink extends Sink
 		this.context = context;
 		terms = new ArrayDeque<>();
 		subs = new ArrayDeque<>();
-		subbinders = new ArrayDeque<>();
 	}
 
 	/**
@@ -60,7 +44,7 @@ public class BufferSink extends Sink
 	/** Add sub to current construction */
 	protected void addSub(Term sub)
 	{
-		assert binders == null || !terms.isEmpty() : "Top level term cannot have binders";
+		//assert binders == null || !terms.isEmpty() : "Top level term cannot have binders";
 
 		if (subs.isEmpty())
 		{
@@ -69,10 +53,11 @@ public class BufferSink extends Sink
 		}
 		else
 		{
-			subs.peek().add(sub);
-			subbinders.peek().add(binders);
+			Term t = terms.peek();
 
-			binders = null;
+			final int subindex = subs.pop();
+			t.setSub(subindex, sub);
+			subs.push(subindex + 1); // ready to receive the next sub
 		}
 	}
 
@@ -85,38 +70,22 @@ public class BufferSink extends Sink
 	@Override
 	public BufferSink start(ConstructionDescriptor desc)
 	{
-		
-		Construction c = new FixedConstruction(desc, properties);
+		Construction c = desc.make();
 		addSub(c);
-		properties = null;
 
 		terms.push(c);
-		subs.push(new ArrayList<>(5));
-		subbinders.push(new ArrayList<>(5));
+		subs.push(0);
 		return this;
 	}
-	
+
 	@Override
 	public BufferSink end()
 	{
 		Term c = terms.pop();
-		ArrayList<Term> subs = this.subs.pop();
-		ArrayList<Variable[]> subbinders = this.subbinders.pop();
+		subs.pop();
 
-		if (subs.size() > 0)
-		{
-			assert c instanceof Construction;
-			assert subs.get(subs.size() - 1) != null : "binders term event must precede start term event";
-
-			Term[] asub = new Term[subs.size()];
-			((FixedConstruction) c).subs = subs.toArray(asub);
-			Variable[][] abinders = new Variable[subs.size()][];
-			((FixedConstruction) c).binders = subbinders.toArray(abinders);
-		
-			
-			// Basic type checking.
-			assert !c.symbol().equals("Cons") || subs.size() == 2 : "Wrong number of subs for Cons";
-		}
+		// Basic type checking.
+		assert!c.symbol().equals("Cons") || c.arity() == 2 : "Wrong number of subs for Cons";
 
 		if (terms.isEmpty())
 			term = c;
@@ -127,14 +96,11 @@ public class BufferSink extends Sink
 	@Override
 	public Sink startMetaApplication(String name)
 	{
-		assert properties == null;
-
 		MetaApplication meta = new MetaApplication(name);
 		addSub(meta);
 
 		terms.push(meta);
-		subs.push(new ArrayList<>(5));
-		subbinders.push(new ArrayList<>(5)); // TODO: use dummy array
+		subs.push(0);
 		return this;
 	}
 
@@ -142,17 +108,7 @@ public class BufferSink extends Sink
 	public Sink endMetaApplication()
 	{
 		Term meta = terms.pop();
-		ArrayList<Term> subs = this.subs.pop();
-		subbinders.pop();
-
-		if (subs.size() > 0)
-		{
-			assert meta instanceof MetaApplication;
-			assert subs.get(subs.size() - 1) != null : "binders term event must precede start term event";
-
-			Term[] asub = new Term[subs.size()];
-			((MetaApplication) meta).subs = subs.toArray(asub);
-		}
+		subs.pop();
 
 		if (terms.isEmpty())
 			term = meta;
@@ -169,9 +125,11 @@ public class BufferSink extends Sink
 	@Override
 	public BufferSink binds(Variable[] binders)
 	{
-		assert this.binders == null : "binds already called";
+		final int i = subs.peek();
+		final Term term = terms.peek();
+		for (int j = 0; j < binders.length; j++)
+			term.setBinder(i, j, binders[j]);
 
-		this.binders = binders;
 		return this;
 	}
 
@@ -194,40 +152,19 @@ public class BufferSink extends Sink
 	@Override
 	public BufferSink properties(Properties properties)
 	{
-		assert this.properties == null;
-		this.properties = properties;
-		extend = true; // To be safe for now.
-		return this;
+		throw new RuntimeException(); // deprecated
 	}
 
 	@Override
 	public BufferSink propertyNamed(String name, Term term)
 	{
-		if (properties == null)
-			properties = new Properties(null);
-		else if (extend)
-		{
-			properties = properties.extend();
-			extend = false;
-		}
-
-		properties.addNamedProperty(name, term);
-		return this;
+		throw new RuntimeException(); // deprecated
 	}
 
 	@Override
 	public BufferSink propertyVariable(Variable variable, Term term)
 	{
-		if (properties == null)
-			properties = new Properties(null);
-		else if (extend)
-		{
-			properties = properties.extend();
-			extend = false;
-		}
-
-		properties.addVariableProperty(variable, term);
-		return this;
+		throw new RuntimeException(); // deprecated
 	}
 
 	@Override

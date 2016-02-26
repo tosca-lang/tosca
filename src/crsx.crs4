@@ -5,7 +5,7 @@
 
 import System
 import Normalizer
-import Cg::cgjava
+import Cg::Cgjava
 import Std::Core
 import Std::List
 import Std::String

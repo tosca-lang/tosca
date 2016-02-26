@@ -1,4 +1,4 @@
-// Copyright (c) 2014 IBM Corporation.
+// Copyright (c) 2014-2016 IBM Corporation.
 
 package org.transscript.runtime;
 
@@ -7,27 +7,20 @@ import java.util.Map;
 /**
  * An untyped literal.
  * 
- * <p>A Literal is a special construction with no argument.
- * 
- * @author villardl
+ * @author Lionel Villard
  */
 public class Literal extends Construction
 {
-	// Static
-	
-	/** Make a literal */
-	public static Literal make(Object literal)
-	{
-		return new Literal(literal);
-	}
+	/** Unique global descriptor representing untyped literal */
+	final public static ConstructionDescriptor LITERAL_DESC = new LiteralDescriptor();
 
 	// State
-	
+
 	/** The value */
 	protected Object value;
 
 	// Constructor
-	
+
 	/** Constructs a literal term */
 	public Literal(Object literal)
 	{
@@ -35,7 +28,7 @@ public class Literal extends Construction
 	}
 
 	// Overrides
-	
+
 	@Override
 	public String symbol()
 	{
@@ -45,13 +38,12 @@ public class Literal extends Construction
 	@Override
 	public ConstructionDescriptor descriptor()
 	{
-		return ConstructionDescriptor.LiteralDescriptor.singleton;
+		return LITERAL_DESC;
 	}
 
 	@Override
 	public void copy(Sink sink, boolean discard)
 	{
-	
 		sink.literal(value);
 
 		if (discard)
@@ -69,11 +61,46 @@ public class Literal extends Construction
 	{
 		return StringUtils.quoteJava(value.toString());
 	}
-	
+
 	@Override
 	public String toString4()
 	{
 		return StringUtils.quoteJava(value.toString());
+	}
+
+	/** Untyped literal descriptor */
+	static private class LiteralDescriptor implements ConstructionDescriptor
+	{
+
+		@Override
+		public Construction make()
+		{
+			throw new RuntimeException("Literals cannot be construted through its descriptor");
+		}
+
+		@Override
+		public boolean isFunction()
+		{
+			return false;
+		}
+
+		@Override
+		public boolean step(Sink sink, Term term)
+		{
+			throw new RuntimeException("Literals do not  have step function");
+		}
+
+		@Override
+		public String symbol()
+		{
+			throw new RuntimeException("Literals do not have symbol");
+		}
+
+		@Override
+		public int arity()
+		{
+			return 0;
+		}
 	}
 
 }

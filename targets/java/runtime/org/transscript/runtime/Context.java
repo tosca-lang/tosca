@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.transscript.antlr.Crsx3Parser;
-import org.transscript.runtime.ConstructionDescriptor.Step;
 
 /**
  * Context passed around during rewrite
@@ -121,16 +120,16 @@ final public class Context
 		return desc == null ? ConstructionDescriptor.makeData(symbol) : desc;
 	}
 
-	/**
-	 * Register function term
-	 * 
-	 * @param symbol
-	 * @param step
-	 */
-	public void register(String symbol, Step step)
-	{
-		descriptors.put(symbol, ConstructionDescriptor.makeFunction(symbol, step));
-	}
+//	/**
+//	 * Register function term
+//	 * 
+//	 * @param symbol
+//	 * @param step
+//	 */
+//	public void register(String symbol, Step step)
+//	{
+//		descriptors.put(symbol, ConstructionDescriptor.makeFunction(symbol, step));
+//	}
 
 	/**
 	 * Register symbol

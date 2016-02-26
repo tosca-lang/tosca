@@ -2,13 +2,14 @@
 
 package org.transscript.runtime;
 
+import java.util.Arrays;
 
 /**
- * Construction with properties and subs.
+ * Generic construction with binders, subs and descriptor.
  * 
  * @author Lionel Villard
  */
-public class FixedConstruction extends Construction
+public class GenericConstruction extends Construction
 {
 	// State
 
@@ -21,16 +22,17 @@ public class FixedConstruction extends Construction
 	/** Sub binders */
 	public Variable[][] binders;
 
-
 	// Constructors
 
 	/**
 	 * @param properties A properties reference used by this constructor
 	 */
-	protected FixedConstruction(ConstructionDescriptor descriptor, Properties properties)
+	protected GenericConstruction(ConstructionDescriptor descriptor, Properties properties)
 	{
 		this.descriptor = descriptor;
 		this.properties = properties;
+
+		// TODO: use arity
 	}
 
 	/** Gets construction descriptor */
@@ -54,15 +56,39 @@ public class FixedConstruction extends Construction
 	}
 
 	@Override
-	final public Variable[] binders(int i)
+	public void setSub(int index, Term term)
 	{
-		return binders[i];
+		// TODO: resizing should not be needed.
+		if (subs == null)
+			subs = new Term[index + 1];
+		else if (subs.length <= index)
+			subs = Arrays.copyOf(subs, index + 1);
+
+		subs[index] = term;
 	}
 
 	@Override
-	public void setSub(int index, Term term)
+	final public Variable[] binders(int i)
 	{
-		subs[index] = term;
+		return binders == null || binders.length <= i ? null : binders[i];
+	}
+
+	@Override
+	public void setBinder(int i, int j, Variable binder)
+	{
+		// TODO: resizing should not be needed.
+		if (binders == null)
+			binders = new Variable[i + 1][];
+		else if (binders.length <= i)
+			binders = Arrays.copyOf(binders, i + 1);
+
+		if (binders[i] == null)
+			binders[i] = new Variable[j + 1];
+		else if (binders[i].length <= j)
+			binders[j] = Arrays.copyOf(binders[j], j + 1);
+
+		assert binders.length > i && binders[i].length > j;
+		binders[i][j] = binder;
 	}
 
 	@Override
@@ -86,5 +112,4 @@ public class FixedConstruction extends Construction
 		super.free();
 	}
 
-	
 }

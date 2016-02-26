@@ -4,22 +4,20 @@ package org.transscript.runtime;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
- 
 
 /**
- * A Term.
+ * Base class for all boxed TransScript entities
  * 
- * @author villardl
+ * @author Lionel Villard
  */
 public abstract class Term extends Reference
 {
-	/* Kind of term */
+
+	/** Kind of term */
 	public enum Kind {
 		/** Term is construction. */
-		CONSTRUCTION,
-		/** Term is a variable occurrence. */
-		VARIABLE_USE,
-		/** Term is a meta-application. */
+		CONSTRUCTION, /** Term is a variable occurrence. */
+		VARIABLE_USE, /** Term is a meta-application. */
 		META_APPLICATION
 	}
 
@@ -44,15 +42,15 @@ public abstract class Term extends Reference
 	{
 		return term.kind() == Kind.CONSTRUCTION && ((Construction) term).descriptor().isFunction();
 	}
-	
+
 	/**
-	 * Whether the given term is a literal 
+	 * Whether the given term is a (boxed) literal 
 	 * 
 	 * @param term
 	 */
 	public static boolean isLiteral(Term term)
 	{
-		return term.kind() == Kind.CONSTRUCTION && ((Construction) term).descriptor() == ConstructionDescriptor.LiteralDescriptor.singleton;
+		return term.descriptor() == Literal.LITERAL_DESC;
 	}
 
 	/**
@@ -65,14 +63,13 @@ public abstract class Term extends Reference
 		return term.kind() == Kind.VARIABLE_USE;
 	}
 
-	
 	// State
 
 	/** Whether this term is in normal form */
 	private boolean nf;
 
 	/** Whether this term has no step */
-	private boolean nostep;
+	private boolean nostep; // TODO: might not need it with new runtime.
 
 	// Methods
 
@@ -116,7 +113,7 @@ public abstract class Term extends Reference
 	 * Gets term's kind
 	 */
 	public abstract Kind kind();
-	
+
 	/**
 	 * Gets the construction symbol.
 	 * 
@@ -142,9 +139,9 @@ public abstract class Term extends Reference
 	 * 
 	 * @param i
 	 * @return a subterm Does not create a new reference.
-	 * @throws IndexOutOfBoundsException
-	 *             when no subterm at the given index
+	 * @throws IndexOutOfBoundsException when no subterm at the given index
 	 */
+	// TODO: make is protected.
 	public Term sub(int i)
 	{
 		throw new IndexOutOfBoundsException();
@@ -160,6 +157,7 @@ public abstract class Term extends Reference
 	 * @throws IndexOutOfBoundsException
 	 *             when no subterm at the given index
 	 */
+	// TODO: make is protected.
 	public void setSub(int i, Term term)
 	{
 		throw new IndexOutOfBoundsException();
@@ -188,6 +186,18 @@ public abstract class Term extends Reference
 	}
 
 	/**
+	 * Set ith binder of the jth subterm.
+	 * 
+	 * @param i subterm index
+	 * @param j subbinder index
+	 * @throws IndexOutOfBoundsException if no subterm / binder or at the given index
+	 */
+	public void setBinder(int i, int j, Variable binder)
+	{
+		throw new RuntimeException("Invalid call to binders(int i) on a non-construction term");
+	}
+
+	/**
 	 * Deep copy this term to a sink 
 	 *
 	 * @param sink to copy to 
@@ -195,7 +205,6 @@ public abstract class Term extends Reference
 	 */
 	public abstract void copy(Sink sink, boolean discard);
 
-	
 	/**
 	 * Apply substitution on this term and send result to sink
 	 * 
@@ -210,7 +219,7 @@ public abstract class Term extends Reference
 	 * @param substitutes
 	 * @return sink.
 	 */
-	
+
 	public Sink substitute(Sink sink, Variable[] binders, Term[] substitutes)
 	{
 		assert binders.length == substitutes.length;
@@ -221,16 +230,16 @@ public abstract class Term extends Reference
 		IdentityHashMap<Variable, Term> map = new IdentityHashMap<>();
 		for (int i = binders.length - 1; i >= 0; i--)
 			map.put(binders[i], substitutes[i]);
-		
+
 		sink.copy(substitute(sink.context(), map)); // uses term reference.
-		
+
 		// Release substitute references
 		for (int i = 0; i < substitutes.length; ++i)
 			substitutes[i].release();
 
 		return sink;
 	}
-	
+
 	/**
 	 * Apply substitution on this term. 
 	 * 
@@ -276,7 +285,7 @@ public abstract class Term extends Reference
 	{
 		return deepEquals(other, new IdentityHashMap<>());
 	}
-	
+
 	/**
 	 * Whether this and that term are equal except for specific variables in this being renamed to variables in that.
 	 * @param other other term to compare to
