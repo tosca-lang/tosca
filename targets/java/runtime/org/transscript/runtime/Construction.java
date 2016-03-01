@@ -34,13 +34,50 @@ public abstract class Construction extends Term
 	{
 		return Kind.CONSTRUCTION;
 	}
-	
+
 	@Override
 	final public Properties properties()
 	{
 		return properties;
+
+	}
+
+	@Override
+	public String symbol()
+	{
+		return descriptor().symbol();
+	}
+
+	@Override
+	public int arity()
+	{
+		return descriptor().arity();
 	}
 	
+	@Override
+	public Term sub(int i)
+	{
+		return descriptor().sub(this, i);
+	}
+
+	@Override
+	public void setSub(int i, Term term)
+	{
+		descriptor().setSub(this, i, term);
+	}
+
+	@Override
+	public Variable[] binders(int i)
+	{
+		return descriptor().binders(this, i);
+	}
+
+	@Override
+	public void setBinder(int i, int j, Variable binder)
+	{
+		descriptor().setBinder(this, i, j, binder);
+	}
+
 	@Override
 	public void copy(Sink sink, boolean discard)
 	{
@@ -188,6 +225,7 @@ public abstract class Construction extends Term
 		}
 		return builder.toString();
 	}
+
 	@Override
 	public String toString4()
 	{
@@ -209,7 +247,7 @@ public abstract class Construction extends Term
 					builder.append("[");
 					for (int j = 0; j < subbinders.length; j++)
 						builder.append(subbinders[j]).append(" ");
-			
+
 					builder.append("] -> ");
 				}
 				builder.append(sub.toString4());

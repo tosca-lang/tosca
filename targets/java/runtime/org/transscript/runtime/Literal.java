@@ -4,6 +4,8 @@ package org.transscript.runtime;
 
 import java.util.Map;
 
+import org.transscript.runtime.ConstructionDescriptor.BaseDescriptor;
+
 /**
  * An untyped literal.
  * 
@@ -69,7 +71,7 @@ public class Literal extends Construction
 	}
 
 	/** Untyped literal descriptor */
-	static private class LiteralDescriptor implements ConstructionDescriptor
+	static private class LiteralDescriptor extends BaseDescriptor
 	{
 
 		@Override

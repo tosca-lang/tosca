@@ -108,23 +108,52 @@ func EnumToClassRef(String, String) -> Text
 func EnumToClass(Core_cdecl_sort) -> Text
 rule EnumToClass(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 → text⟦
-public abstract static class ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?)⟩ extends Construction
+public abstract static class ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends Construction
 {
     ⟨TextFold(Map([x] -> FormToMethodNew(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
 
     ⟨TextFold(Map([x] -> FormToClass(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
+
+    static public class ⟨ToJavaClassName(#CONSTRUCTOR)⟩Thunk⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ implements Thunk
+		{
+			ConstructionDescriptor desc;
+			Object[] args;
+
+			public ⟨ToJavaClassName(#CONSTRUCTOR)⟩Thunk(ConstructionDescriptor desc)
+			{
+        this.desc = desc;
+			}
+
+			@Override
+			public ConstructionDescriptor descriptor()
+			{
+				return desc;
+			}
+
+			@Override
+			public Object[] getArgs()
+			{
+		      return args;
+			}
+
+			@Override
+			public void setArgs(Object[] args)
+			{
+				this.args = args;
+			}
+
+		}
 }⟧
 
 /*public abstract <R> R match(⟨TextFold(Map([x] -> FormToParam(x), #cform*), text⟦, ⟧)⟩);*/
-
 
 /* Generate a 'new' method for each enum value */
 func FormToMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
   rule FormToMethodNew(#constructor, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts?⟧)
   → text⟦
-      static ⟨SortParamToTypeParam(#csortvars?)⟩ ⟨ToJavaClassName(#constructor)⟩⟨SortParamToTypeParam(#csortvars?)⟩ ⟨ToJavaMethodName(ConcatString("new", #CONSTRUCTOR))⟩ (⟨MaybeSortsToFormalParams(#csorts?)⟩)
+      static ⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨ToJavaClassName(#constructor)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨ToJavaMethodName(ConcatString("new", #CONSTRUCTOR))⟩ (⟨MaybeSortsToFormalParams(#csorts?)⟩)
       {
-        return new ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?)⟩(⟨MaybeSortsToArgs(#csorts?)⟩);
+        return new ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(⟨MaybeSortsToArgs(#csorts?)⟩);
       }⟧
 
 /*func FormToParam(Core_cform_sort) -> Text
@@ -135,11 +164,14 @@ func FormToMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
 func FormToClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
   rule FormToClass(#classname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
-      static public class ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?)⟩ extends ⟨ToJavaClassName(#classname)⟩⟨SortParamToTypeParam(#csortvars?)⟩
+      static public class ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends ⟨ToJavaClassName(#classname)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
       {
           ⟨MaybeSortsToClassFields(#csorts?)⟩
 
-          ⟨If(NumberEqual(MaybeSortsCount(#csorts?), 0), text⟦⟧, text⟦public ⟨ToJavaClassName(#CONSTRUCTOR)⟩() {}⟧)⟩
+          ⟨ If(NumberEqual(MaybeSortsCount(#csorts?), 0),
+             text⟦⟧,
+             text⟦ public ⟨ToJavaClassName(#CONSTRUCTOR)⟩() {} ⟧)
+          ⟩
 
           public ⟨ToJavaClassName(#CONSTRUCTOR)⟩(⟨MaybeSortsToFormalParams(#csorts?)⟩)
           {
@@ -151,6 +183,10 @@ func FormToClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
 			    {
 				    return ⟨Descriptor(#CONSTRUCTOR)⟩;
 			    }
+
+          ⟨MaybeSortsToSetSub(#csorts?)⟩
+          ⟨MaybeSortsToGetSub(#csorts?)⟩
+
       }⟧
 
 //--- Class fields
@@ -249,6 +285,75 @@ func SortToArgs(List<Text>, Numeric, Numeric) -> Text
   rule SortToArgs(Cons(#type, #types), #index, #subindex)
   → text⟦param⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩, ⟨SortToArgs(#types, #index, Plus(#subindex, 1))⟩⟧
 
+//--- Set Sub method
+
+func MaybeSortsToSetSub(List<Core_csorts_sort>) -> Text
+  rule MaybeSortsToSetSub(csorts?⟦⟧)
+  → text⟦⟧
+
+  rule MaybeSortsToSetSub(csorts?⟦ ( ##csort* ) ⟧)
+  → text⟦
+    @Override
+    protected void setUnboxSub(int i, Object term)
+    {
+        switch (i)
+        {
+          ⟨SortsToSetSubCases(#csort*, 1)⟩
+        }
+    }⟧
+
+func SortsToSetSubCases(List<Core_csort_sort>, Numeric) -> Text
+  rule SortsToSetSubCases(csort*⟦⟧, #index)
+  → text⟦⟧
+
+  rule SortsToSetSubCases(csort*⟦ ##csort ##csort* ⟧, #index)
+  → text⟦⟨SortToSetSubCases(SortToTypes(#csort), #index)⟩⟨SortsToSetSubCases(#csort*, Plus(#index, 1))⟩⟧
+
+func SortToSetSubCases(List<Text>, eager Numeric) -> Text
+  rule SortToSetSubCases(Cons(#type, Nil), #index)
+  → text⟦
+      case ⟨NumberToText(Minus(#index, 1))⟩ :
+        field⟨FieldSuffix(#index, 1)⟩ = (⟨#type⟩) term;
+        break;⟧
+
+  rule SortToSetSubCases(Cons(#type, #types), #index)
+  → text⟦⟧
+
+  //--- Get Sub method
+
+  func MaybeSortsToGetSub(List<Core_csorts_sort>) -> Text
+    rule MaybeSortsToGetSub(csorts?⟦⟧)
+    → text⟦⟧
+
+    rule MaybeSortsToGetSub(csorts?⟦ ( ##csort* ) ⟧)
+    → text⟦
+      @Override
+      protected Object unboxSub(int i)
+      {
+          switch (i)
+          {
+            ⟨SortsToGetSubCases(#csort*, 1)⟩
+            default: return null;
+          }
+      }⟧
+
+  func SortsToGetSubCases(List<Core_csort_sort>, Numeric) -> Text
+    rule SortsToGetSubCases(csort*⟦⟧, #index)
+    → text⟦⟧
+
+    rule SortsToGetSubCases(csort*⟦ ##csort ##csort* ⟧, #index)
+    → text⟦⟨SortToGetSubCases(SortToTypes(#csort), #index)⟩⟨SortsToGetSubCases(#csort*, Plus(#index, 1))⟩⟧
+
+  func SortToGetSubCases(List<Text>, eager Numeric) -> Text
+    rule SortToGetSubCases(Cons(#type, Nil), #index)
+    → text⟦
+        case ⟨NumberToText(Minus(#index, 1))⟩ :
+          return field⟨FieldSuffix(#index, 1)⟩;⟧
+
+    rule SortToGetSubCases(Cons(#type, #types), #index)
+    → text⟦⟧
+
+
 //--- Helpers
 
 func FieldSuffix(Numeric, Numeric) -> Text
@@ -262,12 +367,12 @@ func MaybeSortsCount(List<Core_csorts_sort>) -> Numeric
 
 //---- Sort tranlation
 
-func SortParamToTypeParam(List<Core_csortvars_sort>) -> Text
-  rule SortParamToTypeParam(csortvars?⟦ ⟧)
+func SortParamToTypeParam(List<Core_csortvars_sort>, Boolean /* parameterize or parameterization? */) -> Text
+  rule SortParamToTypeParam(csortvars?⟦ ⟧, #parameterize)
   → text⟦⟧
 
-  rule SortParamToTypeParam(csortvars?⟦ ∀ ##variable_TOK+ . ⟧)
-  → text⟦<⟨TextFold(Map([x] -> text⟦⟨ToJavaTypeParameter(x)⟩⟧, #variable_TOK+), text⟦, ⟧)⟩>⟧
+  rule SortParamToTypeParam(csortvars?⟦ ∀ ##variable_TOK+ . ⟧, #parameterize)
+  → text⟦<⟨TextFold(Map([x] -> text⟦⟨ToJavaTypeParameter(x)⟩⟧, #variable_TOK+), text⟦, ⟧)⟩⟨MaybeExtendsTerm(#parameterize)⟩>⟧
 
 func MaybeSortsToTypeParams(List<Core_csorts_sort>) -> Text
   rule MaybeSortsToTypeParams(csorts?⟦ ⟧)
@@ -289,15 +394,44 @@ func SortToTypes(Core_csort_sort) -> List<Text>
   rule SortToTypes(csort⟦ data ##csort ⟧)
   → SortToTypes(#csort)
 
+func MaybeExtendsTerm(Boolean) -> Text
+rule MaybeExtendsTerm(TRUE) → text⟦ extends Term⟧
+rule MaybeExtendsTerm(FALSE) → text⟦⟧
+
 func JavaFuncDesc(String, Core_cdecl_sort) -> Text
 rule JavaFuncDesc(#classname, cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
-→ text⟦final public static DynamicFunctionDescriptor ⟨Descriptor(#CONSTRUCTOR)⟩ = makeFunction(⟨Text-QuoteEscape(#CONSTRUCTOR)⟩, †⟨#classname⟩⟨JavaExtern(#extern_TOK?)⟩.class, "⟨ToJavaId(#CONSTRUCTOR)⟩");⟧
+→ text⟦
+  final public static DynamicFunctionDescriptor ⟨Descriptor(#CONSTRUCTOR)⟩ =
+    makeFunction(⟨Text-QuoteEscape(#CONSTRUCTOR)⟩, †⟨#classname⟩⟨JavaExtern(#extern_TOK?)⟩.class, "⟨ToJavaId(#CONSTRUCTOR)⟩", ⟨ThunkClass(#csort)⟩, ⟨MaybeSortsToSubIndex(#csorts?)⟩);⟧
 
 func JavaExtern(List<Core_extern_sort>) -> Text
 rule JavaExtern(extern_TOK?⟦⟧) → text⟦⟧
 // Something is wrong with this rule.
 //rule JavaExtern(extern_TOK?⟦ extern ⟧) → text⟦Extern⟧
 rule JavaExtern(( #extern )) → text⟦Extern⟧
+
+func ThunkClass(Core_csort_sort) -> Text
+rule ThunkClass(csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → text⟦⟨ToJavaClassName(#CONSTRUCTOR)⟩.⟨ToJavaClassName(#CONSTRUCTOR)⟩Thunk.class⟧
+
+// --- Generate array of int correponding to sub index in a flat array mixing binders and subs */
+
+func MaybeSortsToSubIndex(List<Core_csorts_sort>) -> Text
+  rule MaybeSortsToSubIndex(csorts?⟦⟧)
+  → text⟦null⟧
+
+  rule MaybeSortsToSubIndex(csorts?⟦ ( ##csort* ) ⟧)
+  → text⟦new int[] { ⟨SortsToSubIndex(#csort*, 0, text⟦⟧)⟩ }⟧
+
+func SortsToSubIndex(List<Core_csort_sort>, Numeric, Text) -> Text
+  rule SortsToSubIndex(csort*⟦⟧, #index, #sep)
+  → text⟦⟧
+
+  rule SortsToSubIndex(csort*⟦ ##csort ##csort* ⟧, #index, #sep)
+  → SortToSubIndex(Plus(Minus(ListLength(SortToTypes(#csort)), 1), #index), #csort*, #sep)
+
+func SortToSubIndex(eager Numeric, List<Core_csort_sort>, Text) -> Text
+  rule SortToSubIndex(#subindex, #csort*, #sep)
+  → text⟦⟨#sep⟩⟨ NumberToText( #subindex ) ⟩⟨SortsToSubIndex(#csort*, Plus(#subindex, 1), text⟦,⟧)⟩⟧
 
 /* Generate methods for module rules */
 func JavaMethod(String, {String : List<Core_cdecl_sort>},

@@ -146,6 +146,18 @@ public abstract class Term extends Reference
 	{
 		throw new IndexOutOfBoundsException();
 	}
+	
+	/**
+	 * Peek at the ith sub, which might be a {@link Term} or a primitive value
+	 * 
+	 * @param i
+	 * @return a value. Does not create a new reference when the value is a term
+	 * @throws IndexOutOfBoundsException when no sub at the given index
+	 */
+	protected Object unboxSub(int i)
+	{
+		throw new IndexOutOfBoundsException();
+	}
 
 	/**
 	 * Replace the ith sub term
@@ -163,6 +175,18 @@ public abstract class Term extends Reference
 		throw new IndexOutOfBoundsException();
 	}
 
+	/**
+	 * Replace the ith sub.
+	 * 
+	 * @param i      the sub index
+	 * @param value  the value. If it's a {@link Term}, the reference is transferred.
+	 * @throws IndexOutOfBoundsException when no sub at the given index
+	 */
+	protected void setUnboxSub(int i, Object term)
+	{
+		throw new IndexOutOfBoundsException();
+	}
+	
 	/**
 	 * @return the term arity
 	 */

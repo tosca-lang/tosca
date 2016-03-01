@@ -2,6 +2,7 @@
 
 package org.transscript.runtime;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -42,6 +43,14 @@ public interface ConstructionDescriptor
 	 */
 	public int arity();
 
+	public Term sub(Construction construction, int i);
+
+	public void setSub(Construction construction, int i, Term term);
+
+	public Variable[] binders(Construction construction, int i);
+
+	public void setBinder(Construction construction, int i, int j, Variable binder);
+
 	// Static helpers
 
 	/**
@@ -51,7 +60,7 @@ public interface ConstructionDescriptor
 	{
 		return new DataDescriptor(symbol);
 	}
-	
+
 	/**
 	 * Make a typed data descriptor
 	 * @param symbol Global data symbol
@@ -61,26 +70,59 @@ public interface ConstructionDescriptor
 		return new DynamicDataDescriptor(symbol, arity, clss);
 	}
 
-	//	/**
-	//	 * Make a generic function descriptor 
-	//	 */
-	//	public static ConstructionDescriptor makeFunction(String symbol, Step step)
-	//	{
-	//		return new FunctionDescriptor(symbol, step);
-	//	}
+	/**
+	 * Make a function type.
+	 */
+	public static DynamicFunctionDescriptor makeFunction(String symbol, Class<?> cls, String methodName, Class<? extends Thunk> sortClass, int[] subindex)
+	{
+		return new DynamicFunctionDescriptor(symbol, cls, methodName, sortClass, subindex);
+	}
 
 	/**
 	 * Make a function type.
 	 */
 	public static DynamicFunctionDescriptor makeFunction(String symbol, Class<?> cls, String methodName)
 	{
-		return new DynamicFunctionDescriptor(symbol, cls, methodName);
+		return new DynamicFunctionDescriptor(symbol, cls, methodName, null, null);
 	}
 
 	/**
 	 * Generic Data construction.
 	 */
-	public static class DataDescriptor implements ConstructionDescriptor
+	public static abstract class BaseDescriptor implements ConstructionDescriptor
+	{
+
+		@Override
+		public Term sub(Construction construction, int i)
+		{
+			throw new IndexOutOfBoundsException();
+		}
+
+		@Override
+		public void setSub(Construction construction, int i, Term term)
+		{
+			throw new IndexOutOfBoundsException();
+
+		}
+
+		@Override
+		public Variable[] binders(Construction construction, int i)
+		{
+			throw new IndexOutOfBoundsException();
+		}
+
+		@Override
+		public void setBinder(Construction construction, int i, int j, Variable binder)
+		{
+			throw new IndexOutOfBoundsException();
+		}
+
+	}
+
+	/**
+	 * Generic Data construction.
+	 */
+	public static class DataDescriptor extends BaseDescriptor
 	{
 		/** Data symbol */
 		protected String symbol;
@@ -128,11 +170,10 @@ public interface ConstructionDescriptor
 		{
 			return arity;
 		}
-
 	}
 
 	/**
-	 * Dynamic data construction using Java reflection API to creat new instances.
+	 * Dynamic data construction using Java reflection API to create new instances.
 	 */
 	public static class DynamicDataDescriptor extends DataDescriptor
 	{
@@ -162,75 +203,38 @@ public interface ConstructionDescriptor
 	}
 
 	/**
-	 * Generic Function construction.
-	 */
-	//	public static class FunctionDescriptor implements ConstructionDescriptor
-	//	{
-	//		/** Function symbol */
-	//		public String symbol;
-	//
-	//		/** The step function */
-	//		public Step step;
-	//		
-	//		/** Arity */
-	//		protected int arity;
-	//		
-	//		public FunctionDescriptor(String symbol, Step step)
-	//		{
-	//			this.symbol = symbol.intern();
-	//			this.step = step;
-	//		}
-	//
-	//		@Override
-	//		public String symbol()
-	//		{
-	//			return symbol;
-	//		}
-	//
-	//		@Override
-	//		public boolean isFunction()
-	//		{
-	//			return true;
-	//		}
-	//
-	//		@Override
-	//		public boolean step(Sink sink, Term term)
-	//		{
-	//			return step.run(sink, term);
-	//		}
-	//
-	//		@Override
-	//		public Construction make()
-	//		{
-	//			return new FixedConstruction(this, null);
-	//		}
-	//		
-	//		@Override
-	//		public int arity()
-	//		{
-	//			return arity;
-	//		}
-	//	}
-	//
-	/**
 	 * Represent a function construction relying an Java reflection API to unwrap term arguments.
 	 */
 	public static class DynamicFunctionDescriptor implements ConstructionDescriptor
 	{
+
 		/** Function symbol */
 		protected String symbol;
 
 		/** The static method to invoke */
 		protected Method method;
 
-		public DynamicFunctionDescriptor(String symbol, Class<?> cls, String methodName)
+		/** The thunk class constructor */
+		protected Constructor<? extends Thunk> thunkConstructor;
+
+		/** Sub starting index */
+		protected int[] subindex;
+
+		/**
+		 * 
+		 * @param symbol
+		 * @param cls
+		 * @param methodName
+		 * @param thunkClass
+		 * @param subindex
+		 */
+		public DynamicFunctionDescriptor(String symbol, Class<?> cls, String methodName, Class<? extends Thunk> thunkClass,
+				int[] subindex)
 		{
 			this.symbol = symbol;
+			this.subindex = subindex;
 
-			// Search the static method
-			method = Arrays.stream(cls.getMethods()).filter(m -> {
-				return m.getName().equals(methodName);
-			}).findFirst().orElse(null);
+			method = search(cls, methodName);
 
 			if (method == null)
 			{
@@ -238,8 +242,27 @@ public interface ConstructionDescriptor
 				// Output a warning
 				System.out.println("Warning: Function sort " + symbol + " is declared but has no rules. Ignored");
 			}
-			else
-			{}
+
+			if (thunkClass != null)
+			{
+				try
+				{
+					this.thunkConstructor = thunkClass.getConstructor(ConstructionDescriptor.class);
+				}
+				catch (Exception e)
+				{
+					assert false : "Internal error";
+					throw new RuntimeException(e);
+				}
+			}
+		}
+
+		/** Search for method of given name in given class */
+		protected Method search(Class<?> clss, String name)
+		{
+			return Arrays.stream(clss.getMethods()).filter(m -> {
+				return m.getName().equals(name);
+			}).findFirst().orElse(null);
 		}
 
 		/**
@@ -247,32 +270,54 @@ public interface ConstructionDescriptor
 		 */
 		public boolean thunk(Sink sink, Object... args)
 		{
-			int i = 0;
-
-			sink.start(this);
-
-			while (i < args.length)
+			// backward compatible
+			if (subindex == null)
 			{
-				if (args[i] instanceof Variable)
-				{
-					int end = i + 1;
-					while (args[end] instanceof Variable)
-						end++;
+				int i = 0;
 
-					Variable[] binders = new Variable[end - i];
-					for (int j = 0; j <= end - i; j++)
-						binders[j] = (Variable) args[i++];
+				sink.start(this);
 
-					sink.binds(binders);
-				}
-				else
+				while (i < args.length)
 				{
-					sink.copy((Term) args[i++]);
+					if (args[i] instanceof Variable)
+					{
+						int end = i + 1;
+						while (args[end] instanceof Variable)
+							end++;
+
+						Variable[] binders = new Variable[end - i];
+						for (int j = 0; j <= end - i; j++)
+							binders[j] = (Variable) args[i++];
+
+						sink.binds(binders);
+					}
+					else
+					{
+						sink.copy((Term) args[i++]);
+					}
 				}
+
+				sink.end();
+				return false;
 			}
 
-			sink.end();
-			return false;
+			Thunk thunk;
+			try
+			{
+				// TODO: change signature to avoid copy
+				Object[] nargs = new Object[args.length + 1];
+				System.arraycopy(args, 0, nargs, 1, args.length);
+				
+				thunk = thunkConstructor.newInstance(this);
+				thunk.setArgs(nargs);
+				sink.copy((Term) thunk);
+				return false;
+			}
+			catch (Exception e)
+			{
+				assert false : "Internal Error";
+				throw new RuntimeException(e);
+			}
 		}
 
 		@Override
@@ -296,50 +341,121 @@ public interface ConstructionDescriptor
 		@Override
 		public boolean step(Sink sink, Term term)
 		{
-			assert method != null : "No method found for function " + symbol();
-			Object[] args = new Object[method.getParameterCount()];
-
-			args[0] = sink; // sink
-			int argp = 1;
-
-			for (int i = 0; i < term.arity(); i++)
+			if (subindex == null)
 			{
-				Variable[] binders = term.binders(i);
-				if (binders != null)
+				assert method != null : "No method found for function " + symbol();
+				Object[] args = new Object[method.getParameterCount()];
+
+				args[0] = sink; // sink
+				int argp = 1;
+
+				for (int i = 0; i < term.arity(); i++)
 				{
-					for (int j = 0; j < binders.length; j++)
-						args[argp++] = binders[j];
+					Variable[] binders = term.binders(i);
+					if (binders != null)
+					{
+						for (int j = 0; j < binders.length; j++)
+							args[argp++] = binders[j];
+					}
+					assert argp < args.length : "Too many arguments for function " + symbol();
+					args[argp++] = term.sub(i).ref();
 				}
-				assert argp < args.length : "Too many arguments for function " + symbol();
-				args[argp++] = term.sub(i).ref();
+
+				// Remaining argument will be set to null.
+				//assert argp == method.getParameterCount() : method.getName() + " not fully bound.";
+
+				term.release(); // done with the thunk
+
+				try
+				{
+					return (boolean) method.invoke(this, args);
+				}
+				catch (Exception e)
+				{
+					throw new RuntimeException(e);
+				}
 			}
 
-			// Remaining argument will be set to null.
-			//assert argp == method.getParameterCount() : method.getName() + " not fully bound.";
-
-			term.release(); // done with the thunk
-
+			assert method != null : "No method found for function " + symbol();
+			
+			Thunk thunk = (Thunk) term;
+			final Object[] args = thunk.getArgs();
+			((Reference) thunk).release();
 			try
 			{
-				return (boolean) method.invoke(this, args);
+				args[0] = sink;
+				return (boolean) method.invoke(null, args);
 			}
 			catch (Exception e)
 			{
 				throw new RuntimeException(e);
 			}
+
+		}
+
+		public Construction make()
+		{
+			if (subindex == null)
+				return new GenericConstruction(this, null);
+
+			try
+			{
+				Thunk thunk = thunkConstructor.newInstance(this);
+				thunk.setArgs(new Object[arity() + 1]);
+				return (Construction) thunk;
+			}
+			catch (Exception e)
+			{
+				assert false : "Internal Error";
+				throw new RuntimeException(e);
+			}
 		}
 
 		@Override
-		public Construction make()
+		public Term sub(Construction c, int i)
 		{
-			return new GenericConstruction(this, null);
+			// TODO: box unboxed arguments
+			return (Term) ((Thunk) c).getArgs()[subindex[i] + 1];
 		}
+
+		@Override
+		public void setSub(Construction c, int i, Term term)
+		{
+			((Thunk) c).getArgs()[subindex[i] + 1] = term;
+		}
+
+		@Override
+		public Variable[] binders(Construction c, int i)
+		{
+			final Object[] args = ((Thunk) c).getArgs();
+
+			// Binders are stored before their corresponding sub
+			int start = i == 0 ? 0 : subindex[i - 1] + 1;
+			int end = subindex[i] - 1;
+			if (end > start)
+				return null;
+
+			Variable[] binders = new Variable[end - start + 1];
+			int j = 0;
+			while (start <= end)
+				binders[j++] = (Variable) args[start++ + 1];
+
+			return binders;
+		}
+
+		@Override
+		public void setBinder(Construction c, int i, int j, Variable binder)
+		{
+			int start = i == 0 ? 0 : subindex[i - 1] + 1;
+			((Thunk) c).getArgs()[start + j + 1] = binder;
+		}
+
 	}
 
 	/**
 	 * Represent a map construction.
 	 */
-	public static class MapDescriptor implements ConstructionDescriptor
+	public static class MapDescriptor extends BaseDescriptor
 	{
 		protected static MapDescriptor singleton = new MapDescriptor();
 
@@ -376,27 +492,5 @@ public interface ConstructionDescriptor
 			return 0;
 		}
 	}
-
-	/**
-	 * Represents a step function
-	 */
-	//	@FunctionalInterface
-	//	public interface Step
-	//	{
-	//		/**
-	//		 * Evaluate the function term within the given context.
-	//		 * 
-	//		 * <p>
-	//		 * When the evaluation succeeds, the function term reference has been
-	//		 * consumed by the step function. Otherwise it is left untouched.
-	//		 *
-	//		 * @param sink send the result to
-	//		 * @param term thunk to evaluate. The reference is always consumed 
-	//		 * 
-	//		 * @return true is evaluation succeeded, false otherwise. 
-	//		 */
-	//		public abstract boolean run(Sink sink, Term term);
-	//	}
-	//
 
 }

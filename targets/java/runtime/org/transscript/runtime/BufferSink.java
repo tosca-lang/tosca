@@ -85,7 +85,7 @@ public class BufferSink extends Sink
 		subs.pop();
 
 		// Basic type checking.
-		assert!c.symbol().equals("Cons") || c.arity() == 2 : "Wrong number of subs for Cons";
+		assert !c.symbol().equals("Cons") || c.arity() == 2 : "Wrong number of subs for Cons";
 
 		if (terms.isEmpty())
 			term = c;

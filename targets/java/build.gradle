@@ -128,6 +128,8 @@ compileJava {
 //clean.dependsOn cleanBuildTransScriptParsers
 //clean.dependsOn cleanBuildAntlrParsers
 
+// TODO: decouple runtime from compiler generation
+
 group = 'org.transscript'
 version = '1.0.0-SNAPSHOT'
 
@@ -150,6 +152,7 @@ sourceSets {
 dependencies {
     compile 'org.crsx:crsx3@jar'
 	compile 'org.antlr:antlr4:4.5'
+	//compile 'org.transscript:transscript:1.0.0-ALPHA@jar' // Use previous runtime
 }
 
 jar {
