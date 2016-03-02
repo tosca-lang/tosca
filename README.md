@@ -1,11 +1,20 @@
-TransScript
-===========
-TransScript is a set of tools to facilitate writing compilers and other syntax-directed transformation systems. 
+Overview
+========
 
-TransScript defines a functional programming language featuring:
+TransScript is a set of tools to facilitate writing compilers and other syntax-directed transformation systems. That's the vision. 
 
-* special notations for using embedded syntax, even higher order abstract syntax,
-* special support for symbol tables, environments, and attributes, as used in compilers,
+The first tool \TransScript defines is a functional programming language and a compiler featuring:
+
+* special notations for using embedded syntax, higher order abstract syntax
+* special support for symbol tables, environments, and attributes, as used in compilers
+* special support for recursive descendent traversals that don't blow up your stack
+
+Status
+======
+
+This project is at an early development stage and fairly [active](https://github.com/TransScript/TransScript/pulse). 
+
+The current compiler targets high-level type-safe (with some limitations) readable Java 8 code. C++11 is also planned.
 
 Getting Started
 ===============
