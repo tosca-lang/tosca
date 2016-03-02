@@ -3,7 +3,7 @@ Overview
 
 TransScript is a set of tools to facilitate writing compilers and other syntax-directed transformation systems. That's the vision. 
 
-The first tool \TransScript defines is a functional programming language and a compiler featuring:
+The first tool this project defines is a functional programming language and a compiler featuring:
 
 * special notations for using embedded syntax, higher order abstract syntax
 * special support for symbol tables, environments, and attributes, as used in compilers
