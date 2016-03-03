@@ -42,20 +42,21 @@ rule JavaUnits(#url, #modules)
 /** Generated File */
 ⟨PackageDeclaration⟩
 
-import static org.transscript.runtime.ConstructionDescriptor.makeData;
-import static org.transscript.runtime.ConstructionDescriptor.makeFunction;
-import static org.transscript.runtime.Normalizer.thunk;
-import static org.transscript.runtime.Normalizer.force;
-import static org.transscript.runtime.Normalizer.forceSub;
-import static org.transscript.runtime.Normalizer.normalize;
-import static org.transscript.runtime.Reference.safeRef;
-import static org.transscript.runtime.Term.isVariableUse;
-
-import org.transscript.runtime.*;
-import org.transscript.runtime.ConstructionDescriptor.*;
+import java.util.function.Function;
+import java.util.Map;
+import org.transscript.runtime.Context;
 
 ⟨TextFold(Map([x] -> JavaUnit(#url, x), #modules), text⟦⟧)⟩
 ⟧
+
+
+
+/* Enumeration descriptors */
+//TextFold(Map([x] ->EnumToDataDesc(x), MapValues(#datasorts)), text⟦⟧)⟩
+/* Function descriptors */
+//TextFold(Map([x] ->JavaFuncDesc(ClassName(#url), x), MapValues(#funcsorts)), text⟦⟧)⟩
+//TextFold(Map([x] ->JavaMethod(x, #rules, #datasorts, #funcsorts), MapKeys(#rules)), text⟦⟧)⟩
+//InitModule(#datasorts, #funcsorts, #imports)⟩
 
 /* Generate class for the given module */
 func JavaUnit(String, eager Module) -> Text
@@ -66,18 +67,10 @@ rule JavaUnit(#mainurl, Module(#url, Loaded(LoadedContent(#imports, #rules, #dat
 @SuppressWarnings("unused")
 ⟨JavaClassVisibility(#mainurl, #url)⟩ class †⟨ClassName(#url)⟩ {
 
-  /* Enumeration descriptors */
-  ⟨TextFold(Map([x] ->EnumToDataDesc(x), MapValues(#datasorts)), text⟦⟧)⟩
-
-  /* Function descriptors */
-  ⟨TextFold(Map([x] ->JavaFuncDesc(ClassName(#url), x), MapValues(#funcsorts)), text⟦⟧)⟩
-
   /* Typed enumerations */
   ⟨TextFold( Map([x] ->EnumToClass(x), MapValues(#datasorts)), text⟦⟧)⟩
+  ⟨TextFold( Map([x] ->JavaMethod(x, #rules, #datasorts, #funcsorts), MapKeys(#rules)), text⟦⟧)⟩
 
-  ⟨TextFold(Map([x] ->JavaMethod(x, #rules, #datasorts, #funcsorts), MapKeys(#rules)), text⟦⟧)⟩
-
-  ⟨InitModule(#datasorts, #funcsorts, #imports)⟩
 }⟧
 
 func JavaImport(String) -> Text
@@ -104,88 +97,67 @@ final public static ConstructionDescriptor ⟨Descriptor(#CONSTRUCTOR)⟩ = make
 func EnumToClassRef(String, String) -> Text
   rule EnumToClassRef(#sortname, #formname) → text⟦⟨ToJavaClassName(#sortname)⟩.⟨ToJavaClassName(#formname)⟩.class⟧
 
-/* Generate class corresponding to the enum type */
+/* Generate interfaces corresponding to the enum type */
 func EnumToClass(Core_cdecl_sort) -> Text
 rule EnumToClass(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 → text⟦
-public abstract static class ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends Construction
+public interface ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends Function<Context, ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩>
 {
     ⟨TextFold(Map([x] -> FormToMethodNew(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
 
-    ⟨TextFold(Map([x] -> FormToClass(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
+    @Override
+    default public ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ apply(Context context)
+    {
+      return this;
+    }
 
-    static public class ⟨ToJavaClassName(#CONSTRUCTOR)⟩Thunk⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ implements Thunk
-		{
-			ConstructionDescriptor desc;
-			Object[] args;
+    ⟨TextFold(Map([x] -> FormToInterfaceValue(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
 
-			public ⟨ToJavaClassName(#CONSTRUCTOR)⟩Thunk(ConstructionDescriptor desc)
-			{
-        this.desc = desc;
-			}
+    interface Thunk⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
+		{};
 
-			@Override
-			public ConstructionDescriptor descriptor()
-			{
-				return desc;
-			}
-
-			@Override
-			public Object[] getArgs()
-			{
-		      return args;
-			}
-
-			@Override
-			public void setArgs(Object[] args)
-			{
-				this.args = args;
-			}
-
-		}
+    ⟨TextFold(Map([x] -> FormToImplValue(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
 }⟧
 
 /*public abstract <R> R match(⟨TextFold(Map([x] -> FormToParam(x), #cform*), text⟦, ⟧)⟩);*/
 
-/* Generate a 'new' method for each enum value */
+/* Generate a 'new' default method for each enum value */
+// TODO: optimize constant value.
 func FormToMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
   rule FormToMethodNew(#constructor, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts?⟧)
   → text⟦
       static ⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨ToJavaClassName(#constructor)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨ToJavaMethodName(ConcatString("new", #CONSTRUCTOR))⟩ (⟨MaybeSortsToFormalParams(#csorts?)⟩)
       {
-        return new ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(⟨MaybeSortsToArgs(#csorts?)⟩);
+        return new ⟨ToJavaClassName(#CONSTRUCTOR)⟩Impl⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(⟨MaybeSortsToArgs(#csorts?)⟩);
       }⟧
 
-/*func FormToParam(Core_cform_sort) -> Text
 
-  rule FormToParam(Core_cform_sort) -> Text
-*/
+// --- Generate an interface the enumeration value
 
-func FormToClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
-  rule FormToClass(#classname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+func FormToInterfaceValue(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
+  rule FormToInterfaceValue(#typename, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
-      static public class ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends ⟨ToJavaClassName(#classname)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
+      interface ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends ⟨ToJavaClassName(#typename)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
+      {
+          ⟨MaybeSortsToGetValueSig(#csorts?)⟩
+      }⟧
+
+
+// --- Generate an implementation for the enumeration value
+
+func FormToImplValue(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
+  rule FormToImplValue(#typename, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  → text⟦
+      class ⟨ToJavaClassName(#CONSTRUCTOR)⟩Impl⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ implements ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
       {
           ⟨MaybeSortsToClassFields(#csorts?)⟩
 
-          ⟨ If(NumberEqual(MaybeSortsCount(#csorts?), 0),
-             text⟦⟧,
-             text⟦ public ⟨ToJavaClassName(#CONSTRUCTOR)⟩() {} ⟧)
-          ⟩
-
-          public ⟨ToJavaClassName(#CONSTRUCTOR)⟩(⟨MaybeSortsToFormalParams(#csorts?)⟩)
+          public ⟨ToJavaClassName(#CONSTRUCTOR)⟩Impl(⟨MaybeSortsToFormalParams(#csorts?)⟩)
           {
             ⟨MaybeSortsToInitFields(#csorts?)⟩
           }
 
-          @Override
-			    public ConstructionDescriptor descriptor()
-			    {
-				    return ⟨Descriptor(#CONSTRUCTOR)⟩;
-			    }
-
-          ⟨MaybeSortsToSetSub(#csorts?)⟩
-          ⟨MaybeSortsToGetSub(#csorts?)⟩
+          ⟨MaybeSortsToGetValue(#csorts?)⟩
 
       }⟧
 
@@ -353,6 +325,59 @@ func SortToSetSubCases(List<Text>, eager Numeric) -> Text
     rule SortToGetSubCases(Cons(#type, #types), #index)
     → text⟦⟧
 
+//--- Get value method signature
+
+func MaybeSortsToGetValueSig(List<Core_csorts_sort>) -> Text
+  rule MaybeSortsToGetValueSig(csorts?⟦⟧)
+  → text⟦⟧
+
+  rule MaybeSortsToGetValueSig(csorts?⟦ ( ##csort* ) ⟧)
+  → SortsToGetValueSig(#csort*, 1)
+
+func SortsToGetValueSig(List<Core_csorts_sort>, eager Numeric) -> Text
+  rule SortsToGetValueSig(csort*⟦⟧, #index)
+  → text⟦⟧
+
+  rule SortsToGetValueSig(csort*⟦ ##csort ##csort* ⟧, #index)
+  → text⟦⟨SortToGetValueSig(SortToTypes(#csort), #index, 1)⟩⟨SortsToGetValueSig(#csort*, Plus(#index, 1))⟩⟧
+
+func SortToGetValueSig(List<Text>, eager Numeric, eager Numeric) -> Text
+  rule SortToGetValueSig(Cons(#type, Nil), #index, #subindex)
+  → text⟦⟨#type⟩ getField⟨FieldSuffix(#index, #subindex)⟩();⟧
+
+  rule SortToGetValueSig(Cons(#type, #types), #index, #subindex)
+  → text⟦⟨#type⟩ getVar⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩();
+         ⟨SortToGetValueSig(#types, #index, Plus(#subindex, 1))⟩⟧
+
+//--- Get value method implementation
+
+func MaybeSortsToGetValue(List<Core_csorts_sort>) -> Text
+  rule MaybeSortsToGetValue(csorts?⟦⟧)
+  → text⟦⟧
+
+  rule MaybeSortsToGetValue(csorts?⟦ ( ##csort* ) ⟧)
+  → SortsToGetValue(#csort*, 1)
+
+func SortsToGetValue(List<Core_csorts_sort>, eager Numeric) -> Text
+  rule SortsToGetValue(csort*⟦ ⟧, #index)
+  → text⟦⟧
+
+  rule SortsToGetValue(csort*⟦ ##csort ##csort* ⟧, #index)
+  → text⟦⟨SortToGetValue(SortToTypes(#csort), #index, 1)⟩⟨SortsToGetValue(#csort*, Plus(#index, 1))⟩⟧
+
+func SortToGetValue(List<Text>, eager Numeric, eager Numeric) -> Text
+  rule SortToGetValue(Cons(#type, Nil), #index, #subindex)
+  → text⟦@Override
+         public ⟨#type⟩ getField⟨FieldSuffix(#index, #subindex)⟩() {
+            return field⟨FieldSuffix(#index, #subindex)⟩;
+         };⟧
+
+  rule SortToGetValue(Cons(#type, #types), #index, #subindex)
+  → text⟦@Override
+         ⟨#type⟩ getVar⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩() {
+           return var⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩;
+        };
+        ⟨SortToGetValue(#types, #index, Plus(#subindex, 1))⟩⟧
 
 //--- Helpers
 
@@ -433,73 +458,94 @@ func SortToSubIndex(eager Numeric, List<Core_csort_sort>, Text) -> Text
   rule SortToSubIndex(#subindex, #csort*, #sep)
   → text⟦⟨#sep⟩⟨ NumberToText( #subindex ) ⟩⟨SortsToSubIndex(#csort*, Plus(#subindex, 1), text⟦,⟧)⟩⟧
 
-/* Generate methods for module rules */
+/* Generate a method per function */
+
 func JavaMethod(String, {String : List<Core_cdecl_sort>},
            { String : Core_cdecl_sort }, { String : Core_cdecl_sort }) -> Text
-rule JavaMethod(#constructor, #rules, #datasorts, #funcsorts)
-→ text⟦final public static boolean ⟨JavaMethodSig(UnSOME(MapGet(#funcsorts, #constructor)), UnSOME(MapGet(#rules, #constructor)))⟩⟧
+  rule JavaMethod(#constructor, #rules, #datasorts, #funcsorts)
+  → text⟦final public static ⟨JavaMethodSig(UnSOME(MapGet(#funcsorts, #constructor)), UnSOME(MapGet(#rules, #constructor)))⟩⟧
 
 func JavaMethodSig(Core_cdecl_sort, List<Core_cdecl_sort>) -> Text
-rule JavaMethodSig(cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #rules)
-→ text⟦⟨ToJavaId(#CONSTRUCTOR)⟩(Sink sink⟨JavaSigMaybeArgs(
-                SetSink(AddThunk(AddThunk(NewEnv, text⟦sink⟧), Descriptor(#CONSTRUCTOR)), text⟦sink⟧), #csorts?, #rules)⟩⟧   // )
+  rule JavaMethodSig(cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #rules)
+  → text⟦⟨ReturnType(#csortvars?, #csort)⟩⟨ToJavaMethodName(#CONSTRUCTOR)⟩(Context context⟨
+      JavaSigMaybeArgs(SetMethodName(SetThunkType(AddThunk(NewEnv, text⟦context⟧), ThunkType(#csortvars?, #csort)), ToJavaMethodName(#CONSTRUCTOR)), #csorts?, #rules)⟩⟧   // )
+
+// --- Generate return/thunk type
+
+func ReturnType(List<Core_csortvars_sort>, Core_csort_sort) -> Text
+  rule ReturnType(#csortvars?, #csort)
+  → text⟦⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨TextFold(SortToTypes(#csort), text⟦⟧)⟩ ⟧
+
+func ThunkType(List<Core_csortvars_sort>, Core_csort_sort) -> Text
+    rule ThunkType(#csortvars?, #csort)
+    → text⟦⟨TextFold(SortToTypes(#csort), text⟦⟧)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩⟧
+
+// --- Generate method signature
 
 func JavaSigMaybeArgs(eager {String : JavaEnvEntry}, List<Core_csorts_sort>, List<Core_cdecl_sort>) -> Text
-rule JavaSigMaybeArgs(#env, csorts?⟦⟧, #rules)
-→ JavaBody(#env, #rules)
+  rule JavaSigMaybeArgs(#env, csorts?⟦⟧, #rules)
+  → JavaBody(#env, #rules)
 
-rule JavaSigMaybeArgs(#env, csorts?⟦ ( ##csort* ) ⟧, #rules)
-→ JavaSigArgs(#env, #csort*, FALSE, #rules)
+  rule JavaSigMaybeArgs(#env, csorts?⟦ ( ##csort* ) ⟧, #rules)
+  → JavaSigArgs(#env, #csort*, FALSE, #rules)
 
-// Generate method signature and record the argument names in the environment, as an ordered list.
+// Generate method signature and record the argument names in the environment, keeping them in order
 func JavaSigArgs(eager {String : JavaEnvEntry}, List<Core_csort_sort>, Boolean, List<Core_cdecl_sort>) -> Text
 
-rule JavaSigArgs(#env, csort*⟦ ⟧, #data, #rules)
-→ JavaBody(#env, #rules)
+  rule JavaSigArgs(#env, csort*⟦ ⟧, #data, #rules)
+  → JavaBody(#env, #rules)
 
-rule JavaSigArgs(#env, csort*⟦ ##CONSTRUCTOR ##csorts? ##csort* ⟧, #data, #rules)
-→ text⟦, Term ⟨term⟩⟨JavaSigArgs(AddThunk(AddParam(AddMaybeData(#env, #data, term), term), term), #csort*, FALSE, #rules)⟩⟧
+  rule JavaSigArgs(#env, csort*⟦ ##CONSTRUCTOR ##csorts? ##csort* ⟧, #data, #rules)
+  → text⟦, ⟨TextFold(SortToTypes(csort⟦ ##CONSTRUCTOR ##csorts? ⟧), text⟦⟧)⟩ ⟨value⟩⟨JavaSigArgs(AddThunk(AddParam(AddMaybeData(#env, #data, value), value), value), #csort*, FALSE, #rules)⟩⟧
 
-rule JavaSigArgs(#env, csort*⟦ ##VARIABLE ##csort* ⟧, #data, #rules) // Sort variable
-→ text⟦, Term ⟨term⟩⟨JavaSigArgs(AddThunk(AddParam(AddMaybeData(#env, #data, term), term), term), #csort*, FALSE, #rules)⟩⟧
+  rule JavaSigArgs(#env, csort*⟦ ##VARIABLE ##csort* ⟧, #data, #rules) // Sort variable
+  → text⟦, ⟨TextFold(SortToTypes(csort⟦ ##VARIABLE ⟧), text⟦⟧)⟩ value(AddThunk(AddParam(AddMaybeData(#env, #data, value), value), value), #csort*, FALSE, #rules)⟩⟧
 
-//rule JavaSigArgs(#env, csort*⟦ [ ##csort ] ##csort2 ##csort* ⟧, #data, #rules)
-rule JavaSigArgs(#env, Cons(Core_csort_A3(#csort, #csort2), #csort*), #data, #rules)
-→ text⟦, Variable ⟨var⟩⟨JavaSigArgs(AddThunk(AddParam(#env, var), var), Cons(#csort2, #csort*), #data, #rules)⟩⟧
+  //rule JavaSigArgs(#env, csort*⟦ [ ##csort ] ##csort2 ##csort* ⟧, #data, #rules)
+  rule JavaSigArgs(#env, Cons(Core_csort_A3(#csort, #csort2), #csort*), #data, #rules)
+  → text⟦, Variable ⟨var⟩⟨JavaSigArgs(AddThunk(AddParam(#env, var), var), Cons(#csort2, #csort*), #data, #rules)⟩⟧
 
-rule JavaSigArgs(#env, csort*⟦ { ##cmapsort* } ##csort*  ⟧, #data, #rules)
-→ text⟦, Term ⟨map⟩⟨JavaSigArgs(AddThunk(AddParam(AddMaybeData(#env, #data, map), map), map), #csort*, FALSE, #rules)⟩⟧
+  rule JavaSigArgs(#env, csort*⟦ { ##cmapsort* } ##csort*  ⟧, #data, #rules)
+  → text⟦, Map ⟨map⟩⟨JavaSigArgs(AddThunk(AddParam(AddMaybeData(#env, #data, map), map), map), #csort*, FALSE, #rules)⟩⟧
 
-rule JavaSigArgs(#env, csort*⟦ data ##csort ##csort* ⟧, #data, #rules)
-→ JavaSigArgs(#env, Cons(#csort, #csort*), TRUE, #rules)
+  rule JavaSigArgs(#env, csort*⟦ data ##csort ##csort* ⟧, #data, #rules)
+  → JavaSigArgs(#env, Cons(#csort, #csort*), TRUE, #rules)
+
+// --- Generate method body
 
 func JavaBody(eager {String : JavaEnvEntry}, List<Core_cdecl_sort>) -> Text
-rule JavaBody(#env, #rules)
-→ text⟦)
-{if (⟨GetSink(#env)⟩.context().sd ++ < 256) {
-⟨TextFold(Map([x] -> JavaApplyData(GetSink(#env), x), GetData(#env)), text⟦⟧)⟩
-⟨TextFold(Map([x] -> JavaBodyRule(#env, x), #rules), text⟦⟧)⟩
-}
-return ⟨Thunk(GetThunk(#env))⟩
-}⟧
+  rule JavaBody(#env, #rules)
+  → text⟦
+    ) {
+        if (context.sd ++ < 256) {
+          ⟨TextFold(Map([x] -> JavaApplyData(GetSink(#env), x), GetData(#env)), text⟦⟧)⟩
+          ⟨TextFold(Map([x] -> JavaBodyRule(#env, x), #rules), text⟦⟧)⟩
+        }
+        return new ⟨GetThunkType(#env)⟩.Thunk() {
+          @Override
+				  public ⟨GetThunkType(#env)⟩ apply(Context context)
+				  {
+					  return ⟨GetMethodName(#env)⟩(⟨TextFold(GetThunk(#env), text⟦, ⟧)⟩);
+				  }
+			  };
+      }⟧
 
 // Generate code to normalize arguments marked as 'data'
 func JavaApplyData(Text, Text) -> Text
 rule JavaApplyData(#sink, #term)
 → text⟦⟨#term⟩ = normalize(⟨#sink⟩.context(), ⟨#term⟩);⟧
 
-/* Generates code creating fallback thunk */
-func Thunk(List<Text>) -> Text
-rule Thunk(#texts) → text⟦thunk(⟨TextFold(#texts, text⟦, ⟧)⟩);⟧
+
+// --- Start method body
 
 func JavaBodyRule(eager {String : JavaEnvEntry}, Core_cdecl_sort) -> Text
-rule JavaBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR → ##cterm2 ⟧)
-→ JavaContractum(#env, #cterm2)
+  rule JavaBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR → ##cterm2 ⟧)
+  → JavaContractum(#env, #cterm2)
 
-rule JavaBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR ( ##cterm* ) → ##cterm2 ⟧)
-→ JavaPattern(#env, #cterm*, #cterm2)
+  rule JavaBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR ( ##cterm* ) → ##cterm2 ⟧)
+  → JavaPattern(#env, #cterm*, #cterm2)
 
-// ----- Naive pattern matching: test each pattern in sequence
+// --- Naive pattern matching: test each pattern in sequence
 
 func JavaPattern(eager {String : JavaEnvEntry}, List<Core_cterm_sort>, Core_cterm_sort) -> Text
 
@@ -525,11 +571,11 @@ func JavaPatternTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, Text /* Cur
 
 rule JavaPatternTerm(#env, cterm⟦ ##CONSTRUCTOR ##cterms? ⟧, #term, #storage, [env]->#(env))
 → text⟦
-⟨#term⟩ = force(sink.context(), ⟨#term⟩);
-if (⟨#term⟩.descriptor() != ⟨Descriptor(#CONSTRUCTOR)⟩)
+⟨#term⟩ = ⟨#term⟩.apply(context);
+/*if (⟨#term⟩.descriptor() != ⟨Descriptor(#CONSTRUCTOR)⟩)
 {
   break ⟨GetLabel(#env)⟩;
-}⟨JavaPatternMaybeSubs(#env, #cterms?, #term, [x] -> #(x))⟩⟧
+}*/⟨JavaPatternMaybeSubs(#env, #cterms?, #term, [x] -> #(x))⟩⟧
 
 rule JavaPatternTerm(#env, cterm⟦ ##cliteral ⟧, #term, #storage, [env]->#(env))
 → #(#env)
@@ -936,6 +982,22 @@ rule NextParam(#env) → SetParams(#env, Tail(GetParams(#env)))
 func CurrentParam(eager {String : JavaEnvEntry}) -> Text
 rule CurrentParam(#env) → Head(GetParams(#env))
 
+// --- Current method name
+
+func GetMethodName(eager {String : JavaEnvEntry}) -> Text
+rule GetMethodName(#env) → GetValue(#env, "methodname", [x] -> UnText(x))
+
+func SetMethodName(eager {String : JavaEnvEntry}, Text) -> {String : JavaEnvEntry}
+rule SetMethodName(#env, #name) → SetValue(#env, "methodname", EText(#name))
+
+// --- Thunk type
+
+func GetThunkType(eager {String : JavaEnvEntry}) -> Text
+rule GetThunkType(#env) → GetValue(#env, "thunktype", [x] -> UnText(x))
+
+func SetThunkType(eager {String : JavaEnvEntry}, Text) -> {String : JavaEnvEntry}
+rule SetThunkType(#env, #type) → SetValue(#env, "thunktype", EText(#type))
+
 // --- Thunk arguments
 
 func GetThunk(eager {String : JavaEnvEntry}) -> List<Text>
@@ -996,7 +1058,6 @@ func AddVar(eager {String : JavaEnvEntry}, String /* TODO: Core_cvariable_sort *
 rule AddVar(#env, #var, #entry)
 → SetValue(#env, "vars", EMapVar(MapPut(GetVars(#env), #var, #entry)))
 
-
 // --- Parent term
 
 func GetParent(eager {String : JavaEnvEntry}) -> Text
@@ -1039,7 +1100,7 @@ rule SetBinders(#env, #binders) → SetValue(#env, "binders", ETexts(#binders))
 func AddBinder(eager {String : JavaEnvEntry}, Text) -> {String : JavaEnvEntry}
 rule AddBinder(#env, #binders) → SetValue(#env, "binders", ETexts(Append(#binders, GetBinders(#env))))
 
-// --- Parameter marked as data
+// --- Parameters marked as data
 
 func GetData(eager {String : JavaEnvEntry}) -> List<Text>
 rule GetData(#env) → GetValue(#env, "data", [x] -> UnTexts(x))

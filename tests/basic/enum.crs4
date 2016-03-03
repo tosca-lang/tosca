@@ -1,0 +1,28 @@
+// Copyright (c) 2016 IBM Corporation.
+
+/* Test  enum functionalities */
+enum Bool | True | False
+
+func And(eager Bool, eager Bool) -> Bool
+rule And(True, True) → True
+rule And(#1, #2)     → False
+
+enum Stage |  Egg | Larva | Pupa | Adult
+
+func Metamorphosis(Stage) -> Stage
+rule Metamorphosis(Egg)   → Metamorphosis(Larva)
+rule Metamorphosis(Larva) → Metamorphosis(Pupa)
+rule Metamorphosis(Pupa)  → Metamorphosis(Adult)
+rule Metamorphosis(Adult) → Adult
+
+func TrueIfAdult(Stage) -> Bool
+rule TrueIfAdult(Adult) → True
+rule TrueIfAdult(#)     → False
+
+enum Colony | Head(Stage, Colony) | Tail
+
+func TrueIfAllAdult(Colony) -> Bool
+rule TrueIfAllAdult(Head(#, #tail)) → And(TrueIfAdult(#), TrueIfAllAdult(#tail))
+
+func Tests -> Bool
+rule Tests → TrueIfAllAdult( Head(Metamorphosis(Egg),  Head(Metamorphosis(Larva), Tail) ) )

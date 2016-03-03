@@ -87,12 +87,6 @@ public class Literal extends Construction
 		}
 
 		@Override
-		public boolean step(Sink sink, Term term)
-		{
-			throw new RuntimeException("Literals do not  have step function");
-		}
-
-		@Override
 		public String symbol()
 		{
 			throw new RuntimeException("Literals do not have symbol");

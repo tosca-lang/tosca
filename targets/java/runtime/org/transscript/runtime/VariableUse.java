@@ -44,6 +44,7 @@ final public class VariableUse extends Term
 			release();
 	}
 
+
 	@Override
 	protected void substituteTo(Sink sink, Map<Variable, Term> substitutes)
 	{
@@ -88,5 +89,6 @@ final public class VariableUse extends Term
 	{
 		return variable.toString();
 	}
+
 
 }

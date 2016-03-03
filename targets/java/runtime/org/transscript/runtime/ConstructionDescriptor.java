@@ -9,12 +9,12 @@ import java.util.Arrays;
 /**
  * Represent a construction type.
  * 
- * @author villardl
+ * @author Lionel Villard
  */
 public interface ConstructionDescriptor
 {
 	/**
-	 * @return A construction instance
+	 * @return A construction instance of this type.
 	 */
 	public Construction make();
 
@@ -32,14 +32,23 @@ public interface ConstructionDescriptor
 	 * Evaluates function and send result to sink.
 	 * 
 	 * @param sink send the result to
-	 * @param term thunk to evaluate. The reference is consumed only  when evaluation succeed.
+	 * @param term thunk to evaluate. The reference is consumed.
 	 * 
 	 * @return true is evaluation succeeded, false otherwise. 
 	 */
 	public boolean step(Sink sink, Term term);
 
 	/**
-	 * @return The number of subterms
+	 * Evaluates function .
+	 * 
+	 * @param context
+	 * @param term thunk to evaluate. The reference is consumed.  
+	 * @return the function result
+	 */
+	public Term step(Context context, Thunk thunk);
+
+	/**
+	 * @return The number of arguments
 	 */
 	public int arity();
 
@@ -91,11 +100,34 @@ public interface ConstructionDescriptor
 	 */
 	public static abstract class BaseDescriptor implements ConstructionDescriptor
 	{
+		@Override
+		public Construction make()
+		{
+			throw new UnsupportedOperationException();
+		}
 
 		@Override
 		public Term sub(Construction construction, int i)
 		{
 			throw new IndexOutOfBoundsException();
+		}
+
+		@Override
+		public boolean isFunction()
+		{
+			return false;
+		}
+
+		@Override
+		public Term step(Context context, Thunk thunk)
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public int arity()
+		{
+			return 0;
 		}
 
 		@Override
@@ -115,6 +147,12 @@ public interface ConstructionDescriptor
 		public void setBinder(Construction construction, int i, int j, Variable binder)
 		{
 			throw new IndexOutOfBoundsException();
+		}
+
+		@Override
+		public boolean step(Sink sink, Term term)
+		{
+			throw new UnsupportedOperationException();
 		}
 
 	}
@@ -157,6 +195,12 @@ public interface ConstructionDescriptor
 		public boolean step(Sink sink, Term data)
 		{
 			throw new RuntimeException("Data term does not have a step function");
+		}
+
+		@Override
+		public Term step(Context context, Thunk thunk)
+		{
+			throw new RuntimeException("Cannot evaluate data term");
 		}
 
 		@Override
@@ -270,54 +314,34 @@ public interface ConstructionDescriptor
 		 */
 		public boolean thunk(Sink sink, Object... args)
 		{
-			// backward compatible
-			if (subindex == null)
+
+			int i = 0;
+
+			sink.start(this);
+
+			while (i < args.length)
 			{
-				int i = 0;
-
-				sink.start(this);
-
-				while (i < args.length)
+				if (args[i] instanceof Variable)
 				{
-					if (args[i] instanceof Variable)
-					{
-						int end = i + 1;
-						while (args[end] instanceof Variable)
-							end++;
+					int end = i + 1;
+					while (args[end] instanceof Variable)
+						end++;
 
-						Variable[] binders = new Variable[end - i];
-						for (int j = 0; j <= end - i; j++)
-							binders[j] = (Variable) args[i++];
+					Variable[] binders = new Variable[end - i];
+					for (int j = 0; j <= end - i; j++)
+						binders[j] = (Variable) args[i++];
 
-						sink.binds(binders);
-					}
-					else
-					{
-						sink.copy((Term) args[i++]);
-					}
+					sink.binds(binders);
 				}
-
-				sink.end();
-				return false;
+				else
+				{
+					sink.copy((Term) args[i++]);
+				}
 			}
 
-			Thunk thunk;
-			try
-			{
-				// TODO: change signature to avoid copy
-				Object[] nargs = new Object[args.length + 1];
-				System.arraycopy(args, 0, nargs, 1, args.length);
-				
-				thunk = thunkConstructor.newInstance(this);
-				thunk.setArgs(nargs);
-				sink.copy((Term) thunk);
-				return false;
-			}
-			catch (Exception e)
-			{
-				assert false : "Internal Error";
-				throw new RuntimeException(e);
-			}
+			sink.end();
+			return false;
+
 		}
 
 		@Override
@@ -341,114 +365,137 @@ public interface ConstructionDescriptor
 		@Override
 		public boolean step(Sink sink, Term term)
 		{
-			if (subindex == null)
-			{
-				assert method != null : "No method found for function " + symbol();
-				Object[] args = new Object[method.getParameterCount()];
-
-				args[0] = sink; // sink
-				int argp = 1;
-
-				for (int i = 0; i < term.arity(); i++)
-				{
-					Variable[] binders = term.binders(i);
-					if (binders != null)
-					{
-						for (int j = 0; j < binders.length; j++)
-							args[argp++] = binders[j];
-					}
-					assert argp < args.length : "Too many arguments for function " + symbol();
-					args[argp++] = term.sub(i).ref();
-				}
-
-				// Remaining argument will be set to null.
-				//assert argp == method.getParameterCount() : method.getName() + " not fully bound.";
-
-				term.release(); // done with the thunk
-
-				try
-				{
-					return (boolean) method.invoke(this, args);
-				}
-				catch (Exception e)
-				{
-					throw new RuntimeException(e);
-				}
-			}
 
 			assert method != null : "No method found for function " + symbol();
-			
-			Thunk thunk = (Thunk) term;
-			final Object[] args = thunk.getArgs();
-			((Reference) thunk).release();
+			Object[] args = new Object[method.getParameterCount()];
+
+			args[0] = sink; // sink
+			int argp = 1;
+
+			for (int i = 0; i < term.arity(); i++)
+			{
+				Variable[] binders = term.binders(i);
+				if (binders != null)
+				{
+					for (int j = 0; j < binders.length; j++)
+						args[argp++] = binders[j];
+				}
+				assert argp < args.length : "Too many arguments for function " + symbol();
+				args[argp++] = term.sub(i).ref();
+			}
+
+			// Remaining argument will be set to null.
+			//assert argp == method.getParameterCount() : method.getName() + " not fully bound.";
+
+			term.release(); // done with the thunk
+
 			try
 			{
-				args[0] = sink;
-				return (boolean) method.invoke(null, args);
+				return (boolean) method.invoke(this, args);
 			}
 			catch (Exception e)
 			{
 				throw new RuntimeException(e);
 			}
 
+		} 
+
+		@Override
+		public Term step(Context context, Thunk thunk)
+		{
+			// TODO Auto-generated method stub
+			return null;
 		}
+
+		@Override
+		public Term sub(Construction construction, int i)
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public void setSub(Construction construction, int i, Term term)
+		{
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public Variable[] binders(Construction construction, int i)
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public void setBinder(Construction construction, int i, int j, Variable binder)
+		{
+			// TODO Auto-generated method stub
+			
+		}
+
+//		@Override
+//		public Term step(Context context, Thunk thunk)
+//		{
+//			assert method != null : "No method found for function " + symbol();
+//
+//			final Object[] args = thunk.getArgs();
+//			((Reference) thunk).release(); // TODO: review
+//			try
+//			{
+//				args[0] = context;
+//				return (Term) method.invoke(null, args);
+//			}
+//			catch (Exception e)
+//			{
+//				throw new RuntimeException(e);
+//			}
+//		}
 
 		public Construction make()
 		{
-			if (subindex == null)
-				return new GenericConstruction(this, null);
-
-			try
-			{
-				Thunk thunk = thunkConstructor.newInstance(this);
-				thunk.setArgs(new Object[arity() + 1]);
-				return (Construction) thunk;
-			}
-			catch (Exception e)
-			{
-				assert false : "Internal Error";
-				throw new RuntimeException(e);
-			}
+			return new GenericConstruction(this, null);
 		}
 
-		@Override
-		public Term sub(Construction c, int i)
-		{
-			// TODO: box unboxed arguments
-			return (Term) ((Thunk) c).getArgs()[subindex[i] + 1];
-		}
-
-		@Override
-		public void setSub(Construction c, int i, Term term)
-		{
-			((Thunk) c).getArgs()[subindex[i] + 1] = term;
-		}
-
-		@Override
-		public Variable[] binders(Construction c, int i)
-		{
-			final Object[] args = ((Thunk) c).getArgs();
-
-			// Binders are stored before their corresponding sub
-			int start = i == 0 ? 0 : subindex[i - 1] + 1;
-			int end = subindex[i] - 1;
-			if (end > start)
-				return null;
-
-			Variable[] binders = new Variable[end - start + 1];
-			int j = 0;
-			while (start <= end)
-				binders[j++] = (Variable) args[start++ + 1];
-
-			return binders;
-		}
-
-		@Override
-		public void setBinder(Construction c, int i, int j, Variable binder)
-		{
-			int start = i == 0 ? 0 : subindex[i - 1] + 1;
-			((Thunk) c).getArgs()[start + j + 1] = binder;
-		}
+//		@Override
+//		public Term sub(Construction c, int i)
+//		{
+//			// TODO: box unboxed arguments
+//			return (Term) ((Thunk) c).getArgs()[subindex[i] + 1];
+//		}
+//
+//		@Override
+//		public void setSub(Construction c, int i, Term term)
+//		{
+//			((Thunk) c).getArgs()[subindex[i] + 1] = term;
+//		}
+//
+//		@Override
+//		public Variable[] binders(Construction c, int i)
+//		{
+//			final Object[] args = ((Thunk) c).getArgs();
+//
+//			// Binders are stored before their corresponding sub
+//			int start = i == 0 ? 0 : subindex[i - 1] + 1;
+//			int end = subindex[i] - 1;
+//			if (end > start)
+//				return null;
+//
+//			Variable[] binders = new Variable[end - start + 1];
+//			int j = 0;
+//			while (start <= end)
+//				binders[j++] = (Variable) args[start++ + 1];
+//
+//			return binders;
+//		}
+//
+//		@Override
+//		public void setBinder(Construction c, int i, int j, Variable binder)
+//		{
+//			int start = i == 0 ? 0 : subindex[i - 1] + 1;
+//			((Thunk) c).getArgs()[start + j + 1] = binder;
+//		}
 
 	}
 
@@ -490,6 +537,12 @@ public interface ConstructionDescriptor
 		public int arity()
 		{
 			return 0;
+		}
+
+		@Override
+		public Term step(Context context, Thunk thunk)
+		{
+			throw new RuntimeException("Cannot evaluate maps");
 		}
 	}
 

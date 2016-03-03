@@ -220,7 +220,7 @@ public abstract class Term extends Reference
 	{
 		throw new RuntimeException("Invalid call to binders(int i) on a non-construction term");
 	}
-
+	
 	/**
 	 * Deep copy this term to a sink 
 	 *
@@ -228,7 +228,7 @@ public abstract class Term extends Reference
 	 * @param discard whether to discard this term
 	 */
 	public abstract void copy(Sink sink, boolean discard);
-
+	
 	/**
 	 * Apply substitution on this term and send result to sink
 	 * 
@@ -278,7 +278,7 @@ public abstract class Term extends Reference
 	 * @param substitutes
 	 * @return a lone substituted term reference .
 	 */
-	final public Term substitute(Context context, Map<Variable, Term> substitutes)
+    public Term substitute(Context context, Map<Variable, Term> substitutes)
 	{
 		//TODO: in place update
 
