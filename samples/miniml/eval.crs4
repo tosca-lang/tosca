@@ -1,0 +1,18 @@
+import MiniML
+
+func Eval<a>(MiniML_toplevel_sort) -> a
+rule Eval(toplevel⟦ #expr ;; ⟧) → EvalExpr(#expr)
+
+func EvalExpr<a>(MiniML_expr_sort) -> a
+rule EvalExpr(expr⟦ #timesExpr + #expr ⟧) → Plus( EvalTimesExpr(#timesExpr),  EvalExpr(#expr) )
+rule EvalExpr(expr⟦ #timesExpr - #expr ⟧) → Minus( EvalTimesExpr(#timesExpr),  EvalExpr(#expr) )
+rule EvalExpr(expr⟦ #timesExpr         ⟧) → EvalTimesExpr(#timesExpr)
+
+func EvalTimesExpr<a>(MiniML_timesExpr_sort) -> a
+rule EvalTimesExpr(timesExpr⟦ #compExpr ⟧) → EvalCompExpr(#compExpr)
+
+func EvalCompExpr<a>(MiniML_compExpr_sort) -> a
+rule EvalCompExpr(compExpr⟦ #primaryExpr ⟧) → EvalPrimaryExpr(#primaryExpr)
+
+func EvalPrimaryExpr<a>(MiniML_primaryExpr_sort) -> a
+rule EvalPrimaryExpr(primaryExpr⟦ - #INT ⟧) → Minus(1, #INT)

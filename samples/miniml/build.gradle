@@ -1,0 +1,64 @@
+// Copyright (c) 2016 IBM Corporation.
+
+/**
+ * MiniML Gradle build. 
+ */
+
+import org.transscript.gradle.*
+defaultTasks 'compileMiniML'
+
+apply plugin:'base'
+
+// -- Configure build script which requires transscript gradle plugin
+buildscript {
+    repositories {
+        flatDir { dirs '../../gradle' } // to find transscript-gradle-plugin.jar
+    }
+    dependencies {
+        classpath 'org.transscript.gradle:transscript-gradle-plugin:1.+'
+    }
+}
+
+apply plugin:'org.transscript.gradle'
+
+repositories {
+    flatDir { dirs '../../targets/java/dist' } // where to find TransScript jars
+    flatDir { dirs '../../targets/java/lib' }  // where to find crsx3.jar
+    mavenCentral() // Where to find ANTLR  
+}
+
+dependencies {
+    transscript 'org.transscript:transscript:1.0.0-ALPHA@jar' 
+    transscript 'org.crsx:crsx3@jar'
+    transscript 'org.antlr:antlr4:4.5' 
+}
+
+// --- Generate miniml parser and meta parsers
+
+task miniAntlrParsers(type: PG4Task) {
+    description "Generate MiniML term and meta parsers"
+    source = file('MiniML.g4')
+    generatedFileDir = file('.')
+}
+
+task miniJavaMetaParser(type: Antlr4Task, dependsOn: 'miniAntlrParsers') {
+	description = 'Generate Java MiniML meta parser'
+	generatedFileDir = file('src/org/transscript/miniml')
+	packageName = 'org.transscript.miniml'
+	lexer = file('MiniMLMetaLexer.g4')
+	grammar = file('MiniMLMetaParser.g4')
+	superClass = 'org.transscript.antlr.Crsx3Parser'
+}
+
+task compileMiniML(type: TransScriptTask, dependsOn: 'miniJavaMetaParser') {
+	description = "Compile MiniML to Java source files."
+	sources     = fileTree(dir: '.', include: ['eval.crs4', 'miniml.tsc'])
+	outputDir   = file('src')
+	packageName = 'org.transscript.miniml'
+	usecompiler = true
+}
+
+// --- The Gradle wrapper.
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2'
+}
