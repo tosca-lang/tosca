@@ -206,4 +206,11 @@ public class Normalizer
 		return descriptor.thunk(sink, args);
 	}
 
+	/**
+	 * Drop the given value and returns null	
+	 */
+	final public static <R> R drop(Object obj)
+	{
+		return null;
+	}
 }
