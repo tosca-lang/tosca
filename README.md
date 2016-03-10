@@ -29,6 +29,13 @@ The build system is Gradle.
 TransScript is built using this command:
 
     gradlew
+    
+Installing TransScript Atom package
+==================================
+
+Download [atom](https://atom.io), install it then start Atom. Go to Preferences, Install and search
+for language-transscript and then click on Install.
+    
 
 License
 =======
