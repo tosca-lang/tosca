@@ -28,7 +28,25 @@ The build system is Gradle.
 
 TransScript is built using this command:
 
-    gradle
+    gradlew
+    
+Common Issues
+=============
+
+ERROR: JAVA_HOME is set to an invalid directory:
+
+[StackOverflow](
+http://stackoverflow.com/questions/26882221/gradle-does-not-recognize-the-java-home-i-have-set) says 
+
+it is quite common issue. Just go to your gradle home directory and bin for example:
+
+/home/user/gradle-2.0/bin
+and there you should have gradle script, i'm on windows machine now so i have gradle.bat, probably you will have gradle.sh or something like this. and there find line:
+
+set JAVA_HOME=%JAVA_HOME:"=%
+or as i can see you are on linux so there will be "export" and change it to your java home direcotry for example:
+
+export JAVA_HOME=/usr/lib/jvm/java-7-oracle
 
 License
 =======
