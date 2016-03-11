@@ -6,40 +6,43 @@
 import Std::Core
 import Std::List
 import Std::Pair
+import Std::String
 
 /* $Use("unification/state.crs"); */
 import Unification::State
 /* $Use("utils/termops.crs"); */
 import Utils::Termops
+import Utils::Crsxequs
+import Core::Core
 
 
 /* Mgu
    is either a most general unifier, or, FAIL, if no mgu can be found
  */
 enum Mgu | Mgu( List<Pair<String /* Core_METAVAR_sort */
-                          Core_cterm_sort>>) 
+                          Core_cterm_sort>>)
          | FAIL
 
 /* Circ
-   @param  `θ`     a mgu 
+   @param  `θ`     a mgu
    @param  `#X`    a meta variable
    @param  `#term` a term
-   @return `FAIL` iff `θ`= `FAIL`, 
+   @return `FAIL` iff `θ`= `FAIL`,
             updates `θ`  by inserting `Pair(#X,term)`
-            and applying `Mgu((Pair(#X,term),))` on the codomain of `θ` 
+            and applying `Mgu((Pair(#X,term),))` on the codomain of `θ`
 */
 func Circ(STATE, String /* Core_METAVAR_sort */, Core_cterm_sort) -> STATE
-rule Circ(#state, #X, #term) → UpdateMgu( UpdateMgu(#state, [mgu] -> ApplyOnCodomains( Mgu((PairCons(#X, #term),)), mgu)), 
+rule Circ(#state, #X, #term) → UpdateMgu( UpdateMgu(#state, [mgu] -> ApplyOnCodomains( Mgu((PairCons(#X, #term),)), mgu)),
                                           [mgu] -> MguInsert(PairCons(#X, #term), mgu))
 
   /* ApplyOnRHSs
-     @param  `ψ` a mgu 
+     @param  `ψ` a mgu
      @param  `θ` a mgu
      @return  a new mgu `θ'` where `ψ` has been applied to the codomain of `θ`
   */
-  func ApplyOnCodomains(Mgu, Mgu) -> Mgu 
+  func ApplyOnCodomains(Mgu, Mgu) -> Mgu
   rule ApplyOnCodomains(#_ ,      FAIL )   → FAIL
-  rule ApplyOnCodomains(#psi, Mgu(#theta)) →  Mgu( Map( [mguitem] -> ApplyOnCodomain(#psi, mguitem), #theta)) 
+  rule ApplyOnCodomains(#psi, Mgu(#theta)) →  Mgu( Map( [x] -> ApplyOnCodomain(#psi, x), #theta))
     /* application on single entry of codomain */
     func ApplyOnCodomain(Mgu, Pair<String /* Core_METAVAR_sort */ Core_cterm_sort>) -> Pair<String /* Core_METAVAR_sort */ Core_cterm_sort>
     rule ApplyOnCodomain(#newPairMgu, PairCons(#X,#RHS)) →  PairCons(#X, ApplySubst(#newPairMgu,#RHS))
@@ -47,7 +50,7 @@ rule Circ(#state, #X, #term) → UpdateMgu( UpdateMgu(#state, [mgu] -> ApplyOnCo
   /* MguInsert
      @param  `#pair` a pair of meta variable and term
      @param  `θ`    a mgu
-     @return a new mgu `θ'` where `#pair` has been inserted 
+     @return a new mgu `θ'` where `#pair` has been inserted
   */
   func MguInsert(Pair<String /* Core_METAVAR_sort */ Core_cterm_sort>, Mgu) -> Mgu
   rule MguInsert( #_     , FAIL    ) → FAIL
@@ -58,55 +61,55 @@ rule Circ(#state, #X, #term) → UpdateMgu( UpdateMgu(#state, [mgu] -> ApplyOnCo
 
 
 /* Assoc
-   @param  `#X` a meta variable 
+   @param  `#X` a meta variable
    @param  `θ`  a mgu
-   @return SOME(`t`), i.e., the term `t` the meta variable `#X` has been mapped to, or 
+   @return SOME(`t`), i.e., the term `t` the meta variable `#X` has been mapped to, or
            NONE, if no value was found.
-   @throws error, if `#X` is mapped to two terms        
+   @throws error, if `#X` is mapped to two terms
 */
 func Assoc(String /* Core_METAVAR_sort */, Mgu) -> Option<Core_cterm_sort>
 rule Assoc(#METAVAR, Mgu(#mgu)) → AssocHelper(LookUp(#METAVAR,#mgu))
   func AssocHelper(List<Core_cterm_sort>) -> Option<Core_cterm_sort>
   rule AssocHelper(())          → NONE
-  rule AssocHelper((#t,))       → SOME(#t)
-  rule AssocHelper((#t,#ts...)) → Error("Mgu.A meta variable has been mapped to two values!")
+  rule AssocHelper(Cons(#t, Nil))       → SOME(#t)
+  rule AssocHelper(Cons(#t, #ts)) → Error("Mgu.A meta variable has been mapped to two values!")
 
 
 /* *********************************************************** */
 
 
 /* ApplySubst
-   @param  `θ` mgu 
-   @param  `t` a term 
+   @param  `θ` mgu
+   @param  `t` a term
    @return applies the mgu `θ` to `t`
    @throw  error if `θ` is `FAIL`
 */
 func ApplySubst(Mgu, Core_cterm_sort) -> Core_cterm_sort
 
 /* case: constructor */
-rule ApplySubst(#theta, cterm⟦  ##CONSTRUCTOR ##cterms? ⟧ ) 
-→ cterm⟦ ##CONSTRUCTOR 
-         ⟨cterms?: Wrap[Map[x.ApplySubst[#theta,x], Unwrap[#cterms?]]] ⟩ ⟧ 
+rule ApplySubst(#theta, cterm⟦  ##CONSTRUCTOR ##cterms? ⟧ )
+→ cterm⟦ ##CONSTRUCTOR
+         ⟨cterms?: Wrap[Map[x.ApplySubst[#theta,x], Unwrap[#cterms?]]] ⟩ ⟧
 
 /* case: meta variable */
-rule ApplySubst(#theta, cterm⟦ ##METAVAR ##cterms? ⟧ ) 
+rule ApplySubst(#theta, cterm⟦ ##METAVAR ##cterms? ⟧ )
 → MatchMetavar(Assoc(#METAVAR, #theta), cterm⟦ ##METAVAR ##cterms? ⟧)
 
   func MatchMetavar(Option<Core_cterm_sort>, Core_cterm_sort ) -> Core_cterm_sort
   rule MatchMetavar(NONE,              #term) → #term
-  rule MatchMetavar(SOME(#substitute), cterm⟦ ##METAVAR ##cterms? ⟧) 
+  rule MatchMetavar(SOME(#substitute), cterm⟦ ##METAVAR ##cterms? ⟧)
   → BetaDev(#substitute, Unwrap(#cterms?))
 
-// TODO-2016-02-04: bound term does not work 
+// TODO-2016-02-04: bound term does not work
 /* case: bound term/abstraction */
-rule ApplySubst(#theta, cterm⟦ [ ##VARIABLE ] ##cterm ⟧ ) 
-→ cterm⟦ [ ##VARIABLE ] ⟨cterm: ApplySubst[#theta, #cterm] ⟩ ⟧
+//rule ApplySubst(#theta, cterm⟦ [ ##VARIABLE ] ##cterm ⟧ )
+//→ cterm⟦ [ ##VARIABLE ] ⟨cterm: ApplySubst[#theta, #cterm] ⟩ ⟧
 
 /* case: variable */
 rule ApplySubst(#theta, cterm⟦ ##cvariable ⟧ ) → cterm⟦ ##cvariable ⟧
 
 /* case: #theta is acutally FAIL */
-rule ApplySubst(FAIL, #term) 
+rule ApplySubst(FAIL, #term)
 →  Error(ConcatString("ApplySubst: A substitution, which has FAILed, was applied to: \n", Show(#term)))
 
 
@@ -124,14 +127,14 @@ func BetaDev(Core_cterm_sort, List<Core_cterm_sort>) -> Core_cterm_sort
 rule BetaDev( #s, #ts ) → BetaDevHelper( #s, #ts, (), ())
   func BetaDevHelper(Core_cterm_sort, List<Core_cterm_sort>, List<Pair<Core_cvariable_sort Core_cterm_sort>>, List<Core_cvariable_sort>) -> Core_cterm_sort
   rule BetaDevHelper(#s, (), #varSubst, #FVs) → ApplyVarSubst(#varSubst, #s, #FVs)
- 
-  // TODO-2016-02-04: bound term does not work 
-  rule BetaDevHelper(cterm⟦ [ ##VARIABLE ] ##cterm ⟧, (#t,#ts...), #varSubst, #FVs) 
-  → BetaDevHelper(#cterm, #ts, Insert(PairCons(#VARIABLE,#t), #varSubst), Concat(FreeVariables(#t), #FVs))
- 
-  rule BetaDevHelper(cterm⟦ ##cterm ⟧ , (#t,#ts...), #varSubst, #FVs) 
+
+  // TODO-2016-02-04: bound term does not work
+  //rule BetaDevHelper(cterm⟦ [ ##VARIABLE ] ##cterm ⟧, (#t,#ts...), #varSubst, #FVs)
+  //→ BetaDevHelper(#cterm, #ts, Insert(PairCons(#VARIABLE,#t), #varSubst), Concat(FreeVariables(#t), #FVs))
+
+  rule BetaDevHelper(cterm⟦ ##cterm ⟧ , Cons(#t,#ts), #varSubst, #FVs)
   → Error(ConcatString( /* too many arguments to substitute for too few abstractions (binders) */
-          ConcatString("BuildVarSubst: Too many arguments", Show((#t,#ts))), 
+          ConcatString("BuildVarSubst: Too many arguments", Show((#t,#ts))),
           ConcatString("to apply to", Show(#cterm))))
 
 
@@ -140,77 +143,80 @@ rule BetaDev( #s, #ts ) → BetaDevHelper( #s, #ts, (), ())
 
 func ApplyVarSubst( List<Pair<Core_cvariable_sort Core_cterm_sort>>, Core_cterm_sort, List<Core_cvariable_sort>) -> Core_cterm_sort
 /* case: constructor */
-rule ApplyVarSubst(#varSubst, cterm⟦  ##CONSTRUCTOR ##cterms? ⟧, #FVs )  
-→ cterm⟦ ##CONSTRUCTOR 
-         ⟨cterms?: Wrap[Map[arg.ApplyVarSubst[#varSubst,arg,#FVs], Unwrap[#cterms?]]]⟩⟧ 
+rule ApplyVarSubst(#varSubst, cterm⟦  ##CONSTRUCTOR ##cterms? ⟧, #FVs )
+→ cterm⟦ ##CONSTRUCTOR
+         ⟨cterms?: Wrap[Map[x.ApplyVarSubst[#varSubst,x,#FVs], Unwrap[#cterms?]]]⟩⟧
 
 /* case: meta varialbe */
 rule ApplyVarSubst(#varSubst, cterm⟦ ##METAVAR ##cterms? ⟧, #FVs )
-→ cterm⟦  ##METAVAR 
-         ⟨cterms?: Wrap[Map[t.ApplyVarSubst[#varSubst,t,#FVs], Unwrap[#cterms?]]]⟩⟧ 
+→ cterm⟦  ##METAVAR
+         ⟨cterms?: Wrap[Map[x.ApplyVarSubst[#varSubst,x,#FVs], Unwrap[#cterms?]]]⟩⟧
 
 
-// TODO-2016-02-04: bound term does not work 
+// TODO-2016-02-04: bound term does not work
 /* case: abstraction/binder */
-rule ApplyVarSubst(#varSubst, cterm⟦ [ ##VARIABLE ] ##cterm ⟧, #FVs) 
-→ ApplyVarSubstMatch( Elem(#VARIABLE, #FVs), #varSubst, #VARIABLE, #cterm, #FVs )
+//rule ApplyVarSubst(#varSubst, cterm⟦ [ ##VARIABLE ] ##cterm ⟧, #FVs)
+rule ApplyVarSubst(#varSubst, Core_cterm_A6([x] -> #cterm(x)) , #FVs)
+→ ApplyVarSubstMatch( Elem(x, #FVs), #varSubst, x, #cterm, #FVs )
 
-  /* checks whether #variable occurs as free variable in the codomain of #varSubst, i.e., #FVs */
-  func ApplyVarSubstMatch(Boolean, List<Pair<Core_cvariable_sort Core_cterm_sort>>, Core_cvariable_sort, Core_cterm_sort, List<Core_cvariable_sort>) -> Core_cterm_sort
-  
-  rule ApplyVarSubstMatch(FALSE, #varSubst, #VARIABLE, #cterm, #FVs) → 
-  cterm⟦ [ ##VARIABLE ] ⟨cterm: ApplyVarSubst[ /* to avoid renaming a bound variables, e.g., F(x.x,x) with (x |-> y) */
-                          DelEntry[#VARIABLE,#varSubst], #cterm, #FVs] ⟩ ⟧
- 
-  rule ApplyVarSubstMatch(TRUE, #varSubst, #variable, #term, #FVs) 
+/* checks whether #variable occurs as free variable in the codomain of #varSubst, i.e., #FVs */
+func ApplyVarSubstMatch(Boolean, List<Pair<Core_cvariable_sort Core_cterm_sort>>, Core_cvariable_sort, Core_cterm_sort, List<Core_cvariable_sort>) -> Core_cterm_sort
+
+  rule ApplyVarSubstMatch(FALSE, #varSubst, #VARIABLE, #cterm, #FVs)
+  → cterm⟦ [ x ] ⟨cterm: ApplyVarSubst[ /* to avoid renaming a bound variables, e.g., F(x.x,x) with (x |-> y) */
+                          DelEntry[x,#varSubst], #cterm, #FVs] ⟩ ⟧
+
+  rule ApplyVarSubstMatch(TRUE, #varSubst, #variable, #term, #FVs)
   →  Error(ConcatString("ApplyVarSubst: The following variable \n",
            ConcatString(Show(#variable),
            ConcatString("\n will be captured in \n",
                         Show(#term)))))
- 
-  // TODO-2016-02-04: ##VARIABLE not defined on rhs 
+
+  // TODO-2016-02-04: ##VARIABLE not defined on rhs
   /* case: variable */
-  rule ApplyVarSubst(#subst, cterm⟦ ##VARIABLE ⟧, #FVs) 
-  → MatchVarLookUp(##VARIABLE, cterm⟦ ##VARIABLE ⟧, LookUp(#VARIABLE,#subst))  
-    func MatchVarLookUp(Core_cvariable_sort, Core_cterm_sort, List<Core_cterm_sort>) -> Core_cterm_sort
-    rule MatchVarLookUp(#VARIABLE, #t, () )        → #t
-    rule MatchVarLookUp(#VARIABLE, #t, (#tP,))     → #tP
-    rule MatchVarLookUp(#VARIABLE, #t, (#tP,#tsP...)) → Error(ConcatString("ApplyVarSubst: The following variable was mapped to more than one term:", Show(#VARIABLE)))
+  rule ApplyVarSubst(#subst, cterm⟦ ##VARIABLE ⟧, #FVs)
+  → MatchVarLookUp(#VARIABLE, cterm⟦ ##VARIABLE ⟧, LookUp(#VARIABLE,#subst))
+
+func MatchVarLookUp(Core_cvariable_sort, Core_cterm_sort, List<Core_cterm_sort>) -> Core_cterm_sort
+  rule MatchVarLookUp(#VARIABLE, #t, () )        → #t
+  rule MatchVarLookUp(#VARIABLE, #t, Cons(#tP,Nil))     → #tP
+  rule MatchVarLookUp(#VARIABLE, #t, Cons(#tP,#tsP)) → Error(ConcatString("ApplyVarSubst: The following variable was mapped to more than one term:", Show(#VARIABLE)))
 
 
 /* *********************************************************** */
 
 /* IsRenaming
-   @param `θ`  a mgu 
+   @param `θ`  a mgu
    @return `TRUE` iff `θ` contains only images of shape `x1 ... xn.#X( x1, ..., xn)`
-   @note   **in general** not sufficient to check whether an mgu `θ` for `t1` and `t2` is a renaming, 
+   @note   **in general** not sufficient to check whether an mgu `θ` for `t1` and `t2` is a renaming,
            but sufficient for variable disjoint and linear `t1` and `t2`
 */
 
 func IsRenaming(Mgu) -> Boolean
 rule IsRenaming(FAIL)        → FALSE
 rule IsRenaming(Mgu(#theta)) → FoldlP( [pair z] -> And(IsRenamingHelper((), Snd(pair)), z), TRUE, #theta)
-   
+
   func IsRenamingHelper(List<Core_cvariable_sort>, Core_cterm_sort) -> Boolean
-  // TODO-2016-02-04: bound term does not work 
+  // TODO-2016-02-04: bound term does not work
   /* collect binders x1 ... xn */
-  rule IsRenamingHelper(#binders, cterm⟦ [ ##VARIABLE ] ##cterm ⟧) 
-  → IsRenamingHelper(Insert(#VARIABLE, #binders), #cterm) 
+  rule IsRenamingHelper(#binders, Core_cterm_A6([x] -> #cterm(x)))
+  //rule IsRenamingHelper(#binders, cterm⟦ [ ##VARIABLE ] ##cterm ⟧)
+  → IsRenamingHelper(Insert(x, #binders), #cterm)
   /* until meta variable is reached */
-  rule IsRenamingHelper(#binders, cterm⟦ ##METAVAR ##cterms? ⟧) → 
+  rule IsRenamingHelper(#binders, cterm⟦ ##METAVAR ##cterms? ⟧) →
   ListEqual( [x y] -> Equal(x,y), Reverse(#binders), Unwrap(#cterms?))
   /* if something else it is encountered it is not a renaming */
   rule IsRenamingHelper( #_, #term ) → FALSE
 
 
 /* RestrictDomain
-   @param  `θ`   a mgu 
+   @param  `θ`   a mgu
    @param  `#t`  a term
    @return SOME(mgu `σ`) which is a a restriction of `θ` to `MetaVariables(#t)`
            the domain of `θ` is partitioned with respect to the meta variables of `#t`, i.e.,
             `θ = σ1 ∪ σ2` where `domain(σ1) == MetaVariables(#t)`
             if `σ2` is a renaming, the restriction is possible, otherwise
-            NONE               
+            NONE
 */
 func RestrictDomain(Mgu, Core_cterm_sort) -> Option<Mgu>
 rule RestrictDomain(#mgu, #t) → CheckRestrictability(PartitionMgu(#mgu, MetaVariables(#t)))
@@ -222,12 +228,12 @@ rule RestrictDomain(#mgu, #t) → CheckRestrictability(PartitionMgu(#mgu, MetaVa
   rule MatchIsRestrictable(TRUE,  #sigma1) → SOME(#sigma1)
 
 /* PartitionMgu
-   @param `θ`  a mgu 
+   @param `θ`  a mgu
    @param `Ms` a list of meta variables
    @return `Pair(σ1,σ2)` partitions `θ` where `Domain(σ1)` is a subset of `Ms`
 */
 func PartitionMgu(Mgu, List<String /* Core_METAVAR_sort */>) -> Pair<Mgu Mgu>
-rule PartitionMgu(Mgu(#theta), #Ms) 
-  → PartitionMguHelper(Partition( [ pair ] -> IWrapFoldlP( [ v acc ] -> Or(METAVAREqual(Fst(pair),v), acc) , FALSE, #Ms), #theta))
+rule PartitionMgu(Mgu(#theta), #Ms)
+  → PartitionMguHelper(Partition( [ pair ] -> IWrapFoldlP( [ v acc ] -> Or(MetaVariableEqual(Fst(pair),v), acc) , FALSE, #Ms), #theta))
   func PartitionMguHelper( Pair<List<Pair<String /* Core_METAVAR_sort */ Core_cterm_sort>> List<Pair<String /* Core_METAVAR_sort */ Core_cterm_sort>>>) -> Pair<Mgu Mgu>
   rule PartitionMguHelper(PairCons(#sigma1, #sigma2)) → PairCons(Mgu(#sigma1), Mgu(#sigma2))

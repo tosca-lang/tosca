@@ -6,7 +6,7 @@ enum OK_SORT | OK
 // --- Evaluation
 
 /**
- * Evaluate the input 
+ * Evaluate the input
  */
 func Eval<a>(eager a) -> a
 rule Eval(#) → #
@@ -54,6 +54,8 @@ rule Not(TRUE)  → FALSE
 rule Not(FALSE) → TRUE
 
 extern func Equal<a b>(eager a, eager b) -> Boolean
+
+extern func SameVariable<a b>(a, b) -> Boolean
 
 // --- Debugging
 
