@@ -6,6 +6,8 @@ import org.transscript.runtime.Context;
 import org.transscript.runtime.Normalizer;
 import org.transscript.runtime.Sink;
 import org.transscript.runtime.Term;
+import org.transscript.runtime.Variable;
+import org.transscript.runtime.VariableUse;
 
 public class CoreExtern
 {
@@ -63,6 +65,21 @@ public class CoreExtern
 		term2 = Normalizer.normalize(context, term2);
 
 		sink.start(term1.deepEquals(term2) ? Core._M_TRUE : Core._M_FALSE).end();
+		term1.release();
+		term2.release();
+		return true;
+	}
+
+	final public static boolean _M_SameVariable(Sink sink, Term term1, Term term2)
+	{
+		if (Term.isVariableUse(term1) && Term.isVariableUse(term2))
+		{
+			Variable v1 = ((VariableUse) term1).variable();
+			Variable v2 = ((VariableUse) term1).variable();
+			sink.start(v1 == v2 ? Core._M_TRUE : Core._M_FALSE).end();
+		}
+		else
+			sink.start(Core._M_FALSE).end();
 		term1.release();
 		term2.release();
 		return true;

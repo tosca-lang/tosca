@@ -14,26 +14,16 @@ import Std::Pair
 import Unification::Mgu
 import Unification::State
 import Utils::Termops
+import Utils::Crsxequs
 
 
-rule UnwrapMetaVariableArguments(cterms?⟦              ⟧) → ()
-rule UnwrapMetaVariableArguments(cterms?⟦ ( ##cterm* ) ⟧) → UnwrapMetaVariableArgumentsHelper( #cterm* )
+func UnwrapMetaVariableArguments(List<Core_cterms_sort>) -> List<Core_cvariable_sort>
+  rule UnwrapMetaVariableArguments(cterms?⟦              ⟧) → ()
+  rule UnwrapMetaVariableArguments(cterms?⟦ ( ##cterm* ) ⟧) → UnwrapMetaVariableArgumentsHelper( #cterm* )
+
+func UnwrapMetaVariableArgumentsHelper(List<Core_cterm_sort>) -> List<Core_cvariable_sort>
   rule UnwrapMetaVariableArgumentsHelper( cterm*⟦ ⟧ ) → ()
   rule UnwrapMetaVariableArgumentsHelper( cterm*⟦ ##cvariable ##cterm* ⟧ ) → ( #cvariable, UnwrapMetaVariableArgumentsHelper(#cterm*))
-
-/* take a bunch of cvariables and transform them to arguments */
-func WrapMetaVariableArguments( List<Core_cvariable_sort> ) ->  List<Core_cterms_sort>
-  rule WrapMetaVariableArguments( () )  → cterms?⟦   ⟧
-  rule WrapMetaVariableArguments( #cterms* ) → cterms?⟦ ( ##cterms* ) ⟧
-
-func WrapSubstitute(List<Core_cvariable_sort>, String /* Core_METAVAR_sort*/, List<Core_cvariable_sort>) -> Core_cterm_sort
-rule WrapSubstitute(#xs, #X, #ys) → Map( x. WrapBoundTerm( x , GetMetaTerm(#X, #ys)), Reverse(#xs))
-
-  rule WrapBoundTerm( #VARIABLE, #cterm) → cterm⟦ [##VARIABLE] ##cterm ⟧
-
-func GetMetaTerm( String, List<Core_cvariable_sort>) -> Core_cterm_sort
-rule GetMetaTerm( #X, #xs) → GetMetaTermHelper( #X, WrapMetaVariableArguments(#xs))
-  rule GetMetaTermHelper(#METAVAR #cterms?) → cterm⟦ #METAVAR #cterms? ⟧
 
 
 func WrapBoundTerm(List<Core_cvariable_sort>, Core_cterm_sort) -> Core_cterm_sort
@@ -64,43 +54,66 @@ rule UnifyTerms(#t1, #t2) → GetMgu(Unify(INIT_STATE, PairCons(#t1,#t2)))
 // TODO 2016-02-04	 bound terms
 func Unify(STATE, Pair<Core_cterm_sort Core_cterm_sort>) -> STATE
 /* term `t1 = x.t1'` and term `t2 = x.t2'` */
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE  ] ##cterm ⟧,
-                             cterm⟦ [ ##VARIABLE2 ] ##cterm2 ⟧))
-→ MatchAlphaEq(VariableEqual(#VARIABLE, #VARIABLE2), #state,
-                        cterm⟦ [ ##VARIABLE  ] ##cterm  ⟧,
-                        cterm⟦ [ ##VARIABLE2 ] ##cterm2 ⟧)
 
-  func MatchAlphaEq(Boolean, STATE, Core_cterm_sort, Core_cterm_sort) -> STATE
-  rule MatchAlphaEq(TRUE,  #state, cterm⟦ [ ##VARIABLE  ] ##cterm  ⟧,
-                                   cterm⟦ [ ##VARIABLE2 ] ##cterm2 ⟧)
+
+//rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE  ] ##cterm ⟧,
+//                             cterm⟦ [ ##VARIABLE2 ] ##cterm2 ⟧))
+// LV: This is problematic, x always != x2
+  rule Unify(#state, PairCons( Core_cterm_A6([x] -> #cterm(x)),
+                             Core_cterm_A6([x] -> #cterm2(x))))
+  → MatchAlphaEq(VariableEqual(x, x2), #state,
+                        cterm⟦ [ x ] ##cterm  ⟧,
+                        cterm⟦ [ x ] ##cterm2 ⟧)
+  /* term `t1 = x.t1'` but term `t2 ≠ x.t2'` */
+  //rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##CONSTRUCTOR ##cterms? ⟧ ) )
+  rule Unify(#state, PairCons( Core_cterm_A6([x] -> #cterm(x)), cterm⟦ ##CONSTRUCTOR ##cterms? ⟧ ) )
+    → UpdateMgu(#state, [x] -> FAIL)
+
+  //rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cliteral ⟧ ) )
+  rule Unify(#state, PairCons( Core_cterm_A6([x] -> #cterm(x)), cterm⟦ ##cliteral ⟧ ) )
+      → UpdateMgu(#state, [x] -> FAIL)
+
+  //rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cvariable ⟧ ) )
+  rule Unify(#state, PairCons( Core_cterm_A6([x] -> #cterm(x)), cterm⟦ ##cvariable ⟧ ) )
+    → UpdateMgu(#state, [x] -> FAIL)
+
+  //rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##METAVAR ##cterms? ⟧ ) )
+  rule Unify(#state, PairCons( Core_cterm_A6([x] -> #cterm(x)), cterm⟦ ##METAVAR ##cterms? ⟧ ) )
+    → UpdateMgu(#state, [x] -> FAIL)
+
+  /* term `t2 = x.t2'`  but term `t1 ≠ x.t1'` */
+  //rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##CONSTRUCTOR ##cterms? ⟧ ) )
+  rule Unify(#state, PairCons( Core_cterm_A6([x] -> #cterm(x)), cterm⟦ ##CONSTRUCTOR ##cterms? ⟧ ) )
+    → UpdateMgu(#state, [x] -> FAIL)
+
+  //rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cliteral ⟧ ) )
+  rule Unify(#state, PairCons( Core_cterm_A6([x] -> #cterm(x)), cterm⟦ ##cliteral ⟧ ) )
+    → UpdateMgu(#state, [x] -> FAIL)
+
+  //rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cvariable ⟧ ) )
+  rule Unify(#state, PairCons( Core_cterm_A6([x] -> #cterm(x)), cterm⟦ ##cvariable ⟧ ) )
+    → UpdateMgu(#state, [x] -> FAIL)
+
+  //rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##METAVAR ##cterms? ⟧ ) )
+  rule Unify(#state, PairCons( Core_cterm_A6([x] -> #cterm(x)), cterm⟦ ##METAVAR ##cterms? ⟧ ) )
+    → UpdateMgu(#state, [x] -> FAIL)
+
+  /* term `t1 ≠ x.t1'` and `t2 ≠ x.t2'` */
+  rule Unify(#state, PairCons( cterm⟦ ##cterm ⟧, cterm⟦ ##cterm2 ⟧ ))
+  → Cases(#state, cterm⟦ ##cterm ⟧, cterm⟦ ##cterm2 ⟧)
+
+func MatchAlphaEq(Boolean, STATE, Core_cterm_sort, Core_cterm_sort) -> STATE
+  //rule MatchAlphaEq(TRUE,  #state, cterm⟦ [ ##VARIABLE  ] ##cterm  ⟧,
+  //                                 cterm⟦ [ ##VARIABLE2 ] ##cterm2 ⟧)
+  rule MatchAlphaEq(TRUE,  #state, Core_cterm_A6([x] -> #cterm(x)),
+                                   Core_cterm_A6([x] -> #cterm2(x)))
   → Unify(#state, PairCons(#cterm, #cterm2))
-  rule MatchAlphaEq(FALSE, #state, cterm⟦ [ ##VARIABLE ] ##cterm  ⟧,
+
+  //rule MatchAlphaEq(FALSE, #state, cterm⟦ [ ##VARIABLE ] ##cterm  ⟧,
+  //                                 #term2)
+  rule MatchAlphaEq(FALSE, #state, Core_cterm_A6([x] -> #cterm(x)),
                                    #term2)
-  → Unify(#state, PairCons(#cterm, BetaDev(#term2, (cterm⟦ ##VARIABLE ⟧))))
-
-/* term `t1 = x.t1'` but term `t2 ≠ x.t2'` */
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##CONSTRUCTOR ##cterms? ⟧ ) )
-  → UpdateMgu(#state, [x] -> FAIL)
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cliteral ⟧ ) )
-  → UpdateMgu(#state, [x] -> FAIL)
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cvariable ⟧ ) )
-  → UpdateMgu(#state, [x] -> FAIL)
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##METAVAR ##cterms? ⟧ ) )
-  → UpdateMgu(#state, [x] -> FAIL)
-
-/* term `t2 = x.t2'`  but term `t1 ≠ x.t1'` */
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##CONSTRUCTOR ##cterms? ⟧ ) )
-  → UpdateMgu(#state, [x] -> FAIL)
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cliteral ⟧ ) )
-  → UpdateMgu(#state, [x] -> FAIL)
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cvariable ⟧ ) )
-  → UpdateMgu(#state, [x] -> FAIL)
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##METAVAR ##cterms? ⟧ ) )
-  → UpdateMgu(#state, [x] -> FAIL)
-
-/* term `t1 ≠ x.t1'` and `t2 ≠ x.t2'` */
-rule Unify(#state, PairCons( cterm⟦ ##cterm ⟧, cterm⟦ ##cterm2 ⟧ ))
-→ Cases(#state, cterm⟦ ##cterm ⟧, cterm⟦ ##cterm2 ⟧)
+  → Unify(#state, PairCons(#cterm, BetaDev(#term2, (cterm⟦ x ⟧))))
 
 
 /* *********************************************************** */
@@ -184,7 +197,7 @@ rule RigidRigid(#state, #a, #ss, #b, #ts)
 → MatchRigidRigid(#state, ConstructorEqual(#a, #b), #ss, #ts)
 
   func MatchRigidRigid(STATE, Boolean, List<Core_cterm_sort>, List<Core_cterm_sort>) -> STATE
-  rule MatchRigidRigid(#state, FALSE, #ss, #ts) → UpdateMgu(#state,[x] -> FAIL)
+  rule MatchRigidRigid(#state, FALSE, #ss, #ts) → UpdateMgu(#state, [x] -> FAIL)
   rule MatchRigidRigid(#state, TRUE,  #ss, #ts) → IWrapFoldlP([p st] -> Unify(st,p), #state, Zip(#ss,#ts))
   //if it fails here, it is most likely because the arity of the constructors was different.
 
@@ -238,8 +251,9 @@ func Case(STATE, List<Core_cvariable_sort>, Core_cterm_sort) -> STATE
 
 // TODO 2016-02-04	 boundterms
 /* case: `s = x . s'` */
-rule Case(#state, #V, cterm⟦ [ ##VARIABLE ] ##cterm ⟧)
-→ Proj(#state, Insert(#VARIABLE, #V), #cterm)
+//rule Case(#state, #V, cterm⟦ [ ##VARIABLE ] ##cterm ⟧)
+rule Case(#state, #V, Core_cterm_A6([x] -> #cterm(x)))
+→ Proj(#state, Insert(x, #V), #cterm)
 
 /* case: `s = C(s_1, ..., s_n)` */
 rule Case(#state, #V, cterm⟦ ##CONSTRUCTOR ##cterms? ⟧)
@@ -255,5 +269,6 @@ rule Case(#state, #V, cterm⟦  ##cvariable ⟧)
 /* case: `s = #X(x_1, ..., x_n) ` */
 rule Case(#state,#V, cterm⟦   ##METAVAR ##cterms? ⟧)
 → CaseHelper(FRESH_METAVAR(#state), #V, #METAVAR, UnwrapMetaVariableArguments(#cterms?))
-  func CaseHelper(Pair<STATE String /* Core_cMETAVAR */>,  List<Core_cvariable_sort>, String /* Core_cMETAVAR */, List<Core_cvariable_sort>) -> STATE
+
+func CaseHelper(Pair<STATE String /* Core_cMETAVAR */>,  List<Core_cvariable_sort>, String /* Core_cMETAVAR */, List<Core_cvariable_sort>) -> STATE
   rule CaseHelper(PairCons(#state, #fresh), #V, #METAVAR, #ys) → Circ(#state, #METAVAR, WrapSubstitute( #ys, #fresh, Intersect(#ys,#V)))

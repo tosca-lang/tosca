@@ -106,6 +106,7 @@ task buildParsers(
 
 task compileTransScript(type: TransScriptTask) {
 	description = "Compile TransScript to Java source files."
+	//sources     = fileTree(dir: transScriptSrc, include: ['/*.crs4', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'cg/*.crs4', 'cg/*.tsc', 'utils/*.crs4', '*.crs4', 'test/*.crs4', 'unification/*.crs4', 'specify/*.crs4'])
 	sources     = fileTree(dir: transScriptSrc, include: ['/*.crs4', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'cg/*.crs4', 'cg/*.tsc', '*.crs4', 'test/*.crs4'])
 	outputDir   = project.hasProperty('crsx3') ? file('compiler/org/transscript/compiler') : file('compiler')
 	packageName = 'org.transscript.compiler'

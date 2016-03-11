@@ -217,7 +217,6 @@ func NList(List<Crsx_term_sort>) -> Core_cterm_sort
   rule NList(term*⟦ ##term ##term*  ⟧) → cterm⟦ Cons( ⟨cterm: NTerm[#term]⟩, ⟨cterm: NList[#term*]⟩ ) ⟧
 
 
-// Big hack to get it working until bootstrapping.
 // parse-locations=0 must be specified when running crsx3
 func NConcrete(String, String) -> Core_cterm_sort
   rule NConcrete(#category, #text) → NTerm(ParseToMetaTerm(#category, #text))
