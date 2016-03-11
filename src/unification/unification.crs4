@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2015 IBM Corporation.
- *  
+ *
  * @author : m schett
  * @date   : 07/10/2015
  */
 
-import Core::Core 
+import Core::Core
 
 import Std::Core
 import Std::List
@@ -16,77 +16,90 @@ import Unification::State
 import Utils::Termops
 
 
-func UnwrapMetaVariableArguments(List<Core_cterms_sort>) -> List<Core_cvariable_sort>
 rule UnwrapMetaVariableArguments(cterms?⟦              ⟧) → ()
 rule UnwrapMetaVariableArguments(cterms?⟦ ( ##cterm* ) ⟧) → UnwrapMetaVariableArgumentsHelper( #cterm* )
   rule UnwrapMetaVariableArgumentsHelper( cterm*⟦ ⟧ ) → ()
   rule UnwrapMetaVariableArgumentsHelper( cterm*⟦ ##cvariable ##cterm* ⟧ ) → ( #cvariable, UnwrapMetaVariableArgumentsHelper(#cterm*))
 
+/* take a bunch of cvariables and transform them to arguments */
+func WrapMetaVariableArguments( List<Core_cvariable_sort> ) ->  List<Core_cterms_sort>
+  rule WrapMetaVariableArguments( () )  → cterms?⟦   ⟧
+  rule WrapMetaVariableArguments( #cterms* ) → cterms?⟦ ( ##cterms* ) ⟧
 
-func WrapBoundTerm(List<Core_cvariable_sort>, Core_cterm_sort) -> Core_cterm_sort 
-rule WrapBoundTerm( (),  #term) → #term                 
+func WrapSubstitute(List<Core_cvariable_sort>, String /* Core_METAVAR_sort*/, List<Core_cvariable_sort>) -> Core_cterm_sort
+rule WrapSubstitute(#xs, #X, #ys) → Map( x. WrapBoundTerm( x , GetMetaTerm(#X, #ys)), Reverse(#xs))
+
+  rule WrapBoundTerm( #VARIABLE, #cterm) → cterm⟦ [##VARIABLE] ##cterm ⟧
+
+func GetMetaTerm( String, List<Core_cvariable_sort>) -> Core_cterm_sort
+rule GetMetaTerm( #X, #xs) → GetMetaTermHelper( #X, WrapMetaVariableArguments(#xs))
+  rule GetMetaTermHelper(#METAVAR #cterms?) → cterm⟦ #METAVAR #cterms? ⟧
+
+
+func WrapBoundTerm(List<Core_cvariable_sort>, Core_cterm_sort) -> Core_cterm_sort
+rule WrapBoundTerm( (),  #term) → #term
 
 func UnifyTerms(Core_cterm_sort, Core_cterm_sort) -> Mgu
 rule UnifyTerms(#t1, #t2) → GetMgu(Unify(INIT_STATE, PairCons(#t1,#t2)))
 
-/* Unify 
+/* Unify
   @param  a state with an mgu `θ`
-  @param  Pair(term `t1`, term `t2`) 
+  @param  Pair(term `t1`, term `t2`)
   @return a STATE, where `θ` is
-          `FAIL`, iff `t1` does not unify with `t2`, 
+          `FAIL`, iff `t1` does not unify with `t2`,
            an association list between subterms in `t1` and `t2`, otherwise
-  @note  
-         Assumption 1: alpha equivalent, e.g., x.x ≈ y.y 
+  @note
+         Assumption 1: alpha equivalent, e.g., x.x ≈ y.y
          Assumption 2: linear patterns
          Assumption 3: variable disjoint
 
   @note   due to renaming the name of the meta variables will change, meaning
-          that the original patterns will not have the same meta variable names 
-          as the computed mgu. 
-          Fixes: 
+          that the original patterns will not have the same meta variable names
+          as the computed mgu.
+          Fixes:
           * apply rename *function* to term
-          * compute a renaming mgu and apply it on the computed mgu 
+          * compute a renaming mgu and apply it on the computed mgu
 */
 
 // TODO 2016-02-04	 bound terms
 func Unify(STATE, Pair<Core_cterm_sort Core_cterm_sort>) -> STATE
 /* term `t1 = x.t1'` and term `t2 = x.t2'` */
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE  ] ##cterm ⟧, 
+rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE  ] ##cterm ⟧,
                              cterm⟦ [ ##VARIABLE2 ] ##cterm2 ⟧))
-→ MatchAlphaEq(VariableEqual(#VARIABLE, #VARIABLE2), #state, 
-                        cterm⟦ [ ##VARIABLE  ] ##cterm  ⟧, 
-                        cterm⟦ [ ##VARIABLE2 ] ##cterm2 ⟧)  
-  
+→ MatchAlphaEq(VariableEqual(#VARIABLE, #VARIABLE2), #state,
+                        cterm⟦ [ ##VARIABLE  ] ##cterm  ⟧,
+                        cterm⟦ [ ##VARIABLE2 ] ##cterm2 ⟧)
+
   func MatchAlphaEq(Boolean, STATE, Core_cterm_sort, Core_cterm_sort) -> STATE
-  rule MatchAlphaEq(TRUE,  #state, cterm⟦ [ ##VARIABLE  ] ##cterm  ⟧, 
-                                   cterm⟦ [ ##VARIABLE2 ] ##cterm2 ⟧) 
+  rule MatchAlphaEq(TRUE,  #state, cterm⟦ [ ##VARIABLE  ] ##cterm  ⟧,
+                                   cterm⟦ [ ##VARIABLE2 ] ##cterm2 ⟧)
   → Unify(#state, PairCons(#cterm, #cterm2))
-  rule MatchAlphaEq(FALSE, #state, cterm⟦ [ ##VARIABLE ] ##cterm  ⟧,  
-                                   #term2) 
+  rule MatchAlphaEq(FALSE, #state, cterm⟦ [ ##VARIABLE ] ##cterm  ⟧,
+                                   #term2)
   → Unify(#state, PairCons(#cterm, BetaDev(#term2, (cterm⟦ ##VARIABLE ⟧))))
 
-/* term `t1 = x.t1'` but term `t2 ≠ x.t2'` */  
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##CONSTRUCTOR ##cterms? ⟧ ) ) 
-  → UpdateMgu(#state, [x] -> FAIL) 
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cliteral ⟧ ) ) 
-  → UpdateMgu(#state, [x] -> FAIL) 
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cvariable ⟧ ) ) 
-  → UpdateMgu(#state, [x] -> FAIL) 
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##METAVAR ##cterms? ⟧ ) ) 
-  → UpdateMgu(#state, [x] -> FAIL) 
+/* term `t1 = x.t1'` but term `t2 ≠ x.t2'` */
+rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##CONSTRUCTOR ##cterms? ⟧ ) )
+  → UpdateMgu(#state, [x] -> FAIL)
+rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cliteral ⟧ ) )
+  → UpdateMgu(#state, [x] -> FAIL)
+rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cvariable ⟧ ) )
+  → UpdateMgu(#state, [x] -> FAIL)
+rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##METAVAR ##cterms? ⟧ ) )
+  → UpdateMgu(#state, [x] -> FAIL)
 
 /* term `t2 = x.t2'`  but term `t1 ≠ x.t1'` */
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##CONSTRUCTOR ##cterms? ⟧ ) ) 
-  → UpdateMgu(#state, [x] -> FAIL) 
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cliteral ⟧ ) ) 
-  → UpdateMgu(#state, [x] -> FAIL) 
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cvariable ⟧ ) ) 
-  → UpdateMgu(#state, [x] -> FAIL) 
-rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##METAVAR ##cterms? ⟧ ) ) 
-  → UpdateMgu(#state, [x] -> FAIL) 
+rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##CONSTRUCTOR ##cterms? ⟧ ) )
+  → UpdateMgu(#state, [x] -> FAIL)
+rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cliteral ⟧ ) )
+  → UpdateMgu(#state, [x] -> FAIL)
+rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##cvariable ⟧ ) )
+  → UpdateMgu(#state, [x] -> FAIL)
+rule Unify(#state, PairCons( cterm⟦ [ ##VARIABLE ] ##cterm ⟧, cterm⟦ ##METAVAR ##cterms? ⟧ ) )
+  → UpdateMgu(#state, [x] -> FAIL)
 
 /* term `t1 ≠ x.t1'` and `t2 ≠ x.t2'` */
-rule Unify(#state, PairCons( cterm⟦ ##cterm ⟧, cterm⟦ ##cterm2 ⟧ )) 
+rule Unify(#state, PairCons( cterm⟦ ##cterm ⟧, cterm⟦ ##cterm2 ⟧ ))
 → Cases(#state, cterm⟦ ##cterm ⟧, cterm⟦ ##cterm2 ⟧)
 
 
@@ -98,43 +111,43 @@ rule Unify(#state, PairCons( cterm⟦ ##cterm ⟧, cterm⟦ ##cterm2 ⟧ ))
   @param  term `t1`
   @param  term `t2`
   @return a state where the mgu `θ'` is
-           `FAIL`, iff `t1` does not unify with `t2`, 
+           `FAIL`, iff `t1` does not unify with `t2`,
            an association list between subterms in `t1` and `t2`, otherwise
 */
 func Cases(STATE, Core_cterm_sort, Core_cterm_sort) -> STATE
 
 /* Case: root(`t1`) ∈ Constructors, root(`t2`) ∈ Constructors  */
-rule Cases(#state, cterm⟦ ##CONSTRUCTOR  ##cterms?  ⟧, 
-                   cterm⟦ ##CONSTRUCTOR2 ##cterms?2 ⟧) 
-→ 
-RigidRigid(#state, #CONSTRUCTOR,  Unwrap(#cterms?), 
+rule Cases(#state, cterm⟦ ##CONSTRUCTOR  ##cterms?  ⟧,
+                   cterm⟦ ##CONSTRUCTOR2 ##cterms?2 ⟧)
+→
+RigidRigid(#state, #CONSTRUCTOR,  Unwrap(#cterms?),
                    #CONSTRUCTOR2, Unwrap(#cterms?2))
 
 /* Case: root(`t1`) ∈ MetaVars, root(`t2`) ∈ MetaVars */
 rule Cases(#state, cterm⟦ ##METAVAR  ##cterms?  ⟧,
                    cterm⟦ ##METAVAR2 ##cterms?2 ⟧ )
-→ 
-FlexFlex(#state, #METAVAR,  UnwrapMetaVariableArguments(#cterms?), 
+→
+FlexFlex(#state, #METAVAR,  UnwrapMetaVariableArguments(#cterms?),
                  #METAVAR2, UnwrapMetaVariableArguments(#cterms?2))
 
 /* Case: root(`t1`) ∈ MetaVars, root(`t2`) ∉ MetaVars */
 rule Cases(#state, cterm⟦ ##METAVAR ##cterms? ⟧,
-                   #t2) 
-→ 
-FlexRigid(#state, #METAVAR, UnwrapMetaVariableArguments(#cterms?), 
+                   #t2)
+→
+FlexRigid(#state, #METAVAR, UnwrapMetaVariableArguments(#cterms?),
                   #t2)
 
 /* Case: root(`t1`) ∉ MetaVars, root(`t2`) ∈ MetaVars */
 rule Cases(#state, #t1,
                    cterm⟦ ##METAVAR ##cterms? ⟧)
-→  
-FlexRigid(#state, #METAVAR, UnwrapMetaVariableArguments(#cterms?), 
+→
+FlexRigid(#state, #METAVAR, UnwrapMetaVariableArguments(#cterms?),
                   #t1)
 
-/*  case is treated by RigidRigid in Nipkow93 */ 
-rule Cases(#state, cterm⟦ ##cvariable ⟧,  
-                   cterm⟦ ##cvariable2 ⟧) 
-→ 
+/*  case is treated by RigidRigid in Nipkow93 */
+rule Cases(#state, cterm⟦ ##cvariable ⟧,
+                   cterm⟦ ##cvariable2 ⟧)
+→
 MatchVariableCase(VariableEqual( #cvariable, #cvariable2), #state)
   func MatchVariableCase(Boolean, STATE) -> STATE
   rule MatchVariableCase(TRUE,  #state) → #state
@@ -166,8 +179,8 @@ rule Cases(#state, cterm⟦  ##cliteral  ⟧,
    `FAIL` if `#a` ≠ `#b`, i.e., they are different constructors,
     otherwise try to unify the arguments recursively
 */
-func RigidRigid(STATE, String /* Core_cconstructor_sort*/, List<Core_cterm_sort>, String /* Core_constructor_sort*/, List<Core_cterm_sort>) -> STATE 
-rule RigidRigid(#state, #a, #ss, #b, #ts) 
+func RigidRigid(STATE, String /* Core_cconstructor_sort*/, List<Core_cterm_sort>, String /* Core_constructor_sort*/, List<Core_cterm_sort>) -> STATE
+rule RigidRigid(#state, #a, #ss, #b, #ts)
 → MatchRigidRigid(#state, ConstructorEqual(#a, #b), #ss, #ts)
 
   func MatchRigidRigid(STATE, Boolean, List<Core_cterm_sort>, List<Core_cterm_sort>) -> STATE
@@ -183,10 +196,10 @@ rule RigidRigid(#state, #a, #ss, #b, #ts)
    @return a state with an updated mgu `θ'`
 */
 func FlexRigid(STATE, String /* Core_METAVAR_sort */, List<Core_cvariable_sort>, Core_cterm_sort) -> STATE
-rule FlexRigid(#state, #F, #xs, #t) 
+rule FlexRigid(#state, #F, #xs, #t)
 → Proj( Circ(#state, #F, WrapBoundTerm(#xs, #t)), #xs, #t )
-       /*  wrt Nipkow93, if #F in FreeVariables(t2) then FAIL 
-           dropped because linear and variable disjoint */ 
+       /*  wrt Nipkow93, if #F in FreeVariables(t2) then FAIL
+           dropped because linear and variable disjoint */
 
 
 /* FlexFlex
@@ -196,23 +209,23 @@ rule FlexRigid(#state, #F, #xs, #t)
    @param  metavariable `#G`  = root(`t2`) ∈ METAVARS
    @param  arguments    `#ys` = args(`t2`)
    @return a state with an updated mgu `θ'`
-   @note   careful, the order of the arguments depend on 
+   @note   careful, the order of the arguments depend on
            the definition of Intersect
 */
 func FlexFlex(STATE, String /* Core_cMETAVAR_sort */, eager List<Core_cvariable_sort>, String /* Core_cMETAVAR_sort */, eager List<Core_cvariable_sort>) -> STATE
-rule FlexFlex(#state, #F, #xs, #G, #ys ) 
+rule FlexFlex(#state, #F, #xs, #G, #ys )
 →  /* If(Eq(#F,#G), FlexFlex1(...), ... linear */
   FlexFlex2(#state, #F, #xs, #G, #ys)
 
 
-func FlexFlex2(STATE, String /* Core_cMETAVAR_sort */, List<Core_cvariable_sort>, String /* Core_cMETAVAR_sort */, List<Core_cvariable_sort>) -> STATE 
-rule FlexFlex2(#state,#F,#xs,#G,#ys) 
+func FlexFlex2(STATE, String /* Core_cMETAVAR_sort */, List<Core_cvariable_sort>, String /* Core_cMETAVAR_sort */, List<Core_cvariable_sort>) -> STATE
+rule FlexFlex2(#state,#F,#xs,#G,#ys)
 → MatchFlexFlex2(FRESH_METAVAR(#state), Intersect(#xs,#ys), #F, #xs, #G, #ys)
 
   func MatchFlexFlex2(Pair<STATE String /* Core_cMETAVAR_sort */>, List<Core_cvariable_sort>, String /* Core_cMETAVAR_sort */, List<Core_cvariable_sort>, String /* Core_cMETAVAR_sort */, List<Core_cvariable_sort>) -> STATE
-  rule MatchFlexFlex2(PairCons(#state, #fresh), #zs, #F, #xs, #G, #ys) 
-  → Circ(Circ(#state, #F,  WrapSubstitute(#xs, #fresh, #zs)), 
-                      #G,  WrapSubstitute(#ys, #fresh, #zs)) 
+  rule MatchFlexFlex2(PairCons(#state, #fresh), #zs, #F, #xs, #G, #ys)
+  → Circ(Circ(#state, #F,  WrapSubstitute(#xs, #fresh, #zs)),
+                      #G,  WrapSubstitute(#ys, #fresh, #zs))
 
 
 /* *********************************************************** */
@@ -225,21 +238,21 @@ func Case(STATE, List<Core_cvariable_sort>, Core_cterm_sort) -> STATE
 
 // TODO 2016-02-04	 boundterms
 /* case: `s = x . s'` */
-rule Case(#state, #V, cterm⟦ [ ##VARIABLE ] ##cterm ⟧) 
-→ Proj(#state, Insert(#VARIABLE, #V), #cterm) 
+rule Case(#state, #V, cterm⟦ [ ##VARIABLE ] ##cterm ⟧)
+→ Proj(#state, Insert(#VARIABLE, #V), #cterm)
 
-/* case: `s = C(s_1, ..., s_n)` */ 
+/* case: `s = C(s_1, ..., s_n)` */
 rule Case(#state, #V, cterm⟦ ##CONSTRUCTOR ##cterms? ⟧)
 → IWrapFoldlP([si state] -> Proj(state, #V, si), #state, Unwrap(#cterms?))
 
-/* case: `s = x` */ 
-rule Case(#state, #V, cterm⟦  ##cvariable ⟧) 
+/* case: `s = x` */
+rule Case(#state, #V, cterm⟦  ##cvariable ⟧)
 → MatchVarCase(Elem(#cvariable,#V), #state, cterm⟦ ##cvariable ⟧)
   func MatchVarCase(Boolean, STATE, Core_cterm_sort) -> STATE
   rule MatchVarCase(TRUE, #state, #s) → #state
   rule MatchVarCase(FALSE,#state, #s) → UpdateMgu(#state,[x] -> FAIL)
 
-/* case: `s = #X(x_1, ..., x_n) ` */ 
+/* case: `s = #X(x_1, ..., x_n) ` */
 rule Case(#state,#V, cterm⟦   ##METAVAR ##cterms? ⟧)
 → CaseHelper(FRESH_METAVAR(#state), #V, #METAVAR, UnwrapMetaVariableArguments(#cterms?))
   func CaseHelper(Pair<STATE String /* Core_cMETAVAR */>,  List<Core_cvariable_sort>, String /* Core_cMETAVAR */, List<Core_cvariable_sort>) -> STATE
