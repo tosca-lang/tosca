@@ -1,4 +1,5 @@
-import MiniML
+import Miniml
+import Std::Num
 
 func Eval<a>(MiniML_toplevel_sort) -> a
 rule Eval(toplevel⟦ #expr ;; ⟧) → EvalExpr(#expr)

@@ -57,6 +57,8 @@ public class MetaApplication extends Term
 			subs = new Term[index + 1];
 		else if (subs.length <= index)
 			subs = Arrays.copyOf(subs, index + 1);
+		
+		subs[index] = term;
 	}
 
 	@Override

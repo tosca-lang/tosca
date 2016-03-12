@@ -28,7 +28,7 @@ func UnwrapMetaVariableArgumentsHelper(List<Core_cterm_sort>) -> List<Core_cvari
 /* take a bunch of cvariables and transform them to arguments */
 func WrapMetaVariableArguments( List<Core_cvariable_sort> ) ->  List<Core_cterms_sort>
   rule WrapMetaVariableArguments( () )  → cterms?⟦ ⟧
-  rule WrapMetaVariableArguments( #cterms* ) → cterms?⟦ ( ##cterms* ) ⟧
+  rule WrapMetaVariableArguments( #cterm* ) → cterms?⟦ ( ##cterm* ) ⟧
 
 
 /* from a list of variables x1 ... xn, a METAVAR #X, and a list of variables y1...ym create [x1]...[xn] #X(y1, ..., ym) */
@@ -37,7 +37,7 @@ func WrapSubstitute(List<Core_cvariable_sort>, String /* Core_METAVAR_sort*/, Li
 
   /* bind variable in term */
   func WrapBoundVariable(Core_cvariable_sort, Core_cterm_sort) -> Core_cterm_sort
-    rule WrapBoundVariable( #VARIABLE, #cterm) → cterm⟦ [##VARIABLE] ##cterm ⟧
+    rule WrapBoundVariable( #VARIABLE, #cterm) → cterm⟦ [x] ##cterm ⟧
 
   /* get a term out of a #X and y1 ... ym */
   func GetMetaTerm( String, List<Core_cvariable_sort>) -> Core_cterm_sort
