@@ -85,6 +85,7 @@ public class Tool
 		System.out.println("  build-dir=<directory>     where to store the intermediate files. Default is current directory");
 		System.out.println("  javabasepackage=<name>    Java base package name of generated Java files");
 		System.out.println("  javapackage=<name>        Java sub package name of generated Java files");
+		System.out.println("  parsers=<classnames>     Comma separated list of parsers classname");
 		System.out.println(
 				"  bootparserpath=<name>     where to look for builtin parsers. Only used for bootstrapping TransScript");
 
@@ -181,16 +182,19 @@ public class Tool
 		String javapackage = env.get("javapackage");
 		String dest = env.get("build-dir");
 		String output = targetJavaFilename(rules, dest, javabasepackage, javapackage, true);
-
+		String parsers = "org.transscript.core.CoreMetaParser,org.transscript.parser.TransScriptMetaParser,org.transscript.text.Text4MetaParser";
+		if (env.get("parsers") != null)
+			parsers += "," + env.get("parsers");
+		
 		Map<String, String> buildEnv = new HashMap<>(env);
 
 		// First: Produce java source file.
 
 		buildEnv.put("class", "org.transscript.compiler.Crsx");
 		buildEnv.put("wrapper", "Compile");
-		buildEnv.put(
-				"grammar",
-				"org.transscript.core.CoreMetaParser,org.transscript.parser.TransScriptMetaParser,org.transscript.text.Text4MetaParser"); // Temporary.
+
+		// TODO: this shouldn't be needed.
+		buildEnv.put("grammar", parsers); // Temporary.
 		buildEnv.put("sink", "org.transscript.runtime.text.TextSink");
 		buildEnv.put("term", "\"" + rules + "\"");
 		buildEnv.put("output", output);

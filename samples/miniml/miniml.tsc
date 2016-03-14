@@ -1,0 +1,67 @@
+/* Generated File. */
+import Text::Text4
+import Std::Core
+import Std::List
+import Std::Text
+
+
+
+enum MiniML_toplevel_sort  | MiniML_toplevel_A1(MiniML_expr_sort, [ String] -> MiniML_toplevel_sort) | MiniML_toplevel_A2(MiniML_expr_sort)
+
+func MiniML_Print_toplevel(MiniML_toplevel_sort) -> Text
+rule MiniML_Print_toplevel(MiniML_toplevel_A1(#1, [x]->#2(x))) → text⟦ let ⟨Show(x)⟩ = ⟨MiniML_Print_expr(#1)⟩ ;; ⟨MiniML_Print_toplevel(#2(x))⟩ ;; ⟧
+rule MiniML_Print_toplevel(MiniML_toplevel_A2(#1)) → text⟦⟨MiniML_Print_expr(#1)⟩ ;; ⟧
+
+enum MiniML_expr_sort  | MiniML_expr_A1(MiniML_timesExpr_sort, MiniML_expr_sort) | MiniML_expr_A2(MiniML_timesExpr_sort, MiniML_expr_sort) | MiniML_expr_A3(MiniML_timesExpr_sort)
+
+func MiniML_Print_expr(MiniML_expr_sort) -> Text
+rule MiniML_Print_expr(MiniML_expr_A1(#1, #2)) → text⟦⟨MiniML_Print_timesExpr(#1)⟩ + ⟨MiniML_Print_expr(#2)⟩⟧
+rule MiniML_Print_expr(MiniML_expr_A2(#1, #2)) → text⟦⟨MiniML_Print_timesExpr(#1)⟩ - ⟨MiniML_Print_expr(#2)⟩⟧
+rule MiniML_Print_expr(MiniML_expr_A3(#1)) → text⟦⟨MiniML_Print_timesExpr(#1)⟩⟧
+
+enum MiniML_timesExpr_sort  | MiniML_timesExpr_A1(MiniML_compExpr_sort, MiniML_timesExpr_sort) | MiniML_timesExpr_A2(MiniML_compExpr_sort)
+
+func MiniML_Print_timesExpr(MiniML_timesExpr_sort) -> Text
+rule MiniML_Print_timesExpr(MiniML_timesExpr_A1(#1, #2)) → text⟦⟨MiniML_Print_compExpr(#1)⟩ * ⟨MiniML_Print_timesExpr(#2)⟩⟧
+rule MiniML_Print_timesExpr(MiniML_timesExpr_A2(#1)) → text⟦⟨MiniML_Print_compExpr(#1)⟩⟧
+
+enum MiniML_compExpr_sort  | MiniML_compExpr_A1(MiniML_primaryExpr_sort, MiniML_compExpr_sort) | MiniML_compExpr_A2(MiniML_primaryExpr_sort, MiniML_compExpr_sort) | MiniML_compExpr_A3(MiniML_primaryExpr_sort)
+
+func MiniML_Print_compExpr(MiniML_compExpr_sort) -> Text
+rule MiniML_Print_compExpr(MiniML_compExpr_A1(#1, #2)) → text⟦⟨MiniML_Print_primaryExpr(#1)⟩ < ⟨MiniML_Print_compExpr(#2)⟩⟧
+rule MiniML_Print_compExpr(MiniML_compExpr_A2(#1, #2)) → text⟦⟨MiniML_Print_primaryExpr(#1)⟩ = ⟨MiniML_Print_compExpr(#2)⟩⟧
+rule MiniML_Print_compExpr(MiniML_compExpr_A3(#1)) → text⟦⟨MiniML_Print_primaryExpr(#1)⟩⟧
+
+enum MiniML_primaryExpr_sort  | MiniML_primaryExpr_A1(MiniML_app_expr_sort) | MiniML_primaryExpr_A2(String) | MiniML_primaryExpr_A3(MiniML_expr_sort, MiniML_expr_sort, MiniML_expr_sort) | MiniML_primaryExpr_A4(String, MiniML_ty_sort, MiniML_ty_sort, [ String] -> MiniML_expr_sort)
+
+func MiniML_Print_primaryExpr(MiniML_primaryExpr_sort) -> Text
+rule MiniML_Print_primaryExpr(MiniML_primaryExpr_A1(#1)) → text⟦⟨MiniML_Print_app_expr(#1)⟩⟧
+rule MiniML_Print_primaryExpr(MiniML_primaryExpr_A2(#1)) → text⟦ - †⟨#1⟩⟧
+rule MiniML_Print_primaryExpr(MiniML_primaryExpr_A3(#1, #2, #3)) → text⟦ if ⟨MiniML_Print_expr(#1)⟩ then ⟨MiniML_Print_expr(#2)⟩ else ⟨MiniML_Print_expr(#3)⟩⟧
+rule MiniML_Print_primaryExpr(MiniML_primaryExpr_A4(#1, #2, #3, [x]->#4(x))) → text⟦ fun †⟨#1⟩ ( ⟨Show(x)⟩ : ⟨MiniML_Print_ty(#2)⟩ )  : ⟨MiniML_Print_ty(#3)⟩ is ⟨MiniML_Print_expr(#4(x))⟩⟧
+
+enum MiniML_app_expr_sort  | MiniML_app_expr_A1(MiniML_simple_expr_sort) | MiniML_app_expr_A2(MiniML_simple_expr_sort, MiniML_app_expr_sort)
+
+func MiniML_Print_app_expr(MiniML_app_expr_sort) -> Text
+rule MiniML_Print_app_expr(MiniML_app_expr_A1(#1)) → text⟦⟨MiniML_Print_simple_expr(#1)⟩⟧
+rule MiniML_Print_app_expr(MiniML_app_expr_A2(#1, #2)) → text⟦⟨MiniML_Print_simple_expr(#1)⟩⟨MiniML_Print_app_expr(#2)⟩⟧
+
+enum MiniML_simple_expr_sort  | MiniML_simple_expr_A1(String) | MiniML_simple_expr_A2() | MiniML_simple_expr_A3() | MiniML_simple_expr_A4(String) | MiniML_simple_expr_A5(MiniML_expr_sort)
+
+func MiniML_Print_simple_expr(MiniML_simple_expr_sort) -> Text rule MiniML_Print_simple_expr(MiniML_simple_expr_A1(#1)) → text⟦†⟨#1⟩⟧
+rule MiniML_Print_simple_expr(MiniML_simple_expr_A2()) → text⟦ true ⟧
+rule MiniML_Print_simple_expr(MiniML_simple_expr_A3()) → text⟦ false ⟧
+rule MiniML_Print_simple_expr(MiniML_simple_expr_A4(#1)) → text⟦†⟨#1⟩⟧
+rule MiniML_Print_simple_expr(MiniML_simple_expr_A5(#1)) → text⟦ ( ⟨MiniML_Print_expr(#1)⟩ ) ⟧
+
+enum MiniML_ty_sort  | MiniML_ty_A1(MiniML_tyPrimary_sort) | MiniML_ty_A2(MiniML_tyPrimary_sort, MiniML_ty_sort)
+
+func MiniML_Print_ty(MiniML_ty_sort) -> Text
+rule MiniML_Print_ty(MiniML_ty_A1(#1)) → text⟦⟨MiniML_Print_tyPrimary(#1)⟩⟧
+rule MiniML_Print_ty(MiniML_ty_A2(#1, #2)) → text⟦⟨MiniML_Print_tyPrimary(#1)⟩ -> ⟨MiniML_Print_ty(#2)⟩⟧
+
+enum MiniML_tyPrimary_sort  | MiniML_tyPrimary_A1() | MiniML_tyPrimary_A2() | MiniML_tyPrimary_A3(MiniML_ty_sort)
+
+func MiniML_Print_tyPrimary(MiniML_tyPrimary_sort) -> Text rule MiniML_Print_tyPrimary(MiniML_tyPrimary_A1()) → text⟦ bool ⟧
+rule MiniML_Print_tyPrimary(MiniML_tyPrimary_A2()) → text⟦ int ⟧
+rule MiniML_Print_tyPrimary(MiniML_tyPrimary_A3(#1)) → text⟦ ( ⟨MiniML_Print_ty(#1)⟩ ) ⟧

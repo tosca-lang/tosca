@@ -66,7 +66,7 @@ tyPrimary
 
 // Lexer rules
 
-VAR      : ['a'-'z' 'A'-'Z']+;
+VAR      : ['a'-'z''A'-'Z']+;
 INT      : ['0'-'9']+;
 TINT     : 'int';
 TBOOL    : 'bool';
