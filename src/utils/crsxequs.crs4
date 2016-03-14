@@ -37,3 +37,8 @@ rule MetaVariableEqual(#METAVAR, #METAVAR2) → StringEqual(#METAVAR, #METAVAR2)
 func VariableEqual(Core_cvariable_sort, Core_cvariable_sort) -> Boolean
 rule VariableEqual( cvariable⟦ ##VARIABLE ⟧, cvariable⟦ ##VARIABLE2 ⟧) → SameVariable(#VARIABLE, #VARIABLE2)
 /* StringEqual(#VARIABLE, #VARIABLE2) */
+
+/* checks whether two literals are equal */
+func LiteralEqual(Core_cliteral_sort, Core_cliteral_sort) -> Boolean
+rule LiteralEqual( cliteral⟦ ##STRING1 ⟧, cliteral⟦ ##STRING2 ⟧ ) → StringEqual(#STRING1, #STRING2)
+rule LiteralEqual( cliteral⟦ ##NUMBER1 ⟧, cliteral⟦ ##NUMBER2 ⟧ ) → StringEqual(#NUMBER1, #NUMBER2)

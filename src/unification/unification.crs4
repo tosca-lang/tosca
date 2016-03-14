@@ -42,6 +42,7 @@ func WrapSubstitute(List<Core_cvariable_sort>, String /* Core_METAVAR_sort*/, Li
   /* get a term out of a #X and y1 ... ym */
   func GetMetaTerm( String, List<Core_cvariable_sort>) -> Core_cterm_sort
   rule GetMetaTerm( #X, #xs) → GetMetaTermHelper( #X, WrapMetaVariableArguments(#xs))
+    func GetMetaTermHelper( String /* Core_METAVAR_sort*/, List<Core_cterms_sort>) -> Core_cterm_sort
     rule GetMetaTermHelper(#METAVAR, #cterms?) → cterm⟦ ##METAVAR ##cterms? ⟧
 
 func WrapBoundTerm(List<Core_cvariable_sort>, Core_cterm_sort) -> Core_cterm_sort
