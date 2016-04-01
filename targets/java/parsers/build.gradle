@@ -1,0 +1,129 @@
+// Copyright (c) 2016 IBM Corporation.
+
+/*
+ *  Parsers build file.
+ */
+import org.transscript.gradle.*
+
+
+// --- Generate Java parsers based on Antlr specifications
+
+apply plugin:'org.transscript.gradle'
+
+def transScriptSrc = '../../../src'
+
+
+repositories {
+	flatDir { dirs '../dist' } // where to find crsx4 jars
+	flatDir { dirs '../lib' }  // where to find crsx3.jar
+	mavenCentral() // Where to find ANTLR
+}
+
+dependencies {
+	transscript  project.hasProperty('dev') ? files(transScriptSrc, "../build") : 'org.transscript:transscript:1.0.0-ALPHA@jar'
+	transscript 'org.crsx:crsx3@jar'
+	transscript 'org.antlr:antlr4:4.5'
+}
+
+def commonCore = {
+	generatedFileDir = file('src/org/transscript/core')
+	packageName = 'org.transscript.core'
+}
+
+task coreMetaParser(type: Antlr4Task, dependsOn: ':coreParsers') {
+	configure commonCore
+	description = 'Generate Java Core meta parser'
+	lexer = file(transScriptSrc + '/core/CoreMetaLexer.g4')
+	grammar = file(transScriptSrc + '/core/CoreMetaParser.g4')
+	superClass = 'org.transscript.antlr.Crsx3Parser'
+}
+
+task coreTermParser(type: Antlr4Task, dependsOn: ':coreParsers') {
+	configure commonCore
+	description = 'Generate Java Core term parser'
+	grammar = file(transScriptSrc + '/core/CoreTerm.g4')
+}
+
+task transScriptMetaParser(type: Antlr4Task, dependsOn: ':transScriptParsers') {
+	description = 'Generate Java TransScript meta parser'
+	lexer = file(transScriptSrc + '/parser/TransScriptMetaLexer.g4')
+	grammar = file(transScriptSrc + '/parser/TransScriptMetaParser.g4')
+	generatedFileDir = file('src/org/transscript/parser')
+	packageName = 'org.transscript.parser'
+	superClass = 'org.transscript.antlr.Crsx3Parser'
+}
+
+task transScriptTermParser(type: Antlr4Task, dependsOn: ':transScriptParsers') {
+	description = 'Generate Java TransScript term parser'
+	grammar = file(transScriptSrc + '/parser/TransScriptTerm.g4')
+	generatedFileDir = file('src/org/transscript/parser')
+	packageName = 'org.transscript.parser'
+}
+
+task antlrMetaParser(type: Antlr4Task) {
+	description = 'Generate Antlr4 Java meta parser'
+	lexer = file(transScriptSrc + '/pg/ANTLRMetaLexer.g4')
+	grammar = file(transScriptSrc + '/pg/ANTLRMeta.g4')
+	generatedFileDir = file('src/org/transscript/antlr')
+	packageName = 'org.transscript.antlr'
+	superClass = 'org.transscript.antlr.Crsx3Parser'
+}
+
+task antlrAntlrTermParser(type: Antlr4Task) {
+	description = 'Generate Antlr4 Java term parser.'
+	lexer = file(transScriptSrc + '/pg/ANTLRTermLexer.g4')
+	grammar = file(transScriptSrc + '/pg/ANTLRTerm.g4')
+	generatedFileDir = file('src/org/transscript/antlr')
+	packageName = 'org.transscript.antlr'
+}
+
+task textMetaParser(type: Antlr4Task, dependsOn: ':textParsers') {
+	description = 'Generate Java Text meta parser'
+	lexer = file(transScriptSrc + '/text/Text4MetaLexer.g4')
+	grammar = file(transScriptSrc + '/text/Text4MetaParser.g4')
+	generatedFileDir = file('src/org/transscript/text')
+	packageName = 'org.transscript.text'
+	superClass = 'org.transscript.antlr.Crsx3Parser'
+}
+
+task textTermParser(type: Antlr4Task, dependsOn: ':textParsers') {
+	description = 'Generate Java Text term parser'
+	grammar = file(transScriptSrc + '/text/Text4Term.g4')
+	generatedFileDir = file('src/org/transscript/text')
+	packageName = 'org.transscript.text'
+}
+
+//-- Meta task to build all parsers.
+task buildParsers(
+	description: "Generate Java meta and term parsers for Antlr, TransScript, Core and Text",
+	dependsOn: ['coreMetaParser', 'coreTermParser', 'transScriptMetaParser', 'transScriptTermParser',
+				'antlrMetaParser', 'antlrAntlrTermParser', 'textMetaParser', 'textTermParser'])
+
+// --- Java compilation
+
+apply plugin:'java'
+
+compileJava {
+	sourceCompatibility = 1.8
+	targetCompatibility = 1.8
+
+	dependsOn 'buildParsers'
+}
+
+//clean.dependsOn cleanBuildTransScriptParsers
+//clean.dependsOn cleanBuildAntlrParsers
+
+
+sourceSets {
+	main {
+		java {
+			srcDir 'src'
+		}
+	}
+}
+
+dependencies {
+	compile 'org.crsx:crsx3@jar'
+	compile 'org.antlr:antlr4:4.5'
+	compile 'org.transscript:transscript:1.0.0-ALPHA@jar' // Use previous runtime
+}

@@ -24,8 +24,8 @@ import System
  * Generates Java code from a sorted core Crsx system
  * @param System The crsx system
  */
-func CrsxToJava(System) -> Text
-rule CrsxToJava(System(#url, #modules))
+func TransScriptToJava(System) -> Text
+rule TransScriptToJava(System(#url, #modules))
 → JavaUnits(#url, MapValues(#modules))
 
 // --- Generate code.

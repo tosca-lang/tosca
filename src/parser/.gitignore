@@ -3,3 +3,9 @@
 /CrsxMetaLexer.g4
 /CrsxMetaParser.g4
 /CrsxTerm.g4
+/TransScript.crs
+/TransScript.crs4
+/TransScript.tsc
+/TransScriptMetaLexer.g4
+/TransScriptMetaParser.g4
+/TransScriptTerm.g4

@@ -1,6 +1,6 @@
 // Copyright (c) 2015 IBM Corporation.
 
-package org.transscript.parser;
+package org.transscript;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -12,6 +12,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.DiagnosticErrorListener;
 import org.antlr.v4.runtime.TokenSource;
 import org.antlr.v4.runtime.TokenStream;
+import org.transscript.parser.TransScriptTermLexer;
+import org.transscript.parser.TransScriptTermParser;
 
 /**
  * Simple utility to invoke the CRSX parser from the command line.

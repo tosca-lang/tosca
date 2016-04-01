@@ -67,6 +67,8 @@ task textParsers(type: PG4Task) {
     defaultRule = 'CHARS'
 }
 
+// --- dependencies
+
 // --- To make sure we don't delete something important by accident
 task cleanCoreParsers(overwrite : true) {} 
 task cleanTransScriptParsers(overwrite : true) {} 

@@ -1,6 +1,6 @@
 // Copyright (c) 2015 IBM Corporation.
 
-package org.transscript.parser;
+package org.transscript;
 
 import java.io.File;
 import java.io.FileNotFoundException;

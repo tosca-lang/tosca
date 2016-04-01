@@ -28,3 +28,6 @@ task smoketest(type: TransScriptTask) {
 	usecompiler = true
 	outputs.upToDateWhen { false }
 }	
+
+
+smoketest.dependsOn tasks.getByPath(':targets:java:snapshot')

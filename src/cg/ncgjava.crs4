@@ -1,10 +1,6 @@
 // Copyright (c) 2`018 IBM Corporation.
 /*
- * CRSX Java backend code generator
- *
- * Generate Java 8 source code from core Crsx.
- *
- * Only one Java file is created from a Crsx system. This will have to change in order to scale.
+ * TransScript Java 8 backend code generator
  */
 
 import Core::Core
@@ -25,8 +21,8 @@ import System
  * Generates Java code from a sorted core Crsx system
  * @param System The crsx system
  */
-func CrsxToJava(System) -> Text
-rule CrsxToJava(System(#url, #modules))
+func TransScriptToJava(System) -> Text
+rule TransScriptToJava(System(#url, #modules))
 → JavaUnits(#url, MapValues(#modules))
 
 // --- Generate code.

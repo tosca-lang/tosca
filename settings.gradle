@@ -1,2 +1,2 @@
 rootProject.name = 'transscript'
-include 'targets:java', 'tests'
+include 'targets:java', 'targets:java:parsers', 'tests'

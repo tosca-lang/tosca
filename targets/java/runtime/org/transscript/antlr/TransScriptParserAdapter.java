@@ -8,7 +8,6 @@ import java.util.Map;
 
 import org.transscript.runtime.Parser;
 import org.transscript.runtime.Sink;
-import org.transscript.runtime.Variable;
 
 /**
  * Crsx4 parser backed-by a Crsx3 parser
