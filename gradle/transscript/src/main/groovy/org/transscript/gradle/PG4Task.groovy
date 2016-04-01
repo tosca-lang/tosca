@@ -5,6 +5,10 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.*
 
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.Path
+
 class PG4Task extends DefaultTask {
 	
 	@InputFile
@@ -58,11 +62,16 @@ class PG4Task extends DefaultTask {
 			{	
 				// .nterm -> sort
 				
-				String sortt = basename + '.crs' // generate sort
-				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.transscript.antlr.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakeSorts', 'output=' + sortt ])
+				//String sortt = basename + '.crs' // generate sort
+				//crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.transscript.antlr.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakeSorts', 'output=' + sortt ])
 				
 				String sortt4 = basename + '.tsc' // generate sort for transscript
                 crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.transscript.antlr.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakeSorts', 'crsx4', 'output=' + sortt4 ])
+			
+		        // Copy file for bc
+		        Path source = Paths.get(sortt4)
+                Path target = Paths.get(basename + '.crs4')
+                Files.copy(source, target)
 			}
 			
 			if (parsers)
