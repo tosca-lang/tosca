@@ -1,5 +1,0 @@
-import Std::Core
-
-func Tests -> Boolean
-rule Tests
-→ TRUE

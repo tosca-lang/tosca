@@ -3,8 +3,7 @@
 /* Test core TransScript parser features */
 
 /* Test empty comment, not to conflict with the // operator */
-
-import Std::Core
+enum Bool | True | False
 
 enum MyList<a>      
     | MyCons(a, MyList<a>)    
@@ -17,5 +16,5 @@ enum Statement
 enum Expr
     | Plus(Expr, Expr)
     
-func Tests -> Boolean
-rule Tests → TRUE 
+func Tests -> Bool
+rule Tests → True

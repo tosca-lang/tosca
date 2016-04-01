@@ -42,6 +42,8 @@ import java.util.function.Function;
 import java.util.Map;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.Ref;
+import org.transscript.runtime.Term;
+import org.transscript.runtime.Variable;
 import org.transscript.runtime.MemoFunction;
 
 ⟨TextFold(Map([x] -> JavaUnit(#url, x), #modules), text⟦⟧)⟩
@@ -93,7 +95,7 @@ rule EnumToClass(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 
 ⟨TextFold(Map([x] -> FormToMethodNew(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
 
-static ⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ new⟨ToJavaClassName(#CONSTRUCTOR)⟩Memo(Function<Context, ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, false)⟩> function)
+static ⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ new⟨ToJavaClassName(#CONSTRUCTOR)⟩Memo(Function<Context, ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> function)
 {
   return new ⟨ToJavaClassName(#CONSTRUCTOR)⟩Memo(function);
 }
@@ -155,7 +157,7 @@ rule FormToMethodNew(#constructor, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts?
 func FormToMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
 rule FormToMethodAs(#enumname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
 → text⟦
-    default ⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
+    default ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
     {
       return null;
     }⟧
@@ -164,7 +166,7 @@ func FormToMethodMemoAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> T
 rule FormToMethodMemoAs(#enumname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
 → text⟦
    @Override
-   final public ⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
+   final public ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
    {
      return apply(context).⟨MethodNameAs(#CONSTRUCTOR)⟩(context);
    }⟧
@@ -182,7 +184,7 @@ func FormToInterfaceValue(String, List<Core_csortvars_sort>, Core_cform_sort) ->
         ⟨MaybeSortsToGetValueSig(#csorts?)⟩
 
         @Override
-        default ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
+        default ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
         {
           return this;
         }
@@ -320,10 +322,10 @@ func SortsToGetValueSig(List<Core_csorts_sort>, eager Numeric) -> Text
 
 func SortToGetValueSig(List<Text>, eager Numeric, eager Numeric) -> Text
   rule SortToGetValueSig(Cons(#type, Nil), #index, #subindex)
-  → text⟦⟨#type⟩ getField⟨FieldSuffix(#index, #subindex)⟩();⟧
+  → text⟦public ⟨#type⟩ getField⟨FieldSuffix(#index, #subindex)⟩();⟧
 
   rule SortToGetValueSig(Cons(#type, #types), #index, #subindex)
-  → text⟦⟨#type⟩ getVar⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩();
+  → text⟦public ⟨#type⟩ getVar⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩();
          ⟨SortToGetValueSig(#types, #index, Plus(#subindex, 1))⟩⟧
 
 //--- Get value method implementation
@@ -351,7 +353,7 @@ func SortToGetValue(List<Text>, eager Numeric, eager Numeric) -> Text
 
   rule SortToGetValue(Cons(#type, #types), #index, #subindex)
   → text⟦@Override
-         ⟨#type⟩ getVar⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩() {
+         public ⟨#type⟩ getVar⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩() {
            return var⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩;
         };
         ⟨SortToGetValue(#types, #index, Plus(#subindex, 1))⟩⟧
