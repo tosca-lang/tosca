@@ -35,6 +35,10 @@ Installing TransScript Atom package
 
 Download [atom](https://atom.io), install it then start Atom. Go to Preferences (ctrl-, or command-, depending on your system), Install and search for language-transscript and then click on Install.
     
+Contributing
+============
+
+The best way to start is to join us on [slack](https://transscript.slack.com)
 
 License
 =======
