@@ -584,6 +584,18 @@ UnwrapId[ANTLR_id_A2[#id]] → #id;
 UnBINDS[ElementOption] :: $String;
 UnBINDS[BINDS[#]] → #;
 
+TrimEltOptionAtom[ANTLR_atom_sort] :: ANTLR_atom_sort;
 
+TrimEltOptionAtom[{#L}%atom⟦ #range ⟧] 
+→ {#L}%atom⟦ #range ⟧;
+
+TrimEltOptionAtom[{#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧] 
+→ {#L}%atom⟦ #TOKEN_REF ⟧;
+
+TrimEltOptionAtom[{#L}%atom⟦ #STRING_LITERAL #elementOptions? ⟧] 
+→ {#L}%atom⟦ #STRING_LITERAL ⟧;
+
+TrimEltOptionAtom[{#L}%atom⟦ #RULE_REF #ARG_ACTION? ⟧] 
+→ {#L}%atom⟦ #RULE_REF #ARG_ACTION? ⟧;
 
 )]

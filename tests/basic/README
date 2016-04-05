@@ -1,0 +1,3 @@
+Contains tiny tests for each individual TransScript features. 
+Keep each test really small so that debugging is easy.
+Keep each test standalone with no dependencies on the standard libary

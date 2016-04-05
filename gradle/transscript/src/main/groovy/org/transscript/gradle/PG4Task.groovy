@@ -8,6 +8,7 @@ import org.gradle.api.tasks.*
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 
 class PG4Task extends DefaultTask {
 	
@@ -71,7 +72,7 @@ class PG4Task extends DefaultTask {
 		        // Copy file for bc
 		        Path source = Paths.get(sortt4)
                 Path target = Paths.get(basename + '.crs4')
-                Files.copy(source, target)
+                Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING)
 			}
 			
 			if (parsers)

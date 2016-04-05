@@ -354,7 +354,7 @@ public class StringExtern
 		Parser parser = context.getParser(category, true); // Get latest boot parser.
 		if (parser == null)
 			throw new RuntimeException("Fatal error: no parser found for category " + category);
-
+		
 		BufferSink parsed = context.makeBuffer();
 		try
 		{

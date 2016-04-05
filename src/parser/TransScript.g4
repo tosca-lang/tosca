@@ -19,7 +19,7 @@ grammar TransScript;
 import java.util.*;
 }
 
-// Operator precedence climbing. 
+// Operator precedence climbing.
 
 @members {
 /** Fixity for each operator operator */
@@ -91,11 +91,11 @@ importDecl
 
 sortDecl
      : ENUM constructor sortParams? (OR variant)+          /* [CORE] Variant sort declaration */
-     | STRUCT constructor sortParams? (AND sortMap)+       /* [CORE] map sort definition */ 
+     | STRUCT constructor sortParams? (AND sortMap)+       /* [CORE] map sort definition */
      ;
 
 sortParams
-    : LT VARIABLE+ GT                                               /* [CORE] Formal sort parameters. */ 
+    : LT VARIABLE+ GT                                               /* [CORE] Formal sort parameters. */
     ;
 
 // Variant type
@@ -108,9 +108,9 @@ variant
 variantArgs
     : LPAR variantSorts? RPAR
     ;
-    
+
 variantSorts
-    : variantSort (COMMA variantSort)* 
+    : variantSort (COMMA variantSort)*
     ;
 
 // TODO: variantSort is needed to avoid conflict with sort* below. Metaparser needs to be fixed.
@@ -145,7 +145,7 @@ paramSort
 sortArgs
     : LT sort* GT                         /* [CORE] Sort arguments */
     ;
-    
+
 // Rule Declaration
 
 ruleDecl
@@ -183,7 +183,7 @@ eager
 fnParamName
     : METAVAR COLON
     ;
-    
+
 fnBody
     : ARROW terms
     ;
@@ -193,7 +193,7 @@ fnBody
 terms
     : term[0] (COMMA term[0])*
     ;
-    
+
 term[int p]
     : aterm nterm[p]*
     ;
@@ -212,7 +212,7 @@ nterm[int p]
       {isPostfix(_input.LT(1).getText(), $p)}?
       operator
     ;
-    
+
 // Atom term
 aterm
     : cons                                            /* [CORE] Construction with zero or more args */
@@ -223,7 +223,7 @@ aterm
     | metapp                                          /* [CORE]  Meta application. */
     | dispatch                                        /* [CORE]  Dispatch expression */
     | concrete                                        /* [SUGAR] Concrete syntax */
-    | { isPrefix(_input.LT(1).getText())}? 
+    | { isPrefix(_input.LT(1).getText())}?
       op=operator term[nextp($op.text)]               /* [SUGAR] Prefixed term */
     ;
 
@@ -232,7 +232,7 @@ cons
     ;
 
 metapp
-    :  METAVAR apply? 
+    :  METAVAR apply?
     ;
 
 args
@@ -267,7 +267,11 @@ groupOrList
     ;
 
 variable                                              /* [CORE] */
-    : VARIABLE<variable>  
+    : VARIABLE<variable> castas?
+    ;
+
+castas
+    : AS sort
     ;
 
 literal
@@ -332,6 +336,7 @@ STRUCT          : 'struct';
 DISPATCH        : 'dispatch';
 EAGER           : 'eager';
 EXTERN          : 'extern';
+AS              : 'as';
 COMMA           : ',';
 LPAR            : '(';
 RPAR            : ')';
@@ -364,7 +369,7 @@ OPERATOR          : OpHead Operator*
 CONCRETE          : Lower (Alpha | Digit | '-' | '_')* Ebnf? '\u27e6' (CONCRETE|.)*? '\u27e7';   // category⟦ ⟧
 
 CONSTRUCTOR       : ConsHead ConsChar*  Ebnf?;     // '$' is for internal use only.
-                
+
 VARIABLE          : Lower (Alpha | Digit | '-' | '_')*;
 
 METAVAR           : '#' (Alpha | Digit | '-' | '_' | Unicode)* Ebnf? Digit*; // '$' is for internal use only
@@ -373,7 +378,7 @@ STRING            :  '"' ('\\"'|~'"')* '"';
 
 NUMBER            : Decimal;
 
-fragment ConsHead : Upper | UnicodeS | '_' | '$';     
+fragment ConsHead : Upper | UnicodeS | '_' | '$';
 fragment ConsChar : Alpha | Digit | Unicode | '_' | '-' | '$' | ':';
 
 fragment Digit    : [0-9];
@@ -382,10 +387,10 @@ fragment Lower    : [a-z];
 fragment Alpha    : [a-zA-Z];
 fragment Decimal  : '-'? [0-9]+ ('.' [0-9]+)? | '.' [0-9]+;
 
-fragment OpHead   : OpCommon;      
+fragment OpHead   : OpCommon;
 fragment Operator : OpCommon | '$' | '_' | '/';
 
-fragment OpCommon : '-' | [+/|`~!@^&*=?.:<]; // TODO: allow > but for now conflict with sort params. One solution is to allow >>> as infix operator only with mandatory space      
+fragment OpCommon : '-' | [+/|`~!@^&*=?.:<]; // TODO: allow > but for now conflict with sort params. One solution is to allow >>> as infix operator only with mandatory space
 
 fragment Unicode  : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
 fragment UnicodeS : ~[\u0000-\u00FF\uD800-\uDBFF\u27e6\u27e7\u27e8\u27e9] | [\uD800-\uDBFF] [\uDC00-\uDFFF];

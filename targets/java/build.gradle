@@ -29,15 +29,16 @@ dependencies {
 // -- Generate the TransScript compiler from .tsc source code.
 // -- Uses stable TransScript compiler, overriding builtin parsers. 
 
-task compileTransScript(type: TransScriptTask, dependsOn:':targets:java:parsers:buildParsers') {
+task compileTransScript(type: TransScriptTask, dependsOn:':targets:java:parsers:compileJava') {
 	description = "Compile TransScript to Java source files."
 	//sources     = fileTree(dir: transScriptSrc, include: ['/*.crs4', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'cg/*.crs4', 'cg/*.tsc', 'utils/*.crs4', '*.crs4', 'test/*.crs4', 'unification/*.crs4', 'specify/*.crs4'])
 	sources     = fileTree(dir: transScriptSrc, include: ['/*.crs4', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'cg/*.crs4', 'cg/*.tsc', '*.crs4', 'test/*.crs4'])
 	outputDir   = project.hasProperty('crsx3') ? file('compiler/org/transscript/compiler') : file('compiler')
 	packageName = 'org.transscript.compiler'
 	usecompiler = !project.hasProperty('crsx3')
-	bootparserpath = "file:parsers/build/" // override TransScript parsers location.
+	bootparserpath = "file:parsers/build/classes/main/" // override TransScript parsers location. MUST END WITH /
 }
+
 
 // --- Java compilation and packaging
 
@@ -65,10 +66,10 @@ sourceSets {
         }
 
 		// Include TransScript source code for interpreter mode. Temporary.
-		//resources {
-		//	srcDir '../../src'
-		//	include '**/*.crs'
-		//}
+		resources {
+			srcDir '../../src'
+			include '**/*.crs'
+		}
     }
 }
 

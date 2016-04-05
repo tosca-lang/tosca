@@ -178,6 +178,9 @@ func NTerm(Crsx_term_sort) -> Core_cterm_sort
   rule NTerm(term⟦ ##VARIABLE ⟧)
   → cterm⟦ ##VARIABLE ⟧
 
+  rule NTerm(term⟦ ##VARIABLE as ##sort ⟧)
+  → cterm⟦ ##VARIABLE : ⟨csort: NSort[#sort]⟩ ⟧
+
   rule NTerm(term⟦ ##METAVAR ##apply? ⟧)
   → cterm⟦ ##METAVAR ⟨cterms?: NMaybeApply[#apply?]⟩ ⟧
 

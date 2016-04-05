@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.transscript.antlr.Crsx3Parser;
+import org.transscript.runtime.Variable;
 
 /**
  * Context passed around during rewrite
@@ -76,6 +77,17 @@ final public class Context
 	}
 
 	/**
+	 * Make new unique variable.
+	 * 
+	 * @param hint
+	 * @return
+	 */
+	public org.transscript.runtime.v2.Variable makeRefVariable(String hint)
+	{
+		return new org.transscript.runtime.v2.Variable(makeVariableName(hint));
+	}
+
+	/**
 	 * Make new unique variable name.
 	 * 
 	 * @param hint
@@ -120,16 +132,16 @@ final public class Context
 		return desc == null ? ConstructionDescriptor.makeData(symbol) : desc;
 	}
 
-//	/**
-//	 * Register function term
-//	 * 
-//	 * @param symbol
-//	 * @param step
-//	 */
-//	public void register(String symbol, Step step)
-//	{
-//		descriptors.put(symbol, ConstructionDescriptor.makeFunction(symbol, step));
-//	}
+	//	/**
+	//	 * Register function term
+	//	 * 
+	//	 * @param symbol
+	//	 * @param step
+	//	 */
+	//	public void register(String symbol, Step step)
+	//	{
+	//		descriptors.put(symbol, ConstructionDescriptor.makeFunction(symbol, step));
+	//	}
 
 	/**
 	 * Register symbol
@@ -160,7 +172,7 @@ final public class Context
 			parserClass = loader.loadClass("org.transscript.core.CoreMetaParser");
 			registerCategories(parserClass, bootParsers);
 			parserClass = loader.loadClass("org.transscript.text.Text4MetaParser");
-			registerCategories(parserClass, bootParsers);
+			registerCategories(parserClass, bootParsers); 
 		}
 		catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IOException e)
 		{
@@ -256,17 +268,19 @@ final public class Context
 	{
 		private ClassLoader realParent;
 
+		private URL[] us; // tmp for debugging only
+
 		public ChildURLClassLoader(URL[] urls, ClassLoader realParent)
 		{
 			super(urls, null);
-
+			this.us = urls;
 			this.realParent = realParent;
 		}
 
 		@Override
 		public Class<?> findClass(String name) throws ClassNotFoundException
 		{
-			if (name.startsWith("org.transscript.parser.TransScript"))
+			if (name.startsWith("org.transscript."))
 			{
 				try
 				{

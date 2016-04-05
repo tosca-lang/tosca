@@ -148,9 +148,11 @@ public class Tool
 
 		env.put("class", clazz);
 
-		String wrapper = env.get("wrapper");
-		env.put("wrapper", wrapper == null ? "Main" : wrapper);
-
+		if (env.get("main") == null)
+		{
+			String wrapper = env.get("wrapper");
+			env.put("wrapper", wrapper == null ? "Main" : wrapper);
+		}
 		rewrite(env, runEnv);
 	}
 
@@ -185,7 +187,7 @@ public class Tool
 		String parsers = "org.transscript.core.CoreMetaParser,org.transscript.parser.TransScriptMetaParser,org.transscript.text.Text4MetaParser";
 		if (env.get("parsers") != null)
 			parsers += "," + env.get("parsers");
-		
+
 		Map<String, String> buildEnv = new HashMap<>(env);
 
 		// First: Produce java source file.
@@ -229,7 +231,8 @@ public class Tool
 	/* Test a TransScript program */
 	static void test(Map<String, String> env)
 	{
-		env.put("wrapper", "Tests");
+		//env.put("wrapper", "Tests");
+		env.put("main", "Tests");
 		run(env);
 	}
 
@@ -404,9 +407,26 @@ public class Tool
 		{
 			return clss.getMethod("init", Context.class);
 		}
-		catch (Exception e)
+		catch (NoSuchMethodException e)
 		{
 			fatal("Error while initializing the TransScript system.", e);
+			return null;
+		}
+	}
+
+	/** 
+	 * Gets the given method or throw exception.  
+	 * @throws NoSuchMethodException 
+	 */
+	static Method getMethod(Class<?> clss, String name)
+	{
+		try
+		{
+			return clss.getMethod(name, Context.class);
+		}
+		catch (NoSuchMethodException e)
+		{
+			fatal("Method " + name + " does not exist", e);
 			return null;
 		}
 	}
@@ -482,64 +502,6 @@ public class Tool
 			fatal("problem occurred while initializing the TransScript system", e);
 		}
 
-		// Wrap input term (if specified)
-		ConstructionDescriptor wrapper = null;
-		String wrapperName = env.get("wrapper");
-		if (wrapperName != null)
-		{
-			wrapper = context.lookupDescriptor(wrapperName);
-			if (wrapper == null)
-				warning("wrapper " + wrapperName + " not found. Ignore.");
-		}
-
-		BufferSink buffer = context.makeBuffer();
-
-		if (wrapper != null)
-			buffer.start(wrapper);
-
-		// Parse term (if any)
-		String inputTerm = env.get("term");
-		if (inputTerm != null)
-		{
-			inputTerm = inputTerm.trim();
-			if (inputTerm.length() > 0)
-			{
-				char c = inputTerm.charAt(0);
-				if (c == '"')
-				{
-					buffer.literal(StringUtils.unquoteJava(inputTerm));
-				}
-				else if (Character.isDigit(c) || c == '-' || c == '+')
-				{
-					buffer.literal(inputTerm);
-				}
-				else
-				{
-					try (Reader reader = new StringReader(inputTerm))
-					{
-						new CrsxLexer(reader).scanTerm(buffer, reader);
-					}
-					catch (IOException e)
-					{
-						printUsage();
-					}
-				}
-			}
-		}
-		else
-		{
-			// Parse input (if any)
-			String input = env.get("input");
-			if (input != null)
-			{
-				// TODO: parser categories
-				parseTerm(buffer, input);
-			}
-		}
-
-		if (wrapper != null)
-			buffer.end();
-
 		// Add grammars
 		String grammars = env.get("grammar");
 		if (grammars != null)
@@ -555,9 +517,89 @@ public class Tool
 			}
 		}
 
-		// Normalize!!
-		Term top = buffer.term();
-		Term result = Normalizer.normalize(context, top);
+		// Wrap input term (if specified)
+		ConstructionDescriptor wrapper = null;
+		String wrapperName = env.get("wrapper");
+		if (wrapperName != null)
+		{
+			wrapper = context.lookupDescriptor(wrapperName);
+			if (wrapper == null)
+				warning("wrapper " + wrapperName + " not found. Ignore.");
+		}
+
+		String inputTerm = env.get("term");
+		String input = env.get("input");
+		Object result = null;
+		if (wrapper != null || input != null || inputTerm != null)
+		{
+
+			BufferSink buffer = context.makeBuffer();
+
+			if (wrapper != null)
+				buffer.start(wrapper);
+
+			// Parse term (if any)
+			if (inputTerm != null)
+			{
+				inputTerm = inputTerm.trim();
+				if (inputTerm.length() > 0)
+				{
+					char c = inputTerm.charAt(0);
+					if (c == '"')
+					{
+						buffer.literal(StringUtils.unquoteJava(inputTerm));
+					}
+					else if (Character.isDigit(c) || c == '-' || c == '+')
+					{
+						buffer.literal(inputTerm);
+					}
+					else
+					{
+						try (Reader reader = new StringReader(inputTerm))
+						{
+							new CrsxLexer(reader).scanTerm(buffer, reader);
+						}
+						catch (IOException e)
+						{
+							printUsage();
+						}
+					}
+				}
+			}
+			else
+			{
+				// Parse input (if any)
+				if (input != null)
+				{
+					// TODO: parser categories
+					parseTerm(buffer, input);
+				}
+			}
+
+			if (wrapper != null)
+				buffer.end();
+
+			// Normalize!!
+			Term top = buffer.term();
+			result = Normalizer.normalize(context, top);
+		}
+		else
+		{
+			// This is the new way: look for method to invoke.
+			String mainMethod = env.get("main");
+			mainMethod = mainMethod == null ? "Main" : mainMethod;
+			Method main = getMethod(clss, mainMethod);
+
+			try
+			{
+				result = main.invoke(null, context);
+			}
+			catch (Exception e)
+			{
+				fatal("problem occurred while running the TransScript system", e);
+			}
+
+		}
 
 		// initialize output
 		String outputEntry = env.get("output");
@@ -584,7 +626,7 @@ public class Tool
 			try
 			{
 				Sink sink = sinkClss.getConstructor(Context.class, Appendable.class).newInstance(context, output);
-				result.copy(sink, true);
+				((Term) result).copy(sink, true);
 			}
 			catch (Exception e)
 			{

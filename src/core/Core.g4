@@ -29,12 +29,14 @@ cdecl
 cterm
     : CONSTRUCTOR cterms?                                               /* Constant/Construction */
     | METAVAR cterms?                                                   /* Meta variable/substitution */
-    | LSQUARE VARIABLE<boundvar=x> RSQUARE cterm<bound=x>               /* Bound term. 
-                                                                           VARIABLE<boundvar=x> means VARIABLE is a bound variable we call x
-                                                                           cterm<bound=x>       means x is bound in the context of the cterm */
     | cliteral                                                          /* Literal construction */
     | cvariable                                                         /* Variable */
     | LCURLY cmapentries? RCURLY                                        /* Association map */
+
+    // KEEP AT THE 6TH ALTERNATIVE UNTIL METAPARSER GENERATOR PROPERLY HANDLE BOUNDVAR
+    | LSQUARE VARIABLE<boundvar=x> RSQUARE cterm<bound=x>               /* Bound term.
+                                                                           VARIABLE<boundvar=x> means VARIABLE is a bound variable we call x
+                                                                           cterm<bound=x>       means x is bound in the context of the cterm */
     ;
 
 /* TODO: inline when antlr-based meta parser generator support (()*)? */
@@ -45,14 +47,18 @@ cterms
 cliteral
     : STRING                                                    /* String literal */
     | NUMBER                                                    /* Number literal */
-    ; 
+    ;
 
 cvariable
-    : VARIABLE<variable>  /* Variable occurrence */
-                          /* <variable> means 1. maps VARIABLE to a syntactic variable
-                                              2. look for a bound variable that matches VARIABLE 
-                                                 in the current tracked bound variables (innermost scope first). 
+    : VARIABLE<variable> ccast?          /* Variable occurrence */
+                                        /* <variable> means 1. maps VARIABLE to a syntactic variable
+                                              2. look for a bound variable that matches VARIABLE
+                                                 in the current tracked bound variables (innermost scope first).
                                                  VARIABLE is free if not found in scope.  */
+    ;
+
+ccast
+    : COLON csort
     ;
 
 cmapentries
@@ -79,26 +85,26 @@ cmapentry
       i.e. %cdecl⟦ data ##csortvars? ... ⟧ is more convenient to write then
        vs. %cdecl⟦ data ∀ ##VARIABLE . ... ⟧, which is still possible
    2. to have an explicit and descriptive sort and parser category name
-      e.g. 'cdecl : DATA (FORALL VARIABLE+ DOT)?' 
+      e.g. 'cdecl : DATA (FORALL VARIABLE+ DOT)?'
            where '(FORALL VARIABLE+ DOT)?' as an optional group,
-           is automatically transformed into an optional element: "cdecl_S1?". 
+           is automatically transformed into an optional element: "cdecl_S1?".
 */
 csortvars
     : FORALL VARIABLE+ DOT                             /* Sort variables. */
     ;
 
-/* TODO: 
+/* TODO:
    not derivable: data "∀ a . List(a) Cons(a, List(a)) | Nil"
 
-   cdecl  →* DATA FORALL VARIABLE DOT List cforms 
+   cdecl  →* DATA FORALL VARIABLE DOT List cforms
        i) →* DATA FORALL VARIABLE DOT List (a)
-      ii) →* DATA FORALL VARIABLE DOT List (Cons(a,List(a)), Nil)  
+      ii) →* DATA FORALL VARIABLE DOT List (Cons(a,List(a)), Nil)
 */
 
 /*
 TODO:  make change to meta parser to directly support $List(cform) with either
        - (cform (COMMA cform)*)?
-       - (cform (COMMA cform)* | ) 
+       - (cform (COMMA cform)* | )
 */
 cform
     : CONSTRUCTOR csorts?                           /* Construction form */
@@ -111,10 +117,10 @@ cforms
 
 csort
     : CONSTRUCTOR csorts?                           /* Construction sort */
-    | VARIABLE                                      /* Sort variable  */ 
-    | LSQUARE csort RSQUARE csort                   /* Bound variable sort */ 
-    | LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sorts */ 
-    | DATA csort                                    /* Data sort annotation. Indicate value is normalized */ 
+    | VARIABLE                                      /* Sort variable  */
+    | LSQUARE csort RSQUARE csort                   /* Bound variable sort */
+    | LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sorts */
+    | DATA csort                                    /* Data sort annotation. Indicate value is normalized */
     ;
 
 csorts
@@ -124,7 +130,7 @@ csorts
 cmapsort
     : csort COLON csort                            /* Association map sort */
     ;
-    
+
 
 // Lexer rules
 
@@ -145,12 +151,12 @@ LCURLY          : '{';
 RCURLY          : '}';
 LSQUARE         : '[';
 RSQUARE         : ']';
-COMMA           : ',';  
+COMMA           : ',';
 DOT             : '.';
 NOT             : '¬';
 
 // -- Common lexing rules with TransScript.g4.
-//    Cannot extract these rules yet as the antlr meta parser generator does not support modular grammars yet 
+//    Cannot extract these rules yet as the antlr meta parser generator does not support modular grammars yet
 
 CONSTRUCTOR     : StartConstructorChar ConstructorChar* // '$' is for internal use only.
                 | '<' [Other] ConstructorChar*;

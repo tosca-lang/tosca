@@ -615,7 +615,7 @@ LiftEbnfAtom2[Boolean, ANTLR_atom_sort] :: ANTLR_atom_sort;
 
 // Not constant: lift 
 {#E}LiftEbnfAtom2[FALSE, {#L}%atom⟨ #TOKEN_REF #elementOptions? ⟩] 
-→ %atom⟦ ⟨RULE_REF: LiftedRuleNameTokenRef[#TOKEN_REF, NONE]⟩ ⟨elementOptions?: #elementOptions?⟩ ⟧;                  
+→ %atom⟦ ⟨RULE_REF: LiftedRuleNameTokenRef[#TOKEN_REF, NONE]⟩ ⟨elementOptions?: #elementOptions?⟩ ⟧;    
 
 {#E}LiftEbnfAtom2[FALSE, {#L}%atom⟨ #RULE_REF #ARG_ACTION? #elementOptions? ⟩] 
 → %atom⟦ ⟨RULE_REF: LiftedRuleNameRuleRef[#RULE_REF, NONE]⟩ ⟨elementOptions?: #elementOptions?⟩ ⟧;                  
@@ -660,7 +660,7 @@ MakeEbnfElement[ANTLR_element_sort, $List[ANTLR_element_sort],  $List[ANTLR_elem
 
 // labeled suffixed atom: lift
 {#E}MakeEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #atom #ebnfSuffix ⟩, #element*, #fused, ok.#[ok]]
-→ {#E}MakeEbnfAtom[#atom, SOME[#ebnfSuffix], {#L}%element⟦ #id #labeledElement_S1 #atom #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]];
+→ {#E}MakeEbnfAtom[#atom, SOME[#ebnfSuffix], {#L}%element⟦ #id #labeledElement_S1 ⟨atom: TrimEltOptionAtom[#atom]⟩ #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]];
 
 // labeled single trivial (after normalization) block: skip. #fused must be empty (guaranteed by IsFused)
 {#E}MakeEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #block ⟩, #element*, (), ok.#[ok]]   
@@ -672,7 +672,7 @@ MakeEbnfElement[ANTLR_element_sort, $List[ANTLR_element_sort],  $List[ANTLR_elem
 
 // Single atom element: lift to allow metavar. #fused must be empty (guaranteed by IsFused)
 {#E}MakeEbnfElement[{#L}%element⟨ #atom ⟩, #element*, (), ok.#[ok]]                        
-→ {#E}MakeEbnfAtom[#atom, NONE, {#L}%element⟨ #atom ⟩, #element*, (), ok.#[ok]];
+→ {#E}MakeEbnfAtom[#atom, NONE, {#L}%element⟨ ⟨atom: TrimEltOptionAtom[#atom]⟩ ⟩, #element*, (), ok.#[ok]];
 
 // Suffixed atom element: lift
 {#E}MakeEbnfElement[{#L}%element⟨ #atom #ebnfSuffix ⟩, #element*, #fused, ok.#[ok]]                        
@@ -703,7 +703,7 @@ MakeEbnfAtom[ANTLR_atom_sort, Option[ANTLR_ebnfSuffix_sort], ANTLR_element_sort,
 MakeEbnfAtom[{#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧, NONE, #element, #element*, #fused, ok.#[ok]] 
 → {#E}MakeEbnfSingleToken[{#I}IsSugarAtom[{#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧], {#L}%atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, ok.#[ok]];
 
-{#E}MakeEbnfAtom[{#L}%atom⟦ #TOKEN_REF ⟧, SOME[#ebnfSuffix], #element, #element*, #fused, ok.#[ok]] 
+{#E}MakeEbnfAtom[{#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧, SOME[#ebnfSuffix], #element, #element*, #fused, ok.#[ok]] 
 → {#E}MakeLiftedRule[LiftedRuleNameTokenRef[#TOKEN_REF, SOME[#ebnfSuffix]], #element, #element*, #fused, ok.#[ok]];
 
 MakeEbnfSingleToken[Boolean, ANTLR_atom_sort, ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];

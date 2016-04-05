@@ -1,0 +1,12 @@
+// Copyright (c) 2016 IBM Corporation.
+
+// Test syntactic variable substitution - identity function
+
+enum Bool | True | False | allows-variable
+enum NotBool | NotTrue
+
+func Subst([Bool] -> Bool) -> Bool
+rule Subst([bool] -> #(bool)) → #(True)
+
+func Tests -> Bool
+rule Tests → Subst([x] -> x as Bool)
