@@ -18,8 +18,8 @@ import System
 // ===== API
 
 /*
- * Generates Java code from a sorted core Crsx system
- * @param System The crsx system
+ * Generates Java code from Core TransScript
+ * @param System The TransScript system
  */
 func TransScriptToJava(System) -> Text
 rule TransScriptToJava(System(#url, #modules))
@@ -46,9 +46,11 @@ import org.transscript.runtime.v2.Term;
 import org.transscript.runtime.v2.Variable;
 import org.transscript.runtime.v2.VariableUse;
 import org.transscript.runtime.v2.LazyTerm;
+import org.transscript.runtime.v2.StringTerm;
 import static org.transscript.runtime.v2.Term.force;
 import static org.transscript.runtime.v2.Term.subst;
-import static org.transscript.runtime.v2.Term.box;
+import static org.transscript.runtime.v2.StringTerm.newLazyStringTerm;
+import static org.transscript.runtime.v2.StringTerm.newStringTerm;
 
 ⟨TextFold(Map([x] -> JavaUnit(#url, x), #modules), text⟦⟧)⟩
 ⟧
@@ -224,6 +226,9 @@ func FormToImplValue(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
 
           ⟨MaybeSortsToGetValue(#csorts?)⟩
           ⟨MaybeSortsToGetSubs(#csorts?)⟩
+          ⟨MaybeSortsToSetSubs(#csorts?)⟩
+          ⟨MaybeSortsToGetBinder(#csorts?)⟩
+          ⟨MaybeSortsToSetBinder(#csorts?)⟩
 
       }⟧
 
@@ -235,6 +240,12 @@ func FormToImplValue(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
         {
           super(var);
         }
+
+        @Override
+		    public Term copy(Context c)
+	    	{
+		      return new Var⟨ToJavaClassName(#typename)⟩(variable);
+		    }
     }⟧
 
 //--- Default empty constructor
@@ -245,7 +256,6 @@ func MaybeSortsToDefaultConstructor(List<Core_csorts_sort>, Text) -> Text
 
   rule MaybeSortsToDefaultConstructor(csorts?⟦ ( ##csort*) ⟧, #classname)
   → text⟦private ⟨#classname⟩() {}⟧
-
 
 //--- Class fields
 
@@ -267,7 +277,7 @@ func SortsToClassFields(List<Core_csort_sort>, Numeric) -> Text
 
 func SortToClassFields(List<Text>, eager Numeric, eager Numeric) -> Text
   rule SortToClassFields(Cons(#type, Nil), #index, #subindex)
-  → text⟦⟨#type⟩ field⟨FieldSuffix(#index, #subindex)⟩;⟧
+  → text⟦⟨#type⟩ field⟨FieldSuffix(#index)⟩;⟧
 
   rule SortToClassFields(Cons(#type, #types), #index, #subindex)
   → text⟦
@@ -292,40 +302,169 @@ func SortsToInitFields(List<Core_csort_sort>, Numeric) -> Text
 
 func SortToInitFields(List<Text>, eager Numeric, eager Numeric) -> Text
   rule SortToInitFields(Cons(#type, Nil), #index, #subindex)
-  → text⟦this.field⟨FieldSuffix(#index, #subindex)⟩ = param⟨FieldSuffix(#index, #subindex)⟩;⟧
+  → text⟦this.field⟨FieldSuffix(#index)⟩ = param⟨FieldSuffix(#index)⟩;⟧
 
   rule SortToInitFields(Cons(#type, #types), #index, #subindex)
   → text⟦this.var⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩ = param⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩; ⟨SortToInitFields(#types, #index, Plus(#subindex, 1))⟩⟧
 
-
-// --- GetSub function
+// --- sub function
 
 func MaybeSortsToGetSubs(List<Core_csorts_sort>) -> Text
   rule MaybeSortsToGetSubs(csorts?⟦⟧)
   → text⟦⟧
 
   rule MaybeSortsToGetSubs(csorts?⟦ ( ##csort* ) ⟧)
-  → text⟦public Term sub(int i) {
-           switch (i) {
-             ⟨SortsToGetSubs(#csort*, 1)⟩
-             default: return null;
-           }
-         }⟧
+  → text⟦
+      @Override
+      public Term sub(int i) {
+       switch (i) {
+         ⟨SortsToGetSubs(#csort*, 0)⟩
+         default: return null;
+        }
+      }⟧
 
 func SortsToGetSubs(List<Core_csort_sort>, Numeric) -> Text
   rule SortsToGetSubs(csort*⟦⟧, #index)
   → text⟦⟧
 
   rule SortsToGetSubs(csort*⟦ ##csort ##csort* ⟧, #index)
-  → text⟦⟨SortToGetSubs(SortToTypes(#csort), IsPrimitiveType(#csort), #index, 1)⟩⟨SortsToGetSubs(#csort*, Plus(#index, 1))⟩⟧
+  → text⟦⟨SortToGetSubs(SortToTypes(#csort), #index, 0)⟩⟨SortsToGetSubs(#csort*, Plus(#index, 1))⟩⟧
 
-func SortToGetSubs(List<Text>, Boolean, eager Numeric, eager Numeric) -> Text
+func SortToGetSubs(List<Text>, eager Numeric, eager Numeric) -> Text
 
-  rule SortToGetSubs(Cons(#type, Nil), #isPrimitiveType, #index, #subindex)
-  → text⟦case ⟨NumberToText(#index)⟩: return ⟨MayBox(#isPrimitiveType, text⟦field⟨FieldSuffix(#index, #subindex)⟩⟧)⟩;⟧
+  rule SortToGetSubs(Cons(#type, Nil), #index, #subindex)
+  → text⟦case ⟨NumberToText(#index)⟩: return field⟨FieldSuffix(Plus(#index, 1))⟩;⟧
 
-  rule SortToGetSubs(Cons(#type, #types), #isPrimitiveType, #index, #subindex)
-  → SortToGetSubs(#types, #isPrimitiveType, #index, Plus(#subindex, 1))
+  rule SortToGetSubs(Cons(#type, #types), #index, #subindex)
+  → SortToGetSubs(#types, #index, Plus(#subindex, 1))
+
+// --- SetSub function
+
+func MaybeSortsToSetSubs(List<Core_csorts_sort>) -> Text
+  rule MaybeSortsToSetSubs(csorts?⟦⟧)
+  → text⟦⟧
+
+  rule MaybeSortsToSetSubs(csorts?⟦ ( ##csort* ) ⟧)
+  → text⟦
+      @Override
+      public void setSub(int i, Term sub) {
+        switch (i) {
+             ⟨SortsToSetSubs(#csort*, 0)⟩
+             default: throw new IndexOutOfBoundsException();
+           }
+         }⟧
+
+func SortsToSetSubs(List<Core_csort_sort>, Numeric) -> Text
+  rule SortsToSetSubs(csort*⟦⟧, #index)
+  → text⟦⟧
+
+  rule SortsToSetSubs(csort*⟦ ##csort ##csort* ⟧, #index)
+  → text⟦⟨SortToSetSubs(SortToTypes(#csort), #index, 0)⟩⟨SortsToSetSubs(#csort*, Plus(#index, 1))⟩⟧
+
+func SortToSetSubs(List<Text>, eager Numeric, eager Numeric) -> Text
+
+  rule SortToSetSubs(Cons(#type, Nil), #index, #subindex)
+  → text⟦
+      case ⟨NumberToText(#index)⟩:
+        field⟨FieldSuffix(Plus(#index, 1))⟩ = (⟨#type⟩) sub;
+        break;⟧
+
+  rule SortToSetSubs(Cons(#type, #types), #index, #subindex)
+  → SortToSetSubs(#types, #index, Plus(#subindex, 1))
+
+// --- binder function
+
+func MaybeSortsToGetBinder(List<Core_csorts_sort>) -> Text
+  rule MaybeSortsToGetBinder(csorts?⟦⟧)
+  → text⟦⟧
+
+  rule MaybeSortsToGetBinder(csorts?⟦ ( ##csort* ) ⟧)
+  → If(HasBinders(#csort*),
+      text⟦
+        @Override
+        public Variable binder(int i, int j) {
+          switch (i) {
+            ⟨SortsToGetBinder(#csort*, 0)⟩
+            default: return null;
+          }
+        }⟧,
+      text⟦⟧)
+
+func SortsToGetBinder(List<Core_csort_sort>, Numeric) -> Text
+  rule SortsToGetBinder(csort*⟦⟧, #index)
+  → text⟦⟧
+
+  rule SortsToGetBinder(csort*⟦ ##csort ##csort* ⟧, #index)
+  → text⟦
+      ⟨If(HasBindersSort(#csort),
+        text⟦
+          case ⟨NumberToText(#index)⟩: {
+            switch (j) {
+              ⟨SortToGetBinder(SortToTypes(#csort), #index, 0)⟩
+              default: return null;
+            }
+          }⟧,
+        text⟦⟧)⟩
+      ⟨SortsToGetBinder(#csort*, Plus(#index, 1))⟩⟧
+
+func SortToGetBinder(List<Text>, eager Numeric, eager Numeric) -> Text
+
+  rule SortToGetBinder(Cons(#type, Nil), #index, #subindex)
+  → text⟦⟧
+
+  rule SortToGetBinder(Cons(#type, #types), #index, #subindex)
+  → text⟦
+      case ⟨NumberToText(#subindex)⟩: return var⟨NumberToText(Plus(#index, 1))⟩_⟨NumberToText(Plus(#subindex, 1))⟩;
+      ⟨SortToGetBinder(#types, #index, Plus(#subindex, 1))⟩⟧
+
+// --- setBinder function
+
+func MaybeSortsToSetBinder(List<Core_csorts_sort>) -> Text
+  rule MaybeSortsToSetBinder(csorts?⟦⟧)
+  → text⟦⟧
+
+  rule MaybeSortsToSetBinder(csorts?⟦ ( ##csort* ) ⟧)
+  → If(HasBinders(#csort*),
+      text⟦
+        @Override
+        public void setBinder(int i, int j, Variable var) {
+         switch (i) {
+           ⟨SortsToSetBinder(#csort*, 0)⟩
+           default: throw new IndexOutOfBoundsException();
+          }
+        }⟧,
+      text⟦⟧)
+
+func SortsToSetBinder(List<Core_csort_sort>, Numeric) -> Text
+  rule SortsToSetBinder(csort*⟦⟧, #index)
+  → text⟦⟧
+
+  rule SortsToSetBinder(csort*⟦ ##csort ##csort* ⟧, #index)
+  → text⟦
+      ⟨If(HasBindersSort(#csort),
+        text⟦
+          case ⟨NumberToText(#index)⟩: {
+            switch (j) {
+              ⟨SortToSetBinder(SortToTypes(#csort), #index, 0)⟩
+              default: throw new IndexOutOfBoundsException();
+            }
+            break;
+          }⟧,
+        text⟦⟧)⟩
+      ⟨SortsToSetBinder(#csort*, Plus(#index, 1))⟩⟧
+
+func SortToSetBinder(List<Text>, eager Numeric, eager Numeric) -> Text
+
+  rule SortToSetBinder(Cons(#type, Nil), #index, #subindex)
+  → text⟦⟧
+
+  rule SortToSetBinder(Cons(#type, #types), #index, #subindex)
+  → text⟦
+      case ⟨NumberToText(#subindex)⟩:
+        var⟨NumberToText(Plus(#index, 1))⟩_⟨NumberToText(Plus(#subindex, 1))⟩ = var;
+        break;
+      ⟨SortToSetBinder(#types, #index, Plus(#subindex, 1))⟩⟧
+
 
 //--- Sort to formal parameters
 
@@ -345,7 +484,7 @@ func SortsToFormalParams(List<Core_csort_sort>, Numeric, Text) -> Text
 
 func SortToFormalParams(List<Text>, Numeric, Numeric) -> Text
   rule SortToFormalParams(Cons(#type, Nil), #index, #subindex)
-  → text⟦⟨#type⟩ param⟨FieldSuffix(#index, #subindex)⟩⟧
+  → text⟦⟨#type⟩ param⟨FieldSuffix(#index)⟩⟧
 
   rule SortToFormalParams(Cons(#type, #types), #index, #subindex)
   → text⟦⟨#type⟩ param⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩, ⟨SortToFormalParams(#types, #index, Plus(#subindex, 1))⟩⟧
@@ -368,7 +507,7 @@ func SortsToArgs(List<Core_csort_sort>, Numeric, Text) -> Text
 
 func SortToArgs(List<Text>, Numeric, Numeric) -> Text
   rule SortToArgs(Cons(#type, Nil), #index, #subindex)
-  → text⟦param⟨FieldSuffix(#index, #subindex)⟩⟧
+  → text⟦param⟨FieldSuffix(#index)⟩⟧
 
   rule SortToArgs(Cons(#type, #types), #index, #subindex)
   → text⟦param⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩, ⟨SortToArgs(#types, #index, Plus(#subindex, 1))⟩⟧
@@ -382,7 +521,7 @@ func MaybeSortsToGetValueSig(List<Core_csorts_sort>) -> Text
   rule MaybeSortsToGetValueSig(csorts?⟦ ( ##csort* ) ⟧)
   → SortsToGetValueSig(#csort*, 1)
 
-func SortsToGetValueSig(List<Core_csorts_sort>, eager Numeric) -> Text
+func SortsToGetValueSig(List<Core_csort_sort>, eager Numeric) -> Text
   rule SortsToGetValueSig(csort*⟦⟧, #index)
   → text⟦⟧
 
@@ -391,7 +530,7 @@ func SortsToGetValueSig(List<Core_csorts_sort>, eager Numeric) -> Text
 
 func SortToGetValueSig(List<Text>, eager Numeric, eager Numeric) -> Text
   rule SortToGetValueSig(Cons(#type, Nil), #index, #subindex)
-  → text⟦public ⟨#type⟩ getField⟨FieldSuffix(#index, #subindex)⟩();⟧
+  → text⟦public ⟨#type⟩ getField⟨FieldSuffix(#index)⟩();⟧
 
   rule SortToGetValueSig(Cons(#type, #types), #index, #subindex)
   → text⟦public ⟨#type⟩ getVar⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩();
@@ -416,8 +555,8 @@ func SortsToGetValue(List<Core_csorts_sort>, eager Numeric) -> Text
 func SortToGetValue(List<Text>, eager Numeric, eager Numeric) -> Text
   rule SortToGetValue(Cons(#type, Nil), #index, #subindex)
   → text⟦@Override
-         public ⟨#type⟩ getField⟨FieldSuffix(#index, #subindex)⟩() {
-            return field⟨FieldSuffix(#index, #subindex)⟩;
+         public ⟨#type⟩ getField⟨FieldSuffix(#index)⟩() {
+            return field⟨FieldSuffix(#index)⟩;
          }⟧
 
   rule SortToGetValue(Cons(#type, #types), #index, #subindex)
@@ -429,37 +568,39 @@ func SortToGetValue(List<Text>, eager Numeric, eager Numeric) -> Text
 
 //--- Helpers
 
-func FieldSuffix(Numeric, Numeric) -> Text
-  rule FieldSuffix(#index, #subindex)
-  → text⟦⟨NumberToText(#index)⟩⟨If( NumberEqual(#subindex, 1), text⟦⟧, text⟦_⟨NumberToText(#subindex)⟩⟧ )⟩⟧
-
+func FieldSuffix(Numeric) -> Text
+  rule FieldSuffix(#index)
+  → NumberToText(#index)
 
 func MaybeSortsCount(List<Core_csorts_sort>) -> Numeric
   rule MaybeSortsCount(csorts?⟦⟧)             → 0
   rule MaybeSortsCount(csorts?⟦ (##csort*) ⟧) → ListLength(#csort*)
 
-//--- Box primitive values
+/** whether list of sorts has at least one binders */
+func HasBinders(List<Core_csort_sort>) -> Boolean
+  rule HasBinders(csort*⟦⟧) → FALSE
+  rule HasBinders(csort*⟦ ##csort ##csort* ⟧)
+  → Or(HasBindersSort(#csort), HasBinders(#csort*))
 
-func MayBox(Boolean, Text) -> Text
-  rule MayBox(TRUE, #value)
-  → text⟦box(⟨#value⟩)⟧
-
-  rule MayBox(FALSE, #value)
-  → #value
-
-func IsPrimitiveType(Core_csort_sort) -> Boolean
-
-  rule IsPrimitiveType(csort⟦ ##CONSTRUCTOR ##csorts? ⟧)
-  → If (StringEqual(#CONSTRUCTOR, "String"), TRUE, FALSE)
-
-  rule IsPrimitiveType(csort⟦ ##VARIABLE ⟧)
+func HasBindersSort(Core_csort_sort) -> Boolean
+  rule HasBindersSort(csort⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → FALSE
 
-  rule IsPrimitiveType(csort⟦ [ ##csort ] ##csort2 ⟧)
-  → IsPrimitiveType(#csort2)
+  rule HasBindersSort(csort⟦ ##VARIABLE ⟧)
+  → FALSE
 
-  rule IsPrimitiveType(csort⟦ data ##csort ⟧)
-  → IsPrimitiveType(#csort)
+  rule HasBindersSort(csort⟦ [ ##csort ] ##csort2 ⟧)
+  → TRUE
+
+  rule HasBindersSort(csort⟦ data ##csort ⟧)
+  → HasBindersSort(#csort)
+
+
+//--- Rename builtin types to avoid conflict with Java types
+
+func FixupPrimitiveType(String) -> String
+rule FixupPrimitiveType(#typename)
+→ If (StringEqual(#typename, "String"), "StringTerm", #typename)
 
 //--- Find form in sort
 
@@ -492,7 +633,7 @@ func MaybeSortsToTypeParams(List<Core_csorts_sort>) -> Text
 
 func SortToTypes(Core_csort_sort) -> List<Text>
   rule SortToTypes(csort⟦ ##CONSTRUCTOR ##csorts? ⟧)
-  → Cons(text⟦⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨MaybeSortsToTypeParams(#csorts?)⟩⟧, Nil)
+  → Cons(text⟦⟨ToJavaClassName(FixupPrimitiveType(#CONSTRUCTOR))⟩⟨MaybeSortsToTypeParams(#csorts?)⟩⟧, Nil)
 
   rule SortToTypes(csort⟦ ##VARIABLE ⟧)
   → Cons(text⟦⟨ToJavaTypeParameter(#VARIABLE)⟩⟧, Nil)
@@ -665,7 +806,6 @@ if (⟨value⟩ == null)
   break ⟨GetLabel(#env)⟩;
 }⟨JavaPatternMaybeSubs(#env, #cterms?, value, FindForm(UnSOME(MapGet(GetDataSorts(#env), #CONSTRUCTOR2)), #CONSTRUCTOR), [x] -> #(x))⟩⟧
 
-// TODO:
 rule JavaPatternTerm(#env, cterm⟦ ##cliteral ⟧, #term, #csort, #storage, [env]->#(env))
 → #(#env)
 
@@ -673,10 +813,11 @@ rule JavaPatternTerm(#env, cterm⟦ ##cliteral ⟧, #term, #csort, #storage, [en
 // For now only accepts patterns of the form (x)...(y)#(x, ... y)
 rule JavaPatternTerm(#env, cterm⟦ ##METAVAR ##cterms? ⟧, #term, #csort, #storage, [env]->#(env))
 → text⟦
-/* ⟨Text-CommentToken(#METAVAR)⟩=⟨Text-CommentToken(Show(#term))⟩ */⟨JavaPatternMaybeMetaArgs(#env, #METAVAR, #cterms?, #term, #csort, [x] -> #(x))⟩⟧
+/* ⟨Text-CommentToken(#METAVAR)⟩=⟨Text-CommentToken(Show(#term))⟩ */
+⟨JavaPatternMaybeMetaArgs(#env, #METAVAR, #cterms?, #term, #csort, [x] -> #(x))⟩⟧
 
 rule JavaPatternTerm(#env, cterm⟦ ##VARIABLE ⟧, #term, #csort, #storage, [env]->#(env))
-→ JavaPatternVariable(MaybeGetVar(#env, #VARIABLE), #env, #VARIABLE, #term, #csort, [env]->#(env))
+→ JavaPatternVariable(MaybeGetVar(#env, #VARIABLE), #env, #VARIABLE, #term, [env]->#(env))
 
 rule JavaPatternTerm(#env, Core_cterm_A6([x] -> #cterm(x)), #term, #csort, PARAMETER, [env]->#(env))
 //rule JavaPatternTerm(#env, cterm⟦ [ ##VARIABLE ] ##cterm ⟧, #term, PARAMETER, [env]->#(env))
@@ -685,8 +826,8 @@ rule JavaPatternTerm(#env, Core_cterm_A6([x] -> #cterm(x)), #term, #csort, PARAM
 rule JavaPatternTerm(#env, Core_cterm_A6([x] -> #cterm(x)), #term,  #csort, ARGUMENT, [env]->#(env))
 //rule JavaPatternTerm(#env, cterm⟦ [ ##VARIABLE ] ##cterm ⟧, #term, ARGUMENT, [env]->#(env))
 → text⟦
-Variable ⟨boundvar⟩ = ⟨GetParent(#env)⟩.binders(⟨GetSubIndex(#env)⟩)[⟨Text-Integer(GetSubBinderIndex(#env))⟩];⟨
-  JavaPatternTerm(IncSubBinderIndex(AddVar(#env, var, Bound(boundvar))), #cterm(var), #term, ARGUMENT, [x]->#(x))⟩⟧
+  Variable ⟨boundvar⟩ = ⟨GetParent(#env)⟩.getVar⟨NumberToText(GetSubIndex(#env))⟩_⟨NumberToText(GetSubBinderIndex(#env))⟩();⟨
+  JavaPatternTerm(IncSubBinderIndex(AddVar(#env, var, Bound(boundvar))), #cterm(var), #term, #csort, ARGUMENT, [env]->#(env))⟩⟧
 
 // Pattern matching on construction arguments.
 func JavaPatternMaybeSubs(eager {String : JavaEnvEntry}, List<Core_cterms_sort>, Text, Core_cform_sort, [{String : JavaEnvEntry}] -> Text) -> Text
@@ -705,8 +846,8 @@ rule JavaPatternSubs(#env, cterm*⟦⟧, #csort*, #term, #index, [env]->#(env))
 
 rule JavaPatternSubs(#env, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦ ##csort ##csort* ⟧, #term, #index, [env]->#(env))
 → text⟦
-⟨Head(SortToTypes(#csort))⟩ ⟨sub⟩ = ⟨#term⟩.getField⟨FieldSuffix(#index, 1)⟩();⟨
-  JavaPatternTerm(SetSubBinderIndex(SetParent(SetSubIndex(#env, Text-Integer(#index)), #term), 0),
+  ⟨Last(SortToTypes(#csort))⟩ ⟨sub⟩ = ⟨#term⟩.getField⟨FieldSuffix(#index)⟩();⟨
+  JavaPatternTerm(SetSubBinderIndex(SetParent(SetSubIndex(#env, #index), #term), 1),
                   #cterm, sub, #csort, ARGUMENT,
                   [x] -> JavaPatternSubs(x, #cterm*, #csort*, #term, NumberPlus(#index, 1), [x] -> #(x)))⟩⟧
 
@@ -777,7 +918,8 @@ func JavaFreshesTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, [{String : 
   → JavaFreshesMaybeTerms(#env, #cterms?, [env] -> #(env))
 
   rule JavaFreshesTerm(#env, Core_cterm_A6([x] -> #cterm(x)), [env] -> #(env))
-  → text⟦Variable fresh⟨NumberToText(GetCounter(#env))⟩ = context.makeRefVariable("x");⟨JavaFreshesTerm(IncCounter(#env), #cterm(var), [env] -> #(env))⟩⟧
+  → text⟦
+  Variable fresh⟨NumberToText(GetCounter(#env))⟩ = context.makeRefVariable("x");⟨JavaFreshesTerm(IncCounter(#env), #cterm(var), [env] -> #(env))⟩⟧
 
 func JavaFreshesMaybeTerms(eager {String : JavaEnvEntry}, List<Core_cterms_sort>, [{String : JavaEnvEntry}] -> Text) -> Text
   rule JavaFreshesMaybeTerms(#env, cterms?⟦⟧, [env] -> #(env))
@@ -801,21 +943,25 @@ func JavaExprTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, [{String : Jav
   → JavaExprConstruction(#env, #CONSTRUCTOR, #cterms?, [env] -> #(env))
 
   rule JavaExprTerm(#env, cterm⟦ ##cliteral ⟧, [env] -> #(env))
-  → text⟦⟨Literal(#cliteral)⟩⟨#(#env)⟩⟧
+  → text⟦
+  ⟨Literal(#cliteral)⟩⟨#(#env)⟩⟧
 
   rule JavaExprTerm(#env, cterm⟦ ##VARIABLE ⟧, [env] -> #(env))
-  → text⟦new VariableUse(⟨GetVar(#env, #VARIABLE)⟩)⟨#(#env)⟩⟧
+  → text⟦
+  new VariableUse(⟨GetVar(#env, #VARIABLE)⟩)⟨#(#env)⟩⟧
 
   // TODO: robustness
   rule JavaExprTerm(#env, cterm⟦ ##VARIABLE : ##csort ⟧, [env] -> #(env))
-  → text⟦newVar⟨Head(SortToTypes(#csort))⟩(⟨GetVar(#env, #VARIABLE)⟩)⟨#(#env)⟩⟧
+  → text⟦
+  newVar⟨Head(SortToTypes(#csort))⟩(⟨GetVar(#env, #VARIABLE)⟩)⟨#(#env)⟩⟧
 
   rule JavaExprTerm(#env, cterm⟦ ##METAVAR ##cterms? ⟧, [env] -> #(env))
   → JavaExprMeta(#env, #METAVAR, #cterms?, [env] -> #(env))
 
 //rule JavaEvalTerm(#env, cterm⟦ [ ##VARIABLE ] ##cterm ⟧, [env]->#(env))
    rule JavaExprTerm(#env, Core_cterm_A6([x] -> #cterm(x)), [env] -> #(env))
-  → text⟦fresh⟨NumberToText(GetCounter(#env))⟩, ⟨JavaExprTerm(AddVar(IncCounter(#env), var, Fresh(text⟦fresh⟨NumberToText(GetCounter(#env))⟩⟧)), #cterm(var), [env] -> #(env))⟩⟧
+  → text⟦
+  fresh⟨NumberToText(GetCounter(#env))⟩, ⟨JavaExprTerm(AddVar(IncCounter(#env), var, Fresh(text⟦fresh⟨NumberToText(GetCounter(#env))⟩⟧)), #cterm(var), [env] -> #(env))⟩⟧
 
 // ---- construction expression
 
@@ -823,8 +969,10 @@ func JavaExprConstruction(eager {String : JavaEnvEntry}, String, List<Core_cterm
 
 rule JavaExprConstruction(#env, #constructor, #cterms?, [env] -> #(env))
 → If( IsFuncSort(#env, #constructor),
-    text⟦⟨ToJavaClassName(#constructor)⟩(context, ⟨JavaExprMaybeTerms(#env, #cterms?, [env] -> #(env))⟩⟧,
-    text⟦new⟨ToJavaClassName(#constructor)⟩(⟨JavaExprMaybeTerms(#env, #cterms?, [env] -> #(env))⟩⟧)
+    text⟦
+    ⟨ToJavaClassName(#constructor)⟩(context, ⟨JavaExprMaybeTerms(#env, #cterms?, [env] -> #(env))⟩⟧,
+    text⟦
+    new⟨ToJavaClassName(#constructor)⟩(⟨JavaExprMaybeTerms(#env, #cterms?, [env] -> #(env))⟩⟧)
 
 func JavaExprMaybeTerms(eager {String : JavaEnvEntry}, List<Core_cterms_sort>, [{String : JavaEnvEntry}] -> Text) -> Text
   rule JavaExprMaybeTerms(#env, cterms?⟦⟧, [env] -> #(env))
@@ -972,7 +1120,7 @@ rule Descriptor(#constructor) → ToJavaIdString(#constructor)
 
 // Print literal as a java string
 func Literal(Core_cliteral_sort) -> Text
-rule Literal(cliteral⟦ ##STRING ⟧) → StringToText(ConcatString("\"", ConcatString(#STRING, "\"")))
+rule Literal(cliteral⟦ ##STRING ⟧) → text⟦newStringTerm(⟨Text-QuoteEscape(#STRING)⟩)⟧
 rule Literal(cliteral⟦ ##NUMBER ⟧) → StringToText(#NUMBER)
 
 // Convert constructor to legal Java ID
@@ -1168,12 +1316,12 @@ rule SetParent(#env, #parent)
 
 // --- sub index
 
-func GetSubIndex(eager {String : JavaEnvEntry}) -> Text
-rule GetSubIndex(#env) → GetValue(#env, "subindex", [x] -> UnText(x))
+func GetSubIndex(eager {String : JavaEnvEntry}) -> Numeric
+rule GetSubIndex(#env) → GetValue(#env, "subindex", [x] -> UnNum(x))
 
-func SetSubIndex(eager {String : JavaEnvEntry}, Text) -> {String : JavaEnvEntry}
-rule SetSubIndex(#env, #parent)
-→ SetValue(#env, "subindex", EText(#parent))
+func SetSubIndex(eager {String : JavaEnvEntry}, Numeric) -> {String : JavaEnvEntry}
+rule SetSubIndex(#env, #index)
+→ SetValue(#env, "subindex", ENum(#index))
 
 // --- sub binder index
 

@@ -4,7 +4,7 @@ package org.transscript.runtime.v2;
 
 import java.util.Map;
 
-import org.transscript.runtime.Context; 
+import org.transscript.runtime.Context;
 
 /**
  * A generic variable use.
@@ -35,9 +35,9 @@ public class VariableUse implements Term
 	@Override
 	public Term copy(Context c)
 	{
-		return variable.use();
+		return new VariableUse(variable);
 	}
-	
+
 	@Override
 	public Term substitute(Context c, Map<Variable, Term> substitutes)
 	{
@@ -45,6 +45,15 @@ public class VariableUse implements Term
 		if (substitute != null)
 		{
 			release();
+
+			if (substitute instanceof VariableUse)
+			{
+				// Replacing variable use by another variable use. Make sure it's the right type!
+				VariableUse copy = (VariableUse) copy(c);
+				copy.variable = ((VariableUse) substitute).variable;
+				return copy;
+			}
+			
 			return substitute.ref();
 		}
 

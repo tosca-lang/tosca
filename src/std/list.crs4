@@ -53,7 +53,15 @@ func Head(List<a>) -> a
 rule Head(()        ) → Error("Head of empty list")
 rule Head(Cons(#, #s)) → #
 
-// Tail for the list
+
+/* @return last item of the list */
+func Last(List<a>) -> a
+rule Last(()        )   → Error("Last of empty list")
+rule Last(Cons(#, Nil)) → #
+rule Last(Cons(#, #s))  → Last(#s)
+
+
+/* @return Tail of the list */
 func Tail<a>(List<a>) -> List<a>
 rule Tail(()        ) → Error("Tail of empty list")
 rule Tail(Cons(#, #s)) → #s

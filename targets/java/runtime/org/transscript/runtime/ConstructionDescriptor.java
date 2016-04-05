@@ -395,6 +395,7 @@ public interface ConstructionDescriptor
 			}
 			catch (Exception e)
 			{
+				System.err.println("error while calling " + method.getName());
 				throw new RuntimeException(e);
 			}
 

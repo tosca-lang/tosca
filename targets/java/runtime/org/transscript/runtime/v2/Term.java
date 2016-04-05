@@ -14,15 +14,7 @@ import org.transscript.runtime.Context;
  */
 public interface Term extends Ref
 {
-	/**
-	 * Box primitive string value
-	 */
-	static Term box(String value)
-	{
-		return new StringLiteral(value);
-	}
-
-	
+	 
 	@Override
 	default Term ref()
 	{

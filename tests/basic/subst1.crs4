@@ -1,12 +1,16 @@
 // Copyright (c) 2016 IBM Corporation.
 
-// Test syntactic variable substitution - identity function
+// Test syntactic variable substitution
 
-enum Bool | True | False | allows-variable
-enum NotBool | NotTrue
+enum Expr
+    | Let(Expr, [Expr] -> Expr)
+    | Str(String)
+    | allows-variable
 
-func Subst([Bool] -> Bool) -> Bool
-rule Subst([bool] -> #(bool)) → #(True)
+func EvalExpr(Expr) -> String
+rule EvalExpr(Let(#expr1, [x] -> #expr2(x))) → EvalExpr(#expr2(#expr1))
+rule EvalExpr(Str(#)) → #
 
-func Tests -> Bool
-rule Tests → Subst([x] -> x as Bool)
+func Tests -> String
+rule Tests → EvalExpr(
+  Let(Str("val1"), [v] -> Let(Str("val2"), [v2] -> v2 as Expr)))

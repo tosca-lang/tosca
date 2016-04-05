@@ -27,6 +27,7 @@ public abstract class LazyTerm<T extends Term> implements Term
 
 	protected LazyTerm(T value)
 	{
+		assert value != null;
 		this.value = value;
 	}
 	
