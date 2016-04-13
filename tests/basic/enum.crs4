@@ -6,8 +6,19 @@ enum Bool | True | False
 /* Enum with parameters */
 enum Option | None | Some(Bool)
 
-/* Polymorphic */
-enum BTree<a> | Node(BTree<a>, BTree<a>) | Leaf(a) 
+/* Simple polymorphism */
+enum BTree<a> | Node(BTree<a>, BTree<a>) | Leaf(a)
+
+/* Complex polymorphism */
+enum Sort1<a b>
+  | Enum1(a, [String b] -> b) // Syntactic variable
+  | Enum2( (b String) -> BTree<Option> ) // Formal parmeters
+  | Enum3( [String b] (b String) -> BTree<Option> ) // Mixing syntactic variables and formal parameters
+  | Enum4( [ (b String) -> BTree<Option> ] -> String ) // Higher-order syntactic variables
+
+// Not allowed (never):
+//  | Enum5( [ [b String] -> BTree<Option> ] -> String )
+
 
 func Tests -> Bool
 rule Tests → True

@@ -3,10 +3,13 @@
 package org.transscript.runtime;
 
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
- * Base class for all boxed TransScript entities
+ * Base class for generic term representation
+ * 
+ * TODO: Merge with v2
  * 
  * @author Lionel Villard
  */
@@ -146,13 +149,14 @@ public abstract class Term extends Reference
 	{
 		throw new IndexOutOfBoundsException();
 	}
-	
+
 	/**
 	 * Peek at the ith sub, which might be a {@link Term} or a primitive value
 	 * 
 	 * @param i
 	 * @return a value. Does not create a new reference when the value is a term
 	 * @throws IndexOutOfBoundsException when no sub at the given index
+	 * @deprecated
 	 */
 	protected Object unboxSub(int i)
 	{
@@ -176,17 +180,30 @@ public abstract class Term extends Reference
 	}
 
 	/**
+	 * Replace the ith argument term
+	 * <p>Only valid on meta-application
+	 * @param i the sub index
+	 * @param term the term. 
+	 * @throws IndexOutOfBoundsException   when no subterm at the given index
+	 */
+	public void setArg(int subindex, Term sub)
+	{
+		throw new IndexOutOfBoundsException();
+	}
+
+	/**
 	 * Replace the ith sub.
 	 * 
 	 * @param i      the sub index
 	 * @param value  the value. If it's a {@link Term}, the reference is transferred.
 	 * @throws IndexOutOfBoundsException when no sub at the given index
+	 * @deprecated
 	 */
 	protected void setUnboxSub(int i, Object term)
 	{
 		throw new IndexOutOfBoundsException();
 	}
-	
+
 	/**
 	 * @return the term arity
 	 */
@@ -220,7 +237,32 @@ public abstract class Term extends Reference
 	{
 		throw new RuntimeException("Invalid call to binders(int i) on a non-construction term");
 	}
-	
+
+	/**
+	 * Get formal params of the ith subterm.
+	 * 
+	 * @param index
+	 * 
+	 * @return a list of binders.
+	 * @throws IndexOutOfBoundsException
+	 *             if no subterm at the given index
+	 */
+	public List<Variable> params(int i)
+	{
+		throw new RuntimeException("Invalid call to params(int i) on a non-construction term");
+	}
+
+	/**
+	 * Add formal parameter to ith subterm.
+	 * 
+	 * @param i subterm index
+	 * @throws IndexOutOfBoundsException if no subterm at the given index
+	 */
+	public void addParam(int i, Variable param)
+	{
+		throw new RuntimeException("Invalid call to addParam on a non-construction term");
+	}
+
 	/**
 	 * Deep copy this term to a sink 
 	 *
@@ -228,7 +270,7 @@ public abstract class Term extends Reference
 	 * @param discard whether to discard this term
 	 */
 	public abstract void copy(Sink sink, boolean discard);
-	
+
 	/**
 	 * Apply substitution on this term and send result to sink
 	 * 
@@ -278,7 +320,7 @@ public abstract class Term extends Reference
 	 * @param substitutes
 	 * @return a lone substituted term reference .
 	 */
-    public Term substitute(Context context, Map<Variable, Term> substitutes)
+	public Term substitute(Context context, Map<Variable, Term> substitutes)
 	{
 		//TODO: in place update
 
@@ -320,4 +362,5 @@ public abstract class Term extends Reference
 	protected abstract boolean deepEquals(Term other, Map<Variable, Variable> renamings);
 
 	public abstract String toString4();
+
 }

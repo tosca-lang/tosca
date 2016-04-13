@@ -13,14 +13,17 @@ import java.util.Optional;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.transscript.compiler.std.List;
+import org.transscript.parser.TransScriptMetaParser.ApplyContext;
 import org.transscript.parser.TransScriptMetaParser.BindersContext;
 import org.transscript.parser.TransScriptMetaParser.ConcreteContext;
 import org.transscript.parser.TransScriptMetaParser.ConsContext;
+import org.transscript.parser.TransScriptMetaParser.FormalParamsContext;
 import org.transscript.parser.TransScriptMetaParser.GroupOrListContext;
 import org.transscript.parser.TransScriptMetaParser.LiteralContext;
 import org.transscript.parser.TransScriptMetaParser.MapContext;
 import org.transscript.parser.TransScriptMetaParser.MetappContext;
 import org.transscript.parser.TransScriptMetaParser.ScopeContext;
+import org.transscript.parser.TransScriptMetaParser.SortAnnoContext;
 import org.transscript.parser.TransScriptMetaParser.TermContext;
 import org.transscript.parser.TransScriptMetaParser.VariableContext;
 import org.transscript.parser.TransScriptMetaParserBaseListener;
@@ -47,7 +50,7 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 	final static private Object MARKER = new Object();
 
 	enum State {
-		SKIP, CONS, LITERAL, VAR, BINDER, METAVAR, CONCRETE, GROUPORLIST, IN_GROUPORLIST, TERM
+		SKIP, CONS, LITERAL, VAR, BINDER, PARAM, METAVAR, CONCRETE, GROUPORLIST, IN_GROUPORLIST, TERM
 	};
 
 	private GenericFactory factory;
@@ -199,6 +202,21 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 		state.pop();
 	}
 
+	// --- apply
+
+	@Override
+	public void enterApply(ApplyContext ctx)
+	{
+		if (sink4 != null)
+			sink4 = sink4.startApply();
+	}
+
+	@Override
+	public void exitApply(ApplyContext ctx)
+	{
+		if (sink4 != null)
+			sink4 = sink4.endApply();
+	}	
 	// --- concrete
 
 	@Override
@@ -242,6 +260,36 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 	public void exitBinders(BindersContext ctx)
 	{
 		state.pop();
+	}
+
+	// --- formal params
+
+	@Override
+	public void enterFormalParams(FormalParamsContext ctx)
+	{
+		state.push(State.PARAM);
+	}
+
+	@Override
+	public void exitFormalParams(FormalParamsContext ctx)
+	{
+		state.pop();
+	}
+
+	// --- type
+
+	@Override
+	public void enterSortAnno(SortAnnoContext ctx)
+	{
+		if (sink4 != null)
+			sink4 = sink4.startType();
+	}
+
+	@Override
+	public void exitSortAnno(SortAnnoContext ctx)
+	{
+		if (sink4 != null)
+			sink4 = sink4.endType();
 	}
 
 	// ---  
@@ -312,6 +360,39 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 				state.pop();
 				state.push(State.SKIP);
 				break;
+
+			case PARAM :
+				if (node.getText().equals(")"))
+				{
+					if (binders.size() > 0)
+					{
+						assert sink3 != null;
+
+						net.sf.crsx.Variable[] bs = new net.sf.crsx.Variable[binders.size()];
+						binders.toArray(bs);
+						sink3 = sink3.binds(bs);
+					}
+				}
+				else
+				{
+					// No support for sink3
+					if (sink3 == null)
+					{
+						org.transscript.runtime.Variable param = new org.transscript.runtime.Variable(node.getText());
+						bounds.push(param);
+						sink4 = sink4.param(param);
+					}
+					else
+					{
+						// Treat as regular binder.
+						net.sf.crsx.Variable binder = sink3.makeVariable(node.getText(), false);
+						bounds.push(binder);
+						binders.add(binder);
+					}
+				}
+				state.pop();
+				state.push(State.SKIP);
+				break;
 			case CONS :
 				if (sink3 == null)
 					sink4 = sink4.start(sink4.context().lookupDescriptor(node.getText()));
@@ -333,7 +414,7 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 				// HACK: should not unquote here!
 				if (literal.length() > 0 && literal.charAt(0) == '"' && literal.charAt(literal.length() - 1) == '"')
 					literal = literal.substring(1).substring(0, literal.length() - 2);
-			
+
 				if (sink3 == null)
 					sink4 = sink4.literal(literal);
 				else

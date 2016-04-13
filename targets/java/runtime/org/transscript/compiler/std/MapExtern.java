@@ -10,7 +10,41 @@ import org.transscript.runtime.VariableUse;
 
 public class MapExtern
 {
-
+	
+//
+//	public static  <a extends org.transscript.runtime.v2.Term, b extends org.transscript.runtime.v2.Term> org.transscript.runtime.v2.MapTerm MapPut(Context context, org.transscript.runtime.v2.MapTerm x_29, a x_33, b x_38)
+//	{
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	public static <a extends org.transscript.runtime.v2.Term, b extends org.transscript.runtime.v2.Term> Option<b> MapGetVar(Context context, org.transscript.runtime.v2.MapTerm x_56, a x_60)
+//	{
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	public static List MapKeys(Context context, org.transscript.runtime.v2.MapTerm x_77)
+//	{
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	public static org.transscript.runtime.v2.MapTerm MapNew(Context context)
+//	{
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	public static List MapValues(Context context, org.transscript.runtime.v2.MapTerm x_102)
+//	{
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//	
+//
+	
+	
 	final public static boolean _M_MapNew(Sink sink)
 	{
 		sink.copy(new MapTerm());
@@ -79,4 +113,5 @@ public class MapExtern
 		map = Normalizer.normalize(sink.context(), map);
 		return ((MapTerm) map).sendValues(sink);
 	}
+
 }

@@ -58,9 +58,19 @@ public abstract class Sink
 	 * @param binders to be bound here - <em>must</em> be fresh (not used in any
 	 *            existing terms). All variable references are used by this method
 	 * @return continuation sink to use for subsequent operation (never null)
+	 * @deprecated
 	 */
 	public abstract Sink binds(Variable[] binders);
 
+	/**
+	 * Receives a formal parameter
+	 * 
+	 * @param  to be bound here - <em>must</em> be fresh (not used in any
+	 *            existing terms). All variable references are used by this method
+	 * @return continuation sink to use for subsequent operation (never null)
+	 */
+	public abstract Sink param(Variable param);
+	
 	/**
 	 * Insert variable occurrence subterm.
 	 * 
@@ -85,6 +95,7 @@ public abstract class Sink
 	 * 
 	 * @param term. The reference is used by this method.
 	 * @return continuation sink to use for subsequent operation
+	 * @deprecated
 	 */
 	public abstract Sink copy(Term term);
 
@@ -94,6 +105,14 @@ public abstract class Sink
 	 * @return continuation sink to use for subsequent operation (never null)
 	 */
 	public abstract Sink startMetaApplication(String name);
+
+	/**
+	 * Start a meta-application.
+	 * @param name of meta-variable to use
+	 * @return continuation sink to use for subsequent operation (never null)
+	 * @deprecated
+	 */
+	public abstract Sink startMetaApplication(String name, String type);
 	
 	/**
 	 * End of previously started meta-application subterm.
@@ -101,12 +120,44 @@ public abstract class Sink
 	 *     - may return <b>null</b> if it does not make sense to send further events
 	 */
 	public abstract Sink endMetaApplication();
+
+
+	/**
+	 * Start meta-application apply arguments
+	 * 
+	 * @return continuation sink to use for subsequent operation
+	 */
+	public abstract Sink startApply();
+	
+	/**
+	 * Ends meta-application apply arguments
+	 * 
+	 * @return continuation sink to use for subsequent operation
+	 */
+	public abstract Sink endApply();
+
+	
+	/**
+	 * Start type annotation
+	 * 
+	 * @return continuation sink to use for subsequent operation
+	 */
+	public abstract Sink startType();
+	
+	/**
+	 * Ends type annotation
+	 * 
+	 * @return continuation sink to use for subsequent operation
+	 */
+	public abstract Sink endType();
+	
 	
 	/**
 	 * Queue properties to be inserted either on a new construction or a term.
 	 * 
 	 * @param properties to insert. The reference is used by this method
 	 * @return continuation sink to use for subsequent operation
+	 * @deprecated
 	 */
 	public abstract Sink properties(Properties properties);
 
@@ -117,6 +168,7 @@ public abstract class Sink
 	 * @param name of the property
 	 * @param term property value. The reference is used by this method.
 	 * @return continuation sink to use for subsequent operation
+	 * @deprecated
 	 */
 	public abstract Sink propertyNamed(String name, Term term);
 
@@ -127,6 +179,7 @@ public abstract class Sink
 	 * @param variable of the property. The reference is used by this method.
 	 * @param term property value. The reference is used by this method.
 	 * @return continuation sink to use for subsequent operation
+	 * @deprecated
 	 */
 	public abstract Sink propertyVariable(Variable variable, Term term);
 
@@ -140,6 +193,7 @@ public abstract class Sink
 	 * @param binder the term binder. The reference is *NOT* used by this method
 	 * @param substitute. The reference is *NOT* used by this method. 
 	 * @return continuation sink to use for subsequent operation
+	 * @deprecated
 	 */
 	public Sink substitute(Term term, Variable binder, Term substitute)
 	{
@@ -155,6 +209,7 @@ public abstract class Sink
 	 * @param binders the term binder. The references are *NOT* used by this method
 	 * @param substitutes. The references are *NOT* used by this method.
 	 * @return continuation sink to use for subsequent operation
+	 * @deprecated
 	 */
 	final public Sink substitute(Term term, Variable[] binders, Term[] substitutes)
 	{

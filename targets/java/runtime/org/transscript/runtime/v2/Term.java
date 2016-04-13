@@ -8,7 +8,7 @@ import java.util.Map;
 import org.transscript.runtime.Context;  
 
 /**
- * Base class for all terms.
+ * Base class for all typed terms.
  * 
  * @author Lionel Villard
  */
@@ -35,6 +35,12 @@ public interface Term extends Ref
 	default Term sub(int i)
 	{
 		return null;
+	}
+	
+	/** @return true when this term is data */
+	default boolean data()
+	{
+		return true;
 	}
 
 	/**

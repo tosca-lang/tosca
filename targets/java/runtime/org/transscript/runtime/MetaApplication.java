@@ -19,14 +19,26 @@ public class MetaApplication extends Term
 	/** Meta variable name */
 	final String metaVariable;
 
-	/** Sub terms */
+	/** Meta variable type */
+	Term type;
+
+	/** Substitutions  */
 	public Term[] subs;
+
+	/** Applies  */
+	public Term[] args;
 
 	// Constructor
 
 	public MetaApplication(String meta)
 	{
 		this.metaVariable = meta;
+	}
+
+	/** */
+	public void setType(Term type)
+	{
+		this.type = type;
 	}
 
 	// Overrides
@@ -52,13 +64,23 @@ public class MetaApplication extends Term
 	@Override
 	public void setSub(int index, Term term)
 	{
-		// TODO: resizing should not be needed.
 		if (subs == null)
 			subs = new Term[index + 1];
 		else if (subs.length <= index)
 			subs = Arrays.copyOf(subs, index + 1);
-		
+
 		subs[index] = term;
+	}
+
+	@Override
+	public void setArg(int index, Term term)
+	{
+		if (args == null)
+			args = new Term[index + 1];
+		else if (args.length <= index)
+			args = Arrays.copyOf(args, index + 1);
+
+		args[index] = term;
 	}
 
 	@Override
@@ -70,6 +92,10 @@ public class MetaApplication extends Term
 			subs[i].copy(sink, discard);
 
 		sink.endMetaApplication();
+
+		sink.startType();
+		type.copy(sink, discard);
+		sink.endType();
 
 		if (discard)
 			release();
@@ -132,6 +158,10 @@ public class MetaApplication extends Term
 			}
 			builder.append("]");
 		}
+
+		if (type != null)
+			builder.append(':').append(type);
+
 		return builder.toString();
 	}
 
@@ -141,20 +171,35 @@ public class MetaApplication extends Term
 		StringBuilder builder = new StringBuilder();
 
 		builder.append(metaVariable);
-		final int arity = arity();
-		if (arity > 0)
+
+		if (args != null && args.length > 0)
 		{
 			builder.append("(");
-			for (int i = 0; i < arity; i++)
+			for (int i = 0; i < args.length; i++)
 			{
 				if (i != 0)
 					builder.append(", ");
 
-				Term sub = sub(i);
-				builder.append(sub.toString4());
+				builder.append(args[i].toString4());
 			}
 			builder.append(")");
 		}
+
+		if (subs != null && subs.length > 0)
+		{
+			builder.append("[");
+			for (int i = 0; i < subs.length; i++)
+			{
+				if (i != 0)
+					builder.append(", ");
+
+				builder.append(subs[i].toString4());
+			}
+			builder.append("]");
+		}
+		if (type != null)
+			builder.append(':').append(type.toString4());
+
 		return builder.toString();
 	}
 

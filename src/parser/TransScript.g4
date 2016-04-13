@@ -1,18 +1,11 @@
 /*
- * Copyright (c) 2015 IBM Corporation.
+ * Copyright (c) 2015-2016 IBM Corporation.
  *
  * This is the complete TransScript 4 grammar specification.
- *
- * This grammar is annotated as follows:
- * - [CORE constraint] : part of Core CRSX (input of code generator), with optionally a comment expressing additional constraint.
- * - [INTERNAL]        : internal use only.
- * - [SUGAR]           : pure syntactic sugar, completely eliminating early during compilation.
  *
  * This grammar does not use any ANTLR4 literal due to current ANTLR4 meta parser generator limitation.
  */
 grammar TransScript;
-
-
 
 // The code below is Java. It's simple enough to be ported to other languages.
 @header {
@@ -72,7 +65,7 @@ private boolean isPostfix(String op, int currentp) {
 
 // A TransScript program is a module declaration and a list of declarations
 transscript
-    : decl+                     /* [CORE] */
+    : decl+
     ;
 
 decl
@@ -84,18 +77,18 @@ decl
     ;
 
 importDecl
-    : IMPORT constructor                                 /* [SUGAR: same as IMPORT MODULE] */
-    | IMPORT MODULE constructor                          /* [CORE] */
-    | IMPORT GRAMMAR constructor                         /* [CORE] */
+    : IMPORT constructor                                             /* Import module - short syntax */
+    | IMPORT MODULE constructor                                      /* Import module */
+    | IMPORT GRAMMAR constructor                                     /* Import grammar */
     ;
 
 sortDecl
-     : ENUM constructor sortParams? (OR variant)+          /* [CORE] Variant sort declaration */
-     | STRUCT constructor sortParams? (AND sortMap)+       /* [CORE] map sort definition */
+     : ENUM constructor sortParams? (OR variant)+                    /* Variant sort declaration */
+     | STRUCT constructor sortParams? (AND sortMap)+                 /* Map sort declaration */
      ;
 
 sortParams
-    : LT VARIABLE+ GT                                               /* [CORE] Formal sort parameters. */
+    : LT VARIABLE+ GT                                               /* Sort parameter declarations. */
     ;
 
 // Variant type
@@ -133,29 +126,47 @@ sort
     ;
 
 sortScope
-    : LSQUARE sort* RSQUARE FNTYPE
+    : sortVariables? sortFormalParams? FNTYPE
+    ;
+
+sortVariables
+    : LSQUARE sort* RSQUARE                                          /* Syntactic variable sorts */
+    ;
+
+sortFormalParams
+    : LPAR sort* RPAR                                                /* Formal parameter sorts */
     ;
 
 paramSort
-    : constructor sortArgs?               /* [CORE] Parameterized sort */
+    : constructor sortArgs?                                          /*  Parameterized sort */
     | LCURLY sortMap RCURLY
     | VARIABLE
     ;
 
 sortArgs
-    : LT sort* GT                         /* [CORE] Sort arguments */
+    : LT sort* GT                                                    /* Sort arguments */
     ;
+
+sortAnno
+    : COLON sort                                                     /* Sort annotation */
+    ;
+
+sortQualifier
+    : sort COLONCOLON                                                /* Sort qualifier */
+    ;
+
 
 // Rule Declaration
 
 ruleDecl
-    : RULE constructor args? ARROW terms                            /* [CORE]  rewrite rule  */
+    : RULE constructor args? ARROW terms                             /* Rewrite rule  */
     ;
 
 // Function declaration, signature and optional body
 
 fnDecl
-    : EXTERN? FUNC fnFixity sortParams? fnParamDecls? FNTYPE sort fnBody?   /* [SUGAR]  function declaration  */
+    : EXTERN? FUNC fnFixity sortParams? fnParamDecls?
+              FNTYPE sort fnBody?                                    /* Function declaration  */
     ;
 
 fnFixity
@@ -164,13 +175,12 @@ fnFixity
     ;
 
 fnParamDecls
-     : LPAR fnParams? RPAR                  /* [CORE] */
+     : LPAR fnParams? RPAR
      ;
 
 fnParams
     : fnParam (COMMA fnParam)*
     ;
-
 
 fnParam
     : fnParamName? eager? sort
@@ -215,42 +225,53 @@ nterm[int p]
 
 // Atom term
 aterm
-    : cons                                            /* [CORE] Construction with zero or more args */
-    | literal                                         /* [CORE]  Literal construction */
-    | groupOrList                                     /* [SUGAR] Grouped expression */
-    | variable                                        /* [CORE]  Variable */
+    : cons                                                           /* Construction with zero or more args */
+    | literal                                                        /* Literal construction */
+    | groupOrList                                                    /* Grouped expression or List */
+    | variable                                                       /* Variable */
     | map
-    | metapp                                          /* [CORE]  Meta application. */
-    | dispatch                                        /* [CORE]  Dispatch expression */
-    | concrete                                        /* [SUGAR] Concrete syntax */
+    | metapp                                                         /* Meta variable/Function call/Substitution */
+    | dispatch                                                       /* Dispatch expression */
+    | concrete                                                       /* Concrete syntax */
     | { isPrefix(_input.LT(1).getText())}?
-      op=operator term[nextp($op.text)]               /* [SUGAR] Prefixed term */
+      op=operator term[nextp($op.text)]                              /* Prefixed term */
     ;
 
 cons
-    : constructor args?
+    : sortQualifier* constructor args?
     ;
 
 metapp
-    :  METAVAR apply?
+    : METAVAR apply? subst? sortAnno?
     ;
 
 args
-    : LPAR scopes? RPAR                                /* [CORE] */
+    : LPAR scopes? RPAR
     ;
 
 scopes
-    : scope (COMMA scope)*                             /* [CORE] */
+    : scope (COMMA scope)*
     ;
 
 scope
-    : LSQUARE binders                                  /* [CORE]  Scoped term  */
-    | term[0]                                          /* [CORE]  No-scoped term */
+    : LSQUARE binders                                                /* Scoped term  */
+    | LPAR formalParams                                              /* Formal parameters */
+    | term[0]                                                        /* Term */
     ;
 
 binders
-    : VARIABLE<boundvar=x> binders<bound=x>
+    : VARIABLE<boundvar=x> sortAnno? binders<bound=x>
     | RSQUARE FNTYPE term[0]
+    | RSQUARE LPAR formalParams
+    ;
+
+formalParams
+    : VARIABLE<boundvar=x> sortAnno? formalParams<bound=x>
+    | RPAR FNTYPE term[0]
+    ;
+
+subst
+    : LSQUARE terms? RSQUARE
     ;
 
 apply
@@ -267,11 +288,7 @@ groupOrList
     ;
 
 variable                                              /* [CORE] */
-    : VARIABLE<variable> castas?
-    ;
-
-castas
-    : AS sort
+    : VARIABLE<variable> sortAnno?
     ;
 
 literal
@@ -336,7 +353,8 @@ STRUCT          : 'struct';
 DISPATCH        : 'dispatch';
 EAGER           : 'eager';
 EXTERN          : 'extern';
-AS              : 'as';
+RULE            : 'rule';
+VAR             : 'allows-variable';
 COMMA           : ',';
 LPAR            : '(';
 RPAR            : ')';
@@ -346,24 +364,25 @@ LT              : '<';
 GT              : '>';
 LBRACE          : '{';
 RBRACE          : '}';
-LINEAR          : '¹';                                  /* [BC3]  Linear marker */
 COLON           : ':';
+COLONCOLON      : '::';
 OR              : '|';
 AND             : '&';
 ARROW           : '→';
-VAR             : 'allows-variable';
 LSQUARE         : '[';
 RSQUARE         : ']';
 FNTYPE          : '->';
-RULE            : 'rule';
 NOT             : '¬';
 
 FIXITY          : 'infix' | 'infixr' | 'infixl' | 'postfix' | 'prefix';
 
 // Make sure // and /* are not operators
+// ':' is a builtin type annotation operator
+// '::' is a builtin type qualifier operator
 OPERATOR          : OpHead Operator*
                   | '/'
-                  | '/' (OpCommon | '$' | '_') Operator*
+                  | '/' (OpCommon | '$' | '_' | ':') Operator*
+                  | ':' (OpCommon | '$' | '_' | '/') Operator*
                   ;
 
 CONCRETE          : Lower (Alpha | Digit | '-' | '_')* Ebnf? '\u27e6' (CONCRETE|.)*? '\u27e7';   // category⟦ ⟧
@@ -388,9 +407,9 @@ fragment Alpha    : [a-zA-Z];
 fragment Decimal  : '-'? [0-9]+ ('.' [0-9]+)? | '.' [0-9]+;
 
 fragment OpHead   : OpCommon;
-fragment Operator : OpCommon | '$' | '_' | '/';
+fragment Operator : OpCommon | '$' | '_' | '/' | ':';
 
-fragment OpCommon : '-' | [+/|`~!@^&*=?.:<]; // TODO: allow > but for now conflict with sort params. One solution is to allow >>> as infix operator only with mandatory space
+fragment OpCommon : '-' | [+/|`~!@^&*=?.<]; // TODO: allow > but for now conflict with sort params. One solution is to allow >>> as infix operator only with mandatory space
 
 fragment Unicode  : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
 fragment UnicodeS : ~[\u0000-\u00FF\uD800-\uDBFF\u27e6\u27e7\u27e8\u27e9] | [\uD800-\uDBFF] [\uDC00-\uDFFF];

@@ -1,27 +1,27 @@
 /*
- * Copyright (c) 2016 IBM Corporation. 
+ * Copyright (c) 2016 IBM Corporation.
  *
  * Grammar for simple structured text with embedded terms.
  *
  */
 grammar Text4;
 
-text 
+text
     : content text
     |
     ;
 
-content 
-    : CHARS
+content
+    : STRING
     | BREAK
     | OPENINDENT text CLOSEINDENT
-    | CASTSTRING text 
+    | CASTTEXT text
     ;
-    
+
 OPENINDENT  : '\u27e6'; // ⟦
 CLOSEINDENT : '\u27e7'; // ⟧
-CASTSTRING  : '\u2020'; // †
+CASTTEXT  : '\u2020'; // †
 
-         
-CHARS : ~[\n\r\f\u00b6\u27e6\u27e7\u27e8\u2020\u00ab\u00bb⟨]+;
+
+STRING : ~[\n\r\f\u00b6\u27e6\u27e7\u27e8\u2020\u00ab\u00bb⟨]+;
 BREAK : [\n\r\f\u00b6]+;

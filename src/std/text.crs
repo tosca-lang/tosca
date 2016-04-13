@@ -21,17 +21,20 @@ AsText[#text] → #text ;
 // Fragment denoting term embedded in user language text.
 //
 Text-Embed[Text<!--Term-->] :: Text ;
-Text-Embed[#TermText] → $[IfDef, "crsx4", %n⟦†«"\u27e8"»« #TermText »†«"\u27e9"»⟧, %n⟦†«"\u00ab\u00ab"»« #TermText »†«"\u00bb\u00bb"»⟧] ;
+Text-Embed[#TermText] → %n⟦†«"\u27e8"»« #TermText »†«"\u27e9"»⟧;
 
 // Fragment denoting string embedded in user language text.
 //
 Text-String[Text<!--String-->] :: Text ;
-Text-String[#TermText] → $[IfDef, "crsx4", %n⟦†«"\u2020\u2020"»†«"\u27e8"»« #TermText »†«"\u27e9"»⟧, %n⟦†«"\u2020\u2020"»†«"\u00ab\u00ab"»« #TermText »†«"\u00bb\u00bb"»⟧] ;
+Text-String[#TermText] → %n⟦†«"\u2020\u2020"»†«"\u27e8"»« #TermText »†«"\u27e9"»⟧;
+
+Text-String2[Text<!--String-->] :: Text ;
+Text-String2[#TermText] → %n⟦†«"\u27e8"»STRING: « #TermText »†«"\u27e9"»⟧;
 
 // Fragment to be parsed as generated text (to be printed).
 //
 Text-Text[Text] :: Text ;
-Text-Text[#content] → Text-User[$[IfDef, "crsx4", "text", "n"], #content] ;
+Text-Text[#content] → Text-User["text", #content] ;
 
 /* `Text-ConcatPair[#Pair]`
  * Concat pair of `Text`
@@ -43,7 +46,7 @@ Text-ConcatPair[PairCons[#1, #2]] → %n⟦«#1»«#2»⟧;
 //
 Text-User[$String<!--ParsePrefix-->, Text<!-- Unparsed -->] :: Text ;
 Text-User[#ParsePrefix, #Unparsed] 
-→ $[IfDef, "crsx4", %n⟦†«#ParsePrefix»†«"\u27e6\u27e6"»« #Unparsed »†«"\u27e7\u27e7"»⟧, %n⟦%†«#ParsePrefix»†«"\u27e6\u27e6"»« #Unparsed »†«"\u27e7\u27e7"»⟧] ;
+→ %n⟦†«#ParsePrefix»†«"\u27e6\u27e6"»« #Unparsed »†«"\u27e7\u27e7"»⟧ ;
 
 Text-Token[$String] :: Text;
 -[Data[#t]] : Text-Token[#t] → %n⟦†« #t »⟧ ; 

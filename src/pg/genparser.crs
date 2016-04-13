@@ -186,6 +186,7 @@ ParserConstructs[#id, $True, #meta, #header, #members]
             $[If, #meta, "protected void _embed()    { fireEmbed(_parseListeners, _ctx); }\n", ""],
             $[If, #meta, "protected void _tail()     { fireTail(_parseListeners, _ctx); }\n", ""],
             $[If, #meta, "protected void _term()     { fireTerm(_parseListeners, _ctx); }\n", ""],
+            $[If, #meta, "protected void _term(String type)  { fireTerm(_parseListeners, _ctx, type); }\n", ""],
             $[If, #meta, $[:, "protected String _metachar() { return ", MetaChar["\""], ";}\n"], ""],
             $[If, $[Not, #meta], #members, ""],
         "}"]⟩ 
@@ -370,7 +371,7 @@ WrapElement[{#L}#element, %ebnfSuffix⟨ + ⟩, #element*, #RULE_REF, #meta] →
 // Produce grammar to match/contract a sequence tail.
 MakeTail[$String, $Boolean /* meta? */] :: $List[ANTLR_element_sort];
 MakeTail[#RULE_REF, $False]    → %element*⟨ ⟩;
-MakeTail[#RULE_REF, $True]     → %element*⟨ ({_tail();} ({_term();} ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩ | {_embed();} ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩ CRSX_EMBED_END))? ⟩;
+MakeTail[#RULE_REF, $True]     → %element*⟨ ({_tail();} (⟨ACTION: $[:, "{_term(\"", #RULE_REF, "\");}"]⟩ ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩ | {_embed();} ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩ CRSX_EMBED_END))? ⟩;
 
 // Produce grammar to hide constant production.
 MaybeHideAtom[Boolean, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];

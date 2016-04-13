@@ -33,6 +33,10 @@ func HasOption<a>(Option<a>) -> Boolean
 rule HasOption(NONE)    → FALSE
 rule HasOption(SOME(#)) → TRUE
 
+func Maybe<a b>([a]->b, Option<a>) -> Option<b>
+rule Maybe([x]->#(x), NONE) → NONE
+rule Maybe([x]->#(x), SOME(#val)) → SOME(#(#val))
+
 // --- Boolean
 
 enum Boolean | TRUE | FALSE

@@ -94,6 +94,11 @@ public class SinkAntlrListener implements ParseTreeListener
 		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).term(_ctx));
 	}
 
+	public static void fireTerm(List<ParseTreeListener> listeners, ParserRuleContext _ctx, String type)
+	{
+		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).term(_ctx, type));
+	}
+
 	public static void fireTail(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
 		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).tail(_ctx));
@@ -199,6 +204,9 @@ public class SinkAntlrListener implements ParseTreeListener
 
 	/** Current token sort */
 	private TokenSort sort;
+
+	/** Meta term type */
+	private String termType;
 
 	/** Listener state? */
 	private State state;
@@ -394,6 +402,13 @@ public class SinkAntlrListener implements ParseTreeListener
 		sort = TokenSort.TERM;
 	}
 
+	/** Receive the notification the next token is of type term */
+	public void term(ParserRuleContext _ctx, String type)
+	{
+		termType = fixupType(type);
+		sort = TokenSort.TERM;
+	}
+
 	/** Receive the notification the next token match all of a list tail */
 	public void tail(ParserRuleContext context)
 	{
@@ -469,7 +484,11 @@ public class SinkAntlrListener implements ParseTreeListener
 			if (sink != null)
 				sink = sink.startMetaApplication(metaname).endMetaApplication();
 			else
+			{
 				sink4 = sink4.startMetaApplication(metaname).endMetaApplication();
+				if (termType != null)
+					sink4 = sink4.startType().literal(termType).endType();
+			}
 
 			sort = TokenSort.STRING;
 		}
@@ -639,9 +658,9 @@ public class SinkAntlrListener implements ParseTreeListener
 								String t = context.getText();
 
 								// HACK: should not unquote here!
-								if (t.length() > 0 && t.charAt(0) == '"' &&  t.charAt(t.length() - 1) == '"')
+								if (t.length() > 0 && t.charAt(0) == '"' && t.charAt(t.length() - 1) == '"')
 									t = t.substring(1).substring(0, t.length() - 2);
-								
+
 								sink4 = sink4.literal(t);
 							}
 							break;
@@ -651,7 +670,9 @@ public class SinkAntlrListener implements ParseTreeListener
 							if (sink != null)
 								sink = sink.startMetaApplication(metaname);
 							else
+							{
 								sink4 = sink4.startMetaApplication(metaname);
+							}
 
 							// Add directly bound variable.
 							// REVISIT: should be user-specified.
@@ -668,8 +689,11 @@ public class SinkAntlrListener implements ParseTreeListener
 							if (sink != null)
 								sink = sink.endMetaApplication();
 							else
+							{
+								if (termType != null)
+									sink4 = sink4.startType().literal(termType).endType();
 								sink4 = sink4.endMetaApplication();
-
+							}
 							break;
 						default :
 							break;
@@ -824,6 +848,20 @@ public class SinkAntlrListener implements ParseTreeListener
 	protected String fixupMetachar(String metavar)
 	{
 		return "#" + metavar.substring(metachar.length());
+	}
+
+	/**
+	 * Convert raw type to proper TransScript type.
+	 */
+	private String fixupType(String type)
+	{
+		if (type.endsWith("_TOK"))
+			return "String";
+
+		final boolean islist = type.endsWith("_OOM") || type.endsWith("_ZOM") || type.endsWith("_OPT");
+		type = islist ? type.substring(0, type.length() - "_ZOM".length()) : type;
+
+		return (islist ? "List<" : "") + prefix + "_" + type + "_sort" + (islist ? ">" : "");
 	}
 
 	// Utility classes

@@ -16,7 +16,7 @@ ccrsx
     ;
 
 cdecl
-    : RULE  cterm ARROW cterm                               /* Rule declaration */
+    : RULE cterm ARROW cterm                               /* Rule declaration */
     | DATA  csortvars? CONSTRUCTOR cforms                   /* Data sort declaration */
     | EXTERN? FN csortvars? csort CONSTRUCTOR csorts?       /* Function sort declaration */
     | IMPORT MODULE CONSTRUCTOR                             /* Import module declaration */
@@ -27,21 +27,30 @@ cdecl
 // -- Term
 
 cterm
-    : CONSTRUCTOR cterms?                                               /* Constant/Construction */
-    | METAVAR cterms?                                                   /* Meta variable/substitution */
+    : csortqualifier* CONSTRUCTOR cterms?                                /* Constant/Construction */
+    | METAVAR cterms? csubst? csortanno?                                /* Meta variable/call/substitution */
     | cliteral                                                          /* Literal construction */
     | cvariable                                                         /* Variable */
     | LCURLY cmapentries? RCURLY                                        /* Association map */
 
     // KEEP AT THE 6TH ALTERNATIVE UNTIL METAPARSER GENERATOR PROPERLY HANDLE BOUNDVAR
-    | LSQUARE VARIABLE<boundvar=x> RSQUARE cterm<bound=x>               /* Bound term.
+    | LSQUARE VARIABLE<boundvar=x> csortanno? RSQUARE cterm<bound=x>    /* Bound term.
                                                                            VARIABLE<boundvar=x> means VARIABLE is a bound variable we call x
                                                                            cterm<bound=x>       means x is bound in the context of the cterm */
+    | LPAR VARIABLE<boundvar=x> csortanno? RPAR cterm<bound=x>          /* Formal parameter */
     ;
 
 /* TODO: inline when antlr-based meta parser generator support (()*)? */
 cterms
-    : LPAR cterm (COMMA cterm)* RPAR                    /* Term list */
+    : LPAR ccommaterms  RPAR                    /* Term list */
+    ;
+
+csubst
+    : LSQUARE ccommaterms RSQUARE
+    ;
+
+ccommaterms
+    : cterm (COMMA cterm)*
     ;
 
 cliteral
@@ -50,15 +59,11 @@ cliteral
     ;
 
 cvariable
-    : VARIABLE<variable> ccast?          /* Variable occurrence */
+    : VARIABLE<variable>                 /* Variable occurrence */
                                         /* <variable> means 1. maps VARIABLE to a syntactic variable
                                               2. look for a bound variable that matches VARIABLE
                                                  in the current tracked bound variables (innermost scope first).
                                                  VARIABLE is free if not found in scope.  */
-    ;
-
-ccast
-    : COLON csort
     ;
 
 cmapentries
@@ -119,6 +124,7 @@ csort
     : CONSTRUCTOR csorts?                           /* Construction sort */
     | VARIABLE                                      /* Sort variable  */
     | LSQUARE csort RSQUARE csort                   /* Bound variable sort */
+    | LPAR csort RPAR csort                         /* Formal parameter sort */
     | LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sorts */
     | DATA csort                                    /* Data sort annotation. Indicate value is normalized */
     ;
@@ -131,6 +137,13 @@ cmapsort
     : csort COLON csort                            /* Association map sort */
     ;
 
+csortanno
+    : COLON csort                                  /* Sort annotation */
+    ;
+
+csortqualifier
+    : csort COLONCOLON                             /* Sort qualifier */
+    ;
 
 // Lexer rules
 
@@ -143,6 +156,7 @@ IMPORT          : 'import';
 GRAMMAR         : 'grammar';
 EXTERN          : 'extern';
 COLON           : ':';
+COLONCOLON      : '::';
 ARROW           : '→';
 FORALL          : '∀';
 LPAR            : '(';

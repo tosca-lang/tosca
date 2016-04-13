@@ -5,74 +5,77 @@ import Std::Pair
 import Std::String
 import Text::Text4
 
-func AsText<a>(a) -> Text 
-rule AsText(#text) → #text  
+func AsText<a>(a) -> Text
+rule AsText(#text) → #text
 
 // Fragment denoting term embedded in user language text.
 
-func Text-Embed(Text) -> Text  
-rule Text-Embed(#TermText) → text⟦†⟨"\u27e8"⟩⟨ #TermText ⟩†⟨"\u27e9"⟩⟧  
+func Text-Embed(Text) -> Text
+rule Text-Embed(#TermText) → text⟦†⟨"\u27e8"⟩⟨ #TermText ⟩†⟨"\u27e9"⟩⟧
 
 // Fragment denoting string embedded in user language text.
 
-func Text-String(Text) -> Text  
-rule Text-String(#TermText) → text⟦†⟨"\u2020\u2020"⟩†⟨"\u27e8"⟩⟨ #TermText ⟩†⟨"\u27e9"⟩⟧  
+func Text-String(Text) -> Text
+rule Text-String(#TermText) → text⟦†⟨"\u2020\u2020"⟩†⟨"\u27e8"⟩⟨ #TermText ⟩†⟨"\u27e9"⟩⟧
+
+func Text-String2(Text) -> Text
+rule Text-String2(#TermText) → text⟦†⟨"\u27e8"⟩STRING: ⟨ #TermText ⟩†⟨"\u27e9"⟩⟧  
 
 // Fragment to be parsed as generated text (to be printed).
 
-func Text-Text(Text) -> Text  
-rule Text-Text(#content) → Text-User("text", #content)  
+func Text-Text(Text) -> Text
+rule Text-Text(#content) → Text-User("text", #content)
 
 /* `Text-ConcatPair(#Pair)`
  * Concat pair of `Text`
 */
-func Text-ConcatPair(Pair<Text Text>) -> Text 
-rule Text-ConcatPair(PairCons(#1, #2)) → text⟦⟨#1⟩⟨#2⟩⟧ 
+func Text-ConcatPair(Pair<Text Text>) -> Text
+rule Text-ConcatPair(PairCons(#1, #2)) → text⟦⟨#1⟩⟨#2⟩⟧
 
 // Fragment to be parsed as user language text.
 
-func Text-User(String, Text) -> Text  
-rule Text-User(#ParsePrefix, #Unparsed) 
+func Text-User(String, Text) -> Text
+rule Text-User(#ParsePrefix, #Unparsed)
 → text⟦†⟨#ParsePrefix⟩†⟨"\u27e6\u27e6"⟩⟨ #Unparsed ⟩†⟨"\u27e7\u27e7"⟩⟧
 
-func Text-Token(eager String) -> Text 
-rule Text-Token(#t) → text⟦†⟨ #t ⟩⟧   
+func Text-Token(eager String) -> Text
+rule Text-Token(#t) → text⟦†⟨ #t ⟩⟧
 
-func Text-CommentToken(eager String) -> Text 
-rule Text-CommentToken(#t) → text⟦†⟨ Replace(#t,"*/","*_/") ⟩⟧   
+func Text-CommentToken(eager String) -> Text
+rule Text-CommentToken(#t) → text⟦†⟨ Replace(#t,"*/","*_/") ⟩⟧
 
-func Text-Comment(eager String) -> Text 
-rule Text-Comment(#t) → text⟦†⟨ ConcatString("/*", Replace(#t,"*/","*_/"), "*/") ⟩⟧  
+func Text-Comment(eager String) -> Text
+rule Text-Comment(#t) → text⟦†⟨ ConcatString("/*", Replace(#t,"*/","*_/"), "*/") ⟩⟧
 
-func Text-QuoteEscape(eager String) -> Text 
-rule Text-QuoteEscape(#t) → text⟦†⟨ Escape(#t) ⟩⟧ 
+func Text-QuoteEscape(eager String) -> Text
+rule Text-QuoteEscape(#t) → text⟦†⟨ Escape(#t) ⟩⟧
 
-func Text-Integer(eager Numeric) -> Text 
-rule Text-Integer(#t) → text⟦†⟨ FormatNumber(#t) ⟩⟧  
+func Text-Integer(eager Numeric) -> Text
+rule Text-Integer(#t) → text⟦†⟨ FormatNumber(#t) ⟩⟧
 
-func Text-Mangle(eager String) -> Text 
-rule Text-Mangle(#t) → text⟦†⟨ Mangle(#t) ⟩⟧  
+func Text-Mangle(eager String) -> Text
+rule Text-Mangle(#t) → text⟦†⟨ Mangle(#t) ⟩⟧
 
-func TextFold(List<Text>, Text) -> Text 
-rule TextFold(()         , #sep) → text⟦⟧  
-rule TextFold(Cons(#1, #s), #sep) → text⟦⟨ #1 ⟩⟨ TextFold1(#s, #sep) ⟩⟧  
+func TextFold(List<Text>, Text) -> Text
+rule TextFold(()         , #sep) → text⟦⟧
+rule TextFold(Cons(#1, #s), #sep) → text⟦⟨ #1 ⟩⟨ TextFold1(#s, #sep) ⟩⟧
 
-func TextFold1(List<Text>, Text) -> Text 
-rule TextFold1(()     , #sep) → text⟦⟧  
-rule TextFold1(Cons(#1, #s), #sep) → text⟦⟨ #sep ⟩⟨ #1 ⟩⟨ TextFold1(#s, #sep) ⟩⟧  
+func TextFold1(List<Text>, Text) -> Text
+rule TextFold1(()     , #sep) → text⟦⟧
+rule TextFold1(Cons(#1, #s), #sep) → text⟦⟨ #sep ⟩⟨ #1 ⟩⟨ TextFold1(#s, #sep) ⟩⟧
 
-func ReverseTextFold(List<Text>, Text) -> Text 
-rule ReverseTextFold(()        , #sep) → text⟦⟧  
-rule ReverseTextFold(Cons(#1,Nil)     , #sep) → text⟦⟨ #1 ⟩⟧  
-rule ReverseTextFold(Cons(#1, Cons(#2, #s)), #sep) → text⟦⟨ ReverseTextFold((#2, #s), #sep) ⟩⟨ #sep ⟩⟨ #1 ⟩⟧  
+func ReverseTextFold(List<Text>, Text) -> Text
+rule ReverseTextFold(()        , #sep) → text⟦⟧
+rule ReverseTextFold(Cons(#1,Nil)     , #sep) → text⟦⟨ #1 ⟩⟧
+rule ReverseTextFold(Cons(#1, Cons(#2, #s)), #sep) → text⟦⟨ ReverseTextFold((#2, #s), #sep) ⟩⟨ #sep ⟩⟨ #1 ⟩⟧
 
 // -- Conversion
 
-func StringToText(String) -> Text  
-rule StringToText(#) → text⟦†⟨#⟩⟧  
+func StringToText(String) -> Text
+rule StringToText(#) → text⟦†⟨#⟩⟧
 
-func NumberToText(eager Numeric) -> Text 
-rule NumberToText(#n) → text⟦†⟨FormatNumber(#n)⟩⟧ 
+func NumberToText(eager Numeric) -> Text
+rule NumberToText(#n) → text⟦†⟨FormatNumber(#n)⟩⟧
 
-func TextToString(eager Text) -> String  
-rule TextToString(#) → Show(#)  
+func TextToString(eager Text) -> String
+rule TextToString(#) → Show(#)

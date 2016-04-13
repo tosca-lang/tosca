@@ -16,5 +16,5 @@ func NumberMinus(#1: Numeric, #2: Numeric) -> Numeric
 → Minus(#1, #2)
 
 // LessThan
-extern func NumberLessThan(#1: Numeric, #2: Numeric) -> boolean
-extern func NumberGreaterThan(#1: Numeric, #2: Numeric) -> boolean
+extern func NumberLessThan(#1: Numeric, #2: Numeric) -> Boolean
+extern func NumberGreaterThan(#1: Numeric, #2: Numeric) -> Boolean

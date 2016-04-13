@@ -95,7 +95,7 @@ public class TextSink extends Sink
 	/** Whether given constructor descriptor is a text one */
 	final protected boolean isTextDescriptor(ConstructionDescriptor desc)
 	{
-		return desc == Text4._M_Text4_xcontent_xA1 
+		return desc == Text4._M_Text4_xcontent_xA1
 				|| desc == Text4._M_Text4_xcontent_xA2 || desc == Text4._M_Text4_xcontent_xA3 || desc == Text4._M_Text4_xcontent_xA4
 				|| desc == Text4._M_Text4_xtext_xA1 || desc == Text4._M_Text4_xtext_xA2;
 	}
@@ -197,10 +197,30 @@ public class TextSink extends Sink
 			inText.pop();
 			inText.push(false);
 
-			assert !inText.isEmpty() : "Can't have to-level binders";
+			assert!inText.isEmpty() : "Can't have top-level binders";
 		}
 
 		termSink.binds(binders);
+
+		return this;
+	}
+
+	@Override
+	public Sink param(Variable param)
+	{
+		if (inText())
+		{
+			// This is really bad as the term is even not inside the sort value space.
+			// Switch to term mode
+			print("⟨");
+
+			inText.pop();
+			inText.push(false);
+
+			assert!inText.isEmpty() : "Can't have to-level binders";
+		}
+
+		termSink.param(param);
 
 		return this;
 	}
@@ -255,6 +275,25 @@ public class TextSink extends Sink
 	}
 
 	@Override
+	public Sink startMetaApplication(String name, String type)
+	{
+		return startMetaApplication(name);
+	}
+
+	@Override
+	public Sink startType()
+	{
+		print(":");
+		return this;
+	}
+
+	@Override
+	public Sink endType()
+	{
+		return this;
+	}
+
+	@Override
 	public Sink endMetaApplication()
 	{
 		descriptors.pop();
@@ -289,6 +328,20 @@ public class TextSink extends Sink
 	public Sink propertyVariable(Variable variable, Term term)
 	{
 		// TODO
+		return this;
+	}
+
+	@Override
+	public Sink startApply()
+	{
+		// TODO Auto-generated method stub
+		return this;
+	}
+
+	@Override
+	public Sink endApply()
+	{
+		// TODO Auto-generated method stub
 		return this;
 	}
 

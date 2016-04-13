@@ -9,9 +9,55 @@ import org.transscript.runtime.Term;
 import org.transscript.runtime.Variable;
 import org.transscript.runtime.VariableUse;
 
+ 
+
 public class CoreExtern
 {
-
+//
+//	public static <a extends Term, b extends Term> Bool SameVariable(Context context, a x_343, b x_347)
+//	{
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	public static <a extends Term, b extends Term> Bool Equal(Context context, a x_503, b x_508)
+//	{
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	public static <a extends Term> a Error(Context context, StringTerm x_359)
+//	{
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	public static <a extends Term> a Trace(Context context, a x_432)
+//	{
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	public static StringTerm GetEnv(Context context, StringTerm x_597, StringTerm x_602)
+//	{
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	public static <a extends Term> StringTerm Show(Context context, a x_614)
+//	{
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	public static <a extends Term, b extends Term, c extends Term> c IfDef(Context context, MapTerm x_628, a x_633, c x_638, c x_642)
+//	{
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//	
+//	
+	
 	final public static boolean _M_IfDef(Sink sink, Term key, Term t, Term f)
 	{
 		final Context context = sink.context();

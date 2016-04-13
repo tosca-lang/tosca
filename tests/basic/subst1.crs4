@@ -8,9 +8,9 @@ enum Expr
     | allows-variable
 
 func EvalExpr(Expr) -> String
-rule EvalExpr(Let(#expr1, [x] -> #expr2(x))) → EvalExpr(#expr2(#expr1))
-rule EvalExpr(Str(#)) → #
+rule EvalExpr(Let(#expr1:Expr, [x] -> #expr2[x] : Expr)) → EvalExpr(#expr2[#expr1])
+rule EvalExpr(Str(#:String)) → #
 
 func Tests -> String
 rule Tests → EvalExpr(
-  Let(Str("val1"), [v] -> Let(Str("val2"), [v2] -> v2 as Expr)))
+  Let(Str("val1"), [v:Expr] -> Let(Str("val2"), [v2:Expr] -> v2 )))

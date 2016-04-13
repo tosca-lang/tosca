@@ -41,10 +41,10 @@ public class SimpleTermSink extends Sink
 	{
 		this.context = context;
 		this.appendable = target;
-//		if (target instanceof FormattingAppendable)
-//			appendable = (FormattingAppendable) target;
-//		else
-//			appendable = FormattingAppendable.format(target, Integer.MAX_VALUE, 0, Integer.MAX_VALUE);
+		//		if (target instanceof FormattingAppendable)
+		//			appendable = (FormattingAppendable) target;
+		//		else
+		//			appendable = FormattingAppendable.format(target, Integer.MAX_VALUE, 0, Integer.MAX_VALUE);
 	}
 
 	// Methods.
@@ -60,7 +60,7 @@ public class SimpleTermSink extends Sink
 	/** Helper to leave new argument list. */
 	private void leave() throws IOException
 	{
-	//	appendable.close(count == 0 ? "" : "]");
+		//	appendable.close(count == 0 ? "" : "]");
 		count = stack.pop();
 	}
 
@@ -130,12 +130,29 @@ public class SimpleTermSink extends Sink
 		return this;
 	}
 
+	@Override
+	public Sink param(Variable param)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	public Sink startMetaApplication(String name)
+	{
+		return startMetaApplication(name, null);
+	}
+
+	public Sink startMetaApplication(String name, String type)
 	{
 		try
 		{
 			next();
 			appendable.append(name);
+			if (type != null)
+			{
+				appendable.append(':');
+				appendable.append(type);
+			}
 			enter();
 		}
 		catch (IOException e)
@@ -151,6 +168,36 @@ public class SimpleTermSink extends Sink
 		}
 		catch (IOException e)
 		{}
+		return this;
+	}
+
+	@Override
+	public Sink startApply()
+	{
+		return this;
+	}
+
+	@Override
+	public Sink endApply()
+	{
+		return this;
+	}
+
+	@Override
+	public Sink startType()
+	{
+		try
+		{
+			appendable.append(':');
+		}
+		catch (IOException e)
+		{}
+		return this;
+	}
+
+	@Override
+	public Sink endType()
+	{
 		return this;
 	}
 

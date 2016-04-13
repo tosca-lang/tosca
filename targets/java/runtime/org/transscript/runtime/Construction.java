@@ -2,6 +2,7 @@
 
 package org.transscript.runtime;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,7 +15,8 @@ public abstract class Construction extends Term
 	// State
 
 	/** Environment/Attributes */
-	protected Properties properties; // TODO: to deprecate
+	@Deprecated
+	protected Properties properties;
 
 	// Constructors
 
@@ -53,7 +55,7 @@ public abstract class Construction extends Term
 	{
 		return descriptor().arity();
 	}
-	
+
 	@Override
 	public Term sub(int i)
 	{
@@ -242,14 +244,28 @@ public abstract class Construction extends Term
 
 				Term sub = sub(i);
 				Variable[] subbinders = binders(i);
+				boolean arrow = false;
 				if (subbinders != null && subbinders.length > 0)
 				{
 					builder.append("[");
 					for (int j = 0; j < subbinders.length; j++)
 						builder.append(subbinders[j]).append(" ");
 
-					builder.append("] -> ");
+					builder.append("]");
+					arrow = true;
 				}
+				List<Variable> subparams = params(i);
+				if (subparams != null && subparams.size() > 0)
+				{
+					builder.append("(");
+					for (int j = 0; j < subparams.size(); j++)
+						builder.append(subparams.get(j)).append(" ");
+
+					builder.append(")");
+					arrow = true;
+				}
+				if (arrow)
+					builder.append("->");
 				builder.append(sub.toString4());
 			}
 			builder.append(")");

@@ -4,6 +4,8 @@ package org.transscript.runtime;
 
 import java.util.ArrayDeque;
 
+import org.transscript.runtime.Term.Kind;
+
 /**
  * Consume term events to construct in-memory term representation
  * 
@@ -24,12 +26,25 @@ public class BufferSink extends Sink
 	/** Sub current position stack */
 	protected ArrayDeque<Integer> subs;
 
+	/** Saved term stack (when parsing type) */
+	protected ArrayDeque<Term> savedTerms;
+
+	/** Saved sub current position stack (when parsing type)  */
+	protected ArrayDeque<Integer> savedSubs;
+
+	/** Constructed type */
+	protected Term type;
+
+	/** Tells whether adding arguments or substitition to metavar */
+	protected ArrayDeque<Boolean> apply;
+
 	/* */
 	public BufferSink(Context context)
 	{
 		this.context = context;
 		terms = new ArrayDeque<>();
 		subs = new ArrayDeque<>();
+		apply = new ArrayDeque<>();
 	}
 
 	/**
@@ -41,24 +56,40 @@ public class BufferSink extends Sink
 		return term;
 	}
 
-	/** Add sub to current construction */
+	/** Add sub to current construction/meta-application */
 	protected void addSub(Term sub)
 	{
 		//assert binders == null || !terms.isEmpty() : "Top level term cannot have binders";
 
 		if (subs.isEmpty())
 		{
-			// Top-level
-			term = sub;
+			// Top-level or type
+			if (savedTerms == null)
+				term = sub;
+			else
+				type = sub;
 		}
 		else
 		{
 			Term t = terms.peek();
-
 			final int subindex = subs.pop();
-			t.setSub(subindex, sub);
+
+			if (t.kind() == Kind.META_APPLICATION && apply.peek())
+				t.setArg(subindex, sub);
+			else
+				t.setSub(subindex, sub);
 			subs.push(subindex + 1); // ready to receive the next sub
 		}
+	}
+
+	/** @return last produced term */
+	protected Term lastTerm()
+	{
+		if (subs.isEmpty())
+			return term;
+
+		Term t = terms.peek();
+		return t.sub(subs.peek() - 1);
 	}
 
 	@Override
@@ -85,7 +116,7 @@ public class BufferSink extends Sink
 		subs.pop();
 
 		// Basic type checking.
-		assert !c.symbol().equals("Cons") || c.arity() == 2 : "Wrong number of subs for Cons";
+		assert!c.symbol().equals("Cons") || c.arity() == 2 : "Wrong number of subs for Cons";
 
 		if (terms.isEmpty())
 			term = c;
@@ -96,11 +127,18 @@ public class BufferSink extends Sink
 	@Override
 	public Sink startMetaApplication(String name)
 	{
+		return startMetaApplication(name, null);
+	}
+
+	@Override
+	public Sink startMetaApplication(String name, String type)
+	{
 		MetaApplication meta = new MetaApplication(name);
 		addSub(meta);
 
 		terms.push(meta);
 		subs.push(0);
+		apply.push(false); // Substitution unless told otherwise
 		return this;
 	}
 
@@ -117,6 +155,52 @@ public class BufferSink extends Sink
 	}
 
 	@Override
+	public Sink startApply()
+	{
+		apply.pop();
+		apply.push(true);
+		return this;
+	}
+
+	@Override
+	public Sink endApply()
+	{
+		apply.pop();
+		apply.push(false);
+
+		// Reset sub subindex
+		subs.pop();
+		subs.push(0);
+		return this;
+	}
+
+	@Override
+	public Sink startType()
+	{	
+		savedTerms = terms;
+		savedSubs = subs;
+		return this;
+	}
+
+	public Sink endType()
+	{
+		terms = savedTerms;
+		savedTerms = null;
+		subs = savedSubs;
+		savedSubs = null;
+
+		Term t = lastTerm();
+		if (t.kind() == Kind.META_APPLICATION)
+		{
+			// TODO: remove cast
+			((MetaApplication) t).setType(type);
+		}
+
+		type = null;
+		return this;
+	}
+
+	@Override
 	public BufferSink bind(Variable binder)
 	{
 		return (BufferSink) super.bind(binder);
@@ -129,6 +213,17 @@ public class BufferSink extends Sink
 		final Term term = terms.peek();
 		for (int j = 0; j < binders.length; j++)
 			term.setBinder(i, j, binders[j]);
+
+		return this;
+	}
+
+	@Override
+	public Sink param(Variable param)
+	{
+		final int i = subs.peek();
+		final Term term = terms.peek();
+
+		term.addParam(i, param);
 
 		return this;
 	}

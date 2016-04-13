@@ -125,7 +125,7 @@ rule Range(#from, #to)
    @return a new list, where the element is inserted at the end of the list
 */
 func Append<a>(a, List<a>) -> List<a>
-rule Append(#x, ())          → (#x,)
+rule Append(#x, ())           → (#x,)
 rule Append(#x, Cons(#1, #s)) → Cons(#1, Append(#x, #s))
 
 /*

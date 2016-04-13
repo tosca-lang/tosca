@@ -38,7 +38,7 @@ repositories {
 }
 
 dependencies {
-    transscript project.hasProperty('dev') ? files('targets/java/build', 'src') : 'org.transscript:transscript:1.0.0-ALPHA@jar' 
+    transscript project.hasProperty('dev') ? 'org.transscript:transscript:1.0.0-SNAPSHOT@jar' : 'org.transscript:transscript:1.0.0-ALPHA@jar' 
     transscript 'org.crsx:crsx3@jar'
     transscript 'org.antlr:antlr4:4.5' 
 }
@@ -50,6 +50,7 @@ task coreParsers(type: PG4Task) {
     source = file('src/core/Core.g4')
     generatedFileDir = file('src/core')
     metaPrefix = '##'
+	ncg =  project.hasProperty('dev') ? true : false
 }
 
 task transScriptParsers(type: PG4Task) {
@@ -57,14 +58,15 @@ task transScriptParsers(type: PG4Task) {
     source = file('src/parser/TransScript.g4')
     generatedFileDir = file('src/parser')
     metaPrefix = '##'
+	ncg =  project.hasProperty('dev') ? true : false
 }
 
 task textParsers(type: PG4Task) {
     description 'Generate Text term and meta parsers'
     source = file('src/text/Text4.g4')
     generatedFileDir = file('src/text')
-    metaPrefix = '##'
-    defaultRule = 'CHARS'
+    defaultRule = project.hasProperty('dev') ? 'text' : 'content'
+	ncg =  project.hasProperty('dev') ? true : false
 }
 
 // --- dependencies

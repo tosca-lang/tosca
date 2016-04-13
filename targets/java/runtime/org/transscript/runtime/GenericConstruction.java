@@ -2,7 +2,9 @@
 
 package org.transscript.runtime;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Generic construction with binders, subs and descriptor.
@@ -21,6 +23,9 @@ public class GenericConstruction extends Construction
 
 	/** Sub binders */
 	public Variable[][] binders;
+
+	/** Sub formal parameters */
+	public ArrayList<Variable>[] fparams;
 
 	// Constructors
 
@@ -76,7 +81,6 @@ public class GenericConstruction extends Construction
 	@Override
 	public void setBinder(int i, int j, Variable binder)
 	{
-		// TODO: resizing should not be needed.
 		if (binders == null)
 			binders = new Variable[i + 1][];
 		else if (binders.length <= i)
@@ -89,6 +93,29 @@ public class GenericConstruction extends Construction
 
 		assert binders.length > i && binders[i].length > j;
 		binders[i][j] = binder;
+	}
+
+	@Override
+	public List<Variable> params(int i)
+	{
+		return fparams == null ? null : i >= fparams.length ? null : fparams[i];
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void addParam(int i, Variable param)
+	{
+		if (fparams == null)
+			fparams = new ArrayList[i + 1];
+
+		ArrayList<Variable> params = fparams[i];
+		if (params == null)
+		{
+			fparams[i] = new ArrayList<>();
+			params = fparams[i];
+		}
+
+		params.add(param);
 	}
 
 	@Override

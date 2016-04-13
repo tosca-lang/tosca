@@ -222,21 +222,21 @@ rule JavaPatternTerm(#env, cterm⟦ ##cliteral ⟧, #term, #storage, [env]->#(en
 
 // REVISIT: bound variable reordering, ie. (x)(y)#(y, x)
 // For now only accepts patterns of the form (x)...(y)#(x, ... y)
-rule JavaPatternTerm(#env, cterm⟦ ##METAVAR ##cterms? ⟧, #term, #storage, [env]->#(env))
+rule JavaPatternTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #term, #storage, [env]->#(env))
 → text⟦
 /* ⟨Text-CommentToken(#METAVAR)⟩=⟨Text-CommentToken(Show(#term))⟩ */⟨JavaPatternMaybeMetaArgs(#env, #METAVAR, #cterms?, #term, [x] -> #(x))⟩⟧
 
 rule JavaPatternTerm(#env, cterm⟦ ##VARIABLE ⟧, #term, #storage, [env]->#(env))
 → JavaPatternVariable(MaybeGetVar(#env, #VARIABLE), #env, #VARIABLE, #term, [env]->#(env))
 
-rule JavaPatternTerm(#env, Core_cterm_A6([x] -> #cterm(x)), #term, PARAMETER, [env]->#(env))
+rule JavaPatternTerm(#env, Core_cterm_A6(#csortanno?, [x] -> #cterm(x)), #term, PARAMETER, [env]->#(env))
 //rule JavaPatternTerm(#env, cterm⟦ [ ##VARIABLE ] ##cterm ⟧, #term, PARAMETER, [env]->#(env))
 → JavaPatternTerm(NextParam(AddVar(#env, var, Bound(#term))), #cterm(var), CurrentParam(#env), PARAMETER, [env]->#(env))
 
-rule JavaPatternTerm(#env, Core_cterm_A6([x] -> #cterm(x)), #term, ARGUMENT, [env]->#(env))
+rule JavaPatternTerm(#env, Core_cterm_A6(#csortanno?, [x] -> #cterm(x)), #term, ARGUMENT, [env]->#(env))
 //rule JavaPatternTerm(#env, cterm⟦ [ ##VARIABLE ] ##cterm ⟧, #term, ARGUMENT, [env]->#(env))
 → text⟦
-Variable ⟨boundvar⟩ = ⟨GetParent(#env)⟩.binders(⟨GetSubIndex(#env)⟩)[⟨Text-Integer(GetSubBinderIndex(#env))⟩];⟨JavaPatternTerm(IncSubBinderIndex(AddVar(#env, var, Bound(boundvar))), #cterm(var), #term, ARGUMENT, [x]->#(x))⟩⟧
+Variable ⟨boundvar⟩ = ⟨GetParent(#env)⟩.binders(⟨GetSubIndex(#env)⟩)[⟨Text-Integer(GetSubBinderIndex(#env))⟩];⟨JavaPatternTerm(IncSubBinderIndex(AddVar(#env, var, Bound(boundvar))), #cterm(var), #term, ARGUMENT, [env]->#(env))⟩⟧
 
 // Pattern matching on construction arguments (subterms).
 func JavaPatternMaybeSubs(eager {String : JavaEnvEntry}, List<Core_cterms_sort>, Text, [{String : JavaEnvEntry}] -> Text) -> Text
@@ -316,14 +316,14 @@ rule JavaSendTerm(#env, cterm⟦ ##cliteral ⟧, [env]->#(env))
 rule JavaSendTerm(#env, cterm⟦ ##VARIABLE ⟧, [env]->#(env))
 → JavaMaybeSendBinds(#env, [env] -> JavaSendVariable(env, #VARIABLE, [env]->#(env)))
 
-rule JavaSendTerm(#env, cterm⟦ ##METAVAR ##cterms? ⟧, [env]->#(env))
+rule JavaSendTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, [env]->#(env))
 → JavaMaybeSendBinds(#env, [env] -> JavaSendMeta(env, #METAVAR, #cterms?, [env]->#(env)))
 
 //rule JavaSendTerm(#env, cterm⟦ [ ##VARIABLE ] ##cterm ⟧, [env]->#(env))
-rule JavaSendTerm(#env, Core_cterm_A6([x] -> #cterm(x)), [env]->#(env))
+rule JavaSendTerm(#env, Core_cterm_A6(#csortanno?, [x] -> #cterm(x)), [env]->#(env))
 → text⟦
 Variable ⟨jvar⟩ = ⟨GetSink(#env)⟩.context().makeVariable("x");⟨
-JavaSendTerm(AddBinder(AddVar(#env, var, Bound(jvar)), jvar), #cterm(var), [x] -> #(x))⟩⟧
+JavaSendTerm(AddBinder(AddVar(#env, var, Bound(jvar)), jvar), #cterm(var), [env] -> #(env))⟩⟧
 
 func JavaMaybeSendBinds(eager {String : JavaEnvEntry}, [JavaEnv] -> Text) -> Text
 rule JavaMaybeSendBinds(#env, [env] -> #(env))
