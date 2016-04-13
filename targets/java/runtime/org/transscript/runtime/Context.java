@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.transscript.antlr.Crsx3Parser;
-import org.transscript.runtime.Variable;
 
 /**
  * Context passed around during rewrite
@@ -77,22 +76,11 @@ final public class Context
 	}
 
 	/**
-	 * Make new unique variable.
-	 * 
-	 * @param hint
-	 * @return
-	 */
-	public org.transscript.runtime.v2.Variable makeRefVariable(String hint)
-	{
-		return new org.transscript.runtime.v2.Variable(makeVariableName(hint));
-	}
-
-	/**
-	 * Make new unique variable name.
-	 * 
-	 * @param hint
-	 * @return
-	 */
+	* Make new unique variable name.
+	* 
+	* @param hint
+	* @return
+	*/
 	private String makeVariableName(String hint)
 	{
 		String base = hint;
@@ -172,7 +160,7 @@ final public class Context
 			parserClass = loader.loadClass("org.transscript.core.CoreMetaParser");
 			registerCategories(parserClass, bootParsers);
 			parserClass = loader.loadClass("org.transscript.text.Text4MetaParser");
-			registerCategories(parserClass, bootParsers); 
+			registerCategories(parserClass, bootParsers);
 		}
 		catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IOException e)
 		{

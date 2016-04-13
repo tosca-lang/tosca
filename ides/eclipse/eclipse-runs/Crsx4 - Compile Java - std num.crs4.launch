@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/TransScript/targets/java/lib/crsx3.jar"/>
+<listEntry value="/TransScript - DEVELOP/targets/java/lib/crsx3.jar"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
@@ -15,7 +15,7 @@
 <booleanAttribute key="org.eclipse.jdt.launching.DEFAULT_CLASSPATH" value="false"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="net.sf.crsx.run.Crsx"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="&quot;grammar=('net.sf.crsx.text.Text';'org.crsx.parser.CrsxMetaParser';'org.crsx.core.CoreMetaParser';)&quot; &#10;rules=crsx.crs&#10;term=\&quot;std/num.crs4\&quot;&#10;wrapper=Compile&#10;output=../targets/java/compiler/org/crsx/compiler/std/Num.java&#10;sink=net.sf.crsx.text.TextSink&#10;javapackage=org.crsx.compiler.std&#10;omit-properties&#10;parse-locations=0"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="TransScript"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="TransScript - DEVELOP"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-mx4096M"/>
 <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:crsx4/src}"/>
 </launchConfiguration>

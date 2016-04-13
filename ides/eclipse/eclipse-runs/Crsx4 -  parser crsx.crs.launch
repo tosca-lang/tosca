@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/TransScript/targets/java/lib/crsx3.jar"/>
+<listEntry value="/TransScript - DEVELOP/targets/java/lib/crsx3.jar"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
@@ -9,6 +9,6 @@
 <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="net.sf.crsx.run.Crsx"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="sink=net.sf.crsx.text.TextSink&#10;grammar=&quot;('net.sf.crsx.text.Text';'org.crsx.parser.CrsxMetaParser')&quot;&#10;rules=crsx.crs&#10;term=\&quot;parser/Crsx.crs\&quot;&#10;output=../targets/java/compiler/org/crsx/compiler/parser/Crsx.java&#10;wrapper=Compile&#10;javabasepackage=org.crsx.compiler&#10;javapackage=parser &#10;omit-properties"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="TransScript"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="TransScript - DEVELOP"/>
 <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:crsx4/src}"/>
 </launchConfiguration>

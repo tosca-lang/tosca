@@ -17,13 +17,11 @@ import org.transscript.parser.TransScriptMetaParser.ApplyContext;
 import org.transscript.parser.TransScriptMetaParser.BindersContext;
 import org.transscript.parser.TransScriptMetaParser.ConcreteContext;
 import org.transscript.parser.TransScriptMetaParser.ConsContext;
-import org.transscript.parser.TransScriptMetaParser.FormalParamsContext;
 import org.transscript.parser.TransScriptMetaParser.GroupOrListContext;
 import org.transscript.parser.TransScriptMetaParser.LiteralContext;
 import org.transscript.parser.TransScriptMetaParser.MapContext;
 import org.transscript.parser.TransScriptMetaParser.MetappContext;
 import org.transscript.parser.TransScriptMetaParser.ScopeContext;
-import org.transscript.parser.TransScriptMetaParser.SortAnnoContext;
 import org.transscript.parser.TransScriptMetaParser.TermContext;
 import org.transscript.parser.TransScriptMetaParser.VariableContext;
 import org.transscript.parser.TransScriptMetaParserBaseListener;
@@ -262,35 +260,6 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 		state.pop();
 	}
 
-	// --- formal params
-
-	@Override
-	public void enterFormalParams(FormalParamsContext ctx)
-	{
-		state.push(State.PARAM);
-	}
-
-	@Override
-	public void exitFormalParams(FormalParamsContext ctx)
-	{
-		state.pop();
-	}
-
-	// --- type
-
-	@Override
-	public void enterSortAnno(SortAnnoContext ctx)
-	{
-		if (sink4 != null)
-			sink4 = sink4.startType();
-	}
-
-	@Override
-	public void exitSortAnno(SortAnnoContext ctx)
-	{
-		if (sink4 != null)
-			sink4 = sink4.endType();
-	}
 
 	// ---  
 
