@@ -1,0 +1,17 @@
+// Copyright (c) 2016 IBM Corporation.
+
+// Test generics
+
+enum Bool | True | False
+
+enum Option<a> | SOME(a) | NONE
+
+func UnSOME<a>(Option<a>) -> a
+rule UnSOME(SOME(#:a)) → #
+
+func HasOption<a>(Option<a>) -> Bool
+rule HasOption(NONE)    → False
+rule HasOption(SOME(#:a)) → True
+
+func Tests -> Bool
+rule Tests → UnSOME(SOME(True))

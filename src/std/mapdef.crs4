@@ -5,6 +5,7 @@
  */
 
 import Std::Core
+import Std::Listdef
 
 extern func MapPut<a b>({a : b}, eager a /* Key */, eager b /* Value */) -> {a : b}
 

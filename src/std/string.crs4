@@ -13,15 +13,15 @@ import Std::Num
 
 // --- Querying
 
-extern func Contains(String /* string */, String /* search string */) -> Boolean
+extern func Contains(String /* string */, String /* search string */) -> Bool
 
 extern func Length(String /* string */) -> Numeric
 
-extern func StartsWith(String /* string */, String /* search string */) -> Boolean
+extern func StartsWith(String /* string */, String /* search string */) -> Bool
 
-extern func EndsWith(String /* string */, String /* search string */) -> Boolean
+extern func EndsWith(String /* string */, String /* search string */) -> Bool
 
-extern func StringEqual(String /* string */, String /* other string */) -> Boolean
+extern func StringEqual(String /* string */, String /* other string */) -> Bool
 
 // --- Mutation
 
@@ -71,9 +71,9 @@ extern func AfterFirst(eager String, eager String) -> String
 
 func AfterLast(eager String, eager String) -> String
 
-extern func Escape(String, String, String) -> String
+extern func Escape(String) -> String
 extern func FormatNumber(Numeric) -> String
-extern func Mangle(String, String, String) -> String
+extern func Mangle(String) -> String
 
 
 rule AfterLast(#string, #sep)

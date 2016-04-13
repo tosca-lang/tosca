@@ -5,11 +5,12 @@
 
 import System
 import Normalizer
-import Cg::Cgjava
+import Cg::Ncgjava
 import Std::Core
-import Std::List
+import Std::Listdef
 import Std::String
 import Core::Core
+import Text::Text4
 
 //--- API
 
@@ -17,23 +18,23 @@ import Core::Core
    @param `String` a url
    @return a compile TransScript program in Java (for now)
 */
-func Compile(String) -> Text
+func Compile(String) -> Text4_text_sort
 rule Compile(#url)
 → IfDef("to-core",
     CompileToCore(#url),
     CompileSystem(InitSystem(#url)))
 
-func CompileSystem(System) -> Text
+func CompileSystem(System) -> Text4_text_sort
 rule CompileSystem(#system)
 → MaybeLoadModule(#system, PickNotLoaded(#system))
 
-func MaybeLoadModule(System, Option<Module>) -> Text
+func MaybeLoadModule(System, Option<Module>) -> Text4_text_sort
 
 // Done loading all modules. Generate code.
 rule MaybeLoadModule(#system, NONE)
 → TransScriptToJava(#system)
 
-rule MaybeLoadModule(#system, SOME(Module(#url, NOTLOADED)))
+rule MaybeLoadModule(#system, SOME(Module(#url:String, NOTLOADED)))
 → CompileSystem(PutModule(#system, #url, Module(#url, LoadModule(#url))))
 
 func LoadModule(String) -> Content
@@ -48,7 +49,7 @@ rule ParseTransScript(#url) → ToCore(#url, ParseResource("transscript", #url))
 
 //--- Compilation to Core (for debugging)
 
-func CompileToCore(String) -> Text
+func CompileToCore(String) -> Text4_text_sort
 rule CompileToCore(#url)
 /*→ Core_Print_ccrsx(ParseCrsx(#url))*/
 → ParseTransScript(#url)

@@ -34,7 +34,7 @@ task compileTransScript(type: TransScriptTask, dependsOn:':targets:java:parsers:
 	//sources     = fileTree(dir: transScriptSrc, include: ['/*.crs4', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'cg/*.crs4', 'cg/*.tsc', 'utils/*.crs4', '*.crs4', 'test/*.crs4', 'unification/*.crs4', 'specify/*.crs4'])
 	sources     =  project.hasProperty('dev') ?
 	                 fileTree(dir: '../../src2', include: ['**/*.crs4'], exclude: ['cg/*.*']) :
-					 fileTree(dir: transScriptSrc, include: ['/*.crs4', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'cg/*.crs4', 'cg/*.tsc', '*.crs4', 'test/*.crs4'])
+					 fileTree(dir: transScriptSrc, include: ['*.crs4', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'test/*.crs4'])
 	outputDir   = project.hasProperty('dev') ? file('compilerdev') : file('compiler')
 	packageName = project.hasProperty('dev') ? 'org.transscript.compiler2' : 'org.transscript.compiler'
 	usecompiler = !project.hasProperty('crsx3')

@@ -644,7 +644,7 @@ func MaybeSortAnnoToSort(List<Core_csortanno_sort>) -> Option<Core_sort_sort>
   → NONE
 
  rule MaybeSortAnnoToSort(csortanno?⟦ : ##csort ⟧)
-  → SOME(#csort)
+  → #csort
 
 /*
 /** Convert sort annotation to equivalent Java type */
@@ -1021,23 +1021,15 @@ func ResolveTypeParamCons(Option<Core_csort_sort>) -> Text
   rule ResolveTypeParamCons(SOME(#))
   → text⟦⟧
 
-/* Get sub sort. Get it from term and if not available on sort */
+/* Get sub sort. If sort is not available, try to get it from qualifified term */
 func SubSort(eager {String : JavaEnvEntry}, Core_cterm_sort, Option<List<Core_csort_sort>>) -> Option<Core_csort_sort>
-rule SubSort(#env, #cterm, #csorts?)
-→ SubSort2(SubSortFromTerm(#env, #cterm), #csorts?)
+  rule SubSort(#env, #cterm, NONE)
+  → SubSortFromTerm(#env, #cterm)
 
-func SubSort2(Option<Core_csort_sort>, Option<List<Core_csort_sort>>) -> Option<Core_csort_sort>
-
-  rule SubSort2(SOME(#csort), #)
+  rule SubSort(#env, #cterm, SOME(csort*⟦ ##csort ##csort* ⟧))
   → SOME(#csort)
 
-  rule SubSort2(NONE, NONE)
-  → NONE
-
-  rule SubSort2(NONE, SOME(csort*⟦ ##csort ##csort* ⟧))
-  → SOME(#csort)
-
-func SubSortFromTerm(eager {String : JavaEnvEntry}, Core_cterm_sort) -> Option<Core_csort_sort>
+func SubSortFromTerm(eager {String : JavaEnvEntry}, Core_cterm_sort) -> Text
 
   // TODO: support for multiple sort qualifiers
   rule SubSortFromTerm(#env, cterm⟦ ##csort :: ##csortqualifier* ##CONSTRUCTOR ##cterms? ⟧)
@@ -1132,8 +1124,8 @@ func JavaFreshesVariable(eager {String : JavaEnvEntry}, Option<VarEntry>, String
 
   rule JavaFreshesVariable(#env, NONE, #var, [env] -> #(env))
   → text⟦
-      Variable fresh⟨NumberToText(GetCounter(#env))⟩ = context.makeRefVariable(⟨Text-QuoteEscape(Show(#var))⟩);⟨
-        #(IncCounter(AddVar(#env, #var, Fresh(text⟦fresh⟨NumberToText(GetCounter(#env))⟩⟧, NONE))))⟩⟧
+      Variable fresh⟨NumberToText(GetCounter(#env))⟩ = context.makeRefVariable(⟨#var⟩);⟨
+        #(IncCounter(AddVar(#env, var, Fresh(text⟦fresh⟨NumberToText(GetCounter(#env))⟩⟧, NONE))))⟩⟧
 
   rule JavaFreshesVariable(#env,  SOME(#), #var, [env] -> #(env))
   → #(#env)

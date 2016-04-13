@@ -8,8 +8,8 @@
 
 import Std::Core
 import Std::String
-import Std::Map
-import Std::List
+import Std::Mapdef
+import Std::Listdef
 import Core::Core
 
 // --- System representation.
@@ -98,18 +98,6 @@ rule PutDataSort1(NONE, #data, #constructor, #decl)
 
 rule PutDataSort1(SOME(#datasort), #data, #constructor, #rule)
 → Error(ConcatString("Data sort already declared:", #constructor))
-
-/* Gets data sort from sort reference */
-func LookupDataSortDecl(eager { String : Core_cdecl_sort }, Core_csort_sort) -> Option<Core_cdecl_sort>
-rule LookupDataSortDecl(#data, csort⟦ ##CONSTRUCTOR ##csorts? ⟧)
-→ MapGet(#data, #CONSTRUCTOR)
-
-rule LookupDataSortDecl(#data, csort⟦ data ##csort ⟧)
-→ LookupDataSortDecl(#data, #csort)
-
-// fallback
-rule LookupDataSortDecl(#data, #csort)
-→ NONE
 
 /* Add function sort to module content.
  */
