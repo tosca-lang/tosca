@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.transscript.compiler.std.List;
 import org.transscript.parser.TransScriptMetaParser.ApplyContext;
 import org.transscript.parser.TransScriptMetaParser.BindersContext;
 import org.transscript.parser.TransScriptMetaParser.ConcreteContext;
@@ -27,6 +26,7 @@ import org.transscript.parser.TransScriptMetaParser.SortAnnoContext;
 import org.transscript.parser.TransScriptMetaParser.TermContext;
 import org.transscript.parser.TransScriptMetaParser.VariableContext;
 import org.transscript.parser.TransScriptMetaParserBaseListener;
+import org.transscript.runtime.ConstructionDescriptor;
 import org.transscript.runtime.Variable;
 
 import net.sf.crsx.CRS;
@@ -71,6 +71,10 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 	/** Count the number of terms in list */
 	private ArrayDeque<Integer> consCount = new ArrayDeque<>();
 
+	/** The List construction descriptors */
+	final protected ConstructionDescriptor nilDesc;
+	final protected ConstructionDescriptor consDesc;
+
 	// Constructors
 
 	public TermParserListener(GenericFactory factory, Sink sink3, ArrayDeque<Object> bounds, ArrayDeque<Object> freshes)
@@ -79,20 +83,26 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 		this.factory = factory;
 		this.freshes = freshes;
 		this.bounds = bounds;
+		this.nilDesc = null;
+		this.consDesc = null;
 
 		state.push(State.SKIP);
 	}
 
 	public TermParserListener(org.transscript.runtime.Sink sink)
 	{
-		this(sink, new ArrayDeque<>(), new ArrayDeque<>());
+		this(sink, new ArrayDeque<>(), new ArrayDeque<>(), sink.context().lookupDescriptor("Nil"),
+				sink.context().lookupDescriptor("Cons"));
 	}
 
-	public TermParserListener(org.transscript.runtime.Sink sink4, ArrayDeque<Object> bounds, ArrayDeque<Object> freshes)
+	public TermParserListener(org.transscript.runtime.Sink sink4, ArrayDeque<Object> bounds, ArrayDeque<Object> freshes,
+			ConstructionDescriptor nilDesc, ConstructionDescriptor consDesc)
 	{
 		this.sink4 = sink4;
 		this.freshes = freshes;
 		this.bounds = bounds;
+		this.nilDesc = nilDesc;
+		this.consDesc = consDesc;
 
 		state.push(State.SKIP);
 	}
@@ -139,7 +149,7 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 
 		// Send list terminator
 		if (sink3 == null)
-			sink4 = sink4.start(List._M_Nil).end();
+			sink4 = sink4.start(nilDesc).end();
 		else
 			sink3 = sink3.start(sink3.makeConstructor("$Nil")).end();
 
@@ -208,15 +218,15 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 	public void enterApply(ApplyContext ctx)
 	{
 		if (sink4 != null)
-			sink4 = sink4.startApply();
+			sink4 = sink4.startSubstitutes();
 	}
 
 	@Override
 	public void exitApply(ApplyContext ctx)
 	{
 		if (sink4 != null)
-			sink4 = sink4.endApply();
-	}	
+			sink4 = sink4.endSubstitutes();
+	}
 	// --- concrete
 
 	@Override
@@ -304,7 +314,7 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 
 			// TODO: Should delay by using a buffer before sending $Cons when supporting grouped expression.
 			if (sink3 == null)
-				sink4 = sink4.start(List._M_Cons);
+				sink4 = sink4.start(consDesc);
 			else
 				sink3 = sink3.start(sink3.makeConstructor("$Cons"));
 		}
@@ -330,9 +340,8 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 					{
 						if (sink3 == null)
 						{
-							org.transscript.runtime.Variable[] bs = new org.transscript.runtime.Variable[binders.size()];
-							binders.toArray(bs);
-							sink4 = sink4.binds(bs);
+							for (int i = 0; i < binders.size(); i++)
+								sink4 = sink4.bind((Variable) binders.get(i));
 						}
 						else
 						{

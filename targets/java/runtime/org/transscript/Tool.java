@@ -6,8 +6,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -22,20 +20,16 @@ import java.util.function.Consumer;
 
 import javax.tools.JavaCompiler;
 import javax.tools.JavaCompiler.CompilationTask;
-
-import org.transscript.runtime.BufferSink;
-import org.transscript.runtime.ConstructionDescriptor;
-import org.transscript.runtime.Context;
-import org.transscript.runtime.CrsxLexer;
-import org.transscript.runtime.Normalizer;
-import org.transscript.runtime.ParsingUtils;
-import org.transscript.runtime.Sink;
-import org.transscript.runtime.StringUtils;
-import org.transscript.runtime.Term;
-
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+
+import org.transscript.runtime.ConstructionDescriptor;
+import org.transscript.runtime.Context;
+import org.transscript.runtime.Normalizer;
+import org.transscript.runtime.ParsingUtils;
+import org.transscript.runtime.Sink;
+import org.transscript.runtime.Term;
 
 /**
  * TransScript command line.
@@ -529,76 +523,20 @@ public class Tool
 
 		String inputTerm = env.get("term");
 		String input = env.get("input");
-		Object result = null;
-		if (wrapper != null || input != null || inputTerm != null)
+		Term result = null;
+
+		// Look top-level method to invoke
+		String mainMethod = env.get("main");
+		mainMethod = mainMethod == null ? "Main" : mainMethod;
+		Method main = getMethod(clss, mainMethod);
+
+		try
 		{
-
-			BufferSink buffer = context.makeBuffer();
-
-			if (wrapper != null)
-				buffer.start(wrapper);
-
-			// Parse term (if any)
-			if (inputTerm != null)
-			{
-				inputTerm = inputTerm.trim();
-				if (inputTerm.length() > 0)
-				{
-					char c = inputTerm.charAt(0);
-					if (c == '"')
-					{
-						buffer.literal(StringUtils.unquoteJava(inputTerm));
-					}
-					else if (Character.isDigit(c) || c == '-' || c == '+')
-					{
-						buffer.literal(inputTerm);
-					}
-					else
-					{
-						try (Reader reader = new StringReader(inputTerm))
-						{
-							new CrsxLexer(reader).scanTerm(buffer, reader);
-						}
-						catch (IOException e)
-						{
-							printUsage();
-						}
-					}
-				}
-			}
-			else
-			{
-				// Parse input (if any)
-				if (input != null)
-				{
-					// TODO: parser categories
-					parseTerm(buffer, input);
-				}
-			}
-
-			if (wrapper != null)
-				buffer.end();
-
-			// Normalize!!
-			Term top = buffer.term();
-			result = Normalizer.normalize(context, top);
+			result = Normalizer.normalize(context, main);
 		}
-		else
+		catch (Exception e)
 		{
-			// This is the new way: look for method to invoke.
-			String mainMethod = env.get("main");
-			mainMethod = mainMethod == null ? "Main" : mainMethod;
-			Method main = getMethod(clss, mainMethod);
-
-			try
-			{
-				result = main.invoke(null, context);
-			}
-			catch (Exception e)
-			{
-				fatal("problem occurred while running the TransScript system", e);
-			}
-
+			fatal("problem occurred while running the TransScript system", e);
 		}
 
 		// initialize output
@@ -606,6 +544,7 @@ public class Tool
 		Appendable output = System.out;
 
 		if (outputEntry != null)
+
 		{
 			try
 			{
@@ -619,6 +558,7 @@ public class Tool
 
 		String sinkName = env.get("sink");
 		if (sinkName != null)
+
 		{
 			@SuppressWarnings("unchecked")
 			Class<? extends Sink> sinkClss = (Class<? extends Sink>) loadClass(sinkName, loader);
@@ -626,7 +566,9 @@ public class Tool
 			try
 			{
 				Sink sink = sinkClss.getConstructor(Context.class, Appendable.class).newInstance(context, output);
-				((Term) result).copy(sink, true);
+				
+				// TODO: Send result to sink!
+				//((Term) result).copy(sink, true);
 			}
 			catch (Exception e)
 			{
@@ -634,6 +576,7 @@ public class Tool
 			}
 		}
 		else
+
 		{
 			try
 			{
@@ -646,6 +589,7 @@ public class Tool
 		}
 
 		if (output instanceof Closeable && output != System.out)
+
 		{
 			try
 			{
@@ -656,6 +600,7 @@ public class Tool
 				fatal("error while closing the output", e);
 			}
 		}
+
 	}
 
 	/* Set TransScript parsers classpath */

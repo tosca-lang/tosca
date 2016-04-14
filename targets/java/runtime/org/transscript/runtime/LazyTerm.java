@@ -1,10 +1,8 @@
 // Copyright (c) 2016 IBM Corporation.
 
-package org.transscript.runtime.v2;
+package org.transscript.runtime;
 
 import java.util.function.Function;
-
-import org.transscript.runtime.Context;
 
 /**
  * Unevaluated function (a thunk). 

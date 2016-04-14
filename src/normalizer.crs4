@@ -26,7 +26,7 @@ rule ToCore(#filename, transscript⟦ ##decl+ ⟧)
 
 func NDecls(List<TransScript_decl_sort>) -> List<Core_cdecl_sort>
 rule NDecls(#cdecl+)
-→ Flatten(Map([x] -> NDecl(x), #cdecl+))
+→ Flatten(Map((x) -> NDecl(x), #cdecl+))
 
 func NDecl(TransScript_decl_sort) -> List<Core_cdecl_sort>
 
@@ -221,12 +221,14 @@ func NScope(TransScript_scope_sort) -> Core_cterm_sort
 func NBinders(TransScript_binders_sort) -> Core_cterm_sort
   //rule NBinders(binders⟦ v ##csortAnno? ##binders ⟧) → cterm⟦ [ x ] ⟨cterm: NBinders[#binders[x]]⟩ ⟧
 
-  rule NBinders(TransScript_binders_A1(#sortAnno?, [x] -> #binders(x))) → cterm⟦ [ x ⟨csortanno?: NMaybeSortAnno[#sortAnno?]⟩ ] ⟨cterm: NBinders[#binders[x]]⟩ ⟧
+  rule NBinders(TransScript_binders_A1(#sortAnno?, [x] -> #binders[x])) → cterm⟦ [ x ⟨csortanno?: NMaybeSortAnno[#sortAnno?]⟩ ] ⟨cterm: NBinders[#binders[x]]⟩ ⟧
   rule NBinders(binders⟦ ] -> ##term ⟧) → NTerm(#term)
 
 func NFormalParams(TransScript_formalParams_sort) -> Core_cterm_sort
     //rule NBinders(binders⟦ ##VARIABLE ##binders ⟧) → cterm⟦ [ x ] ⟨cterm: NBinders[#binders[x]]⟩ ⟧
-    rule NFormalParams(TransScript_formalParams_A1(#sortAnno?, [x] -> #formalParams(x))) → cterm⟦ ( x  ⟨csortanno?: NMaybeSortAnno[#sortAnno?]⟩ ) ⟨cterm: NFormalParams[#formalParams[x]]⟩ ⟧
+    rule NFormalParams(TransScript_formalParams_A1(#sortAnno?:List<TransScript_xsortAnno_xsort>, (x) -> #formalParams(x)))
+    → cterm⟦ ( x  ⟨csortanno?: NMaybeSortAnno[#sortAnno?]⟩ ) ⟨cterm: NFormalParams[#formalParams[x]]⟩ ⟧
+
     rule NFormalParams(formalParams⟦ ) -> ##term          ⟧) → NTerm(#term)
 
 func NMaybeApply(List<TransScript_apply_sort>) -> List<Core_cterms_sort>

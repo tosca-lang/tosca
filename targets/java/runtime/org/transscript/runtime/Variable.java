@@ -1,13 +1,9 @@
-// Copyright (c) 2014 IBM Corporation.
+// Copyright (c) 2016 IBM Corporation.
 package org.transscript.runtime;
 
-/**
- * A Variable. Either free, bound, or binder.
- * 
- * @author villardl
- */
-public class Variable extends Reference
+public class Variable implements Ref
 {
+
 	/** Name */
 	String name;
 
@@ -31,9 +27,9 @@ public class Variable extends Reference
 	/**
 	 * @return a new use of this variable
 	 */
-	final public Variable ref()
+	public Variable ref()
 	{
-		return (Variable) super.ref();
+		return (Variable) Ref.ref(this);
 	}
 
 	/**

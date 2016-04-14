@@ -19,18 +19,17 @@ package org.transscript.runtime;
  * 
  * @author villardl
  */
-public abstract class Reference
+public abstract class RefImpl implements Ref
 {
 	// Special value indicating the reference as been released and shouldn't be used anymore
 	final public static int RELEASED = Integer.MIN_VALUE; 
 	
 	/** Safe reference counting: check for null value */
 	@SuppressWarnings("unchecked")
-	final public static <T extends Reference> T safeRef(T ref)
+	final public static <T extends RefImpl> T safeRef(T ref)
 	{
 		return ref == null ? null : (T) ref.ref();
 	}
-		
 	
 	/**
 	 * Number of references to this instance.
@@ -38,7 +37,7 @@ public abstract class Reference
 	protected int refcount;
 	
 	/** Create one reference */
-	protected Reference()
+	protected RefImpl()
 	{
 		refcount = 1;
 	}
@@ -48,7 +47,7 @@ public abstract class Reference
 	 * 
 	 * @return A new reference (itself)
 	 */
-	public Reference ref()
+	public RefImpl ref()
 	{
 		assert refcount > 0 : "Cannot create reference from a freed reference.";
 		
@@ -71,7 +70,7 @@ public abstract class Reference
 	/**
 	 * Free this reference. 
 	 * 
-	 * Should not be called directly. Instead call {@link Reference#release()}
+	 * Should not be called directly. Instead call {@link RefImpl#release()}
 	 */
 	protected void free()
 	{
@@ -88,5 +87,4 @@ public abstract class Reference
 		return refcount;
 	}
 
-	
 }

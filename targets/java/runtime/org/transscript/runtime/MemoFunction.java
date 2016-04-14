@@ -4,9 +4,6 @@ package org.transscript.runtime;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.transscript.runtime.v2.Term;
-import org.transscript.runtime.v2.Variable;
-
 /**
  * Memoizable {@link Function}
  * @author Lionel Villard

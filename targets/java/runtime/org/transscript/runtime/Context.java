@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.transscript.antlr.Crsx3Parser;
-import org.transscript.runtime.Variable;
+import org.transscript.runtime.generic.GenericDataDescriptor;
 
 /**
  * Context passed around during rewrite
@@ -77,17 +77,6 @@ final public class Context
 	}
 
 	/**
-	 * Make new unique variable.
-	 * 
-	 * @param hint
-	 * @return
-	 */
-	public org.transscript.runtime.v2.Variable makeRefVariable(String hint)
-	{
-		return new org.transscript.runtime.v2.Variable(makeVariableName(hint));
-	}
-
-	/**
 	 * Make new unique variable name.
 	 * 
 	 * @param hint
@@ -124,12 +113,12 @@ final public class Context
 	 * Lookup descriptor for symbol
 	 * 
 	 * @param string
-	 * @return A descriptor. If no descriptor for the given symbol exist, create a data constructor
+	 * @return A descriptor. If no descriptor for the given symbol exist, create a generic data constructor
 	 */
 	public ConstructionDescriptor lookupDescriptor(String symbol)
 	{
 		ConstructionDescriptor desc = descriptors.get(symbol);
-		return desc == null ? ConstructionDescriptor.makeData(symbol) : desc;
+		return desc == null ? new GenericDataDescriptor(symbol) : desc;
 	}
 
 	//	/**
@@ -268,12 +257,9 @@ final public class Context
 	{
 		private ClassLoader realParent;
 
-		private URL[] us; // tmp for debugging only
-
 		public ChildURLClassLoader(URL[] urls, ClassLoader realParent)
 		{
 			super(urls, null);
-			this.us = urls;
 			this.realParent = realParent;
 		}
 

@@ -1,6 +1,6 @@
 // Copyright (c) 2016 IBM Corporation.
 
-package org.transscript.runtime.v2;
+package org.transscript.runtime;
 
 /**
  * Represent a reference

@@ -11,7 +11,7 @@ rule Eval(#) → #
 
 // --- External Environment
 
-extern func IfDef<a b c>(eager {a: b}, eager a /* Key */, c, c) -> c
+extern func IfDef<a b c>(eager a /* Key */, c, c) -> c
 extern func GetEnv(eager String /* Key */, String /* Default */) -> String
 
 // --- Optional value

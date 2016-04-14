@@ -6,7 +6,7 @@
 
 import Std::Core
 import Std::Num
-
+import Parser::TransScript
 // --- Wrapper
 
 //String | ( String(String)  )
@@ -30,6 +30,7 @@ extern func ConcatString(String, String) -> String
 extern func Rescape(eager String) -> String
 extern func UpCase(eager String) -> String
 extern func DownCase(eager String) -> String
+
 extern func Substring(eager String, eager Numeric, eager Numeric) -> String
 
 func UnString(eager String) -> String
@@ -39,19 +40,21 @@ rule UnString(#string) → Rescape(#string)
  * Make sure the given string first character is upper case
  */
 func UpCaseFirst(String) -> String
-rule UpCaseFirst(#string) → If(Equal(#string, ""), "", ConcatString(UpCase(Substring(#string, 0, 1)), Substring(#string, 1)))
+rule UpCaseFirst(#string)
+→ If(Equal(#string, ""), "", ConcatString(UpCase(Substring(#string, 0, 1)), Substring(#string, 1, Length(#string))))
 
 /*
  * Make sure the given string first character is lower case
  */
 func DownCaseFirst(String) ->String
-rule DownCaseFirst(#string) → If(Equal(#string, ""), "",ConcatString(DownCase(Substring(#string, 0, 1)), Substring(#string, 1)))
+rule DownCaseFirst(#string)
+→ If(Equal(#string, ""), "",ConcatString(DownCase(Substring(#string, 0, 1)), Substring(#string, 1, Length(#string))))
 
 /*
  * Returns given string without its first character
  */
 func RemoveFirstChar(eager String) -> String
-rule RemoveFirstChar(#string) → Substring(#string, 1)
+rule RemoveFirstChar(#string) → Substring(#string, 1, Length(#string))
 
 
 /*

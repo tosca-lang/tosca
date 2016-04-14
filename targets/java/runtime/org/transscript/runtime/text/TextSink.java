@@ -5,14 +5,10 @@ package org.transscript.runtime.text;
 import java.io.IOException;
 import java.util.ArrayDeque;
 
-import org.transscript.compiler.text.Text4;
+import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.ConstructionDescriptor;
 import org.transscript.runtime.Context;
-import org.transscript.runtime.FormattingAppendable;
-import org.transscript.runtime.Properties;
-import org.transscript.runtime.SimpleTermSink;
 import org.transscript.runtime.Sink;
-import org.transscript.runtime.Term;
 import org.transscript.runtime.Variable;
 
 /**
@@ -42,8 +38,8 @@ public class TextSink extends Sink
 	/** Whether outputting text or crsx. When empty, default to inside text. */
 	protected ArrayDeque<Boolean> inText;
 
-	/** Simple term sink helper */
-	protected SimpleTermSink termSink;
+	/** Buffer sink fallback */
+	protected Sink termSink;
 
 	// Constructor
 
@@ -54,7 +50,7 @@ public class TextSink extends Sink
 		this.indent = 0;
 		this.descriptors = new ArrayDeque<>();
 		this.inText = new ArrayDeque<>();
-		this.termSink = new SimpleTermSink(context, FormattingAppendable.format(output, 120, 0, 80));
+		this.termSink = new BufferSink(context);
 	}
 
 	// Local
@@ -95,9 +91,10 @@ public class TextSink extends Sink
 	/** Whether given constructor descriptor is a text one */
 	final protected boolean isTextDescriptor(ConstructionDescriptor desc)
 	{
-		return desc == Text4._M_Text4_xcontent_xA1
-				|| desc == Text4._M_Text4_xcontent_xA2 || desc == Text4._M_Text4_xcontent_xA3 || desc == Text4._M_Text4_xcontent_xA4
-				|| desc == Text4._M_Text4_xtext_xA1 || desc == Text4._M_Text4_xtext_xA2;
+		return false;
+//		return desc == Text4.Text4_xcontent_xA1
+//				|| desc == Text4._M_Text4_xcontent_xA2 || desc == Text4._M_Text4_xcontent_xA3 || desc == Text4._M_Text4_xcontent_xA4
+//				|| desc == Text4._M_Text4_xtext_xA1 || desc == Text4._M_Text4_xtext_xA2;
 	}
 
 	// Overrides Sink
@@ -186,26 +183,6 @@ public class TextSink extends Sink
 	}
 
 	@Override
-	public Sink binds(Variable[] binders)
-	{
-		if (inText())
-		{
-			// This is really bad as the term is even not inside the sort value space.
-			// Switch to term mode
-			print("⟨");
-
-			inText.pop();
-			inText.push(false);
-
-			assert!inText.isEmpty() : "Can't have top-level binders";
-		}
-
-		termSink.binds(binders);
-
-		return this;
-	}
-
-	@Override
 	public Sink param(Variable param)
 	{
 		if (inText())
@@ -249,13 +226,13 @@ public class TextSink extends Sink
 		}
 		return this;
 	}
-
-	@Override
-	public Sink copy(Term term)
-	{
-		term.copy(this, true);
-		return this;
-	}
+//
+//	@Override
+//	public Sink copy(Term term)
+//	{
+//		term.copy(this, true);
+//		return this;
+//	}
 
 	@Override
 	public Sink startMetaApplication(String name)
@@ -273,13 +250,6 @@ public class TextSink extends Sink
 
 		return this;
 	}
-
-	@Override
-	public Sink startMetaApplication(String name, String type)
-	{
-		return startMetaApplication(name);
-	}
-
 	@Override
 	public Sink startType()
 	{
@@ -311,35 +281,14 @@ public class TextSink extends Sink
 	}
 
 	@Override
-	public Sink properties(Properties properties)
-	{
-		// TODO
-		return this;
-	}
-
-	@Override
-	public Sink propertyNamed(String name, Term term)
-	{
-		// TODO:
-		return this;
-	}
-
-	@Override
-	public Sink propertyVariable(Variable variable, Term term)
-	{
-		// TODO
-		return this;
-	}
-
-	@Override
-	public Sink startApply()
+	public Sink startSubstitutes()
 	{
 		// TODO Auto-generated method stub
 		return this;
 	}
 
 	@Override
-	public Sink endApply()
+	public Sink endSubstitutes()
 	{
 		// TODO Auto-generated method stub
 		return this;
@@ -349,6 +298,13 @@ public class TextSink extends Sink
 	public Context context()
 	{
 		return context;
+	}
+
+	@Override
+	public Sink bind(Variable binder)
+	{
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

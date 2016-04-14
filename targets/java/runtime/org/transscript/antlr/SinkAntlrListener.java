@@ -26,6 +26,7 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.transscript.parser.TransScriptMetaLexer;
 import org.transscript.parser.TransScriptMetaParser;
+import org.transscript.runtime.ConstructionDescriptor;
 import org.transscript.runtime.Variable;
 
 import net.sf.crsx.CRS;
@@ -170,6 +171,10 @@ public class SinkAntlrListener implements ParseTreeListener
 	/** The CRSX4 sink */
 	private org.transscript.runtime.Sink sink4;
 
+	/** The List construction descriptors */
+	final protected ConstructionDescriptor nilDesc;
+	final protected ConstructionDescriptor consDesc;
+	
 	private GenericFactory factory;
 	private ArrayDeque<MutableInt> consCount;
 	private ArrayDeque<ParserRuleContext> ruleContext;
@@ -246,6 +251,10 @@ public class SinkAntlrListener implements ParseTreeListener
 		this.freshes = new ArrayDeque<>();
 
 		this.embedCrsx4 = prefix.equals("Text4_");
+		
+		this.nilDesc = null;
+		this.consDesc = null;
+
 	}
 
 	/**
@@ -277,6 +286,11 @@ public class SinkAntlrListener implements ParseTreeListener
 		this.freshes = new ArrayDeque<>();
 
 		this.embedCrsx4 = prefix.equals("Text4_");
+	
+
+		this.nilDesc = sink.context().lookupDescriptor("Nil");
+		this.consDesc = sink.context().lookupDescriptor("Cons");
+
 	}
 
 	/**
@@ -326,7 +340,7 @@ public class SinkAntlrListener implements ParseTreeListener
 			if (sink != null)
 				sink = sink.start(nil).end();
 			else
-				sink4 = sink4.start(org.transscript.compiler.std.List._M_Nil).end();
+				sink4 = sink4.start(nilDesc).end();
 		}
 
 		int count = consCount.pop().v;
@@ -565,8 +579,10 @@ public class SinkAntlrListener implements ParseTreeListener
 		}
 
 		if (sink == null)
-			sink4 = sink4.binds((Variable[]) binders);
-		else
+		{
+			for (int i = 0; i < binders.length; i++)
+				sink4 = sink4.bind((Variable) binders[i]);
+		} else
 			sink = sink.binds((net.sf.crsx.Variable[]) binders);
 	}
 
@@ -594,7 +610,7 @@ public class SinkAntlrListener implements ParseTreeListener
 				if (sink != null)
 					sink = sink.start(cons);
 				else
-					sink4 = sink4.start(org.transscript.compiler.std.List._M_Cons);
+					sink4 = sink4.start(consDesc);
 
 				consCount.peek().v++;
 			}
@@ -638,7 +654,7 @@ public class SinkAntlrListener implements ParseTreeListener
 							if (sink != null)
 								sink = sink.start(cons);
 							else
-								sink4 = sink4.start(org.transscript.compiler.std.List._M_Cons);
+								sink4 = sink4.start(consDesc);
 
 							consCount.peek().v++;
 						}
@@ -804,7 +820,7 @@ public class SinkAntlrListener implements ParseTreeListener
 
 			TermParserListener listener;
 			if (sink == null)
-				listener = new TermParserListener(sink4, bounds, freshes);
+				listener = new TermParserListener(sink4, bounds, freshes, nilDesc, consDesc);
 			else
 				listener = new TermParserListener(factory, sink, bounds, freshes);
 			parser.addParseListener(listener);

@@ -1,15 +1,17 @@
-// Copyright (c) 2014 IBM Corporation.
+// Copyright (c) 2016 IBM Corporation.
 
 package org.transscript.runtime;
 
 import java.util.Map;
 
 /**
- * A variable use.
+ * Base class for typed variable use.
  * 
- * @author villardl
+ * Also serve as a generic implementation.
+ * 
+ * @author Lionel Villard
  */
-final public class VariableUse extends Term
+public class VariableUse implements Term
 {
 
 	/** The variable being used */
@@ -29,66 +31,36 @@ final public class VariableUse extends Term
 	{
 		return variable;
 	}
-	
+
 	@Override
-	public Kind kind()
+	public Term copy(Context c)
 	{
-		return Kind.VARIABLE_USE;
+		return new VariableUse(variable);
 	}
 
 	@Override
-	public void copy(Sink sink, boolean discard)
-	{
-		sink.use(variable); // use will call .use
-		if (discard)
-			release();
-	}
-
-
-	@Override
-	protected void substituteTo(Sink sink, Map<Variable, Term> substitutes)
+	public Term substitute(Context c, Map<Variable, Term> substitutes)
 	{
 		Term substitute = substitutes.get(variable);
 		if (substitute != null)
 		{
-			sink.copy(substitute.ref());
-
 			release();
-			return;
+
+			if (substitute instanceof VariableUse)
+			{
+				// TODO: find a better way.
+				
+				// Replacing variable use by another variable use. Make sure it's the right type!
+				VariableUse copy = (VariableUse) copy(c);
+				copy.variable = ((VariableUse) substitute).variable;
+				return copy;
+			}
+			
+			return substitute.ref();
 		}
 
 		// This is a free variable: just echo
-		sink.copy(this); // Transfer reference
+		return this; // Transfer reference
 	}
-
-	@Override
-	protected void free()
-	{
-		variable.unuse(this);
-
-		super.free();
-	}
-
-	@Override
-	protected boolean deepEquals(Term other, Map<Variable, Variable> renamings)
-	{
-		if (other.kind() != Kind.VARIABLE_USE)
-			return false;
-		Variable mapped = renamings.get(variable);
-		return (mapped != null ? mapped : variable).equals(((VariableUse) other).variable);
-	}
-
-	@Override
-	public String toString()
-	{
-		return variable.toString();
-	}
-
-	@Override
-	public String toString4()
-	{
-		return variable.toString();
-	}
-
 
 }
