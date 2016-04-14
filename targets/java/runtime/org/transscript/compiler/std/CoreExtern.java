@@ -47,7 +47,7 @@ public class CoreExtern
 		return null;
 	}
 
-	public static <a extends Term, b extends Term, c extends Term> c IfDef(Context context, MapTerm x_628, a x_633, c x_638, c x_642)
+	public static <a extends Term, b extends Term, c extends Term> c IfDef(Context context, a x_633, c x_638, c x_642)
 	{
 		// TODO Auto-generated method stub
 		return null;

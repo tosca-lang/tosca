@@ -481,7 +481,7 @@ MakeMetaAltList[#RULE_REF, METALEXER]   → ();
 
 MakeMetaAltList[#RULE_REF, METAPARSER]  
 →
-%ruleAltList_S1*⟨ | {_term();} ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩ | {_embed();} ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩ CRSX_EMBED_END ⟩; 
+%ruleAltList_S1*⟨ | ⟨ACTION: $[:, "{_term(\"", #RULE_REF, "\");}"]⟩ ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩ | {_embed();} ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩ CRSX_EMBED_END ⟩; 
 
 /* 
  * LiftEbnfRules

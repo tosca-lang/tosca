@@ -285,8 +285,7 @@ public class SinkAntlrListener implements ParseTreeListener
 			this.bounds.addAll(bounds.values());
 		this.freshes = new ArrayDeque<>();
 
-		this.embedCrsx4 = prefix.equals("Text4_");
-	
+		this.embedCrsx4 = prefix.equals("Text4_") || prefix.equals("TransScript_");
 
 		this.nilDesc = sink.context().lookupDescriptor("Nil");
 		this.consDesc = sink.context().lookupDescriptor("Cons");
@@ -419,7 +418,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	/** Receive the notification the next token is of type term */
 	public void term(ParserRuleContext _ctx, String type)
 	{
-		termType = fixupType(type);
+		termType = type;
 		sort = TokenSort.TERM;
 	}
 
@@ -706,9 +705,9 @@ public class SinkAntlrListener implements ParseTreeListener
 								sink = sink.endMetaApplication();
 							else
 							{
+								sink4 = sink4.endMetaApplication();
 								if (termType != null)
 									sink4 = sink4.startType().literal(termType).endType();
-								sink4 = sink4.endMetaApplication();
 							}
 							break;
 						default :
@@ -827,7 +826,7 @@ public class SinkAntlrListener implements ParseTreeListener
 
 			parser.addErrorListener(new DiagnosticErrorListener(true));
 			parser.term_EOF();
-			sink = listener.sink3;
+			sink = listener.sink3;`
 			sink4 = listener.sink4;
 
 		}
@@ -877,7 +876,7 @@ public class SinkAntlrListener implements ParseTreeListener
 		final boolean islist = type.endsWith("_OOM") || type.endsWith("_ZOM") || type.endsWith("_OPT");
 		type = islist ? type.substring(0, type.length() - "_ZOM".length()) : type;
 
-		return (islist ? "List<" : "") + prefix + "_" + type + "_sort" + (islist ? ">" : "");
+		return (islist ? "List<" : "") + prefix + type + "_sort" + (islist ? ">" : "");
 	}
 
 	// Utility classes

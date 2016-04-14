@@ -19,15 +19,14 @@ cdecl
     : RULE cterm ARROW cterm                               /* Rule declaration */
     | DATA  csortvars? CONSTRUCTOR cforms                   /* Data sort declaration */
     | EXTERN? FN csortvars? csort CONSTRUCTOR csorts?       /* Function sort declaration */
-    | IMPORT MODULE CONSTRUCTOR                             /* Import module declaration */
-    | IMPORT GRAMMAR CONSTRUCTOR                            /* Import grammar declaration */
+    | IMPORT MODULE cqconstructor                           /* Import module declaration */
+    | IMPORT GRAMMAR  cqconstructor                         /* Import grammar declaration */
     ;
-
 
 // -- Term
 
 cterm
-    : csortqualifier* CONSTRUCTOR cterms?                                /* Constant/Construction */
+    : cqconstructor cterms?                                /* Constant/Construction */
     | METAVAR cterms? csubst? csortanno?                                /* Meta variable/call/substitution */
     | cliteral                                                          /* Literal construction */
     | cvariable                                                         /* Variable */
@@ -143,6 +142,9 @@ csortanno
 
 csortqualifier
     : csort COLONCOLON                             /* Sort qualifier */
+    ;
+cqconstructor
+    : csortqualifier* CONSTRUCTOR
     ;
 
 // Lexer rules

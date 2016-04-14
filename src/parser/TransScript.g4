@@ -77,9 +77,9 @@ decl
     ;
 
 importDecl
-    : IMPORT constructor                                             /* Import module - short syntax */
-    | IMPORT MODULE constructor                                      /* Import module */
-    | IMPORT GRAMMAR constructor                                     /* Import grammar */
+    : IMPORT qconstructor                              /* Import module - short syntax */
+    | IMPORT MODULE qconstructor                       /* Import module */
+    | IMPORT GRAMMAR qconstructor                      /* Import grammar */
     ;
 
 sortDecl
@@ -238,7 +238,7 @@ aterm
     ;
 
 cons
-    : sortQualifier* constructor args?
+    : qconstructor args?
     ;
 
 metapp
@@ -328,13 +328,17 @@ kv
     | STRING COLON term[0]                                  /* [CORE]  match named property value / construct    */
     ;
 
+
+qconstructor
+    : sortQualifier* constructor
+    ;
+
 constructor
     : CONSTRUCTOR
     ;
 
 operator
     : OPERATOR
-    | COLON
     | OR
     | AND
     | NOT
@@ -377,12 +381,9 @@ NOT             : '¬';
 FIXITY          : 'infix' | 'infixr' | 'infixl' | 'postfix' | 'prefix';
 
 // Make sure // and /* are not operators
-// ':' is a builtin type annotation operator
-// '::' is a builtin type qualifier operator
 OPERATOR          : OpHead Operator*
                   | '/'
                   | '/' (OpCommon | '$' | '_' | ':') Operator*
-                  | ':' (OpCommon | '$' | '_' | '/') Operator*
                   ;
 
 CONCRETE          : Lower (Alpha | Digit | '-' | '_')* Ebnf? '\u27e6' (CONCRETE|.)*? '\u27e7';   // category⟦ ⟧
@@ -398,7 +399,7 @@ STRING            :  '"' ('\\"'|~'"')* '"';
 NUMBER            : Decimal;
 
 fragment ConsHead : Upper | UnicodeS | '_' | '$';
-fragment ConsChar : Alpha | Digit | Unicode | '_' | '-' | '$' | ':';
+fragment ConsChar : Alpha | Digit | Unicode | '_' | '-' | '$';
 
 fragment Digit    : [0-9];
 fragment Upper    : [A-Z];
