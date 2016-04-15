@@ -29,7 +29,7 @@ cterm
     : cqconstructor cterms?                                /* Constant/Construction */
     | METAVAR cterms? csubst? csortanno?                                /* Meta variable/call/substitution */
     | cliteral                                                          /* Literal construction */
-    | cvariable                                                         /* Variable */
+    | cvariable csortanno?                                              /* Variable */
     | LCURLY cmapentries? RCURLY                                        /* Association map */
 
     // KEEP AT THE 6TH ALTERNATIVE UNTIL METAPARSER GENERATOR PROPERLY HANDLE BOUNDVAR

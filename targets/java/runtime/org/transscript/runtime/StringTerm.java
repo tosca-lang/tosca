@@ -4,6 +4,10 @@ package org.transscript.runtime;
 
 import java.util.function.Function;
 
+/**
+ * 
+ * @author Lionel Villard
+ */
 public interface StringTerm extends Term
 {
 	static StringTerm newStringTerm(String str)
@@ -43,6 +47,23 @@ public interface StringTerm extends Term
 			return value;
 		}
 
+	}
+	
+	public static class VarStringTerm extends VariableUse implements StringTerm
+	{
+
+		public VarStringTerm(Variable variable)
+		{
+			super(variable);
+		}
+
+		@Override
+		public Term copy(Context c)
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
+		
 	}
 
 	static class LazyStringTerm extends LazyTerm<StringTerm>implements StringTerm

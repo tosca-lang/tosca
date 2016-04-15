@@ -4,7 +4,6 @@ package org.transscript.runtime;
 
 import java.util.ArrayDeque;
 
-import org.transscript.runtime.generic.Construction;
 import org.transscript.runtime.generic.Literal;
 import org.transscript.runtime.generic.MetaApplication;
 
@@ -117,7 +116,7 @@ public class BufferSink extends Sink
 	@Override
 	public BufferSink start(ConstructionDescriptor desc)
 	{
-		Construction c = desc.make();
+		Term c = desc.make();
 		addSub(c);
 
 		terms.push(c);

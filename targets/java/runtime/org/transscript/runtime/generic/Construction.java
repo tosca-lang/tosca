@@ -16,12 +16,6 @@ import org.transscript.runtime.Variable;
  */
 public class Construction implements Term
 {
-	// Static utilities
-	
-	public ConstructionDescriptor makeGenericData(String symbol)
-	{
-		
-	}
 	
 	// State
 

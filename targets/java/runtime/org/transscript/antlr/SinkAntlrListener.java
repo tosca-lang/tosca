@@ -826,7 +826,7 @@ public class SinkAntlrListener implements ParseTreeListener
 
 			parser.addErrorListener(new DiagnosticErrorListener(true));
 			parser.term_EOF();
-			sink = listener.sink3;`
+			sink = listener.sink3;
 			sink4 = listener.sink4;
 
 		}

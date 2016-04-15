@@ -2,8 +2,6 @@
 
 package org.transscript.runtime;
 
-import org.transscript.runtime.generic.Construction; 
-
 /**
  * Represent a construction type.
  * 
@@ -14,7 +12,7 @@ public interface ConstructionDescriptor
 	/**
 	 * @return A construction instance of this type.
 	 */
-	public Construction make();
+	public Term make();
 
 	/**
 	 * @return Construction symbol.

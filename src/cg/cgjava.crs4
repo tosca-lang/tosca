@@ -8,9 +8,9 @@ import Std::Core
 import Std::String
 import Std::Num
 import Std::Text
-import Std::List
-import Std::Pair
-import Std::Map
+import Std::Listdef
+import Std::Pairdef
+import Std::Mapdef
 import Text::Text4
 import Std::Language
 import Systemdef
@@ -21,8 +21,8 @@ import Systemdef
  * Generates Java code from Core TransScript
  * @param System The TransScript system
  */
-func TransScriptToJava(System) -> Text
-rule TransScriptToJava(System(#url, #modules))
+func TransScriptToJava(TSystem) -> Text4_text_sort
+rule TransScriptToJava(TSystem(#url:String, #modules:{String : Module}))
 → JavaUnits(#url, MapValues(#modules))
 
 // --- Generate code.
@@ -32,111 +32,98 @@ rule TransScriptToJava(System(#url, #modules))
  Each rule declaration corresponds to a single Java function.
 */
 
-func JavaUnits(String, List<Module>) -> Text
+func JavaUnits(String, List<Module>) -> Text4_text_sort
 rule JavaUnits(#url, #modules)
   → text⟦
 /** Generated File */
-⟨PackageDeclaration⟩
+†⟨PackageDeclaration⟩
 
 import java.util.function.Function;
 
 import org.transscript.runtime.Context;
-import org.transscript.runtime.v2.Term;
-import org.transscript.runtime.v2.Variable;
-import org.transscript.runtime.v2.VariableUse;
-import org.transscript.runtime.v2.LazyTerm;
-import org.transscript.runtime.v2.StringTerm;
-import org.transscript.runtime.v2.DoubleTerm;
-import org.transscript.runtime.v2.MapTerm;
-import static org.transscript.runtime.v2.Term.force;
-import static org.transscript.runtime.v2.Term.subst;
-import static org.transscript.runtime.v2.Functions.*;
-import static org.transscript.runtime.v2.StringTerm.newLazyStringTerm;
-import static org.transscript.runtime.v2.StringTerm.newStringTerm;
-import static org.transscript.runtime.v2.DoubleTerm.newLazyDoubleTerm;
-import static org.transscript.runtime.v2.DoubleTerm.newDoubleTerm;
+import org.transscript.runtime.Term;
+import org.transscript.runtime.Variable;
+import org.transscript.runtime.VariableUse;
+import org.transscript.runtime.LazyTerm;
+import org.transscript.runtime.StringTerm;
+import org.transscript.runtime.DoubleTerm;
+import org.transscript.runtime.MapTerm;
+import static org.transscript.runtime.Term.force;
+import static org.transscript.runtime.Term.subst;
+import static org.transscript.runtime.Functions.*;
+import static org.transscript.runtime.StringTerm.newLazyStringTerm;
+import static org.transscript.runtime.StringTerm.newStringTerm;
+import static org.transscript.runtime.DoubleTerm.newLazyDoubleTerm;
+import static org.transscript.runtime.DoubleTerm.newDoubleTerm;
+import static org.transscript.runtime.MapTerm.newLazyMapTerm;
 
-⟨TextFold(Map([x] -> JavaUnit(#url, x), #modules), text⟦⟧)⟩
+†⟨TextFold(Map((x) -> JavaUnit(#url, x), #modules), text⟦⟧)⟩
 ⟧
 
 /* Generate class for the given module */
-func JavaUnit(String, eager Module) -> Text
-rule JavaUnit(#mainurl, Module(#url, Loaded(LoadedContent(#imports, #rules, #datasorts, #funcsorts))))
+func JavaUnit(String, eager Module) -> Text4_text_sort
+rule JavaUnit(#mainurl, Module(#url:String, Content::Loaded(LoadedContent(#imports, #rules, #datasorts, #funcsorts))))
 → text⟦
-⟨TextFold(Map([x] -> JavaImport(x), #imports), text⟦⟧)⟩
+†⟨TextFold(Map((x) -> JavaImport(x), #imports), text⟦⟧)⟩
 
 @SuppressWarnings("unused")
-⟨JavaClassVisibility(#mainurl, #url)⟩ class †⟨ClassName(#url)⟩ {
+†⟨JavaClassVisibility(#mainurl, #url)⟩ class ⟨STRING:ClassName(#url)⟩ {
 
   /* Typed enumerations */
-  ⟨TextFold( Map([x] ->EnumToClass(x), MapValues(#datasorts)), text⟦⟧)⟩
-  ⟨TextFold( Map([x] ->JavaMethod(x, text⟦†⟨ClassName(#url)⟩⟧, #rules, #datasorts, #funcsorts), MapKeys(#funcsorts)), text⟦⟧)⟩
-  ⟨InitModule(#datasorts, #funcsorts, #imports)⟩
+  †⟨TextFold( Map((x) ->EnumToClass(x), MapValues(#datasorts)), text⟦⟧)⟩
+  †⟨TextFold( Map((x) ->JavaMethod(x, text⟦⟨STRING:ClassName(#url)⟩⟧, #rules, #datasorts, #funcsorts), MapKeys(#funcsorts)), text⟦⟧)⟩
+  †⟨InitModule(#datasorts, #funcsorts, #imports)⟩
 }⟧
 
-func JavaImport(String) -> Text
+func JavaImport(Core_cqconstructor_sort) -> Text4_text_sort
 rule JavaImport(#name)
 → text⟦
-import static ⟨PathToImport(#name)⟩.*;⟧
+import static †⟨PathToImport(QConsToString(#name))⟩.*;⟧
 
-func JavaClassVisibility(String, String) -> Text
+func JavaClassVisibility(String, String) -> Text4_text_sort
 rule JavaClassVisibility(#mainurl, #url)
 → If(Equal(#mainurl, #url), text⟦public⟧, text⟦static⟧)
 
-//--- Translate enumerations
-
-/** Generate enumeration descriptors */
-func EnumToDataDesc(Core_cdecl_sort) -> Text
-rule EnumToDataDesc(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
-→ TextFold(Map([x] -> EnumFormToDesc(#CONSTRUCTOR, x), #cform*), text⟦⟧)
-
-func EnumFormToDesc(String, Core_cform_sort) -> Text
-rule EnumFormToDesc(#sortname, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
-→ text⟦
-final public static ConstructionDescriptor ⟨Descriptor(#CONSTRUCTOR)⟩ = makeData(⟨Text-QuoteEscape(#CONSTRUCTOR)⟩, ⟨NumberToText(MaybeSortsCount(#csorts?))⟩, ⟨EnumToClassRef(#sortname, #CONSTRUCTOR)⟩);⟧
-
-func EnumToClassRef(String, String) -> Text
-rule EnumToClassRef(#sortname, #formname) → text⟦⟨ToJavaClassName(#sortname)⟩.⟨ToJavaClassName(#formname)⟩.class⟧
+//-------------- Translate enumerations
 
 /* Generate interfaces corresponding to the enum type */
-func EnumToClass(Core_cdecl_sort) -> Text
+func EnumToClass(Core_cdecl_sort) -> Text4_text_sort
 rule EnumToClass(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 → text⟦
 
-⟨TextFold(Map([x] -> FormToMethodNew(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
+†⟨TextFold(Map((x) -> FormToMethodNew(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
 
-static public ⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ newLazy⟨ToJavaClassName(#CONSTRUCTOR)⟩(Function<Context, ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> function)
+static public †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨STRING: ToJavaClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ newLazy⟨STRING: ToJavaClassName(#CONSTRUCTOR)⟩(Function<Context, ⟨STRING: ToJavaClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> function)
 {
-  return new Lazy⟨ToJavaClassName(#CONSTRUCTOR)⟩(function);
+  return new Lazy⟨STRING: ToJavaClassName(#CONSTRUCTOR)⟩(function);
 }
 
-public interface ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends Term
+public interface ⟨STRING: ToJavaClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends Term
 {
-  ⟨TextFold(Map([x] -> FormToMethodAs(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
+  †⟨TextFold(Map((x) -> FormToMethodAs(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
 }
 
-⟨TextFold(Map([x] -> FormToInterfaceValue(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
-⟨TextFold(Map([x] -> FormToImplValue(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
+†⟨TextFold(Map((x) -> FormToImplValue(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
 
-static class Lazy⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends LazyTerm<⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩>implements ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
+static class Lazy⟨STRING: ToJavaClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends LazyTerm<⟨STRING: ToJavaClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> implements ⟨STRING: ToJavaClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
 {
 
-  protected Lazy⟨ToJavaClassName(#CONSTRUCTOR)⟩(⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ value)
+  protected Lazy⟨STRING: ToJavaClassName(#CONSTRUCTOR)⟩(⟨STRING: ToJavaClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ value)
 	{
 		super(value);
 	}
 
-  public Lazy⟨ToJavaClassName(#CONSTRUCTOR)⟩(Function<Context, ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> function)
+  public Lazy⟨STRING: ToJavaClassName(#CONSTRUCTOR)⟩(Function<Context, ⟨STRING: ToJavaClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> function)
 	{
 		super(function);
 	}
 
-  ⟨TextFold(Map([x] -> FormToMethodMemoAs(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
+  †⟨TextFold(Map((x) -> FormToMethodMemoAs(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
 
   @Override
-	public ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ copy(Context c)
+	public ⟨STRING: ToJavaClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ copy(Context c)
 	{
-		return new Lazy⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(value);
+		return new Lazy⟨STRING: ToJavaClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(value);
 	}
 
 }⟧
@@ -144,27 +131,27 @@ static class Lazy⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#cso
 /* Generate a 'new' static method for each enum value */
 
 // TODO: optimize constant value.
-func FormToMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
+func FormToMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
   rule FormToMethodNew(#constructor, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
-    static public ⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨ToJavaClassName(#constructor)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨ToJavaMethodName(#CONSTRUCTOR)⟩ (Context context⟨MaybeSortsToFormalParams(#csorts?, text⟦, ⟧)⟩)
+    static public †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨STRING: ToJavaClassName(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨STRING: ToJavaMethodName(#CONSTRUCTOR)⟩ (Context context†⟨MaybeSortsToFormalParams(#csorts?, text⟦, ⟧)⟩)
     {
-      return new ⟨ToJavaClassName(#CONSTRUCTOR)⟩Impl⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(⟨MaybeSortsToArgs(#csorts?)⟩);
+      return new †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(†⟨MaybeSortsToArgs(#csorts?)⟩);
     }⟧
 
   rule FormToMethodNew(#constructor, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦
-    static ⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨ToJavaClassName(#constructor)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨ToJavaMethodName(ConcatString("newVar", #constructor))⟩ (Variable var)
+    static †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨STRING: ToJavaClassName(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨STRING: ToJavaMethodName(ConcatString("newVar", #constructor))⟩ (Variable var)
     {
-      return new Var⟨ToJavaClassName(#constructor)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(var);
+      return new Var⟨STRING: ToJavaClassName(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(var);
     }⟧
 
 // --- Generate a 'as' method for each enum value
 
-func FormToMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
+func FormToMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
   rule FormToMethodAs(#enumname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
-    default ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
+    default †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ †⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
     {
       return null;
     }⟧
@@ -172,75 +159,62 @@ func FormToMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
   rule FormToMethodAs(#enumname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦⟧
 
-func FormToMethodMemoAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
+func FormToMethodMemoAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
   rule FormToMethodMemoAs(#enumname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
    @Override
-   final public ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
+   final public †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ †⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
    {
-     return eval(context).⟨MethodNameAs(#CONSTRUCTOR)⟩(context);
+     return eval(context).†⟨MethodNameAs(#CONSTRUCTOR)⟩(context);
    }⟧
 
  rule FormToMethodMemoAs(#enumname, #csortvars?, cform⟦ allows-variable ⟧)
  → text⟦⟧
 
-func MethodNameAs(String) -> Text
-rule MethodNameAs(#formCons) → ToJavaMethodName(ConcatString("as", #formCons))
+func MethodNameAs(String) -> Text4_text_sort
+rule MethodNameAs(#formCons) → text⟦⟨STRING: ToJavaMethodName(ConcatString("as", #formCons))⟩⟧
 
-// --- Generate an interface the enumeration value
+// --- Generate an static class for the enumeration value
 
-func FormToInterfaceValue(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
-  rule FormToInterfaceValue(#enumtype, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
-  → text⟦
-      public interface ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends ⟨ToJavaClassName(#enumtype)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
-      {
-        ⟨MaybeSortsToGetValueSig(#csorts?)⟩
-
-        @Override
-        default ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
-        {
-          return this;
-        }
-      }⟧
-
-  rule FormToInterfaceValue(#enumtype, #csortvars?, cform⟦ allows-variable ⟧)
-  → text⟦⟧
-
-// --- Generate an implementation for the enumeration value
-
-func FormToImplValue(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
+func FormToImplValue(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
   rule FormToImplValue(#typename, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
-      static class ⟨ToJavaClassName(#CONSTRUCTOR)⟩Impl⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ implements ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
+      public static class †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ implements ⟨STRING: ToJavaClassName(#typename)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
       {
-          ⟨MaybeSortsToClassFields(#csorts?)⟩
+          †⟨MaybeSortsToClassFields(#csorts?)⟩
 
-          ⟨MaybeSortsToDefaultConstructor(#csorts?,  text⟦⟨ToJavaClassName(#CONSTRUCTOR)⟩Impl⟧)⟩
+          †⟨MaybeSortsToDefaultConstructor(#csorts?,  EValueClassName(#CONSTRUCTOR))⟩
 
-          public ⟨ToJavaClassName(#CONSTRUCTOR)⟩Impl(⟨MaybeSortsToFormalParams(#csorts?, text⟦⟧)⟩)
+          public †⟨EValueClassName(#CONSTRUCTOR)⟩(†⟨MaybeSortsToFormalParams(#csorts?, text⟦⟧)⟩)
           {
-            ⟨MaybeSortsToInitFields(#csorts?)⟩
+            †⟨MaybeSortsToInitFields(#csorts?)⟩
+          }
+
+          @Override
+          public †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ †⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
+          {
+            return this;
           }
 
           @Override
           public Term copy(Context c)
           {
-            return new ⟨ToJavaClassName(#CONSTRUCTOR)⟩Impl⟨SortParamToTypeParam(#csortvars?, FALSE)⟩();
+            return new †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩();
           }
 
-          ⟨MaybeSortsToGetValue(#csorts?)⟩
-          ⟨MaybeSortsToGetSubs(#csorts?)⟩
-          ⟨MaybeSortsToSetSubs(#csorts?)⟩
-          ⟨MaybeSortsToGetBinder(#csorts?)⟩
-          ⟨MaybeSortsToSetBinder(#csorts?)⟩
+          †⟨MaybeSortsToGetValue(#csorts?)⟩
+          †⟨MaybeSortsToGetSubs(#csorts?)⟩
+          †⟨MaybeSortsToSetSubs(#csorts?)⟩
+          †⟨MaybeSortsToGetBinder(#csorts?)⟩
+          †⟨MaybeSortsToSetBinder(#csorts?)⟩
 
       }⟧
 
   rule FormToImplValue(#typename, #csortvars?, cform⟦ allows-variable⟧)
   → text⟦
-      static class Var⟨ToJavaClassName(#typename)⟩⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends VariableUse implements ⟨ToJavaClassName(#typename)⟩⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
+      static class Var⟨STRING: ToJavaClassName(#typename)⟩†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends VariableUse implements ⟨STRING: ToJavaClassName(#typename)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
       {
-        public Var⟨ToJavaClassName(#typename)⟩(Variable var)
+        public Var⟨STRING: ToJavaClassName(#typename)⟩(Variable var)
         {
           super(var);
         }
@@ -248,72 +222,72 @@ func FormToImplValue(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
         @Override
 		    public Term copy(Context c)
 	    	{
-		      return new Var⟨ToJavaClassName(#typename)⟩(variable);
+		      return new Var⟨STRING: ToJavaClassName(#typename)⟩(variable);
 		    }
     }⟧
 
 //--- Default empty constructor
 
-func MaybeSortsToDefaultConstructor(List<Core_csorts_sort>, Text) -> Text
+func MaybeSortsToDefaultConstructor(List<Core_csorts_sort>, Text4_text_sort) -> Text4_text_sort
   rule MaybeSortsToDefaultConstructor(csorts?⟦⟧, #classname)
   → text⟦⟧
 
   rule MaybeSortsToDefaultConstructor(csorts?⟦ ( ##csort*) ⟧, #classname)
-  → text⟦private ⟨#classname⟩() {}⟧
+  → text⟦private †⟨#classname⟩() {}⟧
 
 //--- Class fields
 
-func MaybeSortsToClassFields(List<Core_csorts_sort>) -> Text
+func MaybeSortsToClassFields(List<Core_csorts_sort>) -> Text4_text_sort
   rule MaybeSortsToClassFields(csorts?⟦⟧)
   → text⟦⟧
 
   rule MaybeSortsToClassFields(csorts?⟦ ( ##csort* ) ⟧)
   → text⟦
     /* Form arguments */
-    ⟨SortsToClassFields(#csort*, 1)⟩⟧
+    †⟨SortsToClassFields(#csort*, 1)⟩⟧
 
-func SortsToClassFields(List<Core_csort_sort>, Numeric) -> Text
+func SortsToClassFields(List<Core_csort_sort>, Numeric) -> Text4_text_sort
   rule SortsToClassFields(csort*⟦⟧, #index)
   → text⟦⟧
 
   rule SortsToClassFields(csort*⟦ ##csort ##csort* ⟧, #index)
-  → text⟦⟨SortToClassFields(SortToTypes(#csort), #index, 1)⟩⟨SortsToClassFields(#csort*, Plus(#index, 1))⟩⟧
+  → text⟦†⟨SortToClassFields(SortToTypes(#csort), #index, 1)⟩†⟨SortsToClassFields(#csort*, Plus(#index, 1))⟩⟧
 
-func SortToClassFields(List<Text>, eager Numeric, eager Numeric) -> Text
-  rule SortToClassFields(Cons(#type, Nil), #index, #subindex)
-  → text⟦⟨#type⟩ field⟨FieldSuffix(#index)⟩;⟧
+func SortToClassFields(List<Text4_text_sort>, eager Numeric, eager Numeric) -> Text4_text_sort
+  rule SortToClassFields(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex)
+  → text⟦†⟨#type⟩ field†⟨FieldSuffix(#index)⟩;⟧
 
-  rule SortToClassFields(Cons(#type, #types), #index, #subindex)
+  rule SortToClassFields(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex)
   → text⟦
-     ⟨#type⟩ var⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩;
-     ⟨SortToClassFields(#types, #index, Plus(#subindex, 1))⟩⟧
+     †⟨#type⟩ var†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩;
+     †⟨SortToClassFields(#types, #index, Plus(#subindex, 1))⟩⟧
 
 //--- Class fields initialization
 
-func MaybeSortsToInitFields(List<Core_csorts_sort>) -> Text
+func MaybeSortsToInitFields(List<Core_csorts_sort>) -> Text4_text_sort
   rule MaybeSortsToInitFields(csorts?⟦⟧)
   → text⟦⟧
 
   rule MaybeSortsToInitFields(csorts?⟦ ( ##csort* ) ⟧)
   → SortsToInitFields(#csort*, 1)
 
-func SortsToInitFields(List<Core_csort_sort>, Numeric) -> Text
+func SortsToInitFields(List<Core_csort_sort>, Numeric) -> Text4_text_sort
   rule SortsToInitFields(csort*⟦⟧, #index)
   → text⟦⟧
 
   rule SortsToInitFields(csort*⟦ ##csort ##csort* ⟧, #index)
-  → text⟦⟨SortToInitFields(SortToTypes(#csort), #index, 1)⟩⟨SortsToInitFields(#csort*, Plus(#index, 1))⟩⟧
+  → text⟦†⟨SortToInitFields(SortToTypes(#csort), #index, 1)⟩†⟨SortsToInitFields(#csort*, Plus(#index, 1))⟩⟧
 
-func SortToInitFields(List<Text>, eager Numeric, eager Numeric) -> Text
-  rule SortToInitFields(Cons(#type, Nil), #index, #subindex)
-  → text⟦this.field⟨FieldSuffix(#index)⟩ = param⟨FieldSuffix(#index)⟩;⟧
+func SortToInitFields(List<Text4_text_sort>, eager Numeric, eager Numeric) -> Text4_text_sort
+  rule SortToInitFields(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex)
+  → text⟦this.field†⟨FieldSuffix(#index)⟩ = param†⟨FieldSuffix(#index)⟩;⟧
 
-  rule SortToInitFields(Cons(#type, #types), #index, #subindex)
-  → text⟦this.var⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩ = param⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩; ⟨SortToInitFields(#types, #index, Plus(#subindex, 1))⟩⟧
+  rule SortToInitFields(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex)
+  → text⟦this.var†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩ = param†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩; †⟨SortToInitFields(#types, #index, Plus(#subindex, 1))⟩⟧
 
 // --- sub function
 
-func MaybeSortsToGetSubs(List<Core_csorts_sort>) -> Text
+func MaybeSortsToGetSubs(List<Core_csorts_sort>) -> Text4_text_sort
   rule MaybeSortsToGetSubs(csorts?⟦⟧)
   → text⟦⟧
 
@@ -322,29 +296,29 @@ func MaybeSortsToGetSubs(List<Core_csorts_sort>) -> Text
       @Override
       public Term sub(int i) {
        switch (i) {
-         ⟨SortsToGetSubs(#csort*, 0)⟩
+         †⟨SortsToGetSubs(#csort*, 0)⟩
          default: return null;
         }
       }⟧
 
-func SortsToGetSubs(List<Core_csort_sort>, Numeric) -> Text
+func SortsToGetSubs(List<Core_csort_sort>, Numeric) -> Text4_text_sort
   rule SortsToGetSubs(csort*⟦⟧, #index)
   → text⟦⟧
 
   rule SortsToGetSubs(csort*⟦ ##csort ##csort* ⟧, #index)
-  → text⟦⟨SortToGetSubs(SortToTypes(#csort), #index, 0)⟩⟨SortsToGetSubs(#csort*, Plus(#index, 1))⟩⟧
+  → text⟦†⟨SortToGetSubs(SortToTypes(#csort), #index, 0)⟩†⟨SortsToGetSubs(#csort*, Plus(#index, 1))⟩⟧
 
-func SortToGetSubs(List<Text>, eager Numeric, eager Numeric) -> Text
+func SortToGetSubs(List<Text4_text_sort>, eager Numeric, eager Numeric) -> Text4_text_sort
 
-  rule SortToGetSubs(Cons(#type, Nil), #index, #subindex)
-  → text⟦case ⟨NumberToText(#index)⟩: return field⟨FieldSuffix(Plus(#index, 1))⟩;⟧
+  rule SortToGetSubs(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex)
+  → text⟦case †⟨NumberToText(#index)⟩: return field†⟨FieldSuffix(Plus(#index, 1))⟩;⟧
 
-  rule SortToGetSubs(Cons(#type, #types), #index, #subindex)
+  rule SortToGetSubs(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex)
   → SortToGetSubs(#types, #index, Plus(#subindex, 1))
 
 // --- SetSub function
 
-func MaybeSortsToSetSubs(List<Core_csorts_sort>) -> Text
+func MaybeSortsToSetSubs(List<Core_csorts_sort>) -> Text4_text_sort
   rule MaybeSortsToSetSubs(csorts?⟦⟧)
   → text⟦⟧
 
@@ -353,32 +327,32 @@ func MaybeSortsToSetSubs(List<Core_csorts_sort>) -> Text
       @Override
       public void setSub(int i, Term sub) {
         switch (i) {
-             ⟨SortsToSetSubs(#csort*, 0)⟩
+             †⟨SortsToSetSubs(#csort*, 0)⟩
              default: throw new IndexOutOfBoundsException();
            }
          }⟧
 
-func SortsToSetSubs(List<Core_csort_sort>, Numeric) -> Text
+func SortsToSetSubs(List<Core_csort_sort>, Numeric) -> Text4_text_sort
   rule SortsToSetSubs(csort*⟦⟧, #index)
   → text⟦⟧
 
   rule SortsToSetSubs(csort*⟦ ##csort ##csort* ⟧, #index)
-  → text⟦⟨SortToSetSubs(SortToTypes(#csort), #index, 0)⟩⟨SortsToSetSubs(#csort*, Plus(#index, 1))⟩⟧
+  → text⟦†⟨SortToSetSubs(SortToTypes(#csort), #index, 0)⟩†⟨SortsToSetSubs(#csort*, Plus(#index, 1))⟩⟧
 
-func SortToSetSubs(List<Text>, eager Numeric, eager Numeric) -> Text
+func SortToSetSubs(List<Text4_text_sort>, eager Numeric, eager Numeric) -> Text4_text_sort
 
-  rule SortToSetSubs(Cons(#type, Nil), #index, #subindex)
+  rule SortToSetSubs(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex)
   → text⟦
-      case ⟨NumberToText(#index)⟩:
-        field⟨FieldSuffix(Plus(#index, 1))⟩ = (⟨#type⟩) sub;
+      case †⟨NumberToText(#index)⟩:
+        field†⟨FieldSuffix(Plus(#index, 1))⟩ = (†⟨#type⟩) sub;
         break;⟧
 
-  rule SortToSetSubs(Cons(#type, #types), #index, #subindex)
+  rule SortToSetSubs(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex)
   → SortToSetSubs(#types, #index, Plus(#subindex, 1))
 
 // --- binder function
 
-func MaybeSortsToGetBinder(List<Core_csorts_sort>) -> Text
+func MaybeSortsToGetBinder(List<Core_csorts_sort>) -> Text4_text_sort
   rule MaybeSortsToGetBinder(csorts?⟦⟧)
   → text⟦⟧
 
@@ -388,42 +362,42 @@ func MaybeSortsToGetBinder(List<Core_csorts_sort>) -> Text
         @Override
         public Variable binder(int i, int j) {
           switch (i) {
-            ⟨SortsToGetBinder(#csort*, 0)⟩
+            †⟨SortsToGetBinder(#csort*, 0)⟩
             default: return null;
           }
         }⟧,
       text⟦⟧)
 
-func SortsToGetBinder(List<Core_csort_sort>, Numeric) -> Text
+func SortsToGetBinder(List<Core_csort_sort>, Numeric) -> Text4_text_sort
   rule SortsToGetBinder(csort*⟦⟧, #index)
   → text⟦⟧
 
   rule SortsToGetBinder(csort*⟦ ##csort ##csort* ⟧, #index)
   → text⟦
-      ⟨If(HasBindersSort(#csort),
+      †⟨If(HasBindersSort(#csort),
         text⟦
-          case ⟨NumberToText(#index)⟩: {
+          case †⟨NumberToText(#index)⟩: {
             switch (j) {
-              ⟨SortToGetBinder(SortToTypes(#csort), #index, 0)⟩
+              †⟨SortToGetBinder(SortToTypes(#csort), #index, 0)⟩
               default: return null;
             }
           }⟧,
         text⟦⟧)⟩
-      ⟨SortsToGetBinder(#csort*, Plus(#index, 1))⟩⟧
+      †⟨SortsToGetBinder(#csort*, Plus(#index, 1))⟩⟧
 
-func SortToGetBinder(List<Text>, eager Numeric, eager Numeric) -> Text
+func SortToGetBinder(List<Text4_text_sort>, eager Numeric, eager Numeric) -> Text4_text_sort
 
-  rule SortToGetBinder(Cons(#type, Nil), #index, #subindex)
+  rule SortToGetBinder(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex)
   → text⟦⟧
 
-  rule SortToGetBinder(Cons(#type, #types), #index, #subindex)
+  rule SortToGetBinder(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex)
   → text⟦
-      case ⟨NumberToText(#subindex)⟩: return var⟨NumberToText(Plus(#index, 1))⟩_⟨NumberToText(Plus(#subindex, 1))⟩;
-      ⟨SortToGetBinder(#types, #index, Plus(#subindex, 1))⟩⟧
+      case †⟨NumberToText(#subindex)⟩: return var†⟨NumberToText(Plus(#index, 1))⟩_†⟨NumberToText(Plus(#subindex, 1))⟩;
+      †⟨SortToGetBinder(#types, #index, Plus(#subindex, 1))⟩⟧
 
 // --- setBinder function
 
-func MaybeSortsToSetBinder(List<Core_csorts_sort>) -> Text
+func MaybeSortsToSetBinder(List<Core_csorts_sort>) -> Text4_text_sort
   rule MaybeSortsToSetBinder(csorts?⟦⟧)
   → text⟦⟧
 
@@ -433,146 +407,120 @@ func MaybeSortsToSetBinder(List<Core_csorts_sort>) -> Text
         @Override
         public void setBinder(int i, int j, Variable var) {
          switch (i) {
-           ⟨SortsToSetBinder(#csort*, 0)⟩
+           †⟨SortsToSetBinder(#csort*, 0)⟩
            default: throw new IndexOutOfBoundsException();
           }
         }⟧,
       text⟦⟧)
 
-func SortsToSetBinder(List<Core_csort_sort>, Numeric) -> Text
+func SortsToSetBinder(List<Core_csort_sort>, Numeric) -> Text4_text_sort
   rule SortsToSetBinder(csort*⟦⟧, #index)
   → text⟦⟧
 
   rule SortsToSetBinder(csort*⟦ ##csort ##csort* ⟧, #index)
   → text⟦
-      ⟨If(HasBindersSort(#csort),
+      †⟨If(HasBindersSort(#csort),
         text⟦
-          case ⟨NumberToText(#index)⟩: {
+          case †⟨NumberToText(#index)⟩: {
             switch (j) {
-              ⟨SortToSetBinder(SortToTypes(#csort), #index, 0)⟩
+              †⟨SortToSetBinder(SortToTypes(#csort), #index, 0)⟩
               default: throw new IndexOutOfBoundsException();
             }
             break;
           }⟧,
         text⟦⟧)⟩
-      ⟨SortsToSetBinder(#csort*, Plus(#index, 1))⟩⟧
+      †⟨SortsToSetBinder(#csort*, Plus(#index, 1))⟩⟧
 
-func SortToSetBinder(List<Text>, eager Numeric, eager Numeric) -> Text
+func SortToSetBinder(List<Text4_text_sort>, eager Numeric, eager Numeric) -> Text4_text_sort
 
-  rule SortToSetBinder(Cons(#type, Nil), #index, #subindex)
+  rule SortToSetBinder(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex)
   → text⟦⟧
 
-  rule SortToSetBinder(Cons(#type, #types), #index, #subindex)
+  rule SortToSetBinder(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex)
   → text⟦
-      case ⟨NumberToText(#subindex)⟩:
-        var⟨NumberToText(Plus(#index, 1))⟩_⟨NumberToText(Plus(#subindex, 1))⟩ = var;
+      case †⟨NumberToText(#subindex)⟩:
+        var†⟨NumberToText(Plus(#index, 1))⟩_†⟨NumberToText(Plus(#subindex, 1))⟩ = var;
         break;
-      ⟨SortToSetBinder(#types, #index, Plus(#subindex, 1))⟩⟧
+      †⟨SortToSetBinder(#types, #index, Plus(#subindex, 1))⟩⟧
 
 
 //--- Sort to formal parameters
 
-func MaybeSortsToFormalParams(List<Core_csorts_sort>, Text) -> Text
+func MaybeSortsToFormalParams(List<Core_csorts_sort>, Text4_text_sort) -> Text4_text_sort
   rule MaybeSortsToFormalParams(csorts?⟦⟧, #sep)
   → text⟦⟧
 
   rule MaybeSortsToFormalParams(csorts?⟦ ( ##csort*) ⟧, #sep)
   → SortsToFormalParams(#csort*, 1, #sep)
 
-func SortsToFormalParams(List<Core_csort_sort>, Numeric, Text) -> Text
+func SortsToFormalParams(List<Core_csort_sort>, Numeric, Text4_text_sort) -> Text4_text_sort
   rule SortsToFormalParams(csort*⟦⟧, #index, #sep)
   → text⟦⟧
 
   rule SortsToFormalParams(csort*⟦ ##csort ##csort* ⟧, #index, #sep)
-  → text⟦⟨#sep⟩⟨SortToFormalParams(SortToTypes(#csort), #index, 1)⟩⟨SortsToFormalParams(#csort*, Plus(#index, 1), text⟦, ⟧)⟩⟧
+  → text⟦†⟨#sep⟩†⟨SortToFormalParams(SortToTypes(#csort), #index, 1)⟩†⟨SortsToFormalParams(#csort*, Plus(#index, 1), text⟦, ⟧)⟩⟧
 
-func SortToFormalParams(List<Text>, Numeric, Numeric) -> Text
-  rule SortToFormalParams(Cons(#type, Nil), #index, #subindex)
-  → text⟦⟨#type⟩ param⟨FieldSuffix(#index)⟩⟧
+func SortToFormalParams(List<Text4_text_sort>, Numeric, Numeric) -> Text4_text_sort
+  rule SortToFormalParams(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex)
+  → text⟦†⟨#type⟩ param†⟨FieldSuffix(#index)⟩⟧
 
-  rule SortToFormalParams(Cons(#type, #types), #index, #subindex)
-  → text⟦⟨#type⟩ param⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩, ⟨SortToFormalParams(#types, #index, Plus(#subindex, 1))⟩⟧
+  rule SortToFormalParams(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex)
+  → text⟦†⟨#type⟩ param†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩, †⟨SortToFormalParams(#types, #index, Plus(#subindex, 1))⟩⟧
 
 //--- Sort to function call arguments
 
-func MaybeSortsToArgs(List<Core_csorts_sort>) -> Text
+func MaybeSortsToArgs(List<Core_csorts_sort>) -> Text4_text_sort
   rule MaybeSortsToArgs(csorts?⟦⟧)
   → text⟦⟧
 
   rule MaybeSortsToArgs(csorts?⟦ ( ##csort*) ⟧)
   → SortsToArgs(#csort*, 1, text⟦⟧)
 
-func SortsToArgs(List<Core_csort_sort>, Numeric, Text) -> Text
+func SortsToArgs(List<Core_csort_sort>, Numeric, Text4_text_sort) -> Text4_text_sort
   rule SortsToArgs(csort*⟦⟧, #index, #sep)
   → text⟦⟧
 
   rule SortsToArgs(csort*⟦ ##csort ##csort* ⟧, #index, #sep)
-  → text⟦⟨#sep⟩⟨SortToArgs(SortToTypes(#csort), #index, 1)⟩⟨SortsToArgs(#csort*, Plus(#index, 1), text⟦, ⟧)⟩⟧
+  → text⟦†⟨#sep⟩†⟨SortToArgs(SortToTypes(#csort), #index, 1)⟩†⟨SortsToArgs(#csort*, Plus(#index, 1), text⟦, ⟧)⟩⟧
 
-func SortToArgs(List<Text>, Numeric, Numeric) -> Text
-  rule SortToArgs(Cons(#type, Nil), #index, #subindex)
-  → text⟦param⟨FieldSuffix(#index)⟩⟧
+func SortToArgs(List<Text4_text_sort>, Numeric, Numeric) -> Text4_text_sort
+  rule SortToArgs(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex)
+  → text⟦param†⟨FieldSuffix(#index)⟩⟧
 
-  rule SortToArgs(Cons(#type, #types), #index, #subindex)
-  → text⟦param⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩, ⟨SortToArgs(#types, #index, Plus(#subindex, 1))⟩⟧
-
-//--- Get value method signature
-
-func MaybeSortsToGetValueSig(List<Core_csorts_sort>) -> Text
-  rule MaybeSortsToGetValueSig(csorts?⟦⟧)
-  → text⟦⟧
-
-  rule MaybeSortsToGetValueSig(csorts?⟦ ( ##csort* ) ⟧)
-  → SortsToGetValueSig(#csort*, 1)
-
-func SortsToGetValueSig(List<Core_csort_sort>, eager Numeric) -> Text
-  rule SortsToGetValueSig(csort*⟦⟧, #index)
-  → text⟦⟧
-
-  rule SortsToGetValueSig(csort*⟦ ##csort ##csort* ⟧, #index)
-  → text⟦⟨SortToGetValueSig(SortToTypes(#csort), #index, 1)⟩⟨SortsToGetValueSig(#csort*, Plus(#index, 1))⟩⟧
-
-func SortToGetValueSig(List<Text>, eager Numeric, eager Numeric) -> Text
-  rule SortToGetValueSig(Cons(#type, Nil), #index, #subindex)
-  → text⟦public ⟨#type⟩ getField⟨FieldSuffix(#index)⟩();⟧
-
-  rule SortToGetValueSig(Cons(#type, #types), #index, #subindex)
-  → text⟦public ⟨#type⟩ getVar⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩();
-         ⟨SortToGetValueSig(#types, #index, Plus(#subindex, 1))⟩⟧
+  rule SortToArgs(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex)
+  → text⟦param†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩, †⟨SortToArgs(#types, #index, Plus(#subindex, 1))⟩⟧
 
 //--- Get value method implementation
 
-func MaybeSortsToGetValue(List<Core_csorts_sort>) -> Text
+func MaybeSortsToGetValue(List<Core_csorts_sort>) -> Text4_text_sort
   rule MaybeSortsToGetValue(csorts?⟦⟧)
   → text⟦⟧
 
   rule MaybeSortsToGetValue(csorts?⟦ ( ##csort* ) ⟧)
   → SortsToGetValue(#csort*, 1)
 
-func SortsToGetValue(List<Core_csorts_sort>, eager Numeric) -> Text
+func SortsToGetValue(List<Core_csort_sort>, eager Numeric) -> Text4_text_sort
   rule SortsToGetValue(csort*⟦ ⟧, #index)
   → text⟦⟧
 
   rule SortsToGetValue(csort*⟦ ##csort ##csort* ⟧, #index)
-  → text⟦⟨SortToGetValue(SortToTypes(#csort), #index, 1)⟩⟨SortsToGetValue(#csort*, Plus(#index, 1))⟩⟧
+  → text⟦†⟨SortToGetValue(SortToTypes(#csort), #index, 1)⟩†⟨SortsToGetValue(#csort*, Plus(#index, 1))⟩⟧
 
-func SortToGetValue(List<Text>, eager Numeric, eager Numeric) -> Text
-  rule SortToGetValue(Cons(#type, Nil), #index, #subindex)
-  → text⟦@Override
-         public ⟨#type⟩ getField⟨FieldSuffix(#index)⟩() {
-            return field⟨FieldSuffix(#index)⟩;
+func SortToGetValue(List<Text4_text_sort>, eager Numeric, eager Numeric) -> Text4_text_sort
+  rule SortToGetValue(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex)
+  → text⟦public †⟨#type⟩ getField†⟨FieldSuffix(#index)⟩() {
+            return field†⟨FieldSuffix(#index)⟩;
          }⟧
 
-  rule SortToGetValue(Cons(#type, #types), #index, #subindex)
-  → text⟦@Override
-         public ⟨#type⟩ getVar⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩() {
-           return var⟨NumberToText(#index)⟩_⟨NumberToText(#subindex)⟩;
+  rule SortToGetValue(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex)
+  → text⟦public †⟨#type⟩ getVar†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩() {
+           return var†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩;
         }
-        ⟨SortToGetValue(#types, #index, Plus(#subindex, 1))⟩⟧
+        †⟨SortToGetValue(#types, #index, Plus(#subindex, 1))⟩⟧
 
 //--- Helpers
 
-func FieldSuffix(Numeric) -> Text
+func FieldSuffix(Numeric) -> Text4_text_sort
   rule FieldSuffix(#index)
   → NumberToText(#index)
 
@@ -581,18 +529,22 @@ func MaybeSortsCount(List<Core_csorts_sort>) -> Numeric
   rule MaybeSortsCount(csorts?⟦ (##csort*) ⟧) → ListLength(#csort*)
 
 /** whether list of sorts has at least one binders */
-func HasBinders(List<Core_csort_sort>) -> Boolean
+func HasBinders(List<Core_csort_sort>) -> Bool
   rule HasBinders(csort*⟦⟧) → FALSE
   rule HasBinders(csort*⟦ ##csort ##csort* ⟧)
   → Or(HasBindersSort(#csort), HasBinders(#csort*))
 
-func HasBindersSort(Core_csort_sort) -> Boolean
+func HasBindersSort(Core_csort_sort) -> Bool
   rule HasBindersSort(csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → FALSE
   rule HasBindersSort(csort⟦ ##VARIABLE ⟧)              → FALSE
   rule HasBindersSort(csort⟦ [ ##csort ] ##csort2 ⟧)    → TRUE
   rule HasBindersSort(csort⟦ ( ##csort ) ##csort2 ⟧)    → HasBindersSort(#csort2)
   rule HasBindersSort(csort⟦ { ##cmapsort } ⟧)          → FALSE
   rule HasBindersSort(csort⟦ data ##csort ⟧)            → HasBindersSort(#csort)
+
+/** Generate classname corresponding to an enumeration value */
+func EValueClassName(String) -> Text4_text_sort
+rule EValueClassName(#name) → text⟦_⟨STRING:#name⟩⟧
 
 //--- Rename builtin types to avoid conflict with Java types
 
@@ -602,53 +554,34 @@ rule FixupPrimitiveType(#typename)
   If (StringEqual(#typename, "Numeric"), "DoubleTerm",
        #typename))
 
-//--- Find form in sort.
-
-func FindForm(Option<Option<Core_cdecl_sort>>, String) -> Option<Core_cform_sort>
-  rule FindForm(NONE, #formname)
-  → NONE
-
-  rule FindForm(SOME(NONE), #formname)
-  → NONE
-
-  rule FindForm(SOME(SOME(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)), #formname)
-  → PickFirst(#cform*, [x] -> MatchConsForm(x, #formname))
-
-func MatchConsForm(Core_cform_sort, String) -> Boolean
-  rule MatchConsForm(cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #formname)
-  → Equal(#CONSTRUCTOR, #formname)
-
-  rule MatchConsForm(#, #formname)
-  → FALSE
-
 //---- Sort tranlation
 
-func SortParamToTypeParam(List<Core_csortvars_sort>, Boolean /* parameterize or parameterization? */) -> Text
+func SortParamToTypeParam(List<Core_csortvars_sort>, Bool /* parameterize or parameterization? */) -> Text4_text_sort
   rule SortParamToTypeParam(csortvars?⟦ ⟧, #parameterize)
   → text⟦⟧
 
   rule SortParamToTypeParam(csortvars?⟦ ∀ ##variable_TOK+ . ⟧, #parameterize)
-  → text⟦<⟨TextFold(Map([x] -> text⟦⟨ToJavaTypeParameter(x)⟩⟨If(#parameterize, text⟦ extends Term⟧, text⟦⟧)⟩⟧, #variable_TOK+), text⟦, ⟧)⟩>⟧
+  → text⟦<†⟨TextFold(Map((x) -> text⟦⟨STRING: ToJavaTypeParameter(x)⟩†⟨If(#parameterize, text⟦ extends Term⟧, text⟦⟧)⟩⟧, #variable_TOK+), text⟦, ⟧)⟩>⟧
 
-func MaybeSortsToTypeParams(List<Core_csorts_sort>) -> Text
+func MaybeSortsToTypeParams(List<Core_csorts_sort>) -> Text4_text_sort
   rule MaybeSortsToTypeParams(csorts?⟦ ⟧)
   → text⟦⟧
 
   rule MaybeSortsToTypeParams(csorts?⟦ ( ##csort* )⟧)
-  → text⟦<⟨TextFold( Flatten(Map([x] -> SortToTypes(x), #csort*)), text⟦, ⟧)⟩>⟧
+  → text⟦<†⟨TextFold( Flatten(Map((x) -> SortToTypes(x), #csort*)), text⟦, ⟧)⟩>⟧
 
 
 /** Get sort from annotation */
-func MaybeSortAnnoToSort(List<Core_csortanno_sort>) -> Option<Core_sort_sort>
+func MaybeSortAnnoToSort(List<Core_csortanno_sort>) -> Option<Core_csort_sort>
   rule MaybeSortAnnoToSort(csortanno?⟦ ⟧)
   → NONE
 
  rule MaybeSortAnnoToSort(csortanno?⟦ : ##csort ⟧)
-  → #csort
+  → SOME(#csort)
 
 /*
 /** Convert sort annotation to equivalent Java type */
-func MaybeSortAnnoToType(List<Core_csortanno_sort>) -> Text
+func MaybeSortAnnoToType(List<Core_csortanno_sort>) -> Text4_text_sort
   rule MaybeSortAnnoToType(csortanno?⟦ ⟧)
   → text⟦⟧
 
@@ -658,24 +591,24 @@ func MaybeSortAnnoToType(List<Core_csortanno_sort>) -> Text
 /* Translate Transscript sort to equivalent list of Java types:
  * a list of types corresponding to syntactic variable sorts and a type for the last sort
  */
-func SortToTypes(Core_csort_sort) -> List<Text>
+func SortToTypes(Core_csort_sort) -> List<Text4_text_sort>
 rule SortToTypes(#csort) → SortToTypes2(#csort, ())
 
-func SortToTypes2(Core_csort_sort, List<Text> /* formal params */) -> List<Text>
+func SortToTypes2(Core_csort_sort, List<Text4_text_sort> /* formal params */) -> List<Text4_text_sort>
 
   rule SortToTypes2(csort⟦ ##CONSTRUCTOR ##csorts? ⟧, ())
-  → Cons(text⟦⟨ToJavaClassName(FixupPrimitiveType(#CONSTRUCTOR))⟩⟨MaybeSortsToTypeParams(#csorts?)⟩⟧, Nil)
+  → Cons(text⟦⟨STRING: ToJavaClassName(FixupPrimitiveType(#CONSTRUCTOR))⟩†⟨MaybeSortsToTypeParams(#csorts?)⟩⟧, Nil)
 
-  rule SortToTypes2(csort⟦ ##CONSTRUCTOR ##csorts? ⟧, Cons(#formal, #formals))
-  → Cons(text⟦Closure⟨NumberToText(Plus(ListLength(#formals), 1))⟩<⟨
-       ToJavaClassName(FixupPrimitiveType(#CONSTRUCTOR))⟩⟨MaybeSortsToTypeParams(#csorts?) /* Return type */⟩, ⟨
+  rule SortToTypes2(csort⟦ ##CONSTRUCTOR ##csorts? ⟧, Cons(#formal:Text4_text_sort, #formals:List<Text4_text_sort>))
+  → Cons(text⟦Closure†⟨NumberToText(Plus(ListLength(#formals), 1))⟩<⟨STRING:
+       ToJavaClassName(FixupPrimitiveType(#CONSTRUCTOR))⟩†⟨MaybeSortsToTypeParams(#csorts?) /* Return type */⟩, †⟨
        TextFold(Cons(#formal, #formals), text⟦, ⟧) /* Formal params */⟩>⟧, Nil)
 
   rule SortToTypes2(csort⟦ ##VARIABLE ⟧, ())
-  → Cons(text⟦⟨ToJavaTypeParameter(#VARIABLE)⟩⟧, Nil)
+  → Cons(text⟦⟨STRING: ToJavaTypeParameter(#VARIABLE)⟩⟧, Nil)
 
-  rule SortToTypes2(csort⟦ ##VARIABLE ⟧, Cons(#formal, #formals))
-  → Cons(text⟦Closure⟨NumberToText(Plus(ListLength(#formals), 1))⟩<⟨#VARIABLE /* Return type */⟩, ⟨
+  rule SortToTypes2(csort⟦ ##VARIABLE ⟧, Cons(#formal:Text4_text_sort, #formals:List<Text4_text_sort>))
+  → Cons(text⟦Closure†⟨NumberToText(Plus(ListLength(#formals), 1))⟩<†⟨#VARIABLE /* Return type */⟩, †⟨
        TextFold(Cons(#formal, #formals), text⟦, ⟧) /* Formal params */⟩>⟧, Nil)
 
   // TODO: typed variable
@@ -685,96 +618,59 @@ func SortToTypes2(Core_csort_sort, List<Text> /* formal params */) -> List<Text>
   rule SortToTypes2(csort⟦ ( ##csort ) ##csort2 ⟧, #formals)
   → SortToTypes2(#csort2, Concat(#formals, SortToTypes(#csort)))
 
-  // TODO: typed map`
-  rule SortToTypes2(csort⟦ { ##cmapsort } ⟧, ())
-  → Cons(text⟦MapTerm⟧, Nil)
+  rule SortToTypes2(csort⟦ { ##csort1 : ##csort2 } ⟧, ())
+  → Cons(text⟦MapTerm<†⟨SortToType(#csort1)⟩,†⟨SortToType(#csort2)⟩>⟧, Nil)
 
-  rule SortToTypes2(csort⟦ { ##cmapsort } ⟧, Cons(#formal, #formals))
-  → Cons(text⟦Closure⟨NumberToText(Plus(ListLength(#formals), 1))⟩<MapTerm, ⟨
+  rule SortToTypes2(csort⟦ { ##cmapsort } ⟧, Cons(#formal:Text4_text_sort, #formals:List<Text4_text_sort>))
+  → Cons(text⟦Closure†⟨NumberToText(Plus(ListLength(#formals), 1))⟩<MapTerm, †⟨
        TextFold(Cons(#formal, #formals), text⟦, ⟧) /* Formal params */⟩>⟧, Nil)
 
   rule SortToTypes2(csort⟦ data ##csort ⟧, #formals)
   → SortToTypes2(#csort, #formals)
 
 /* Same as above, expect ignore syntactic variables */
-func SortToType(Core_csort_sort) -> Text
+func SortToType(Core_csort_sort) -> Text4_text_sort
 rule SortToType(#csort) → Last(SortToTypes(#csort)) // TODO: could optimize
 
 /* Same as above, expect maybe get a sort */
-func MaybeSortToType(Option<Core_csort_sort>) -> Text
+func MaybeSortToType(Option<Core_csort_sort>) -> Text4_text_sort
 rule MaybeSortToType(NONE)         → text⟦⟧
-rule MaybeSortToType(SOME(#csort)) → Last(SortToTypes(#csort)) // TODO: could optimize
+rule MaybeSortToType(SOME(#csort:Core_csort_sort)) → Last(SortToTypes(#csort)) // TODO: could optimize
 
 /* Sort qualifier to type */
-func SortQualifierToType(Core_csortqualifier_sort) -> Text
+func SortQualifierToType(Core_csortqualifier_sort) -> Text4_text_sort
 rule SortQualifierToType(csortqualifier⟦ ##csort ::⟧)
 → SortToType(#csort)
 
-//------ Function declaration translation
-/*
-func JavaFuncDesc(String, Core_cdecl_sort) -> Text
-rule JavaFuncDesc(#classname, cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
-→ text⟦
-  final public static DynamicFunctionDescriptor ⟨Descriptor(#CONSTRUCTOR)⟩ =
-    makeFunction(⟨Text-QuoteEscape(#CONSTRUCTOR)⟩, †⟨#classname⟩⟨JavaExtern(#extern_TOK?)⟩.class, "⟨ToJavaId(#CONSTRUCTOR)⟩", ⟨ThunkClass(#csort)⟩, ⟨MaybeSortsToSubIndex(#csorts?)⟩);⟧
-
-func JavaExtern(List<Core_extern_sort>) -> Text
-rule JavaExtern(extern_TOK?⟦⟧) → text⟦⟧
-// Something is wrong with this rule.
-//rule JavaExtern(extern_TOK?⟦ extern ⟧) → text⟦Extern⟧
-rule JavaExtern(( #extern )) → text⟦Extern⟧
-
-func ThunkClass(Core_csort_sort) -> Text
-rule ThunkClass(csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → text⟦⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨ToJavaClassName(#CONSTRUCTOR)⟩Thunk.class⟧
-*/
-// --- Generate array of int correponding to sub index in a flat array mixing binders and subs */
-
-func MaybeSortsToSubIndex(List<Core_csorts_sort>) -> Text
-  rule MaybeSortsToSubIndex(csorts?⟦⟧)
-  → text⟦null⟧
-
-  rule MaybeSortsToSubIndex(csorts?⟦ ( ##csort* ) ⟧)
-  → text⟦new int[] { ⟨SortsToSubIndex(#csort*, 0, text⟦⟧)⟩ }⟧
-
-func SortsToSubIndex(List<Core_csort_sort>, Numeric, Text) -> Text
-  rule SortsToSubIndex(csort*⟦⟧, #index, #sep)
-  → text⟦⟧
-
-  rule SortsToSubIndex(csort*⟦ ##csort ##csort* ⟧, #index, #sep)
-  → SortToSubIndex(Plus(Minus(ListLength(SortToTypes(#csort)), 1), #index), #csort*, #sep)
-
-func SortToSubIndex(eager Numeric, List<Core_csort_sort>, Text) -> Text
-  rule SortToSubIndex(#subindex, #csort*, #sep)
-  → text⟦⟨#sep⟩⟨ NumberToText( #subindex ) ⟩⟨SortsToSubIndex(#csort*, Plus(#subindex, 1), text⟦,⟧)⟩⟧
-
+//-------------- Translate functions and rules
 
 /* Generate method for function. Start with method signature */
-func JavaMethod(String, Text, {String : List<Core_cdecl_sort>},
-           { String : Core_cdecl_sort }, { String : Core_cdecl_sort }) -> Text
+func JavaMethod(String, Text4_text_sort, {String : List<Core_cdecl_sort>},
+           { String : Core_cdecl_sort }, { String : Core_cdecl_sort }) -> Text4_text_sort
 rule JavaMethod(#constructor, #classname, #rules, #datasorts, #funcsorts)
-→ text⟦final public static ⟨
+→ text⟦final public static †⟨
           JavaMethodSig(SetDataSorts(SetFuncSorts(SetClassname(NewEnv, #classname), #funcsorts), #datasorts),
                         UnSOME(MapGet(#funcsorts, #constructor)),
                         MapGet(#rules, #constructor))⟩⟧
 
-func JavaMethodSig(eager {String : JavaEnvEntry}, Core_cdecl_sort, Option<List<Core_cdecl_sort>>) -> Text
+func JavaMethodSig(eager {String : JavaEnvEntry}, Core_cdecl_sort, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
 rule JavaMethodSig(#env, cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #rules)
-→ text⟦⟨ReturnType(#csortvars?, #csort)⟩⟨ToJavaMethodName(#CONSTRUCTOR)⟩(Context context⟨
+→ text⟦†⟨ReturnType(#csortvars?, #csort)⟩⟨STRING:ToJavaMethodName(#CONSTRUCTOR)⟩(Context context†⟨
       JavaSigMaybeArgs(SetMethodName(SetThunkType(AddThunk(#env, text⟦⟧), ThunkType(#csort)), ToJavaMethodName(#CONSTRUCTOR)), #csorts?, #rules)⟩⟧   // )
 
 // --- Generate return type
 
-func ReturnType(List<Core_csortvars_sort>, Core_csort_sort) -> Text
+func ReturnType(List<Core_csortvars_sort>, Core_csort_sort) -> Text4_text_sort
 rule ReturnType(#csortvars?, #csort)
-→ text⟦⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨TextFold(SortToTypes(#csort), text⟦⟧)⟩ ⟧
+→ text⟦†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ †⟨TextFold(SortToTypes(#csort), text⟦⟧)⟩ ⟧
 
 // --- Generate thunk type
 
 // TODO: maybe consolidate with SortToType
-func ThunkType(Core_csort_sort) -> Text
+func ThunkType(Core_csort_sort) -> Text4_text_sort
 
   rule ThunkType(csort⟦ ##CONSTRUCTOR ##csorts? ⟧)
-  → text⟦⟨ToJavaClassName(FixupPrimitiveType(#CONSTRUCTOR))⟩⟧
+  → text⟦⟨STRING: ToJavaClassName(FixupPrimitiveType(#CONSTRUCTOR))⟩⟧
 
   rule ThunkType(csort⟦ ##VARIABLE ⟧) // polymorphic return type.
   → text⟦Poly⟧
@@ -792,13 +688,9 @@ func ThunkType(Core_csort_sort) -> Text
   rule ThunkType(csort⟦ data ##csort ⟧)
   → ThunkType(#csort)
 
-/*
-rule ThunkType(#csort)
-→ text⟦⟨TextFold(SortToTypes(#csort), text⟦⟧)⟩⟧*/
-
 // --- Generate method signature
 
-func JavaSigMaybeArgs(eager {String : JavaEnvEntry}, List<Core_csorts_sort>, Option<List<Core_cdecl_sort>>) -> Text
+func JavaSigMaybeArgs(eager {String : JavaEnvEntry}, List<Core_csorts_sort>, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
   rule JavaSigMaybeArgs(#env, csorts?⟦⟧, #rules)
   → JavaBody(#env, #rules)
 
@@ -806,7 +698,7 @@ func JavaSigMaybeArgs(eager {String : JavaEnvEntry}, List<Core_csorts_sort>, Opt
   → JavaSigArgs(#env, #csort*, #rules)
 
 // Generate method signature and record the argument names in the environment, keeping them in order
-func JavaSigArgs(eager {String : JavaEnvEntry}, List<Core_csort_sort>, Option<List<Core_cdecl_sort>>) -> Text
+func JavaSigArgs(eager {String : JavaEnvEntry}, List<Core_csort_sort>, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
 
   rule JavaSigArgs(#env, csort*⟦ ⟧, #rules)
   → JavaBody(#env, #rules)
@@ -814,66 +706,66 @@ func JavaSigArgs(eager {String : JavaEnvEntry}, List<Core_csort_sort>, Option<Li
   rule JavaSigArgs(#env, csort*⟦ ##csort ##csort* ⟧, #rules)
   → JavaSigArg(#env, #csort, FALSE, SortToTypes(#csort), #csort*, #rules)
 
-func JavaSigArg(eager {String : JavaEnvEntry}, Core_csort_sort, Boolean /* data? */,
-                List<Text> /* formal parameters */, List<Core_csort_sort>, Option<List<Core_cdecl_sort>>) -> Text
+func JavaSigArg(eager {String : JavaEnvEntry}, Core_csort_sort, Bool /* data? */,
+                List<Text4_text_sort> /* formal parameters */, List<Core_csort_sort>, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
 
  // Monomorphic sort
-   rule JavaSigArg(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #data, Cons(#type, Nil), #csort*, #rules)
-   → text⟦, ⟨#type⟩ ⟨value⟩⟨
-       JavaSigArgs(AddThunk(AddParam(AddMaybeData(#env, #data, value), value, Core_csort_A1(#CONSTRUCTOR, #csorts?)), value), #csort*, #rules)⟩⟧
+   rule JavaSigArg(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #data, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #csort*, #rules)
+   → text⟦, †⟨#type⟩ ⟨STRING: value:String⟩†⟨
+       JavaSigArgs(AddThunk(AddParam(AddMaybeData(#env, #data, text⟦⟨STRING: value⟩⟧), text⟦⟨STRING: value⟩⟧, Core_csort_A1(#CONSTRUCTOR, #csorts?)), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
 
    // Sort variable
-   rule JavaSigArg(#env, csort⟦ ##VARIABLE ⟧, #data, Cons(#type, Nil), #csort*, #rules)
-   → text⟦, ⟨#type⟩ ⟨value⟩⟨
-       JavaSigArgs(AddThunk(AddParam(AddMaybeData(#env, #data, value), value, Core_csort_A2(#VARIABLE)), value), #csort*, #rules)⟩⟧
+   rule JavaSigArg(#env, csort⟦ ##VARIABLE ⟧, #data, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #csort*, #rules)
+   → text⟦, †⟨#type⟩ ⟨STRING: value:String⟩†⟨
+       JavaSigArgs(AddThunk(AddParam(AddMaybeData(#env, #data, text⟦⟨STRING: value⟩⟧), text⟦⟨STRING: value⟩⟧, Core_csort_A2(#VARIABLE)), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
 
    // Syntactic variable sort
    //rule JavaSigArgs(#env, csort⟦ [ ##csort ] ##csort2 ⟧, #data, Cons(#type, #types), #rules)
-   rule JavaSigArg(#env, Core_csort_A3(#csort, #csort2), #data, Cons(#type, #types), #csort*, #rules)
-   → text⟦, ⟨#type⟩ ⟨var⟩⟨
-       JavaSigArg(AddThunk(AddParam(#env, var, #csort), var), #csort2, #data, #types, #csort*, #rules)⟩⟧
+   rule JavaSigArg(#env, Core_csort_A3(#csort:Core_csort_sort, #csort2:Core_csort_sort), #data, Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #csort*, #rules)
+   → text⟦, †⟨#type⟩ ⟨STRING: var:String⟩†⟨
+       JavaSigArg(AddThunk(AddParam(#env, text⟦⟨STRING: var⟩⟧, #csort), text⟦⟨STRING: var⟩⟧), #csort2, #data, #types, #csort*, #rules)⟩⟧
 
    // Formal parameter sort
    //rule JavaSigArgs(#env, csort⟦ ( ##csort ) ##csort2 ⟧, #data, #rules)
-   rule JavaSigArg(#env, Core_csort_A4(#csort, #csort2), #data, #types, #csort*, #rules)
+   rule JavaSigArg(#env, Core_csort_A4(#csort:Core_csort_sort, #csort2:Core_csort_sort), #data, #types, #csort*, #rules)
    → JavaSigArg(#env, #csort2, #data, #types, #csort*, #rules)
 
-   rule JavaSigArg(#env, csort⟦ { ##cmapsort* } ⟧, #data, Cons(#type, Nil), #csort*, #rules)
-   → text⟦, ⟨#type⟩ ⟨map⟩⟨
-       JavaSigArgs(AddThunk(AddParam(AddMaybeData(#env, #data, map), map, Core_csort_A5(#cmapsort*)), map), #csort*, #rules)⟩⟧
+   rule JavaSigArg(#env, csort⟦ { ##cmapsort* } ⟧, #data, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #csort*, #rules)
+   → text⟦, †⟨#type⟩ ⟨STRING: map:String⟩†⟨
+       JavaSigArgs(AddThunk(AddParam(AddMaybeData(#env, #data, text⟦⟨STRING: map⟩⟧), text⟦⟨STRING: map⟩⟧, Core_csort_A5(#cmapsort*)), text⟦⟨STRING: map⟩⟧), #csort*, #rules)⟩⟧
 
    rule JavaSigArg(#env, csort⟦ data ##csort ⟧, #data, #types, #csort*, #rules)
    → JavaSigArg(#env, #csort, TRUE, #types, #csort*, #rules)
 
 // --- Generate method body
 
-func JavaBody(eager {String : JavaEnvEntry}, Option<List<Core_cdecl_sort>>) -> Text
+func JavaBody(eager {String : JavaEnvEntry}, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
 
   // No rules: it must be an external function (not yet checked but should)
   rule JavaBody(#env, NONE)
   → text⟦) {
-        return ⟨GetClassname(#env)⟩Extern.⟨GetMethodName(#env)⟩(context⟨TextFold(GetThunk(#env), text⟦, ⟧)⟩);
+        return †⟨GetClassname(#env)⟩Extern.†⟨GetMethodName(#env)⟩(context†⟨TextFold(GetThunk(#env), text⟦, ⟧)⟩);
       }⟧
 
   // At least one rule: not external
-  rule JavaBody(#env, SOME(#rules))
+  rule JavaBody(#env, SOME(#rules:List<Core_cdecl_sort>))
   → text⟦
     ) {
         if (context.sd ++ < 256) {
-          ⟨TextFold(Map([x] -> JavaApplyData(GetSink(#env), x), GetData(#env)), text⟦⟧)⟩
-          ⟨TextFold(Map([x] -> JavaBodyRule(#env, x), #rules), text⟦⟧)⟩
+          †⟨TextFold(Map((x) -> JavaApplyData(x), GetData(#env)), text⟦⟧)⟩
+          †⟨TextFold(Map((x) -> JavaBodyRule(#env, x), #rules), text⟦⟧)⟩
         }
-        return newLazy⟨GetThunkType(#env)⟩( c -> { return ⟨GetMethodName(#env)⟩(c⟨TextFold(GetThunk(#env), text⟦, ⟧)⟩); } );
+        return newLazy†⟨GetThunkType(#env)⟩( c -> { return †⟨GetMethodName(#env)⟩(c†⟨TextFold(GetThunk(#env), text⟦, ⟧)⟩); } );
       }⟧
 
 // Generate code to normalize arguments marked as 'data'
-func JavaApplyData(Text, Text) -> Text
-rule JavaApplyData(#sink, #term)
-→ text⟦⟨#term⟩.eval(context).release();⟧
+func JavaApplyData(Text4_text_sort) -> Text4_text_sort
+rule JavaApplyData(#term)
+→ text⟦†⟨#term⟩.eval(context).release();⟧
 
 // --- Start method body
 
-func JavaBodyRule(eager {String : JavaEnvEntry}, Core_cdecl_sort) -> Text
+func JavaBodyRule(eager {String : JavaEnvEntry}, Core_cdecl_sort) -> Text4_text_sort
   rule JavaBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR → ##cterm2 ⟧)
   → JavaContractum(#env, #cterm2)
 
@@ -882,124 +774,124 @@ func JavaBodyRule(eager {String : JavaEnvEntry}, Core_cdecl_sort) -> Text
 
 // --- Pattern matching
 
-func JavaPattern(eager {String : JavaEnvEntry}, List<Core_cterm_sort>, Core_cterm_sort) -> Text
+func JavaPattern(eager {String : JavaEnvEntry}, List<Core_cterm_sort>, Core_cterm_sort) -> Text4_text_sort
 
 // TODO: case where there is only one rule.
 rule JavaPattern(#env, #cterms, #contractum)
-→ text⟦⟨label⟩:{⟨JavaCasePattern(SetLabel(#env, label), #cterms, #contractum)⟩
+→ text⟦⟨STRING: label:String⟩:{†⟨JavaCasePattern(SetLabel(#env, text⟦⟨STRING: label⟩⟧), #cterms, #contractum)⟩
 }⟧
 
 // Data sort helper indicating whether the current term is a method parameter, or an argument (local variable).
 enum Storage | PARAMETER | ARGUMENT
 
 // Iterate over top-level pattern arguments
-func JavaCasePattern(eager {String : JavaEnvEntry}, List<Core_cterm_sort>, Core_cterm_sort) -> Text
+func JavaCasePattern(eager {String : JavaEnvEntry}, List<Core_cterm_sort>, Core_cterm_sort) -> Text4_text_sort
 
 rule JavaCasePattern(#env, cterm*⟦ ⟧, #contractum)
 → JavaContractum(#env, #contractum)
 
 rule JavaCasePattern(#env, cterm*⟦ ##cterm ##cterm* ⟧, #contractum)
-→ JavaPatternTerm(NextParam(#env), #cterm, CurrentParam(#env), SOME(CurrentParamSort(#env)), PARAMETER, [env] -> JavaCasePattern(env, #cterm*, #contractum))
+→ JavaPatternTerm(NextParam(#env), #cterm, CurrentParam(#env), SOME(CurrentParamSort(#env)), PARAMETER, (env) -> JavaCasePattern(env, #cterm*, #contractum))
 
 // --- Term pattern matching
 
-func JavaPatternTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, Text /* Current term */,
-                     Option<Core_csort_sort> /* Sort when known */, Storage, [{String : JavaEnvEntry}] -> Text) -> Text
+func JavaPatternTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, Text4_text_sort /* Current term */,
+                     Option<Core_csort_sort> /* Sort when known */, Storage, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaPatternTerm(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##cterms? ⟧, #term, #csort, #storage, [env]->#(env))
+  rule JavaPatternTerm(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##cterms? ⟧, #term, #csort, #storage, #cont)
   → text⟦
-      ⟨ToJavaClassName(#CONSTRUCTOR)⟩⟨ResolveTypeParamCons(#csort)⟩ ⟨value⟩ = force(context, ⟨#term⟩).⟨MethodNameAs(#CONSTRUCTOR)⟩(context);
-      if (⟨value⟩ == null) {
-        break ⟨GetLabel(#env)⟩;
-      }⟨
-      JavaPatternMaybeSubs(#env, #cterms?, value, FindForm(Maybe([x] -> LookupDataSortDecl(GetDataSorts(#env), x), #csort), #CONSTRUCTOR), [x] -> #(x))⟩⟧
+      †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨ResolveTypeParamCons(#csort)⟩ ⟨STRING: value:String⟩ = force(context, †⟨#term⟩).†⟨MethodNameAs(#CONSTRUCTOR)⟩(context);
+      if (⟨STRING: value⟩ == null) {
+        break †⟨GetLabel(#env)⟩;
+      }†⟨
+      JavaPatternMaybeSubs(#env, #cterms?, text⟦⟨STRING: value⟩⟧, FindForm(Maybe((x) -> LookupDataSortDecl(GetDataSorts(#env), x), #csort), #CONSTRUCTOR), #cont)⟩⟧
 
   // TODO: check literal
-  rule JavaPatternTerm(#env, cterm⟦ ##cliteral ⟧, #term, #csort, #storage, [env]->#(env))
-  → #(#env)
+  rule JavaPatternTerm(#env, cterm⟦ ##cliteral ⟧, #term, #csort, #storage, #cont)
+  → #cont(#env)
 
   // REVISIT: bound variable reordering, ie. (x)(y)#(y, x)
   // For now only accepts patterns of the form (x)...(y)#(x, ... y)
-  rule JavaPatternTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #term, #csort, #storage, [env]->#(env))
+  rule JavaPatternTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #term, #csort, #storage, #cont)
   → text⟦
-      /* ⟨Text-CommentToken(#METAVAR)⟩=⟨Text-CommentToken(Show(#term))⟩ */
-      ⟨JavaPatternMaybeMetaArgs(#env, #METAVAR, #csubst?, #term, #csort, [x] -> #(x))⟩⟧
+      /* †⟨Text-CommentToken(#METAVAR)⟩=†⟨Text-CommentToken(Show(#term))⟩ */
+      †⟨JavaPatternMaybeMetaArgs(#env, #METAVAR, #csubst?, #term, #csort, #cont)⟩⟧
 
-  rule JavaPatternTerm(#env, cterm⟦ ##VARIABLE ⟧, #term, #csort, #storage, [env]->#(env))
-  → JavaPatternVariable(MaybeGetVar(#env, #VARIABLE), #env, #VARIABLE, #term, [env]->#(env))
+  rule JavaPatternTerm(#env, cterm⟦ ##VARIABLE ⟧, #term, #csort, #storage, #cont)
+  → JavaPatternVariable(MaybeGetVar(#env, #VARIABLE), #env, #VARIABLE, #term, #cont)
 
-  //rule JavaPatternTerm(#env, cterm⟦ [ ##VARIABLE ##csortanno? ] ##cterm ⟧, #term, PARAMETER, [env]->#(env))
-  rule JavaPatternTerm(#env, Core_cterm_A6(#csortanno?, [x] -> #cterm(x)), #term, #csort, PARAMETER, [env]->#(env))
-  → JavaPatternTerm(NextParam(AddVar(#env, var, Bound(#term, MaybeSortAnnoToSort(#csortanno?)))), #cterm(var), CurrentParam(#env), CurrentParamSort(#env), PARAMETER, [env]->#(env))
+  //rule JavaPatternTerm(#env, cterm⟦ [ ##VARIABLE ##csortanno? ] ##cterm ⟧, #term, PARAMETER, #cont)
+  rule JavaPatternTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x): Core_cterm_sort), #term, #csort, PARAMETER, #cont)
+  → JavaPatternTerm(NextParam(AddVar(#env, var:Core_cterm_sort, Bound(#term, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], CurrentParam(#env), CurrentParamSort(#env), PARAMETER, #cont)
 
-  //rule JavaPatternTerm(#env, cterm⟦ [ ##VARIABLE ##csortanno? ] ##cterm ⟧, #term, ARGUMENT, [env]->#(env))
-  rule JavaPatternTerm(#env, Core_cterm_A6(#csortanno?, [x] -> #cterm(x)), #term,  #csort, ARGUMENT, [env]->#(env))
+  //rule JavaPatternTerm(#env, cterm⟦ [ ##VARIABLE ##csortanno? ] ##cterm ⟧, #term, ARGUMENT, #cont)
+  rule JavaPatternTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x): Core_cterm_sort), #term,  #csort, ARGUMENT, #cont)
   → text⟦
-      Variable ⟨boundvar⟩ = ⟨GetParent(#env)⟩.getVar⟨NumberToText(GetSubIndex(#env))⟩_⟨NumberToText(GetSubBinderIndex(#env))⟩();⟨
-      JavaPatternTerm(IncSubBinderIndex(AddVar(#env, var, Bound(boundvar, MaybeSortAnnoToSort(#csortanno?)))), #cterm(var), #term, #csort, ARGUMENT, [env]->#(env))⟩⟧
+      Variable ⟨STRING: boundvar:String⟩ = †⟨GetParent(#env)⟩.getVar†⟨NumberToText(GetSubIndex(#env))⟩_†⟨NumberToText(GetSubBinderIndex(#env))⟩();†⟨
+      JavaPatternTerm(IncSubBinderIndex(AddVar(#env, var:Core_cterm_sort, Bound(text⟦⟨STRING: boundvar⟩⟧, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], #term, #csort, ARGUMENT, #cont)⟩⟧
 
-  //rule JavaPatternTerm(#env, cterm⟦ ( ##VARIABLE ##csortanno? ) ##cterm ⟧, #term, #storage, [env]->#(env))
-  rule JavaPatternTerm(#env, Core_cterm_A7(#csortanno?, [x] -> #cterm(x)), #term, #csort, #storage, [env]->#(env))
-  → JavaPatternTerm(#env, #cterm(var), #term, #csort, #storage, [env]->#(env))
+  //rule JavaPatternTerm(#env, cterm⟦ ( ##VARIABLE ##csortanno? ) ##cterm ⟧, #term, #storage, #cont)
+  rule JavaPatternTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x): Core_cterm_sort), #term, #csort, #storage, #cont)
+  → JavaPatternTerm(#env, #cterm[var], #term, #csort, #storage, #cont)
 
 // Pattern matching on construction arguments.
-func JavaPatternMaybeSubs(eager {String : JavaEnvEntry}, List<Core_cterms_sort>, Text, Option<Core_cform_sort>, [{String : JavaEnvEntry}] -> Text) -> Text
+func JavaPatternMaybeSubs(eager {String : JavaEnvEntry}, List<Core_cterms_sort>, Text4_text_sort, Option<Core_cform_sort>, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaPatternMaybeSubs(#env, cterms?⟦⟧, #term, #cform, [env]->#(env))
-  → #(#env)
+  rule JavaPatternMaybeSubs(#env, cterms?⟦⟧, #term, #cform, #cont)
+  → #cont(#env)
 
-  rule JavaPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, SOME(cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧), [env]->#(env))
-  → JavaPatternSubs(#env, #cterm*, #term, 1, SOME(#csort*), [env]->#(env))
+  rule JavaPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, SOME(cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧), #cont)
+  → JavaPatternSubs(#env, #cterm*, #term, 1, SOME(#csort*), #cont)
 
-  rule JavaPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, NONE, [env]->#(env))
-  → JavaPatternSubs(#env, #cterm*, #term, 1, NONE, [env]->#(env))
+  rule JavaPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, NONE, #cont)
+  → JavaPatternSubs(#env, #cterm*, #term, 1, NONE, #cont)
 
 func JavaPatternSubs(eager {String : JavaEnvEntry}, List<Core_cterm_sort>,
-                     Text /* parent term */, Numeric /* Current subindex */, Option<List<Core_csort_sort>>, /* sub sorts, if known */
-                     [{String : JavaEnvEntry}] -> Text) -> Text
+                     Text4_text_sort /* parent term */, Numeric /* Current subindex */, Option<List<Core_csort_sort>>, /* sub sorts, if known */
+                     ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaPatternSubs(#env, cterm*⟦⟧,  #term, #index, #csort*, [env]->#(env))
-  → #(#env)
+  rule JavaPatternSubs(#env, cterm*⟦⟧,  #term, #index, #csort*, #cont)
+  → #cont(#env)
 
-  rule JavaPatternSubs(#env, cterm*⟦ ##cterm ##cterm* ⟧, #term, #index, #csort*, [env]->#(env))
+  rule JavaPatternSubs(#env, cterm*⟦ ##cterm ##cterm* ⟧, #term, #index, #csort*, #cont)
   → text⟦
-      ⟨MaybeSortToType(SubSort(#env, #cterm, #csort*))⟩ ⟨sub⟩ = ⟨#term⟩.getField⟨FieldSuffix(#index)⟩();⟨
+      †⟨MaybeSortToType(SubSort(#env, #cterm, #csort*))⟩ ⟨STRING: sub:String⟩ = †⟨#term⟩.getField†⟨FieldSuffix(#index)⟩();†⟨
       JavaPatternTerm(SetSubBinderIndex(SetParent(SetSubIndex(#env, #index), #term), 1),
-                  #cterm, sub, SubSort(#env, #cterm, #csort*), ARGUMENT,
-                  [x] -> JavaPatternSubs(x, #cterm*, #term, NumberPlus(#index, 1), Maybe([x]->Tail(x), #csort*), [x] -> #(x)))⟩⟧
+                  #cterm, text⟦⟨STRING: sub⟩⟧, SubSort(#env, #cterm, #csort*), ARGUMENT,
+                  (x) -> JavaPatternSubs(x, #cterm*, #term, NumberPlus(#index, 1), Maybe((x)->Tail(x), #csort*), #cont))⟩⟧
 
 // --- Variable pattern matching outside of meta
 
-func JavaPatternVariable(Option<VarEntry>, eager {String : JavaEnvEntry}, String /* TODO: Core_cvariable_sort when metaparser is fixed */, Text /* Current term */, [{String : JavaEnvEntry}] -> Text) -> Text
+func JavaPatternVariable(Option<VarEntry>, eager {String : JavaEnvEntry}, Core_cterm_sort, Text4_text_sort /* Current term */, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   // First variable occurrence: the term is a variable use.
-  rule JavaPatternVariable(NONE, #env, #variable, #term, [env]->#(env))
+  rule JavaPatternVariable(NONE, #env, #variable, #term, #cont)
   → text⟦
-      Variable ⟨var⟩ = ⟨#term⟩.variable();⟨#(AddVar(#env, #variable, Free(var, NONE)))⟩⟧
+      Variable ⟨STRING: var:String⟩ = †⟨#term⟩.variable();†⟨#cont(AddVar(#env, #variable, Free(text⟦⟨STRING: var⟩⟧, NONE)))⟩⟧
 
   // Bound variable
   // TODO: update term's parent with evaluated term.
   // TODO: release acquired references.
-  rule JavaPatternVariable(SOME(Bound(#javavar)), #env, #variable, #term, [env]->#(env))
+  rule JavaPatternVariable(SOME(VarEntry::Bound(#javavar:Text4_text_sort)), #env, #variable, #term, #cont)
   → text⟦
-      ⟨#term⟩ = force(⟨GetSink(#env)⟩.context(), ⟨#term⟩);
-      if (!isVariableUse(⟨#term⟩) || ⟨#javavar⟩ != ⟨#term⟩.variable()) {
-        break ⟨GetLabel(#env)⟩;
-      }⟨#(#env)⟩⟧
+      †⟨#term⟩ = force(context, †⟨#term⟩);
+      if (!isVariableUse(†⟨#term⟩) || †⟨#javavar⟩ != †⟨#term⟩.variable()) {
+        break †⟨GetLabel(#env)⟩;
+      }†⟨#cont(#env)⟩⟧
 
 // --- pattern matching inside meta
 
 // Iterate over meta arguments and find corresponding bound variables, and update environment
-func JavaPatternMaybeMetaArgs(eager {String : JavaEnvEntry}, String, List<Core_csubst_sort>, Text /* Current term */, Option<Core_csort_sort>, [{String : JavaEnvEntry}] -> Text) -> Text
+func JavaPatternMaybeMetaArgs(eager {String : JavaEnvEntry}, String, List<Core_csubst_sort>, Text4_text_sort /* Current term */, Option<Core_csort_sort>, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaPatternMaybeMetaArgs(#env, #metavar, csubst?⟦⟧, #term, #csort, [env]->#(env))
-  → #(AddMeta(#env, #metavar, #term, ()))
+  rule JavaPatternMaybeMetaArgs(#env, #metavar, csubst?⟦⟧, #term, #csort, #cont)
+  → #cont(AddMeta(#env, #metavar, #term, ()))
 
   // meta substitution
-  rule JavaPatternMaybeMetaArgs(#env, #metavar, csubst?⟦ [ ##cterm* ] ⟧, #term, #csort, [env]->#(env))
-  → #(AddMeta(#env, #metavar, #term, Map([x] -> JavaFindBoundVar(#env, x), #cterm*)))
+  rule JavaPatternMaybeMetaArgs(#env, #metavar, csubst?⟦ [ ##cterm* ] ⟧, #term, #csort, #cont)
+  → #cont(AddMeta(#env, #metavar, #term, Map((x) -> JavaFindBoundVar(#env, x), #cterm*)))
 
-func JavaFindBoundVar(eager {String : JavaEnvEntry},Core_cterm_sort) -> Text
+func JavaFindBoundVar(eager {String : JavaEnvEntry},Core_cterm_sort) -> Text4_text_sort
 
   rule JavaFindBoundVar(#env, cterm⟦ ##VARIABLE ⟧)
   → GetVar(#env, #VARIABLE)
@@ -1011,7 +903,7 @@ func JavaFindBoundVar(eager {String : JavaEnvEntry},Core_cterm_sort) -> Text
 
 
 /* Extract type parameter from constructor sort */
-func ResolveTypeParamCons(Option<Core_csort_sort>) -> Text
+func ResolveTypeParamCons(Option<Core_csort_sort>) -> Text4_text_sort
   rule ResolveTypeParamCons(NONE)
   → text⟦⟧
 
@@ -1021,15 +913,23 @@ func ResolveTypeParamCons(Option<Core_csort_sort>) -> Text
   rule ResolveTypeParamCons(SOME(#))
   → text⟦⟧
 
-/* Get sub sort. If sort is not available, try to get it from qualifified term */
+/* Get sub sort. Get it from term and if not available on sort */
 func SubSort(eager {String : JavaEnvEntry}, Core_cterm_sort, Option<List<Core_csort_sort>>) -> Option<Core_csort_sort>
-  rule SubSort(#env, #cterm, NONE)
-  → SubSortFromTerm(#env, #cterm)
+rule SubSort(#env, #cterm, #csorts?)
+→ SubSort2(SubSortFromTerm(#env, #cterm), #csorts?)
 
-  rule SubSort(#env, #cterm, SOME(csort*⟦ ##csort ##csort* ⟧))
+func SubSort2(Option<Core_csort_sort>, Option<List<Core_csort_sort>>) -> Option<Core_csort_sort>
+
+  rule SubSort2(SOME(#csort:Core_csort_sort), #)
   → SOME(#csort)
 
-func SubSortFromTerm(eager {String : JavaEnvEntry}, Core_cterm_sort) -> Text
+  rule SubSort2(NONE, NONE)
+  → NONE
+
+  rule SubSort2(NONE, SOME(csort*⟦ ##csort ##csort* ⟧))
+  → SOME(#csort)
+
+func SubSortFromTerm(eager {String : JavaEnvEntry}, Core_cterm_sort) -> Option<Core_csort_sort>
 
   // TODO: support for multiple sort qualifiers
   rule SubSortFromTerm(#env, cterm⟦ ##csort :: ##csortqualifier* ##CONSTRUCTOR ##cterms? ⟧)
@@ -1051,240 +951,267 @@ func SubSortFromTerm(eager {String : JavaEnvEntry}, Core_cterm_sort) -> Text
   → MaybeSortAnnoToSort(#csortanno?)
 
   // TODO: maybe error?
-  rule SubSortFromTerm(#env, Core_cterm_A6(#csortanno?, [x] -> #cterm(x)))
-  → SubSortFromTerm(#env, #cterm(var))
+  rule SubSortFromTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x) : Core_cterm_sort))
+  → SubSortFromTerm(#env, #cterm(var:Core_cterm_sort))
 
     // TODO: maybe error?
-  rule SubSortFromTerm(#env, Core_cterm_A7(#csortanno?, [x] -> #cterm(x)))
-  → SubSortFromTerm(#env, #cterm(var))
+  rule SubSortFromTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x) : Core_cterm_sort))
+  → SubSortFromTerm(#env, #cterm(var:Core_cterm_sort))
 
 func SubSortFromVar(Option<VarEntry>, String) -> Option<Core_csort_sort>
 
   rule SubSortFromVar(NONE, #var)
   → NONE
 
-  rule SubSortFromVar(SOME(#varEntry), #var)
+  rule SubSortFromVar(SOME(#varEntry:VarEntry), #var)
   → UnVarSort(#varEntry)
 
 // ----- Contraction
 
-func JavaContractum(eager {String : JavaEnvEntry}, Core_cterm_sort) -> Text
+func JavaContractum(eager {String : JavaEnvEntry}, Core_cterm_sort) -> Text4_text_sort
 rule JavaContractum(#env, #term)
 → JavaStatementTerm(#env, #term)
 
-func JavaStatementTerm(eager {String : JavaEnvEntry}, Core_cterm_sort) -> Text
+func JavaStatementTerm(eager {String : JavaEnvEntry}, eager Core_cterm_sort) -> Text4_text_sort
 rule JavaStatementTerm(#env, #cterm)
-→ text⟦⟨JavaFreshesTerm(SetCounter(#env, 0), #cterm, [env] -> text⟦⟧)⟩⟨If(GetTail(#env), text⟦return ⟧, text⟦⟧)⟩⟨JavaExprTerm(SetCounter(#env, 0), #cterm, [env] -> text⟦⟧)⟩;⟧
+→ text⟦†⟨JavaFreshesTerm(SetCounter(#env, 0), #cterm, (env) ->
+     text⟦ †⟨If(GetTail(env), text⟦return ⟧, text⟦⟧)⟩†⟨JavaExprTerm(SetCounter(env, 0), #cterm, (env) -> text⟦⟧)⟩;⟧)⟩⟧
 
 // ---- Generate fresh variable - Only in Java statement mode
 
-func JavaFreshesTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, [{String : JavaEnvEntry}] -> Text) -> Text
+func JavaFreshesTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaFreshesTerm(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##cterms? ⟧, [env]->#(env))
-  → JavaFreshesMaybeTerms(#env, #cterms?, [env] -> #(env))
+  rule JavaFreshesTerm(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##cterms? ⟧, #cont)
+  → JavaFreshesMaybeTerms(#env, #cterms?, #cont)
 
-  rule JavaFreshesTerm(#env, cterm⟦ ##cliteral ⟧, [env] -> #(env))
-  → #(#env)
+  rule JavaFreshesTerm(#env, cterm⟦ ##cliteral ⟧, #cont)
+  → #cont(#env)
 
-  rule JavaFreshesTerm(#env, cterm⟦ ##VARIABLE ⟧, [env] -> #(env))
-  → JavaFreshesVariable(#env, MaybeGetVar(#env, #VARIABLE), #VARIABLE, [env] -> #(env))
+  rule JavaFreshesTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #cont)
+  → JavaFreshesVariable(#env, MaybeGetVar(#env, #VARIABLE), #VARIABLE, #csortanno?, #cont)
 
-  rule JavaFreshesTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, [env] -> #(env))
-  → JavaFreshesMaybeTerms(#env, #cterms?, [env] -> JavaFreshesMaybeSubst(env, #csubst?, [env]->#(env)))
+  rule JavaFreshesTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
+  → JavaFreshesMaybeTerms(#env, #cterms?, (env) -> JavaFreshesMaybeSubst(env, #csubst?, #cont))
 
-  rule JavaFreshesTerm(#env, Core_cterm_A6(#csortanno?, [x] -> #cterm(x)), [env] -> #(env))
+  rule JavaFreshesTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x):Core_cterm_sort), #cont)
   → text⟦
-  Variable fresh⟨NumberToText(GetCounter(#env))⟩ = context.makeRefVariable("x");⟨JavaFreshesTerm(IncCounter(AddVar(#env, var, Fresh(text⟦fresh⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?)))), #cterm(var), [env] -> #(env))⟩⟧
+  Variable fresh†⟨NumberToText(GetCounter(#env))⟩ = context.makeVariable("x");†⟨JavaFreshesTerm(IncCounter(AddVar(#env, var:Core_cterm_sort, Fresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], #cont)⟩⟧
 
-  rule JavaFreshesTerm(#env, Core_cterm_A7(#csortanno?, [x] -> #cterm(x)), [env] -> #(env))
-  → JavaFreshesTerm(#env, #cterm(var), [env] -> #(env))
+  // TODO: track var
+  rule JavaFreshesTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x):Core_cterm_sort), #cont)
+  → JavaFreshesTerm(#env, #cterm[var], #cont)
 
-func JavaFreshesMaybeTerms(eager {String : JavaEnvEntry}, List<Core_cterms_sort>, [{String : JavaEnvEntry}] -> Text) -> Text
-  rule JavaFreshesMaybeTerms(#env, cterms?⟦⟧, [env] -> #(env))
-  → #(#env)
+func JavaFreshesMaybeTerms(eager {String : JavaEnvEntry}, List<Core_cterms_sort>, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+  rule JavaFreshesMaybeTerms(#env, cterms?⟦⟧, #cont)
+  → #cont(#env)
 
-  rule JavaFreshesMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, [env] -> #(env))
-  → JavaFreshesTerms(#env, #cterm*, [env] -> #(env))
+  rule JavaFreshesMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, #cont)
+  → JavaFreshesTerms(#env, #cterm*, #cont)
 
-func JavaFreshesTerms(eager {String : JavaEnvEntry}, List<Core_cterm_sort>, [{String : JavaEnvEntry}] -> Text) -> Text
-  rule JavaFreshesTerms(#env, cterm*⟦⟧, [env] -> #(env))
-  → #(#env)
+func JavaFreshesTerms(eager {String : JavaEnvEntry}, List<Core_cterm_sort>, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+  rule JavaFreshesTerms(#env, cterm*⟦⟧, #cont)
+  → #cont(#env)
 
-  rule JavaFreshesTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, [env] -> #(env))
-  → JavaFreshesTerm(#env, #cterm, [env] -> JavaFreshesTerms(env, #cterm*, [env] -> #(env)))
+  rule JavaFreshesTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, #cont)
+  → JavaFreshesTerm(#env, #cterm, (env) -> JavaFreshesTerms(env, #cterm*, #cont))
 
-func JavaFreshesMaybeSubst(eager {String : JavaEnvEntry}, List<Core_csubst_sort>, [{String : JavaEnvEntry}] -> Text) -> Text
-  rule JavaFreshesMaybeSubst(#env, csubst?⟦⟧, [env] -> #(env))
-  → #(#env)
+func JavaFreshesMaybeSubst(eager {String : JavaEnvEntry}, List<Core_csubst_sort>, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+  rule JavaFreshesMaybeSubst(#env, csubst?⟦⟧, #cont)
+  → #cont(#env)
 
-  rule JavaFreshesMaybeSubst(#env, csubst?⟦ [ ##cterm* ] ⟧, [env] -> #(env))
-  → JavaFreshesTerms(#env, #cterm*, [env] -> #(env))
+  rule JavaFreshesMaybeSubst(#env, csubst?⟦ [ ##cterm* ] ⟧, #cont)
+  → JavaFreshesTerms(#env, #cterm*, #cont)
 
-func JavaFreshesVariable(eager {String : JavaEnvEntry}, Option<VarEntry>, String, [{String : JavaEnvEntry}] -> Text) -> Text
+func JavaFreshesVariable(eager {String : JavaEnvEntry}, Option<VarEntry>, String, List<Core_csortanno_sort>, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaFreshesVariable(#env, NONE, #var, [env] -> #(env))
+  rule JavaFreshesVariable(#env, NONE, #var, #csortanno?, #cont)
   → text⟦
-      Variable fresh⟨NumberToText(GetCounter(#env))⟩ = context.makeRefVariable(⟨#var⟩);⟨
-        #(IncCounter(AddVar(#env, var, Fresh(text⟦fresh⟨NumberToText(GetCounter(#env))⟩⟧, NONE))))⟩⟧
+      Variable fresh†⟨NumberToText(GetCounter(#env))⟩ = context.makeVariable(†⟨Text-QuoteEscape(Show(#var))⟩);⟨
+        #cont(IncCounter(AddVar(#env, #var, Fresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?)))))⟩⟧
 
-  rule JavaFreshesVariable(#env,  SOME(#), #var, [env] -> #(env))
-  → #(#env)
+  rule JavaFreshesVariable(#env, SOME(#:VarEntry), #var, #csortanno?, #cont)
+  → #cont(#env)
 
 // ---- Generate term code - Java expression mode
 
-func JavaExprTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, [{String : JavaEnvEntry}] -> Text) -> Text
+func JavaExprTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaExprTerm(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##cterms? ⟧, [env] -> #(env))
-  → JavaExprConstruction(#env, #CONSTRUCTOR, #cterms?, [env] -> #(env))
+  rule JavaExprTerm(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##cterms? ⟧, #cont)
+  → JavaExprConstruction(#env, #CONSTRUCTOR, #cterms?, #cont)
 
-  rule JavaExprTerm(#env, cterm⟦ ##cliteral ⟧, [env] -> #(env))
+  rule JavaExprTerm(#env, cterm⟦ ##cliteral ⟧, #cont)
   → text⟦
-      ⟨Literal(#cliteral)⟩⟨#(#env)⟩⟧
+      †⟨Literal(#cliteral)⟩†⟨#cont(#env)⟩⟧
 
-  rule JavaExprTerm(#env, cterm⟦ ##VARIABLE ⟧, [env] -> #(env))
-  → JavaExprVar(#env, MaybeGetVar(#env, #VARIABLE), [env] -> #(env))
+  rule JavaExprTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #cont)
+  → JavaExprMaybeVar(#env, MaybeGetVar(#env, #VARIABLE), #VARIABLE, #cont)
 
-  rule JavaExprTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, [env] -> #(env))
-  → JavaExprMeta(#env, #METAVAR, #cterms?, #csubst?, [env] -> #(env))
+  rule JavaExprTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
+  → JavaExprMeta(#env, #METAVAR, #cterms?, #csubst?, #cont)
 
-  //rule JavaExprTerm(#env, cterm⟦ [ ##VARIABLE ] ##cterm ⟧, [env]->#(env))
-  rule JavaExprTerm(#env, Core_cterm_A6(#csortanno?, [x] -> #cterm(x)), [env] -> #(env))
+  //rule JavaExprTerm(#env, cterm⟦ [ ##VARIABLE ] ##cterm ⟧, #cont)
+  rule JavaExprTerm(#env, Core_cterm_A6(#csortanno?, [x] -> #cterm(x)), #cont)
   → text⟦
-      fresh⟨NumberToText(GetCounter(#env))⟩, ⟨JavaExprTerm(AddVar(IncCounter(#env), var, Fresh(text⟦fresh⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm(var), [env] -> #(env))⟩⟧
+      fresh†⟨NumberToText(GetCounter(#env))⟩, †⟨JavaExprTerm(AddVar(IncCounter(#env), var, Fresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
 
-  //rule JavaExprTerm(#env, cterm⟦ ( ##VARIABLE ) ##cterm ⟧, [env]->#(env))
-  rule JavaExprTerm(#env, Core_cterm_A7(#csortanno?, [x] -> #cterm(x)), [env] -> #(env))
-  → text⟦newClosure((c⟨JavaExprLambda(#env, Core_cterm_A7(#csortanno?, [x] -> #cterm(x)), [env] -> #(env))⟩⟧
+  //rule JavaExprTerm(#env, cterm⟦ ( ##VARIABLE ) ##cterm ⟧, #cont)
+  rule JavaExprTerm(#env, Core_cterm_A7(#csortanno?, [x] -> #cterm(x)), #cont)
+  → text⟦newClosure((c†⟨JavaExprLambda(#env, Core_cterm_A7(#csortanno?, [x] -> #cterm[x]), #cont)⟩⟧
 
 // ---- construction expression
 
-func JavaExprConstruction(eager {String : JavaEnvEntry}, String, List<Core_cterms_sort>, [{String : JavaEnvEntry}] -> Text) -> Text
+func JavaExprConstruction(eager {String : JavaEnvEntry}, String, List<Core_cterms_sort>, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-rule JavaExprConstruction(#env, #constructor, #cterms?, [env] -> #(env))
-→ text⟦⟨ToJavaClassName(#constructor)⟩(context⟨JavaExprMaybeTerms(#env, #cterms?, [env] -> #(env))⟩⟧
+rule JavaExprConstruction(#env, #constructor, #cterms?, #cont)
+→ text⟦⟨STRING: ToJavaMethodName(#constructor)⟩(context†⟨JavaExprMaybeTerms(#env, #cterms?, #cont)⟩⟧
 
-func JavaExprMaybeTerms(eager {String : JavaEnvEntry}, List<Core_cterms_sort>, [{String : JavaEnvEntry}] -> Text) -> Text
-  rule JavaExprMaybeTerms(#env, cterms?⟦⟧, [env] -> #(env))
-  → text⟦)⟨#(#env)⟩⟧
+func JavaExprMaybeTerms(eager {String : JavaEnvEntry}, List<Core_cterms_sort>, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+  rule JavaExprMaybeTerms(#env, cterms?⟦⟧, #cont)
+  → text⟦)†⟨#cont(#env)⟩⟧
 
-  rule JavaExprMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, [env] -> #(env))
-  → JavaExprTerms(#env, #cterm*, [env] -> #(env))
+  rule JavaExprMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, #cont)
+  → JavaExprTerms(#env, #cterm*, #cont)
 
-func JavaExprTerms(eager {String : JavaEnvEntry}, List<Core_cterm_sort>, [{String : JavaEnvEntry}] -> Text) -> Text
-  rule JavaExprTerms(#env, cterm*⟦⟧, [env] -> #(env))
-  → text⟦)⟨#(#env)⟩⟧
+func JavaExprTerms(eager {String : JavaEnvEntry}, List<Core_cterm_sort>, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+  rule JavaExprTerms(#env, cterm*⟦⟧, #cont)
+  → text⟦)†⟨#cont(#env)⟩⟧
 
-  rule JavaExprTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, [env] -> #(env))
-  → text⟦, ⟨JavaExprTerm(#env, #cterm, [env] -> JavaExprTerms(env, #cterm*, [env] -> #(env)))⟩⟧
+  rule JavaExprTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, #cont)
+  → text⟦, †⟨JavaExprTerm(#env, #cterm, (env) -> JavaExprTerms(env, #cterm*, #cont))⟩⟧
 
 // --- Variable
 
-func JavaExprVar(eager {String : JavaEnvEntry}, Option<VarEntry>, [{String : JavaEnvEntry}] -> Text) -> Text
+func JavaExprMaybeVar(eager {String : JavaEnvEntry}, Option<VarEntry>, String, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaExprVar(#env, NONE, [env] -> #(env))
-  → text⟦⟧   // Error will be raised by javac
+  rule JavaExprMaybeVar(#env, NONE, #svar, #cont) // This is a fresh variable
+  → text⟦new Variable(†⟨Text-QuoteEscape(Show(#svar))⟩).use()†⟨#cont(#env)⟩⟧
 
-  rule JavaExprVar(#env, SOME(Formal(#var, #type)), [env] -> #(env))
-  → text⟦⟨#var⟩⟨#(#env)⟩⟧
+  rule JavaExprMaybeVar(#env, SOME(VarEntry::Formal(#var:Text4_text_sort, #type:Option<Core_csort_sort>)), #svar, #cont)
+  → text⟦†⟨#var⟩†⟨#cont(#env)⟩⟧
 
   // fallback
-  // TODO: robustness
-  rule JavaExprVar(#env, SOME(#varEntry), [env] -> #(env))
-  → text⟦new Var⟨SortToType(UnSOME(UnVarSort(#varEntry)))⟩(⟨UnVarVar(#varEntry)⟩)⟨#(#env)⟩⟧
+  rule JavaExprMaybeVar(#env, SOME(#varEntry:VarEntry), #svar, #cont)
+  → JavaExprVar(#env, UnVarSort(#varEntry), UnVarVar(#varEntry), #cont)
+
+func JavaExprVar(eager {String : JavaEnvEntry}, Option<Core_csort_sort>, Text4_text_sort, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  rule JavaExprVar(#env, NONE, #svar, #cont) // missing type
+  → text⟦†⟨#svar⟩.use()†⟨#cont(#env)⟩⟧
+
+  rule JavaExprVar(#env, SOME(#sort:Core_csort_sort), #svar, #cont)
+  → text⟦new Var†⟨SortToType(#sort)⟩(†⟨#svar⟩)†⟨#cont(#env)⟩⟧
+
 
 // ----  metavar expression
 
-func JavaExprMeta(eager {String : JavaEnvEntry}, String, List<Core_cterms_sort>, List<Core_csubst_sort>, [{String : JavaEnvEntry}] -> Text) -> Text
+func JavaExprMeta(eager {String : JavaEnvEntry}, String, List<Core_cterms_sort>, List<Core_csubst_sort>, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   // No arguments -> just return the metavariable.
-  rule JavaExprMeta(#env, #metavar, cterms?⟦⟧, csubst?⟦⟧, [env] -> #(env))
-  → text⟦⟨GetMetaVar(#env, #metavar)⟩⟨#(#env)⟩⟧
+  rule JavaExprMeta(#env, #metavar, cterms?⟦⟧, csubst?⟦⟧, #cont)
+  → text⟦†⟨GetMetaVar(#env, #metavar)⟩†⟨#cont(#env)⟩⟧
 
   // Apply arguments -> call lambda
-  rule JavaExprMeta(#env, #metavar, cterms?⟦ ( ##cterm* ) ⟧, csubst?⟦⟧, [env] -> #(env))
-  → text⟦⟨GetMetaVar(#env, #metavar)⟩.apply(context⟨JavaExprTerms(#env, #cterm*, [env] -> #(env))⟩⟧
+  rule JavaExprMeta(#env, #metavar, cterms?⟦ ( ##cterm* ) ⟧, csubst?⟦⟧, #cont)
+  → text⟦†⟨GetMetaVar(#env, #metavar)⟩.apply(context†⟨JavaExprTerms(#env, #cterm*, #cont)⟩⟧
 
   // Substitution
-  rule JavaExprMeta(#env, #metavar, cterms?⟦⟧, csubst?⟦ [ ##cterm* ] ⟧, [env] -> #(env))
-  → text⟦subst(context, ⟨GetMetaVar(#env, #metavar)⟩⟨JavaExprMetaArgs(#env, GetMetaArgs(#env, #metavar), #cterm*, [env] -> #(env))⟩⟧
+  rule JavaExprMeta(#env, #metavar, cterms?⟦⟧, csubst?⟦ [ ##cterm* ] ⟧, #cont)
+  → text⟦subst(context, †⟨GetMetaVar(#env, #metavar)⟩†⟨JavaExprMetaArgs(#env, GetMetaArgs(#env, #metavar), #cterm*, #cont)⟩⟧
 
   // TODO: call and subsitution
 
-func JavaExprMetaArgs(eager {String : JavaEnvEntry}, List<Text> /* pattern args */, List<Core_cterm_sort> /* contraction args */,
-                     [{String : JavaEnvEntry}] -> Text) -> Text
+func JavaExprMetaArgs(eager {String : JavaEnvEntry}, List<Text4_text_sort> /* pattern args */, List<Core_cterm_sort> /* contraction args */,
+                     ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaExprMetaArgs(#env, (), #args,  [env] -> #(env))
-  → text⟦)⟨#(#env)⟩⟧
+  rule JavaExprMetaArgs(#env, (), #args,  #cont)
+  → text⟦)†⟨#cont(#env)⟩⟧
 
-  rule JavaExprMetaArgs(#env, Cons(#binder, #binders), Cons(#arg, #args), [env] -> #(env))
-  → text⟦,⟨#binder⟩,⟨JavaExprTerm(#env, #arg, [env] -> JavaExprMetaArgs(env, #binders, #args, [env] -> #(env)))⟩⟧
+  rule JavaExprMetaArgs(#env, Cons(#binder:Text4_text_sort,  #binders: List<Text4_text_sort>), Cons(#arg:Core_cterm_sort, #args:List<Core_cterm_sort>), #cont)
+  → text⟦,†⟨#binder⟩,†⟨JavaExprTerm(#env, #arg, (env) -> JavaExprMetaArgs(env, #binders, #args, #cont))⟩⟧
 
 // ---- lambda expression
 
-func JavaExprLambda(eager {String : JavaEnvEntry}, Core_cterm_sort, [{String : JavaEnvEntry}] -> Text) -> Text
+func JavaExprLambda(eager {String : JavaEnvEntry}, Core_cterm_sort, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaExprLambda(#env, Core_cterm_A7(#csortanno?, [x] -> #cterm(x)), [env]->#(env))
-  → text⟦, p⟨NumberToText(GetCounter(#env))⟩⟨JavaExprLambda(AddVar(IncCounter(#env), var, Formal(text⟦p⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm(var), [env] -> #(env))⟩⟧
+  rule JavaExprLambda(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x): Core_cterm_sort), #cont)
+  → text⟦, p†⟨NumberToText(GetCounter(#env))⟩†⟨JavaExprLambda(AddVar(IncCounter(#env), var, Formal(text⟦p†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
 
   // fallback
-  rule JavaExprLambda(#env, #cterm, [env]->#(env))
-  → text⟦) -> ⟨JavaExprTerm(#env, #cterm, [env] -> text⟦)⟨#(env)⟩⟧)⟩⟧
+  rule JavaExprLambda(#env, #cterm, #cont)
+  → text⟦) -> †⟨JavaExprTerm(#env, #cterm, (env) -> text⟦)†⟨#cont(env)⟩⟧)⟩⟧
+
+
+//--- Find form in sort.
+
+func FindForm(Option<Option<Core_cdecl_sort>>, String) -> Option<Core_cform_sort>
+  rule FindForm(NONE, #formname)
+  → NONE
+
+  rule FindForm(SOME(Option<Core_cdecl_sort>::NONE), #formname)
+  → NONE
+
+  rule FindForm(SOME(Option<Core_cdecl_sort>::SOME(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)), #formname)
+  → PickFirst(#cform*, (x) -> MatchConsForm(x, #formname))
+
+func MatchConsForm(Core_cform_sort, String) -> Bool
+  rule MatchConsForm(cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #formname)
+  → Equal(#CONSTRUCTOR, #formname)
+
+  rule MatchConsForm(#, #formname)
+  → FALSE
 
 // ----- initModule
 
 /* Generate code initializing a module.
-   Dynamically register data and function descriptors.
 */
-func InitModule({ String : Core_cdecl_sort }, { String : Core_cdecl_sort }, List<String>) -> Text
+func InitModule({ String : Core_cdecl_sort }, { String : Core_cdecl_sort }, List<Core_cqconstructor_sort>) -> Text4_text_sort
 
 rule InitModule(#data, #func, #imports)
 → text⟦
-private static boolean initialized = false;
-public static void init(Context context) {
+    private static boolean initialized = false;
+    public static void init(Context context) {
+      initialized = true;
+      †⟨TextFold(Map((sort)->RegisterDataSort(sort), MapValues(#data)), text⟦⟧)⟩
+      †⟨TextFold(Map((qcons)->RegisterImport(qcons),  #imports), text⟦⟧)⟩
 }⟧
 
-func RegisterImport(eager String) -> Text
+func RegisterImport(eager Core_cqconstructor_sort) -> Text4_text_sort
 rule RegisterImport(#name)
 → text⟦
-⟨PathToImport(#name)⟩.init(context);⟧
+    †⟨PathToImport(QConsToString(#name))⟩.init(context);⟧
 
-func RegisterDataSort(Core_cdecl_sort) -> Text
+func RegisterDataSort(Core_cdecl_sort) -> Text4_text_sort
 rule RegisterDataSort(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
-→ TextFold(Map([x] -> RegisterDataForm(x), #cform*), text⟦⟧)
+→ TextFold(Map((x) -> RegisterDataForm(x), #cform*), text⟦⟧)
 
-func RegisterDataForm(Core_cform_sort) -> Text
+func RegisterDataForm(Core_cform_sort) -> Text4_text_sort
 rule RegisterDataForm(cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
 → text⟦
-context.register(⟨Descriptor(#CONSTRUCTOR)⟩);⟧
-
-func RegisterFuncSort(Core_cdecl_sort) -> Text
-rule RegisterFuncSort(cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
-→ text⟦
-context.register(⟨Descriptor(#CONSTRUCTOR)⟩);⟧
+context.register(†⟨Text-QuoteEscape(#CONSTRUCTOR)⟩, †⟨EValueClassName(#CONSTRUCTOR)⟩::new);⟧
 
 /* Print package declaration */
-func PackageDeclaration -> Text
+func PackageDeclaration -> Text4_text_sort
 rule PackageDeclaration → PackageDeclaration2(GetEnv("javabasepackage", ""), GetEnv("javapackage", ""))
 
-func PackageDeclaration2(String, String) -> Text
+func PackageDeclaration2(String, String) -> Text4_text_sort
 rule PackageDeclaration2(#base, #sub)
 → text⟦
-package †⟨#base⟩⟨PackageDeclaration3(If(StringEqual(Trim(#base), ""),"", "."), #sub)⟩;⟧
+package ⟨STRING:#base⟩†⟨PackageDeclaration3(If(StringEqual(Trim(#base), ""),"", "."), #sub)⟩;⟧
 
-func PackageDeclaration3(String, String) -> Text
+func PackageDeclaration3(String, String) -> Text4_text_sort
 rule PackageDeclaration3(#sep, #sub)
-→ If(StringEqual(Trim(#sub), ""), text⟦⟧, text⟦†⟨#sep⟩†⟨#sub⟩⟧)
+→ If(StringEqual(Trim(#sub), ""), text⟦⟧, text⟦⟨STRING:#sep⟩⟨STRING:#sub⟩⟧)
 
 // Print java import
-func PathToImport(String) -> Text
+func PathToImport(String) -> Text4_text_sort
 
 rule PathToImport(#name)
 → PathToImport2(If(StartsWith(#name, "Std::"), "org.transscript.compiler", GetEnv("javabasepackage", "")), PathToDot(DownCaseFirst(#name)))
 
-func PathToImport2(String, String) -> Text
+func PathToImport2(String, String) -> Text4_text_sort
 
 rule PathToImport2(#package, #name)
-→  text⟦⟨StringToText(#package)⟩.⟨StringToText(#name)⟩⟧
+→  text⟦†⟨StringToText(#package)⟩.†⟨StringToText(#name)⟩⟧
 
 func PathToDot(String) -> String
 rule PathToDot(#path) → PathToDot2(Replace(#path, "::", "."))
@@ -1300,6 +1227,15 @@ If(Contains(#subpackage, "."),
 func ClassName(String) -> String
 rule ClassName(#name) → UpCaseFirst(AfterLast(BeforeLast(#name, "."), "/"))
 
+/* Qualified constructor to string */
+func QConsToString(Core_cqconstructor_sort) -> String
+rule QConsToString(cqconstructor⟦ ##csortqualifier* ##CONSTRUCTOR ⟧)
+→ ConcatString(QQSortToString(#csortqualifier*), #CONSTRUCTOR)
+
+func QQSortToString(List<Core_csortqualifier_sort>) -> String
+rule QQSortToString(csortqualifier*⟦⟧) → ""
+rule QQSortToString(csortqualifier*⟦ ##CONSTRUCTOR :: ##csortqualifier* ⟧)
+→ ConcatString(#CONSTRUCTOR, ConcatString("::", QQSortToString(#csortqualifier*)))
 
 
 // ----------- Code generation environment
@@ -1307,59 +1243,54 @@ rule ClassName(#name) → UpCaseFirst(AfterLast(BeforeLast(#name, "."), "/"))
 // To change when upgrade to crsx4.
 
 enum VarEntry
-  | Free(Text /* Java var */, Option<Core_csort_sort>)
-  | Bound(Text /* Java var */, Option<Core_csort_sort>)
-  | Fresh(Text /* Java var */, Option<Core_csort_sort>)
-  | Formal(Text /* Java var */, Option<Core_csort_sort>)
+  | Free(Text4_text_sort /* Java var */, Option<Core_csort_sort>)
+  | Bound(Text4_text_sort /* Java var */, Option<Core_csort_sort>)
+  | Fresh(Text4_text_sort /* Java var */, Option<Core_csort_sort>)
+  | Formal(Text4_text_sort /* Java var */, Option<Core_csort_sort>)
 
-enum MetaEntry | MetaVar(Text,       /* Java variable associated with the meta variable*/
-                         List<Text>) /* Java variables associated to the meta variable bound variables */
+enum MetaEntry | MetaVar(Text4_text_sort,       /* Java variable associated with the meta variable*/
+                         List<Text4_text_sort>) /* Java variables associated to the meta variable bound variables */
 
-enum JavaEnvEntry | ENum(Numeric) |  EText(Text) | ETexts(List<Text>) | EBool(Boolean) | EMapMeta({String : MetaEntry})
+enum JavaEnvEntry | ENum(Numeric) |  EText4_text_sort(Text4_text_sort) | ETexts(List<Text4_text_sort>) | EBool(Bool) | EMapMeta({String : MetaEntry})
                   | EMapVar({ String : VarEntry }) | EMapDecl({ String : Core_cdecl_sort })
-                  | EParams(List<Pair<Text Core_csort_sort>>)
+                  | EParams(List<Pair<Text4_text_sort Core_csort_sort>>)
 
 
 func NewEnv -> {String : JavaEnvEntry}
 rule NewEnv →
-    MapPut2("sink"        , EText(text⟦⟧),    /* Current sink. */
     MapPut2("params"      , EParams(()),     /* Java method arguments. */
     MapPut2("thunk"       , ETexts(()),     /* thunk arguments */
-    MapPut2("label"       , EText(text⟦⟧),    /* Current pattern block label. */
+    MapPut2("label"       , EText4_text_sort(text⟦⟧),    /* Current pattern block label. */
     MapPut2("tail"        , EBool(TRUE),   /* Tail? */
     MapPut2("meta"        , EMapMeta(MapNew),  /* Map meta variable to java variables */
     MapPut2("vars"        , EMapVar(MapNew),   /* Map variable to VarEntry */
-    MapPut2("parent"      , EText(text⟦⟧),    /* Sub parent (if any) */
-    MapPut2("subindex"    , EText(text⟦⟧),    /* Sub index */
+    MapPut2("parent"      , EText4_text_sort(text⟦⟧),    /* Sub parent (if any) */
+    MapPut2("subindex"    , EText4_text_sort(text⟦⟧),    /* Sub index */
     MapPut2("binderindex" , ENum(0),         /* Current sub binder index */
     MapPut2("binders"     , ETexts(()),    /* Binders list being constructed in contraction */
     MapPut2("data"        , ETexts(()),    /* List of parameters marked as data */
-    MapNew))))))))))))
+    MapNew)))))))))))
 
 
 // --- Java printing helpers
 
-// Print construction descriptor name
-func Descriptor(String) -> Text
-rule Descriptor(#constructor) → ToJavaIdString(#constructor)
-
 // Print literal as a java string
-func Literal(Core_cliteral_sort) -> Text
-rule Literal(cliteral⟦ ##STRING ⟧) → text⟦newStringTerm(⟨Text-QuoteEscape(#STRING)⟩)⟧
-rule Literal(cliteral⟦ ##NUMBER ⟧) → text⟦newDoubleTerm(⟨NumberToText(#NUMBER)⟩)⟧
+func Literal(Core_cliteral_sort) -> Text4_text_sort
+rule Literal(cliteral⟦ ##STRING ⟧) → text⟦newStringTerm(†⟨Text-QuoteEscape(#STRING)⟩)⟧
+rule Literal(cliteral⟦ ##NUMBER ⟧) → text⟦newDoubleTerm(⟨STRING: #NUMBER⟩)⟧
 
 // Convert constructor to legal Java ID
-func ToJavaId(String) -> Text
+func ToJavaId(String) -> Text4_text_sort
 rule ToJavaId(#constructor) → Text-Mangle(UpCaseFirst(#constructor))
 
 // Convert constructor to legal Java ID
-func ToJavaIdString(String) -> Text
+func ToJavaIdString(String) -> Text4_text_sort
 rule ToJavaIdString(#name) → Text-Mangle(#name)
 
 // --- Helpers.
 
-func GetValue<a>(eager {String : JavaEnvEntry}, String, [{String : JavaEnvEntry}] -> a) -> a
-rule GetValue(#env, #key, [x] -> #unwrap(x))
+func GetValue<a>(eager {String : JavaEnvEntry}, String, (JavaEnvEntry) -> a) -> a
+rule GetValue(#env, #key, #unwrap)
 → #unwrap(UnSOME(MapGet(#env, #key)))
 
 func SetValue(eager {String : JavaEnvEntry}, String, eager JavaEnvEntry) -> {String : JavaEnvEntry}
@@ -1369,16 +1300,16 @@ rule SetValue(#env, #key, #value)
 func UnNum(JavaEnvEntry) -> Numeric
 rule UnNum(ENum(#)) → #
 
-func UnText(JavaEnvEntry) -> Text
-rule UnText(EText(#)) → #
+func UnText(JavaEnvEntry) -> Text4_text_sort
+rule UnText(EText4_text_sort(#)) → #
 
-func UnTexts(JavaEnvEntry) -> List<Text>
+func UnTexts(JavaEnvEntry) -> List<Text4_text_sort>
 rule UnTexts(ETexts(#)) → #
 
-func UnParams(JavaEnvEntry) -> List<Pair<Text Core_csort_sort>>
+func UnParams(JavaEnvEntry) -> List<Pair<Text4_text_sort Core_csort_sort>>
 rule UnParams(EParams(#)) → #
 
-func UnBool(JavaEnvEntry) -> Boolean
+func UnBool(JavaEnvEntry) -> Bool
 rule UnBool(EBool(#)) → #
 
 func UnMapMeta(JavaEnvEntry) -> {String : MetaEntry}
@@ -1390,72 +1321,63 @@ rule UnMapVar(EMapVar(#)) → #
 func UnMapDecl(JavaEnvEntry) -> { String : Core_cdecl_sort }
 rule UnMapDecl(EMapDecl(#)) → #
 
-func UnVarVar(VarEntry) -> Text
+func UnVarVar(VarEntry) -> Text4_text_sort
 rule UnVarVar(Bound(#1, #2)) → #1
 rule UnVarVar(Free(#1, #2)) → #1
 rule UnVarVar(Fresh(#1, #2)) → #1
 rule UnVarVar(Formal(#1, #2)) → #1
 
-func UnVarSort(VarEntry) -> Option<Core_sort_sort>
+func UnVarSort(VarEntry) -> Option<Core_csort_sort>
 rule UnVarSort(Bound(#1, #2)) → #2
 rule UnVarSort(Free(#1, #2)) → #2
 rule UnVarSort(Fresh(#1, #2)) → #2
 rule UnVarSort(Formal(#1, #2)) → #2
 
-func UnMetaVar(MetaEntry) -> Text
+func UnMetaVar(MetaEntry) -> Text4_text_sort
 rule UnMetaVar(MetaVar(#1, #2)) → #1
 
-func UnMetaArgs(MetaEntry) -> List<Text>
+func UnMetaArgs(MetaEntry) -> List<Text4_text_sort>
 rule UnMetaArgs(MetaVar(#1, #2)) → #2
 
 // --- Data sorts
 
 func GetDataSorts(eager {String : JavaEnvEntry}) -> { String : Core_cdecl_sort }
-rule GetDataSorts(#env) → GetValue(#env, "datasorts", [x] -> UnMapDecl(x))
+rule GetDataSorts(#env) → GetValue(#env, "datasorts", (x) -> UnMapDecl(x))
 
 func SetDataSorts(eager {String : JavaEnvEntry}, { String : Core_cdecl_sort }) -> {String : JavaEnvEntry}
 rule SetDataSorts(#env, #sorts) → SetValue(#env, "datasorts", EMapDecl(#sorts))
 
-func IsDataSort(eager {String : JavaEnvEntry}, String) -> Boolean
+func IsDataSort(eager {String : JavaEnvEntry}, String) -> Bool
 rule IsDataSort(#env, #cons) → HasOption(MapGet(GetDataSorts(#env), #cons))
 
 // --- Function sorts
 
 func GetFuncSorts(eager {String : JavaEnvEntry}) -> { String : Core_cdecl_sort }
-rule GetFuncSorts(#env) → GetValue(#env, "funcsorts", [x] -> UnMapDecl(x))
+rule GetFuncSorts(#env) → GetValue(#env, "funcsorts", (x) -> UnMapDecl(x))
 
 func SetFuncSorts(eager {String : JavaEnvEntry}, { String : Core_cdecl_sort }) -> {String : JavaEnvEntry}
 rule SetFuncSorts(#env, #sorts) → SetValue(#env, "funcsorts", EMapDecl(#sorts))
 
-func IsFuncSort(eager {String : JavaEnvEntry}, String) -> Boolean
+func IsFuncSort(eager {String : JavaEnvEntry}, String) -> Bool
 rule IsFuncSort(#env, #cons) → HasOption(MapGet(GetFuncSorts(#env), #cons))
 
 // --- Top-level classname
 
-func GetClassname(eager {String : JavaEnvEntry}) -> Text
-rule GetClassname(#env) → GetValue(#env, "classname", [x] -> UnText(x))
+func GetClassname(eager {String : JavaEnvEntry}) -> Text4_text_sort
+rule GetClassname(#env) → GetValue(#env, "classname", (x) -> UnText(x))
 
-func SetClassname(eager {String : JavaEnvEntry}, Text) -> {String : JavaEnvEntry}
-rule SetClassname(#env, #classname) → SetValue(#env, "classname", EText(#classname))
-
-
-// --- Sink
-
-func GetSink(eager {String : JavaEnvEntry}) -> Text
-rule GetSink(#env) → GetValue(#env, "sink", [x] -> UnText(x))
-
-func SetSink(eager {String : JavaEnvEntry}, Text) -> {String : JavaEnvEntry}
-rule SetSink(#env, #sink) → SetValue(#env, "sink", EText(#sink))
+func SetClassname(eager {String : JavaEnvEntry}, Text4_text_sort) -> {String : JavaEnvEntry}
+rule SetClassname(#env, #classname) → SetValue(#env, "classname", EText4_text_sort(#classname))
 
 // --- Step method arguments
 
-func GetParams(eager {String : JavaEnvEntry}) -> List<Pair<Text Core_csort_sort>>
-rule GetParams(#env) → GetValue(#env, "params", [x] -> UnParams(x))
+func GetParams(eager {String : JavaEnvEntry}) -> List<Pair<Text4_text_sort Core_csort_sort>>
+rule GetParams(#env) → GetValue(#env, "params", (x) -> UnParams(x))
 
-func SetParams(eager {String : JavaEnvEntry}, List<Pair<Text Core_csort_sort>>) -> {String : JavaEnvEntry}
+func SetParams(eager {String : JavaEnvEntry}, List<Pair<Text4_text_sort Core_csort_sort>>) -> {String : JavaEnvEntry}
 rule SetParams(#env, #params) → SetValue(#env, "params",  EParams(#params))
 
-func AddParam(eager {String : JavaEnvEntry}, Text, Core_csort_sort) -> {String : JavaEnvEntry}
+func AddParam(eager {String : JavaEnvEntry}, Text4_text_sort, Core_csort_sort) -> {String : JavaEnvEntry}
 rule AddParam(#env, #param, #csort) → SetValue(#env, "params", EParams(Append(PairCons(#param, #csort), GetParams(#env))))
 
 // Move to the next parameter
@@ -1463,7 +1385,7 @@ func NextParam(eager {String : JavaEnvEntry}) -> {String : JavaEnvEntry}
 rule NextParam(#env) → SetParams(#env, Tail(GetParams(#env)))
 
 // Get the current parameter text
-func CurrentParam(eager {String : JavaEnvEntry}) -> Text
+func CurrentParam(eager {String : JavaEnvEntry}) -> Text4_text_sort
 rule CurrentParam(#env) → Fst(Head(GetParams(#env)))
 
 // Get the current parameter text
@@ -1472,43 +1394,43 @@ rule CurrentParamSort(#env) → Snd(Head(GetParams(#env)))
 
 // --- Current method name
 
-func GetMethodName(eager {String : JavaEnvEntry}) -> Text
-rule GetMethodName(#env) → GetValue(#env, "methodname", [x] -> UnText(x))
+func GetMethodName(eager {String : JavaEnvEntry}) -> Text4_text_sort
+rule GetMethodName(#env) → GetValue(#env, "methodname", (x) -> UnText(x))
 
-func SetMethodName(eager {String : JavaEnvEntry}, Text) -> {String : JavaEnvEntry}
-rule SetMethodName(#env, #name) → SetValue(#env, "methodname", EText(#name))
+func SetMethodName(eager {String : JavaEnvEntry}, Text4_text_sort) -> {String : JavaEnvEntry}
+rule SetMethodName(#env, #name) → SetValue(#env, "methodname", EText4_text_sort(#name))
 
 // --- Thunk type
 
-func GetThunkType(eager {String : JavaEnvEntry}) -> Text
-rule GetThunkType(#env) → GetValue(#env, "thunktype", [x] -> UnText(x))
+func GetThunkType(eager {String : JavaEnvEntry}) -> Text4_text_sort
+rule GetThunkType(#env) → GetValue(#env, "thunktype", (x) -> UnText(x))
 
-func SetThunkType(eager {String : JavaEnvEntry}, Text) -> {String : JavaEnvEntry}
-rule SetThunkType(#env, #type) → SetValue(#env, "thunktype", EText(#type))
+func SetThunkType(eager {String : JavaEnvEntry}, Text4_text_sort) -> {String : JavaEnvEntry}
+rule SetThunkType(#env, #type) → SetValue(#env, "thunktype", EText4_text_sort(#type))
 
 // --- Thunk arguments
 
-func GetThunk(eager {String : JavaEnvEntry}) -> List<Text>
-rule GetThunk(#env) → GetValue(#env, "thunk", [x] -> UnTexts(x))
+func GetThunk(eager {String : JavaEnvEntry}) -> List<Text4_text_sort>
+rule GetThunk(#env) → GetValue(#env, "thunk", (x) -> UnTexts(x))
 
-func SetThunk(eager {String : JavaEnvEntry}, List<Text>) -> {String : JavaEnvEntry}
+func SetThunk(eager {String : JavaEnvEntry}, List<Text4_text_sort>) -> {String : JavaEnvEntry}
 rule SetThunk(#env, #thunk) → SetValue(#env, "thunk", ETexts(#thunk))
 
-func AddThunk(eager {String : JavaEnvEntry}, Text) -> {String : JavaEnvEntry}
+func AddThunk(eager {String : JavaEnvEntry}, Text4_text_sort) -> {String : JavaEnvEntry}
 rule AddThunk(#env, #thunk) → SetValue(#env, "thunk", ETexts(Append(#thunk, GetThunk(#env))))
 
 // --- Rule case label
 
-func GetLabel(eager {String : JavaEnvEntry}) -> Text
-rule GetLabel(#env) → GetValue(#env, "label", [x] -> UnText(x))
+func GetLabel(eager {String : JavaEnvEntry}) -> Text4_text_sort
+rule GetLabel(#env) → GetValue(#env, "label", (x) -> UnText(x))
 
-func SetLabel(eager {String : JavaEnvEntry}, Text) -> {String : JavaEnvEntry}
-rule SetLabel(#env, #label) → SetValue(#env, "label", EText(#label))
+func SetLabel(eager {String : JavaEnvEntry}, Text4_text_sort) -> {String : JavaEnvEntry}
+rule SetLabel(#env, #label) → SetValue(#env, "label", EText4_text_sort(#label))
 
 // --- Tail mode.
 
-func GetTail(eager {String : JavaEnvEntry}) -> Boolean
-rule GetTail(#env) → GetValue(#env, "tail", [x] -> UnBool(x))
+func GetTail(eager {String : JavaEnvEntry}) -> Bool
+rule GetTail(#env) → GetValue(#env, "tail", (x) -> UnBool(x))
 
 func SetTail(eager {String : JavaEnvEntry}) -> {String : JavaEnvEntry}
 rule SetTail(#env) → SetValue(#env, "tail", EBool(TRUE))
@@ -1519,24 +1441,24 @@ rule UnsetTail(#env) → SetValue(#env, "tail", EBool(FALSE))
 // --- Meta
 
 func GetMetas(eager {String : JavaEnvEntry}) -> {String : MetaEntry}
-rule GetMetas(#env) → GetValue(#env, "meta", [x] -> UnMapMeta(x))
+rule GetMetas(#env) → GetValue(#env, "meta", (x) -> UnMapMeta(x))
 
-func GetMetaVar(eager {String : JavaEnvEntry}, String) -> Text
+func GetMetaVar(eager {String : JavaEnvEntry}, String) -> Text4_text_sort
 rule GetMetaVar(#env, #metavar) → UnMetaVar(UnSOME(MapGet(GetMetas(#env), #metavar)))
 
-func GetMetaArgs(eager {String : JavaEnvEntry}, String) -> List<Text>
+func GetMetaArgs(eager {String : JavaEnvEntry}, String) -> List<Text4_text_sort>
 rule GetMetaArgs(#env, #metavar) → UnMetaArgs(UnSOME(MapGet(GetMetas(#env), #metavar)))
 
-func AddMeta(eager {String : JavaEnvEntry}, String, Text, List<Text>) -> {String : JavaEnvEntry}
+func AddMeta(eager {String : JavaEnvEntry}, String, Text4_text_sort, List<Text4_text_sort>) -> {String : JavaEnvEntry}
 rule AddMeta(#env, #metavar, #term, #boundvars)
 → SetValue(#env,  "meta", EMapMeta(MapPut(GetMetas(#env), #metavar, MetaVar(#term, #boundvars))))
 
 // --- Variable
 
 func GetVars(eager {String : JavaEnvEntry}) -> { String : VarEntry }
-rule GetVars(#env) → GetValue(#env, "vars", [x] -> UnMapVar(x))
+rule GetVars(#env) → GetValue(#env, "vars", (x) -> UnMapVar(x))
 
-func GetVar(eager {String : JavaEnvEntry}, String) -> Text
+func GetVar(eager {String : JavaEnvEntry}, String) -> Text4_text_sort
 rule GetVar(#env, #var) → UnVarVar(UnSOME(MapGetVar(GetVars(#env), #var)))
 
 func MaybeGetVar(eager {String : JavaEnvEntry}, String) -> Option<VarEntry>
@@ -1548,17 +1470,17 @@ rule AddVar(#env, #var, #entry)
 
 // --- Parent term
 
-func GetParent(eager {String : JavaEnvEntry}) -> Text
-rule GetParent(#env) → GetValue(#env, "parent", [x] -> UnText(x))
+func GetParent(eager {String : JavaEnvEntry}) -> Text4_text_sort
+rule GetParent(#env) → GetValue(#env, "parent", (x) -> UnText(x))
 
-func SetParent(eager {String : JavaEnvEntry}, Text) -> {String : JavaEnvEntry}
+func SetParent(eager {String : JavaEnvEntry}, Text4_text_sort) -> {String : JavaEnvEntry}
 rule SetParent(#env, #parent)
-→ SetValue(#env, "parent",  EText(#parent))
+→ SetValue(#env, "parent",  EText4_text_sort(#parent))
 
 // --- sub index
 
 func GetSubIndex(eager {String : JavaEnvEntry}) -> Numeric
-rule GetSubIndex(#env) → GetValue(#env, "subindex", [x] -> UnNum(x))
+rule GetSubIndex(#env) → GetValue(#env, "subindex", (x) -> UnNum(x))
 
 func SetSubIndex(eager {String : JavaEnvEntry}, Numeric) -> {String : JavaEnvEntry}
 rule SetSubIndex(#env, #index)
@@ -1567,7 +1489,7 @@ rule SetSubIndex(#env, #index)
 // --- sub binder index
 
 func GetSubBinderIndex(eager {String : JavaEnvEntry}) -> Numeric
-rule GetSubBinderIndex(#env) → GetValue(#env, "binderindex", [x] -> UnNum(x))
+rule GetSubBinderIndex(#env) → GetValue(#env, "binderindex", (x) -> UnNum(x))
 
 func SetSubBinderIndex(eager {String : JavaEnvEntry}, Numeric) -> {String : JavaEnvEntry}
 rule SetSubBinderIndex(#env, #index)
@@ -1579,19 +1501,19 @@ rule IncSubBinderIndex(#env)
 
 // --- Binders
 
-func GetBinders(eager {String : JavaEnvEntry}) -> List<Text>
-rule GetBinders(#env) → GetValue(#env, "binders", [x] -> UnTexts(x))
+func GetBinders(eager {String : JavaEnvEntry}) -> List<Text4_text_sort>
+rule GetBinders(#env) → GetValue(#env, "binders", (x) -> UnTexts(x))
 
-func SetBinders(eager {String : JavaEnvEntry}, List<Text>) -> {String : JavaEnvEntry}
+func SetBinders(eager {String : JavaEnvEntry}, List<Text4_text_sort>) -> {String : JavaEnvEntry}
 rule SetBinders(#env, #binders) → SetValue(#env, "binders", ETexts(#binders))
 
-func AddBinder(eager {String : JavaEnvEntry}, Text) -> {String : JavaEnvEntry}
+func AddBinder(eager {String : JavaEnvEntry}, Text4_text_sort) -> {String : JavaEnvEntry}
 rule AddBinder(#env, #binders) → SetValue(#env, "binders", ETexts(Append(#binders, GetBinders(#env))))
 
 // --- General purpose counter
 
 func GetCounter(eager {String : JavaEnvEntry}) -> Numeric
-rule GetCounter(#env) → GetValue(#env, "counter", [x] -> UnNum(x))
+rule GetCounter(#env) → GetValue(#env, "counter", (x) -> UnNum(x))
 
 func SetCounter(eager {String : JavaEnvEntry}, Numeric) -> {String : JavaEnvEntry}
 rule SetCounter(#env, #index)
@@ -1603,10 +1525,10 @@ rule IncCounter(#env)
 
 // --- Parameters marked as data
 
-func GetData(eager {String : JavaEnvEntry}) -> List<Text>
-rule GetData(#env) → GetValue(#env, "data", [x] -> UnTexts(x))
+func GetData(eager {String : JavaEnvEntry}) -> List<Text4_text_sort>
+rule GetData(#env) → GetValue(#env, "data", (x) -> UnTexts(x))
 
-func AddMaybeData(eager {String : JavaEnvEntry}, Boolean, Text) -> {String : JavaEnvEntry}
+func AddMaybeData(eager {String : JavaEnvEntry}, Bool, Text4_text_sort) -> {String : JavaEnvEntry}
 rule AddMaybeData(#env, FALSE, #term) → #env
 
 rule AddMaybeData(#env, TRUE, #term)

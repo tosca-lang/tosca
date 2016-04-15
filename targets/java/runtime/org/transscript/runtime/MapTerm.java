@@ -2,6 +2,7 @@
 
 package org.transscript.runtime;
 
+import java.util.Map;
 import java.util.function.Function; 
 
 /**
@@ -9,9 +10,9 @@ import java.util.function.Function;
  * 
  * @author Lionel Villard
  */
-public interface MapTerm extends Term
+public interface MapTerm<K extends Term, V extends Term> extends Term
 {
-
+	
 	@Override
 	default MapTerm eval(Context context)
 	{ 

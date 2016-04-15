@@ -7,6 +7,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.function.Supplier;
 
 import org.transscript.antlr.Crsx3Parser;
 import org.transscript.runtime.generic.GenericDataDescriptor;
@@ -145,6 +146,30 @@ final public class Context
 		descriptors.put(desc.symbol(), desc);
 	}
 
+	/**
+	 * Register enumeration value
+	 * @param symbol global identifier 
+	 * @param maker function creating enumeration instances
+	 */
+	public void register(String symbol, Supplier<Term> maker)
+	{
+		register(new ConstructionDescriptor()
+			{
+				
+				@Override
+				public String symbol()
+				{
+					return symbol;
+				}
+				
+				@Override
+				public Term make()
+				{
+					return maker.get();
+				}
+			});
+	}
+	
 	// --- Parser management
 
 	/**
@@ -283,4 +308,5 @@ final public class Context
 			return realParent.loadClass(name);
 		}
 	}
+
 }

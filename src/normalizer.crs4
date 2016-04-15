@@ -89,9 +89,8 @@ func NSort(TransScript_sort_sort) -> Core_csort_sort
   rule NSort(sort⟦ ##sortScope? ##VARIABLE ⟧)
   → NMaybeSortScope(#sortScope?, csort⟦ ##VARIABLE ⟧)
 
-  // Just normalize to any map.
-  rule NSort(sort⟦ { ##sortMap }⟧)
-  → csort⟦ { String : String } ⟧
+  rule NSort(sort⟦ { ##sort1 : ##sort2 } ⟧)
+  → csort⟦ { ⟨csort: NSort(#sort1)⟩ : ⟨csort: NSort(#sort2)⟩ } ⟧
 
 func NMaybeSortScope(List<TransScript_sortScope_sort>, Core_csort_sort) -> Core_csort_sort
   rule NMaybeSortScope(sortScope?⟦ ⟧, #csort)
@@ -200,8 +199,8 @@ func NTerm(TransScript_term_sort) -> Core_cterm_sort
   rule NTerm(term⟦ ##groupOrList ⟧)
   → NGroupOrList(#groupOrList)
 
-  rule NTerm(term⟦ ##VARIABLE ⟧)
-  → cterm⟦ ##VARIABLE ⟧
+  rule NTerm(term⟦ ##VARIABLE##sortAnno? ⟧)
+  → cterm⟦ ##VARIABLE ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ⟧
 
   rule NTerm(term⟦ ##METAVAR ##apply? ##subst? ##sortAnno? ⟧)
   → cterm⟦ ##METAVAR ⟨cterms?: NMaybeApply(#apply?)⟩ ⟨csubst?: NMaybeSubst(#subst?)⟩ ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ⟧
