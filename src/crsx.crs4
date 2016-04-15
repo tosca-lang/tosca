@@ -3,7 +3,7 @@
  CRSX command line
 */
 
-import System
+import Systemdef
 import Normalizer
 import Cg::Cgjava
 import Std::Core

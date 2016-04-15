@@ -13,7 +13,7 @@ import Std::Pair
 import Std::Map
 import Text::Text4
 import Std::Language
-import System
+import Systemdef
 
 // ===== API
 
