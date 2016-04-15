@@ -24,17 +24,17 @@ rule Compile(#url)
     CompileToCore(#url),
     CompileSystem(InitSystem(#url)))
 
-func CompileSystem(System) -> Text4_text_sort
+func CompileSystem(TSystem) -> Text4_text_sort
 rule CompileSystem(#system)
 → MaybeLoadModule(#system, PickNotLoaded(#system))
 
-func MaybeLoadModule(System, Option<Module>) -> Text4_text_sort
+func MaybeLoadModule(TSystem, Option<Module>) -> Text4_text_sort
 
 // Done loading all modules. Generate code.
 rule MaybeLoadModule(#system, NONE)
 → TransScriptToJava(#system)
 
-rule MaybeLoadModule(#system, SOME(Module(#url:String, NOTLOADED)))
+rule MaybeLoadModule(#system, SOME(Module::Module(#url:String, Content::NOTLOADED)))
 → CompileSystem(PutModule(#system, #url, Module(#url, LoadModule(#url))))
 
 func LoadModule(String) -> Content
