@@ -1190,9 +1190,11 @@ rule InitModule(#data, #func, #imports)
 → text⟦
     private static boolean initialized = false;
     public static void init(Context context) {
-      initialized = true;
-      †⟨TextFold(Map((sort)->RegisterDataSort(sort), MapValues(#data)), text⟦⟧)⟩
-      †⟨TextFold(Map((qcons)->RegisterImport(qcons),  #imports), text⟦⟧)⟩
+      if (!initialized) {
+        initialized = true;
+        †⟨TextFold(Map((sort)->RegisterDataSort(sort), MapValues(#data)), text⟦⟧)⟩
+        †⟨TextFold(Map((qcons)->RegisterImport(qcons),  #imports), text⟦⟧)⟩
+      }
 }⟧
 
 func RegisterImport(eager Core_cqconstructor_sort) -> Text4_text_sort

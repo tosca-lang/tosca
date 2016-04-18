@@ -18,16 +18,21 @@ public class Normalizer
 	 * 
 	 * @param context
 	 * @param main returning an evaluated or partially evaluated term.
+	 * @param args 
 	 * @return normalized term.
 	 * 
 	 * @throws InvocationTargetException 
 	 * @throws IllegalArgumentException 
 	 * @throws IllegalAccessException 
 	 */
-	public static Term normalize(Context context, Method main) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException 
+	public static Term normalize(Context context, Method main, StringTerm... args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException 
 	{
 		context.sd = 0;
-		Term term = (Term) main.invoke(null, context);
+		Object[] objs = new Object[1 + (args == null ? 0 : args.length)];
+		objs[0] = context;
+		if (args != null)
+			System.arraycopy(args, 0, objs, 1, args.length);
+		Term term = (Term) main.invoke(null, objs);
 		return normalize(context, term);
 	}
 	

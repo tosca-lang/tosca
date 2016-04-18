@@ -24,11 +24,11 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
-import org.transscript.runtime.ConstructionDescriptor;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.Normalizer;
 import org.transscript.runtime.ParsingUtils;
 import org.transscript.runtime.Sink;
+import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
 
 /**
@@ -91,8 +91,8 @@ public class Tool
 		System.out.println("where <args> must be at least either rules or class");
 		System.out.println("\n<args> are:");
 		helpCommon();
-		System.out.println("  term=<term>               the input term. Optional");
-		System.out.println("  wrapper=<name>            input term wrapper. Default is Main");
+		System.out.println("  main=<name>               the main method to execute. Default is Main");
+		System.out.println("  arg=<value>               argument given to the main method. Can occur multiple times.");
 
 		System.exit(0);
 	}
@@ -134,7 +134,6 @@ public class Tool
 		}
 
 		// Second: run
-
 		Map<String, Object> runEnv = new HashMap<>();
 
 		if (classLoader != null)
@@ -187,12 +186,12 @@ public class Tool
 		// First: Produce java source file.
 
 		buildEnv.put("class", "org.transscript.compiler.Crsx");
-		buildEnv.put("wrapper", "Compile");
+		buildEnv.put("main", "Compile");
 
 		// TODO: this shouldn't be needed.
 		buildEnv.put("grammar", parsers); // Temporary.
 		buildEnv.put("sink", "org.transscript.runtime.text.TextSink");
-		buildEnv.put("term", "\"" + rules + "\"");
+		buildEnv.put("arg", "\"" + rules + "\"");
 		buildEnv.put("output", output);
 
 		if (javabasepackage != null)
@@ -397,26 +396,18 @@ public class Tool
 	/** Gets the init method or throw exception */
 	static Method getInitMethod(Class<?> clss)
 	{
-		try
-		{
-			return clss.getMethod("init", Context.class);
-		}
-		catch (NoSuchMethodException e)
-		{
-			fatal("Error while initializing the TransScript system.", e);
-			return null;
-		}
+		return getMethod(clss, "init", Context.class);
 	}
 
 	/** 
 	 * Gets the given method or throw exception.  
 	 * @throws NoSuchMethodException 
 	 */
-	static Method getMethod(Class<?> clss, String name)
+	static Method getMethod(Class<?> clss, String name, Class<?>... params)
 	{
 		try
 		{
-			return clss.getMethod(name, Context.class);
+			return clss.getMethod(name, params);
 		}
 		catch (NoSuchMethodException e)
 		{
@@ -511,31 +502,42 @@ public class Tool
 			}
 		}
 
-		// Wrap input term (if specified)
-		ConstructionDescriptor wrapper = null;
-		String wrapperName = env.get("wrapper");
-		if (wrapperName != null)
+		// Look at arguments
+		String arg = env.get("arg");
+		String[] args = arg == null ? null : arg.split(" ");
+		StringTerm[] argsTerm;
+		Class<?>[] argTypes;
+		if (args == null)
 		{
-			wrapper = context.lookupDescriptor(wrapperName);
-			if (wrapper == null)
-				warning("wrapper " + wrapperName + " not found. Ignore.");
+			argTypes = new Class<?>[]
+				{Context.class};
+			argsTerm = null;
 		}
-
-		String inputTerm = env.get("term");
-		String input = env.get("input");
-		Term result = null;
+		else
+		{
+			argTypes = new Class<?>[1 + args.length];
+			argsTerm = new StringTerm[args.length];
+			argTypes[0] = Context.class;
+			for (int i = 0; i < args.length; i++)
+			{
+				argTypes[i + 1] = StringTerm.class;
+				argsTerm[i] = StringTerm.newStringTerm(args[i].trim());
+			}
+		}
 
 		// Look top-level method to invoke
 		String mainMethod = env.get("main");
 		mainMethod = mainMethod == null ? "Main" : mainMethod;
-		Method main = getMethod(clss, mainMethod);
+		Method main = getMethod(clss, mainMethod, argTypes);
 
+		Term result;
 		try
 		{
-			result = Normalizer.normalize(context, main);
+			result = Normalizer.normalize(context, main, argsTerm);
 		}
 		catch (Exception e)
 		{
+			result = null;
 			fatal("problem occurred while running the TransScript system", e);
 		}
 
@@ -566,7 +568,7 @@ public class Tool
 			try
 			{
 				Sink sink = sinkClss.getConstructor(Context.class, Appendable.class).newInstance(context, output);
-				
+
 				// TODO: Send result to sink!
 				//((Term) result).copy(sink, true);
 			}
@@ -695,17 +697,12 @@ public class Tool
 			{
 				value = option.substring(valueIndex + 1);
 				option = option.substring(0, valueIndex);
-				environment.put(option, value);
 			}
-			else if (option.startsWith("no-"))
-			{
-				option = option.substring("no-".length());
-				environment.remove(option);
-			}
-			else
-			{
-				environment.put(option, value);
-			}
+
+			if (environment.get(option) != null)
+				value = environment.get(option) + " " + value;
+
+			environment.put(option, value);
 		}
 
 		if (environment.containsKey("help"))

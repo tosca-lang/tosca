@@ -4,7 +4,6 @@ package org.transscript.compiler.std;
 
 import org.transscript.compiler.std.Core.Bool;
 import org.transscript.runtime.Context;
-import org.transscript.runtime.MapTerm;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
 
