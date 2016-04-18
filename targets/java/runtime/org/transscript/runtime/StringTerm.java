@@ -49,23 +49,39 @@ public interface StringTerm extends Term
 
 	}
 	
-	public static class VarStringTerm extends VariableUse implements StringTerm
+	public static class VarStringTerm extends Variable
 	{
 
-		public VarStringTerm(Variable variable)
+		public VarStringTerm(String name)
 		{
-			super(variable);
+			super(name);
 		}
 
 		@Override
-		public Term copy(Context c)
+		protected VariableUse newVarUse()
 		{
-			// TODO Auto-generated method stub
-			return null;
+			return new VarStringTermUse(this);
 		}
+
+		@Override
+		public VarStringTermUse use()
+		{
+			return (VarStringTermUse) super.use();
+		}
+		 
 		
 	}
 
+	class VarStringTermUse extends VariableUse implements StringTerm
+	{
+
+		protected VarStringTermUse(Variable variable)
+		{
+			super(variable);
+		}
+		
+
+	}
 	static class LazyStringTerm extends LazyTerm<StringTerm>implements StringTerm
 	{
 

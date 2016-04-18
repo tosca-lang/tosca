@@ -38,9 +38,9 @@ public class Variable implements Ref
 	public VariableUse use()
 	{
 		uses++;
-		return new VariableUse(this);
+		return newVarUse();
 	}
-
+	
 	/**
 	 * Unuse variable use.
 	 * 
@@ -51,6 +51,14 @@ public class Variable implements Ref
 	{
 		//use.variable = null;
 		uses--;
+	}
+	
+	/**
+	 * Creates a new variable use
+	 */
+	protected VariableUse newVarUse()
+	{
+		return new VariableUse(this);
 	}
 
 	@Override

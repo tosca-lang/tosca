@@ -199,6 +199,7 @@ func NTerm(TransScript_term_sort) -> Core_cterm_sort
   rule NTerm(term⟦ ##groupOrList ⟧)
   → NGroupOrList(#groupOrList)
 
+
   rule NTerm(term⟦ ##VARIABLE##sortAnno? ⟧)
   → cterm⟦ ##VARIABLE ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ⟧
 
@@ -226,7 +227,7 @@ func NBinders(TransScript_binders_sort) -> Core_cterm_sort
 
     // BUG: should be #binders[x]
     rule NBinders(TransScript_binders_A1(#sortAnno?:List<TransScript_sortAnno_sort>, [x] -> #binders(x) : TransScript_binders_sort))
-    → Core_cterm_A6(NMaybeSortAnno(#sortAnno?), [x] -> NBinders(#binders[x]))
+    → Core_cterm_A6(NMaybeSortAnno(#sortAnno?), [x:String] -> NBinders(#binders[x]))
 
     rule NBinders(binders⟦ ] -> ##term ⟧) → NTerm(#term)
 
@@ -234,7 +235,7 @@ func NFormalParams(TransScript_formalParams_sort) -> Core_cterm_sort
     //rule NBinders(binders⟦ ##VARIABLE ##binders ⟧) → cterm⟦ [ x ] ⟨cterm: NBinders[#binders[x]]⟩ ⟧
 
     rule NFormalParams(TransScript_formalParams_A1(#sortAnno?:List<TransScript_sortAnno_sort>, [x] -> #formalParams(x)  : TransScript_formalParams_sort ))
-    → Core_cterm_A7(NMaybeSortAnno(#sortAnno?), [x] -> NFormalParams(#formalParams[x]))
+    → Core_cterm_A7(NMaybeSortAnno(#sortAnno?), [x:String] -> NFormalParams(#formalParams[x]))
 
     rule NFormalParams(formalParams⟦ ) -> ##term          ⟧) → NTerm(#term)
 

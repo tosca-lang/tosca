@@ -33,9 +33,9 @@ public class VariableUse implements Term
 	}
 
 	@Override
-	public Term copy(Context c)
+	public VariableUse copy(Context c)
 	{
-		return new VariableUse(variable);
+		return variable.use();
 	}
 
 	@Override

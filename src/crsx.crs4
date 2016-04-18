@@ -51,5 +51,4 @@ rule ParseTransScript(#url) → ToCore(#url, ParseResource("transscript", #url))
 
 func CompileToCore(String) -> Text4_text_sort
 rule CompileToCore(#url)
-/*→ Core_Print_ccrsx(ParseCrsx(#url))*/
-→ ParseTransScript(#url)
+→ Core_Print_ccrsx(ParseTransScript(#url))

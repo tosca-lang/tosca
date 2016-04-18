@@ -1,30 +1,30 @@
 /*
  * Copyright (c) 2016 IBM Corporation.
- * 
+ *
  * Unit Testing Framework
  *
  */
- 
+
 import Std::Core
 import Std::String
-import Std::List
+import Std::Listdef
 
-enum Test | TestCase(Boolean)
-          | TestGroup( List<Test> ) 
+enum Test | TestCase(Bool)
+          | TestGroup( List<Test> )
           | TestInclude(String)
-          
+
 /* Assertion functions */
-func Assert<a>(eager String, eager a, eager a) -> Boolean
+func Assert<a>(eager String, eager a, eager a) -> Bool
 rule Assert(#msg, #expected, #actual) → If( Equal(#expected, #actual), TRUE, Error(#msg) )
 
 /* Main Driver */
-func RunTest(Test) -> Boolean
+func RunTest(Test) -> Bool
 
 rule RunTest(TestCase(#test))
 → Eval(#test)
 
 rule RunTest(TestGroup(#tests))
-→ FoldlP( [x y] -> And(y, RunTest(x)), TRUE, #tests )
+→ FoldlP( (x y) -> And(y, RunTest(x)), TRUE, #tests )
 
 rule RunTest(TestInclude(#file))
 → RunTest( ParseTerm(#file) )

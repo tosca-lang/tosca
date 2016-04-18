@@ -35,7 +35,7 @@ enum Content
 /* The actual module content. Sorts and rules are indexed for fast lookup. */
 enum LoadedContent |
     LoadedContent(
-           List<String /* Constructor */>,                       /* Imports */
+           List<Core_cqconstructor_sort /* Constructor */>,                       /* Imports */
            { String /* Constructor */ : List<Core_cdecl_sort>},  /* Rules */
            {String /* Constructor */ : Core_cdecl_sort},        /* DataSorts */
            {String /* Constructor */ : Core_cdecl_sort})        /* FuncSorts */
@@ -62,6 +62,18 @@ rule PickNotLoaded(TSystem(#mainurl, #modules))
 func IsNotLoaded(Module) -> Bool
 rule IsNotLoaded(Module(#url, NOTLOADED))  → TRUE
 rule IsNotLoaded(Module(#url, Loaded(#c))) → FALSE
+
+/* Gets data sort from sort reference */
+func LookupDataSortDecl(eager { String : Core_cdecl_sort }, Core_csort_sort) -> Option<Core_cdecl_sort>
+rule LookupDataSortDecl(#data, csort⟦ ##CONSTRUCTOR ##csorts? ⟧)
+→ MapGet(#data, #CONSTRUCTOR)
+
+rule LookupDataSortDecl(#data, csort⟦ data ##csort ⟧)
+→ LookupDataSortDecl(#data, #csort)
+
+// fallback
+rule LookupDataSortDecl(#data, #csort)
+→ NONE
 
 // --- System mutation functions.
 
@@ -124,14 +136,14 @@ func LoadCore(Core_ccrsx_sort) -> LoadedContent
 rule LoadCore(ccrsx⟦ ##cdecl+ ⟧)
 → LoadDecls(#cdecl+, (), MapNew, MapNew, MapNew)
 
-func LoadDecls(List<Core_cdecl_sort>, List<String>, { String : List<Core_cdecl_sort>},
+func LoadDecls(List<Core_cdecl_sort>, List<Core_cqconstructor_sort>, { String : List<Core_cdecl_sort>},
            { String : Core_cdecl_sort }, { String : Core_cdecl_sort}) -> LoadedContent
 
 rule LoadDecls(cdecl+⟦⟧, #imports, #rules, #data, #func)
 → LoadedContent(#imports, #rules, #data, #func)
 
-rule LoadDecls(cdecl+⟦ import module ##CONSTRUCTOR ##cdecl+ ⟧, #imports, #rules, #data, #func)
-→ LoadDecls(#cdecl+, Cons(#CONSTRUCTOR, #imports), #rules, #data, #func)
+rule LoadDecls(cdecl+⟦ import module ##cqconstructor ##cdecl+ ⟧, #imports, #rules, #data, #func)
+→ LoadDecls(#cdecl+, Cons(#cqconstructor, #imports), #rules, #data, #func)
 
 rule LoadDecls(cdecl+⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ##cdecl+ ⟧, #imports, #rules, #data, #func)
 → LoadDecls(#cdecl+, #imports, #rules, PutDataSort(#data, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧), #func)

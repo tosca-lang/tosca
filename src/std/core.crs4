@@ -9,6 +9,9 @@ enum OK_SORT | OK
 func Eval<a>(eager a) -> a
 rule Eval(#) → #
 
+func Then<a b>(eager a, (a) -> b) -> b
+rule Then(#, #cont) → #cont(#)
+
 // --- External Environment
 
 extern func IfDef<a b c>(eager a /* Key */, c, c) -> c
