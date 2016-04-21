@@ -80,4 +80,4 @@ func NumberToText(eager Numeric) -> Text4_text_sort
 rule NumberToText(#n) → text⟦⟨STRING:FormatNumber(#n)⟩⟧
 
 func TextToString(eager Text4_text_sort) -> String
-rule TextToString(#) → Show(#)
+rule TextToString(#) → Show<Text4_text_sort>(#)

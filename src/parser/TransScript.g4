@@ -155,7 +155,6 @@ sortQualifier
     : sort COLONCOLON                                                /* Sort qualifier */
     ;
 
-
 // Rule Declaration
 
 ruleDecl
@@ -225,7 +224,7 @@ nterm[int p]
 
 // Atom term
 aterm
-    : cons                                                           /* Construction with zero or more args */
+    : cons                                                 /* Construction with zero or more args */
     | literal                                                        /* Literal construction */
     | groupOrList                                                    /* Grouped expression or List */
     | variable                                                       /* Variable */
@@ -238,7 +237,7 @@ aterm
     ;
 
 cons
-    : qconstructor args?
+    : qconstructor sortArgs? args? sortAnno?
     ;
 
 metapp
@@ -279,25 +278,21 @@ apply
     ;
 
 groupOrList
-    : LPAR RPAR                                       /* [SUGAR] Empty list */
-    | LPAR term[0] COMMA RPAR                         /* [SUGAR] Single term list */
-    | LPAR terms RPAR                                 /* [SUGAR] Grouped term/Multiple terms list */
+    : LPAR RPAR                                                      /* Empty list */
+    | LPAR term[0] COMMA RPAR                                        /* Single term list */
+    | LPAR terms RPAR                                                /* Grouped term/Multiple terms list */
  // TODO: enable below when meta parser handle + properly.
- //   | LPAR term[0] RPAR                               /* [SUGAR] Grouped term */
-//    | LPAR term[0] (COMMA term[0])+ RPAR              /* [SUGAR] Multiple terms list */
+ //   | LPAR term[0] RPAR                                            /* Grouped term */
+//    | LPAR term[0] (COMMA term[0])+ RPAR                           /* Multiple terms list */
     ;
 
-variable                                              /* [CORE] */
-    : VARIABLE<variable> sortAnno?
+variable
+    : VARIABLE<variable> sortAnno?                                   /* Variable occurrence, with optional sort */
     ;
 
 literal
-    : STRING                                          /* [CORE] */
-    | NUMBER                                          /* [CORE] */
-    ;
-
-concrete
-    : CONCRETE                                        /* [CORE]   */
+    : STRING                                                         /* String literal */
+    | NUMBER                                                         /* Double literal */
     ;
 
 dispatch
@@ -306,6 +301,10 @@ dispatch
 
 dispatchCases
     : OR term[0] ARROW term[0] (COMMA dispatchCases)*            /* [CORE] */
+    ;
+
+concrete
+    : CONCRETE
     ;
 
 map
@@ -356,6 +355,7 @@ ENUM            : 'enum';
 STRUCT          : 'struct';
 DISPATCH        : 'dispatch';
 EAGER           : 'eager';
+LAZY            : 'lazy';
 EXTERN          : 'extern';
 RULE            : 'rule';
 VAR             : 'allows-variable';

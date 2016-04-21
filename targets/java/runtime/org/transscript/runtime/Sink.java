@@ -52,13 +52,22 @@ public abstract class Sink
 	public abstract Sink use(Variable variable);
 
 	/**
-	 * Insert literal subterm.
+	 * Insert string literal subterm.
 	 * 
 	 * @param literal to add
 	 * @return continuation sink to use for subsequent operation
 	 */
-	public abstract Sink literal(Object literal);
+	public abstract Sink literal(String literal);
+	
+	/**
+	 * Insert double literal subterm.
+	 * 
+	 * @param literal to add
+	 * @return continuation sink to use for subsequent operation
+	 */
+	public abstract Sink literal(double literal);
 
+	
 	/**
 	 * Start a meta-application.
 	 * @param name of meta-variable to use

@@ -14,7 +14,7 @@ rule Then(#, #cont) → #cont(#)
 
 // --- External Environment
 
-extern func IfDef<a b c>(eager a /* Key */, c, c) -> c
+extern func IfDef<a>(eager String /* Key */, ()->a, ()->a) -> a
 extern func GetEnv(eager String /* Key */, String /* Default */) -> String
 
 // --- Optional value
@@ -23,9 +23,7 @@ enum Option<a> | SOME(a) | NONE
 
 func UnSOME<a>(Option<a>) -> a
 rule UnSOME(SOME(#:a)) → #
-
-// TODO: unable when not using interpreter (which is too strict)
-//UnSOME(NONE)    → $(Error, "Error: no optional value."),
+rule UnSOME(NONE)      → Error<a>("Error: no optional value.")
 
 /* `HasOption(#option)`
    Whether #option is `SOME` value.
@@ -42,9 +40,9 @@ rule Maybe((x)->#(x), SOME(#val)) → SOME(#(#val))
 
 enum Bool | TRUE | FALSE
 
-func If<a>(Bool, a, a) -> a
-rule If(TRUE,  #1, #2) → #1
-rule If(FALSE, #1, #2) → #2
+func If<a>(Bool, ()->a, ()->a) -> a
+rule If(TRUE,  #1, #2) → #1()
+rule If(FALSE, #1, #2) → #2()
 
 func And(Bool, Bool) -> Bool
 rule And(TRUE, #)  → #

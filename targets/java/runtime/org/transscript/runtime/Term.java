@@ -10,7 +10,7 @@ import java.util.Map;
  * 
  * @author Lionel Villard
  */
-public interface Term extends Ref
+public interface Term extends Ref 
 {
 
 	@Override
@@ -134,20 +134,32 @@ public interface Term extends Ref
 	}
 
 	@SuppressWarnings("unchecked")
-	static <T extends Term> T force(Context c, T term)
+	static <T extends Term> T force(Context ctx, T term)
 	{
-		return (T) term.force(c);
-	}
-
-	default Term force(Context c)
-	{
-		return eval(c);
+		return (T) Normalizer.force(ctx, term);
 	}
 
 	/**
-	 * Evaluates lazy function. 
+	 * Evaluates this term (if needed) so that the top-level term is (potentially fully) evaluated.
+	 *  
+	 * The reference to this term is consumed.
+	 *
+	 * @param ctx
+	 * @return A new reference to the evaluated term. It might still be a function if the evaluation has been interrupted
+	 */
+//	default Term force(Context ctx)
+//	{
+//		return eval(ctx);
+//	}
+
+	/**
+	 * Evaluates this term (if needed) and return a new reference to 
+	 * the (potentially fully) evaluated term.
+	 * 
+	 * The reference to this term is consumed.
+	 * 
 	 * @param context
-	 * @return
+	 * @return A new reference to the evaluated term. It might still be a function if the evaluation has been interrupted
 	 */
 	default Term eval(Context context)
 	{

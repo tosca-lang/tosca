@@ -15,16 +15,16 @@ enum Test | TestCase(Bool)
 
 /* Assertion functions */
 func Assert<a>(eager String, eager a, eager a) -> Bool
-rule Assert(#msg, #expected, #actual) → If( Equal(#expected, #actual), TRUE, Error(#msg) )
+rule Assert(#msg, #expected, #actual) → If<Bool>(Equal<a a>(#expected, #actual), ()->TRUE, ()->Error<Bool>(#msg) )
 
 /* Main Driver */
 func RunTest(Test) -> Bool
 
 rule RunTest(TestCase(#test))
-→ Eval(#test)
+→ Eval<Bool>(#test)
 
 rule RunTest(TestGroup(#tests))
-→ FoldlP( (x y) -> And(y, RunTest(x)), TRUE, #tests )
+→ FoldlP<Test Bool>( (x y) -> And(y, RunTest(x)), TRUE, #tests )
 
 rule RunTest(TestInclude(#file))
-→ RunTest( ParseTerm(#file) )
+→ RunTest( ParseTerm<Test>(#file) )

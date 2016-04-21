@@ -16,7 +16,7 @@ public class NumExtern
 		if (eleft.data() && eright.data())
 		{
 			// Ok can evaluate
-			return DoubleTerm.newDoubleTerm(eleft.unbox() + eright.unbox());
+			return DoubleTerm.doubleTerm(eleft.unbox() + eright.unbox());
 		}
 
 		// Delay
@@ -25,20 +25,17 @@ public class NumExtern
 
 	public static Bool NumberGreaterThan(Context context, DoubleTerm x_133, DoubleTerm x_137)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		throw new RuntimeException();
 	}
 
 	public static DoubleTerm Minus(Context context, DoubleTerm x_254, DoubleTerm x_258)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		throw new RuntimeException();
 	}
 
 	public static Bool NumberLessThan(Context context, DoubleTerm x_26, DoubleTerm x_30)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		throw new RuntimeException();
 	}
 	
 }

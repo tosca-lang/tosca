@@ -37,5 +37,9 @@ public interface Ref
 
 	default void release()
 	{}
-
+	
+	/**
+	 * @return the number of references
+	 */
+	//public int refcount();
 }

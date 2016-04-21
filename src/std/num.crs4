@@ -5,7 +5,7 @@ extern func Minus(Numeric, Numeric) -> Numeric
 
 // Compare the 2 numeric values
 func NumberEqual(Numeric, Numeric) -> Bool
-rule NumberEqual(#1, #2) → If(Equal(#1, #2), TRUE, FALSE)
+rule NumberEqual(#1, #2) → If<Bool>(Equal<Numeric Numeric>(#1, #2), ()->TRUE, ()->FALSE) 
 
 // Addition
 func NumberPlus(#1: Numeric, #2: Numeric) -> Numeric

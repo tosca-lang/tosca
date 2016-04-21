@@ -4,26 +4,55 @@ package org.transscript.compiler.std;
 
 import org.transscript.runtime.Context;
 import org.transscript.runtime.StringTerm;
+import org.transscript.runtime.StringUtils;
 
+/**
+ * 
+ * @author Lionel Villard
+ *
+ */
 public class LanguageExtern
 {
-
-	public static StringTerm ToJavaClassName(Context context, StringTerm x_19)
+	/**
+	 * 
+	 * @param context
+	 * @param str
+	 * @return
+	 */
+	public static StringTerm ToJavaClassName(Context context, StringTerm str)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		StringTerm estr = str.eval(context);
+		str.release();
+
+		if (estr.data())
+		{
+			StringTerm result = StringTerm.stringTerm(StringUtils.mangle2(estr.unbox()));
+			estr.release();
+			return result;
+		}
+		return StringTerm.lazyStringTerm(c -> ToJavaClassName(c, estr));
 	}
 
-	public static StringTerm ToJavaTypeParameter(Context context, StringTerm x_30)
+	/**
+	 * 
+	 * @param context
+	 * @param str
+	 * @return
+	 */
+	public static StringTerm ToJavaTypeParameter(Context context, StringTerm str)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		return ToJavaClassName(context, str);
 	}
 
-	public static StringTerm ToJavaMethodName(Context context, StringTerm x_41)
+	/**
+	 * 
+	 * @param context
+	 * @param str
+	 * @return
+	 */
+	public static StringTerm ToJavaMethodName(Context context, StringTerm str)
 	{
-		// TODO Auto-generated method stub
-		return null;
-	} 
+		return ToJavaClassName(context, str);
+	}
 
 }

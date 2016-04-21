@@ -4,18 +4,24 @@ package org.transscript.runtime;
 
 import java.util.function.Function;
 
+import org.transscript.runtime.Functions.ThunkMaker;
+
+/**
+ * 
+ * @author Lionel Villard
+ */
 public interface DoubleTerm extends Term
 {
-	
+
 	@Override
 	default DoubleTerm eval(Context context)
-	{ 
+	{
 		return (DoubleTerm) Term.super.eval(context);
 	}
- 
+
 	public double unbox();
 
-	static DoubleTerm newDoubleTerm(double d)
+	static DoubleTerm doubleTerm(double d)
 	{
 		return new DoubleValue(d);
 	}
@@ -25,6 +31,16 @@ public interface DoubleTerm extends Term
 		return new LazyDoubleTerm(f);
 	}
 
+	static DoubleTerm lazyDoubleTerm(Function<Context, DoubleTerm> f)
+	{
+		return new LazyDoubleTerm(f);
+	}
+	
+	static ThunkMaker<DoubleTerm> lazyDoubleTermMaker()
+	{
+		return DoubleTerm::lazyDoubleTerm;
+	}
+	
 	static class DoubleValue implements DoubleTerm
 	{
 		// State

@@ -92,9 +92,9 @@ public class TextSink extends Sink
 	final protected boolean isTextDescriptor(ConstructionDescriptor desc)
 	{
 		return false;
-//		return desc == Text4.Text4_xcontent_xA1
-//				|| desc == Text4._M_Text4_xcontent_xA2 || desc == Text4._M_Text4_xcontent_xA3 || desc == Text4._M_Text4_xcontent_xA4
-//				|| desc == Text4._M_Text4_xtext_xA1 || desc == Text4._M_Text4_xtext_xA2;
+		//		return desc == Text4.Text4_xcontent_xA1
+		//				|| desc == Text4._M_Text4_xcontent_xA2 || desc == Text4._M_Text4_xcontent_xA3 || desc == Text4._M_Text4_xcontent_xA4
+		//				|| desc == Text4._M_Text4_xtext_xA1 || desc == Text4._M_Text4_xtext_xA2;
 	}
 
 	// Overrides Sink
@@ -214,7 +214,7 @@ public class TextSink extends Sink
 	}
 
 	@Override
-	public Sink literal(Object literal)
+	public Sink literal(String literal)
 	{
 		if (inText())
 		{
@@ -226,13 +226,27 @@ public class TextSink extends Sink
 		}
 		return this;
 	}
-//
-//	@Override
-//	public Sink copy(Term term)
-//	{
-//		term.copy(this, true);
-//		return this;
-//	}
+
+	@Override
+	public Sink literal(double literal)
+	{
+		if (inText())
+		{
+			printIndent(Double.toString(literal));
+		}
+		else
+		{
+			termSink.literal(literal);
+		}
+		return this;
+	}
+	//
+	//	@Override
+	//	public Sink copy(Term term)
+	//	{
+	//		term.copy(this, true);
+	//		return this;
+	//	}
 
 	@Override
 	public Sink startMetaApplication(String name)
@@ -250,6 +264,7 @@ public class TextSink extends Sink
 
 		return this;
 	}
+
 	@Override
 	public Sink startType()
 	{

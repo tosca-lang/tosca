@@ -12,12 +12,25 @@ import java.util.function.Function;
  * @author Lionel Villard
  * @param <T>
  */
-public abstract class LazyTerm<T extends Term> implements Term
+public class LazyTerm<T extends Term> implements Term
 {
 
-	protected Function<Context, T> f; // the unevaluated value.
+	@SuppressWarnings("unchecked")
+	public static <T extends Term>  T lazyTerm(Function<Context, T> f)
+	{
+		throw new RuntimeException();
+	}
 
-	protected T value; // the evaluated value.
+	public static <T extends Term> LazyTerm<T> thunk(Function<Context, T> f)
+	{
+		return new LazyTerm<T>(f);
+	}
+	
+	// the unevaluated value.
+	protected Function<Context, T> f;
+
+	// the evaluated value.
+	protected T value;
 
 	public LazyTerm(Function<Context, T> f)
 	{
@@ -33,7 +46,7 @@ public abstract class LazyTerm<T extends Term> implements Term
 	@Override
 	public boolean data()
 	{
-		return false;
+		return f == null ? value.data() : false;
 	}
 
 	@Override
@@ -43,14 +56,18 @@ public abstract class LazyTerm<T extends Term> implements Term
 		{
 			value = f.apply(c); // Acquire ref.
 			f = null;
-
-			if (value instanceof LazyTerm)
-			{
-				// Might be a cookie or stack exhaustion
-				throw new RuntimeException("Missing case!");
-			}
 		}
-		return value;
+		T result = Ref.ref(value);
+		release();
+		return result;
+	}
+ 
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Term copy(Context c)
+	{
+		return f == null ? new LazyTerm<T>((T) value.ref()) : new LazyTerm<T>(f);
 	}
 
 }

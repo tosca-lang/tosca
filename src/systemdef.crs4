@@ -20,7 +20,7 @@ enum TSystem | TSystem(String /* Initial url */, {String : Module})
 
 /* Initialize system with main module */
 func InitSystem(String) -> TSystem
-rule InitSystem(#url) → TSystem(#url, MapPut(MapNew, #url, Module(#url, NOTLOADED)))
+rule InitSystem(#url) → TSystem(#url, MapPut<String Module>(MapNew<String Module>, #url, Module(#url, NOTLOADED)))
 
 /* A Crsx module  */
 enum Module | Module(String /* filename/module id */, Content /* of module */)
@@ -36,7 +36,7 @@ enum Content
 enum LoadedContent |
     LoadedContent(
            List<Core_cqconstructor_sort /* Constructor */>,                       /* Imports */
-           { String /* Constructor */ : List<Core_cdecl_sort>},  /* Rules */
+           {String /* Constructor */ : List<Core_cdecl_sort>},  /* Rules */
            {String /* Constructor */ : Core_cdecl_sort},        /* DataSorts */
            {String /* Constructor */ : Core_cdecl_sort})        /* FuncSorts */
 
@@ -49,14 +49,14 @@ enum LoadedContent |
  */
 func LookupModule(TSystem, String /* url */) -> Option<Module>
 rule LookupModule(TSystem(#mainurl, #modules), #url)
-→ MapGet(#modules, #url)
+→ MapGet<String Module>(#modules, #url)
 
 /* Pick an not loaded module.
   @return A unloaded module or NONE
  */
 func PickNotLoaded(TSystem) -> Option<Module>
 rule PickNotLoaded(TSystem(#mainurl, #modules))
-→ PickFirst(MapValues(#modules), (x) -> IsNotLoaded(x))
+→ PickFirst<Module>(MapValues<String Module>(#modules), (x) -> IsNotLoaded(x))
 
 /* @return TRUE if module is not loaded */
 func IsNotLoaded(Module) -> Bool
@@ -66,7 +66,7 @@ rule IsNotLoaded(Module(#url, Loaded(#c))) → FALSE
 /* Gets data sort from sort reference */
 func LookupDataSortDecl(eager { String : Core_cdecl_sort }, Core_csort_sort) -> Option<Core_cdecl_sort>
 rule LookupDataSortDecl(#data, csort⟦ ##CONSTRUCTOR ##csorts? ⟧)
-→ MapGet(#data, #CONSTRUCTOR)
+→ MapGet<String Core_cdecl_sort>(#data, #CONSTRUCTOR)
 
 rule LookupDataSortDecl(#data, csort⟦ data ##csort ⟧)
 → LookupDataSortDecl(#data, #csort)
@@ -82,48 +82,48 @@ rule LookupDataSortDecl(#data, #csort)
  */
 func PutModule(TSystem, String, Module) -> TSystem
 rule PutModule(TSystem(#mainurl, #modules), #url, #module)
-→ TSystem(#mainurl, MapPut(#modules, #url, #module))
+→ TSystem(#mainurl, MapPut<String Module>(#modules, #url, #module))
 
 // --- Loaded content mutation functions.
 
 /* Add rule to module content. Always succeed.
 */
-func  PutRule(eager { String : List<Core_cdecl_sort>}, Core_cdecl_sort) -> { String : List<Core_cdecl_sort> }
+func PutRule(eager { String : List<Core_cdecl_sort>}, Core_cdecl_sort) -> { String : List<Core_cdecl_sort> }
 rule PutRule(#rules, cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
-→ PutRule1(MapGet(#rules, #CONSTRUCTOR), #rules, #CONSTRUCTOR, cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
+→ PutRule1(MapGet<String List>(#rules, #CONSTRUCTOR), #rules, #CONSTRUCTOR, cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
 
 func PutRule1(Option<List<Core_cdecl_sort>>, { String : List<Core_cdecl_sort>}, String, Core_cdecl_sort) -> { String : List<Core_cdecl_sort> }
 rule PutRule1(NONE, #rules, #constructor, #rule)
-→ MapPut(#rules, #constructor, (#rule,))
+→ MapPut<String List>(#rules, #constructor, (#rule,))
 
 rule  PutRule1(SOME(#rulesForCons:List<Core_cdecl_sort>), #rules, #constructor, #rule)
-→ MapPut(#rules, #constructor, Append(#rule, #rulesForCons))  // Keep rules in order.
+→ MapPut<String List>(#rules, #constructor, Append<Core_cdecl_sort>(#rule, #rulesForCons))  // Keep rules in order.
 
 /*  Add data sort to module content. Fail if data sort already exists.
 */
 func PutDataSort(eager { String : Core_cdecl_sort }, Core_cdecl_sort) -> { String : Core_cdecl_sort }
 rule PutDataSort(#data, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)
-→ PutDataSort1(MapGet(#data, #CONSTRUCTOR), #data, #CONSTRUCTOR,  cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)
+→ PutDataSort1(MapGet<String Core_cdecl_sort>(#data, #CONSTRUCTOR), #data, #CONSTRUCTOR,  cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)
 
 func PutDataSort1(Option<Core_cdecl_sort>, { String /* Constructor */ : Core_cdecl_sort }, String, Core_cdecl_sort) -> { String : Core_cdecl_sort}
 rule PutDataSort1(NONE, #data, #constructor, #decl)
-→ MapPut(#data, #constructor, #decl)
+→ MapPut<String Core_cdecl_sort>(#data, #constructor, #decl)
 
 rule PutDataSort1(SOME(#datasort:Core_cdecl_sort), #data, #constructor, #rule)
-→ Error(ConcatString("Data sort already declared:", #constructor))
+→ Error<{ String : Core_cdecl_sort}>(ConcatString("Data sort already declared:", #constructor))
 
 /* Add function sort to module content.
  */
 func PutFuncSort(eager { String : Core_cdecl_sort }, Core_cdecl_sort) -> {String : Core_cdecl_sort}
 rule PutFuncSort(#func, cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
-→ PutFuncSort1(MapGet(#func, #CONSTRUCTOR), #func, #CONSTRUCTOR,  cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
+→ PutFuncSort1(MapGet<String Core_cdecl_sort>(#func, #CONSTRUCTOR), #func, #CONSTRUCTOR,  cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
 
 func PutFuncSort1(Option<Core_cdecl_sort>, { String : Core_cdecl_sort }, String, Core_cdecl_sort) -> { String : Core_cdecl_sort}
 rule PutFuncSort1(NONE, #func, #constructor, #decl)
-→ MapPut(#func, #constructor, #decl)
+→ MapPut<String Core_cdecl_sort>(#func, #constructor, #decl)
 
 rule PutFuncSort1(SOME(#datasort:Core_cdecl_sort), #func, #constructor, #rule)
-→ Error(ConcatString("Function sort already declared:", #constructor))
+→ Error<{ String : Core_cdecl_sort}>(ConcatString("Function sort already declared:", #constructor))
 
 // --- Load core program into system
 
@@ -134,7 +134,7 @@ rule PutFuncSort1(SOME(#datasort:Core_cdecl_sort), #func, #constructor, #rule)
  */
 func LoadCore(Core_ccrsx_sort) -> LoadedContent
 rule LoadCore(ccrsx⟦ ##cdecl+ ⟧)
-→ LoadDecls(#cdecl+, (), MapNew, MapNew, MapNew)
+→ LoadDecls(#cdecl+, (), MapNew<String List>, MapNew<String Core_cdecl_sort>, MapNew<String Core_cdecl_sort>)
 
 func LoadDecls(List<Core_cdecl_sort>, List<Core_cqconstructor_sort>, { String : List<Core_cdecl_sort>},
            { String : Core_cdecl_sort }, { String : Core_cdecl_sort}) -> LoadedContent

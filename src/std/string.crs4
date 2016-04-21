@@ -41,14 +41,18 @@ rule UnString(#string) → Rescape(#string)
  */
 func UpCaseFirst(String) -> String
 rule UpCaseFirst(#string)
-→ If(Equal(#string, ""), "", ConcatString(UpCase(Substring(#string, 0, 1)), Substring(#string, 1, Length(#string))))
+→ If<String>(StringEqual(#string, ""),
+    ()->"",
+    ()->ConcatString(UpCase(Substring(#string, 0, 1)), Substring(#string, 1, Length(#string))))
 
 /*
  * Make sure the given string first character is lower case
  */
 func DownCaseFirst(String) ->String
 rule DownCaseFirst(#string)
-→ If(Equal(#string, ""), "",ConcatString(DownCase(Substring(#string, 0, 1)), Substring(#string, 1, Length(#string))))
+→ If<String>(StringEqual(#string, ""),
+    ()->"",
+    ()->ConcatString(DownCase(Substring(#string, 0, 1)), Substring(#string, 1, Length(#string))))
 
 /*
  * Returns given string without its first character
@@ -80,9 +84,9 @@ extern func Mangle(String) -> String
 
 
 rule AfterLast(#string, #sep)
-→ If(Contains(#string, #sep),
-    AfterLast2(AfterFirst(#string, #sep), #sep),
-    #string)
+→ If<String>(Contains(#string, #sep),
+      ()->AfterLast2(AfterFirst(#string, #sep), #sep),
+      ()->#string)
 
 // Internal helper.
 func AfterLast2(eager String, String) -> String
@@ -93,15 +97,15 @@ extern func BeforeFirst(eager String, eager String) -> String
 func BeforeLast(eager String, eager String) -> String
 
 rule BeforeLast(#String, #Sep)
-→ If(Contains(#String, #Sep),
-    BeforeLast2(BeforeFirst(#String, #Sep), #Sep, BeforeLast(AfterFirst(#String, #Sep), #Sep)),
-    "")
+→ If<String>(Contains(#String, #Sep),
+    ()->BeforeLast2(BeforeFirst(#String, #Sep), #Sep, BeforeLast(AfterFirst(#String, #Sep), #Sep)),
+    ()->"")
 
 func BeforeLast2(eager String, String, eager String) -> String
 rule BeforeLast2(#Before, #Sep, #After)
-→ If(StringEqual(#After, ""),
-    #Before,
-    ConcatString(#Before, ConcatString(#Sep, #After)))
+→ If<String>(StringEqual(#After, ""),
+    ()->#Before,
+    ()->ConcatString(#Before, ConcatString(#Sep, #After)))
 
 // --- Parsing
 
@@ -109,7 +113,7 @@ extern func ParseText<a>(eager String, eager String) -> a
 extern func ParseResource<a>(eager String, eager String) -> a
 
 func ParseToString(eager String, eager String) -> String
-rule ParseToString(#category, #string) → Show(ParseText(#category, #string))  // TODO: line information.
+rule ParseToString(#category, #string) → Show<String>(ParseText<String>(#category, #string))  // TODO: line information.
 
 extern func ParseTerm<a>(eager String /* file location */) -> a
 

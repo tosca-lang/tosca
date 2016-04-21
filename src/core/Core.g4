@@ -26,22 +26,23 @@ cdecl
 // -- Term
 
 cterm
-    : cqconstructor cterms?                                /* Constant/Construction */
-    | METAVAR cterms? csubst? csortanno?                                /* Meta variable/call/substitution */
-    | cliteral                                                          /* Literal construction */
-    | cvariable csortanno?                                              /* Variable */
-    | LCURLY cmapentries? RCURLY                                        /* Association map */
+    : cqconstructor csortargs? cterms? csortanno?                    /* Constant/Construction */
+    | METAVAR cterms? csubst? csortanno?                             /* Meta variable/call/substitution */
+    | cliteral                                                       /* Literal construction */
+    | cvariable csortanno?                                           /* Variable */
+    | LCURLY cmapentries? RCURLY                                     /* Association map */
 
     // KEEP AT THE 6TH ALTERNATIVE UNTIL METAPARSER GENERATOR PROPERLY HANDLE BOUNDVAR
     | LSQUARE VARIABLE<boundvar=x> csortanno? RSQUARE cterm<bound=x>    /* Bound term.
                                                                            VARIABLE<boundvar=x> means VARIABLE is a bound variable we call x
                                                                            cterm<bound=x>       means x is bound in the context of the cterm */
     | LPAR VARIABLE<boundvar=x> csortanno? RPAR cterm<bound=x>          /* Formal parameter */
+    | THUNK cterm                                                       /* Unvaluated term */
     ;
 
 /* TODO: inline when antlr-based meta parser generator support (()*)? */
 cterms
-    : LPAR ccommaterms  RPAR                    /* Term list */
+    : LPAR ccommaterms? RPAR                    /* Term list */
     ;
 
 csubst
@@ -58,7 +59,7 @@ cliteral
     ;
 
 cvariable
-    : VARIABLE<variable>                 /* Variable occurrence */
+    : VARIABLE<variable=cterm>           /* Variable occurrence */
                                         /* <variable> means 1. maps VARIABLE to a syntactic variable
                                               2. look for a bound variable that matches VARIABLE
                                                  in the current tracked bound variables (innermost scope first).
@@ -80,7 +81,6 @@ cmapentry
     | NOT STRING                                         /* no named property (match only)            */
     | STRING COLON cterm                                 /* match named property value / construct    */
     ;
-
 
 // -- Sorts
 
@@ -123,13 +123,18 @@ csort
     : CONSTRUCTOR csorts?                           /* Construction sort */
     | VARIABLE                                      /* Sort variable  */
     | LSQUARE csort RSQUARE csort                   /* Bound variable sort */
-    | LPAR csort RPAR csort                         /* Formal parameter sort */
+    | LPAR csort RPAR csort                         /* Formal parameter sort. */
     | LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sorts */
-    | DATA csort                                    /* Data sort annotation. Indicate value is normalized */
+    | DATA csort                                    /* Data sort annotation. Indicate value must normalized */
+    | THUNK csort                                   /* Thunk sort annotation. Indicate value is not evaluated */
     ;
 
 csorts
-    : LPAR csort (COMMA csort)* RPAR                /* List of sort references */
+    : LPAR ccommasorts RPAR                         /* List of sort references */
+    ;
+
+ccommasorts
+    : csort (COMMA csort)*                         /* Comma-separated sorts */
     ;
 
 cmapsort
@@ -143,8 +148,13 @@ csortanno
 csortqualifier
     : csort COLONCOLON                             /* Sort qualifier */
     ;
+
 cqconstructor
     : csortqualifier* CONSTRUCTOR
+    ;
+
+csortargs
+    : LT ccommasorts GT                            /* Sort arguments */
     ;
 
 // Lexer rules
@@ -157,6 +167,9 @@ MODULE          : 'module';
 IMPORT          : 'import';
 GRAMMAR         : 'grammar';
 EXTERN          : 'extern';
+LAZY            : 'lazy';
+EAGER           : 'eager';
+THUNK           : 'thunk';
 COLON           : ':';
 COLONCOLON      : '::';
 ARROW           : '→';
@@ -167,6 +180,8 @@ LCURLY          : '{';
 RCURLY          : '}';
 LSQUARE         : '[';
 RSQUARE         : ']';
+LT              : '<';
+GT              : '>';
 COMMA           : ',';
 DOT             : '.';
 NOT             : '¬';

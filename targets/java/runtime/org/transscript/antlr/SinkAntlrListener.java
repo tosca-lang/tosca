@@ -39,10 +39,10 @@ import net.sf.crsx.util.ExtensibleMap;
 import net.sf.crsx.util.LinkedExtensibleMap;
 
 /**
- * Create CRSX term from ANTLR parse events.
+ * Create TransScript term from ANTLR parse events.
  * 
  * <p>
- * Temporarily support CRSX3 sink.
+ * Temporarily support CRSX3 sink until the ANTLR-based parser generator is ported to TransScript
  * 
  * @author Lionel Villard
  */

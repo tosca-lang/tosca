@@ -10,13 +10,12 @@ import org.transscript.runtime.Parser;
 import org.transscript.runtime.Sink;
 
 /**
- * Crsx4 parser backed-by a Crsx3 parser
+ * TransScript parser backed-by a Crsx3 parser
  * 
  * @author Lionel Villard
  */
 class TransScriptParserAdapter implements Parser
 {
-
 	/** The real parser */
 	protected Crsx3Parser parser;
 
@@ -52,7 +51,7 @@ class TransScriptParserAdapter implements Parser
 		{
 			throw new RuntimeException(e);
 		}
-		
+
 		SinkAntlrListener listener = new SinkAntlrListener(sink, parser._prefix(), parser._metachar(), parser, bounds);
 		//setTrace(true);
 		parser.addParseListener(listener);
@@ -69,7 +68,6 @@ class TransScriptParserAdapter implements Parser
 	public void setParserVerbose(boolean verbose)
 	{
 		parser.setParserVerbose(verbose);
-
 	}
 
 	@Override

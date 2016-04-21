@@ -10,6 +10,7 @@ import Std::Core
 import Std::Listdef
 import Std::String
 import Core::Core
+import Parser::TransScript
 import Text::Text4
 
 //--- API
@@ -20,9 +21,9 @@ import Text::Text4
 */
 func Compile(String) -> Text4_text_sort
 rule Compile(#url)
-→ IfDef("to-core",
-    CompileToCore(#url),
-    CompileSystem(InitSystem(#url)))
+→ IfDef<Text4_text_sort>("to-core",
+    ()->CompileToCore(#url),
+    ()->CompileSystem(InitSystem(#url)))
 
 func CompileSystem(TSystem) -> Text4_text_sort
 rule CompileSystem(#system)
@@ -39,13 +40,13 @@ rule MaybeLoadModule(#system, SOME(Module::Module(#url:String, Content::NOTLOADE
 
 func LoadModule(String) -> Content
 rule LoadModule(#url)
-→ Loaded(LoadCore(If(EndsWith(#url, ".crsc"), ParseCore(#url), ParseTransScript(#url))))
+→ Loaded(LoadCore(If<Core_ccrsx_sort>(EndsWith(#url, ".crsc"), ()->ParseCore(#url), ()->ParseTransScript(#url))))
 
 func ParseCore(String) -> Core_ccrsx_sort
-rule ParseCore(#url) → ParseResource("ccrsx", #url)
+rule ParseCore(#url) → ParseResource<Core_ccrsx_sort>("ccrsx", #url)
 
 func ParseTransScript(String) -> Core_ccrsx_sort
-rule ParseTransScript(#url) → ToCore(#url, ParseResource("transscript", #url))
+rule ParseTransScript(#url) → ToCore(#url, ParseResource<TransScript_transscript_sort>("transscript", #url))
 
 //--- Compilation to Core (for debugging)
 

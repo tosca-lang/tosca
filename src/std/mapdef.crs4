@@ -9,8 +9,9 @@ import Std::Listdef
 
 extern func MapPut<a b>({a : b}, eager a /* Key */, eager b /* Value */) -> {a : b}
 
+
 func MapPut2<a b>(eager a /* Key */, eager b /* Value */, {a : b}) -> {a : b}
-rule MapPut2(#key, #value, #map) → MapPut(#map, #key, #value)
+rule MapPut2(#key, #value, #map) → MapPut<a b>(#map, #key, #value)
 
 /* `MapGet(#map, #key)`
    Lookup string entry

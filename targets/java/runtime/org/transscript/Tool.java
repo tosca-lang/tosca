@@ -24,6 +24,8 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
+import org.transscript.compiler.text.Printer;
+import org.transscript.compiler.text.Text4.Text4_xtext_xsort;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.Normalizer;
 import org.transscript.runtime.ParsingUtils;
@@ -191,7 +193,7 @@ public class Tool
 		// TODO: this shouldn't be needed.
 		buildEnv.put("grammar", parsers); // Temporary.
 		buildEnv.put("sink", "org.transscript.runtime.text.TextSink");
-		buildEnv.put("arg", "\"" + rules + "\"");
+		buildEnv.put("arg", rules);
 		buildEnv.put("output", output);
 
 		if (javabasepackage != null)
@@ -521,7 +523,7 @@ public class Tool
 			for (int i = 0; i < args.length; i++)
 			{
 				argTypes[i + 1] = StringTerm.class;
-				argsTerm[i] = StringTerm.newStringTerm(args[i].trim());
+				argsTerm[i] = StringTerm.stringTerm(args[i].trim());
 			}
 		}
 
@@ -533,7 +535,7 @@ public class Tool
 		Term result;
 		try
 		{
-			result = Normalizer.normalize(context, main, argsTerm);
+			result = Normalizer.force(context, main, argsTerm);
 		}
 		catch (Exception e)
 		{
@@ -546,7 +548,6 @@ public class Tool
 		Appendable output = System.out;
 
 		if (outputEntry != null)
-
 		{
 			try
 			{
@@ -558,36 +559,19 @@ public class Tool
 			}
 		}
 
-		String sinkName = env.get("sink");
-		if (sinkName != null)
-
+		try
 		{
-			@SuppressWarnings("unchecked")
-			Class<? extends Sink> sinkClss = (Class<? extends Sink>) loadClass(sinkName, loader);
-
-			try
+			if (result instanceof Text4_xtext_xsort)
 			{
-				Sink sink = sinkClss.getConstructor(Context.class, Appendable.class).newInstance(context, output);
-
-				// TODO: Send result to sink!
-				//((Term) result).copy(sink, true);
+				context.sd = 0;
+				result = Printer.PrintText(context, (Text4_xtext_xsort) result);
+				result = Normalizer.force(context, result);
 			}
-			catch (Exception e)
-			{
-				fatal("error while initializing " + sinkName + ".", e);
-			}
+			output.append(result.toString());
 		}
-		else
-
+		catch (IOException e)
 		{
-			try
-			{
-				output.append(result.toString());
-			}
-			catch (IOException e)
-			{
-				fatal("error while appending the result to the output", e);
-			}
+			fatal("error while writing to the output " + outputEntry, e);
 		}
 
 		if (output instanceof Closeable && output != System.out)

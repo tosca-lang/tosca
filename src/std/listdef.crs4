@@ -23,11 +23,10 @@ func IsNotEmpty<a>(List<a>) -> Bool
 rule IsNotEmpty(()                   ) → FALSE
 rule IsNotEmpty(Cons(#:a, #s:List<a>)) → TRUE
 
-
 /*
  */
 func IfEmpty<a b>(List<a>, b, b) -> b
-rule IfEmpty(()        , #1, #2) → #1
+rule IfEmpty((                   ), #1, #2) → #1
 rule IfEmpty(Cons(#:a, #s:List<a>), #1, #2) → #2
 
 /* `Null(#XS)`
@@ -36,35 +35,35 @@ rule IfEmpty(Cons(#:a, #s:List<a>), #1, #2) → #2
            `FALSE` otherwise
 */
 func Null<a>(List<a>) -> Bool
-rule Null(()                    ) → TRUE
+rule Null((                    )) → TRUE
 rule Null(Cons(#H:a, #T:List<a>)) → FALSE
 
 // TRUE is list is a singleton
 func IsSingleton<a>(List<a>) -> Bool
-rule IsSingleton(()                     ) → FALSE
-rule IsSingleton(Cons(#:a, #s : List<a>)) → IsEmpty(#s)
+rule IsSingleton((                     )) → FALSE
+rule IsSingleton(Cons(#:a, #s : List<a>)) → IsEmpty<a>(#s)
 
 /* */
 func IfSingleton<a b>(List<a>, b, b) -> b
-rule IfSingleton(()        , #1, #2) → #2
-rule IfSingleton(Cons(#:a, #s:List<a>), #1, #2) → IfEmpty(#s, #1, #2)
+rule IfSingleton((                   ), #1, #2) → #2
+rule IfSingleton(Cons(#:a, #s:List<a>), #1, #2) → IfEmpty<a b>(#s, #1, #2)
 
 /* @return head of the list */
 func Head<a>(List<a>) -> a
-rule Head(()        ) → Error("Head of empty list")
+rule Head((                   )) → Error<a>("Head of empty list")
 rule Head(Cons(#:a, #s:List<a>)) → #
 
 
 /* @return last item of the list */
 func Last<a>(List<a>) -> a
-rule Last(()        )   → Error("Last of empty list")
+rule Last((                     )) → Error<a>("Last of empty list")
 rule Last(Cons(#:a, List<a>::Nil)) → #
-rule Last(Cons(#:a, #s:List<a>))  → Last(#s)
+rule Last(Cons(#:a, #s:List<a>  )) → Last<a>(#s)
 
 
 /* @return Tail of the list */
 func Tail<a>(List<a>) -> List<a>
-rule Tail(()        ) → Error("Tail of empty list")
+rule Tail((                   )) → Error<List>("Tail of empty list")
 rule Tail(Cons(#:a, #s:List<a>)) → #s
 
 /* Get element at given index (zero-based), or NONE
@@ -72,21 +71,21 @@ rule Tail(Cons(#:a, #s:List<a>)) → #s
    @param `Numeric` the index
  */
 func At<a>(List<a>, eager Numeric) -> Option<a>
-rule At((), #i)    → NONE
-rule At(Cons(#:a, #s:List<a>), #i) → If(Equal(#i, 0), SOME(#), At(#s, Minus(#i, 1)))
+rule At((                   ), #i) → NONE
+rule At(Cons(#:a, #s:List<a>), #i) → If<Option>(NumberEqual(#i, 0), ()->SOME(#), ()->At<a>(#s, Minus(#i, 1)))
 
 /*
   Concat the two list
 */
 func Concat<a>(List<a>, List<a>) -> List<a>
-rule Concat((), #tail         ) → #tail
-rule Concat(Cons(#1:a, #s:List<a>), #tail) → Cons(#1, Concat(#s, #tail))
+rule Concat((                    ), #tail) → #tail
+rule Concat(Cons(#1:a, #s:List<a>), #tail) → Cons(#1, Concat<a>(#s, #tail))
 
 /* Flatten list of lists
 */
 func Flatten<a>(List<List<a>>) -> List<a>
-rule Flatten(())          → ()
-rule Flatten(Cons(#1:List<a>, #s:List<List<a>>)) → Concat(#1, Flatten(#s))
+rule Flatten((                                )) → ()
+rule Flatten(Cons(#1:List<a>, #s:List<List<a>>)) → Concat<a>(#1, Flatten<a>(#s))
 
 /* `Elem(#X,#XS)`
    @param  `#X`  element
@@ -96,7 +95,7 @@ rule Flatten(Cons(#1:List<a>, #s:List<List<a>>)) → Concat(#1, Flatten(#s))
    @note   read "#X is element of #XS to remember the order of the parameters"
 */
 func Elem<a>(a , List<a>) -> Bool
-rule Elem(#X, #XS) → Foldr((x y) -> Or(Equal(#X, x), y), FALSE, #XS)
+rule Elem(#X, #XS) → Foldr<a Bool>((x y) -> Or(Equal<a a>(#X, x), y), FALSE, #XS)
 
 /* `Insert(#X, #XS)`
    @param  `#X`  element
@@ -107,7 +106,6 @@ rule Elem(#X, #XS) → Foldr((x y) -> Or(Equal(#X, x), y), FALSE, #XS)
 func Insert<a>(a, List<a>) -> List<a>
 rule Insert(#X, #XS) → Cons(#X, #XS)
 
-
 /* `Range(#FROM, #TO)`
    @param  `#FROM` first number
    @param  `#TO`
@@ -115,9 +113,9 @@ rule Insert(#X, #XS) → Cons(#X, #XS)
 */
 func Range(Numeric, Numeric) -> List<Numeric>
 rule Range(#from, #to)
-→ If( NumberLessThan(#from, #to),
-    Cons(#from, Range(Plus(#from, 1), #to)),
-    Cons(#to, Nil))
+→ If<List>( NumberLessThan(#from, #to),
+    ()->Cons(#from, Range(Plus(#from, 1), #to)),
+    ()->Cons(#to, Nil))
 
 /*
    Append element to list.
@@ -126,8 +124,8 @@ rule Range(#from, #to)
    @return a new list, where the element is inserted at the end of the list
 */
 func Append<a>(a, List<a>) -> List<a>
-rule Append(#x, ())           → (#x,)
-rule Append(#x, Cons(#1:a, #s:List<a>)) → Cons(#1, Append(#x, #s))
+rule Append(#x, (                    )) → (#x,)
+rule Append(#x, Cons(#1:a, #s:List<a>)) → Cons(#1, Append<a>(#x, #s))
 
 /*
    Pick first element matching condition
@@ -135,12 +133,12 @@ rule Append(#x, Cons(#1:a, #s:List<a>)) → Cons(#1, Append(#x, #s))
    @return an element or NONE
 */
 func PickFirst<a>(List<a>,  (a) -> Bool) -> Option<a>
-rule PickFirst((         ), #) → NONE
-rule PickFirst(Cons(#1:a, #s:List<a>), #) → PickFirst1(#(#1), #1, #s, #)
+rule PickFirst((                    ), #) → NONE
+rule PickFirst(Cons(#1:a, #s:List<a>), #) → PickFirst1<a>(#(#1), #1, #s, #)
 
 func PickFirst1<a>(Bool, a, List<a>, (a) -> Bool) -> Option<a>
 rule PickFirst1(TRUE,  #1, #s, #) → SOME(#1)
-rule PickFirst1(FALSE, #1, #s, #) → PickFirst(#s, #)
+rule PickFirst1(FALSE, #1, #s, #) → PickFirst<a>(#s, #)
 
 
 /* `ListEqual((x y) -> #C(x, y), #XS, #YS)`
@@ -154,7 +152,7 @@ func ListEqual<a b>((a b) -> Bool, List<a>, List<b>) -> Bool
 rule ListEqual(#C, (                     ), (                     )) → TRUE
 rule ListEqual(#C, Cons(#x:a, #xs:List<a>), (                     )) → FALSE
 rule ListEqual(#C, (                     ), Cons(#y:b, #ys:List<b>)) → FALSE
-rule ListEqual(#C, Cons(#x:a, #xs:List<a>), Cons(#y:b, #ys:List<b>)) → And(#C(#x, #y), ListEqual(#C, #xs, #ys))
+rule ListEqual(#C, Cons(#x:a, #xs:List<a>), Cons(#y:b, #ys:List<b>)) → And(#C(#x, #y), ListEqual<a b>(#C, #xs, #ys))
 
 
 /* `ConditionalInsert(#Condition, #X, #XS)`
@@ -165,7 +163,7 @@ rule ListEqual(#C, Cons(#x:a, #xs:List<a>), Cons(#y:b, #ys:List<b>)) → And(#C(
            otherwise `#XS`
 */
 func ConditionalInsert<a>(Bool, a, List<a>) -> List<a>
-rule ConditionalInsert(TRUE,  #X, #XS) → Insert(#X,#XS)
+rule ConditionalInsert(TRUE,  #X, #XS) → Insert<a>(#X,#XS)
 rule ConditionalInsert(FALSE, #X, #XS) → #XS
 
 /* `ContainsDuplicates(#XS)`
@@ -174,7 +172,7 @@ rule ConditionalInsert(FALSE, #X, #XS) → #XS
 */
 func ContainsDuplicates<a>(List<a>) -> Bool
 rule ContainsDuplicates(()                    ) → FALSE
-rule ContainsDuplicates(Cons(#H:a, #T:List<a>)) → Or(Elem(#H, #T), ContainsDuplicates(#T))
+rule ContainsDuplicates(Cons(#H:a, #T:List<a>)) → Or(Elem<a>(#H, #T), ContainsDuplicates<a>(#T))
 
 /* `RemoveDuplicates(#XS)`
    @param  `#XS` list
@@ -182,14 +180,14 @@ rule ContainsDuplicates(Cons(#H:a, #T:List<a>)) → Or(Elem(#H, #T), ContainsDup
 */
 func RemoveDuplicates<a>(List<a>) -> List<a>
 rule RemoveDuplicates(())           → ()
-rule RemoveDuplicates(Cons(#X:a, #XS:List<a>)) → Cons(#X, RemoveDuplicates(Filter((x) -> Not(Equal(x,#X)), #XS)))
+rule RemoveDuplicates(Cons(#X:a, #XS:List<a>)) → Cons(#X, RemoveDuplicates<a>(Filter<a>((x) -> Not(Equal<a a>(x,#X)), #XS)))
 
 /* `Length(#XS)`
    @param  `#XS` list
    @return length of `#XS`
 */
 func ListLength<a>(List<a>) -> Numeric
-rule ListLength(#XS) → IWrapFoldlP((x y) -> NumberPlus(1, y), 0, #XS)
+rule ListLength(#XS) → IWrapFoldlP<a Numeric>((x y) -> NumberPlus(1, y), 0, #XS)
 
 /* `Intersect(#XS, #YS)`
    @param  `#XS` list
@@ -199,7 +197,7 @@ rule ListLength(#XS) → IWrapFoldlP((x y) -> NumberPlus(1, y), 0, #XS)
            but not vice versa
 */
 func Intersect<a>(List<a>, List<a>) -> List<a>
-rule Intersect(#XS, #YS) → Foldr((x zs) -> ConditionalInsert(Elem(x,#YS), x, zs), (), #XS)
+rule Intersect(#XS, #YS) → Foldr<a List>((x zs) -> ConditionalInsert<a>(Elem<a>(x,#YS), x, zs), (), #XS)
 
 /* `Union(#XS, #YS)`
    @param  `#XS` list
@@ -207,14 +205,14 @@ rule Intersect(#XS, #YS) → Foldr((x zs) -> ConditionalInsert(Elem(x,#YS), x, z
    @return the union of `#XS` and `#YS`, in particular the duplicates are removed
 */
 func Union<a>(List<a>, List<a>) -> List<a>
-rule Union(#XS, #YS) → RemoveDuplicates(Concat(#XS,#YS))
+rule Union(#XS, #YS) → RemoveDuplicates<a>(Concat<a>(#XS,#YS))
 
 /* `Reverse(#XS)`
    @param  `#XS` list
    @return the reverse list of `#XS`
 */
 func Reverse<a>(List<a>) -> List<a>
-rule Reverse(#XS) → Foldl((x xs) -> Insert(x, xs), (), #XS)
+rule Reverse(#XS) → Foldl<a List>((x xs) -> Insert<a>(x, xs), (), #XS)
 
 /*
  * Zip
@@ -228,9 +226,9 @@ rule Reverse(#XS) → Foldl((x xs) -> Insert(x, xs), (), #XS)
 */
 func Zip<a b>(List<a>, List<b>) -> List<Pair<a b>>
 rule Zip(() ,      ())      → ()
-rule Zip(() ,      # )      → Error("ListExtension.Zip: second argument list was longer")
-rule Zip(#  ,      ())      → Error("ListExtension.Zip: first argument list was longer")
-rule Zip(Cons(#X:a, #XS:List<a>), Cons(#Y:b, #YS:List<b>)) → Cons(PairCons(#X,#Y), Zip(#XS,#YS))
+rule Zip(() ,      # )      → Error<List>("ListExtension.Zip: second argument list was longer")
+rule Zip(#  ,      ())      → Error<List>("ListExtension.Zip: first argument list was longer")
+rule Zip(Cons(#X:a, #XS:List<a>), Cons(#Y:b, #YS:List<b>)) → Cons(PairCons(#X,#Y), Zip<a b>(#XS,#YS))
 
 /* `LookUp( #Key, #KeyValueList)`
     @param `#Key`          a key
@@ -238,7 +236,7 @@ rule Zip(Cons(#X:a, #XS:List<a>), Cons(#Y:b, #YS:List<b>)) → Cons(PairCons(#X,
     @return a list of values associated to the `#Key` in `#KeyValueList` and returns the empty list, if `#Key` was not found
 */
 func LookUp<a b>(a, eager List<Pair<a b>>) -> List<b>
-rule LookUp(#Key, #KeyValueList) → Map((x) -> Snd(x), Filter((pair) -> Equal(#Key, Fst(pair)), #KeyValueList))
+rule LookUp(#Key, #KeyValueList) → Map<Pair b>((x) -> Snd<a b>(x), Filter<Pair>((pair) -> Equal<a a>(#Key, Fst<a b>(pair)), #KeyValueList))
 
 /* DelEntry
    @param  `#Key`          of the key-value pairs to delete
@@ -246,7 +244,7 @@ rule LookUp(#Key, #KeyValueList) → Map((x) -> Snd(x), Filter((pair) -> Equal(#
    @return a list of `#KeyValueList`, where all entries with `#Key` are deleted
  */
 func DelEntry<a b>(a, List<Pair<a b>>) -> List<Pair<a b>>
-rule DelEntry(#Key, #KeyValueList) → Filter((pair) -> Not(Equal(Fst(pair), #Key)), #KeyValueList)
+rule DelEntry(#Key, #KeyValueList) → Filter<Pair>((pair) -> Not(Equal<a a>(Fst<a b>(pair), #Key)), #KeyValueList)
 
 /* `Partition((x) ->#C(x), #XS)`
     @param `(x) ->#C(x)` a condition to partition
@@ -257,17 +255,17 @@ rule DelEntry(#Key, #KeyValueList) → Filter((pair) -> Not(Equal(Fst(pair), #Ke
 */
 
 func Partition<a>((a) -> Bool, List<a>) -> Pair<List<a> List<a>>
-rule Partition(#C, #XS) → Foldr((x res) -> MatchPartition(#C(x), x, res), PairCons((),()), #XS)
+rule Partition(#C, #XS) → Foldr<a Pair>((x res) -> MatchPartition<a>(#C(x), x, res), PairCons((),()), #XS)
 
 func MatchPartition<a>(Bool, a, Pair<List<a> List<a>>) -> Pair<List<a> List<a>>
-rule MatchPartition(TRUE,  #X, PairCons(#TS:List<a>, #FS:List<a>)) → PairCons(Insert(#X,#TS), #FS)
-rule MatchPartition(FALSE, #X, PairCons(#TS:List<a>, #FS:List<a>)) → PairCons(#TS, Insert(#X,#FS))
+rule MatchPartition(TRUE,  #X, PairCons(#TS:List<a>, #FS:List<a>)) → PairCons(Insert<a>(#X,#TS), #FS)
+rule MatchPartition(FALSE, #X, PairCons(#TS:List<a>, #FS:List<a>)) → PairCons(#TS, Insert<a>(#X,#FS))
 
 /* Apply each item in list to function
  */
 func Map<a b>((a) -> b, List<a>) -> List<b>
-rule Map(#, ())          → ()
-rule Map(#, Cons(#1:a, #s:List<a>)) → Cons(#(#1), Map(#, #s))
+rule Map(#, (                    )) → ()
+rule Map(#, Cons(#1:a, #s:List<a>)) → Cons(#(#1), Map<a b>(#, #s))
 
 /* `Map2((x) ->#F(x), #XS)`
    @param   `(x) ->#F(x)` a function which takes one element of the list as input
@@ -276,7 +274,7 @@ rule Map(#, Cons(#1:a, #s:List<a>)) → Cons(#(#1), Map(#, #s))
    @note    alternative implementation to `Map` based on `Foldr`
 */
 func Map2<a b>((a) -> b, List<a>) -> List<b>
-rule Map2(#F, #XS) → Foldr((y ys) -> Insert(#F(y), ys), (), #XS)
+rule Map2(#F, #XS) → Foldr<a List>((y ys) -> Insert<b>(#F(y), ys), (), #XS)
 
 /* Monadic map. Apply each item in list to the function taking a state and an element,
    evaluating to a new state and a value. Apply the next element with the new state.
@@ -286,14 +284,14 @@ rule Map2(#F, #XS) → Foldr((y ys) -> Insert(#F(y), ys), (), #XS)
    @return a pair containing the end state and the a list containing resulting values.
  */
 func MapM<a b c>((a b) -> Pair<a c>, a, List<b>) -> Pair<a List<c>>
-rule MapM(#, #state, #s) → MapM2(#, #state, #s, ())
+rule MapM(#, #state, #s) → MapM2<a b c>(#, #state, #s, ())
 
 func MapM2<a b c>((a b) -> Pair<a c>, a, List<b>, List<c>) -> Pair<a List<c>>
 rule MapM2(#, #state, (                    ), #rs) → PairCons(#state, #rs)
-rule MapM2(#, #state, Cons(#1:b, #s:List<b>), #rs) → MapM3(#(#state, #1), #, #s, #rs)
+rule MapM2(#, #state, Cons(#1:b, #s:List<b>), #rs) → MapM3<a b c>(#(#state, #1), #, #s, #rs)
 
 func MapM3<a b c>(Pair<a c>, (a b) -> Pair<a c>, List<b>, List<c>) -> Pair<a List<c>>
-rule MapM3(PairCons(#nstate:a, #r:c), #, #s, #rs) → MapM2(#, #nstate, #s, Append(#r, #rs))
+rule MapM3(PairCons(#nstate:a, #r:c), #, #s, #rs) → MapM2<a b c>(#, #nstate, #s, Append<c>(#r, #rs))
 
 
 /* `Filter((x) ->#C(x), #XS)`
@@ -302,7 +300,7 @@ rule MapM3(PairCons(#nstate:a, #r:c), #, #s, #rs) → MapM2(#, #nstate, #s, Appe
     @return a list, where with only those `#X` in `#XS` where condition `#C(#X)` evaluates to `TRUE`
 */
 func Filter<a>((a) -> Bool, List<a>) -> List<a>
-rule Filter(#C, #XS) → Foldr((x y) -> ConditionalInsert(#C(x), x, y) , (), #XS)
+rule Filter(#C, #XS) → Foldr<a List>((x y) -> ConditionalInsert<a>(#C(x), x, y) , (), #XS)
 
 /*
  * Folds
@@ -316,13 +314,13 @@ rule Filter(#C, #XS) → Foldr((x y) -> ConditionalInsert(#C(x), x, y) , (), #XS
 */
 func Foldl<a b>((a b) -> b, b, List<a>) -> b
 rule Foldl(#F, #Z, (                    )) → #Z
-rule Foldl(#F, #Z, Cons(#H:a, #T:List<a>)) → Foldl(#F, #F(#H,#Z), #T)
+rule Foldl(#F, #Z, Cons(#H:a, #T:List<a>)) → Foldl<a b>(#F, #F(#H,#Z), #T)
 
 /*
   @note `InterpreterWrap` for `FoldP` enforcing computation of argument list `#XS`
 */
 func IWrapFoldlP<a b>((a b) -> b, b, List<a>) -> b
-rule IWrapFoldlP(#F, #Z, #XS) → FoldlP(#F, #Z, #XS)
+rule IWrapFoldlP(#F, #Z, #XS) → FoldlP<a b>(#F, #Z, #XS)
 
 /* `FoldlP((x y) -> #F(x,y), #Z, #XS)`
     @param  `(x y) -> #F(x, y)` a function which takes as first argument an element of `#XS` and `#Z` as a second.
@@ -332,8 +330,8 @@ rule IWrapFoldlP(#F, #Z, #XS) → FoldlP(#F, #Z, #XS)
     @note    as `Foldl` but forces intermediate data computation
 */
 func FoldlP<a b>((a b) -> b, eager b, List<a>) -> b
-rule FoldlP(#F, #Z, ())                     → #Z
-rule FoldlP(#F, #Z, Cons(#H:a, #T:List<a>)) → FoldlP(#F, #F(#H,#Z), #T)
+rule FoldlP(#F, #Z, (                    )) → #Z
+rule FoldlP(#F, #Z, Cons(#H:a, #T:List<a>)) → FoldlP<a b>(#F, #F(#H,#Z), #T)
 
 
 /* `Foldr((x y) -> #F(x,y), #Z, #XS):
@@ -345,4 +343,4 @@ rule FoldlP(#F, #Z, Cons(#H:a, #T:List<a>)) → FoldlP(#F, #F(#H,#Z), #T)
 */
 func Foldr<a b>((a b) -> b, b, List<a>) -> b
 rule Foldr(#F, #Z, (                    )) → #Z
-rule Foldr(#F, #Z, Cons(#H:a, #T:List<a>)) → #F(#H, Foldr(#F, #Z, #T))
+rule Foldr(#F, #Z, Cons(#H:a, #T:List<a>)) → #F(#H, Foldr<a b>(#F, #Z, #T))

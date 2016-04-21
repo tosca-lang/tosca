@@ -4,7 +4,6 @@ package org.transscript.runtime;
 
 import java.util.ArrayDeque;
 
-import org.transscript.runtime.generic.Literal;
 import org.transscript.runtime.generic.MetaApplication;
 
 /**
@@ -29,10 +28,10 @@ public class BufferSink extends Sink
 
 	/** binders current position stack */
 	protected ArrayDeque<Integer> binderIndex;
-	
+
 	/** param current position stack */
 	protected ArrayDeque<Integer> paramIndex;
-	
+
 	/** Saved term stack (when parsing type) */
 	protected ArrayDeque<Term> savedTerms;
 
@@ -87,7 +86,7 @@ public class BufferSink extends Sink
 				t.setSubstitute(subindex, sub);
 			else
 				t.setSub(subindex, sub);
-			
+
 			subIndex.push(subindex + 1); // ready to receive the next sub
 
 			binderIndex.pop();
@@ -136,7 +135,6 @@ public class BufferSink extends Sink
 		paramIndex.pop();
 		substitutes.pop();
 
-		
 		if (terms.isEmpty())
 			term = c;
 
@@ -151,11 +149,11 @@ public class BufferSink extends Sink
 
 		terms.push(meta);
 		subIndex.push(0);
-		
+
 		// binder/param not allowed 
 		// binderIndex.push(0);
 		// paramIndex.push(0);
-		
+
 		substitutes.push(false); // Arguments unless told otherwise
 		return this;
 	}
@@ -220,7 +218,7 @@ public class BufferSink extends Sink
 	{
 		final Term term = terms.peek();
 		term.setBinder(subIndex.peek(), binderIndex.peek(), binder);
-		
+
 		binderIndex.push(binderIndex.pop() + 1);
 		return this;
 	}
@@ -244,9 +242,17 @@ public class BufferSink extends Sink
 	}
 
 	@Override
-	public BufferSink literal(Object literal)
+	public BufferSink literal(String literal)
 	{
-		Term term = new Literal(literal);
+		Term term = StringTerm.stringTerm(literal);
+		addSub(term);
+		return this;
+	}
+
+	@Override
+	public BufferSink literal(double literal)
+	{
+		Term term = DoubleTerm.doubleTerm(literal);
 		addSub(term);
 		return this;
 	}
