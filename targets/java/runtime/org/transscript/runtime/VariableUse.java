@@ -63,4 +63,10 @@ public class VariableUse implements Term
 		return this; // Transfer reference
 	}
 
+	@Override
+	public String toString()
+	{
+		return variable.toString();
+	}
+
 }

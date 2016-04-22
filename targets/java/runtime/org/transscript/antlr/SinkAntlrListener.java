@@ -535,7 +535,7 @@ public class SinkAntlrListener implements ParseTreeListener
 			{
 				// Create new fresh variable.
 				if (sink == null)
-					variable = Optional.of(new Variable(binderName));
+					variable = Optional.of(sink4.context().makeVariable(binderName));
 				else
 					variable = Optional.of(sink.makeVariable(binderName, false));
 
@@ -570,7 +570,7 @@ public class SinkAntlrListener implements ParseTreeListener
 			assert name != null : "Invalid grammar: binds used without binder/name";
 
 			if (sink == null)
-				binders[i] = new Variable(name);
+				binders[i] = sink4.context().makeVariable(name);
 			else
 				binders[i] = factory.makeVariable(name, false);
 

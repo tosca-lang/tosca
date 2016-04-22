@@ -5,16 +5,17 @@
 /* Test empty comment, not to conflict with the // operator */
 enum Bool | True | False
 
-enum MyList<a>      
-    | MyCons(a, MyList<a>)    
+enum MyList<a>
+    | MyCons(a, MyList<a>)
     | MyNil
 
 enum Statement
-    | Let(Expr, [Expr] -> Expr)     
+    | Let(Expr, [Expr] -> Expr)
     | Var(String)
 
 enum Expr
     | Plus(Expr, Expr)
-    
+    | allows-variable
+
 func Tests -> Bool
 rule Tests → True

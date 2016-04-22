@@ -13,4 +13,4 @@ rule EvalExpr(Str(#:String)) → #
 
 func Tests -> String
 rule Tests → EvalExpr(
-  Let(Str("val1"), [v:Expr] -> Let(Str("val2"), [v2:Expr] -> v2 )))
+  Let(Str("val1"), [v:Expr] -> Let(Str("val2"), [v2:Expr] -> v2)))

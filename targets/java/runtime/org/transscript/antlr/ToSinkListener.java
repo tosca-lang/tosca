@@ -2,32 +2,26 @@
 
 package org.transscript.antlr;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.DiagnosticErrorListener;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenSource;
-import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.transscript.parser.TransScriptMetaLexer;
-import org.transscript.parser.TransScriptMetaParser;
 import org.transscript.runtime.ConstructionDescriptor;
+import org.transscript.runtime.Pair;
 import org.transscript.runtime.Sink;
+import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.StringUtils;
 import org.transscript.runtime.Variable;
 
@@ -133,7 +127,7 @@ public class ToSinkListener implements ParseTreeListener
 	}
 
 	// Variable stack marker
-	final static private Object MARKER = new Object();
+	final static private Pair<String, Variable> MARKER = new Pair<>(null, null);
 
 	// Some enums
 
@@ -180,10 +174,10 @@ public class ToSinkListener implements ParseTreeListener
 	private HashMap<String, String> binderNames;
 
 	/** In scope bound variables. */
-	private ArrayDeque<Object> bounds;
+	private ArrayDeque<Pair<String /* In the source */, Variable /* In the term */>> bounds;
 
 	/** In scope fresh variables. */
-	private ArrayDeque<Object> freshes;
+	private ArrayDeque<Pair<String /* In the source */, Variable /* In the term */>> freshes;
 
 	/** Current token sort */
 	private TokenKind kind;
@@ -202,8 +196,7 @@ public class ToSinkListener implements ParseTreeListener
 	 * @param metachar  Language specific meta variable prefix
 	 * @param parser
 	 */
-	public ToSinkListener(Sink sink, String prefix, String metachar, Parser parser,
-			Map<String, org.transscript.runtime.Variable> bounds)
+	public ToSinkListener(Sink sink, String prefix, String metachar, Parser parser, Map<String, Variable> bounds)
 	{
 		this.sink4 = sink;
 		this.consCount = new ArrayDeque<>();
@@ -219,12 +212,14 @@ public class ToSinkListener implements ParseTreeListener
 		this.binderNames = new HashMap<>();
 		this.bounds = new ArrayDeque<>();
 		if (bounds != null)
-			this.bounds.addAll(bounds.values());
+		{
+			for (Entry<String, Variable> entry : bounds.entrySet())
+				this.bounds.add(new Pair<>(entry.getKey(), entry.getValue()));
+		}
 		this.freshes = new ArrayDeque<>();
 
 		this.nilDesc = sink.context().lookupDescriptor("Nil");
 		this.consDesc = sink.context().lookupDescriptor("Cons");
-
 	}
 
 	/**
@@ -348,7 +343,7 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void term(ParserRuleContext _ctx, String type)
 	{
-	//	termType = type;
+		//	termType = type;
 		kind = TokenKind.METAVAR;
 	}
 
@@ -438,18 +433,18 @@ public class ToSinkListener implements ParseTreeListener
 		{
 			// This is a binder occurrence. Resolve and emit
 			assert bounds != null;
-			Optional<Object> variable = bounds.stream().filter(var -> {
-				if (var == MARKER)
+			Optional<Pair<String, Variable>> variable = bounds.stream().filter(pair -> {
+				if (pair == MARKER)
 					return false;
 
-				return ((Variable) var).name().equals(binderName);
+				return pair.fst.equals(binderName);
 			}).findFirst();
 
 			if (!variable.isPresent())
 			{
 				// Try among fresh variables
-				variable = freshes.stream().filter(var -> {
-					return ((Variable) var).name().equals(binderName);
+				variable = freshes.stream().filter(pair -> {
+					return pair.fst.equals(binderName);
 
 				}).findFirst();
 			}
@@ -457,13 +452,14 @@ public class ToSinkListener implements ParseTreeListener
 			if (!variable.isPresent())
 			{
 				// Create new fresh variable.
-				variable = Optional.of(new Variable(binderName));
+				// For now all variables are of type String
+				variable = Optional.of(new Pair<>(binderName, StringTerm.varStringTerm(sink4.context(), binderName)));
 
 				freshes.push(variable.get());
 			}
 
 			// Can now emit variable
-			sink4 = sink4.use((Variable) variable.get());
+			sink4 = sink4.use(variable.get().snd);
 		}
 		state = State.PARSE;
 	}
@@ -476,7 +472,7 @@ public class ToSinkListener implements ParseTreeListener
 	public void enterBinds(ParserRuleContext context, String names)
 	{
 		String[] snames = names.trim().split(" ");
-		Object[] binders = new Variable[snames.length];
+		Variable[] binders = new Variable[snames.length];
 
 		bounds.add(MARKER);
 		for (int i = 0; i < snames.length; i++)
@@ -485,13 +481,13 @@ public class ToSinkListener implements ParseTreeListener
 			String name = binderNames.remove(id); // consume binder name 
 			assert name != null : "Invalid grammar: binds used without binder/name";
 
-			binders[i] = new Variable(name);
+			binders[i] = StringTerm.varStringTerm(sink4.context(), name);
 
-			bounds.push(binders[i]);
+			bounds.push(new Pair<>(name, binders[i]));
 		}
 
 		for (int i = 0; i < binders.length; i++)
-			sink4 = sink4.bind((Variable) binders[i]);
+			sink4 = sink4.bind(binders[i]);
 	}
 
 	/**
@@ -638,29 +634,30 @@ public class ToSinkListener implements ParseTreeListener
 	{
 		// TODO: custom operators
 
-		try
-		{
-			CharStream stream = new ANTLRInputStream(reader);
-
-			TokenSource source = new TransScriptMetaLexer(stream);
-			TokenStream input = new CommonTokenStream(source);
-
-			TransScriptMetaParser parser = new TransScriptMetaParser(input);
-			parser.setBuildParseTree(false);
-
-			TermParserListener listener;
-			listener = new TermParserListener(sink4, bounds, freshes, nilDesc, consDesc);
-			parser.addParseListener(listener);
-
-			parser.addErrorListener(new DiagnosticErrorListener(true));
-			parser.term_EOF();
-			sink4 = listener.sink4;
-
-		}
-		catch (IOException e)
-		{
-			assert false : "Unreachable";
-		}
+//		try
+//		{
+//			CharStream stream = new ANTLRInputStream(reader);
+//
+//			TokenSource source = new TransScriptMetaLexer(stream);
+//			TokenStream input = new CommonTokenStream(source);
+//
+//			TransScriptMetaParser parser = new TransScriptMetaParser(input);
+//			parser.setBuildParseTree(false);
+//
+//			TermParserListener listener;
+//			listener = new TermParserListener(sink4, bounds, freshes, nilDesc, consDesc);
+//			parser.addParseListener(listener);
+//
+//			parser.addErrorListener(new DiagnosticErrorListener(true));
+//			parser.term_EOF();
+//			sink4 = listener.sink4;
+//
+//		}
+//		catch (IOException e)
+//		{
+//			assert false : "Unreachable";
+//		}
+		assert false : "Unreachable";
 
 	}
 
@@ -671,20 +668,20 @@ public class ToSinkListener implements ParseTreeListener
 	{
 		return "#" + metavar.substring(metachar.length());
 	}
-//
-//	/**
-//	 * Convert raw type to proper TransScript type.
-//	 */
-//	private String fixupType(String type)
-//	{
-//		if (type.endsWith("_TOK"))
-//			return "String";
-//
-//		final boolean islist = type.endsWith("_OOM") || type.endsWith("_ZOM") || type.endsWith("_OPT");
-//		type = islist ? type.substring(0, type.length() - "_ZOM".length()) : type;
-//
-//		return (islist ? "List<" : "") + prefix + type + "_sort" + (islist ? ">" : "");
-//	}
+	//
+	//	/**
+	//	 * Convert raw type to proper TransScript type.
+	//	 */
+	//	private String fixupType(String type)
+	//	{
+	//		if (type.endsWith("_TOK"))
+	//			return "String";
+	//
+	//		final boolean islist = type.endsWith("_OOM") || type.endsWith("_ZOM") || type.endsWith("_OPT");
+	//		type = islist ? type.substring(0, type.length() - "_ZOM".length()) : type;
+	//
+	//		return (islist ? "List<" : "") + prefix + type + "_sort" + (islist ? ">" : "");
+	//	}
 
 	// Utility classes
 

@@ -355,7 +355,7 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 				{
 					if (sink3 == null)
 					{
-						org.transscript.runtime.Variable binder = new org.transscript.runtime.Variable(node.getText());
+						org.transscript.runtime.Variable binder = sink4.context().makeVariable(node.getText());
 						bounds.push(binder);
 						binders.add(binder);
 					}
@@ -387,7 +387,7 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 					// No support for sink3
 					if (sink3 == null)
 					{
-						org.transscript.runtime.Variable param = new org.transscript.runtime.Variable(node.getText());
+						org.transscript.runtime.Variable param = sink4.context().makeVariable(node.getText());
 						bounds.push(param);
 						sink4 = sink4.param(param);
 					}
@@ -462,7 +462,7 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 				{
 					// Create new fresh variable.
 					if (sink3 == null)
-						variable = Optional.of(new Variable(varname));
+						variable = Optional.of(sink4.context().makeVariable(varname));
 					else
 						variable = Optional.of(sink3.makeVariable(varname, false));
 

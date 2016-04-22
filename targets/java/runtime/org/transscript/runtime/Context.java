@@ -74,16 +74,16 @@ final public class Context
 	 */
 	public Variable makeVariable(String hint)
 	{
-		return new Variable(makeVariableName(hint));
+		return new Variable(makeGlobalName(hint));
 	}
 
 	/**
-	 * Make new unique variable name.
+	 * Make new context-scoped unique name.
 	 * 
 	 * @param hint
 	 * @return
 	 */
-	private String makeVariableName(String hint)
+	public String makeGlobalName(String hint)
 	{
 		String base = hint;
 

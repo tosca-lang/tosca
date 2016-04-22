@@ -58,6 +58,7 @@ import static org.transscript.runtime.Functions.*;
 import static org.transscript.runtime.StringTerm.lazyStringTerm;
 import static org.transscript.runtime.StringTerm.lazyStringTermMaker;
 import static org.transscript.runtime.StringTerm.stringTerm;
+import static org.transscript.runtime.StringTerm.varStringTerm;
 import static org.transscript.runtime.DoubleTerm.lazyDoubleTerm;
 import static org.transscript.runtime.DoubleTerm.lazyDoubleTermMaker;
 import static org.transscript.runtime.DoubleTerm.doubleTerm;
@@ -154,9 +155,9 @@ func FormToMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
 
   rule FormToMethodNew(#constructor, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦
-    static †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨STRING: ToJavaClassName(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨STRING: ToJavaMethodName(ConcatString("newVar", #constructor))⟩ (String name)
+    static †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ Var⟨STRING: ToJavaClassName(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨STRING: ToJavaMethodName(ConcatString("var", #constructor))⟩ (Context ctx, String hint)
     {
-      return new Var⟨STRING: ToJavaClassName(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(name);
+      return new Var⟨STRING: ToJavaClassName(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(ctx.makeGlobalName(hint));
     }⟧
 
 // --- Generate a 'as' method for each enum value
@@ -225,32 +226,39 @@ func FormToImplValue(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
 
   rule FormToImplValue(#typename, #csortvars?, cform⟦ allows-variable⟧)
   → text⟦
-      static class Var⟨STRING: ToJavaClassName(#typename)⟩†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends VariableUse implements ⟨STRING: ToJavaClassName(#typename)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
+      static class Var⟨STRING: ToJavaClassName(#typename)⟩†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩Use extends VariableUse implements ⟨STRING: ToJavaClassName(#typename)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
       {
-        public Var⟨STRING: ToJavaClassName(#typename)⟩(Variable var)
+        public Var⟨STRING: ToJavaClassName(#typename)⟩Use(Variable var)
         {
           super(var);
         }
-
-        @Override
-		    public Term copy(Context c)
-	    	{
-		      return new Var⟨STRING: ToJavaClassName(#typename)⟩(variable);
-		    }
     }
 
     public static class Var⟨STRING: ToJavaClassName(#typename)⟩†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends Variable
     {
-      public Var⟨STRING: ToJavaClassName(#typename)⟩(Variable var)
+      public Var⟨STRING: ToJavaClassName(#typename)⟩(String name)
       {
-        super(var);
+        super(name);
       }
 
       @Override
       protected Var⟨STRING: ToJavaClassName(#typename)⟩Use newVarUse()
       {
-        return Var⟨STRING: ToJavaClassName(#typename)⟩Use(this);
+        return new Var⟨STRING: ToJavaClassName(#typename)⟩Use(this);
       }
+
+      @Override
+		  public Var⟨STRING: ToJavaClassName(#typename)⟩Use use()
+		  {
+			  return (Var⟨STRING: ToJavaClassName(#typename)⟩Use) super.use();
+		  }
+
+      @Override
+      public Variable make(Context ctx, String hint)
+  	  {
+  		  return new Var⟨STRING: ToJavaClassName(#typename)⟩(ctx.makeGlobalName(hint));
+  	  }
+
     }
 
     ⟧
@@ -873,17 +881,17 @@ func JavaPatternTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, Text4_text_
   → JavaPatternVariable(MaybeGetVar(#env, #VARIABLE), #env, #VARIABLE, #term, #cont)
 
   //rule JavaPatternTerm(#env, cterm⟦ [ ##VARIABLE ##csortanno? ] ##cterm ⟧, #term, PARAMETER, #cont)
-  rule JavaPatternTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x): Core_cterm_sort), #term, #csort, PARAMETER, #cont)
+  rule JavaPatternTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]: Core_cterm_sort), #term, #csort, PARAMETER, #cont)
   → JavaPatternTerm(NextParam(AddVar(#env, var:String, Bound(#term, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], CurrentParam(#env), SOME(CurrentParamSort(#env)), PARAMETER, #cont)
 
   //rule JavaPatternTerm(#env, cterm⟦ [ ##VARIABLE ##csortanno? ] ##cterm ⟧, #term, ARGUMENT, #cont)
-  rule JavaPatternTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x): Core_cterm_sort), #term,  #csort, ARGUMENT, #cont)
+  rule JavaPatternTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]: Core_cterm_sort), #term,  #csort, ARGUMENT, #cont)
   → text⟦
       Variable ⟨STRING: boundvar:String⟩ = †⟨GetParent(#env)⟩.getVar†⟨NumberToText(GetSubIndex(#env))⟩_†⟨NumberToText(GetSubBinderIndex(#env))⟩();†⟨
       JavaPatternTerm(IncSubBinderIndex(AddVar(#env, var:String, Bound(text⟦⟨STRING: boundvar⟩⟧, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], #term, #csort, ARGUMENT, #cont)⟩⟧
 
   //rule JavaPatternTerm(#env, cterm⟦ ( ##VARIABLE ##csortanno? ) ##cterm ⟧, #term, #storage, #cont)
-  rule JavaPatternTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x): Core_cterm_sort), #term, #csort, #storage, #cont)
+  rule JavaPatternTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]: Core_cterm_sort), #term, #csort, #storage, #cont)
   → JavaPatternTerm(#env, #cterm[var:String], #term, #csort, #storage, #cont)
 
 // Pattern matching on construction arguments.
@@ -1006,11 +1014,11 @@ func SubSortFromTerm(eager {String : JavaEnvEntry}, Core_cterm_sort) -> Option<C
   → MaybeSortAnnoToSort(#csortanno?)
 
   // TODO: maybe error?
-  rule SubSortFromTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x) : Core_cterm_sort))
+  rule SubSortFromTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x] : Core_cterm_sort))
   → SubSortFromTerm(#env, #cterm[var:String])
 
     // TODO: maybe error?
-  rule SubSortFromTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x) : Core_cterm_sort))
+  rule SubSortFromTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x] : Core_cterm_sort))
   → SubSortFromTerm(#env, #cterm[var:String])
 
 func SubSortFromVar(Option<VarEntry>, String) -> Option<Core_csort_sort>
@@ -1048,14 +1056,14 @@ func JavaFreshesTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, ({String : 
   rule JavaFreshesTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
   → JavaFreshesMaybeTerms(#env, #cterms?, (env) -> JavaFreshesMaybeSubst(env, #csubst?, #cont))
 
-  rule JavaFreshesTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x):Core_cterm_sort), #cont)
+  rule JavaFreshesTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]:Core_cterm_sort), #cont)
   → JavaFreshesVariable(#env, NONE, var:String, #csortanno?, (env) -> JavaFreshesTerm(env, #cterm[var], #cont))
 
   //→ text⟦
   //Variable fresh†⟨NumberToText(GetCounter(#env))⟩ = context.makeVariable("x");†⟨JavaFreshesTerm(IncCounter(AddVar(#env, var:Core_cterm_sort, Fresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], #cont)⟩⟧
 
   // TODO: track var
-  rule JavaFreshesTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x):Core_cterm_sort), #cont)
+  rule JavaFreshesTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]:Core_cterm_sort), #cont)
   → JavaFreshesTerm(#env, #cterm[var:String], #cont)
 
 func JavaFreshesMaybeTerms(eager {String : JavaEnvEntry}, List<Core_cterms_sort>, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
@@ -1088,13 +1096,13 @@ func JavaFreshesVariable(eager {String : JavaEnvEntry}, Option<VarEntry>, String
   // untyped fresh var
   rule JavaFreshesVariable(#env, NONE, #var, csortanno?⟦  ⟧, #cont)
   → text⟦
-      Variable fresh†⟨NumberToText(GetCounter(#env))⟩ = new Variable(†⟨Text-QuoteEscape(Show<String>(#var))⟩);†⟨
+      VarStringTerm fresh†⟨NumberToText(GetCounter(#env))⟩ = varStringTerm(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show<String>(#var))⟩);†⟨
         #cont(IncCounter(AddVar(#env, #var, Fresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, NONE))))⟩⟧
 
   // New typed fresh variable
   rule JavaFreshesVariable(#env, NONE, #var, csortanno?⟦ : ##csort ⟧, #cont)
   → text⟦
-      Var†⟨SortToType(#csort)⟩ fresh†⟨NumberToText(GetCounter(#env))⟩ = new Var†⟨SortToType(#csort)⟩(†⟨Text-QuoteEscape(Show<String>(#var))⟩);⟨
+      Var†⟨SortToType(#csort)⟩ fresh†⟨NumberToText(GetCounter(#env))⟩ = var†⟨SortToType(#csort)⟩(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show<String>(#var))⟩);⟨
         #cont(IncCounter(AddVar(#env, #var, Fresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, SOME(#csort)))))⟩⟧
 
   // Variable already exists
@@ -1119,13 +1127,17 @@ func JavaExprTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, ({String : Jav
   → JavaExprMeta(#env, #METAVAR, #cterms?, #csubst?, #cont)
 
   //rule JavaExprTerm(#env, cterm⟦ [ ##VARIABLE ] ##cterm ⟧, #cont)
-  rule JavaExprTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x) : Core_cterm_sort), #cont)
+  rule JavaExprTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x] : Core_cterm_sort), #cont)
   → text⟦
       fresh†⟨NumberToText(GetCounter(#env))⟩, †⟨JavaExprTerm(AddVar(IncCounter(#env), var:String, Fresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
 
   //rule JavaExprTerm(#env, cterm⟦ ( ##VARIABLE ) ##cterm ⟧, #cont)
-  rule JavaExprTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x) : Core_cterm_sort), #cont)
+  rule JavaExprTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x] : Core_cterm_sort), #cont)
   → text⟦newClosure((†⟨GetContext(NewContext(#env))⟩†⟨JavaExprLambda(NewContext(#env), Core_cterm_A7(#csortanno?, [y:String] -> #cterm[y]), #cont)⟩⟧
+
+  rule JavaExprTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)
+  → text⟦thunk(†⟨GetContext(NewContext(#env))⟩ -> ⟨JavaExprTerm(NewContext(#env), #cterm, (env) -> text⟦)⟨#cont(env)⟩⟧)⟩⟧
+
 
 // ---- construction expression
 
@@ -1160,7 +1172,6 @@ func JavaExprThunkArgs(List<Core_csortargs_sort>) -> Text4_text_sort
 func JavaExprThunkArg(Core_csort_sort) -> Text4_text_sort
   rule JavaExprThunkArg(csort⟦ ##VARIABLE ⟧) → text⟦, tm⟨STRING: #VARIABLE⟩⟧
   rule JavaExprThunkArg(csort⟦ ##csort    ⟧) → text⟦, †⟨ThunkMaker(#csort)⟩Maker()⟧
-
 
 // --- Variable
 
@@ -1211,13 +1222,12 @@ func JavaExprMetaArgs(eager {String : JavaEnvEntry}, List<Text4_text_sort> /* pa
 
 func JavaExprLambda(eager {String : JavaEnvEntry}, Core_cterm_sort, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaExprLambda(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm(x): Core_cterm_sort), #cont)
+  rule JavaExprLambda(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]: Core_cterm_sort), #cont)
   → text⟦, p†⟨NumberToText(GetCounter(#env))⟩†⟨JavaExprLambda(AddVar(IncCounter(#env), var:String, Formal(text⟦p†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
 
   // fallback
   rule JavaExprLambda(#env, #cterm, #cont)
   → text⟦) -> †⟨JavaExprTerm(#env, #cterm, (env) -> text⟦)†⟨#cont(env)⟩⟧)⟩⟧
-
 
 //--- Find form in sort.
 
@@ -1265,9 +1275,13 @@ rule RegisterDataSort(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 → TextFold(Map<Core_cform_sort Text4_text_sort>((x) -> RegisterDataForm(x), #cform*), text⟦⟧)
 
 func RegisterDataForm(Core_cform_sort) -> Text4_text_sort
-rule RegisterDataForm(cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
-→ text⟦
-context.register(†⟨Text-QuoteEscape(#CONSTRUCTOR)⟩, †⟨EValueClassName(#CONSTRUCTOR)⟩::new);⟧
+  rule RegisterDataForm(cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  → text⟦
+  context.register(†⟨Text-QuoteEscape(#CONSTRUCTOR)⟩, †⟨EValueClassName(#CONSTRUCTOR)⟩::new);⟧
+
+  rule RegisterDataForm(cform⟦ allows-variable ⟧)
+  → text⟦⟧
+
 
 /* Print package declaration */
 func PackageDeclaration -> Text4_text_sort
@@ -1339,18 +1353,29 @@ enum JavaEnvEntry | ENum(Numeric) |  EText(Text4_text_sort) | ETexts(List<Text4_
 
 func NewEnv -> {String : JavaEnvEntry}
 rule NewEnv →
-    MapPut2<String JavaEnvEntry>("params"      , EParams(()),     /* Java method arguments. */
-    MapPut2<String JavaEnvEntry>("thunk"       , ETexts(()),     /* thunk arguments */
-    MapPut2<String JavaEnvEntry>("label"       , EText(text⟦⟧),    /* Current pattern block label. */
-    MapPut2<String JavaEnvEntry>("tail"        , EBool(TRUE),   /* Tail? */
-    MapPut2<String JavaEnvEntry>("meta"        , EMapMeta(MapNew<String MetaEntry>),  /* Map meta variable to java variables */
-    MapPut2<String JavaEnvEntry>("vars"        , EMapVar(MapNew<String VarEntry>),   /* Map variable to VarEntry */
-    MapPut2<String JavaEnvEntry>("parent"      , EText(text⟦⟧),    /* Sub parent (if any) */
-    MapPut2<String JavaEnvEntry>("subindex"    , EText(text⟦⟧),    /* Sub index */
-    MapPut2<String JavaEnvEntry>("binderindex" , ENum(0),         /* Current sub binder index */
-    MapPut2<String JavaEnvEntry>("binders"     , ETexts(()),    /* Binders list being constructed in contraction */
-    MapPut2<String JavaEnvEntry>("data"        , ETexts(()),    /* List of parameters marked as data */
-    MapNew<String JavaEnvEntry>)))))))))))
+    MapPut<String JavaEnvEntry>(
+    MapPut<String JavaEnvEntry>(
+    MapPut<String JavaEnvEntry>(
+    MapPut<String JavaEnvEntry>(
+    MapPut<String JavaEnvEntry>(
+    MapPut<String JavaEnvEntry>(
+    MapPut<String JavaEnvEntry>(
+    MapPut<String JavaEnvEntry>(
+    MapPut<String JavaEnvEntry>(
+    MapPut<String JavaEnvEntry>(
+    MapPut<String JavaEnvEntry>(MapNew<String JavaEnvEntry>,
+      "params"      , EParams(())),     /* Java method arguments. */
+      "thunk"       , ETexts(())),     /* thunk arguments */
+      "label"       , EText(text⟦⟧)),    /* Current pattern block label. */
+      "tail"        , EBool(TRUE)),   /* Tail? */
+      "meta"        , EMapMeta(MapNew<String MetaEntry>)),  /* Map meta variable to java variables */
+      "vars"        , EMapVar(MapNew<String VarEntry>)),   /* Map variable to VarEntry */
+      "parent"      , EText(text⟦⟧)),    /* Sub parent (if any) */
+      "subindex"    , EText(text⟦⟧)),    /* Sub index */
+      "binderindex" , ENum(0)),         /* Current sub binder index */
+      "binders"     , ETexts(())),    /* Binders list being constructed in contraction */
+      "data"        , ETexts(()))    /* List of parameters marked as data */
+
 
 
 // --- Java printing helpers
@@ -1546,14 +1571,14 @@ func GetVars(eager {String : JavaEnvEntry}) -> { String : VarEntry }
 rule GetVars(#env) → GetValue<{String:VarEntry}>(#env, "vars", (x) -> UnMapVar(x))
 
 func GetVar(eager {String : JavaEnvEntry}, String) -> Text4_text_sort
-rule GetVar(#env, #var) → UnVarVar(UnSOME<VarEntry>(MapGetVar<String VarEntry>(GetVars(#env), #var)))
+rule GetVar(#env, #var) → UnVarVar(UnSOME<VarEntry>(MapGetVar<String VarEntry String>(GetVars(#env), #var)))
 
 func MaybeGetVar(eager {String : JavaEnvEntry}, String) -> Option<VarEntry>
-rule MaybeGetVar(#env, #var) → MapGetVar<String VarEntry>(GetVars(#env), #var)
+rule MaybeGetVar(#env, #var) → MapGetVar<String VarEntry String>(GetVars(#env), #var)
 
 func AddVar(eager {String : JavaEnvEntry}, String /* TODO: Core_cterm_sort */, VarEntry) -> {String : JavaEnvEntry}
 rule AddVar(#env, #var, #entry)
-→ SetValue(#env, "vars", EMapVar(MapPut<String VarEntry>(GetVars(#env), #var, #entry)))
+→ SetValue(#env, "vars", EMapVar(MapPutVar<String VarEntry String>(GetVars(#env), #var, #entry)))
 
 // --- Parent term
 

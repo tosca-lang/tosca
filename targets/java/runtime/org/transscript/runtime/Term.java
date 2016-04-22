@@ -160,6 +160,7 @@ public interface Term extends Ref
 	 * 
 	 * @param context
 	 * @return A new reference to the evaluated term. It might still be a function if the evaluation has been interrupted
+	 * @deprecated
 	 */
 	default Term eval(Context context)
 	{
@@ -200,9 +201,9 @@ public interface Term extends Ref
 		return result;
 	}
 
-	default Term substitute(Context c, Map<Variable, Term> substitutes)
+	default Term substitute(Context ctx, Map<Variable, Term> substitutes)
 	{
-		Term copy = copy(c);
+		Term copy = copy(ctx);
 
 		int i = 0;
 		while (true)
@@ -224,8 +225,8 @@ public interface Term extends Ref
 					// Recursively substitute.  
 					// Make sure sub is not a lazy function so that substitution can be recursively be applied.
 					// An alternative algorithm (not implemented yet) is to lazily performed substitution.
-					sub = sub.eval(c);
-					copy.setSub(i, sub.ref().substitute(c, substitutes));
+					sub = sub.eval(ctx);
+					copy.setSub(i, sub.ref().substitute(ctx, substitutes));
 				}
 			}
 			else
@@ -238,15 +239,15 @@ public interface Term extends Ref
 					if (oldbinder == null)
 						break;
 
-					Variable subbinder = c.makeVariable(oldbinder.name);
+					Variable subbinder = oldbinder.make(ctx, oldbinder.name);
 
 					substitutes.put(oldbinder, subbinder.use());
 					copy.setBinder(i, j, subbinder);
 					j++;
 				}
 
-				sub = sub.eval(c);
-				copy.setSub(i, sub.ref().substitute(c, substitutes));
+				sub = sub.eval(ctx);
+				copy.setSub(i, sub.ref().substitute(ctx, substitutes));
 
 				// Cleanup
 				j = 0;

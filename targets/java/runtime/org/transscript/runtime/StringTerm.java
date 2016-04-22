@@ -6,42 +6,62 @@ import java.util.function.Function;
 
 import org.transscript.runtime.Functions.ThunkMaker;
 
+import net.sf.crsx.Maker;
+
 /**
- * Term wrapper around a Java String
+ * Built-in TS string.
  * 
  * @author Lionel Villard
  */
 public interface StringTerm extends Term
 {
 
+	/**
+	 * @param str
+	 * @return new string term reference
+	 */
 	static StringTerm stringTerm(String str)
 	{
-		return new StringValue(str);
+		return new _StringTerm(str);
 	}
 
-	@Deprecated
-	static StringTerm newStringTerm(String str)
+	/**
+	 * Create a new variable of type String
+	 * @param context
+	 * @param hint
+	 * @return
+	 */
+	static VarStringTerm varStringTerm(Context context, String hint)
 	{
-		return new StringValue(str);
+		return new VarStringTerm(context.makeGlobalName(hint));
 	}
 
+	
+	/**
+	 * Create an unevaluated string.
+	 * @param f the function producing a string
+	 * @return new string term reference
+	 */
 	static StringTerm lazyStringTerm(Function<Context, StringTerm> f)
 	{
 		return new LazyStringTerm(f);
 	}
-	
+
+	/**
+	 * @return string thunk maker.
+	 */
 	static ThunkMaker<StringTerm> lazyStringTermMaker()
 	{
 		return StringTerm::lazyStringTerm;
 	}
 
 	/**
-	 * Gets primitive string value
-	 * @return
+	 * @return the primitive string value
+	 * @throws RuntimeException is called on an unevaluated string.
 	 */
 	default String unbox()
 	{
-		throw new RuntimeException("Cannot access unevaluated string value.");
+		throw new RuntimeException("Fatal error: cannot access unevaluated string value.");
 	}
 
 	@Override
@@ -50,7 +70,10 @@ public interface StringTerm extends Term
 		return (StringTerm) Term.super.eval(c);
 	}
 
-	static class StringValue implements StringTerm
+	/**
+	 * The actual string term.
+	 */
+	static class _StringTerm implements StringTerm
 	{
 		// State
 
@@ -60,7 +83,7 @@ public interface StringTerm extends Term
 		// Constructor
 
 		/** Constructs a literal term */
-		public StringValue(String str)
+		public _StringTerm(String str)
 		{
 			this.value = str;
 		}
@@ -68,7 +91,7 @@ public interface StringTerm extends Term
 		@Override
 		public Term copy(Context c)
 		{
-			return new StringValue(value);
+			return new _StringTerm(value);
 		}
 
 		@Override
@@ -89,20 +112,26 @@ public interface StringTerm extends Term
 			return value.hashCode();
 		}
 
+		public boolean equals(_StringTerm other)
+		{
+			return value.equals(other.value);
+		}
+
 		@Override
 		public boolean equals(Object obj)
 		{
-			if (obj instanceof StringValue)
-				return value.equals(((StringValue) obj).value);
-			return value.equals(obj);
+			return (obj instanceof _StringTerm) ? equals((_StringTerm) obj) : false;
 		}
 
 	}
 
+	/**
+	 * Syntactic variable of type string
+	 */
 	public static class VarStringTerm extends Variable
 	{
 
-		public VarStringTerm(String name)
+		protected VarStringTerm(String name)
 		{
 			super(name);
 		}
@@ -119,8 +148,16 @@ public interface StringTerm extends Term
 			return (VarStringTermUse) super.use();
 		}
 
+		@Override
+		public Variable make(Context ctx, String hint)
+		{
+			return new VarStringTerm(ctx.makeGlobalName(hint));
+		}
 	}
 
+	/**
+	 * Syntactic variable use of type string
+	 */
 	class VarStringTermUse extends VariableUse implements StringTerm
 	{
 
@@ -129,8 +166,18 @@ public interface StringTerm extends Term
 			super(variable);
 		}
 
+		@Override
+		public String unbox()
+		{
+			return variable.toString();
+		}
+
 	}
 
+	/**
+	 * Unevaluated string value
+	 *
+	 */
 	static class LazyStringTerm extends LazyTerm<StringTerm>implements StringTerm
 	{
 

@@ -11,69 +11,84 @@ import org.transscript.runtime.LazyTerm;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
 
+/**
+ * Standard library core functions.
+ * 
+ * @author Lionel Villard
+ */
 public class CoreExtern
 {
 
-	public static <a extends Term, b extends Term> Bool SameVariable(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, a x_343, b x_347)
+	public static <a extends Term, b extends Term> Bool SameVariable(Context ctx, ThunkMaker<a> tma, ThunkMaker<b> tmb, a x_343, b x_347)
 	{
 		throw new RuntimeException();
 	}
 
 	/**
 	 * 
-	 * @param context
+	 * @param ctx
 	 * @param term1
 	 * @param term2
 	 * @return
 	 */
-	public static <a extends Term, b extends Term> Bool Equal(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, a term1, b term2)
+	public static <a extends Term, b extends Term> Bool Equal(Context ctx, ThunkMaker<a> tma, ThunkMaker<b> tmb, a term1, b term2)
 	{
 		final boolean result = term1.equals(term2);
 		term1.release();
 		term2.release();
-		return result ? Core.TRUE(context) : Core.FALSE(context);
+		return result ? Core.TRUE(ctx) : Core.FALSE(ctx);
 	}
 
-	public static <a extends Term> a Error(Context context, ThunkMaker<a> tm, StringTerm x_359)
+	public static <a extends Term> a Error(Context ctx, ThunkMaker<a> tm, StringTerm msg)
+	{
+		StringTerm emsg = Term.force(ctx, msg);
+
+		System.err.println(emsg);
+		throw new RuntimeException(emsg.toString());
+	}
+
+	public static <a extends Term> a Trace(Context ctx, ThunkMaker<a> tm, a x_432)
 	{
 		throw new RuntimeException();
 	}
 
-	public static <a extends Term> a Trace(Context context, ThunkMaker<a> tm, a x_432)
-	{
-		throw new RuntimeException();
-	}
-
-	public static StringTerm GetEnv(Context context, StringTerm key, StringTerm defaultValue)
+	public static StringTerm GetEnv(Context ctx, StringTerm key, StringTerm defaultValue)
 	{
 		java.lang.String value = System.getProperty(key.unbox());
 		key.release();
-		
+
 		if (value == null)
 			return defaultValue;
-		
+
 		defaultValue.release();
-		
+
 		return stringTerm(value);
 	}
 
-	public static <a extends Term> StringTerm Show(Context context, ThunkMaker<a> tma, a x_614)
+	/**
+	 * Print term to string.
+	 * @param ctx
+	 * @param tma
+	 * @param term
+	 * @return
+	 */
+	public static <a extends Term> StringTerm Show(Context ctx, ThunkMaker<a> tma, a term)
 	{
-		throw new RuntimeException();
+		return stringTerm(term.toString());
 	}
 
-	public static <a extends Term> a IfDef(Context context, ThunkMaker<a> tm, StringTerm key, LazyTerm<a> def, LazyTerm<a> notdef)
+	public static <a extends Term> a IfDef(Context ctx, ThunkMaker<a> tm, StringTerm key, LazyTerm<a> def, LazyTerm<a> notdef)
 	{
 		java.lang.String value = System.getProperty(key.unbox());
 		key.release();
 		if (value != null)
 		{
 			notdef.release();
-			return def.eval(context);
+			return def.eval(ctx);
 		}
 
 		def.release();
-		return notdef.eval(context);
+		return notdef.eval(ctx);
 	}
 
 }

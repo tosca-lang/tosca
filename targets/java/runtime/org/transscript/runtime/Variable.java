@@ -1,23 +1,30 @@
 // Copyright (c) 2016 IBM Corporation.
+
 package org.transscript.runtime;
 
-public class Variable implements Ref
+/**
+ * Generic syntactic variable
+ * @author Lionel Villard
+ */
+public class Variable extends RefImpl implements Ref
 {
 
-	/** Name */
+	/** Global unique name (within a {@link Context} */
 	String name;
 
 	/** Count the number of {@link VariableUse} using this variable */
 	int uses;
 
-	/** */
-	public Variable(String name)
+	/** 
+	 * Create a variable of given unique name
+	 */
+	protected Variable(String name)
 	{
 		this.name = name;
 	}
 
 	/**
-	 * @return The variable name.
+	 * @return The globally unique variable name.
 	 */
 	public String name()
 	{
@@ -29,7 +36,7 @@ public class Variable implements Ref
 	 */
 	public Variable ref()
 	{
-		return (Variable) Ref.ref(this);
+		return (Variable) super.ref();
 	}
 
 	/**
@@ -40,7 +47,7 @@ public class Variable implements Ref
 		uses++;
 		return newVarUse();
 	}
-	
+
 	/**
 	 * Unuse variable use.
 	 * 
@@ -52,13 +59,21 @@ public class Variable implements Ref
 		//use.variable = null;
 		uses--;
 	}
-	
+
 	/**
 	 * Creates a new variable use
 	 */
 	protected VariableUse newVarUse()
 	{
 		return new VariableUse(this);
+	}
+
+	/**
+	 * Make a new variable of the same type as this one.
+	 */
+	public Variable make(Context ctx, String hint)
+	{
+		return new Variable(ctx.makeGlobalName(hint));
 	}
 
 	@Override
