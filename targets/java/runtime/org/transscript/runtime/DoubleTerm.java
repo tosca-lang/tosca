@@ -5,6 +5,7 @@ package org.transscript.runtime;
 import java.util.function.Function;
 
 import org.transscript.runtime.Functions.ThunkMaker;
+import org.transscript.runtime.StringTerm.VarStringTermUse;
 
 /**
  * 
@@ -35,12 +36,12 @@ public interface DoubleTerm extends Term
 	{
 		return new LazyDoubleTerm(f);
 	}
-	
+
 	static ThunkMaker<DoubleTerm> lazyDoubleTermMaker()
 	{
 		return DoubleTerm::lazyDoubleTerm;
 	}
-	
+
 	static class DoubleValue implements DoubleTerm
 	{
 		// State
@@ -65,13 +66,46 @@ public interface DoubleTerm extends Term
 		@Override
 		public String toString()
 		{
-			return Double.toString(value);
+			// TODO: FIX BY ADDING INTEGERTERM
+			return Integer.toString((int)value);
 		}
 
 		@Override
 		public double unbox()
 		{
 			return value;
+		}
+
+	}
+
+	public static class VarDoubleTerm extends Variable
+	{
+
+		public VarDoubleTerm(String name)
+		{
+			super(name);
+		}
+
+		@Override
+		protected VariableUse newVarUse()
+		{
+			return new VarDoubleTermUse(this);
+		}
+
+		@Override
+		public VarDoubleTermUse use()
+		{
+			return (VarDoubleTermUse) super.use();
+		}
+
+	}
+
+	class VarDoubleTermUse extends VariableUse implements StringTerm
+	{
+
+		protected VarDoubleTermUse(Variable variable)
+		{
+			super(variable);
 		}
 
 	}

@@ -291,15 +291,15 @@ public class TermParserListener extends TransScriptMetaParserBaseListener
 	@Override
 	public void enterSortAnno(SortAnnoContext ctx)
 	{
-		if (sink4 != null)
-			sink4 = sink4.startType();
+	//	if (sink4 != null)
+	//		sink4 = sink4.startType();
 	}
 
 	@Override
 	public void exitSortAnno(SortAnnoContext ctx)
 	{
-		if (sink4 != null)
-			sink4 = sink4.endType();
+	//	if (sink4 != null)
+	//		sink4 = sink4.endType();
 	}
 
 	// ---  

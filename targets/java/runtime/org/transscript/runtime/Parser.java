@@ -4,15 +4,11 @@ package org.transscript.runtime;
 
 import java.io.Reader;
 import java.util.Map;
-
-import net.sf.crsx.Factory;
  
 /**
- * Instances permit creation of new CRSX terms from text.
- * Parsers must have a nullary constructor, and the first thing after construction is that the {@link #setFactory(Factory)} method is invoked.
+ * Instances permit creation of new  ransSCript terms from text.
  * 
  * @author Lionel Villard
- * @author Kristoffer Rose 
  */
 public interface Parser
 {
@@ -21,8 +17,9 @@ public interface Parser
 	public Iterable<String> categories();
 
 	/**
-	 * All parsers for actual use must be retrieved by this method, providing a factory.
-	 * Each parser retrieved in this way can be used once, and be aware that CRSX may keep several parsers running simultaneously.
+	 * All parsers for actual use must be retrieved by this method.
+	 * Each parser retrieved in this way can be used once, 
+	 * and be aware that TransScript may keep several parsers running simultaneously.
 	 */
 	public Parser parser();
 	
@@ -30,7 +27,7 @@ public interface Parser
 	 * Read complete term from text and send it to a sink. 
 	 * 
 	 * @param sink to send the term that is read to
-	 * @param category to parse (or null for the default or "?xml" for CRSX/XML)
+	 * @param category to parse (or null for the default)
 	 * @param reader with term to parse - left ready to read text after the term
 	 * @param unit to identify the source of the compilation unit (null for none)
 	 * @param line number of the first line (1-based)

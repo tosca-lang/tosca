@@ -241,7 +241,9 @@ public class StringExtern
 		DoubleTerm evalnum = num.eval(context);
 		if (evalnum.data())
 		{
-			StringTerm result = stringTerm(Double.toString(evalnum.unbox()));
+			
+			// FIXME
+			StringTerm result = stringTerm(Integer.toString((int) evalnum.unbox()));
 			evalnum.release();
 
 			return result;

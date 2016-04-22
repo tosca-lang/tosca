@@ -264,19 +264,19 @@ public class TextSink extends Sink
 
 		return this;
 	}
-
-	@Override
-	public Sink startType()
-	{
-		print(":");
-		return this;
-	}
-
-	@Override
-	public Sink endType()
-	{
-		return this;
-	}
+//
+//	@Override
+//	public Sink startType()
+//	{
+//		print(":");
+//		return this;
+//	}
+//
+//	@Override
+//	public Sink endType()
+//	{
+//		return this;
+//	}
 
 	@Override
 	public Sink endMetaApplication()

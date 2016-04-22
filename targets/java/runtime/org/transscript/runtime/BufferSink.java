@@ -190,28 +190,28 @@ public class BufferSink extends Sink
 		subIndex.push(0);
 		return this;
 	}
-
-	@Override
-	public BufferSink startType()
-	{
-		savedTerms = terms;
-		savedSubs = subIndex;
-		return this;
-	}
-
-	public BufferSink endType()
-	{
-		terms = savedTerms;
-		savedTerms = null;
-		subIndex = savedSubs;
-		savedSubs = null;
-
-		Term t = lastTerm();
-		t.setType(type);
-
-		type = null;
-		return this;
-	}
+//
+//	@Override
+//	public BufferSink startType()
+//	{
+//		savedTerms = terms;
+//		savedSubs = subIndex;
+//		return this;
+//	}
+//
+//	public BufferSink endType()
+//	{
+//		terms = savedTerms;
+//		savedTerms = null;
+//		subIndex = savedSubs;
+//		savedSubs = null;
+//
+//		Term t = lastTerm();
+//		t.setType(type);
+//
+//		type = null;
+//		return this;
+//	}
 
 	@Override
 	public BufferSink bind(Variable binder)

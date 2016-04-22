@@ -13,13 +13,14 @@ import org.transscript.runtime.Sink;
  * TransScript parser backed-by a Crsx3 parser
  * 
  * @author Lionel Villard
+ * @deprecated
  */
-class TransScriptParserAdapter implements Parser
+class TSParserAdapter implements Parser
 {
 	/** The real parser */
 	protected Crsx3Parser parser;
 
-	TransScriptParserAdapter(Crsx3Parser parser)
+	TSParserAdapter(Crsx3Parser parser)
 	{
 		this.parser = parser;
 	}
@@ -33,7 +34,7 @@ class TransScriptParserAdapter implements Parser
 	@Override
 	public Parser parser()
 	{
-		return new TransScriptParserAdapter((Crsx3Parser) parser.parser(parser.factory));
+		return new TSParserAdapter((Crsx3Parser) parser.parser(parser.factory));
 	}
 
 	@Override

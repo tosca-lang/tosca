@@ -51,6 +51,7 @@ compileJava {
     targetCompatibility = 1.8
 
 	dependsOn 'compileTransScript'
+	dependsOn ':targets:java:nparsers:buildNewParsers'
 }
 
 //clean.dependsOn cleanBuildTransScriptParsers
@@ -63,8 +64,8 @@ sourceSets {
     main {
         java {
             srcDir 'runtime'
-            srcDir  project.hasProperty('dev') ? 'compilerdev' : 'compiler'
-			srcDir 'parsers/src'
+            srcDir 'compiler'
+			srcDir 'nparsers/src'
         }
 
 		// Include TransScript source code for interpreter mode. Temporary.

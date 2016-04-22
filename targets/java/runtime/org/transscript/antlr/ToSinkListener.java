@@ -27,123 +27,109 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.transscript.parser.TransScriptMetaLexer;
 import org.transscript.parser.TransScriptMetaParser;
 import org.transscript.runtime.ConstructionDescriptor;
+import org.transscript.runtime.Sink;
+import org.transscript.runtime.StringUtils;
 import org.transscript.runtime.Variable;
 
-import net.sf.crsx.CRS;
-import net.sf.crsx.CRSException;
-import net.sf.crsx.Constructor;
-import net.sf.crsx.Sink;
-import net.sf.crsx.generic.GenericFactory;
-import net.sf.crsx.util.Buffer;
-import net.sf.crsx.util.ExtensibleMap;
-import net.sf.crsx.util.LinkedExtensibleMap;
-
 /**
- * Create TransScript term from ANTLR parse events.
+ * Convert ANTLR parse tree events to {@link Sink} events.
  * 
- * <p>
- * Temporarily support CRSX3 sink until the ANTLR-based parser generator is ported to TransScript
  * 
  * @author Lionel Villard
  */
-public class SinkAntlrListener implements ParseTreeListener
+public class ToSinkListener implements ParseTreeListener
 {
 	// Static helper
 
 	public static void fireEnterZOM(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).enterZOM(_ctx));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).enterZOM(_ctx));
 	}
 
 	public static void fireExitZOM(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).exitZOM(_ctx));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).exitZOM(_ctx));
 	}
 
 	public static void fireEnterOPT(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).enterOPT(_ctx));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).enterOPT(_ctx));
 	}
 
 	public static void fireExitOPT(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).exitOPT(_ctx));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).exitOPT(_ctx));
 	}
 
 	public static void fireEnterAlt(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).enterAlt(_ctx));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).enterAlt(_ctx));
 	}
 
 	public static void fireEnterAlt(List<ParseTreeListener> listeners, ParserRuleContext _ctx, String name)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).enterAlt(_ctx, name));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).enterAlt(_ctx, name));
 	}
 
 	public static void fireExitAlt(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).exitAlt(_ctx));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).exitAlt(_ctx));
 	}
 
 	public static void fireHide(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).hide(_ctx));
-	}
-
-	public static void fireTerm(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
-	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).term(_ctx));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).hide(_ctx));
 	}
 
 	public static void fireTerm(List<ParseTreeListener> listeners, ParserRuleContext _ctx, String type)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).term(_ctx, type));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).term(_ctx, type));
 	}
 
 	public static void fireTail(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).tail(_ctx));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).tail(_ctx));
 	}
 
 	public static void fireEmbed(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).embed(_ctx));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).embed(_ctx));
 	}
 
 	public static void fireEnterSymbol(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).enterSymbol(_ctx));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).enterSymbol(_ctx));
 	}
 
 	public static void fireExitSymbol(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).exitSymbol(_ctx));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).exitSymbol(_ctx));
 	}
 
 	public static void fireEnterBinder(List<ParseTreeListener> listeners, ParserRuleContext _ctx, String name)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).enterBinder(_ctx, name));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).enterBinder(_ctx, name));
 	}
 
 	public static void fireExitBinder(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).exitBinder(_ctx));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).exitBinder(_ctx));
 	}
 
 	public static void fireEnterBinds(List<ParseTreeListener> listeners, ParserRuleContext _ctx, String names)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).enterBinds(_ctx, names));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).enterBinds(_ctx, names));
 	}
 
 	public static void fireExitBinds(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((SinkAntlrListener) l).exitBinds(_ctx));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).exitBinds(_ctx));
 	}
 
 	private static void fire(List<ParseTreeListener> listeners, ParserRuleContext _ctx, Consumer<ParseTreeListener> apply)
 	{
 		if (listeners != null)
-			listeners.stream().filter(l -> l instanceof SinkAntlrListener).forEach(apply);
+			listeners.stream().filter(l -> l instanceof ToSinkListener).forEach(apply);
 	}
 
 	// Variable stack marker
@@ -155,27 +141,19 @@ public class SinkAntlrListener implements ParseTreeListener
 		PARSE, START_EMBED, PARSE_EMBED, NAME, SKIP
 	}
 
-	enum TokenSort {
-		STRING, NUMERIC, TERM
+	enum TokenKind {
+		STRING, NUMERIC, METAVAR
 	}
 
 	// The state.
 
-	/** The CRSX3 sink */
-	private Sink sink;
-
-	/** The CRSX3 list constructors */
-	private Constructor cons;
-	private Constructor nil;
-
-	/** The CRSX4 sink */
-	private org.transscript.runtime.Sink sink4;
+	/** TransScript sink */
+	private Sink sink4;
 
 	/** The List construction descriptors */
 	final protected ConstructionDescriptor nilDesc;
 	final protected ConstructionDescriptor consDesc;
-	
-	private GenericFactory factory;
+
 	private ArrayDeque<MutableInt> consCount;
 	private ArrayDeque<ParserRuleContext> ruleContext;
 	private MutableInt marker;
@@ -208,64 +186,23 @@ public class SinkAntlrListener implements ParseTreeListener
 	private ArrayDeque<Object> freshes;
 
 	/** Current token sort */
-	private TokenSort sort;
+	private TokenKind kind;
 
 	/** Meta term type */
-	private String termType;
+	//private String termType;
 
-	/** Listener state? */
+	/** Listener state */
 	private State state;
 
-	/** Is embedded code crsx4?  */
-	private boolean embedCrsx4;
-
 	/**
-	 * Create an crsx ANTLR listener for CRSX3
+	 * Create an TS ANTLR listener 
 	 * @param factory
 	 * @param sink
 	 * @param prefix    Prefix to apply to constructor names
 	 * @param metachar  Language specific meta variable prefix
 	 * @param parser
 	 */
-	public SinkAntlrListener(GenericFactory factory, Sink sink, String prefix, String metachar, Parser parser,
-			Map<String, org.transscript.runtime.Variable> bounds)
-	{
-		this.factory = factory;
-		this.sink = sink;
-		this.consCount = new ArrayDeque<>();
-		this.ruleContext = new ArrayDeque<>();
-
-		this.cons = sink.makeConstructor("$Cons");
-		this.nil = sink.makeConstructor("$Nil");
-		this.marker = new MutableInt(-1);
-		this.parser = parser;
-		this.prefix = prefix;
-		this.metachar = metachar;
-		this.state = State.PARSE;
-		this.sort = TokenSort.STRING;
-
-		this.binderNames = new HashMap<>();
-		this.bounds = new ArrayDeque<>();
-		if (bounds != null)
-			this.bounds.addAll(bounds.values());
-		this.freshes = new ArrayDeque<>();
-
-		this.embedCrsx4 = prefix.equals("Text4_");
-		
-		this.nilDesc = null;
-		this.consDesc = null;
-
-	}
-
-	/**
-	 * Create an crsx ANTLR listener for CRSX4
-	 * @param factory
-	 * @param sink
-	 * @param prefix    Prefix to apply to constructor names
-	 * @param metachar  Language specific meta variable prefix
-	 * @param parser
-	 */
-	public SinkAntlrListener(org.transscript.runtime.Sink sink, String prefix, String metachar, Parser parser,
+	public ToSinkListener(Sink sink, String prefix, String metachar, Parser parser,
 			Map<String, org.transscript.runtime.Variable> bounds)
 	{
 		this.sink4 = sink;
@@ -277,7 +214,7 @@ public class SinkAntlrListener implements ParseTreeListener
 		this.prefix = prefix;
 		this.metachar = metachar;
 		this.state = State.PARSE;
-		this.sort = TokenSort.STRING;
+		this.kind = TokenKind.STRING;
 
 		this.binderNames = new HashMap<>();
 		this.bounds = new ArrayDeque<>();
@@ -285,25 +222,9 @@ public class SinkAntlrListener implements ParseTreeListener
 			this.bounds.addAll(bounds.values());
 		this.freshes = new ArrayDeque<>();
 
-		this.embedCrsx4 = prefix.equals("Text4_") || prefix.equals("TransScript_");
-
 		this.nilDesc = sink.context().lookupDescriptor("Nil");
 		this.consDesc = sink.context().lookupDescriptor("Cons");
 
-	}
-
-	/**
-	 *  Add location properties to constructor
-	 */
-	protected Constructor locate(Token token, Constructor c)
-	{
-		return c;
-
-		// No location until crsx4 can compile crsx4
-
-		//		int column = token.getCharPositionInLine();
-		//		int line = token.getLine();
-		//		return Util.wrapWithLocation(sink, c, parser.getInputStream().getSourceName(), line, column);
 	}
 
 	/**
@@ -332,97 +253,108 @@ public class SinkAntlrListener implements ParseTreeListener
 		tail = false;
 	}
 
+	/**
+	 * Closing list.
+	 * @param context
+	 */
 	public void exitZOM(ParserRuleContext context)
 	{
 		if (!tail)
 		{
-			if (sink != null)
-				sink = sink.start(nil).end();
-			else
-				sink4 = sink4.start(nilDesc).end();
+			sink4 = sink4.start(nilDesc).end();
 		}
 
 		int count = consCount.pop().v;
 
-		if (sink != null)
-		{
-			while (count-- > 0)
-				sink = sink.end();
-		}
-		else
-		{
-			while (count-- > 0)
-				sink4 = sink4.end();
-		}
+		while (count-- > 0)
+			sink4 = sink4.end();
+
 		tail = false;
 	}
 
+	/**
+	 * Receive the notification the next token is optional.
+	 * @param context
+	 */
 	public void enterOPT(ParserRuleContext context)
 	{
 		enterZOM(context);
 	}
 
+	/**
+	 * Closing optional token
+	 * @param context
+	 */
 	public void exitOPT(ParserRuleContext context)
 	{
 		exitZOM(context);
 	}
 
+	/**
+	 * Start a rule alternative
+	 * 
+	 * Generate a constructor of the form <prefix><rulename>
+	 *
+	 * @param context
+	 */
 	public void enterAlt(ParserRuleContext context)
 	{
 		ParserRuleContext parentCtx = ruleContext.peek();
 		String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
 
-		if (sink != null)
-			sink = sink.start(locate(parentCtx.getStart(), sink.makeConstructor(prefix + ruleName)));
-		else
-		{
-			sendLocation(parentCtx.getStart());
-			sink4 = sink4.start(sink4.context().lookupDescriptor(prefix + ruleName));
-		}
+		sendLocation(parentCtx.getStart());
+		sink4 = sink4.start(sink4.context().lookupDescriptor(prefix + ruleName));
 	}
 
+	/**
+	 * Start a rule alternative of a given name
+	 *
+	 * Generate a constructor of the form <prefix><rulename>_A<name>
+	 * 
+	 * @param context
+	 * @param name
+	 */
 	public void enterAlt(ParserRuleContext context, String name)
 	{
 		ParserRuleContext parentCtx = ruleContext.peek();
 		String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
 
-		if (sink != null)
-			sink = sink.start(locate(parentCtx.getStart(), sink.makeConstructor(prefix + ruleName + "_A" + name)));
-		else
-		{
-			sendLocation(parentCtx.getStart());
-			sink4 = sink4.start(sink4.context().lookupDescriptor(prefix + ruleName + "_A" + name));
-		}
+		sendLocation(parentCtx.getStart());
+		sink4 = sink4.start(sink4.context().lookupDescriptor(prefix + ruleName + "_A" + name));
+
 	}
 
+	/**
+	 * Closing alternative
+	 * @param context
+	 */
 	public void exitAlt(ParserRuleContext context)
 	{
-		if (sink != null)
-			sink = sink.end();
-		else
-			sink4 = sink4.end();
-
+		// end construction
+		sink4 = sink4.end();
 	}
 
+	/**
+	 * Receive the notification the next token is an embedded program.
+	 * @param context
+	 */
 	public void embed(ParserRuleContext context)
 	{
 		state = State.START_EMBED;
 	}
 
-	/** Receive the notification the next token is of type term */
-	public void term(ParserRuleContext context)
-	{
-		sort = TokenSort.TERM;
-	}
-
-	/** Receive the notification the next token is of type term */
+	/** 
+	 * Receive the notification the next token is a metavariable of the given type 
+	 */
 	public void term(ParserRuleContext _ctx, String type)
 	{
-		termType = type;
-		sort = TokenSort.TERM;
+	//	termType = type;
+		kind = TokenKind.METAVAR;
 	}
 
-	/** Receive the notification the next token match all of a list tail */
+	/** 
+	 * Receive the notification the next token matches list tail
+	 */
 	public void tail(ParserRuleContext context)
 	{
 		tail = true;
@@ -490,20 +422,17 @@ public class SinkAntlrListener implements ParseTreeListener
 		assert state == State.NAME;
 		assert!tail : "Cannot declare a name in a list tail";
 
-		if (sort == TokenSort.TERM)
+		if (kind == TokenKind.METAVAR)
 		{
 			// received a metavariable. 
 			String metaname = fixupMetachar(binderName);
-			if (sink != null)
-				sink = sink.startMetaApplication(metaname).endMetaApplication();
-			else
-			{
-				sink4 = sink4.startMetaApplication(metaname).endMetaApplication();
-			//	if (termType != null)
-			//		sink4 = sink4.startType().literal(termType).endType();
-			}
+			sink4 = sink4.startMetaApplication(metaname).endMetaApplication();
 
-			sort = TokenSort.STRING;
+			// TODO: Send type when mode is META
+			//if (termType != null)
+			//	sink4 = sink4.type(termType);
+
+			kind = TokenKind.STRING;
 		}
 		else
 		{
@@ -513,20 +442,14 @@ public class SinkAntlrListener implements ParseTreeListener
 				if (var == MARKER)
 					return false;
 
-				if (sink == null)
-					return ((Variable) var).name().equals(binderName);
-				else
-					return ((net.sf.crsx.Variable) var).name().equals(binderName);
+				return ((Variable) var).name().equals(binderName);
 			}).findFirst();
 
 			if (!variable.isPresent())
 			{
 				// Try among fresh variables
 				variable = freshes.stream().filter(var -> {
-					if (sink == null)
-						return ((Variable) var).name().equals(binderName);
-					else
-						return ((net.sf.crsx.Variable) var).name().equals(binderName);
+					return ((Variable) var).name().equals(binderName);
 
 				}).findFirst();
 			}
@@ -534,20 +457,13 @@ public class SinkAntlrListener implements ParseTreeListener
 			if (!variable.isPresent())
 			{
 				// Create new fresh variable.
-				if (sink == null)
-					variable = Optional.of(new Variable(binderName));
-				else
-					variable = Optional.of(sink.makeVariable(binderName, false));
+				variable = Optional.of(new Variable(binderName));
 
 				freshes.push(variable.get());
 			}
 
 			// Can now emit variable
-			if (sink == null)
-				sink4 = sink4.use((Variable) variable.get());
-			else
-				sink = sink.use((net.sf.crsx.Variable) variable.get());
-
+			sink4 = sink4.use((Variable) variable.get());
 		}
 		state = State.PARSE;
 	}
@@ -560,7 +476,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	public void enterBinds(ParserRuleContext context, String names)
 	{
 		String[] snames = names.trim().split(" ");
-		Object[] binders = sink == null ? new Variable[snames.length] : new net.sf.crsx.Variable[snames.length];
+		Object[] binders = new Variable[snames.length];
 
 		bounds.add(MARKER);
 		for (int i = 0; i < snames.length; i++)
@@ -569,20 +485,13 @@ public class SinkAntlrListener implements ParseTreeListener
 			String name = binderNames.remove(id); // consume binder name 
 			assert name != null : "Invalid grammar: binds used without binder/name";
 
-			if (sink == null)
-				binders[i] = new Variable(name);
-			else
-				binders[i] = factory.makeVariable(name, false);
+			binders[i] = new Variable(name);
 
 			bounds.push(binders[i]);
 		}
 
-		if (sink == null)
-		{
-			for (int i = 0; i < binders.length; i++)
-				sink4 = sink4.bind((Variable) binders[i]);
-		} else
-			sink = sink.binds((net.sf.crsx.Variable[]) binders);
+		for (int i = 0; i < binders.length; i++)
+			sink4 = sink4.bind((Variable) binders[i]);
 	}
 
 	/**
@@ -606,10 +515,7 @@ public class SinkAntlrListener implements ParseTreeListener
 		{
 			if (!tail)
 			{
-				if (sink != null)
-					sink = sink.start(cons);
-				else
-					sink4 = sink4.start(consDesc);
+				sink4 = sink4.start(consDesc);
 
 				consCount.peek().v++;
 			}
@@ -650,44 +556,29 @@ public class SinkAntlrListener implements ParseTreeListener
 					{
 						if (!tail)
 						{
-							if (sink != null)
-								sink = sink.start(cons);
-							else
-								sink4 = sink4.start(consDesc);
-
+							sink4 = sink4.start(consDesc);
 							consCount.peek().v++;
 						}
 					}
 
-					switch (sort)
+					switch (kind)
 					{
 						case NUMERIC :
 						case STRING :
-							if (sink != null)
-								sink = sink.start(
-										locate(context.getSymbol(), sink.makeLiteral(context.getText(), CRS.STRING_SORT))).end();
-							else
-							{
-								sendLocation(context.getSymbol());
+							sendLocation(context.getSymbol());
 
-								String t = context.getText();
+							String t = context.getText();
 
-								// HACK: should not unquote here!
-								if (t.length() > 0 && t.charAt(0) == '"' && t.charAt(t.length() - 1) == '"')
-									t = t.substring(1).substring(0, t.length() - 2);
+							// TODO: SHOULD FIND A BETTER WAY, like another sort case.
+							if (t.startsWith("\""))
+								t = StringUtils.unquoteJava(t);
 
-								sink4 = sink4.literal(t);
-							}
+							sink4 = sink4.literal(t);
 							break;
-						case TERM :
+						case METAVAR :
 							String metaname = fixupMetachar(context.getText());
 
-							if (sink != null)
-								sink = sink.startMetaApplication(metaname);
-							else
-							{
-								sink4 = sink4.startMetaApplication(metaname);
-							}
+							sink4 = sink4.startMetaApplication(metaname);
 
 							// Add directly bound variable.
 							// REVISIT: should be user-specified.
@@ -695,27 +586,20 @@ public class SinkAntlrListener implements ParseTreeListener
 							{
 								if (variable == MARKER)
 									break;
-								if (sink != null)
-									sink = sink.use((net.sf.crsx.Variable) variable);
-								else
-									sink4 = sink4.use((Variable) variable);
+								sink4 = sink4.use((Variable) variable);
 							}
 
-							if (sink != null)
-								sink = sink.endMetaApplication();
-							else
-							{
-								sink4 = sink4.endMetaApplication();
-				//				if (termType != null)
-				//					sink4 = sink4.startType().literal(termType).endType();
-							}
+							sink4 = sink4.endMetaApplication();
+
+							// TODO: send type when meta mode
+							//if (termType != null)
+							//	sink4 = sink4.ype);
 							break;
 						default :
 							break;
 					}
 
-					sort = TokenSort.STRING;
-
+					kind = TokenKind.STRING;
 				}
 				break;
 			case START_EMBED :
@@ -734,61 +618,8 @@ public class SinkAntlrListener implements ParseTreeListener
 
 					Reader reader = new StringReader(text);
 
-					if (sink != null)
-					{
-						if (embedCrsx4)
-						{
-							//System.out.println("parse embedded: " + text);
-
-							parseCrsx4Term(reader);
-						}
-						else
-						{
-							try
-							{
-								sink = factory.parser(factory).parse(
-										sink, null, reader, "", token.getLine(), token.getCharPositionInLine(), toCrsx3Bound());
-							}
-							catch (CRSException | IOException e)
-							{
-								throw new RuntimeException(e);
-							}
-						}
-					}
-					else
-					{
-						if (embedCrsx4)
-						{
-							parseCrsx4Term(reader);
-						}
-						else
-						{
-							factory = new GenericFactory();
-							// Temporary: parse using crsx3 classic parser
-							Buffer buffer = new Buffer(factory);
-
-							try
-							{
-
-								factory.parser(factory).parse(
-										buffer.sink(), null, reader, "", token.getLine(), token.getCharPositionInLine(),
-										toCrsx3Bound());
-								net.sf.crsx.Term t3 = buffer.term(true);
-								String t3str = t3.toString();
-
-								// Transform to crsx4
-								t3str = t3str.replace("[", "(").replace("]", ")").replace("x .", "[x] ->");
-
-								parseCrsx4Term(new StringReader(t3str));
-
-							}
-							catch (CRSException | IOException e)
-							{
-								throw new RuntimeException(e);
-							}
-
-						}
-					}
+					// TODO: location information.
+					parseCrsx4Term(reader);
 				}
 				state = State.PARSE;
 				break;
@@ -818,15 +649,11 @@ public class SinkAntlrListener implements ParseTreeListener
 			parser.setBuildParseTree(false);
 
 			TermParserListener listener;
-			if (sink == null)
-				listener = new TermParserListener(sink4, bounds, freshes, nilDesc, consDesc);
-			else
-				listener = new TermParserListener(factory, sink, bounds, freshes);
+			listener = new TermParserListener(sink4, bounds, freshes, nilDesc, consDesc);
 			parser.addParseListener(listener);
 
 			parser.addErrorListener(new DiagnosticErrorListener(true));
 			parser.term_EOF();
-			sink = listener.sink3;
 			sink4 = listener.sink4;
 
 		}
@@ -838,46 +665,26 @@ public class SinkAntlrListener implements ParseTreeListener
 	}
 
 	/**
-	 * Convert bound variable structure to one compatible with crsx3
-	 * @return
-	 */
-	private ExtensibleMap<String, net.sf.crsx.Variable> toCrsx3Bound()
-	{
-		ExtensibleMap<String, net.sf.crsx.Variable> map = new LinkedExtensibleMap<>();
-		for (Object v : bounds)
-		{
-			if (v instanceof net.sf.crsx.Variable)
-				map = map.extend(((net.sf.crsx.Variable) v).name(), (net.sf.crsx.Variable) v);
-		};
-		for (Object v : freshes)
-		{
-			if (v instanceof net.sf.crsx.Variable)
-				map = map.extend(((net.sf.crsx.Variable) v).name(), (net.sf.crsx.Variable) v);
-		};
-		return map;
-	}
-
-	/**
 	 * Convert parser specific metacharacter to Crsx meta character (#).
 	 */
 	protected String fixupMetachar(String metavar)
 	{
 		return "#" + metavar.substring(metachar.length());
 	}
-
-	/**
-	 * Convert raw type to proper TransScript type.
-	 */
-	private String fixupType(String type)
-	{
-		if (type.endsWith("_TOK"))
-			return "String";
-
-		final boolean islist = type.endsWith("_OOM") || type.endsWith("_ZOM") || type.endsWith("_OPT");
-		type = islist ? type.substring(0, type.length() - "_ZOM".length()) : type;
-
-		return (islist ? "List<" : "") + prefix + type + "_sort" + (islist ? ">" : "");
-	}
+//
+//	/**
+//	 * Convert raw type to proper TransScript type.
+//	 */
+//	private String fixupType(String type)
+//	{
+//		if (type.endsWith("_TOK"))
+//			return "String";
+//
+//		final boolean islist = type.endsWith("_OOM") || type.endsWith("_ZOM") || type.endsWith("_OPT");
+//		type = islist ? type.substring(0, type.length() - "_ZOM".length()) : type;
+//
+//		return (islist ? "List<" : "") + prefix + type + "_sort" + (islist ? ">" : "");
+//	}
 
 	// Utility classes
 

@@ -7,58 +7,50 @@ import java.io.Reader;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Map;
 import java.util.stream.Stream;
-
-import net.sf.crsx.CRSException;
-import net.sf.crsx.Factory;
-import net.sf.crsx.Sink;
-import net.sf.crsx.Term;
-import net.sf.crsx.Variable;
-import net.sf.crsx.generic.GenericFactory;
-import net.sf.crsx.util.ExtensibleMap;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ConsoleErrorListener;
 import org.antlr.v4.runtime.Lexer;
-import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.ATN;
 import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.dfa.DFA;
+import org.transscript.runtime.Parser;
+import org.transscript.runtime.Sink;
+import org.transscript.runtime.Variable;
 
 /**
- * CRSX4 PG to CRSX3 parser bridge.
+ * Base class for meta and term parsers.
  * 
  * @author villardl
  */
-public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
+public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Cloneable
 {
 	// State
-
-	/** The CRSX 3 factory */
-	protected GenericFactory factory;
 
 	/** Had error? */
 	protected boolean error;
 
 	// Constructor
 
-	/** Constructor used by CRSX3 to gather information about categories */
-	protected Crsx3Parser()
+	/** Constructor used by TS to gather information about categories */
+	protected TSParser()
 	{
 		super(null);
-		addErrorListener(new CrsxAntlrErrorListener());
+		addErrorListener(new TSAntlrErrorListener());
 
 	}
 
-	protected Crsx3Parser(TokenStream input)
+	protected TSParser(TokenStream input)
 	{
 		super(input);
-		addErrorListener(new CrsxAntlrErrorListener());
+		addErrorListener(new TSAntlrErrorListener());
 	}
 
 	// Local methods overridden by generated parser
@@ -90,9 +82,9 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 	 * Return Crsx4 compatible parser 
 	 * @return
 	 */
-	public org.transscript.runtime.Parser asCrsx4Parser()
+	public Parser asCrsx4Parser()
 	{
-		return new TSParserAdapter(this);
+		return this;
 	}
 
 	/**
@@ -154,7 +146,6 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 		{
 			throw new RuntimeException(e);
 		}
-
 	}
 
 	// Implements Parser
@@ -187,13 +178,12 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 	}
 
 	@Override
-	public net.sf.crsx.Parser parser(Factory<? extends Term> factory)
+	public Parser parser()
 	{
 		try
 		{
-			Crsx3Parser parser = (Crsx3Parser) clone();
+			TSParser parser = (TSParser) clone();
 			parser.reset();
-			parser.factory = (GenericFactory) factory;
 			return parser;
 		}
 		catch (CloneNotSupportedException e)
@@ -203,27 +193,22 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 	}
 
 	@Override
-	public Sink parse(Sink sink, String category, Reader reader, String unit, int line, int column, ExtensibleMap<String, Variable> bound)
-			throws CRSException, IOException
+	public Sink parse(Sink sink, String category, Reader reader, String unit, int line, int column, Map<String, Variable> bounds)
 	{
 		category = supportCategory(category);
 		if (category == null)
-			throw new CRSException(getClass().getCanonicalName() + " parser cannot handle the category " + category);
+			throw new RuntimeException(getClass().getCanonicalName() + " parser cannot handle the category " + category);
 
-		setupInput(reader, line, column);
-		//		CharStream stream = new ANTLRInputStream(reader);
-		//
-		//		Lexer source = newLexer(stream);
-		//		source.setLine(line);
-		//		source.setCharPositionInLine(column);
-		//		TokenStream input = new CommonTokenStream(source);
-		//
-		//		setInputStream(input);
-		//		initATN();
-		//
-		//		setBuildParseTree(false);
+		try
+		{
+			setupInput(reader, line, column);
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
 
-		SinkAntlrListener listener = new SinkAntlrListener(factory, sink, _prefix(), _metachar(), this, null);
+		ToSinkListener listener = new ToSinkListener(sink, _prefix(), _metachar(), this, null);
 		//setTrace(true);
 		addParseListener(listener);
 
@@ -231,7 +216,7 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 		realParse(category);
 
 		if (error)
-			throw new CRSException("Parse error");
+			throw new RuntimeException("Parse error"); // TODO: better error message.
 
 		return sink;
 	}
@@ -272,10 +257,31 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 		throw new UnsupportedOperationException();
 	}
 
-	class CrsxAntlrErrorListener extends ConsoleErrorListener
+	class TSAntlrErrorListener extends ConsoleErrorListener
 	{
-
+		
 		// Error listener
+
+		@Override
+		public void reportAmbiguity(org.antlr.v4.runtime.Parser recognizer, DFA dfa, int startIndex, int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs)
+		{
+			// TODO Auto-generated method stub
+			super.reportAmbiguity(recognizer, dfa, startIndex, stopIndex, exact, ambigAlts, configs);
+		}
+
+		@Override
+		public void reportAttemptingFullContext(org.antlr.v4.runtime.Parser recognizer, DFA dfa, int startIndex, int stopIndex, BitSet conflictingAlts, ATNConfigSet configs)
+		{
+			// TODO Auto-generated method stub
+			super.reportAttemptingFullContext(recognizer, dfa, startIndex, stopIndex, conflictingAlts, configs);
+		}
+
+		@Override
+		public void reportContextSensitivity(org.antlr.v4.runtime.Parser recognizer, DFA dfa, int startIndex, int stopIndex, int prediction, ATNConfigSet configs)
+		{
+			// TODO Auto-generated method stub
+			super.reportContextSensitivity(recognizer, dfa, startIndex, stopIndex, prediction, configs);
+		}
 
 		@Override
 		public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e)
@@ -283,27 +289,7 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 			error = true;
 			//super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e);
 		}
-
-		@Override
-		public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex, int stopIndex, boolean exact, BitSet ambigAlts, ATNConfigSet configs)
-		{
-			//System.out.println("reportAmbiguity");
-			//error = true;
-		}
-
-		@Override
-		public void reportAttemptingFullContext(Parser recognizer, DFA dfa, int startIndex, int stopIndex, BitSet conflictingAlts, ATNConfigSet configs)
-		{
-		//	System.out.println("reportAttemptingFullContext");
-			//		error = true;
-		}
-
-		@Override
-		public void reportContextSensitivity(Parser recognizer, DFA dfa, int startIndex, int stopIndex, int prediction, ATNConfigSet configs)
-		{
-			//System.out.println("reportContextSensitivity");
-			//	error = true;
-		}
+ 
 	}
 
 }

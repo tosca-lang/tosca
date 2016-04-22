@@ -98,20 +98,6 @@ public abstract class Sink
 	public abstract Sink endSubstitutes();
 	
 	/**
-	 * Start type annotation
-	 * 
-	 * @return continuation sink to use for subsequent operation
-	 */
-	public abstract Sink startType();
-	
-	/**
-	 * Ends type annotation
-	 * 
-	 * @return continuation sink to use for subsequent operation
-	 */
-	public abstract Sink endType();
-
-	/**
 	 * @return the context
 	 */
 	public abstract Context context();
