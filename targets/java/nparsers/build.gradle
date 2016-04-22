@@ -34,6 +34,7 @@ task newCoreParsers(type: PG4Task) {
 	generatedFileDir = file('src/core')
 	metaPrefix = '##'
 	ncg = true
+	np = true
 }
 
 task newTransScriptParsers(type: PG4Task) {
@@ -42,6 +43,7 @@ task newTransScriptParsers(type: PG4Task) {
 	generatedFileDir = file('src/parser')
 	metaPrefix = '##'
 	ncg = true
+    np = true
 }
 
 task newTextParsers(type: PG4Task) {
@@ -50,6 +52,7 @@ task newTextParsers(type: PG4Task) {
 	generatedFileDir = file('src/text')
 	defaultRule = 'text'
 	ncg = true
+	np = true
 }
 
 // --- Generate parsers Java code 

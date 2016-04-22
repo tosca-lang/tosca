@@ -139,23 +139,23 @@ ParserConstructs[#id, $False, #meta, #header, #members]    → ();
 ParserConstructs[#id, $True, #meta, #header, #members]    
 → %prequelConstruct*⟨
         @header ⟨ACTION: $[:, "{\n",
-             "import org.transscript.antlr.SinkAntlrListener;\n",
-             "import static org.transscript.antlr.SinkAntlrListener.fireEnterZOM;\n",
-             "import static org.transscript.antlr.SinkAntlrListener.fireExitZOM;\n",
-             "import static org.transscript.antlr.SinkAntlrListener.fireEnterOPT;\n",
-             "import static org.transscript.antlr.SinkAntlrListener.fireExitOPT;\n",
-             "import static org.transscript.antlr.SinkAntlrListener.fireEnterAlt;\n",
-             "import static org.transscript.antlr.SinkAntlrListener.fireExitAlt;\n",
-             "import static org.transscript.antlr.SinkAntlrListener.fireHide;\n",
-             "import static org.transscript.antlr.SinkAntlrListener.fireEnterSymbol;\n",
-             "import static org.transscript.antlr.SinkAntlrListener.fireExitSymbol;\n",
-             "import static org.transscript.antlr.SinkAntlrListener.fireEnterBinder;\n",
-             "import static org.transscript.antlr.SinkAntlrListener.fireExitBinder;\n",
-             "import static org.transscript.antlr.SinkAntlrListener.fireEnterBinds;\n",
-             "import static org.transscript.antlr.SinkAntlrListener.fireExitBinds;\n",
-             $[If, #meta, "import static org.transscript.antlr.SinkAntlrListener.fireTail;\n", ""],
-             $[If, #meta, "import static org.transscript.antlr.SinkAntlrListener.fireTerm;\n", ""],
-             $[If, #meta, "import static org.transscript.antlr.SinkAntlrListener.fireEmbed;\n", ""],
+             "import org.transscript.antlr.ToSinkListener;\n",
+             "import static org.transscript.antlr.ToSinkListener.fireEnterZOM;\n",
+             "import static org.transscript.antlr.ToSinkListener.fireExitZOM;\n",
+             "import static org.transscript.antlr.ToSinkListener.fireEnterOPT;\n",
+             "import static org.transscript.antlr.ToSinkListener.fireExitOPT;\n",
+             "import static org.transscript.antlr.ToSinkListener.fireEnterAlt;\n",
+             "import static org.transscript.antlr.ToSinkListener.fireExitAlt;\n",
+             "import static org.transscript.antlr.ToSinkListener.fireHide;\n",
+             "import static org.transscript.antlr.ToSinkListener.fireEnterSymbol;\n",
+             "import static org.transscript.antlr.ToSinkListener.fireExitSymbol;\n",
+             "import static org.transscript.antlr.ToSinkListener.fireEnterBinder;\n",
+             "import static org.transscript.antlr.ToSinkListener.fireExitBinder;\n",
+             "import static org.transscript.antlr.ToSinkListener.fireEnterBinds;\n",
+             "import static org.transscript.antlr.ToSinkListener.fireExitBinds;\n",
+             $[If, #meta, "import static org.transscript.antlr.ToSinkListener.fireTail;\n", ""],
+             $[If, #meta, "import static org.transscript.antlr.ToSinkListener.fireTerm;\n", ""],
+             $[If, #meta, "import static org.transscript.antlr.ToSinkListener.fireEmbed;\n", ""],
              $[If, $[Not, #meta], #header, ""],
         "}"]⟩
         
@@ -185,13 +185,11 @@ ParserConstructs[#id, $True, #meta, #header, #members]
             "protected void _exitBinds()  { fireExitBinds(_parseListeners, _ctx); }\n",
             $[If, #meta, "protected void _embed()    { fireEmbed(_parseListeners, _ctx); }\n", ""],
             $[If, #meta, "protected void _tail()     { fireTail(_parseListeners, _ctx); }\n", ""],
-            $[If, #meta, "protected void _term()     { fireTerm(_parseListeners, _ctx); }\n", ""],
             $[If, #meta, "protected void _term(String type)  { fireTerm(_parseListeners, _ctx, type); }\n", ""],
             $[If, #meta, $[:, "protected String _metachar() { return ", MetaChar["\""], ";}\n"], ""],
             $[If, $[Not, #meta], #members, ""],
         "}"]⟩ 
     ⟩;
-
 
 GetPrequelAction[$String, $List[ANTLR_prequelConstruct_sort]] :: $String;
 
