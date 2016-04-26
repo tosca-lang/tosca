@@ -30,7 +30,6 @@ import static org.transscript.compiler.parser.TransScript.TransScript_xvariable;
 import static org.transscript.compiler.std.Listdef.Cons;
 import static org.transscript.compiler.std.Listdef.Nil;
 import static org.transscript.runtime.StringTerm.stringTerm;
-import static org.transscript.runtime.StringTerm.varStringTerm;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -49,6 +48,8 @@ import org.transscript.runtime.ConstructionDescriptor;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.Pair;
 import org.transscript.runtime.Sink;
+import org.transscript.runtime.StringTerm;
+import org.transscript.runtime.StringTerm.VarStringTerm;
 import org.transscript.runtime.Term;
 import org.transscript.runtime.Variable;
 
@@ -188,7 +189,7 @@ public class MetaBufferSink extends MetaSink
 	public Sink use(Variable variable)
 	{
 		TransScript_xterm_xsort term = TransScript_xterm(
-				context, TransScript_xaterm_xA4(context, TransScript_xvariable(context, stringTerm(variable.name()), Nil(context))),
+				context, TransScript_xaterm_xA4(context, TransScript_xvariable(context, (StringTerm) variable.use(), Nil(context))),
 				Nil(context));
 
 		addSub(term);
@@ -264,6 +265,12 @@ public class MetaBufferSink extends MetaSink
 		((MetaParam) subParams.peek()).apply = true;
 		return this;
 	}
+	
+	@Override
+	public void embded(TransScript_xterm_xsort term)
+	{
+		addSub(term);		
+	}
 
 	@Override
 	public Context context()
@@ -303,7 +310,7 @@ public class MetaBufferSink extends MetaSink
 				for (int i = sparams.size() - 1; i >= 0; i--)
 				{
 					params = TransScript_xformalParams_xA1(
-							context, Nil(context), varStringTerm(context, sparams.get(sparams.size() - 1).name()), params);
+							context, Nil(context), (VarStringTerm) sparams.get(sparams.size() - 1), params);
 				}
 			}
 
@@ -316,7 +323,7 @@ public class MetaBufferSink extends MetaSink
 				for (int i = sbinders.size() - 1; i >= 0; i--)
 				{
 					binders = TransScript_xbinders_xA1(
-							context, Nil(context), varStringTerm(context, sbinders.get(sbinders.size() - 1).name()), binders);
+							context, Nil(context), (VarStringTerm) sbinders.get(sbinders.size() - 1), binders);
 				}
 			}
 

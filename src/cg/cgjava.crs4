@@ -1062,9 +1062,12 @@ func JavaFreshesTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, ({String : 
   //→ text⟦
   //Variable fresh†⟨NumberToText(GetCounter(#env))⟩ = context.makeVariable("x");†⟨JavaFreshesTerm(IncCounter(AddVar(#env, var:Core_cterm_sort, Fresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], #cont)⟩⟧
 
-  // TODO: track var
+  // TODO: track var to avoid generating dummy fresh variables
   rule JavaFreshesTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]:Core_cterm_sort), #cont)
   → JavaFreshesTerm(#env, #cterm[var:String], #cont)
+
+  rule JavaFreshesTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)
+  → JavaFreshesTerm(#env, #cterm, #cont)
 
 func JavaFreshesMaybeTerms(eager {String : JavaEnvEntry}, List<Core_cterms_sort>, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 

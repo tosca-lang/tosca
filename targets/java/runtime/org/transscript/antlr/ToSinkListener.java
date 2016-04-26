@@ -2,7 +2,6 @@
 
 package org.transscript.antlr;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayDeque;
@@ -13,22 +12,15 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.DiagnosticErrorListener;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenSource;
-import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.transscript.parser.TransScriptMetaLexer;
-import org.transscript.parser.TransScriptMetaParser;
+import org.transscript.compiler.parser.TransScript.TransScript_xterm_xsort;
+import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.ConstructionDescriptor;
-import org.transscript.runtime.Context;
 import org.transscript.runtime.Pair;
 import org.transscript.runtime.Sink;
 import org.transscript.runtime.StringTerm;
@@ -38,8 +30,14 @@ import org.transscript.tool.MetaSink;
 import org.transscript.tool.MutableInt;
 
 /**
- * Convert ANTLR parse tree events to {@link Sink} events.
+ * Convert custom ANTLR parse tree events to {@link Sink} events.
  * 
+ * <p>Works with meta parsers annotated with special actions driving
+ * the mapping between grammar and terms.
+ * 
+ * <p>This listener supports two kinds of sink: {@link Sink} and {@link MetaSink}.
+ * {@link MetaSink} support is only needed for parsing embedded terms during meta-compilation.
+ * Non-Java runtimes don't need to support {@link MetaSink}.
  * 
  * @author Lionel Villard
  */
@@ -201,11 +199,11 @@ public class ToSinkListener implements ParseTreeListener
 
 	/**
 	 * Create an TS ANTLR listener 
-	 * @param factory
 	 * @param sink
 	 * @param prefix    Prefix to apply to constructor names
 	 * @param metachar  Language specific meta variable prefix
 	 * @param parser
+	 * @param bounds    Bound variables
 	 */
 	public ToSinkListener(Sink sink, String prefix, String metachar, Parser parser, Map<String, Variable> bounds)
 	{
@@ -270,7 +268,6 @@ public class ToSinkListener implements ParseTreeListener
 		}
 
 		int count = consCount.pop().v;
-
 		while (count-- > 0)
 			sink4 = sink4.end();
 
@@ -326,7 +323,6 @@ public class ToSinkListener implements ParseTreeListener
 
 		sendLocation(parentCtx.getStart());
 		sink4 = sink4.start(sink4.context().lookupDescriptor(prefix + ruleName + "_A" + name));
-
 	}
 
 	/**
@@ -335,8 +331,7 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void exitAlt(ParserRuleContext context)
 	{
-		// end construction
-		sink4 = sink4.end();
+		sink4 = sink4.end();// end construction
 	}
 
 	/**
@@ -350,6 +345,7 @@ public class ToSinkListener implements ParseTreeListener
 
 	/** 
 	 * Receive the notification the next token is a metavariable of the given type 
+	 * Only needed when parsing meta-terms.
 	 */
 	public void term(ParserRuleContext _ctx, String type)
 	{
@@ -359,6 +355,7 @@ public class ToSinkListener implements ParseTreeListener
 
 	/** 
 	 * Receive the notification the next token matches list tail
+	 * Only needed when parsing meta-terms.
 	 */
 	public void tail(ParserRuleContext context)
 	{
@@ -429,7 +426,7 @@ public class ToSinkListener implements ParseTreeListener
 
 		if (kind == TokenKind.METAVAR)
 		{
-			// received a metavariable.
+			// received a metavariable matching a syntactic variable.
 
 			String metaname = fixupMetachar(binderName);
 			metasink().startMetaApplication(metaname).endMetaApplication();
@@ -615,7 +612,7 @@ public class ToSinkListener implements ParseTreeListener
 				break;
 			case PARSE_EMBED :
 				// Recursively parse this token
-				Token token = context.getSymbol();
+				//Token token = context.getSymbol();
 				String text = context.getText();
 				if (text.length() > 1)
 				{
@@ -644,8 +641,9 @@ public class ToSinkListener implements ParseTreeListener
 	private void parseCrsx4Term(Reader reader)
 	{
 		org.transscript.runtime.Parser innerParser = sink4.context().getParser("term", true);
-
-		innerParser.parser().parse(sink4, "term", reader, null, 0, 0, null);
+		BufferSink buffer = sink4.context().makeBuffer();
+		innerParser.parser().parse(buffer, "term", reader, null, 0, 0, null);
+		metasink().embded((TransScript_xterm_xsort) buffer.term());
 	}
 
 	/**

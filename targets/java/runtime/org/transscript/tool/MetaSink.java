@@ -1,6 +1,8 @@
 package org.transscript.tool;
 
+import org.transscript.compiler.parser.TransScript.TransScript_xterm_xsort;
 import org.transscript.runtime.Sink;
+import org.transscript.runtime.Term;
 import org.transscript.runtime.Variable;
 
 /**
@@ -65,5 +67,11 @@ public abstract class MetaSink extends Sink
 	 * @return this sink
 	 */
 	public abstract Sink endSubstitutes();
+
+	/**
+	 * Copy embedded term
+	 * @param term
+	 */
+	public abstract void embded(TransScript_xterm_xsort term);
 
 }
