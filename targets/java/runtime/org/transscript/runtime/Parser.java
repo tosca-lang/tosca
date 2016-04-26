@@ -6,7 +6,7 @@ import java.io.Reader;
 import java.util.Map;
  
 /**
- * Instances permit creation of new  ransSCript terms from text.
+ * Instances permit creation of TransScript terms from text.
  * 
  * @author Lionel Villard
  */
@@ -43,4 +43,5 @@ public interface Parser
 
 	/** Set whether parser includes properties that track the extent of each constructor. */
 	public void setParserLocation(boolean captureLocations);
+
 }

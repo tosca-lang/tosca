@@ -2,7 +2,22 @@
 package org.transscript.runtime;
 
 /**
- * Consumes Term events.
+ * Consumes simple term events.
+ * 
+ * <p>The simple term abstract syntax is defined by this grammar:
+ * <pre>
+ * term 
+ *   : CONSTRUCTOR bterm*
+ *   | VARIABLE
+ *   | STRING
+ *   | DOUBLE
+ *   ;
+ *   
+ * bterms
+ * 	 : term
+ *   | VARIABLE bterms
+ *   ;
+ * </pre>
  * 
  * @author Lionel Villard
  */
@@ -10,44 +25,35 @@ public abstract class Sink
 {
 
 	/**
-	 * Start construction.
+	 * Start of construction.
+	 *
+	 * The following events are the construction arguments, either terms or bound terms.
 	 * 
 	 * @param descriptor of the construction
-	 * 
-	 * @return continuation sink to use for subsequent operation
+	 * @return this sink
 	 */
 	public abstract Sink start(ConstructionDescriptor descriptor);
 
 	/**
-	 * End of constructor subterm
+	 * End of construction.
 	 * 
-	 * @return continuation sink to use for subsequent operation
+	 * @return this sink
 	 */
 	public abstract Sink end();
 
 	/**
-	 * Insert binder wrapper around current construction subterm.
+	 * Receives the declaration of a bound variable. 
 	 * 
-	 * @param binders to be bound here - <em>must</em> be fresh (not used in any
-	 *            existing terms)
-	 * @return continuation sink to use for subsequent operation (never null)
+	 * @param binder to be bound here. The {@link Ref reference} is used by this method.
+	 * @return this sink.
 	 */
 	public abstract Sink bind(Variable binder);
-
-	/**
-	 * Receives a formal parameter
-	 * 
-	 * @param  to be bound here - <em>must</em> be fresh (not used in any
-	 *            existing terms). All variable references are used by this method
-	 * @return continuation sink to use for subsequent operation (never null)
-	 */
-	public abstract Sink param(Variable param);
 	
 	/**
 	 * Insert variable occurrence subterm.
 	 * 
-	 * @param variable to reference. The reference is *NOT* used by this method.
-	 * @return continuation sink to use for subsequent operation
+	 * @param variable to reference. The {@link Ref reference} is used by this method.
+	 * @return this sink
 	 */
 	public abstract Sink use(Variable variable);
 
@@ -55,7 +61,7 @@ public abstract class Sink
 	 * Insert string literal subterm.
 	 * 
 	 * @param literal to add
-	 * @return continuation sink to use for subsequent operation
+	 * @return this sink
 	 */
 	public abstract Sink literal(String literal);
 	
@@ -63,39 +69,9 @@ public abstract class Sink
 	 * Insert double literal subterm.
 	 * 
 	 * @param literal to add
-	 * @return continuation sink to use for subsequent operation
+	 * @return this sink
 	 */
 	public abstract Sink literal(double literal);
-
-	
-	/**
-	 * Start a meta-application.
-	 * @param name of meta-variable to use
-	 * @return continuation sink to use for subsequent operation (never null)
-	 */
-	public abstract Sink startMetaApplication(String name);
- 
-	/**
-	 * End of previously started meta-application subterm.
-	 * @return continuation sink to use for subsequent operation
-	 *     - may return <b>null</b> if it does not make sense to send further events
-	 */
-	public abstract Sink endMetaApplication();
-
-
-	/**
-	 * Start meta-application substitutes
-	 * 
-	 * @return continuation sink to use for subsequent operation
-	 */
-	public abstract Sink startSubstitutes();
-	
-	/**
-	 * Ends meta-application substitutes
-	 * 
-	 * @return continuation sink to use for subsequent operation
-	 */
-	public abstract Sink endSubstitutes();
 	
 	/**
 	 * @return the context

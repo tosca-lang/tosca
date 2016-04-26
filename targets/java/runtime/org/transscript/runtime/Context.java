@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.function.Supplier;
 
-import org.transscript.antlr.Crsx3Parser;
 import org.transscript.runtime.generic.GenericDataDescriptor;
 
 /**
@@ -231,12 +230,13 @@ final public class Context
 			throws InstantiationException, IllegalAccessException
 	{
 		Parser parser;
-		if (Crsx3Parser.class.isAssignableFrom(parserClass))
-		{
-			Crsx3Parser oldParser = (Crsx3Parser) parserClass.newInstance();
-			parser = oldParser.asCrsx4Parser();
-		}
-		else if (Parser.class.isAssignableFrom(parserClass))
+//		if (Crsx3Parser.class.isAssignableFrom(parserClass))
+//		{
+//			Crsx3Parser oldParser = (Crsx3Parser) parserClass.newInstance();
+//			parser = oldParser.asCrsx4Parser();
+//		}
+//		else 
+		if (Parser.class.isAssignableFrom(parserClass))
 		{
 			parser = (Parser) parserClass.newInstance();
 		}

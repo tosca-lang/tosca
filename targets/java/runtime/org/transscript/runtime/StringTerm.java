@@ -6,8 +6,6 @@ import java.util.function.Function;
 
 import org.transscript.runtime.Functions.ThunkMaker;
 
-import net.sf.crsx.Maker;
-
 /**
  * Built-in TS string.
  * 

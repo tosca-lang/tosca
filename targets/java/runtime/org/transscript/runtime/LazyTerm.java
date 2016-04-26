@@ -14,8 +14,7 @@ import java.util.function.Function;
  */
 public class LazyTerm<T extends Term> implements Term
 {
-
-	@SuppressWarnings("unchecked")
+ 
 	public static <T extends Term>  T lazyTerm(Function<Context, T> f)
 	{
 		throw new RuntimeException();

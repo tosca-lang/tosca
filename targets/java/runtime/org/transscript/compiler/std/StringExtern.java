@@ -4,22 +4,27 @@ package org.transscript.compiler.std;
 
 import static org.transscript.compiler.std.Core.FALSE;
 import static org.transscript.compiler.std.Core.TRUE;
-import static org.transscript.runtime.StringTerm.stringTerm;
 import static org.transscript.runtime.DoubleTerm.doubleTerm;
+import static org.transscript.runtime.StringTerm.stringTerm;
+import static org.transscript.runtime.Term.force;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.StringReader;
 
+import org.transscript.compiler.parser.TransScript;
 import org.transscript.compiler.parser.TransScript.TransScript_xterm_xsort;
 import org.transscript.compiler.std.Core.Bool;
 import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.DoubleTerm;
+import org.transscript.runtime.Normalizer;
+import org.transscript.runtime.Functions.ThunkMaker;
+import org.transscript.tool.MetaBufferSink;
 import org.transscript.runtime.Parser;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.StringUtils;
 import org.transscript.runtime.Term;
-import org.transscript.runtime.Functions.ThunkMaker;
 
 /**
  * String standard library external functions.
@@ -53,9 +58,26 @@ public class StringExtern
 		throw new RuntimeException();
 	}
 
-	public static Bool StartsWith(Context context, StringTerm x_679, StringTerm x_683)
+	/**
+	 * 
+	 * @param context
+	 * @param str
+	 * @param prefix
+	 * @return
+	 */
+	public static Bool StartsWith(Context context, StringTerm str, StringTerm prefix)
 	{
-		throw new RuntimeException();
+		StringTerm estr = Term.force(context, str);
+		StringTerm eprefix = Term.force(context, prefix);
+		if (estr.data() && eprefix.data())
+		{
+			boolean result = estr.unbox().startsWith(eprefix.unbox());
+			estr.release();
+			eprefix.release();
+			return result ? Core.TRUE(context) : Core.FALSE(context);
+		}
+
+		return Core.lazyBool(c -> StartsWith(context, estr, eprefix));
 	}
 
 	public static <a extends Term> a ParseText(Context context, ThunkMaker<a> tma, StringTerm x_695, StringTerm x_700)
@@ -183,9 +205,21 @@ public class StringExtern
 		return result;
 	}
 
-	public static StringTerm Replace(Context context, StringTerm x_1341, StringTerm x_1346, StringTerm x_1351)
+	public static StringTerm Replace(Context context, StringTerm str, StringTerm old, StringTerm news)
 	{
-		throw new RuntimeException();
+		StringTerm estr = Term.force(context, str);
+		StringTerm eold = Term.force(context, old);
+		StringTerm enew = Term.force(context, news);
+		if (estr.data() && eold.data() && enew.data())
+		{
+			StringTerm result = stringTerm(estr.unbox().replace(eold.unbox(), enew.unbox()));
+			estr.release();
+			eold.release();
+			enew.release();
+			return result;
+		}
+
+		return StringTerm.lazyStringTerm(c -> Replace(context, estr, eold, enew));
 	}
 
 	/**
@@ -216,7 +250,6 @@ public class StringExtern
 		return result;
 	}
 
-
 	public static <a extends Term> a ParseTerm(Context context, ThunkMaker<a> tma, StringTerm x_2730)
 	{
 		throw new RuntimeException();
@@ -241,7 +274,7 @@ public class StringExtern
 		DoubleTerm evalnum = num.eval(context);
 		if (evalnum.data())
 		{
-			
+
 			// FIXME
 			StringTerm result = stringTerm(Integer.toString((int) evalnum.unbox()));
 			evalnum.release();
@@ -302,9 +335,41 @@ public class StringExtern
 		return b;
 	}
 
-	public static TransScript_xterm_xsort ParseToMetaTerm(Context context, StringTerm x_1280, StringTerm x_1285)
+	/**
+	 * 
+	 * @param context
+	 * @param category
+	 * @param text
+	 * @return
+	 */
+	public static TransScript_xterm_xsort ParseToMetaTerm(Context context, StringTerm category, StringTerm text)
 	{
-		throw new RuntimeException();
+		StringTerm ecat = force(context, category);
+		StringTerm etext = force(context, text);
+		if (ecat.data() && etext.data())
+		{
+			Parser parser = context.getParser(ecat.unbox(), true); // Get latest boot parser.
+			if (parser == null)
+				throw new RuntimeException("Fatal error: no parser found for category " + category);
+			MetaBufferSink sink = new MetaBufferSink(context);
+
+			try
+			{
+				parser.parse(sink, ecat.unbox(), new StringReader(etext.unbox()), null, 0, 0, null);
+			}
+			catch (RuntimeException e)
+			{
+				System.err.println("Error while parsing: " + etext.unbox());
+				throw e;
+			}
+			TransScript_xterm_xsort result = sink.metaterm();
+			ecat.release();
+			etext.release();
+
+			return result;
+		}
+
+		return TransScript.lazyTransScript_xterm_xsort(c -> ParseToMetaTerm(c, ecat, etext));
 	}
 
 }

@@ -4,10 +4,8 @@ package org.transscript.runtime;
 
 import java.util.ArrayDeque;
 
-import org.transscript.runtime.generic.MetaApplication;
-
 /**
- * Consume term events to construct in-memory term representation
+ * Consume simple term events to construct in-memory term representation
  * 
  * @author Lionel Villard
  */
@@ -140,56 +138,56 @@ public class BufferSink extends Sink
 
 		return this;
 	}
-
-	@Override
-	public BufferSink startMetaApplication(String name)
-	{
-		MetaApplication meta = new MetaApplication(name);
-		addSub(meta);
-
-		terms.push(meta);
-		subIndex.push(0);
-
-		// binder/param not allowed 
-		// binderIndex.push(0);
-		// paramIndex.push(0);
-
-		substitutes.push(false); // Arguments unless told otherwise
-		return this;
-	}
-
-	@Override
-	public BufferSink endMetaApplication()
-	{
-		Term meta = terms.pop();
-		subIndex.pop();
-		substitutes.pop();
-
-		if (terms.isEmpty())
-			term = meta;
-
-		return this;
-	}
-
-	@Override
-	public BufferSink startSubstitutes()
-	{
-		substitutes.pop();
-		substitutes.push(true);
-		return this;
-	}
-
-	@Override
-	public BufferSink endSubstitutes()
-	{
-		substitutes.pop();
-		substitutes.push(false);
-
-		// Reset sub subindex
-		subIndex.pop();
-		subIndex.push(0);
-		return this;
-	}
+//
+//	@Override
+//	public BufferSink startMetaApplication(String name)
+//	{
+//		MetaApplication meta = new MetaApplication(name);
+//		addSub(meta);
+//
+//		terms.push(meta);
+//		subIndex.push(0);
+//
+//		// binder/param not allowed 
+//		// binderIndex.push(0);
+//		// paramIndex.push(0);
+//
+//		substitutes.push(false); // Arguments unless told otherwise
+//		return this;
+//	}
+//
+//	@Override
+//	public BufferSink endMetaApplication()
+//	{
+//		Term meta = terms.pop();
+//		subIndex.pop();
+//		substitutes.pop();
+//
+//		if (terms.isEmpty())
+//			term = meta;
+//
+//		return this;
+//	}
+//
+//	@Override
+//	public BufferSink startSubstitutes()
+//	{
+//		substitutes.pop();
+//		substitutes.push(true);
+//		return this;
+//	}
+//
+//	@Override
+//	public BufferSink endSubstitutes()
+//	{
+//		substitutes.pop();
+//		substitutes.push(false);
+//
+//		// Reset sub subindex
+//		subIndex.pop();
+//		subIndex.push(0);
+//		return this;
+//	}
 //
 //	@Override
 //	public BufferSink startType()
@@ -222,16 +220,16 @@ public class BufferSink extends Sink
 		binderIndex.push(binderIndex.pop() + 1);
 		return this;
 	}
-
-	@Override
-	public Sink param(Variable param)
-	{
-		final Term term = terms.peek();
-		term.setParam(subIndex.peek(), paramIndex.peek(), param);
-
-		binderIndex.push(paramIndex.pop() + 1);
-		return this;
-	}
+//
+//	@Override
+//	public Sink param(Variable param)
+//	{
+//		final Term term = terms.peek();
+//		term.setParam(subIndex.peek(), paramIndex.peek(), param);
+//
+//		binderIndex.push(paramIndex.pop() + 1);
+//		return this;
+//	}
 
 	@Override
 	public BufferSink use(Variable variable)
@@ -248,7 +246,7 @@ public class BufferSink extends Sink
 		addSub(term);
 		return this;
 	}
-
+	
 	@Override
 	public BufferSink literal(double literal)
 	{

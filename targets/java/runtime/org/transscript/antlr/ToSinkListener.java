@@ -2,6 +2,7 @@
 
 package org.transscript.antlr;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayDeque;
@@ -12,18 +13,29 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.DiagnosticErrorListener;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.TokenSource;
+import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.transscript.parser.TransScriptMetaLexer;
+import org.transscript.parser.TransScriptMetaParser;
 import org.transscript.runtime.ConstructionDescriptor;
+import org.transscript.runtime.Context;
 import org.transscript.runtime.Pair;
 import org.transscript.runtime.Sink;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.StringUtils;
 import org.transscript.runtime.Variable;
+import org.transscript.tool.MetaSink;
+import org.transscript.tool.MutableInt;
 
 /**
  * Convert ANTLR parse tree events to {@link Sink} events.
@@ -150,7 +162,6 @@ public class ToSinkListener implements ParseTreeListener
 
 	private ArrayDeque<MutableInt> consCount;
 	private ArrayDeque<ParserRuleContext> ruleContext;
-	private MutableInt marker;
 
 	/** The ANTLR4 parser */
 	private Parser parser;
@@ -202,7 +213,6 @@ public class ToSinkListener implements ParseTreeListener
 		this.consCount = new ArrayDeque<>();
 		this.ruleContext = new ArrayDeque<>();
 
-		this.marker = new MutableInt(-1);
 		this.parser = parser;
 		this.prefix = prefix;
 		this.metachar = metachar;
@@ -419,9 +429,10 @@ public class ToSinkListener implements ParseTreeListener
 
 		if (kind == TokenKind.METAVAR)
 		{
-			// received a metavariable. 
+			// received a metavariable.
+
 			String metaname = fixupMetachar(binderName);
-			sink4 = sink4.startMetaApplication(metaname).endMetaApplication();
+			metasink().startMetaApplication(metaname).endMetaApplication();
 
 			// TODO: Send type when mode is META
 			//if (termType != null)
@@ -507,7 +518,7 @@ public class ToSinkListener implements ParseTreeListener
 	public void enterEveryRule(ParserRuleContext context)
 	{
 		// Is that a rule part of a list?
-		if (!consCount.isEmpty() && consCount.peek() != marker)
+		if (!consCount.isEmpty() && consCount.peek() != MutableInt.MARKER)
 		{
 			if (!tail)
 			{
@@ -521,7 +532,7 @@ public class ToSinkListener implements ParseTreeListener
 			}
 		}
 
-		consCount.push(marker);
+		consCount.push(MutableInt.MARKER);
 		ruleContext.push(context);
 	}
 
@@ -548,7 +559,7 @@ public class ToSinkListener implements ParseTreeListener
 				if (context.getSymbol().getType() != -1)
 				{
 					// Is that a terminal part of a list?
-					if (!consCount.isEmpty() && consCount.peek() != marker)
+					if (!consCount.isEmpty() && consCount.peek() != MutableInt.MARKER)
 					{
 						if (!tail)
 						{
@@ -574,7 +585,7 @@ public class ToSinkListener implements ParseTreeListener
 						case METAVAR :
 							String metaname = fixupMetachar(context.getText());
 
-							sink4 = sink4.startMetaApplication(metaname);
+							metasink().startMetaApplication(metaname);
 
 							// Add directly bound variable.
 							// REVISIT: should be user-specified.
@@ -585,7 +596,7 @@ public class ToSinkListener implements ParseTreeListener
 								sink4 = sink4.use((Variable) variable);
 							}
 
-							sink4 = sink4.endMetaApplication();
+							metasink().endMetaApplication();
 
 							// TODO: send type when meta mode
 							//if (termType != null)
@@ -632,33 +643,9 @@ public class ToSinkListener implements ParseTreeListener
 
 	private void parseCrsx4Term(Reader reader)
 	{
-		// TODO: custom operators
+		org.transscript.runtime.Parser innerParser = sink4.context().getParser("term", true);
 
-//		try
-//		{
-//			CharStream stream = new ANTLRInputStream(reader);
-//
-//			TokenSource source = new TransScriptMetaLexer(stream);
-//			TokenStream input = new CommonTokenStream(source);
-//
-//			TransScriptMetaParser parser = new TransScriptMetaParser(input);
-//			parser.setBuildParseTree(false);
-//
-//			TermParserListener listener;
-//			listener = new TermParserListener(sink4, bounds, freshes, nilDesc, consDesc);
-//			parser.addParseListener(listener);
-//
-//			parser.addErrorListener(new DiagnosticErrorListener(true));
-//			parser.term_EOF();
-//			sink4 = listener.sink4;
-//
-//		}
-//		catch (IOException e)
-//		{
-//			assert false : "Unreachable";
-//		}
-		assert false : "Unreachable";
-
+		innerParser.parser().parse(sink4, "term", reader, null, 0, 0, null);
 	}
 
 	/**
@@ -683,16 +670,10 @@ public class ToSinkListener implements ParseTreeListener
 	//		return (islist ? "List<" : "") + prefix + type + "_sort" + (islist ? ">" : "");
 	//	}
 
-	// Utility classes
-
-	class MutableInt
+	/** Cast sink to metasink */
+	final private MetaSink metasink()
 	{
-		int v;
-
-		MutableInt(int v)
-		{
-			this.v = v;
-		}
+		return (MetaSink) sink4;
 	}
 
 }

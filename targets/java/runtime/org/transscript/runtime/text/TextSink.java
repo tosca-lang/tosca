@@ -181,26 +181,26 @@ public class TextSink extends Sink
 		}
 		return this;
 	}
-
-	@Override
-	public Sink param(Variable param)
-	{
-		if (inText())
-		{
-			// This is really bad as the term is even not inside the sort value space.
-			// Switch to term mode
-			print("⟨");
-
-			inText.pop();
-			inText.push(false);
-
-			assert!inText.isEmpty() : "Can't have to-level binders";
-		}
-
-		termSink.param(param);
-
-		return this;
-	}
+//
+//	@Override
+//	public Sink param(Variable param)
+//	{
+//		if (inText())
+//		{
+//			// This is really bad as the term is even not inside the sort value space.
+//			// Switch to term mode
+//			print("⟨");
+//
+//			inText.pop();
+//			inText.push(false);
+//
+//			assert!inText.isEmpty() : "Can't have to-level binders";
+//		}
+//
+//		termSink.param(param);
+//
+//		return this;
+//	}
 
 	@Override
 	public Sink use(Variable variable)
@@ -247,23 +247,23 @@ public class TextSink extends Sink
 	//		term.copy(this, true);
 	//		return this;
 	//	}
-
-	@Override
-	public Sink startMetaApplication(String name)
-	{
-		if (inText())
-		{
-			// in text mode -> switch to term mode.
-			print("⟨");
-
-			inText.pop();
-			inText.push(false);
-		}
-
-		termSink.startMetaApplication(name);
-
-		return this;
-	}
+//
+//	@Override
+//	public Sink startMetaApplication(String name)
+//	{
+//		if (inText())
+//		{
+//			// in text mode -> switch to term mode.
+//			print("⟨");
+//
+//			inText.pop();
+//			inText.push(false);
+//		}
+//
+//		termSink.startMetaApplication(name);
+//
+//		return this;
+//	}
 //
 //	@Override
 //	public Sink startType()
@@ -277,37 +277,37 @@ public class TextSink extends Sink
 //	{
 //		return this;
 //	}
-
-	@Override
-	public Sink endMetaApplication()
-	{
-		descriptors.pop();
-		inText.pop();
-
-		termSink.endMetaApplication();
-
-		if (inText())
-		{
-			// were in text mode -> terminate term mode.
-			print("⟩");
-		}
-
-		return this;
-	}
-
-	@Override
-	public Sink startSubstitutes()
-	{
-		// TODO Auto-generated method stub
-		return this;
-	}
-
-	@Override
-	public Sink endSubstitutes()
-	{
-		// TODO Auto-generated method stub
-		return this;
-	}
+//
+//	@Override
+//	public Sink endMetaApplication()
+//	{
+//		descriptors.pop();
+//		inText.pop();
+//
+//		termSink.endMetaApplication();
+//
+//		if (inText())
+//		{
+//			// were in text mode -> terminate term mode.
+//			print("⟩");
+//		}
+//
+//		return this;
+//	}
+//
+//	@Override
+//	public Sink startSubstitutes()
+//	{
+//		// TODO Auto-generated method stub
+//		return this;
+//	}
+//
+//	@Override
+//	public Sink endSubstitutes()
+//	{
+//		// TODO Auto-generated method stub
+//		return this;
+//	}
 
 	@Override
 	public Context context()

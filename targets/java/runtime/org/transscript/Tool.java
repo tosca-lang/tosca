@@ -28,8 +28,6 @@ import org.transscript.compiler.text.Printer;
 import org.transscript.compiler.text.Text4.Text4_xtext_xsort;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.Normalizer;
-import org.transscript.runtime.ParsingUtils;
-import org.transscript.runtime.Sink;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
 
@@ -608,19 +606,19 @@ public class Tool
 		}
 	}
 
-	/** Parse TransScript term and send result to sink */
-	static void parseTerm(Sink sink, String inputname)
-	{
-		try
-		{
-			ParsingUtils.parseTerm(sink, inputname);
-		}
-		catch (IOException e)
-		{
-			fatal("error while loading input file " + inputname, e);
-		}
-
-	}
+//	/** Parse TransScript term and send result to sink */
+//	static void parseTerm(Sink sink, String inputname)
+//	{
+//		try
+//		{
+//			ParsingUtils.parseTerm(sink, inputname);
+//		}
+//		catch (IOException e)
+//		{
+//			fatal("error while loading input file " + inputname, e);
+//		}
+//
+//	}
 
 	/** Set context field value to what the corresponding value in the environment */
 	static void setProperty(Context context, String name, Map<String, String> env)
