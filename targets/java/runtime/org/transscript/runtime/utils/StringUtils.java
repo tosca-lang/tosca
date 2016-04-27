@@ -1,6 +1,6 @@
 // Copyright (c) 2015 IBM Corporation.
 
-package org.transscript.runtime;
+package org.transscript.runtime.utils;
 
 import java.io.IOException;
 
@@ -137,58 +137,7 @@ public class StringUtils
 	}
 
 	/** 
-	 * Convert string to Java/C identifier form with leading _M_ 
-	 * (reversible and idempotent, suspicious characters are replaced with hex form). 
-	 */
-	public static String mangle(String s)
-	{
-		if (s.startsWith("_M_"))
-			return s; // already mangled!
-		StringBuilder b = new StringBuilder();
-		b.append("_M_");
-		final int n = s.length();
-		for (int i = 0; i < n; ++i)
-		{
-			char c = s.charAt(i);
-			switch (c)
-			{
-				case '-' : {
-					if (i + 1 >= s.length() || ('A' <= s.charAt(i + 1) && s.charAt(i + 1) <= 'Z'))
-						b.append("_");
-					else
-						b.append("__");
-					break;
-				}
-				case '_' :
-					b.append("_x");
-					break;
-				case '~' :
-					b.append("_w");
-					break;
-				case '$' :
-					b.append("_s");
-					break;
-				case '#' :
-					b.append("_h");
-					break;
-				default :
-					if (c <= '~')
-					{
-						if (Character.isJavaIdentifierPart(c))
-							b.append(c);
-						else
-							b.append("_" + hex(c, "00").toLowerCase());
-					}
-					else
-						b.append("_u" + hex(c, "0000").toLowerCase());
-			}
-		}
-		return b.toString();
-	}
-	
-	/** 
-	 * Convert string to Java/C identifier form  
-	 * (reversible and idempotent, suspicious characters are replaced with hex form). 
+	 * Convert string to Java/C identifier form   
 	 */
 	public static String mangle2(String s)
 	{

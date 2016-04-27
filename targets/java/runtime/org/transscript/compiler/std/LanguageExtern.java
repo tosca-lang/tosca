@@ -4,7 +4,7 @@ package org.transscript.compiler.std;
 
 import org.transscript.runtime.Context;
 import org.transscript.runtime.StringTerm;
-import org.transscript.runtime.StringUtils;
+import org.transscript.runtime.utils.StringUtils;
 
 /**
  * 

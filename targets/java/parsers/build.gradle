@@ -20,7 +20,7 @@ repositories {
 }
 
 dependencies {
-	transscript  project.hasProperty('dev') ? files(transScriptSrc, "../build") : 'org.transscript:transscript:1.0.0-ALPHA@jar'
+	transscript  project.hasProperty('dev') ?'org.transscript:transscript:1.0.0-SNAPSHOT@jar' : 'org.transscript:transscript:1.0.0-ALPHA@jar'
 	transscript 'org.crsx:crsx3@jar'
 	transscript 'org.antlr:antlr4:4.5'
 }
@@ -125,5 +125,5 @@ sourceSets {
 dependencies {
 	compile 'org.crsx:crsx3@jar'
 	compile 'org.antlr:antlr4:4.5'
-	compile 'org.transscript:transscript:1.0.0-ALPHA@jar' // Use previous runtime
+	compile project.hasProperty('dev') ? 'org.transscript:transscript:1.0.0-SNAPSHOT@jar' : 'org.transscript:transscript:1.0.0-ALPHA@jar' 
 }

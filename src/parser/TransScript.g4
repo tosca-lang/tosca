@@ -3,7 +3,8 @@
  *
  * This is the complete TransScript 4 grammar specification.
  *
- * This grammar does not use any ANTLR4 literal due to current ANTLR4 meta parser generator limitation.
+ * WARNING: do not change this file lightly. Several Java classes depends on it.
+ *
  */
 grammar TransScript;
 

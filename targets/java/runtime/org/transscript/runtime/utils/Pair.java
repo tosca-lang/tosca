@@ -1,5 +1,5 @@
 // Copyright (c) 2016 IBM Corporation.
-package org.transscript.runtime;
+package org.transscript.runtime.utils;
 
 /**
  * Simple pair utility class

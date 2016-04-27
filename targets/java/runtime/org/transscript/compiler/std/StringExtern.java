@@ -6,14 +6,12 @@ import static org.transscript.compiler.std.Core.FALSE;
 import static org.transscript.compiler.std.Core.TRUE;
 import static org.transscript.runtime.DoubleTerm.doubleTerm;
 import static org.transscript.runtime.StringTerm.stringTerm;
-import static org.transscript.runtime.Term.force;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.StringReader;
+import java.io.IOException;
+import java.io.Reader;
 
-import org.transscript.compiler.parser.TransScript;
-import org.transscript.compiler.parser.TransScript.TransScript_xterm_xsort;
 import org.transscript.compiler.std.Core.Bool;
 import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.Context;
@@ -21,10 +19,9 @@ import org.transscript.runtime.DoubleTerm;
 import org.transscript.runtime.Functions.ThunkMaker;
 import org.transscript.runtime.Parser;
 import org.transscript.runtime.StringTerm;
-import org.transscript.runtime.StringUtils;
 import org.transscript.runtime.Term;
 import org.transscript.runtime.utils.Scoping;
-import org.transscript.tool.MetaBufferSink;
+import org.transscript.runtime.utils.StringUtils;
 
 /**
  * String standard library external functions.
@@ -104,43 +101,6 @@ public class StringExtern
 		str.release();
 		first.release();
 		return result;
-	}
-
-	/**
-	 * 
-	 * @param context
-	 * @param category
-	 * @param filename
-	 * @return
-	 */
-	@SuppressWarnings("unchecked")
-	public static <a extends Term> a ParseResource(Context context, ThunkMaker<a> tma, StringTerm category, StringTerm filename)
-	{
-		if (!category.data() || !filename.data())
-			throw new RuntimeException("Invalid argument in EndsWith");
-
-		Parser parser = context.getParser(category.unbox(), false);
-		if (parser == null)
-			throw new RuntimeException("Fatal error: no parser found for category " + category);
-
-		BufferSink buffer = context.makeBuffer();
-		try
-		{
-			parser.parse(buffer, category.unbox(), new FileReader(filename.unbox()), null, 0, 0, new Scoping(), new Scoping());
-		}
-		catch (FileNotFoundException e)
-		{
-			throw new RuntimeException("Fatal error: file not found " + filename);
-		}
-		finally
-		{
-			category.release();
-			filename.release();
-		}
-
-		Term result = buffer.term();
-
-		return (a) result;
 	}
 
 	/**
@@ -250,11 +210,6 @@ public class StringExtern
 		return result;
 	}
 
-	public static <a extends Term> a ParseTerm(Context context, ThunkMaker<a> tma, StringTerm x_2730)
-	{
-		throw new RuntimeException();
-	}
-
 	public static DoubleTerm Length(Context context, StringTerm str)
 	{
 		DoubleTerm result = doubleTerm(str.unbox().length());
@@ -335,43 +290,46 @@ public class StringExtern
 		return b;
 	}
 
+
 	/**
 	 * 
 	 * @param context
 	 * @param category
-	 * @param text
+	 * @param filename
 	 * @return
 	 */
-	public static TransScript_xterm_xsort ParseToMetaTerm(Context context, StringTerm category, StringTerm text)
+	@SuppressWarnings("unchecked")
+	public static <a extends Term> a ParseResource(Context context, ThunkMaker<a> tma, StringTerm category, StringTerm filename)
 	{
-		// TODO: missing bound variable, location information!
-		
-		StringTerm ecat = force(context, category);
-		StringTerm etext = force(context, text);
-		if (ecat.data() && etext.data())
+		if (!category.data() || !filename.data())
+			throw new RuntimeException("Invalid argument in EndsWith");
+
+		Parser parser = context.getParser(category.unbox(), false);
+		if (parser == null)
+			throw new RuntimeException("Fatal error: no parser found for category " + category);
+
+		BufferSink buffer = context.makeBuffer();
+		try (Reader reader = new FileReader(filename.unbox()))
 		{
-			Parser parser = context.getParser(ecat.unbox(), true); // Get latest boot parser.
-			if (parser == null)
-				throw new RuntimeException("Fatal error: no parser found for category " + category);
-			MetaBufferSink sink = new MetaBufferSink(context);
-
-			try
-			{
-				parser.parse(sink, ecat.unbox(), new StringReader(etext.unbox()), null, 0, 0, new Scoping(), new Scoping());
-			}
-			catch (RuntimeException e)
-			{
-				System.err.println("Error while parsing: " + etext.unbox());
-				throw e;
-			}
-			TransScript_xterm_xsort result = sink.metaterm();
-			ecat.release();
-			etext.release();
-
-			return result;
+			parser.parse(buffer, category.unbox(), reader, null, 0, 0, new Scoping(), new Scoping());
+		}
+		catch (FileNotFoundException e)
+		{
+			throw new RuntimeException("Fatal error: file not found " + filename, e);
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
+		finally
+		{
+			category.release();
+			filename.release();
 		}
 
-		return TransScript.lazyTransScript_xterm_xsort(c -> ParseToMetaTerm(c, ecat, etext));
+		Term result = buffer.term();
+
+		return (a) result;
 	}
 
 }

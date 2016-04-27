@@ -9,8 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.function.Supplier;
 
-import org.transscript.runtime.generic.GenericDataDescriptor;
-
 /**
  * Context passed around during rewrite
  * 
@@ -117,20 +115,8 @@ final public class Context
 	 */
 	public ConstructionDescriptor lookupDescriptor(String symbol)
 	{
-		ConstructionDescriptor desc = descriptors.get(symbol);
-		return desc == null ? new GenericDataDescriptor(symbol) : desc;
-	}
-
-	//	/**
-	//	 * Register function term
-	//	 * 
-	//	 * @param symbol
-	//	 * @param step
-	//	 */
-	//	public void register(String symbol, Step step)
-	//	{
-	//		descriptors.put(symbol, ConstructionDescriptor.makeFunction(symbol, step));
-	//	}
+		return descriptors.get(symbol);
+	} 
 
 	/**
 	 * Register symbol

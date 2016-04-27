@@ -3,7 +3,6 @@ package org.transscript.runtime.utils;
 
 import java.util.ArrayDeque;
 
-import org.transscript.runtime.Pair;
 import org.transscript.runtime.Variable;
 
 /**

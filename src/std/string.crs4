@@ -109,12 +109,13 @@ rule BeforeLast2(#Before, #Sep, #After)
 
 // --- Parsing
 
-extern func ParseText<a>(eager String, eager String) -> a
-extern func ParseResource<a>(eager String, eager String) -> a
+/* Parse external resource using parser identified by the given category
+ * @return a parsed term.
+ */
+extern func ParseResource<a>(String /* category */ , eager String /* filename */) -> a
 
-func ParseToString(eager String, eager String) -> String
-rule ParseToString(#category, #string) → Show<String>(ParseText<String>(#category, #string))  // TODO: line information.
-
-extern func ParseTerm<a>(eager String /* file location */) -> a
-
-extern func ParseToMetaTerm(eager String /* category */, eager String /* text */) -> TransScript_term_sort
+/* Parse external resource as term file format.
+ * @return a parsed term.
+ */
+func ParseTerm<a>(#filename: String /* file location */) -> a
+→ ParseResource<a>("term", #filename)

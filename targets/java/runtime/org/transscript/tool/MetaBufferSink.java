@@ -25,10 +25,10 @@ import org.transscript.compiler.parser.TransScript.TransScript_xterm_xsort;
 import org.transscript.compiler.std.Listdef.List;
 import org.transscript.runtime.ConstructionDescriptor;
 import org.transscript.runtime.Context;
-import org.transscript.runtime.Pair;
 import org.transscript.runtime.Sink;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.StringTerm.VarStringTerm;
+import org.transscript.runtime.utils.Pair;
 import org.transscript.runtime.Term;
 import org.transscript.runtime.Variable;
 

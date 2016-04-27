@@ -2,7 +2,7 @@
 
 package org.transscript.tool;
 
-import org.transscript.runtime.Pair;
+import org.transscript.runtime.utils.Pair;
 
 /**
  * Simple triple utility class

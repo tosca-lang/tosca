@@ -213,7 +213,7 @@ func NTerm(TransScript_term_sort) -> Core_cterm_sort
   → cterm⟦ ##METAVAR ⟨cterms?: NMaybeApply(#apply?)⟩ ⟨csubst?: NMaybeSubst(#subst?)⟩ ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ⟧
 
   rule NTerm(term⟦ ##CONCRETE ⟧)
-  → NConcrete(BeforeFirst(#CONCRETE, "⟦"), BeforeLast(AfterFirst(#CONCRETE, "⟦"), "⟧"))
+  → Error<Core_cterm_sort>("Internal error: concrete syntax must have already been expanded.")
 
 func NMaybeArgs(List<TransScript_args_sort>) -> List<Core_cterms_sort>
   rule NMaybeArgs(args?⟦              ⟧) → cterms?⟦⟧
@@ -267,9 +267,6 @@ func NList(List<TransScript_term_sort>) -> Core_cterm_sort
   // TODO: robustness
   rule NList(term*⟦                 ⟧) → cterm⟦ Nil ⟧
   rule NList(term*⟦ ##term ##term*  ⟧) → cterm⟦ Cons( ⟨cterm: NTerm(#term)⟩, ⟨cterm: NList(#term*)⟩ ) ⟧
-
-func NConcrete(String, String) -> Core_cterm_sort
-  rule NConcrete(#category, #text) → NTerm(ParseToMetaTerm(#category, #text))
 
 func NQconstructor(TransScript_qconstructor_sort) -> Core_cqconstructor_sort
   rule NQconstructor(qconstructor⟦ ##sortQualifier* ##constructor ⟧) → cqconstructor⟦ ⟨csortqualifier*: NSortQualifiers(#sortQualifier*)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟧
