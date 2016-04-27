@@ -9,6 +9,7 @@ import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.ConstructionDescriptor;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.Sink;
+import org.transscript.runtime.Term;
 import org.transscript.runtime.Variable;
 
 /**
@@ -319,6 +320,11 @@ public class TextSink extends Sink
 	public Sink bind(Variable binder)
 	{
 		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Sink copy(Term term)
+	{
 		return null;
 	}
 

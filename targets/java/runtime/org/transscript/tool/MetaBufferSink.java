@@ -2,31 +2,7 @@
 
 package org.transscript.tool;
 
-import static org.transscript.compiler.parser.TransScript.TransScript_xapply;
-import static org.transscript.compiler.parser.TransScript.TransScript_xargs;
-import static org.transscript.compiler.parser.TransScript.TransScript_xaterm_xA1;
-import static org.transscript.compiler.parser.TransScript.TransScript_xaterm_xA2;
-import static org.transscript.compiler.parser.TransScript.TransScript_xaterm_xA4;
-import static org.transscript.compiler.parser.TransScript.TransScript_xaterm_xA6;
-import static org.transscript.compiler.parser.TransScript.TransScript_xbinders_xA1;
-import static org.transscript.compiler.parser.TransScript.TransScript_xbinders_xA2;
-import static org.transscript.compiler.parser.TransScript.TransScript_xbinders_xA3;
-import static org.transscript.compiler.parser.TransScript.TransScript_xcons;
-import static org.transscript.compiler.parser.TransScript.TransScript_xconstructor;
-import static org.transscript.compiler.parser.TransScript.TransScript_xformalParams_xA1;
-import static org.transscript.compiler.parser.TransScript.TransScript_xformalParams_xA2;
-import static org.transscript.compiler.parser.TransScript.TransScript_xliteral_xA1;
-import static org.transscript.compiler.parser.TransScript.TransScript_xliteral_xA2;
-import static org.transscript.compiler.parser.TransScript.TransScript_xmetapp;
-import static org.transscript.compiler.parser.TransScript.TransScript_xqconstructor;
-import static org.transscript.compiler.parser.TransScript.TransScript_xscope_xA1;
-import static org.transscript.compiler.parser.TransScript.TransScript_xscope_xA2;
-import static org.transscript.compiler.parser.TransScript.TransScript_xscope_xA3;
-import static org.transscript.compiler.parser.TransScript.TransScript_xscopes;
-import static org.transscript.compiler.parser.TransScript.TransScript_xsubst;
-import static org.transscript.compiler.parser.TransScript.TransScript_xterm;
-import static org.transscript.compiler.parser.TransScript.TransScript_xterms;
-import static org.transscript.compiler.parser.TransScript.TransScript_xvariable;
+import static org.transscript.compiler.parser.TransScript.*;
 import static org.transscript.compiler.std.Listdef.Cons;
 import static org.transscript.compiler.std.Listdef.Nil;
 import static org.transscript.runtime.StringTerm.stringTerm;
@@ -41,6 +17,9 @@ import org.transscript.compiler.parser.TransScript.TransScript_xbinders_xsort;
 import org.transscript.compiler.parser.TransScript.TransScript_xformalParams_xsort;
 import org.transscript.compiler.parser.TransScript.TransScript_xqconstructor_xsort;
 import org.transscript.compiler.parser.TransScript.TransScript_xscope_xsort;
+import org.transscript.compiler.parser.TransScript.TransScript_xsortAnno_xsort;
+import org.transscript.compiler.parser.TransScript.TransScript_xsortArgs_xsort;
+import org.transscript.compiler.parser.TransScript.TransScript_xsortQualifier_xsort;
 import org.transscript.compiler.parser.TransScript.TransScript_xsubst_xsort;
 import org.transscript.compiler.parser.TransScript.TransScript_xterm_xsort;
 import org.transscript.compiler.std.Listdef.List;
@@ -81,6 +60,9 @@ public class MetaBufferSink extends MetaSink
 	/** Sub current position stack */
 	protected ArrayDeque<MutableInt> subIndex;
 
+	/** Constructor type */
+	private String type;
+
 	/**
 	 * @param context
 	 */
@@ -91,7 +73,7 @@ public class MetaBufferSink extends MetaSink
 		this.subParams.push(new ConsParam(null, new ArrayList<>()));
 		this.subIndex = new ArrayDeque<>();
 		this.subIndex.push(new MutableInt(0));
-		
+
 	}
 
 	// Add sub to current construction
@@ -133,8 +115,17 @@ public class MetaBufferSink extends MetaSink
 	@Override
 	public Sink start(ConstructionDescriptor descriptor)
 	{
+		List<TransScript_xsortQualifier_xsort> qualifier;
+		if (type == null)
+			qualifier = Nil(context);
+		else
+		{
+			qualifier = Cons(context, TransScript_xsortQualifier(context, toTSSort(type)), Nil(context));
+			type = null;
+		}
+
 		TransScript_xqconstructor_xsort qc = TransScript_xqconstructor(
-				context, Nil(context), TransScript_xconstructor(context, stringTerm(descriptor.symbol())));
+				context, qualifier, TransScript_xconstructor(context, stringTerm(descriptor.symbol())));
 
 		subParams.push(new ConsParam(qc, new ArrayList<>()));
 		subIndex.push(new MutableInt(0)); // position to first sub.
@@ -211,7 +202,7 @@ public class MetaBufferSink extends MetaSink
 	}
 
 	@Override
-	public MetaSink startMetaApplication(String name)
+	public Sink startMetaApplication(String name)
 	{
 		subParams.push(new MetaParam(name, new ArrayList<>(), new ArrayList<>()));
 		subIndex.push(new MutableInt(0)); // position to first sub. (not used)
@@ -219,7 +210,7 @@ public class MetaBufferSink extends MetaSink
 	}
 
 	@Override
-	public MetaSink endMetaApplication()
+	public Sink endMetaApplication()
 	{
 		MetaParam mparams = (MetaParam) subParams.pop();
 		subIndex.pop();
@@ -244,13 +235,13 @@ public class MetaBufferSink extends MetaSink
 
 		TransScript_xterm_xsort term = TransScript_xterm(
 				context,
-				TransScript_xaterm_xA6(context, TransScript_xmetapp(context, stringTerm(mparams.fst), apply, subst, Nil(context))),
+				TransScript_xaterm_xA6(context,
+						TransScript_xmetapp(context, stringTerm(mparams.fst), apply, subst, toTSSortAnno(mparams.type))),
 				Nil(context));
 
 		addSub(term);
 		return this;
 	}
-
 
 	@Override
 	public Sink startSubstitutes()
@@ -265,11 +256,22 @@ public class MetaBufferSink extends MetaSink
 		((MetaParam) subParams.peek()).apply = true;
 		return this;
 	}
-	
+
 	@Override
-	public void embded(TransScript_xterm_xsort term)
+	public Sink type(String type)
 	{
-		addSub(term);		
+		if (subParams.peek() instanceof MetaParam)
+			((MetaParam) subParams.peek()).type = type;
+		else
+			this.type = type;
+		return this;
+	}
+
+	@Override
+	public Sink copy(Term term)
+	{
+		addSub((TransScript_xterm_xsort) term);
+		return this;
 	}
 
 	@Override
@@ -285,10 +287,44 @@ public class MetaBufferSink extends MetaSink
 	{
 		ConsParam sub = (ConsParam) subParams.pop();
 		subIndex.pop();
-		
+
 		assert subParams.size() == 0;
 		assert subIndex.size() == 0;
 		return sub.snd.get(0).thd;
+	}
+
+	// Convert simple type string to TS type annotation
+	private List<TransScript_xsortAnno_xsort> toTSSortAnno(String type)
+	{
+		if (type == null)
+			return Nil(context);
+
+		return Cons(context, TransScript_xsortAnno(context, toTSSort(type)), Nil(context));
+	}
+
+	// Convert simple type string to TS sort
+	private TransScript_xsort_xsort toTSSort(String type)
+	{
+		// Type is always a constructor, optionally with type variable.
+		List<TransScript_xsortArgs_xsort> args;
+		if (type.contains("<")) // it's a List of something
+		{
+			String listArg = type.substring(type.indexOf('<') + 1, type.indexOf('>'));
+			type = type.substring(0, type.indexOf('<'));
+			args = Cons(
+					context,
+					TransScript_xsortArgs(context, Cons(context,
+							TransScript_xsort(context,
+									Nil(context), TransScript_xparamSort_xA1(context,
+											TransScript_xconstructor(context, stringTerm(listArg)), Nil(context))),
+							Nil(context))),
+					Nil(context));
+		}
+		else
+			args = Nil(context);
+
+		return TransScript_xsort(context, Nil(context),
+				TransScript_xparamSort_xA1(context, TransScript_xconstructor(context, stringTerm(type)), args));
 	}
 
 	// Convert internal rep sub to list of terms
@@ -382,6 +418,7 @@ public class MetaBufferSink extends MetaSink
 				SubParam
 	{
 		public boolean apply = true;
+		public String type;
 
 		public MetaParam(String name, ArrayList<TransScript_xterm_xsort> apply, ArrayList<TransScript_xterm_xsort> subst)
 		{

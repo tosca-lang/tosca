@@ -18,13 +18,13 @@ import org.transscript.compiler.std.Core.Bool;
 import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.DoubleTerm;
-import org.transscript.runtime.Normalizer;
 import org.transscript.runtime.Functions.ThunkMaker;
-import org.transscript.tool.MetaBufferSink;
 import org.transscript.runtime.Parser;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.StringUtils;
 import org.transscript.runtime.Term;
+import org.transscript.runtime.utils.Scoping;
+import org.transscript.tool.MetaBufferSink;
 
 /**
  * String standard library external functions.
@@ -126,7 +126,7 @@ public class StringExtern
 		BufferSink buffer = context.makeBuffer();
 		try
 		{
-			parser.parse(buffer, category.unbox(), new FileReader(filename.unbox()), null, 0, 0, null);
+			parser.parse(buffer, category.unbox(), new FileReader(filename.unbox()), null, 0, 0, new Scoping(), new Scoping());
 		}
 		catch (FileNotFoundException e)
 		{
@@ -344,6 +344,8 @@ public class StringExtern
 	 */
 	public static TransScript_xterm_xsort ParseToMetaTerm(Context context, StringTerm category, StringTerm text)
 	{
+		// TODO: missing bound variable, location information!
+		
 		StringTerm ecat = force(context, category);
 		StringTerm etext = force(context, text);
 		if (ecat.data() && etext.data())
@@ -355,7 +357,7 @@ public class StringExtern
 
 			try
 			{
-				parser.parse(sink, ecat.unbox(), new StringReader(etext.unbox()), null, 0, 0, null);
+				parser.parse(sink, ecat.unbox(), new StringReader(etext.unbox()), null, 0, 0, new Scoping(), new Scoping());
 			}
 			catch (RuntimeException e)
 			{

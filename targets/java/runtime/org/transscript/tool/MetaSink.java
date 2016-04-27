@@ -1,8 +1,6 @@
 package org.transscript.tool;
 
-import org.transscript.compiler.parser.TransScript.TransScript_xterm_xsort;
 import org.transscript.runtime.Sink;
-import org.transscript.runtime.Term;
 import org.transscript.runtime.Variable;
 
 /**
@@ -11,8 +9,8 @@ import org.transscript.runtime.Variable;
  * <p>The abstract grammar described by the events below is:
  * <pre>
  * term 
- *   : CONSTRUCTOR bterm*
- *   | VARIABLE
+ *   : {type} {start} CONSTRUCTOR bterm* {end}
+ *   | {var}VARIABLE
  *   | STRING
  *   | DOUBLE
  *   | METAPP term* term*
@@ -23,6 +21,19 @@ import org.transscript.runtime.Variable;
  *   | VARIABLE bterms
  *   | PARAM bterms
  *   ;
+ *   
+ * term 
+ *   : {@link #start} CONSTRUCTOR bterm* {@link #end}
+ *   | {@link #use} VARIABLE
+ *   | {@link #literal(String)} STRING
+ *   | {@link #literal(Double)} DOUBLE
+ *   | {@link #startMetaApplication} METAPP term* {@link #startSubstitutes} term* {@link #endSubstitutes} {@link #endMetaApplication} 
+ *   ;
+ *   
+ * bterms
+ * 	 : term
+ *   | {@link #bind} VARIABLE bterms
+ *   ;  
  * </pre>
  * 
  * @author Lionel Villard
@@ -46,13 +57,13 @@ public abstract class MetaSink extends Sink
 	 * @param name of meta-variable to use
 	 * @return this sink 
 	 */
-	public abstract MetaSink startMetaApplication(String name);
+	public abstract Sink startMetaApplication(String name);
  
 	/**
 	 * End of previously started meta-application subterm.
 	 * @return this sink 
 	 */
-	public abstract MetaSink endMetaApplication();
+	public abstract Sink endMetaApplication();
 
 	/**
 	 * Start meta-application substitutes
@@ -69,9 +80,8 @@ public abstract class MetaSink extends Sink
 	public abstract Sink endSubstitutes();
 
 	/**
-	 * Copy embedded term
-	 * @param term
+	 * Receive meta-application simple type or constructor qualifier
 	 */
-	public abstract void embded(TransScript_xterm_xsort term);
+	public abstract Sink type(String type);
 
 }

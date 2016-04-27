@@ -7,15 +7,15 @@ package org.transscript.runtime;
  * <p>The simple term abstract syntax is defined by this grammar:
  * <pre>
  * term 
- *   : CONSTRUCTOR bterm*
- *   | VARIABLE
- *   | STRING
- *   | DOUBLE
+ *   : {@link #start} CONSTRUCTOR bterm* {@link #end}
+ *   | {@link #use} VARIABLE
+ *   | {@link #literal(String)} STRING
+ *   | {@link #literal(Double)} DOUBLE
  *   ;
  *   
  * bterms
  * 	 : term
- *   | VARIABLE bterms
+ *   | {@link #bind} VARIABLE bterms
  *   ;
  * </pre>
  * 
@@ -68,14 +68,20 @@ public abstract class Sink
 	/**
 	 * Insert double literal subterm.
 	 * 
-	 * @param literal to add
 	 * @return this sink
 	 */
 	public abstract Sink literal(double literal);
+
+	/**
+	 * Copy given term
+	 * @param term
+	 */
+	public abstract Sink copy(Term term);
 	
 	/**
 	 * @return the context
 	 */
 	public abstract Context context();
+
 
 }

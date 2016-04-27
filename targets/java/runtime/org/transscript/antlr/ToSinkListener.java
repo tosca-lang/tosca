@@ -2,13 +2,12 @@
 
 package org.transscript.antlr;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -26,6 +25,8 @@ import org.transscript.runtime.Sink;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.StringUtils;
 import org.transscript.runtime.Variable;
+import org.transscript.runtime.utils.Scoping;
+import org.transscript.tool.MetaBufferSink;
 import org.transscript.tool.MetaSink;
 import org.transscript.tool.MutableInt;
 
@@ -142,7 +143,7 @@ public class ToSinkListener implements ParseTreeListener
 	// Some enums
 
 	enum State {
-		PARSE, START_EMBED, PARSE_EMBED, NAME, SKIP
+		PARSE, START_EMBED, PARSE_EMBED, NAME, CONCRETE, END_CONCRETE, END_CONCRETE_TERM, SKIP
 	}
 
 	enum TokenKind {
@@ -152,17 +153,20 @@ public class ToSinkListener implements ParseTreeListener
 	// The state.
 
 	/** TransScript sink */
-	private Sink sink4;
+	private Sink sink;
 
 	/** The List construction descriptors */
 	final protected ConstructionDescriptor nilDesc;
 	final protected ConstructionDescriptor consDesc;
 
-	private ArrayDeque<MutableInt> consCount;
+	private ArrayDeque<Pair<MutableInt, String>> consCount;
 	private ArrayDeque<ParserRuleContext> ruleContext;
 
 	/** The ANTLR4 parser */
 	private Parser parser;
+
+	/** Parsing transscript? */
+	final private boolean parsets;
 
 	/** Constructor name prefix */
 	private String prefix;
@@ -183,31 +187,32 @@ public class ToSinkListener implements ParseTreeListener
 	private HashMap<String, String> binderNames;
 
 	/** In scope bound variables. */
-	private ArrayDeque<Pair<String /* In the source */, Variable /* In the term */>> bounds;
+	private Scoping bounds;
 
 	/** In scope fresh variables. */
-	private ArrayDeque<Pair<String /* In the source */, Variable /* In the term */>> freshes;
+	private Scoping freshes;
 
 	/** Current token sort */
 	private TokenKind kind;
 
 	/** Meta term type */
-	//private String termType;
+	private String termType;
 
 	/** Listener state */
 	private State state;
 
 	/**
 	 * Create an TS ANTLR listener 
-	 * @param sink
-	 * @param prefix    Prefix to apply to constructor names
-	 * @param metachar  Language specific meta variable prefix
-	 * @param parser
-	 * @param bounds    Bound variables
+	 * @param sink      where to send events
+	 * @param prefix    prefix to apply to constructor names
+	 * @param metachar  language specific meta variable prefix
+	 * @param parser    using this listener
+	 * @param bounds    bound variables. Modifiable.      
+	 * @param freshes   global fresh variables. Modifiable.
 	 */
-	public ToSinkListener(Sink sink, String prefix, String metachar, Parser parser, Map<String, Variable> bounds)
+	public ToSinkListener(Sink sink, String prefix, String metachar, Parser parser, Scoping bounds, Scoping freshes)
 	{
-		this.sink4 = sink;
+		this.sink = sink;
 		this.consCount = new ArrayDeque<>();
 		this.ruleContext = new ArrayDeque<>();
 
@@ -218,16 +223,12 @@ public class ToSinkListener implements ParseTreeListener
 		this.kind = TokenKind.STRING;
 
 		this.binderNames = new HashMap<>();
-		this.bounds = new ArrayDeque<>();
-		if (bounds != null)
-		{
-			for (Entry<String, Variable> entry : bounds.entrySet())
-				this.bounds.add(new Pair<>(entry.getKey(), entry.getValue()));
-		}
-		this.freshes = new ArrayDeque<>();
+		this.bounds = bounds;
+		this.freshes = freshes;
 
 		this.nilDesc = sink.context().lookupDescriptor("Nil");
 		this.consDesc = sink.context().lookupDescriptor("Cons");
+		this.parsets = prefix.equals("TransScript_");
 	}
 
 	/**
@@ -252,7 +253,11 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void enterZOM(ParserRuleContext context)
 	{
-		consCount.push(new MutableInt(0));
+		ParserRuleContext parentCtx = ruleContext.peek();
+		String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
+		String type = fixupType(ruleName);
+
+		consCount.push(new Pair<>(new MutableInt(0), type));
 		tail = false;
 	}
 
@@ -262,15 +267,26 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void exitZOM(ParserRuleContext context)
 	{
+
 		if (!tail)
 		{
-			sink4 = sink4.start(nilDesc).end();
+			if (metasink() != null)
+			{
+				ParserRuleContext parentCtx = ruleContext.peek();
+				String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
+				String type = fixupType(ruleName);
+
+				metasink().type(type);
+			}
+
+			sink.start(nilDesc).end();
 		}
 
-		int count = consCount.pop().v;
+		int count = consCount.pop().fst.v;
 		while (count-- > 0)
-			sink4 = sink4.end();
-
+		{
+			sink.end();
+		}
 		tail = false;
 	}
 
@@ -301,11 +317,19 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void enterAlt(ParserRuleContext context)
 	{
-		ParserRuleContext parentCtx = ruleContext.peek();
-		String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
+		switch (state)
+		{
+			case CONCRETE :
+				break;
+			default :
+				ParserRuleContext parentCtx = ruleContext.peek();
+				String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
 
-		sendLocation(parentCtx.getStart());
-		sink4 = sink4.start(sink4.context().lookupDescriptor(prefix + ruleName));
+				sendLocation(parentCtx.getStart());
+				if (metasink() != null)
+					metasink().type(fixupType(ruleName));
+				sink = sink.start(sink.context().lookupDescriptor(prefix + ruleName));
+		}
 	}
 
 	/**
@@ -320,9 +344,16 @@ public class ToSinkListener implements ParseTreeListener
 	{
 		ParserRuleContext parentCtx = ruleContext.peek();
 		String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
+		if (isConcrete(ruleName, name))
+			state = State.CONCRETE;
+		else
+		{
+			sendLocation(parentCtx.getStart());
 
-		sendLocation(parentCtx.getStart());
-		sink4 = sink4.start(sink4.context().lookupDescriptor(prefix + ruleName + "_A" + name));
+			if (metasink() != null)
+				metasink().type(fixupType(ruleName));
+			sink.start(sink.context().lookupDescriptor(prefix + ruleName + "_A" + name));
+		}
 	}
 
 	/**
@@ -331,7 +362,17 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void exitAlt(ParserRuleContext context)
 	{
-		sink4 = sink4.end();// end construction
+		switch (state)
+		{
+			case END_CONCRETE :
+				state = State.END_CONCRETE_TERM;
+				break;
+			case END_CONCRETE_TERM :
+				state = State.PARSE;
+				break;
+			default :
+				sink.end();// end construction
+		}
 	}
 
 	/**
@@ -349,7 +390,7 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void term(ParserRuleContext _ctx, String type)
 	{
-		//	termType = type;
+		termType = fixupType(type);
 		kind = TokenKind.METAVAR;
 	}
 
@@ -429,11 +470,11 @@ public class ToSinkListener implements ParseTreeListener
 			// received a metavariable matching a syntactic variable.
 
 			String metaname = fixupMetachar(binderName);
-			metasink().startMetaApplication(metaname).endMetaApplication();
+			metasink().startMetaApplication(metaname);
 
-			// TODO: Send type when mode is META
-			//if (termType != null)
-			//	sink4 = sink4.type(termType);
+			if (termType != null)
+				metasink().type(termType);
+			metasink().endMetaApplication();
 
 			kind = TokenKind.STRING;
 		}
@@ -461,13 +502,13 @@ public class ToSinkListener implements ParseTreeListener
 			{
 				// Create new fresh variable.
 				// For now all variables are of type String
-				variable = Optional.of(new Pair<>(binderName, StringTerm.varStringTerm(sink4.context(), binderName)));
+				variable = Optional.of(new Pair<>(binderName, StringTerm.varStringTerm(sink.context(), binderName)));
 
 				freshes.push(variable.get());
 			}
 
 			// Can now emit variable
-			sink4 = sink4.use(variable.get().snd);
+			sink = sink.use(variable.get().snd);
 		}
 		state = State.PARSE;
 	}
@@ -489,13 +530,13 @@ public class ToSinkListener implements ParseTreeListener
 			String name = binderNames.remove(id); // consume binder name 
 			assert name != null : "Invalid grammar: binds used without binder/name";
 
-			binders[i] = StringTerm.varStringTerm(sink4.context(), name);
+			binders[i] = StringTerm.varStringTerm(sink.context(), name);
 
 			bounds.push(new Pair<>(name, binders[i]));
 		}
 
 		for (int i = 0; i < binders.length; i++)
-			sink4 = sink4.bind(binders[i]);
+			sink.bind(binders[i]);
 	}
 
 	/**
@@ -515,13 +556,15 @@ public class ToSinkListener implements ParseTreeListener
 	public void enterEveryRule(ParserRuleContext context)
 	{
 		// Is that a rule part of a list?
-		if (!consCount.isEmpty() && consCount.peek() != MutableInt.MARKER)
+		if (!consCount.isEmpty() && consCount.peek().fst != MutableInt.MARKER)
 		{
 			if (!tail)
 			{
-				sink4 = sink4.start(consDesc);
+				if (metasink() != null)
+					metasink().type(consCount.peek().snd);
+				sink.start(consDesc);
 
-				consCount.peek().v++;
+				consCount.peek().fst.v++;
 			}
 			else
 			{
@@ -529,7 +572,7 @@ public class ToSinkListener implements ParseTreeListener
 			}
 		}
 
-		consCount.push(MutableInt.MARKER);
+		consCount.push(new Pair<>(MutableInt.MARKER, null));
 		ruleContext.push(context);
 	}
 
@@ -556,12 +599,15 @@ public class ToSinkListener implements ParseTreeListener
 				if (context.getSymbol().getType() != -1)
 				{
 					// Is that a terminal part of a list?
-					if (!consCount.isEmpty() && consCount.peek() != MutableInt.MARKER)
+					if (!consCount.isEmpty() && consCount.peek().fst != MutableInt.MARKER)
 					{
 						if (!tail)
 						{
-							sink4 = sink4.start(consDesc);
-							consCount.peek().v++;
+							if (metasink() != null)
+								metasink().type(consCount.peek().snd);
+
+							sink.start(consDesc);
+							consCount.peek().fst.v++;
 						}
 					}
 
@@ -577,7 +623,7 @@ public class ToSinkListener implements ParseTreeListener
 							if (t.startsWith("\""))
 								t = StringUtils.unquoteJava(t);
 
-							sink4 = sink4.literal(t);
+							sink = sink.literal(t);
 							break;
 						case METAVAR :
 							String metaname = fixupMetachar(context.getText());
@@ -590,14 +636,12 @@ public class ToSinkListener implements ParseTreeListener
 							{
 								if (variable == MARKER)
 									break;
-								sink4 = sink4.use((Variable) variable);
+								sink = sink.use((Variable) variable);
 							}
+							if (termType != null)
+								metasink().type(termType);
 
 							metasink().endMetaApplication();
-
-							// TODO: send type when meta mode
-							//if (termType != null)
-							//	sink4 = sink4.ype);
 							break;
 						default :
 							break;
@@ -610,40 +654,92 @@ public class ToSinkListener implements ParseTreeListener
 				// Just the category/sort name. Ignore
 				state = State.PARSE_EMBED;
 				break;
-			case PARSE_EMBED :
+			case PARSE_EMBED : {
 				// Recursively parse this token
-				//Token token = context.getSymbol();
+				Token token = context.getSymbol();
 				String text = context.getText();
 				if (text.length() > 1)
 				{
 					// Last character is closing the embedded section: trim it.
 					text = text.trim();
 					text = text.substring(0, text.length() - 1);
-
-					Reader reader = new StringReader(text);
-
-					// TODO: location information.
-					parseCrsx4Term(reader);
+					parseTSTerm(text, token.getLine(), token.getCharPositionInLine());
 				}
 				state = State.PARSE;
 				break;
-
+			}
 			case NAME :
 				// Receive a symbol or a bound variable
 				binderName += context.getText().trim();
 				break;
-
-			default :
+			case CONCRETE : {
+				if (kind == TokenKind.METAVAR)
+				{
+					// Cancel parsing concrete. Produce skipped start events and resume normal parsing.
+					metasink().type("TransScript_aterm_sort");
+					sink.start(sink.context().lookupDescriptor("TransScript_aterm_A8"));
+					metasink().type("TransScript_concrete_sort");
+					sink.start(sink.context().lookupDescriptor("TransScript_concrete"));
+					String metaname = fixupMetachar(context.getText());
+					metasink().startMetaApplication(metaname);
+					if (termType != null)
+						metasink().type(termType);
+					metasink().endMetaApplication();
+					state = State.PARSE;
+				}
+				else
+				{
+					Token token = context.getSymbol();
+					parseConcrete(context.getText(), token.getLine(), token.getCharPositionInLine());
+					state = State.END_CONCRETE;
+				}
 				break;
+			}
+			case END_CONCRETE :
+			case END_CONCRETE_TERM :
+				break;
+
 		}
 	}
 
-	private void parseCrsx4Term(Reader reader)
+	// Parse concrete syntax
+	private void parseConcrete(String text, int line, int column)
 	{
-		org.transscript.runtime.Parser innerParser = sink4.context().getParser("term", true);
-		BufferSink buffer = sink4.context().makeBuffer();
-		innerParser.parser().parse(buffer, "term", reader, null, 0, 0, null);
-		metasink().embded((TransScript_xterm_xsort) buffer.term());
+		String category = text.substring(0, text.indexOf("⟦"));
+		String program = text.substring(text.indexOf("⟦") + 1);
+		program = program.substring(0, program.lastIndexOf("⟧"));
+
+		org.transscript.runtime.Parser parser = sink.context().getParser(category, true); // Get latest boot parser.
+		if (parser == null)
+			throw new RuntimeException("Fatal error: no parser found for category " + category);
+
+		try (Reader reader = new StringReader(program))
+		{
+			MetaBufferSink innersink = new MetaBufferSink(sink.context());
+			parser.parse(innersink, category, reader, null, line, column, bounds, freshes);
+			sink.copy(innersink.metaterm().asTransScript_xterm(sink.context()).getField1());
+		}
+		catch (RuntimeException e)
+		{
+			System.err.println("Error while parsing: " + program);
+			throw e;
+		}
+		catch (IOException e)
+		{} // can't happen.
+	}
+
+	// Parse embedded TS term.
+	private void parseTSTerm(String text, int line, int column)
+	{
+		try (Reader reader = new StringReader(text))
+		{
+			org.transscript.runtime.Parser innerParser = sink.context().getParser("term", true);
+			BufferSink buffer = sink.context().makeBuffer();
+			innerParser.parser().parse(buffer, "term", reader, null, line, column, bounds, freshes);
+			metasink().copy((TransScript_xterm_xsort) buffer.term());
+		}
+		catch (IOException e)
+		{} // can't happen.
 	}
 
 	/**
@@ -653,25 +749,32 @@ public class ToSinkListener implements ParseTreeListener
 	{
 		return "#" + metavar.substring(metachar.length());
 	}
-	//
-	//	/**
-	//	 * Convert raw type to proper TransScript type.
-	//	 */
-	//	private String fixupType(String type)
-	//	{
-	//		if (type.endsWith("_TOK"))
-	//			return "String";
-	//
-	//		final boolean islist = type.endsWith("_OOM") || type.endsWith("_ZOM") || type.endsWith("_OPT");
-	//		type = islist ? type.substring(0, type.length() - "_ZOM".length()) : type;
-	//
-	//		return (islist ? "List<" : "") + prefix + type + "_sort" + (islist ? ">" : "");
-	//	}
+
+	/**
+	 * Convert raw type to proper TransScript type.
+	 */
+	private String fixupType(String type)
+	{
+		final boolean islist = type.endsWith("_OOM") || type.endsWith("_ZOM") || type.endsWith("_OPT");
+		type = islist ? type.substring(0, type.length() - "_ZOM".length()) : type;
+
+		if (type.endsWith("_TOK"))
+			return (islist ? "List<" : "") + "StringTerm" + (islist ? ">" : "");
+
+		return (islist ? "List<" : "") + prefix + type + "_sort" + (islist ? ">" : "");
+	}
 
 	/** Cast sink to metasink */
 	final private MetaSink metasink()
 	{
-		return (MetaSink) sink4;
+		return sink instanceof MetaSink ? (MetaSink) sink : null;
+	}
+
+	// Tell whether about to parse concrete programs.
+	private boolean isConcrete(String rulename, String altname)
+	{
+		// TODO: this is quite brittle. Should change PG.
+		return parsets && altname.equals("8") && rulename.equals("aterm");
 	}
 
 }

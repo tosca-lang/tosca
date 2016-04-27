@@ -7,7 +7,6 @@ import java.io.Reader;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -23,7 +22,7 @@ import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.transscript.runtime.Parser;
 import org.transscript.runtime.Sink;
-import org.transscript.runtime.Variable;
+import org.transscript.runtime.utils.Scoping;
 
 /**
  * Base class for meta and term parsers.
@@ -193,7 +192,7 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 	}
 
 	@Override
-	public Sink parse(Sink sink, String category, Reader reader, String unit, int line, int column, Map<String, Variable> bounds)
+	public Sink parse(Sink sink, String category, Reader reader, String unit, int line, int column, Scoping bounds, Scoping freshes)
 	{
 		category = supportCategory(category);
 		if (category == null)
@@ -208,7 +207,7 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 			throw new RuntimeException(e);
 		}
 
-		ToSinkListener listener = new ToSinkListener(sink, _prefix(), _metachar(), this, null);
+		ToSinkListener listener = new ToSinkListener(sink, _prefix(), _metachar(), this, bounds, freshes);
 		//setTrace(true);
 		addParseListener(listener);
 

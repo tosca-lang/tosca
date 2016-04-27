@@ -4,10 +4,10 @@ package org.transscript.antlr;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Map;
 
 import org.transscript.runtime.Parser;
 import org.transscript.runtime.Sink;
+import org.transscript.runtime.utils.Scoping;
 
 /**
  * TransScript parser backed-by a Crsx3 parser
@@ -38,7 +38,7 @@ class TSParserAdapter implements Parser
 	}
 
 	@Override
-	public Sink parse(Sink sink, String category, Reader reader, String unit, int line, int column, Map<String, org.transscript.runtime.Variable> bounds)
+	public Sink parse(Sink sink, String category, Reader reader, String unit, int line, int column, Scoping bounds, Scoping freshes)
 	{
 		category = parser.supportCategory(category);
 		if (category == null)
@@ -53,7 +53,7 @@ class TSParserAdapter implements Parser
 			throw new RuntimeException(e);
 		}
 
-		SinkAntlrListener listener = new SinkAntlrListener(sink, parser._prefix(), parser._metachar(), parser, bounds);
+		SinkAntlrListener listener = new SinkAntlrListener(sink, parser._prefix(), parser._metachar(), parser, null);
 		//setTrace(true);
 		parser.addParseListener(listener);
 

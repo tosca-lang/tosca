@@ -3,7 +3,8 @@
 package org.transscript.runtime;
 
 import java.io.Reader;
-import java.util.Map;
+
+import org.transscript.runtime.utils.Scoping;
  
 /**
  * Instances permit creation of TransScript terms from text.
@@ -32,11 +33,11 @@ public interface Parser
 	 * @param unit to identify the source of the compilation unit (null for none)
 	 * @param line number of the first line (1-based)
 	 * @param column of the first column (1- based)
-	 * @param map 
-	 * @param bound variables that are bound in the context (null allowed if none) TODO
+	 * @param bound variables that are bound in the context (null not allowed) 
+	 * @param freshes global fresh variables (null not allowed)
 	 * @return sink after it has been sent the read term
 	 */
-	public Sink parse(Sink sink, String category, Reader reader, String unit, int line, int column, Map<String, Variable> bounds);
+	public Sink parse(Sink sink, String category, Reader reader, String unit, int line, int column, Scoping bounds, Scoping freshes);
 
 	/** Set verbosity of parser (to track down grammar errors). */
 	public void setParserVerbose(boolean verbose);
