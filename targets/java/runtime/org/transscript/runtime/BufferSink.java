@@ -4,10 +4,8 @@ package org.transscript.runtime;
 
 import java.util.ArrayDeque;
 
-import org.transscript.runtime.Term.Kind;
-
 /**
- * Consume term events to construct in-memory term representation
+ * Consume simple term events to construct in-memory term representation
  * 
  * @author Lionel Villard
  */
@@ -24,7 +22,13 @@ public class BufferSink extends Sink
 	protected ArrayDeque<Term> terms;
 
 	/** Sub current position stack */
-	protected ArrayDeque<Integer> subs;
+	protected ArrayDeque<Integer> subIndex;
+
+	/** binders current position stack */
+	protected ArrayDeque<Integer> binderIndex;
+
+	/** param current position stack */
+	protected ArrayDeque<Integer> paramIndex;
 
 	/** Saved term stack (when parsing type) */
 	protected ArrayDeque<Term> savedTerms;
@@ -35,16 +39,18 @@ public class BufferSink extends Sink
 	/** Constructed type */
 	protected Term type;
 
-	/** Tells whether adding arguments or substitition to metavar */
-	protected ArrayDeque<Boolean> apply;
+	/** Tells whether adding arguments or substitution to metavar */
+	protected ArrayDeque<Boolean> substitutes;
 
 	/* */
 	public BufferSink(Context context)
 	{
 		this.context = context;
 		terms = new ArrayDeque<>();
-		subs = new ArrayDeque<>();
-		apply = new ArrayDeque<>();
+		subIndex = new ArrayDeque<>();
+		binderIndex = new ArrayDeque<>();
+		paramIndex = new ArrayDeque<>();
+		substitutes = new ArrayDeque<>();
 	}
 
 	/**
@@ -61,7 +67,7 @@ public class BufferSink extends Sink
 	{
 		//assert binders == null || !terms.isEmpty() : "Top level term cannot have binders";
 
-		if (subs.isEmpty())
+		if (subIndex.isEmpty())
 		{
 			// Top-level or type
 			if (savedTerms == null)
@@ -72,24 +78,30 @@ public class BufferSink extends Sink
 		else
 		{
 			Term t = terms.peek();
-			final int subindex = subs.pop();
+			final int subindex = subIndex.pop();
 
-			if (t.kind() == Kind.META_APPLICATION && apply.peek())
-				t.setArg(subindex, sub);
+			if (substitutes.peek())
+				t.setSubstitute(subindex, sub);
 			else
 				t.setSub(subindex, sub);
-			subs.push(subindex + 1); // ready to receive the next sub
+
+			subIndex.push(subindex + 1); // ready to receive the next sub
+
+			binderIndex.pop();
+			binderIndex.push(0); // reset sub binder position.
+			paramIndex.pop();
+			paramIndex.push(0); // reset sub formal param position
 		}
 	}
 
 	/** @return last produced term */
 	protected Term lastTerm()
 	{
-		if (subs.isEmpty())
+		if (subIndex.isEmpty())
 			return term;
 
 		Term t = terms.peek();
-		return t.sub(subs.peek() - 1);
+		return t.sub(subIndex.peek() - 1);
 	}
 
 	@Override
@@ -101,11 +113,14 @@ public class BufferSink extends Sink
 	@Override
 	public BufferSink start(ConstructionDescriptor desc)
 	{
-		Construction c = desc.make();
+		Term c = desc.make();
 		addSub(c);
 
 		terms.push(c);
-		subs.push(0);
+		subIndex.push(0);
+		binderIndex.push(0);
+		paramIndex.push(0);
+		substitutes.push(false);
 		return this;
 	}
 
@@ -113,120 +128,108 @@ public class BufferSink extends Sink
 	public BufferSink end()
 	{
 		Term c = terms.pop();
-		subs.pop();
-
-		// Basic type checking.
-		assert!c.symbol().equals("Cons") || c.arity() == 2 : "Wrong number of subs for Cons";
+		subIndex.pop();
+		binderIndex.pop();
+		paramIndex.pop();
+		substitutes.pop();
 
 		if (terms.isEmpty())
 			term = c;
 
 		return this;
 	}
-
-	@Override
-	public Sink startMetaApplication(String name)
-	{
-		return startMetaApplication(name, null);
-	}
-
-	@Override
-	public Sink startMetaApplication(String name, String type)
-	{
-		MetaApplication meta = new MetaApplication(name);
-		addSub(meta);
-
-		terms.push(meta);
-		subs.push(0);
-		apply.push(false); // Substitution unless told otherwise
-		return this;
-	}
-
-	@Override
-	public Sink endMetaApplication()
-	{
-		Term meta = terms.pop();
-		subs.pop();
-
-		if (terms.isEmpty())
-			term = meta;
-
-		return this;
-	}
-
-	@Override
-	public Sink startApply()
-	{
-		apply.pop();
-		apply.push(true);
-		return this;
-	}
-
-	@Override
-	public Sink endApply()
-	{
-		apply.pop();
-		apply.push(false);
-
-		// Reset sub subindex
-		subs.pop();
-		subs.push(0);
-		return this;
-	}
-
-	@Override
-	public Sink startType()
-	{	
-		savedTerms = terms;
-		savedSubs = subs;
-		return this;
-	}
-
-	public Sink endType()
-	{
-		terms = savedTerms;
-		savedTerms = null;
-		subs = savedSubs;
-		savedSubs = null;
-
-		Term t = lastTerm();
-		if (t.kind() == Kind.META_APPLICATION)
-		{
-			// TODO: remove cast
-			((MetaApplication) t).setType(type);
-		}
-
-		type = null;
-		return this;
-	}
+	//
+	//	@Override
+	//	public BufferSink startMetaApplication(String name)
+	//	{
+	//		MetaApplication meta = new MetaApplication(name);
+	//		addSub(meta);
+	//
+	//		terms.push(meta);
+	//		subIndex.push(0);
+	//
+	//		// binder/param not allowed 
+	//		// binderIndex.push(0);
+	//		// paramIndex.push(0);
+	//
+	//		substitutes.push(false); // Arguments unless told otherwise
+	//		return this;
+	//	}
+	//
+	//	@Override
+	//	public BufferSink endMetaApplication()
+	//	{
+	//		Term meta = terms.pop();
+	//		subIndex.pop();
+	//		substitutes.pop();
+	//
+	//		if (terms.isEmpty())
+	//			term = meta;
+	//
+	//		return this;
+	//	}
+	//
+	//	@Override
+	//	public BufferSink startSubstitutes()
+	//	{
+	//		substitutes.pop();
+	//		substitutes.push(true);
+	//		return this;
+	//	}
+	//
+	//	@Override
+	//	public BufferSink endSubstitutes()
+	//	{
+	//		substitutes.pop();
+	//		substitutes.push(false);
+	//
+	//		// Reset sub subindex
+	//		subIndex.pop();
+	//		subIndex.push(0);
+	//		return this;
+	//	}
+	//
+	//	@Override
+	//	public BufferSink startType()
+	//	{
+	//		savedTerms = terms;
+	//		savedSubs = subIndex;
+	//		return this;
+	//	}
+	//
+	//	public BufferSink endType()
+	//	{
+	//		terms = savedTerms;
+	//		savedTerms = null;
+	//		subIndex = savedSubs;
+	//		savedSubs = null;
+	//
+	//		Term t = lastTerm();
+	//		t.setType(type);
+	//
+	//		type = null;
+	//		return this;
+	//	}
 
 	@Override
 	public BufferSink bind(Variable binder)
 	{
-		return (BufferSink) super.bind(binder);
-	}
-
-	@Override
-	public BufferSink binds(Variable[] binders)
-	{
-		final int i = subs.peek();
 		final Term term = terms.peek();
-		for (int j = 0; j < binders.length; j++)
-			term.setBinder(i, j, binders[j]);
+		term.setBinder(subIndex.peek(), binderIndex.peek(), binder);
 
+		binderIndex.push(binderIndex.pop() + 1);
 		return this;
 	}
-
-	@Override
-	public Sink param(Variable param)
-	{
-		final int i = subs.peek();
-		final Term term = terms.peek();
-
-		term.addParam(i, param);
-
-		return this;
-	}
+	//
+	//	@Override
+	//	public Sink param(Variable param)
+	//	{
+	//		final Term term = terms.peek();
+	//		term.setParam(subIndex.peek(), paramIndex.peek(), param);
+	//
+	//		binderIndex.push(paramIndex.pop() + 1);
+	//		return this;
+	//	}
 
 	@Override
 	public BufferSink use(Variable variable)
@@ -237,42 +240,26 @@ public class BufferSink extends Sink
 	}
 
 	@Override
-	public BufferSink literal(Object literal)
+	public BufferSink literal(String literal)
 	{
-		Term term = new Literal(literal);
+		Term term = StringTerm.stringTerm(literal);
 		addSub(term);
 		return this;
 	}
 
 	@Override
-	public BufferSink properties(Properties properties)
+	public BufferSink literal(double literal)
 	{
-		throw new RuntimeException(); // deprecated
-	}
-
-	@Override
-	public BufferSink propertyNamed(String name, Term term)
-	{
-		throw new RuntimeException(); // deprecated
-	}
-
-	@Override
-	public BufferSink propertyVariable(Variable variable, Term term)
-	{
-		throw new RuntimeException(); // deprecated
-	}
-
-	@Override
-	public BufferSink copy(Term term)
-	{
-		addSub(term); // transfer ref
+		Term term = DoubleTerm.doubleTerm(literal);
+		addSub(term);
 		return this;
 	}
 
 	@Override
-	public BufferSink substitute(Term term, Variable variable, Term substitute)
+	public Sink copy(Term term)
 	{
-		return (BufferSink) super.substitute(term, variable, substitute);
+		addSub(term);
+		return this;
 	}
 
 }

@@ -1,224 +1,87 @@
 // Copyright (c) 2014 IBM Corporation.
 package org.transscript.runtime;
 
-import org.transscript.runtime.Term.Kind;
-
 /**
- * Consumes Term events.
+ * Consumes simple term events.
+ * 
+ * <p>The simple term abstract syntax is defined by this grammar:
+ * <pre>
+ * term 
+ *   : {@link #start} CONSTRUCTOR bterm* {@link #end}
+ *   | {@link #use} VARIABLE
+ *   | {@link #literal(String)} STRING
+ *   | {@link #literal(Double)} DOUBLE
+ *   ;
+ *   
+ * bterms
+ * 	 : term
+ *   | {@link #bind} VARIABLE bterms
+ *   ;
+ * </pre>
  * 
  * @author Lionel Villard
  */
 public abstract class Sink
 {
 
-	/** 
-	 * Static helper sending a named or variable property
-	 * @param key of the property
-	 * @param term property value. The reference is used by this method.
-	 * @return continuation sink to use for subsequent operation
-	 */
-	public static Sink property(Sink sink, Term key, Term value)
-	{
-		return key.kind() == Kind.VARIABLE_USE ? sink.propertyVariable(((VariableUse) key).variable, value) : sink.propertyNamed(
-				key.symbol(), value);
-	}
-
 	/**
-	 * Start construction.
+	 * Start of construction.
+	 *
+	 * The following events are the construction arguments, either terms or bound terms.
 	 * 
 	 * @param descriptor of the construction
-	 * 
-	 * @return continuation sink to use for subsequent operation
+	 * @return this sink
 	 */
 	public abstract Sink start(ConstructionDescriptor descriptor);
 
 	/**
-	 * End of constructor subterm
+	 * End of construction.
 	 * 
-	 * @return continuation sink to use for subsequent operation
+	 * @return this sink
 	 */
 	public abstract Sink end();
 
 	/**
-	 * Insert binder wrapper around current construction subterm.
+	 * Receives the declaration of a bound variable. 
 	 * 
-	 * @param binders to be bound here - <em>must</em> be fresh (not used in any
-	 *            existing terms)
-	 * @return continuation sink to use for subsequent operation (never null)
+	 * @param binder to be bound here. The {@link Ref reference} is used by this method.
+	 * @return this sink.
 	 */
-	public Sink bind(Variable binder)
-	{
-		return binds(new Variable[]
-			{binder});
-	}
-
-	/**
-	 * Insert binders wrapper around current construction subterm.
-	 * 
-	 * @param binders to be bound here - <em>must</em> be fresh (not used in any
-	 *            existing terms). All variable references are used by this method
-	 * @return continuation sink to use for subsequent operation (never null)
-	 * @deprecated
-	 */
-	public abstract Sink binds(Variable[] binders);
-
-	/**
-	 * Receives a formal parameter
-	 * 
-	 * @param  to be bound here - <em>must</em> be fresh (not used in any
-	 *            existing terms). All variable references are used by this method
-	 * @return continuation sink to use for subsequent operation (never null)
-	 */
-	public abstract Sink param(Variable param);
+	public abstract Sink bind(Variable binder);
 	
 	/**
 	 * Insert variable occurrence subterm.
 	 * 
-	 * @param variable to reference. The reference is *NOT* used by this method.
-	 * @return continuation sink to use for subsequent operation
+	 * @param variable to reference. The {@link Ref reference} is used by this method.
+	 * @return this sink
 	 */
 	public abstract Sink use(Variable variable);
 
 	/**
-	 * Insert literal subterm.
+	 * Insert string literal subterm.
 	 * 
 	 * @param literal to add
-	 * @return continuation sink to use for subsequent operation
+	 * @return this sink
 	 */
-	public abstract Sink literal(Object literal);
+	public abstract Sink literal(String literal);
+	
+	/**
+	 * Insert double literal subterm.
+	 * 
+	 * @return this sink
+	 */
+	public abstract Sink literal(double literal);
 
 	/**
-	 * Insert term.
-	 *
-	 * <p>
-	 * Append properties to it if any. Won't do deep-copy if can be avoided.
-	 * 
-	 * @param term. The reference is used by this method.
-	 * @return continuation sink to use for subsequent operation
-	 * @deprecated
+	 * Copy given term
+	 * @param term
 	 */
 	public abstract Sink copy(Term term);
-
-	/**
-	 * Start a meta-application.
-	 * @param name of meta-variable to use
-	 * @return continuation sink to use for subsequent operation (never null)
-	 */
-	public abstract Sink startMetaApplication(String name);
-
-	/**
-	 * Start a meta-application.
-	 * @param name of meta-variable to use
-	 * @return continuation sink to use for subsequent operation (never null)
-	 * @deprecated
-	 */
-	public abstract Sink startMetaApplication(String name, String type);
 	
-	/**
-	 * End of previously started meta-application subterm.
-	 * @return continuation sink to use for subsequent operation
-	 *     - may return <b>null</b> if it does not make sense to send further events
-	 */
-	public abstract Sink endMetaApplication();
-
-
-	/**
-	 * Start meta-application apply arguments
-	 * 
-	 * @return continuation sink to use for subsequent operation
-	 */
-	public abstract Sink startApply();
-	
-	/**
-	 * Ends meta-application apply arguments
-	 * 
-	 * @return continuation sink to use for subsequent operation
-	 */
-	public abstract Sink endApply();
-
-	
-	/**
-	 * Start type annotation
-	 * 
-	 * @return continuation sink to use for subsequent operation
-	 */
-	public abstract Sink startType();
-	
-	/**
-	 * Ends type annotation
-	 * 
-	 * @return continuation sink to use for subsequent operation
-	 */
-	public abstract Sink endType();
-	
-	
-	/**
-	 * Queue properties to be inserted either on a new construction or a term.
-	 * 
-	 * @param properties to insert. The reference is used by this method
-	 * @return continuation sink to use for subsequent operation
-	 * @deprecated
-	 */
-	public abstract Sink properties(Properties properties);
-
-	/**
-	 * Queue a named property to be inserted either on a new construction or a
-	 * term
-	 * 
-	 * @param name of the property
-	 * @param term property value. The reference is used by this method.
-	 * @return continuation sink to use for subsequent operation
-	 * @deprecated
-	 */
-	public abstract Sink propertyNamed(String name, Term term);
-
-	/**
-	 * Queue a variable property to be inserted either on a new construction or
-	 * a term.
-	 * 
-	 * @param variable of the property. The reference is used by this method.
-	 * @param term property value. The reference is used by this method.
-	 * @return continuation sink to use for subsequent operation
-	 * @deprecated
-	 */
-	public abstract Sink propertyVariable(Variable variable, Term term);
-
-	/**
-	 * Substitute the binder with the corresponding term.
-	 *
-	 * <p>
-	 * Convenient method for when the term has only one binder.
-	 * 
-	 * @param term to apply substitution. The reference is used by this method
-	 * @param binder the term binder. The reference is *NOT* used by this method
-	 * @param substitute. The reference is *NOT* used by this method. 
-	 * @return continuation sink to use for subsequent operation
-	 * @deprecated
-	 */
-	public Sink substitute(Term term, Variable binder, Term substitute)
-	{
-		return substitute(term, new Variable[]
-			{binder}, new Term[]
-			{substitute});
-	}
-
-	/**
-	 * Substitute the binders with the corresponding terms.
-	 *            
-	 * @param term to apply substitution. The reference is used by this method
-	 * @param binders the term binder. The references are *NOT* used by this method
-	 * @param substitutes. The references are *NOT* used by this method.
-	 * @return continuation sink to use for subsequent operation
-	 * @deprecated
-	 */
-	final public Sink substitute(Term term, Variable[] binders, Term[] substitutes)
-	{
-		return term.substitute(this, binders, substitutes);
-	}
-
 	/**
 	 * @return the context
 	 */
 	public abstract Context context();
+
 
 }

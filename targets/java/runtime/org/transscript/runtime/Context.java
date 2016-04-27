@@ -7,8 +7,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.HashSet;
-
-import org.transscript.antlr.Crsx3Parser;
+import java.util.function.Supplier;
 
 /**
  * Context passed around during rewrite
@@ -72,16 +71,16 @@ final public class Context
 	 */
 	public Variable makeVariable(String hint)
 	{
-		return new Variable(makeVariableName(hint));
+		return new Variable(makeGlobalName(hint));
 	}
 
 	/**
-	* Make new unique variable name.
-	* 
-	* @param hint
-	* @return
-	*/
-	private String makeVariableName(String hint)
+	 * Make new context-scoped unique name.
+	 * 
+	 * @param hint
+	 * @return
+	 */
+	public String makeGlobalName(String hint)
 	{
 		String base = hint;
 
@@ -112,24 +111,12 @@ final public class Context
 	 * Lookup descriptor for symbol
 	 * 
 	 * @param string
-	 * @return A descriptor. If no descriptor for the given symbol exist, create a data constructor
+	 * @return A descriptor. If no descriptor for the given symbol exist, create a generic data constructor
 	 */
 	public ConstructionDescriptor lookupDescriptor(String symbol)
 	{
-		ConstructionDescriptor desc = descriptors.get(symbol);
-		return desc == null ? ConstructionDescriptor.makeData(symbol) : desc;
-	}
-
-	//	/**
-	//	 * Register function term
-	//	 * 
-	//	 * @param symbol
-	//	 * @param step
-	//	 */
-	//	public void register(String symbol, Step step)
-	//	{
-	//		descriptors.put(symbol, ConstructionDescriptor.makeFunction(symbol, step));
-	//	}
+		return descriptors.get(symbol);
+	} 
 
 	/**
 	 * Register symbol
@@ -144,6 +131,30 @@ final public class Context
 		descriptors.put(desc.symbol(), desc);
 	}
 
+	/**
+	 * Register enumeration value
+	 * @param symbol global identifier 
+	 * @param maker function creating enumeration instances
+	 */
+	public void register(String symbol, Supplier<Term> maker)
+	{
+		register(new ConstructionDescriptor()
+			{
+				
+				@Override
+				public String symbol()
+				{
+					return symbol;
+				}
+				
+				@Override
+				public Term make()
+				{
+					return maker.get();
+				}
+			});
+	}
+	
 	// --- Parser management
 
 	/**
@@ -205,12 +216,13 @@ final public class Context
 			throws InstantiationException, IllegalAccessException
 	{
 		Parser parser;
-		if (Crsx3Parser.class.isAssignableFrom(parserClass))
-		{
-			Crsx3Parser oldParser = (Crsx3Parser) parserClass.newInstance();
-			parser = oldParser.asCrsx4Parser();
-		}
-		else if (Parser.class.isAssignableFrom(parserClass))
+//		if (Crsx3Parser.class.isAssignableFrom(parserClass))
+//		{
+//			Crsx3Parser oldParser = (Crsx3Parser) parserClass.newInstance();
+//			parser = oldParser.asCrsx4Parser();
+//		}
+//		else 
+		if (Parser.class.isAssignableFrom(parserClass))
 		{
 			parser = (Parser) parserClass.newInstance();
 		}
@@ -256,12 +268,9 @@ final public class Context
 	{
 		private ClassLoader realParent;
 
-		private URL[] us; // tmp for debugging only
-
 		public ChildURLClassLoader(URL[] urls, ClassLoader realParent)
 		{
 			super(urls, null);
-			this.us = urls;
 			this.realParent = realParent;
 		}
 
@@ -285,4 +294,5 @@ final public class Context
 			return realParent.loadClass(name);
 		}
 	}
+
 }

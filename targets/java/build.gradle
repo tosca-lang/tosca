@@ -13,7 +13,6 @@ apply plugin:'org.transscript.gradle'
 
 def transScriptSrc = '../../src'
 
-
 repositories {
 	flatDir { dirs 'dist' } // where to find crsx4 jars
 	flatDir { dirs 'lib' }  // where to find crsx3.jar
@@ -32,13 +31,11 @@ dependencies {
 task compileTransScript(type: TransScriptTask, dependsOn:':targets:java:parsers:compileJava') { //, dependsOn:':targets:java:parsers:compileJava'
 	description = "Compile TransScript to Java source files."
 	//sources     = fileTree(dir: transScriptSrc, include: ['/*.crs4', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'cg/*.crs4', 'cg/*.tsc', 'utils/*.crs4', '*.crs4', 'test/*.crs4', 'unification/*.crs4', 'specify/*.crs4'])
-	sources     =  project.hasProperty('dev') ?
-	                 fileTree(dir: '../../src2', include: ['**/*.crs4'], exclude: ['cg/*.*']) :
-					 fileTree(dir: transScriptSrc, include: ['/*.crs4', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'cg/*.crs4', 'cg/*.tsc', '*.crs4', 'test/*.crs4'])
+	sources     = fileTree(dir: transScriptSrc, include: ['*.crs4', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'test/*.crs4', 'cg/*.crs4'])
 	outputDir   = project.hasProperty('dev') ? file('compilerdev') : file('compiler')
-	packageName = project.hasProperty('dev') ? 'org.transscript.compiler2' : 'org.transscript.compiler'
+	packageName = 'org.transscript.compiler'
 	usecompiler = !project.hasProperty('crsx3')
-	bootparserpath = "file:parsers/build/classes/main/" // override TransScript parsers location. MUST END WITH /
+	if (!project.hasProperty('dev')) bootparserpath =  "file:parsers/build/classes/main/" // override TransScript parsers location. MUST END WITH /
 }
 
 
@@ -51,6 +48,7 @@ compileJava {
     targetCompatibility = 1.8
 
 	dependsOn 'compileTransScript'
+	if (project.nparsers) dependsOn ':targets:java:nparsers:buildNewParsers'
 }
 
 //clean.dependsOn cleanBuildTransScriptParsers
@@ -63,8 +61,8 @@ sourceSets {
     main {
         java {
             srcDir 'runtime'
-            srcDir  project.hasProperty('dev') ? 'compilerdev' : 'compiler'
-			srcDir 'parsers/src'
+            srcDir project.hasProperty('dev') ? 'compilerdev' : 'compiler'
+			srcDir project.nparsers ? 'nparsers/src' : 'parsers/src'
         }
 
 		// Include TransScript source code for interpreter mode. Temporary.

@@ -2,33 +2,57 @@
 
 package org.transscript.compiler.std;
 
-import org.transscript.runtime.Normalizer;
-import org.transscript.runtime.Sink;
-import org.transscript.runtime.StringUtils;
-import org.transscript.runtime.Term;
+import org.transscript.runtime.Context;
+import org.transscript.runtime.StringTerm;
+import org.transscript.runtime.utils.StringUtils;
 
+/**
+ * 
+ * @author Lionel Villard
+ *
+ */
 public class LanguageExtern
 {
-
-	final public static boolean _M_ToJavaClassName(Sink sink, Term str)
+	/**
+	 * 
+	 * @param context
+	 * @param str
+	 * @return
+	 */
+	public static StringTerm ToJavaClassName(Context context, StringTerm str)
 	{
-		str = Normalizer.normalize(sink.context(), str);
-		sink.literal(StringUtils.mangle2(str.symbol()));
-		return true;
+		StringTerm estr = str.eval(context);
+		str.release();
+
+		if (estr.data())
+		{
+			StringTerm result = StringTerm.stringTerm(StringUtils.mangle2(estr.unbox()));
+			estr.release();
+			return result;
+		}
+		return StringTerm.lazyStringTerm(c -> ToJavaClassName(c, estr));
 	}
 
-	final public static boolean _M_ToJavaTypeParameter(Sink sink, Term str)
+	/**
+	 * 
+	 * @param context
+	 * @param str
+	 * @return
+	 */
+	public static StringTerm ToJavaTypeParameter(Context context, StringTerm str)
 	{
-		str = Normalizer.normalize(sink.context(), str);
-		sink.literal(StringUtils.mangle2(str.symbol()));
-		return true;
+		return ToJavaClassName(context, str);
 	}
 
-	final public static boolean _M_ToJavaMethodName(Sink sink, Term str)
+	/**
+	 * 
+	 * @param context
+	 * @param str
+	 * @return
+	 */
+	public static StringTerm ToJavaMethodName(Context context, StringTerm str)
 	{
-		str = Normalizer.normalize(sink.context(), str);
-		sink.literal(StringUtils.mangle2(str.symbol()));
-		return true;
+		return ToJavaClassName(context, str);
 	}
 
 }

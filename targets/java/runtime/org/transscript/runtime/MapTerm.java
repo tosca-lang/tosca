@@ -2,366 +2,307 @@
 
 package org.transscript.runtime;
 
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.function.Function;
 
-import org.transscript.compiler.std.List;
+import org.transscript.compiler.std.Core;
+import org.transscript.compiler.std.Core.Option;
+import org.transscript.compiler.std.Listdef;
+import org.transscript.compiler.std.Listdef.List;
+import org.transscript.runtime.Functions.ThunkMaker;
 
 /**
- * Builtin map value.
+ * Builtin homogeneous map associated with syntactic variable map.
  * 
  * @author Lionel Villard
  */
-public class MapTerm extends Construction
+public interface MapTerm<K extends Term, V extends Term> extends Term
 {
-	/** String/Variable to term mapping */
-	protected Map<Object, Term> map;
 
-	/**  */
-	public MapTerm()
-	{}
-
-	/**
-	 * Lookup named property value
-	 * 
-	 * @return value or null if none. Does not return a new reference.
-	 */
-	public Term lookup(String key)
-	{
-		Term value = null;
-		if (map != null)
-			value = map.get(key);
-
-		return value;
-	}
-
-	/**
-	 * Lookup variable property value
-	 * 
-	 * @return value or null if none. Does not return a new reference.
-	 */
-	public Term lookup(Variable key)
-	{
-		Term value = null;
-		if (map != null)
-			value = map.get(key);
-
-		return value;
-	}
-
-	/**
-	 * Lookup property value
-	 * @param key. Reference is not released.
-	 * @return value or null if none. Does not return a new reference.
-	 */
-	public Term lookup(Term key)
-	{
-		return key.kind() == Kind.VARIABLE_USE ? lookup(((VariableUse) key).variable) : lookup(key.symbol());
-	}
-
+	@SuppressWarnings("unchecked")
 	@Override
-	public MapTerm ref()
+	default MapTerm<K, V> eval(Context context)
 	{
-		return (MapTerm) super.ref();
+		return (MapTerm<K, V>) Term.super.eval(context);
 	}
 
 	/**
-	 * Creates a new properties reference which inherits all properties in this
+	 * Create new term map.
+	 * @return
+	 */
+	static <K extends Term, V extends Term> MapTerm<K, V> mapTerm()
+	{
+		return new _MapTerm<K, V>();
+	}
+
+	/**
+	 * Create an unevaluated map.
+	 * @param f the function producing a map
+	 * @return
+	 */
+	public static <K extends Term, V extends Term> MapTerm<K, V> lazyMapTerm(Function<Context, MapTerm<K, V>> f)
+	{
+		return new LazyMapTerm<K, V>(f);
+	}
+
+	/**
+	 * @return Thunk factory for MapTerm
+	 */
+	public static <K extends Term, V extends Term> ThunkMaker<MapTerm<K, V>> lazyMapTermMaker()
+	{
+		return MapTerm::lazyMapTerm;
+	}
+
+	/**
+	 * Creates a new map reference which inherits all properties in this
 	 * instance.
 	 * 
-	 * @return A new non-shared set of properties.
+	 * This reference is consumed.
+	 * 
+	 * @return A new non-shared map.
 	 */
-	public MapTerm extend()
-	{
-		MapTerm copy = new MapTerm();
-		if (map != null)
-			copy.map = new HashMap<>(map);
-		return copy;
-	}
-
-	@Override
-	public void copy(Sink sink, boolean discard)
-	{
-		copy(sink, discard, new HashSet<>(), new IdentityHashMap<>());
-	}
+	public MapTerm<K, V> extend();
 
 	/**
-	 * Deep copy these properties to a sink 
-	 *
-	 * @param sink to copy to 
-	 * @param discard whether to discard these properties
+	 * Add key-value pair to map.
+	 * 
+	 * @param key term. The reference is used.
+	 * @param value the associated term value. The reference is used.
 	 */
-	protected void copy(Sink sink, boolean discard, HashSet<String> names, IdentityHashMap<Variable, Boolean> vars)
-	{
-	//	sink.copy(this.ref());
-		//throw new RuntimeException("Not implemented");
-	}
+	public void putValue(K key, V value);
 
 	/**
-	 * Apply substitution to all properties and send result to sink
+	 * Add key-value pair to map, where key is a variable.
 	 * 
-	 * <p>Consumes 'this' reference
-	 * 
+	 * @param key variable. The reference is used.
+	 * @param value the associated term value. The reference is used.
+	 */
+	public void putVar(Variable key, V value);
+
+	/**
+	 * Get value corresponding to given key
+	 * @param key
+	 * @return An new reference to an optional typed term. 
+	 */
+	public Option<V> getValue(Context context, K key);
+
+	/**
+	 * Get value corresponding to given variable key
+	 * @param key
+	 * @return An new reference to an optional typed term. 
+	 */
+	public Option<V> getValueVar(Context context, Variable key);
+
+	/**
+	 * Gets map values
 	 * @param context
-	 * @param substitutes
-	 * @return a lone properties reference.
+	 * @return
 	 */
-	protected void substituteTo(Sink sink, Map<Variable, Term> substitutes)
+	public List<V> values(Context context);
+
+	/**
+	 * Gets map keys
+	 * @param context
+	 * @return
+	 */
+	public List<K> keys(Context context);
+
+	/**
+	 * The actual map value.
+	 * @param <K>
+	 * @param <V>
+	 */
+	static class _MapTerm<K extends Term, V extends Term> extends HashMap<K, V>implements MapTerm<K, V>
 	{
-		sink.copy(this);
+		private static final long serialVersionUID = -9134352548915946315L;
+
+		/** Variable to term mapping */
+		protected IdentityHashMap<Variable, V> vars;
+
+		@Override
+		public Term copy(Context c)
+		{
+			throw new RuntimeException();
+		}
+
+		@Override
+		public MapTerm<K, V> extend()
+		{
+			_MapTerm<K, V> copy = new _MapTerm<>();
+
+			for (Map.Entry<K, V> entry : entrySet())
+				copy.putValue(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
+
+			if (vars!=null)
+			{
+				for (Map.Entry<Variable, V> entry : vars.entrySet())
+					copy.putVar(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
+			}
+			 
+			return copy;
+		}
+
+		@Override
+		public void putValue(K key, V value)
+		{
+			Term old = super.put(key, value);
+			if (old != null)
+				old.release();
+		}
+
+		@Override
+		public void putVar(Variable key, V value)
+		{
+			if (vars == null)
+				vars = new IdentityHashMap<>();
+
+			vars.put(key, value);
+		}
 		
-		//throw new RuntimeException("Not implemented");
-
-		//		if (substitutes.isEmpty())
-		//			sink.copy(this); // Transfer properties ref
-		//		else
-		//		{
-		//			if (parent != null)
-		//				parent.ref().substituteTo(sink, substitutes);
-		//
-		//			final Context context = sink.context();
-		//
-		//			if (named != null)
-		//			{
-		//				named.forEach((String name, Term term) -> {
-		//					Term nterm = term.ref().substitute(context, substitutes);
-		//					sink.propertyNamed(name, nterm); // consume nterm reference
-		//				});
-		//			}
-		//
-		//			if (variables != null)
-		//			{
-		//				variables.forEach((Variable var, Term term) -> {
-		//					Variable key = var;
-		//					Term substitute = substitutes.get(var);
-		//					if (substitute != null)
-		//					{
-		//						if (substitute.kind() == Kind.VARIABLE_USE)
-		//						{
-		//							// This is a substitution of a variable for a variable!
-		//							key = ((VariableUse) substitute).variable;
-		//						}
-		//						else
-		//						{
-		//							// The variable is substituted by a term. 
-		//							// TODO: remove key?
-		//						}
-		//					}
-		//
-		//					// Substitute value
-		//					Term nterm = term.ref().substitute(context, substitutes);
-		//
-		//					// And send..
-		//					sink.propertyVariable(key.ref(), nterm); // consume nterm reference
-		//				});
-		//			}
-		//			// Done with this instance
-		//			release();
-		//		}
-	}
-
-	/**
-	 * Add named property
-	 * 
-	 * @param name
-	 * @param term the associated value. The reference is used.
-	 */
-	public void addNamedProperty(String name, Term term)
-	{
-		if (map == null)
-			map = new HashMap<>();
-
-		map.put(name, term);
-	}
-
-	/**
-	 * Add variable property
-	 * 
-	 * @param variable. The reference is used.
-	 * @param term the associated value. The reference is used.
-	 */
-	public void addVariableProperty(Variable variable, Term term)
-	{
-		if (map == null)
-			map = new HashMap<>();
-
-		map.put(variable, term);
-	}
-
-	/**
-	 * Add property
-	 * 
-	 * @param key. The property key. If key is a variable use, add as a variable entry. 
-	 * @param term the associated value. The reference is used.
-	 */
-	public void addProperty(Term key, Term term)
-	{
-		if (key instanceof VariableUse)
-			addVariableProperty(((VariableUse) key).variable(), term);
-		else
-			addNamedProperty(key.symbol(), term);
-	}
-
-	@Override
-	public void free()
-	{
-	 	if (map != null)
+		@SuppressWarnings("unchecked")
+		@Override
+		public Option<V> getValue(Context context, K key)
 		{
-			map.forEach((Object key, Term u) -> {
-				u.release();
-			});
-			map = null;
+			Term value = get(key);
+
+			return value == null ? Core.NONE(context) : (Option<V>) Core.SOME(context, value.ref());
 		}
 
-		super.free();
-	}
-
-	/**
-	 * Print out properties. Eliminate duplicates.
-	 * @param out
-	 * @param names
-	 * @throws IOException 
-	 */
-	protected void print(Appendable out, HashSet<String> names, IdentityHashMap<Variable, Boolean> vars) throws IOException
-	{
-
-		if (map != null)
+		@SuppressWarnings("unchecked")
+		@Override
+		public Option<V> getValueVar(Context context, Variable key)
 		{
-			for (Entry<Object, Term> entry : map.entrySet())
+			if (vars == null)
+				return Core.NONE(context) ;
+			Term value = vars.get(key);
+			return value == null ? Core.NONE(context) : (Option<V>) Core.SOME(context, value.ref());
+		}
+
+		@SuppressWarnings("unchecked")
+		public List<V> values(Context context)
+		{
+			final ConstructionDescriptor cons = context.lookupDescriptor("Cons");
+			final ConstructionDescriptor nil = context.lookupDescriptor("Nil");
+
+			if (isEmpty())
+				return (List<V>) nil.make();
+
+			// Use unchecked API to avoid deep recursive algo.
+			Listdef.List<V> top = (List<V>) cons.make();
+			Listdef.List<V> c = top;
+			Listdef.List<V> nc = null;
+			Listdef.List<V> pc = null;
+
+			for (Term term : values())
 			{
-				if (!names.contains(entry.getKey()))
-				{
-					out.append('"').append(entry.getKey().toString()).append('"').append(":").append(
-							entry.getValue().toString()).append(";");
-					if (entry.getKey() instanceof String)
-						names.add((String) entry.getKey());
-				}
+				c.setSub(0, term.ref());
+
+				nc = (List<V>) cons.make();
+				c.setSub(1, nc);
+				pc = c;
+				c = nc;
 			}
-		} 
-	}
+			nc.release();
 
-	@Override
-	public String toString()
-	{
-		StringBuilder builder = new StringBuilder();
-		builder.append("{");
-
-		HashSet<String> names = new HashSet<>();
-		IdentityHashMap<Variable, Boolean> vars = new IdentityHashMap<Variable, Boolean>();
-
-		try
-		{
-			print(builder, names, vars);
+			pc.setSub(1, nil.make());
+			return top;
 		}
-		catch (IOException e)
-		{}
 
-		return builder.append('}').toString();
-	}
-	
-	/**
-	 * Print out properties. Eliminate duplicates.
-	 * @param out
-	 * @param names
-	 * @throws IOException 
-	 */
-	protected void print4(Appendable out, HashSet<String> names, IdentityHashMap<Variable, Boolean> vars) throws IOException
-	{
-
-		if (map != null)
+		@SuppressWarnings("unchecked")
+		@Override
+		public List<K> keys(Context context)
 		{
-			for (Entry<Object, Term> entry : map.entrySet())
+			final ConstructionDescriptor cons = context.lookupDescriptor("Cons");
+			final ConstructionDescriptor nil = context.lookupDescriptor("Nil");
+
+			if (isEmpty())
+				return (List<K>) nil.make();
+
+			// Use unchecked API to avoid deep recursive algo.
+			Listdef.List<K> top = (List<K>) cons.make();
+			Listdef.List<K> c = top;
+			Listdef.List<K> nc = null;
+			Listdef.List<K> pc = null;
+
+			for (Term term : keySet())
 			{
-				if (!names.contains(entry.getKey()))
-				{
-					out.append('"').append(entry.getKey().toString()).append('"').append(":").append(
-							entry.getValue().toString4());
-					if (entry.getKey() instanceof String)
-						names.add((String) entry.getKey());
-				}
+				c.setSub(0, term.ref());
+
+				nc = (List<K>) cons.make();
+				c.setSub(1, nc);
+				pc = c;
+				c = nc;
 			}
-		} 
-	}
+			nc.release();
 
-
-	@Override
-	public String toString4()
-	{
-		StringBuilder builder = new StringBuilder();
-		builder.append("{");
-
-		HashSet<String> names = new HashSet<>();
-		IdentityHashMap<Variable, Boolean> vars = new IdentityHashMap<Variable, Boolean>();
-
-		try
-		{
-			print4(builder, names, vars);
+			pc.setSub(1, nil.make());
+			return top;
 		}
-		catch (IOException e)
-		{}
-
-		return builder.append('}').toString();
-	}
-	
-	
-	@Override
-	protected boolean deepEquals(Term other, Map<Variable, Variable> renamings)
-	{
-		// TODO Auto-generated method stub
-		return false;
 	}
 
-	@Override
-	public ConstructionDescriptor descriptor()
+	/**
+	 * Map term thunk
+	 * @param <K>
+	 * @param <V>
+	 */
+	static class LazyMapTerm<K extends Term, V extends Term> extends LazyTerm<MapTerm<K, V>>implements MapTerm<K, V>
 	{
-		return ConstructionDescriptor.MapDescriptor.singleton;
-	}
 
-	public boolean sendKeys(Sink sink)
-	{
-		if (map != null)
+		public LazyMapTerm(Function<Context, MapTerm<K, V>> f)
 		{
-			map.forEach((key, value) -> {
-				sink.start(List._M_Cons).literal(key);
-			});
-			
+			super(f);
 		}
 
-		sink.start(List._M_Nil).end();
-
-		if (map != null)
+		@Override
+		public Term copy(Context c)
 		{
-			map.forEach((key, value) -> {
-				sink.end();
-			});
+			return new LazyMapTerm<K, V>(f);
 		}
 
-		return true;
+		@Override
+		public MapTerm<K, V> extend()
+		{
+			throw new RuntimeException();
+		}
+
+		@Override
+		public void putValue(K key, V value)
+		{
+			throw new RuntimeException();
+		}
+
+		@Override
+		public List<V> values(Context context)
+		{
+			throw new RuntimeException();
+		}
+
+		@Override
+		public Option<V> getValue(Context context, K key)
+		{
+			throw new RuntimeException();
+		}
+
+		@Override
+		public List<K> keys(Context context)
+		{
+			throw new RuntimeException();
+		}
+
+		@Override
+		public void putVar(Variable key, V value)
+		{
+			throw new RuntimeException();
+		}
+
+		@Override
+		public Option<V> getValueVar(Context context, Variable key)
+		{
+			throw new RuntimeException();
+		}
+
 	}
-
-	public boolean sendValues(Sink sink)
-	{
-		if (map != null)
-		{
-			map.forEach((key, value) -> {
-				sink.start(List._M_Cons).copy(value.ref());
-			});
-		}
-
-		sink.start(List._M_Nil).end();
-
-		if (map != null)
-		{
-			map.forEach((key, value) -> {
-				sink.end();
-			});
-		}
-		return true;
-	}
-
 
 }

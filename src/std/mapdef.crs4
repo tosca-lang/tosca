@@ -1,0 +1,39 @@
+/* Copyright (c) 2016 IBM Corporation. */
+
+/*
+    Standard library for homogeneous (hash) map,
+    associated with syntactic variable map
+ */
+import Std::Core
+import Std::Listdef
+
+/* Extend the given map with the given key-value pair.
+   If a entry for the given key already exists in the map, it is shadowed.
+   @return the extended map.
+ */
+extern func MapPut<a b>({a : b}, eager a /* key */, eager b /* value */) -> {a : b}
+
+/* Lookup entry for given key.
+   @return the value of type b or NONE if not in the map
+ */
+extern func MapGet<a b>({a : b} /* map */, eager a /* key */) -> Option<b>
+
+/* Extend the given map with the given key-value pair, where key is a syntactic variable
+   If a entry for the given key already exists in the map, it is shadowed.
+   @return the extended map.
+ */
+extern func MapPutVar<a b c>({a : b}, eager c /* variable key */, eager b /* value */) -> {a : b}
+
+/* Lookup entry for given variable key.
+   @return the value of type b or NONE if not in the map
+ */
+extern func MapGetVar<a b c>({a : b}, c /* variable key */) -> Option<b>
+
+/* Gets list of keys, excluding variable keys */
+extern func MapKeys<a b>({a : b}) -> List<a>
+
+/* Gets list of values, excluding variable values */
+extern func MapValues<a b>({a : b}) -> List<b>
+
+/* Create new empty map */
+extern func MapNew<a b>() -> {a : b}

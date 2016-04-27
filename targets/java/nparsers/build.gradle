@@ -1,0 +1,160 @@
+// Copyright (c) 2016 IBM Corporation.
+
+/*
+ *  New Parsers build file.
+ */
+import org.transscript.gradle.*
+
+
+// --- Generate Java parsers based on Antlr specifications
+
+apply plugin:'org.transscript.gradle'
+
+def transScriptSrc = '../../../src'
+
+repositories {
+	flatDir { dirs '../dist' } // where to find crsx4 jars
+	flatDir { dirs '../lib' }  // where to find crsx3.jar
+	mavenCentral() // Where to find ANTLR
+}
+
+// Depends on latest transcript being compiled!
+dependencies {
+	transscript files(transScriptSrc) 
+	transscript 'org.transscript:transscript:1.0.0-ALPHA@jar'
+	transscript 'org.crsx:crsx3@jar'
+	transscript 'org.antlr:antlr4:4.5'
+}
+
+// --- Generate all meta and term parsers
+
+task newCoreParsers(type: PG4Task) {
+	description "Generate Core term and meta parsers"
+	source = file(transScriptSrc + '/core/Core.g4')
+	generatedFileDir = file('src/core')
+	metaPrefix = '##'
+	ncg = true
+	np = true
+}
+
+task newTransScriptParsers(type: PG4Task) {
+	description 'Generate TransScript term and meta parsers'
+	source = file(transScriptSrc + '/parser/TransScript.g4')
+	generatedFileDir = file('src/parser')
+	metaPrefix = '##'
+	ncg = true
+    np = true
+}
+
+task newTextParsers(type: PG4Task) {
+	description 'Generate Text term and meta parsers'
+	source = file(transScriptSrc + '/text/Text4.g4')
+	generatedFileDir = file('src/text')
+	defaultRule = 'text'
+	ncg = true
+	np = true
+}
+
+// --- Generate parsers Java code 
+
+def commonCore = {
+	generatedFileDir = file('src/org/transscript/core')
+	packageName = 'org.transscript.core'
+}
+
+task newCoreMetaParser(type: Antlr4Task, dependsOn: 'newCoreParsers') {
+	configure commonCore
+	description = 'Generate Java Core meta parser'
+	lexer = file('src/core/CoreMetaLexer.g4')
+	grammar = file('src/core/CoreMetaParser.g4')
+	superClass = 'org.transscript.antlr.TSParser'
+}
+
+task newCoreTermParser(type: Antlr4Task, dependsOn: 'newCoreParsers') {
+	configure commonCore
+	description = 'Generate Java Core term parser'
+	grammar = file('src/core/CoreTerm.g4')
+}
+
+task newTransScriptMetaParser(type: Antlr4Task, dependsOn: 'newTransScriptParsers') {
+	description = 'Generate Java TransScript meta parser'
+	lexer = file('src/parser/TransScriptMetaLexer.g4')
+	grammar = file('src/parser/TransScriptMetaParser.g4')
+	generatedFileDir = file('src/org/transscript/parser')
+	packageName = 'org.transscript.parser'
+	superClass = 'org.transscript.antlr.TSParser'
+}
+
+task newTransScriptTermParser(type: Antlr4Task, dependsOn: 'newTransScriptParsers') {
+	description = 'Generate Java TransScript term parser'
+	grammar = file('src/parser/TransScriptTerm.g4')
+	generatedFileDir = file('src/org/transscript/parser')
+	packageName = 'org.transscript.parser'
+}
+
+task newAntlrMetaParser(type: Antlr4Task) {
+	description = 'Generate Antlr4 Java meta parser'
+	lexer = file(transScriptSrc + '/pg/ANTLRMetaLexer.g4')
+	grammar = file(transScriptSrc + '/pg/ANTLRMeta.g4')
+	generatedFileDir = file('src/org/transscript/antlr')
+	packageName = 'org.transscript.antlr'
+	superClass = 'org.transscript.antlr.Crsx3Parser'
+}
+
+task newAntlrAntlrTermParser(type: Antlr4Task) {
+	description = 'Generate Antlr4 Java term parser.'
+	lexer = file(transScriptSrc + '/pg/ANTLRTermLexer.g4')
+	grammar = file(transScriptSrc + '/pg/ANTLRTerm.g4')
+	generatedFileDir = file('src/org/transscript/antlr')
+	packageName = 'org.transscript.antlr'
+}
+
+task newTextMetaParser(type: Antlr4Task, dependsOn: 'newTextParsers') {
+	description = 'Generate Java Text meta parser'
+	lexer = file('src/text/Text4MetaLexer.g4')
+	grammar = file('src/text/Text4MetaParser.g4')
+	generatedFileDir = file('src/org/transscript/text')
+	packageName = 'org.transscript.text'
+	superClass = 'org.transscript.antlr.TSParser'
+}
+
+task newTextTermParser(type: Antlr4Task, dependsOn: 'newTextParsers') {
+	description = 'Generate Java Text term parser'
+	grammar = file('src/text/Text4Term.g4')
+	generatedFileDir = file('src/org/transscript/text')
+	packageName = 'org.transscript.text'
+}
+
+//-- Meta task to build all parsers.
+task buildNewParsers(
+	description: "Generate latest Java meta and term parsers for Antlr, TransScript, Core and Text",
+	dependsOn: ['newCoreMetaParser', 'newCoreTermParser', 'newTransScriptMetaParser', 'newTransScriptTermParser',
+				'newAntlrMetaParser', 'newAntlrAntlrTermParser', 'newTextMetaParser', 'newTextTermParser'])
+
+// --- Java compilation
+
+apply plugin:'java'
+
+compileJava {
+	sourceCompatibility = 1.8
+	targetCompatibility = 1.8
+
+	dependsOn 'buildNewParsers'
+}
+
+//clean.dependsOn cleanBuildTransScriptParsers
+//clean.dependsOn cleanBuildAntlrParsers
+
+sourceSets {
+	main {
+		java {
+			srcDir 'src'
+		}
+	}
+}
+
+dependencies {
+	compile 'org.crsx:crsx3@jar'
+	compile 'org.antlr:antlr4:4.5'
+	compile files('../build') // Use new runtime
+}

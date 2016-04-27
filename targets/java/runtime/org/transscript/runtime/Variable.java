@@ -1,27 +1,30 @@
-// Copyright (c) 2014 IBM Corporation.
+// Copyright (c) 2016 IBM Corporation.
+
 package org.transscript.runtime;
 
 /**
- * A Variable. Either free, bound, or binder.
- * 
- * @author villardl
+ * Generic syntactic variable
+ * @author Lionel Villard
  */
-public class Variable extends Reference
+public class Variable extends RefImpl implements Ref
 {
-	/** Name */
+
+	/** Global unique name (within a {@link Context} */
 	String name;
 
 	/** Count the number of {@link VariableUse} using this variable */
 	int uses;
 
-	/** */
-	public Variable(String name)
+	/** 
+	 * Create a variable of given unique name
+	 */
+	protected Variable(String name)
 	{
 		this.name = name;
 	}
 
 	/**
-	 * @return The variable name.
+	 * @return The globally unique variable name.
 	 */
 	public String name()
 	{
@@ -31,7 +34,7 @@ public class Variable extends Reference
 	/**
 	 * @return a new use of this variable
 	 */
-	final public Variable ref()
+	public Variable ref()
 	{
 		return (Variable) super.ref();
 	}
@@ -42,7 +45,7 @@ public class Variable extends Reference
 	public VariableUse use()
 	{
 		uses++;
-		return new VariableUse(this);
+		return newVarUse();
 	}
 
 	/**
@@ -55,6 +58,22 @@ public class Variable extends Reference
 	{
 		//use.variable = null;
 		uses--;
+	}
+
+	/**
+	 * Creates a new variable use
+	 */
+	protected VariableUse newVarUse()
+	{
+		return new VariableUse(this);
+	}
+
+	/**
+	 * Make a new variable of the same type as this one.
+	 */
+	public Variable make(Context ctx, String hint)
+	{
+		return new Variable(ctx.makeGlobalName(hint));
 	}
 
 	@Override

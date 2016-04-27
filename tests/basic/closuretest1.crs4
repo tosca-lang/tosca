@@ -1,0 +1,12 @@
+// Copyright (c) 2016 IBM Corporation.
+
+/* Simple closure test, no syntactic variable */
+
+enum ListStr | Cons(String, ListStr) | Nil
+
+func Map((String) -> String, ListStr) -> ListStr
+rule Map(#, ())           → ()
+rule Map(#, Cons(#1:String, #s:ListStr)) → Cons(#(#1), Map(#, #s))
+
+func Tests -> ListStr
+rule Tests → Map( (x) -> x, Cons("1", Cons("2", Nil)) )

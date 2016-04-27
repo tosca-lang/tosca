@@ -4,10 +4,10 @@ package org.transscript;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -22,20 +22,21 @@ import java.util.function.Consumer;
 
 import javax.tools.JavaCompiler;
 import javax.tools.JavaCompiler.CompilationTask;
-
-import org.transscript.runtime.BufferSink;
-import org.transscript.runtime.ConstructionDescriptor;
-import org.transscript.runtime.Context;
-import org.transscript.runtime.CrsxLexer;
-import org.transscript.runtime.Normalizer;
-import org.transscript.runtime.ParsingUtils;
-import org.transscript.runtime.Sink;
-import org.transscript.runtime.StringUtils;
-import org.transscript.runtime.Term;
-
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+
+import org.transscript.compiler.core.Core;
+import org.transscript.compiler.parser.TransScript;
+import org.transscript.compiler.text.Printer;
+import org.transscript.compiler.text.Text4.Text4_xtext_xsort;
+import org.transscript.parser.TransScriptMetaParser;
+import org.transscript.runtime.BufferSink;
+import org.transscript.runtime.Context;
+import org.transscript.runtime.Normalizer;
+import org.transscript.runtime.StringTerm;
+import org.transscript.runtime.Term;
+import org.transscript.runtime.utils.Scoping;
 
 /**
  * TransScript command line.
@@ -52,6 +53,8 @@ public class Tool
 		addCommand("run", Tool::run, Tool::helpRun);
 		addCommand("build", Tool::build, Tool::helpBuild);
 		addCommand("test", Tool::test, Tool::helpTest);
+		addCommand("parse", Tool::parse, Tool::helpParse);
+
 	}
 
 	static void addCommand(String name, Consumer<Map<String, String>> command, Runnable help)
@@ -94,16 +97,17 @@ public class Tool
 	static void helpRun()
 	{
 		System.out.println("Usage: java -jar <transscript.jar> run [<args>]");
+		System.out.println("Compile and run TransScript program");
 		System.out.println("where <args> must be at least either rules or class");
 		System.out.println("\n<args> are:");
 		helpCommon();
-		System.out.println("  term=<term>               the input term. Optional");
-		System.out.println("  wrapper=<name>            input term wrapper. Default is Main");
+		System.out.println("  main=<name>               the main method to execute. Default is Main");
+		System.out.println("  arg=<value>               argument given to the main method. Can occur multiple times.");
 
 		System.exit(0);
 	}
 
-	/* Build and run a TransScript system */
+	/** Build and run a TransScript system */
 	static void run(Map<String, String> env)
 	{
 		String clazz = env.get("class");
@@ -140,7 +144,6 @@ public class Tool
 		}
 
 		// Second: run
-
 		Map<String, Object> runEnv = new HashMap<>();
 
 		if (classLoader != null)
@@ -193,12 +196,12 @@ public class Tool
 		// First: Produce java source file.
 
 		buildEnv.put("class", "org.transscript.compiler.Crsx");
-		buildEnv.put("wrapper", "Compile");
+		buildEnv.put("main", "Compile");
 
 		// TODO: this shouldn't be needed.
 		buildEnv.put("grammar", parsers); // Temporary.
 		buildEnv.put("sink", "org.transscript.runtime.text.TextSink");
-		buildEnv.put("term", "\"" + rules + "\"");
+		buildEnv.put("arg", rules);
 		buildEnv.put("output", output);
 
 		if (javabasepackage != null)
@@ -228,12 +231,57 @@ public class Tool
 		System.exit(0);
 	}
 
-	/* Test a TransScript program */
+	/** Test TransScript program */
 	static void test(Map<String, String> env)
 	{
 		//env.put("wrapper", "Tests");
 		env.put("main", "Tests");
 		run(env);
+	}
+
+	static void helpParse()
+	{
+		System.out.println("Usage: java -jar <transscript.jar> parse <rules=file.tsc>");
+		System.out.println("Parse TransScript program and print out expanded term.");
+		helpCommon();
+		System.exit(0);
+	}
+
+	/** Just parse TransScript program */
+	static void parse(Map<String, String> env)
+	{
+		String inputname = env.get("rules");
+		if (inputname == null)
+			helpParse();
+
+		try (FileReader reader = new FileReader(inputname))
+		{
+			Context context = new Context();
+			addGrammars(context, env.get("grammars"));
+			addGrammars(context, TransScriptMetaParser.class.getName());
+				
+			setBootParserPath(context, env.get("bootparserpath"));
+
+			TransScriptMetaParser parser = new TransScriptMetaParser();
+
+			// TODO: should be generic.
+			TransScript.init(context);
+			Core.init(context);
+			
+			BufferSink buffer = context.makeBuffer();
+			parser.parse(buffer, "transscript", reader, "inputname", 1, 1, new Scoping(), new Scoping());
+			Term result = buffer.term();
+			printTerm(context, result, "sysout", System.out);
+		}
+		catch (FileNotFoundException e)
+		{
+			fatal("File not found: " + inputname, e);
+		}
+		catch (IOException e)
+		{
+			fatal("", e);
+		}
+
 	}
 
 	/* 
@@ -358,7 +406,6 @@ public class Tool
 		catch (IOException e)
 		{
 			fatal("Error while closing Java compiler tool file manager", e);
-
 		}
 	}
 
@@ -403,26 +450,18 @@ public class Tool
 	/** Gets the init method or throw exception */
 	static Method getInitMethod(Class<?> clss)
 	{
-		try
-		{
-			return clss.getMethod("init", Context.class);
-		}
-		catch (NoSuchMethodException e)
-		{
-			fatal("Error while initializing the TransScript system.", e);
-			return null;
-		}
+		return getMethod(clss, "init", Context.class);
 	}
 
 	/** 
 	 * Gets the given method or throw exception.  
 	 * @throws NoSuchMethodException 
 	 */
-	static Method getMethod(Class<?> clss, String name)
+	static Method getMethod(Class<?> clss, String name, Class<?>... params)
 	{
 		try
 		{
-			return clss.getMethod(name, Context.class);
+			return clss.getMethod(name, params);
 		}
 		catch (NoSuchMethodException e)
 		{
@@ -504,101 +543,45 @@ public class Tool
 
 		// Add grammars
 		String grammars = env.get("grammar");
-		if (grammars != null)
+		addGrammars(context, grammars);
+
+		// Look at arguments
+		String arg = env.get("arg");
+		String[] args = arg == null ? null : arg.split(" ");
+		StringTerm[] argsTerm;
+		Class<?>[] argTypes;
+		if (args == null)
 		{
-			grammars = grammars.trim();
-			// Support crsx3 format
-			if (grammars.charAt(0) == '(')
-				grammars = grammars.replace("(", "").replace(")", "").replace("\'", "").replace(';', ',');
-			String[] array = grammars.split(",");
-			for (int i = 0; i < array.length; i++)
-			{
-				context.registerParser(array[i].trim());
-			}
-		}
-
-		// Wrap input term (if specified)
-		ConstructionDescriptor wrapper = null;
-		String wrapperName = env.get("wrapper");
-		if (wrapperName != null)
-		{
-			wrapper = context.lookupDescriptor(wrapperName);
-			if (wrapper == null)
-				warning("wrapper " + wrapperName + " not found. Ignore.");
-		}
-
-		String inputTerm = env.get("term");
-		String input = env.get("input");
-		Object result = null;
-		if (wrapper != null || input != null || inputTerm != null)
-		{
-
-			BufferSink buffer = context.makeBuffer();
-
-			if (wrapper != null)
-				buffer.start(wrapper);
-
-			// Parse term (if any)
-			if (inputTerm != null)
-			{
-				inputTerm = inputTerm.trim();
-				if (inputTerm.length() > 0)
-				{
-					char c = inputTerm.charAt(0);
-					if (c == '"')
-					{
-						buffer.literal(StringUtils.unquoteJava(inputTerm));
-					}
-					else if (Character.isDigit(c) || c == '-' || c == '+')
-					{
-						buffer.literal(inputTerm);
-					}
-					else
-					{
-						try (Reader reader = new StringReader(inputTerm))
-						{
-							new CrsxLexer(reader).scanTerm(buffer, reader);
-						}
-						catch (IOException e)
-						{
-							printUsage();
-						}
-					}
-				}
-			}
-			else
-			{
-				// Parse input (if any)
-				if (input != null)
-				{
-					// TODO: parser categories
-					parseTerm(buffer, input);
-				}
-			}
-
-			if (wrapper != null)
-				buffer.end();
-
-			// Normalize!!
-			Term top = buffer.term();
-			result = Normalizer.normalize(context, top);
+			argTypes = new Class<?>[]
+				{Context.class};
+			argsTerm = null;
 		}
 		else
 		{
-			// This is the new way: look for method to invoke.
-			String mainMethod = env.get("main");
-			mainMethod = mainMethod == null ? "Main" : mainMethod;
-			Method main = getMethod(clss, mainMethod);
-
-			try
+			argTypes = new Class<?>[1 + args.length];
+			argsTerm = new StringTerm[args.length];
+			argTypes[0] = Context.class;
+			for (int i = 0; i < args.length; i++)
 			{
-				result = main.invoke(null, context);
+				argTypes[i + 1] = StringTerm.class;
+				argsTerm[i] = StringTerm.stringTerm(args[i].trim());
 			}
-			catch (Exception e)
-			{
-				fatal("problem occurred while running the TransScript system", e);
-			}
+		}
 
+		// Look top-level method to invoke
+		String mainMethod = env.get("main");
+		mainMethod = mainMethod == null ? "Main" : mainMethod;
+		Method main = getMethod(clss, mainMethod, argTypes);
+
+		Term result;
+		try
+		{
+			result = Normalizer.force(context, main, argsTerm);
+		}
+		catch (Exception e)
+		{
+			result = null;
+			fatal("problem occurred while running the TransScript system", e);
 		}
 
 		// initialize output
@@ -617,35 +600,10 @@ public class Tool
 			}
 		}
 
-		String sinkName = env.get("sink");
-		if (sinkName != null)
-		{
-			@SuppressWarnings("unchecked")
-			Class<? extends Sink> sinkClss = (Class<? extends Sink>) loadClass(sinkName, loader);
-
-			try
-			{
-				Sink sink = sinkClss.getConstructor(Context.class, Appendable.class).newInstance(context, output);
-				((Term) result).copy(sink, true);
-			}
-			catch (Exception e)
-			{
-				fatal("error while initializing " + sinkName + ".", e);
-			}
-		}
-		else
-		{
-			try
-			{
-				output.append(result.toString());
-			}
-			catch (IOException e)
-			{
-				fatal("error while appending the result to the output", e);
-			}
-		}
+		printTerm(context, result, outputEntry, output);
 
 		if (output instanceof Closeable && output != System.out)
+
 		{
 			try
 			{
@@ -655,6 +613,43 @@ public class Tool
 			{
 				fatal("error while closing the output", e);
 			}
+		}
+
+	}
+
+	// Registers grammar(s) to context.
+	private static void addGrammars(Context context, String grammar)
+	{
+		if (grammar != null)
+		{
+			grammar = grammar.trim();
+			// Support crsx3 format
+			if (grammar.charAt(0) == '(')
+				grammar = grammar.replace("(", "").replace(")", "").replace("\'", "").replace(';', ',');
+			String[] array = grammar.split(",");
+			for (int i = 0; i < array.length; i++)
+			{
+				context.registerParser(array[i].trim());
+			}
+		}
+	}
+
+	// Print term to given output
+	private static void printTerm(Context context, Term result, String outputName, Appendable output)
+	{
+		try
+		{
+			if (result instanceof Text4_xtext_xsort)
+			{
+				context.sd = 0;
+				result = Printer.PrintText(context, (Text4_xtext_xsort) result);
+				result = Normalizer.force(context, result);
+			}
+			output.append(result.toString());
+		}
+		catch (IOException e)
+		{
+			fatal("error while writing to the output " + outputName, e);
 		}
 	}
 
@@ -675,20 +670,6 @@ public class Tool
 				}
 			}).toArray(URL[]::new));
 		}
-	}
-
-	/** Parse TransScript term and send result to sink */
-	static void parseTerm(Sink sink, String inputname)
-	{
-		try
-		{
-			ParsingUtils.parseTerm(sink, inputname);
-		}
-		catch (IOException e)
-		{
-			fatal("error while loading input file " + inputname, e);
-		}
-
 	}
 
 	/** Set context field value to what the corresponding value in the environment */
@@ -750,17 +731,12 @@ public class Tool
 			{
 				value = option.substring(valueIndex + 1);
 				option = option.substring(0, valueIndex);
-				environment.put(option, value);
 			}
-			else if (option.startsWith("no-"))
-			{
-				option = option.substring("no-".length());
-				environment.remove(option);
-			}
-			else
-			{
-				environment.put(option, value);
-			}
+
+			if (environment.get(option) != null)
+				value = environment.get(option) + " " + value;
+
+			environment.put(option, value);
 		}
 
 		if (environment.containsKey("help"))

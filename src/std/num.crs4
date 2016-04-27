@@ -4,8 +4,8 @@ extern func Plus(Numeric, Numeric) -> Numeric
 extern func Minus(Numeric, Numeric) -> Numeric
 
 // Compare the 2 numeric values
-func NumberEqual(Numeric, Numeric) -> Boolean
-rule NumberEqual(#1, #2) → If(Equal(#1, #2), TRUE, FALSE)
+func NumberEqual(Numeric, Numeric) -> Bool
+rule NumberEqual(#1, #2) → If<Bool>(Equal<Numeric Numeric>(#1, #2), ()->TRUE, ()->FALSE) 
 
 // Addition
 func NumberPlus(#1: Numeric, #2: Numeric) -> Numeric
@@ -16,5 +16,5 @@ func NumberMinus(#1: Numeric, #2: Numeric) -> Numeric
 → Minus(#1, #2)
 
 // LessThan
-extern func NumberLessThan(#1: Numeric, #2: Numeric) -> Boolean
-extern func NumberGreaterThan(#1: Numeric, #2: Numeric) -> Boolean
+extern func NumberLessThan(Numeric, Numeric) -> Bool
+extern func NumberGreaterThan(Numeric, Numeric) -> Bool

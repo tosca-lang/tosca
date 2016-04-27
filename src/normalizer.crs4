@@ -12,7 +12,7 @@ import Parser::TransScript
 import Core::Core
 import Std::Core
 import Std::String
-import Std::List
+import Std::Listdef
 import Std::Num
 
 // ----- API
@@ -20,40 +20,40 @@ import Std::Num
 // Convert TransScript to Core
 func ToCore(String, TransScript_transscript_sort) -> Core_ccrsx_sort
 rule ToCore(#filename, transscript⟦ ##decl+ ⟧)
-→ ccrsx⟦ ⟨cdecl+: NDecls[#decl+]⟩ ⟧
+→ ccrsx⟦ ⟨cdecl+: NDecls(#decl+)⟩ ⟧
 
 // ----- Declarations
 
 func NDecls(List<TransScript_decl_sort>) -> List<Core_cdecl_sort>
 rule NDecls(#cdecl+)
-→ Flatten(Map([x] -> NDecl(x), #cdecl+))
+→ Flatten<Core_cdecl_sort>(Map<TransScript_decl_sort List>((x) -> NDecl(x), #cdecl+))
 
 func NDecl(TransScript_decl_sort) -> List<Core_cdecl_sort>
 
 /* Convert import module */
-rule NDecl(decl⟦ import ##constructor ⟧)
-→ cdecl+⟦ import module ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟧
+rule NDecl(decl⟦ import ##qconstructor ⟧)
+→ cdecl+⟦ import module ⟨cqconstructor: NQconstructor(#qconstructor)⟩ ⟧
 
 /* Convert import module */
-rule NDecl(decl⟦ import module ##constructor ⟧)
-→ cdecl+⟦ import module ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟧
+rule NDecl(decl⟦ import module ##qconstructor ⟧)
+→ cdecl+⟦ import module ⟨cqconstructor: NQconstructor(#qconstructor)⟩ ⟧
 
 /* Convert enum to data sort */
 rule NDecl(decl⟦ enum ##constructor ##sortParams? ##variant+ ⟧)
-→ cdecl+⟦ data ⟨csortvars?: NMaybeSortParams[#sortParams?]⟩ ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ( ⟨cform*: NVariants[#variant+]⟩ ) ⟧
+→ cdecl+⟦ data ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ( ⟨cform*: NVariants(#variant+)⟩ ) ⟧
 
 /* Convert function.
    Fixity is only used by the parser and can be eliminated. Still need to access the constructor
 */
 rule NDecl(decl⟦ ##extern_TOK? func ##fnFixity ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
 → cdecl+⟦
-  ##extern_TOK? func ⟨csortvars?: NMaybeSortParams[#sortParams?]⟩ ⟨csort: NSort[#sort]⟩ ⟨CONSTRUCTOR: NConstructor[GetConstructor[#fnFixity]]⟩  ⟨csorts?: NMaybeParamDecls[#fnParamDecls?]⟩
-  ⟨cdecl+: NMaybeBody[#fnBody?, GetConstructor[#fnFixity], #fnParamDecls?]⟩
+  ##extern_TOK? func ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨csort: NSort(#sort)⟩ ⟨CONSTRUCTOR: NConstructor(GetConstructor(#fnFixity))⟩  ⟨csorts?: NMaybeParamDecls(#fnParamDecls?)⟩
+  ⟨cdecl+: NMaybeBody(#fnBody?, GetConstructor(#fnFixity), #fnParamDecls?)⟩
 ⟧
 
 /* Convert rule */
 rule NDecl(decl⟦ rule ##constructor ##args? → ##term* ⟧)
-→ cdecl+⟦ rule ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟨cterms?: NMaybeArgs[#args?]⟩ → ⟨cterm: NContractum[#term*]⟩ ⟧
+→ cdecl+⟦ rule ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨cterms?: NMaybeArgs(#args?)⟩ → ⟨cterm: NContractum(#term*)⟩ ⟧
 
 // ---- Enum
 
@@ -62,20 +62,20 @@ func NVariants(List<TransScript_variant_sort>) -> List<Core_cform_sort>
   → cform*⟦ ⟧
 
   rule NVariants(variant+⟦ | ##constructor ##variantArgs? ##variant+ ⟧)
-  → cform*⟦ ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟨csorts?: NMaybeVariantArgs[#variantArgs?]⟩ ⟨cform*: NVariants[#variant+]⟩ ⟧
+  → cform*⟦ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨csorts?: NMaybeVariantArgs(#variantArgs?)⟩ ⟨cform*: NVariants(#variant+)⟩ ⟧
 
   rule NVariants(variant+⟦ | allows-variable ##variant+ ⟧)
-  → cform*⟦ allows-variable ⟨cform*: NVariants[#variant+]⟩ ⟧
+  → cform*⟦ allows-variable ⟨cform*: NVariants(#variant+)⟩ ⟧
 
 func NMaybeVariantArgs(List<TransScript_variantArgs_sort>) -> List<Core_csorts_sort>
   rule NMaybeVariantArgs(variantArgs?⟦  ⟧ )
   → csorts?⟦⟧
 
-  rule NMaybeVariantArgs(variantArgs?⟦ () ⟧ )
+  rule NMaybeVariantArgs(variantArgs?⟦()⟧ )
   → csorts?⟦⟧
 
   rule NMaybeVariantArgs(variantArgs?⟦ ( ##variantSort* ) ⟧)
-  → csorts?⟦ ( ⟨csort*: Map[x.NVariantSort[x], #variantSort*]⟩ ) ⟧
+  → csorts?⟦ ( ⟨csort*: Map<TransScript_variantSort_sort Core_csort_sort>((x)->NVariantSort(x), #variantSort*)⟩ ) ⟧
 
 func NVariantSort(TransScript_variantSort_sort) -> Core_csort_sort
   rule NVariantSort(variantSort⟦ ##sort ⟧) → NSort(#sort)
@@ -89,9 +89,8 @@ func NSort(TransScript_sort_sort) -> Core_csort_sort
   rule NSort(sort⟦ ##sortScope? ##VARIABLE ⟧)
   → NMaybeSortScope(#sortScope?, csort⟦ ##VARIABLE ⟧)
 
-  // Just normalize to any map.
-  rule NSort(sort⟦ { ##sortMap }⟧)
-  → csort⟦ { String : String } ⟧
+  rule NSort(sort⟦ { ##sort1 : ##sort2 } ⟧)
+  → csort⟦ { ⟨csort: NSort(#sort1)⟩ : ⟨csort: NSort(#sort2)⟩ } ⟧
 
 func NMaybeSortScope(List<TransScript_sortScope_sort>, Core_csort_sort) -> Core_csort_sort
   rule NMaybeSortScope(sortScope?⟦ ⟧, #csort)
@@ -99,6 +98,9 @@ func NMaybeSortScope(List<TransScript_sortScope_sort>, Core_csort_sort) -> Core_
 
   rule NMaybeSortScope(sortScope?⟦ [ ##sort* ] -> ⟧, #csort)
   → NSortScope(#sort*, (), #csort)
+
+  rule NMaybeSortScope(sortScope?⟦ ( ) -> ⟧, #csort)
+  → csort⟦ thunk ##csort ⟧
 
   rule NMaybeSortScope(sortScope?⟦ ( ##sort* ) -> ⟧, #csort)
   → NFormalParamSorts(#sort*, #csort)
@@ -111,22 +113,22 @@ func NSortScope(List<TransScript_sort_sort>, List<TransScript_sort_sort>, Core_c
   → NFormalParamSorts(#cformalParamSorts, #csort)
 
   rule NSortScope(sort*⟦ ##sort ##sort* ⟧, #cformalParamSorts, #csort)
-  → csort⟦ [ ⟨csort: NSort[#sort]⟩ ] ⟨csort: NSortScope[#sort*, #cformalParamSorts, #csort]⟩ ⟧
+  → csort⟦ [ ⟨csort: NSort(#sort)⟩ ] ⟨csort: NSortScope(#sort*, #cformalParamSorts, #csort)⟩ ⟧
 
 func NFormalParamSorts(List<TransScript_sort_sort>, Core_csort_sort) -> Core_csort_sort
   rule NFormalParamSorts(sort*⟦ ⟧, #csort)
   → #csort
 
   rule NFormalParamSorts(sort*⟦ ##sort ##sort* ⟧, #csort)
-  → csort⟦ ( ⟨csort: NSort[#sort]⟩ ) ⟨csort: NFormalParamSorts[#sort*, #csort]⟩ ⟧
+  → csort⟦ ( ⟨csort: NSort(#sort)⟩ ) ⟨csort: NFormalParamSorts(#sort*, #csort)⟩ ⟧
 
 func NParamSort(TransScript_constructor_sort, List<TransScript_sortArgs_sort>) -> Core_csort_sort
   rule NParamSort(#constructor, #sortArgs?)
-  → csort⟦ ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟨csorts?: NMaybeSorts[#sortArgs?] ⟩ ⟧
+  → csort⟦ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨csorts?: NMaybeSorts(#sortArgs?) ⟩ ⟧
 
 func NMaybeSorts(List<TransScript_sortArgs_sort>) -> List<Core_csorts_sort>
   rule NMaybeSorts(sortArgs?⟦           ⟧) → csorts?⟦⟧
-  rule NMaybeSorts(sortArgs?⟦< ##sort* >⟧) → csorts?⟦ ( ⟨csort*: Map[x.NSort[x], #sort*] ⟩ ) ⟧
+  rule NMaybeSorts(sortArgs?⟦< ##sort* >⟧) → csorts?⟦ ( ⟨csort*: Map<TransScript_sort_sort Core_csort_sort>((x)->NSort(x), #sort*) ⟩ ) ⟧
 
 func NMaybeSortParams(List<TransScript_sortParams_sort>) -> List<Core_csortvars_sort>
   rule NMaybeSortParams(sortParams?⟦                     ⟧) → csortvars?⟦ ⟧
@@ -134,11 +136,15 @@ func NMaybeSortParams(List<TransScript_sortParams_sort>) -> List<Core_csortvars_
 
 func NMaybeSortAnno(List<TransScript_sortAnno_sort>) -> List<Core_csortanno_sort>
   rule NMaybeSortAnno(sortAnno?⟦          ⟧) → csortanno?⟦⟧
-  rule NMaybeSortAnno(sortAnno?⟦ : ##sort ⟧) → csortanno?⟦ : ⟨csort: NSort[#sort]⟩ ⟧
+  rule NMaybeSortAnno(sortAnno?⟦ : ##sort ⟧) → csortanno?⟦ : ⟨csort: NSort(#sort)⟩ ⟧
 
 func NSortQualifiers(List<TransScript_sortQualifier_sort>) -> List<Core_csortqualifier_sort>
   rule NSortQualifiers(sortQualifier*⟦                           ⟧) → csortqualifier*⟦⟧
-  rule NSortQualifiers(sortQualifier*⟦ ##sort :: ##sortQualifier*⟧) → csortqualifier*⟦ ⟨csort: NSort[#sort]⟩ :: ⟨csortqualifier*: NSortQualifiers[#sortQualifier*]⟩ ⟧
+  rule NSortQualifiers(sortQualifier*⟦ ##sort :: ##sortQualifier*⟧) → csortqualifier*⟦ ⟨csort: NSort(#sort)⟩ :: ⟨csortqualifier*: NSortQualifiers(#sortQualifier*)⟩ ⟧
+
+func NMaybeSortArgs(List<TransScript_sortArgs_sort>) -> List<Core_csortargs_sort>
+  rule NMaybeSortArgs(sortArgs?⟦             ⟧) → csortargs?⟦ ⟧
+  rule NMaybeSortArgs(sortArgs?⟦ < ##sort* > ⟧) → csortargs?⟦ <  ⟨csort*: Map<TransScript_sort_sort Core_csort_sort>((x)->NSort(x), #sort*)⟩ > ⟧
 
 // ---- Function declaration
 
@@ -150,13 +156,13 @@ func GetConstructor(TransScript_fnFixity_sort) -> TransScript_constructor_sort
 func NMaybeParamDecls(List<TransScript_fnParamDecls_sort>) -> List<Core_csorts_sort>
   rule NMaybeParamDecls(fnParamDecls?⟦                ⟧) → csorts?⟦⟧
   rule NMaybeParamDecls(fnParamDecls?⟦ (            ) ⟧) → csorts?⟦⟧
-  rule NMaybeParamDecls(fnParamDecls?⟦ ( ##fnParam* ) ⟧) → csorts?⟦ ( ⟨csort*: Map[x.NParam[x], #fnParam*]⟩ ) ⟧
+  rule NMaybeParamDecls(fnParamDecls?⟦ ( ##fnParam* ) ⟧) → csorts?⟦ ( ⟨csort*: Map<TransScript_fnParam_sort Core_csort_sort>((x)->NParam(x), #fnParam*)⟩ ) ⟧
 
 func NParam(TransScript_fnParam_sort) -> Core_csort_sort
   rule NParam(fnParam⟦ ##METAVAR : ##sort       ⟧) → NSort(#sort)
-  rule NParam(fnParam⟦ ##METAVAR : eager ##sort ⟧) → csort⟦ data ⟨csort: NSort[#sort]⟩ ⟧
+  rule NParam(fnParam⟦ ##METAVAR : eager ##sort ⟧) → csort⟦ data ⟨csort: NSort(#sort)⟩ ⟧
   rule NParam(fnParam⟦ ##sort                   ⟧) → NSort(#sort)
-  rule NParam(fnParam⟦ eager ##sort             ⟧) → csort⟦ data ⟨csort: NSort[#sort]⟩ ⟧
+  rule NParam(fnParam⟦ eager ##sort             ⟧) → csort⟦ data ⟨csort: NSort(#sort)⟩ ⟧
 
 func NMaybeBody(List<TransScript_fnBody_sort>, TransScript_constructor_sort, List<TransScript_fnParamDecls_sort>) -> List<Core_cdecl_sort>
 
@@ -164,12 +170,12 @@ func NMaybeBody(List<TransScript_fnBody_sort>, TransScript_constructor_sort, Lis
   → cdecl+⟦⟧
 
   rule NMaybeBody(fnBody?⟦ → ##term* ⟧, #constructor, #paramDecls?)
-  → cdecl+⟦ rule ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟨cterms?: NMaybePatternArgs[#paramDecls?]⟩ → ⟨cterm: NContractum[#term*]⟩ ⟧
+  → cdecl+⟦ rule ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨cterms?: NMaybePatternArgs(#paramDecls?)⟩ → ⟨cterm: NContractum(#term*)⟩ ⟧
 
 func NMaybePatternArgs(List<TransScript_fnParamDecls_sort>) -> List<Core_cterms_sort>
   rule NMaybePatternArgs(fnParamDecls?⟦                ⟧)  → cterms?⟦⟧
   rule NMaybePatternArgs(fnParamDecls?⟦ (            ) ⟧)  → cterms?⟦⟧
-  rule NMaybePatternArgs(fnParamDecls?⟦ ( ##fnParam* ) ⟧)  → cterms?⟦ ( ⟨cterm*: Map[x.NPatternArg[x], #fnParam*]⟩ ) ⟧
+  rule NMaybePatternArgs(fnParamDecls?⟦ ( ##fnParam* ) ⟧)  → cterms?⟦ ( ⟨cterm*: Map<TransScript_fnParam_sort Core_cterm_sort>((x)->NPatternArg(x), #fnParam*)⟩) ⟧
 
 func NPatternArg(TransScript_fnParam_sort) -> Core_cterm_sort
   rule NPatternArg(fnParam⟦ ##METAVAR : ##sort ⟧) → cterm⟦ ##METAVAR ⟧
@@ -187,8 +193,9 @@ func NContractum(List<TransScript_term_sort>) -> Core_cterm_sort
 
 func NTerm(TransScript_term_sort) -> Core_cterm_sort
 
-  rule NTerm(term⟦ ##sortQualifier* ##constructor ##args? ⟧)
-  → cterm⟦ ⟨csortqualifier*: NSortQualifiers[#sortQualifier*]⟩ ⟨CONSTRUCTOR: NConstructor[#constructor]⟩ ⟨cterms?: NMaybeArgs[#args?]⟩ ⟧
+  rule NTerm(term⟦ ##sortQualifier* ##constructor ##sortArgs? ##args? ##sortAnno? ⟧)
+  → cterm⟦ ⟨csortqualifier*: NSortQualifiers(#sortQualifier*)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩
+      ⟨csortargs?: NMaybeSortArgs(#sortArgs?)⟩ ⟨cterms?: NMaybeArgs(#args?)⟩ ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ⟧
 
   rule NTerm(term⟦ ##STRING ⟧)
   → cterm⟦ ##STRING ⟧
@@ -199,64 +206,70 @@ func NTerm(TransScript_term_sort) -> Core_cterm_sort
   rule NTerm(term⟦ ##groupOrList ⟧)
   → NGroupOrList(#groupOrList)
 
-  rule NTerm(term⟦ ##VARIABLE ⟧)
-  → cterm⟦ ##VARIABLE ⟧
+  rule NTerm(term⟦ ##VARIABLE##sortAnno? ⟧)
+  → cterm⟦ ##VARIABLE ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ⟧
 
   rule NTerm(term⟦ ##METAVAR ##apply? ##subst? ##sortAnno? ⟧)
-  → cterm⟦ ##METAVAR ⟨cterms?: NMaybeApply[#apply?]⟩ ⟨csubst?: NMaybeSubst[#subst?]⟩ ⟨csortanno?: NMaybeSortAnno[#sortAnno?]⟩ ⟧
-
+  → cterm⟦ ##METAVAR ⟨cterms?: NMaybeApply(#apply?)⟩ ⟨csubst?: NMaybeSubst(#subst?)⟩ ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ⟧
 
   rule NTerm(term⟦ ##CONCRETE ⟧)
-  → NConcrete(BeforeFirst(#CONCRETE, "⟦"), BeforeLast(AfterFirst(#CONCRETE, "⟦"), "⟧"))
+  → Error<Core_cterm_sort>("Internal error: concrete syntax must have already been expanded.")
 
 func NMaybeArgs(List<TransScript_args_sort>) -> List<Core_cterms_sort>
   rule NMaybeArgs(args?⟦              ⟧) → cterms?⟦⟧
-  rule NMaybeArgs(args?⟦ (          ) ⟧) → cterms?⟦⟧
-  rule NMaybeArgs(args?⟦ ( ##scope* ) ⟧) → cterms?⟦ ( ⟨cterm*: Map[x.NScope[x], #scope*]⟩ ) ⟧
+  rule NMaybeArgs(args?⟦ (          ) ⟧) → cterms?⟦ () ⟧
+  rule NMaybeArgs(args?⟦ ( ##scope* ) ⟧) → cterms?⟦ ( ⟨cterm*: Map<TransScript_scope_sort Core_cterm_sort>((x)->NScope(x), #scope*)⟩ ) ⟧
 
 func NScope(TransScript_scope_sort) -> Core_cterm_sort
   rule NScope(scope⟦ ##term      ⟧) → NTerm(#term)
   rule NScope(scope⟦ [ ##binders ⟧) → NBinders(#binders)
-  rule NScope(scope⟦ ( ##formalParams ⟧) → NFormalParams(#formalParams)
+  rule NScope(scope⟦ ( ##formalParams ⟧) → NFormalParams(#formalParams, TRUE)
 
 func NBinders(TransScript_binders_sort) -> Core_cterm_sort
-  //rule NBinders(binders⟦ v ##csortAnno? ##binders ⟧) → cterm⟦ [ x ⟨csortanno?: NMaybeSortAnno[#sortAnno?]⟩ ] ⟨cterm: NBinders[#binders[x]]⟩ ⟧
 
-  rule NBinders(TransScript_binders_A1(#sortAnno?, [x] -> #binders(x))) → cterm⟦ [ x ⟨csortanno?: NMaybeSortAnno[#sortAnno?]⟩ ] ⟨cterm: NBinders[#binders[x]]⟩ ⟧
-  rule NBinders(binders⟦ ] -> ##term ⟧) → NTerm(#term)
+    // BUG: should be #binders[x]
+    //rule NBinders(binders⟦ b ##sortAnno? ##binders ⟧)
+    //→ cterm⟦ [ x ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ] ⟨cterm: NBinders(#binders[x])⟩ ⟧
+     rule NBinders(TransScript_binders_A1(#sortAnno?:List<TransScript_sortAnno_sort>, [x] -> #binders[x] : TransScript_binders_sort))
+     → Core_cterm_A6(NMaybeSortAnno(#sortAnno?), [x:String] -> NBinders(#binders[x]))
 
-func NFormalParams(TransScript_formalParams_sort) -> Core_cterm_sort
-    //rule NBinders(binders⟦ ##VARIABLE ##binders ⟧) → cterm⟦ ( x  ⟨csortanno?: NMaybeSortAnno[#sortAnno?]⟩ ) ⟨cterm: NFormalParams[#formalParams[x]]⟩ ⟧
-    rule NFormalParams(TransScript_formalParams_A1(#sortAnno?, [x] -> #formalParams(x))) → Core_cterm_A7(NMaybeSortAnno(#sortAnno?), [x] -> NFormalParams(#formalParams(x)))
-    rule NFormalParams(formalParams⟦ ) -> ##term          ⟧) → NTerm(#term)
+    rule NBinders(binders⟦ ] -> ##term ⟧) → NTerm(#term)
+
+func NFormalParams(TransScript_formalParams_sort, Bool) -> Core_cterm_sort
+
+    rule NFormalParams(formalParams⟦ f ##sortAnno? ##formalParams ⟧, #empty)
+    → cterm⟦ (f) ⟨cterm: NFormalParams(#formalParams[f], FALSE)⟩ ⟧
+
+    //rule NFormalParams(TransScript_formalParams_A1(#sortAnno?:List<TransScript_sortAnno_sort>, [x] -> #formalParams[x]  : TransScript_formalParams_sort ), #empty)
+    //→ Core_cterm_A7(NMaybeSortAnno(#sortAnno?), [x:String] -> NFormalParams(#formalParams[x], FALSE))
+
+    rule NFormalParams(formalParams⟦ ) -> ##term          ⟧, FALSE) → NTerm(#term)
+    rule NFormalParams(formalParams⟦ ) -> ##term          ⟧, TRUE) → cterm⟦ thunk ⟨cterm: NTerm(#term)⟩ ⟧
 
 func NMaybeApply(List<TransScript_apply_sort>) -> List<Core_cterms_sort>
   rule NMaybeApply(apply?⟦             ⟧) → cterms?⟦⟧
-  rule NMaybeApply(apply?⟦ (         ) ⟧) → cterms?⟦⟧
-  rule NMaybeApply(apply?⟦ ( ##term* ) ⟧) → cterms?⟦ ( ⟨cterm*: Map[x.NTerm[x], #term*]⟩ ) ⟧
+  rule NMaybeApply(apply?⟦ (         ) ⟧) → cterms?⟦ () ⟧
+  rule NMaybeApply(apply?⟦ ( ##term* ) ⟧) → cterms?⟦ ( ⟨cterm*: Map<TransScript_term_sort Core_cterm_sort>((x)->NTerm(x), #term*)⟩ ) ⟧
 
 func NMaybeSubst(List<TransScript_subst_sort>) -> List<Core_csubst_sort>
   rule NMaybeSubst(subst?⟦             ⟧) → csubst?⟦⟧
   rule NMaybeSubst(subst?⟦ [         ] ⟧) → csubst?⟦⟧
-  rule NMaybeSubst(subst?⟦ [ ##term* ] ⟧) → csubst?⟦ [ ⟨cterm*: Map[x.NTerm[x], #term*]⟩ ] ⟧
+  rule NMaybeSubst(subst?⟦ [ ##term* ] ⟧) → csubst?⟦ [ ⟨cterm*: Map<TransScript_term_sort Core_cterm_sort>((x)->NTerm(x), #term*)⟩ ] ⟧
 
 func NGroupOrList(TransScript_groupOrList_sort) -> Core_cterm_sort
   rule NGroupOrList(groupOrList⟦ ()                           ⟧) → cterm⟦ Nil ⟧
   rule NGroupOrList(groupOrList⟦ ( ##term )                   ⟧) → NTerm(#term)
-  rule NGroupOrList(groupOrList⟦ ( ##term , )                 ⟧) → cterm⟦ Cons( ⟨cterm: NTerm[#term]⟩, Nil) ⟧
+  rule NGroupOrList(groupOrList⟦ ( ##term , )                 ⟧) → cterm⟦ Cons( ⟨cterm: NTerm(#term)⟩, Nil) ⟧
   rule NGroupOrList(groupOrList⟦ ( ##term , ##term2 ##term* ) ⟧) → NList(term*⟦ ##term , ##term2 ##term* ⟧)
 
 func NList(List<TransScript_term_sort>) -> Core_cterm_sort
   // TODO: fix meta parser to handle (+) properly. For now cannot match against one item.
   // TODO: robustness
   rule NList(term*⟦                 ⟧) → cterm⟦ Nil ⟧
-  rule NList(term*⟦ ##term ##term*  ⟧) → cterm⟦ Cons( ⟨cterm: NTerm[#term]⟩, ⟨cterm: NList[#term*]⟩ ) ⟧
+  rule NList(term*⟦ ##term ##term*  ⟧) → cterm⟦ Cons( ⟨cterm: NTerm(#term)⟩, ⟨cterm: NList(#term*)⟩ ) ⟧
 
-// parse-locations=0 must be specified when running crsx3
-func NConcrete(String, String) -> Core_cterm_sort
-  rule NConcrete(#category, #text) → NTerm(ParseToMetaTerm(#category, #text))
-
-// ----- Tokens
+func NQconstructor(TransScript_qconstructor_sort) -> Core_cqconstructor_sort
+  rule NQconstructor(qconstructor⟦ ##sortQualifier* ##constructor ⟧) → cqconstructor⟦ ⟨csortqualifier*: NSortQualifiers(#sortQualifier*)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟧
 
 func NConstructor(TransScript_constructor_sort) -> String
   rule NConstructor(constructor⟦ ##CONSTRUCTOR ⟧) → #CONSTRUCTOR

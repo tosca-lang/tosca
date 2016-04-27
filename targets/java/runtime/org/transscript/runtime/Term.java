@@ -3,364 +3,267 @@
 package org.transscript.runtime;
 
 import java.util.IdentityHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
- * Base class for generic term representation
- * 
- * TODO: Merge with v2
+ * Base class for all terms, typed or not.
  * 
  * @author Lionel Villard
  */
-public abstract class Term extends Reference
+public interface Term extends Ref 
 {
 
-	/** Kind of term */
-	public enum Kind {
-		/** Term is construction. */
-		CONSTRUCTION, /** Term is a variable occurrence. */
-		VARIABLE_USE, /** Term is a meta-application. */
-		META_APPLICATION
-	}
-
-	// Static utilities
-
-	/**
-	 * Whether the given term is a constant: a construction with no argument. 
-	 * 
-	 * @param term
-	 */
-	public static boolean isConstant(Term term)
-	{
-		return term.kind() == Kind.CONSTRUCTION && term.arity() == 0;
-	}
-
-	/**
-	 * Whether the given term is a function 
-	 * 
-	 * @param term
-	 */
-	public static boolean isFunction(Term term)
-	{
-		return term.kind() == Kind.CONSTRUCTION && ((Construction) term).descriptor().isFunction();
-	}
-
-	/**
-	 * Whether the given term is a (boxed) literal 
-	 * 
-	 * @param term
-	 */
-	public static boolean isLiteral(Term term)
-	{
-		return term.descriptor() == Literal.LITERAL_DESC;
-	}
-
-	/**
-	 * Whether the given term is a variable use 
-	 * 
-	 * @param term
-	 */
-	public static boolean isVariableUse(Term term)
-	{
-		return term.kind() == Kind.VARIABLE_USE;
-	}
-
-	// State
-
-	/** Whether this term is in normal form */
-	private boolean nf;
-
-	/** Whether this term has no step */
-	private boolean nostep; // TODO: might not need it with new runtime.
-
-	// Methods
-
 	@Override
-	public Term ref()
+	default Term ref()
 	{
-		return (Term) super.ref();
-	}
-
-	/** Gets term descriptor (type) */
-	public ConstructionDescriptor descriptor()
-	{
-		return null;
-	}
-
-	/** Normal form? */
-	public boolean isNf()
-	{
-		return nf;
-	}
-
-	/** Set normal form flag */
-	public void setNf(boolean nf)
-	{
-		this.nf = nf;
-	}
-
-	/** Whether the term has no step */
-	final public boolean nostep()
-	{
-		return nostep;
-	}
-
-	/** Set whether term has a step */
-	final public void setNostep(boolean nostep)
-	{
-		this.nostep = nostep;
+		return (Term) Ref.super.ref();
 	}
 
 	/**
-	 * Gets term's kind
+	 * @return shallow copy of this term. 
 	 */
-	public abstract Kind kind();
+	public Term copy(Context c);
 
-	/**
-	 * Gets the construction symbol.
-	 * 
-	 * @return symbol of the construction, or null if not a construction.
-	 */
-	public String symbol()
+	/** @return true when this term is data */
+	default boolean data()
 	{
-		return null;
-	}
-
-	/**
-	 * Peek at the properties
-	 * 
-	 * @return properties.
-	 */
-	public Properties properties()
-	{
-		throw new RuntimeException("Invalid call to properties on a non-construction term");
+		return true;
 	}
 
 	/**
 	 * Peek at the ith subterm.
 	 * 
-	 * @param i
-	 * @return a subterm Does not create a new reference.
-	 * @throws IndexOutOfBoundsException when no subterm at the given index
+	 * @param i the sub index
+	 * @return a subterm or null if none at the given index. does not create a new reference.  
 	 */
-	// TODO: make is protected.
-	public Term sub(int i)
+	default Term sub(int i)
 	{
-		throw new IndexOutOfBoundsException();
-	}
-
-	/**
-	 * Peek at the ith sub, which might be a {@link Term} or a primitive value
-	 * 
-	 * @param i
-	 * @return a value. Does not create a new reference when the value is a term
-	 * @throws IndexOutOfBoundsException when no sub at the given index
-	 * @deprecated
-	 */
-	protected Object unboxSub(int i)
-	{
-		throw new IndexOutOfBoundsException();
+		return null;
 	}
 
 	/**
 	 * Replace the ith sub term
 	 * 
-	 * @param i
-	 *            the sub index
-	 * @param term
-	 *            the term. The reference is transferred.
-	 * @throws IndexOutOfBoundsException
-	 *             when no subterm at the given index
-	 */
-	// TODO: make is protected.
-	public void setSub(int i, Term term)
-	{
-		throw new IndexOutOfBoundsException();
-	}
-
-	/**
-	 * Replace the ith argument term
-	 * <p>Only valid on meta-application
 	 * @param i the sub index
-	 * @param term the term. 
-	 * @throws IndexOutOfBoundsException   when no subterm at the given index
+	 * @param term the term. The reference is transferred.
+	 * @throws IndexOutOfBoundsException when no subterm at the given index
 	 */
-	public void setArg(int subindex, Term sub)
+	default void setSub(int i, Term sub)
 	{
 		throw new IndexOutOfBoundsException();
-	}
-
-	/**
-	 * Replace the ith sub.
-	 * 
-	 * @param i      the sub index
-	 * @param value  the value. If it's a {@link Term}, the reference is transferred.
-	 * @throws IndexOutOfBoundsException when no sub at the given index
-	 * @deprecated
-	 */
-	protected void setUnboxSub(int i, Object term)
-	{
-		throw new IndexOutOfBoundsException();
-	}
-
-	/**
-	 * @return the term arity
-	 */
-	public int arity()
-	{
-		return 0;
 	}
 
 	/**
 	 * Get binders of the ith subterm.
 	 * 
 	 * @param index
-	 * 
-	 * @return a list of binders.
-	 * @throws IndexOutOfBoundsException
-	 *             if no subterm at the given index
+	 * @return a binder, or null.
 	 */
-	public Variable[] binders(int i)
+	default Variable binder(int i, int j)
 	{
-		throw new RuntimeException("Invalid call to binders(int i) on a non-construction term");
+		return null;
 	}
 
 	/**
-	 * Set ith binder of the jth subterm.
+	 * Set jth binder of the ith subterm.
 	 * 
 	 * @param i subterm index
 	 * @param j subbinder index
 	 * @throws IndexOutOfBoundsException if no subterm / binder or at the given index
 	 */
-	public void setBinder(int i, int j, Variable binder)
+	default void setBinder(int i, int j, Variable var)
 	{
-		throw new RuntimeException("Invalid call to binders(int i) on a non-construction term");
+		throw new IndexOutOfBoundsException();
 	}
 
 	/**
-	 * Get formal params of the ith subterm.
+	 * Get jth formal param of the ith subterm.
 	 * 
-	 * @param index
-	 * 
-	 * @return a list of binders.
-	 * @throws IndexOutOfBoundsException
-	 *             if no subterm at the given index
-	 */
-	public List<Variable> params(int i)
-	{
-		throw new RuntimeException("Invalid call to params(int i) on a non-construction term");
-	}
-
-	/**
-	 * Add formal parameter to ith subterm.
-	 * 
-	 * @param i subterm index
-	 * @throws IndexOutOfBoundsException if no subterm at the given index
-	 */
-	public void addParam(int i, Variable param)
-	{
-		throw new RuntimeException("Invalid call to addParam on a non-construction term");
-	}
-
-	/**
-	 * Deep copy this term to a sink 
+	 * Optional. Only needed by meta parsers
 	 *
-	 * @param sink to copy to 
-	 * @param discard whether to discard this term
+	 * @param index
+	 * @return a binder, or null.
+	 * @throws UnsupportedOperationException when not implemented. 
 	 */
-	public abstract void copy(Sink sink, boolean discard);
+
+	default Variable param(int i, int j)
+	{
+		throw new UnsupportedOperationException();
+	}
 
 	/**
-	 * Apply substitution on this term and send result to sink
-	 * 
-	 * <p>
-	 * Either update this term or copy it, depending if it is shared or not.
-	 * 
-	 * <p>
-	 * When this method is called, it owns a reference to itself.
-	 * 
-	 * @param sink where to send result
-	 * @param binders term original binders.
-	 * @param substitutes
-	 * @return sink.
+	 * Set jth formal parameter of the ith subterm.
+	 *
+	 * Optional. Only needed by meta parsers.
+	 *
+	 * @param i sub term index
+	 * @param j sub formal parameter index
+	 * @throws UnsupportedOperationException when not implemented. 
+	 * @throws IndexOutOfBoundsException if no formal parameter allowed at the given index
 	 */
-
-	public Sink substitute(Sink sink, Variable[] binders, Term[] substitutes)
+	default void setParam(int i, int j, Variable var)
 	{
-		assert binders.length == substitutes.length;
+		throw new UnsupportedOperationException();
+	}
 
-		// binders are all the original term binders
-		// this.binders are the binders that have been renamed.
+	/**
+	 * Set ith meta-application substitute.
+	 *
+	 * Optional. Only needed by meta parsers.
+	 *
+	 * @param i sub term index
+	 * @param term 
+	 * @throws UnsupportedOperationException when not implemented. 
+	 * @throws IndexOutOfBoundsException if no substitute allowed at the given index
+	 */
+	default void setSubstitute(int index, Term term)
+	{
+		throw new UnsupportedOperationException();
+	}
 
+	/**
+	 * Set term type
+	 * 
+	 * Optional. Only needed by meta parsers
+	 * @param type
+	 * @throws UnsupportedOperationException when not implemented. 
+	 */
+	default void setType(Term type)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@SuppressWarnings("unchecked")
+	static <T extends Term> T force(Context ctx, T term)
+	{
+		return (T) Normalizer.force(ctx, term);
+	}
+
+	/**
+	 * Evaluates this term (if needed) so that the top-level term is (potentially fully) evaluated.
+	 *  
+	 * The reference to this term is consumed.
+	 *
+	 * @param ctx
+	 * @return A new reference to the evaluated term. It might still be a function if the evaluation has been interrupted
+	 */
+//	default Term force(Context ctx)
+//	{
+//		return eval(ctx);
+//	}
+
+	/**
+	 * Evaluates this term (if needed) and return a new reference to 
+	 * the (potentially fully) evaluated term.
+	 * 
+	 * The reference to this term is consumed.
+	 * 
+	 * @param context
+	 * @return A new reference to the evaluated term. It might still be a function if the evaluation has been interrupted
+	 * @deprecated
+	 */
+	default Term eval(Context context)
+	{
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	static <T extends Term> T subst(Context c, T term, Object... substitutes)
+	{
+		return (T) term.substitute(c, substitutes);
+	}
+
+	/**
+	* Apply substitution on this term
+	* 
+	* <p>
+	* Either update this term or copy it, depending if it is shared or not.
+	* 
+	* <p>
+	* When this method is called, it owns a reference to itself.
+	* 
+	* @param binders term original variables.
+	* @param substitutes 
+	* @return 
+	*/
+	default Term substitute(Context c, Object... substitutes)
+	{
 		IdentityHashMap<Variable, Term> map = new IdentityHashMap<>();
-		for (int i = binders.length - 1; i >= 0; i--)
-			map.put(binders[i], substitutes[i]);
+		for (int i = 0; i < substitutes.length; i += 2)
+			map.put((Variable) substitutes[i], (Term) substitutes[i + 1]);
 
-		sink.copy(substitute(sink.context(), map)); // uses term reference.
+		Term result = substitute(c, map);
 
 		// Release substitute references
-		for (int i = 0; i < substitutes.length; ++i)
-			substitutes[i].release();
+		for (int i = 0; i < substitutes.length; i += 2)
+			((Term) substitutes[i + 1]).release();
 
-		return sink;
+		return result;
 	}
 
-	/**
-	 * Apply substitution on this term. 
-	 * 
-	 * <p>
-	 * Either update this term or copy it, depending if it is shared or not.
-	 * 
-	 * <p>
-	 * When this method is called, it owns a reference to itself.
-	 * 
-	 * @param context
-	 * @param binders term original binders.
-	 * @param substitutes
-	 * @return a lone substituted term reference .
-	 */
-	public Term substitute(Context context, Map<Variable, Term> substitutes)
+	default Term substitute(Context ctx, Map<Variable, Term> substitutes)
 	{
-		//TODO: in place update
+		Term copy = copy(ctx);
 
-		BufferSink buffer = context.makeBuffer();
-		substituteTo(buffer, substitutes);
-		Term term = buffer.term();
-		//buffer.free(context);
-		return term;
+		int i = 0;
+		while (true)
+		{
+			Term sub = sub(i); // Take a peek at sub.
+			if (sub == null)
+				break;
+
+			if (binder(i, 0) == null)
+			{
+				// --  i'th subterm with no binders: just continue copying.
+				if (substitutes.isEmpty())
+				{
+					// Nothing to substitute: just reference sub
+					copy.setSub(i, sub.ref());
+				}
+				else
+				{
+					// Recursively substitute.  
+					// Make sure sub is not a lazy function so that substitution can be recursively be applied.
+					// An alternative algorithm (not implemented yet) is to lazily performed substitution.
+					sub = sub.eval(ctx);
+					copy.setSub(i, sub.ref().substitute(ctx, substitutes));
+				}
+			}
+			else
+			{
+				// -- i'th subterm with binders, second and following copy: add new binders to substitution!
+				int j = 0;
+				while (true)
+				{
+					Variable oldbinder = binder(i, j);
+					if (oldbinder == null)
+						break;
+
+					Variable subbinder = oldbinder.make(ctx, oldbinder.name);
+
+					substitutes.put(oldbinder, subbinder.use());
+					copy.setBinder(i, j, subbinder);
+					j++;
+				}
+
+				sub = sub.eval(ctx);
+				copy.setSub(i, sub.ref().substitute(ctx, substitutes));
+
+				// Cleanup
+				j = 0;
+				while (true)
+				{
+					Variable oldbinder = binder(i, j);
+					if (oldbinder == null)
+						break;
+
+					substitutes.remove(oldbinder).release();
+					j++;
+				}
+			}
+			i++;
+		}
+		return copy;
 	}
-
-	/**
-	 * Apply substitution on this term and send result to sink. 
-	 * 
-	 * @param context
-	 * @param binders term original binders.
-	 * @param substitutes
-	 * @return a lone substituted term reference .
-	 */
-	protected abstract void substituteTo(Sink sink, Map<Variable, Term> substitutes);
-
-	/**
-	 * Whether this and that term are equal except for specific variables in this being renamed to variables in that.
-	 * @param other other term to compare to
-	 * 
-	 * @return true if terms are equals
-	 */
-	final public boolean deepEquals(Term other)
-	{
-		return deepEquals(other, new IdentityHashMap<>());
-	}
-
-	/**
-	 * Whether this and that term are equal except for specific variables in this being renamed to variables in that.
-	 * @param other other term to compare to
-	 * @param renamings of variables in this to variables in other
-	 * 
-	 * @return true if terms are equals
-	 */
-	protected abstract boolean deepEquals(Term other, Map<Variable, Variable> renamings);
-
-	public abstract String toString4();
 
 }

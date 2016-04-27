@@ -1,0 +1,155 @@
+// Copyright (c) 2016 IBM Corporation.
+/*
+   Represent a complete Crsx system.
+
+   A system is composed of modules.
+   Each module is composed of a set of data, functions and rules
+ */
+
+import Std::Core
+import Std::String
+import Std::Mapdef
+import Std::Listdef
+import Core::Core
+
+
+// --- System representation.
+
+/* A Crsx system as a list of modules */
+enum TSystem | TSystem(String /* Initial url */, {String : Module})
+
+/* Initialize system with main module */
+func InitSystem(String) -> TSystem
+rule InitSystem(#url) → TSystem(#url, MapPut<String Module>(MapNew<String Module>, #url, Module(#url, NOTLOADED)))
+
+/* A Crsx module  */
+enum Module | Module(String /* filename/module id */, Content /* of module */)
+
+// --- module representation
+
+/* Module content */
+enum Content
+    |  NOTLOADED  // Module not loaded yet.
+    | Loaded(LoadedContent) // Module has been fully loaded
+
+/* The actual module content. Sorts and rules are indexed for fast lookup. */
+enum LoadedContent |
+    LoadedContent(
+           List<Core_cqconstructor_sort /* Constructor */>,                       /* Imports */
+           {String /* Constructor */ : List<Core_cdecl_sort>},  /* Rules */
+           {String /* Constructor */ : Core_cdecl_sort},        /* DataSorts */
+           {String /* Constructor */ : Core_cdecl_sort})        /* FuncSorts */
+
+
+// --- System lookup functions.
+
+/*
+  Gets module for given url.
+  @return A module or NONE
+ */
+func LookupModule(TSystem, String /* url */) -> Option<Module>
+rule LookupModule(TSystem(#mainurl, #modules), #url)
+→ MapGet<String Module>(#modules, #url)
+
+/* Pick an not loaded module.
+  @return A unloaded module or NONE
+ */
+func PickNotLoaded(TSystem) -> Option<Module>
+rule PickNotLoaded(TSystem(#mainurl, #modules))
+→ PickFirst<Module>(MapValues<String Module>(#modules), (x) -> IsNotLoaded(x))
+
+/* @return TRUE if module is not loaded */
+func IsNotLoaded(Module) -> Bool
+rule IsNotLoaded(Module(#url, NOTLOADED))  → TRUE
+rule IsNotLoaded(Module(#url, Loaded(#c))) → FALSE
+
+/* Gets data sort from sort reference */
+func LookupDataSortDecl(eager { String : Core_cdecl_sort }, Core_csort_sort) -> Option<Core_cdecl_sort>
+rule LookupDataSortDecl(#data, csort⟦ ##CONSTRUCTOR ##csorts? ⟧)
+→ MapGet<String Core_cdecl_sort>(#data, #CONSTRUCTOR)
+
+rule LookupDataSortDecl(#data, csort⟦ data ##csort ⟧)
+→ LookupDataSortDecl(#data, #csort)
+
+// fallback
+rule LookupDataSortDecl(#data, #csort)
+→ NONE
+
+// --- System mutation functions.
+
+/*
+  Put module for given url into system.
+ */
+func PutModule(TSystem, String, Module) -> TSystem
+rule PutModule(TSystem(#mainurl, #modules), #url, #module)
+→ TSystem(#mainurl, MapPut<String Module>(#modules, #url, #module))
+
+// --- Loaded content mutation functions.
+
+/* Add rule to module content. Always succeed.
+*/
+func PutRule(eager { String : List<Core_cdecl_sort>}, Core_cdecl_sort) -> { String : List<Core_cdecl_sort> }
+rule PutRule(#rules, cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
+→ PutRule1(MapGet<String List>(#rules, #CONSTRUCTOR), #rules, #CONSTRUCTOR, cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
+
+func PutRule1(Option<List<Core_cdecl_sort>>, { String : List<Core_cdecl_sort>}, String, Core_cdecl_sort) -> { String : List<Core_cdecl_sort> }
+rule PutRule1(NONE, #rules, #constructor, #rule)
+→ MapPut<String List>(#rules, #constructor, (#rule,))
+
+rule  PutRule1(SOME(#rulesForCons:List<Core_cdecl_sort>), #rules, #constructor, #rule)
+→ MapPut<String List>(#rules, #constructor, Append<Core_cdecl_sort>(#rule, #rulesForCons))  // Keep rules in order.
+
+/*  Add data sort to module content. Fail if data sort already exists.
+*/
+func PutDataSort(eager { String : Core_cdecl_sort }, Core_cdecl_sort) -> { String : Core_cdecl_sort }
+rule PutDataSort(#data, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)
+→ PutDataSort1(MapGet<String Core_cdecl_sort>(#data, #CONSTRUCTOR), #data, #CONSTRUCTOR,  cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)
+
+func PutDataSort1(Option<Core_cdecl_sort>, { String /* Constructor */ : Core_cdecl_sort }, String, Core_cdecl_sort) -> { String : Core_cdecl_sort}
+rule PutDataSort1(NONE, #data, #constructor, #decl)
+→ MapPut<String Core_cdecl_sort>(#data, #constructor, #decl)
+
+rule PutDataSort1(SOME(#datasort:Core_cdecl_sort), #data, #constructor, #rule)
+→ Error<{ String : Core_cdecl_sort}>(ConcatString("Data sort already declared:", #constructor))
+
+/* Add function sort to module content.
+ */
+func PutFuncSort(eager { String : Core_cdecl_sort }, Core_cdecl_sort) -> {String : Core_cdecl_sort}
+rule PutFuncSort(#func, cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
+→ PutFuncSort1(MapGet<String Core_cdecl_sort>(#func, #CONSTRUCTOR), #func, #CONSTRUCTOR,  cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
+
+func PutFuncSort1(Option<Core_cdecl_sort>, { String : Core_cdecl_sort }, String, Core_cdecl_sort) -> { String : Core_cdecl_sort}
+rule PutFuncSort1(NONE, #func, #constructor, #decl)
+→ MapPut<String Core_cdecl_sort>(#func, #constructor, #decl)
+
+rule PutFuncSort1(SOME(#datasort:Core_cdecl_sort), #func, #constructor, #rule)
+→ Error<{ String : Core_cdecl_sort}>(ConcatString("Function sort already declared:", #constructor))
+
+// --- Load core program into system
+
+/*
+   Loads core program
+   @param `Core_ccrsx_sort` core program
+   @return loaded core program into internal representation
+ */
+func LoadCore(Core_ccrsx_sort) -> LoadedContent
+rule LoadCore(ccrsx⟦ ##cdecl+ ⟧)
+→ LoadDecls(#cdecl+, (), MapNew<String List>, MapNew<String Core_cdecl_sort>, MapNew<String Core_cdecl_sort>)
+
+func LoadDecls(List<Core_cdecl_sort>, List<Core_cqconstructor_sort>, { String : List<Core_cdecl_sort>},
+           { String : Core_cdecl_sort }, { String : Core_cdecl_sort}) -> LoadedContent
+
+rule LoadDecls(cdecl+⟦⟧, #imports, #rules, #data, #func)
+→ LoadedContent(#imports, #rules, #data, #func)
+
+rule LoadDecls(cdecl+⟦ import module ##cqconstructor ##cdecl+ ⟧, #imports, #rules, #data, #func)
+→ LoadDecls(#cdecl+, Cons(#cqconstructor, #imports), #rules, #data, #func)
+
+rule LoadDecls(cdecl+⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ##cdecl+ ⟧, #imports, #rules, #data, #func)
+→ LoadDecls(#cdecl+, #imports, #rules, PutDataSort(#data, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧), #func)
+
+rule LoadDecls(cdecl+⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ##cdecl+ ⟧, #imports, #rules, #data, #func)
+→ LoadDecls(#cdecl+, #imports, #rules, #data, PutFuncSort(#func, cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧))
+
+rule LoadDecls(cdecl+⟦ rule ##cterm → ##cterm2 ##cdecl+  ⟧, #imports, #rules, #data, #func)
+→ LoadDecls(#cdecl+, #imports, PutRule(#rules, cdecl⟦ rule  ##cterm → ##cterm2 ⟧), #data, #func)

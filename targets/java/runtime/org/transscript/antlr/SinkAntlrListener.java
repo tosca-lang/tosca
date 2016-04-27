@@ -26,7 +26,9 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.transscript.parser.TransScriptMetaLexer;
 import org.transscript.parser.TransScriptMetaParser;
+import org.transscript.runtime.ConstructionDescriptor;
 import org.transscript.runtime.Variable;
+import org.transscript.tool.MutableInt;
 
 import net.sf.crsx.CRS;
 import net.sf.crsx.CRSException;
@@ -38,10 +40,10 @@ import net.sf.crsx.util.ExtensibleMap;
 import net.sf.crsx.util.LinkedExtensibleMap;
 
 /**
- * Create CRSX term from ANTLR parse events.
+ * Create TransScript term from ANTLR parse events.
  * 
  * <p>
- * Temporarily support CRSX3 sink.
+ * Temporarily support CRSX3 sink until the ANTLR-based parser generator is ported to TransScript
  * 
  * @author Lionel Villard
  */
@@ -170,10 +172,13 @@ public class SinkAntlrListener implements ParseTreeListener
 	/** The CRSX4 sink */
 	private org.transscript.runtime.Sink sink4;
 
+	/** The List construction descriptors */
+	final protected ConstructionDescriptor nilDesc;
+	final protected ConstructionDescriptor consDesc;
+
 	private GenericFactory factory;
 	private ArrayDeque<MutableInt> consCount;
 	private ArrayDeque<ParserRuleContext> ruleContext;
-	private MutableInt marker;
 
 	/** The ANTLR4 parser */
 	private Parser parser;
@@ -232,7 +237,6 @@ public class SinkAntlrListener implements ParseTreeListener
 
 		this.cons = sink.makeConstructor("$Cons");
 		this.nil = sink.makeConstructor("$Nil");
-		this.marker = new MutableInt(-1);
 		this.parser = parser;
 		this.prefix = prefix;
 		this.metachar = metachar;
@@ -246,6 +250,10 @@ public class SinkAntlrListener implements ParseTreeListener
 		this.freshes = new ArrayDeque<>();
 
 		this.embedCrsx4 = prefix.equals("Text4_");
+
+		this.nilDesc = null;
+		this.consDesc = null;
+
 	}
 
 	/**
@@ -263,7 +271,6 @@ public class SinkAntlrListener implements ParseTreeListener
 		this.consCount = new ArrayDeque<>();
 		this.ruleContext = new ArrayDeque<>();
 
-		this.marker = new MutableInt(-1);
 		this.parser = parser;
 		this.prefix = prefix;
 		this.metachar = metachar;
@@ -276,7 +283,11 @@ public class SinkAntlrListener implements ParseTreeListener
 			this.bounds.addAll(bounds.values());
 		this.freshes = new ArrayDeque<>();
 
-		this.embedCrsx4 = prefix.equals("Text4_");
+		this.embedCrsx4 = prefix.equals("Text4_") || prefix.equals("TransScript_");
+
+		this.nilDesc = sink.context().lookupDescriptor("Nil");
+		this.consDesc = sink.context().lookupDescriptor("Cons");
+
 	}
 
 	/**
@@ -326,7 +337,7 @@ public class SinkAntlrListener implements ParseTreeListener
 			if (sink != null)
 				sink = sink.start(nil).end();
 			else
-				sink4 = sink4.start(org.transscript.compiler.std.List._M_Nil).end();
+				sink4 = sink4.start(nilDesc).end();
 		}
 
 		int count = consCount.pop().v;
@@ -405,7 +416,7 @@ public class SinkAntlrListener implements ParseTreeListener
 	/** Receive the notification the next token is of type term */
 	public void term(ParserRuleContext _ctx, String type)
 	{
-		termType = fixupType(type);
+		termType = type;
 		sort = TokenSort.TERM;
 	}
 
@@ -485,9 +496,9 @@ public class SinkAntlrListener implements ParseTreeListener
 				sink = sink.startMetaApplication(metaname).endMetaApplication();
 			else
 			{
-				sink4 = sink4.startMetaApplication(metaname).endMetaApplication();
-				if (termType != null)
-					sink4 = sink4.startType().literal(termType).endType();
+				//		sink4 = sink4.startMetaApplication(metaname).endMetaApplication();
+				//	if (termType != null)
+				//		sink4 = sink4.startType().literal(termType).endType();
 			}
 
 			sort = TokenSort.STRING;
@@ -522,7 +533,7 @@ public class SinkAntlrListener implements ParseTreeListener
 			{
 				// Create new fresh variable.
 				if (sink == null)
-					variable = Optional.of(new Variable(binderName));
+					variable = Optional.of(sink4.context().makeVariable(binderName));
 				else
 					variable = Optional.of(sink.makeVariable(binderName, false));
 
@@ -557,7 +568,7 @@ public class SinkAntlrListener implements ParseTreeListener
 			assert name != null : "Invalid grammar: binds used without binder/name";
 
 			if (sink == null)
-				binders[i] = new Variable(name);
+				binders[i] = sink4.context().makeVariable(name);
 			else
 				binders[i] = factory.makeVariable(name, false);
 
@@ -565,7 +576,10 @@ public class SinkAntlrListener implements ParseTreeListener
 		}
 
 		if (sink == null)
-			sink4 = sink4.binds((Variable[]) binders);
+		{
+			for (int i = 0; i < binders.length; i++)
+				sink4 = sink4.bind((Variable) binders[i]);
+		}
 		else
 			sink = sink.binds((net.sf.crsx.Variable[]) binders);
 	}
@@ -587,14 +601,14 @@ public class SinkAntlrListener implements ParseTreeListener
 	public void enterEveryRule(ParserRuleContext context)
 	{
 		// Is that a rule part of a list?
-		if (!consCount.isEmpty() && consCount.peek() != marker)
+		if (!consCount.isEmpty() && consCount.peek() != MutableInt.MARKER)
 		{
 			if (!tail)
 			{
 				if (sink != null)
 					sink = sink.start(cons);
 				else
-					sink4 = sink4.start(org.transscript.compiler.std.List._M_Cons);
+					sink4 = sink4.start(consDesc);
 
 				consCount.peek().v++;
 			}
@@ -604,7 +618,7 @@ public class SinkAntlrListener implements ParseTreeListener
 			}
 		}
 
-		consCount.push(marker);
+		consCount.push(MutableInt.MARKER);
 		ruleContext.push(context);
 	}
 
@@ -631,14 +645,14 @@ public class SinkAntlrListener implements ParseTreeListener
 				if (context.getSymbol().getType() != -1)
 				{
 					// Is that a terminal part of a list?
-					if (!consCount.isEmpty() && consCount.peek() != marker)
+					if (!consCount.isEmpty() && consCount.peek() != MutableInt.MARKER)
 					{
 						if (!tail)
 						{
 							if (sink != null)
 								sink = sink.start(cons);
 							else
-								sink4 = sink4.start(org.transscript.compiler.std.List._M_Cons);
+								sink4 = sink4.start(consDesc);
 
 							consCount.peek().v++;
 						}
@@ -671,7 +685,7 @@ public class SinkAntlrListener implements ParseTreeListener
 								sink = sink.startMetaApplication(metaname);
 							else
 							{
-								sink4 = sink4.startMetaApplication(metaname);
+								//					sink4 = sink4.startMetaApplication(metaname);
 							}
 
 							// Add directly bound variable.
@@ -690,9 +704,9 @@ public class SinkAntlrListener implements ParseTreeListener
 								sink = sink.endMetaApplication();
 							else
 							{
-								if (termType != null)
-									sink4 = sink4.startType().literal(termType).endType();
-								sink4 = sink4.endMetaApplication();
+								//				sink4 = sink4.endMetaApplication();
+								//				if (termType != null)
+								//					sink4 = sink4.startType().literal(termType).endType();
 							}
 							break;
 						default :
@@ -721,59 +735,19 @@ public class SinkAntlrListener implements ParseTreeListener
 
 					if (sink != null)
 					{
-						if (embedCrsx4)
-						{
-							//System.out.println("parse embedded: " + text);
 
-							parseCrsx4Term(reader);
-						}
-						else
+						try
 						{
-							try
-							{
-								sink = factory.parser(factory).parse(
-										sink, null, reader, "", token.getLine(), token.getCharPositionInLine(), toCrsx3Bound());
-							}
-							catch (CRSException | IOException e)
-							{
-								throw new RuntimeException(e);
-							}
+							sink = factory.parser(factory).parse(
+									sink, null, reader, "", token.getLine(), token.getCharPositionInLine(), toCrsx3Bound());
 						}
+						catch (CRSException | IOException e)
+						{
+							throw new RuntimeException(e);
+						}
+
 					}
-					else
-					{
-						if (embedCrsx4)
-						{
-							parseCrsx4Term(reader);
-						}
-						else
-						{
-							factory = new GenericFactory();
-							// Temporary: parse using crsx3 classic parser
-							Buffer buffer = new Buffer(factory);
-
-							try
-							{
-
-								factory.parser(factory).parse(
-										buffer.sink(), null, reader, "", token.getLine(), token.getCharPositionInLine(),
-										toCrsx3Bound());
-								net.sf.crsx.Term t3 = buffer.term(true);
-								String t3str = t3.toString();
-
-								// Transform to crsx4
-								t3str = t3str.replace("[", "(").replace("]", ")").replace("x .", "[x] ->");
-
-								parseCrsx4Term(new StringReader(t3str));
-
-							}
-							catch (CRSException | IOException e)
-							{
-								throw new RuntimeException(e);
-							}
-
-						}
-					}
+					 
 				}
 				state = State.PARSE;
 				break;
@@ -787,40 +761,7 @@ public class SinkAntlrListener implements ParseTreeListener
 				break;
 		}
 	}
-
-	private void parseCrsx4Term(Reader reader)
-	{
-		// TODO: custom operators
-
-		try
-		{
-			CharStream stream = new ANTLRInputStream(reader);
-
-			TokenSource source = new TransScriptMetaLexer(stream);
-			TokenStream input = new CommonTokenStream(source);
-
-			TransScriptMetaParser parser = new TransScriptMetaParser(input);
-			parser.setBuildParseTree(false);
-
-			TermParserListener listener;
-			if (sink == null)
-				listener = new TermParserListener(sink4, bounds, freshes);
-			else
-				listener = new TermParserListener(factory, sink, bounds, freshes);
-			parser.addParseListener(listener);
-
-			parser.addErrorListener(new DiagnosticErrorListener(true));
-			parser.term_EOF();
-			sink = listener.sink3;
-			sink4 = listener.sink4;
-
-		}
-		catch (IOException e)
-		{
-			assert false : "Unreachable";
-		}
-
-	}
+ 
 
 	/**
 	 * Convert bound variable structure to one compatible with crsx3
@@ -849,31 +790,19 @@ public class SinkAntlrListener implements ParseTreeListener
 	{
 		return "#" + metavar.substring(metachar.length());
 	}
-
-	/**
-	 * Convert raw type to proper TransScript type.
-	 */
-	private String fixupType(String type)
-	{
-		if (type.endsWith("_TOK"))
-			return "String";
-
-		final boolean islist = type.endsWith("_OOM") || type.endsWith("_ZOM") || type.endsWith("_OPT");
-		type = islist ? type.substring(0, type.length() - "_ZOM".length()) : type;
-
-		return (islist ? "List<" : "") + prefix + "_" + type + "_sort" + (islist ? ">" : "");
-	}
-
-	// Utility classes
-
-	class MutableInt
-	{
-		int v;
-
-		MutableInt(int v)
-		{
-			this.v = v;
-		}
-	}
+	//
+	//	/**
+	//	 * Convert raw type to proper TransScript type.
+	//	 */
+	//	private String fixupType(String type)
+	//	{
+	//		if (type.endsWith("_TOK"))
+	//			return "String";
+	//
+	//		final boolean islist = type.endsWith("_OOM") || type.endsWith("_ZOM") || type.endsWith("_OPT");
+	//		type = islist ? type.substring(0, type.length() - "_ZOM".length()) : type;
+	//
+	//		return (islist ? "List<" : "") + prefix + type + "_sort" + (islist ? ">" : "");
+	//	}
 
 }

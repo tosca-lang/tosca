@@ -3,7 +3,8 @@
  *
  * This is the complete TransScript 4 grammar specification.
  *
- * This grammar does not use any ANTLR4 literal due to current ANTLR4 meta parser generator limitation.
+ * WARNING: do not change this file lightly. Several Java classes depends on it.
+ *
  */
 grammar TransScript;
 
@@ -77,9 +78,9 @@ decl
     ;
 
 importDecl
-    : IMPORT constructor                                             /* Import module - short syntax */
-    | IMPORT MODULE constructor                                      /* Import module */
-    | IMPORT GRAMMAR constructor                                     /* Import grammar */
+    : IMPORT qconstructor                              /* Import module - short syntax */
+    | IMPORT MODULE qconstructor                       /* Import module */
+    | IMPORT GRAMMAR qconstructor                      /* Import grammar */
     ;
 
 sortDecl
@@ -155,7 +156,6 @@ sortQualifier
     : sort COLONCOLON                                                /* Sort qualifier */
     ;
 
-
 // Rule Declaration
 
 ruleDecl
@@ -225,7 +225,7 @@ nterm[int p]
 
 // Atom term
 aterm
-    : cons                                                           /* Construction with zero or more args */
+    : cons                                                 /* Construction with zero or more args */
     | literal                                                        /* Literal construction */
     | groupOrList                                                    /* Grouped expression or List */
     | variable                                                       /* Variable */
@@ -238,7 +238,7 @@ aterm
     ;
 
 cons
-    : sortQualifier* constructor args?
+    : qconstructor sortArgs? args? sortAnno?
     ;
 
 metapp
@@ -279,25 +279,21 @@ apply
     ;
 
 groupOrList
-    : LPAR RPAR                                       /* [SUGAR] Empty list */
-    | LPAR term[0] COMMA RPAR                         /* [SUGAR] Single term list */
-    | LPAR terms RPAR                                 /* [SUGAR] Grouped term/Multiple terms list */
+    : LPAR RPAR                                                      /* Empty list */
+    | LPAR term[0] COMMA RPAR                                        /* Single term list */
+    | LPAR terms RPAR                                                /* Grouped term/Multiple terms list */
  // TODO: enable below when meta parser handle + properly.
- //   | LPAR term[0] RPAR                               /* [SUGAR] Grouped term */
-//    | LPAR term[0] (COMMA term[0])+ RPAR              /* [SUGAR] Multiple terms list */
+ //   | LPAR term[0] RPAR                                            /* Grouped term */
+//    | LPAR term[0] (COMMA term[0])+ RPAR                           /* Multiple terms list */
     ;
 
-variable                                              /* [CORE] */
-    : VARIABLE<variable> sortAnno?
+variable
+    : VARIABLE<variable> sortAnno?                                   /* Variable occurrence, with optional sort */
     ;
 
 literal
-    : STRING                                          /* [CORE] */
-    | NUMBER                                          /* [CORE] */
-    ;
-
-concrete
-    : CONCRETE                                        /* [CORE]   */
+    : STRING                                                         /* String literal */
+    | NUMBER                                                         /* Double literal */
     ;
 
 dispatch
@@ -306,6 +302,10 @@ dispatch
 
 dispatchCases
     : OR term[0] ARROW term[0] (COMMA dispatchCases)*            /* [CORE] */
+    ;
+
+concrete
+    : CONCRETE
     ;
 
 map
@@ -328,13 +328,17 @@ kv
     | STRING COLON term[0]                                  /* [CORE]  match named property value / construct    */
     ;
 
+
+qconstructor
+    : sortQualifier* constructor
+    ;
+
 constructor
     : CONSTRUCTOR
     ;
 
 operator
     : OPERATOR
-    | COLON
     | OR
     | AND
     | NOT
@@ -352,6 +356,7 @@ ENUM            : 'enum';
 STRUCT          : 'struct';
 DISPATCH        : 'dispatch';
 EAGER           : 'eager';
+LAZY            : 'lazy';
 EXTERN          : 'extern';
 RULE            : 'rule';
 VAR             : 'allows-variable';
@@ -377,12 +382,9 @@ NOT             : '¬';
 FIXITY          : 'infix' | 'infixr' | 'infixl' | 'postfix' | 'prefix';
 
 // Make sure // and /* are not operators
-// ':' is a builtin type annotation operator
-// '::' is a builtin type qualifier operator
 OPERATOR          : OpHead Operator*
                   | '/'
                   | '/' (OpCommon | '$' | '_' | ':') Operator*
-                  | ':' (OpCommon | '$' | '_' | '/') Operator*
                   ;
 
 CONCRETE          : Lower (Alpha | Digit | '-' | '_')* Ebnf? '\u27e6' (CONCRETE|.)*? '\u27e7';   // category⟦ ⟧
@@ -398,7 +400,7 @@ STRING            :  '"' ('\\"'|~'"')* '"';
 NUMBER            : Decimal;
 
 fragment ConsHead : Upper | UnicodeS | '_' | '$';
-fragment ConsChar : Alpha | Digit | Unicode | '_' | '-' | '$' | ':';
+fragment ConsChar : Alpha | Digit | Unicode | '_' | '-' | '$';
 
 fragment Digit    : [0-9];
 fragment Upper    : [A-Z];

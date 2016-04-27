@@ -20,7 +20,7 @@ repositories {
 }
 
 dependencies {
-	transscript  project.hasProperty('dev') ? files(transScriptSrc, "../build") : 'org.transscript:transscript:1.0.0-ALPHA@jar'
+	transscript  project.hasProperty('dev') ?'org.transscript:transscript:1.0.0-SNAPSHOT@jar' : 'org.transscript:transscript:1.0.0-ALPHA@jar'
 	transscript 'org.crsx:crsx3@jar'
 	transscript 'org.antlr:antlr4:4.5'
 }
@@ -35,7 +35,7 @@ task coreMetaParser(type: Antlr4Task, dependsOn: ':coreParsers') {
 	description = 'Generate Java Core meta parser'
 	lexer = file(transScriptSrc + '/core/CoreMetaLexer.g4')
 	grammar = file(transScriptSrc + '/core/CoreMetaParser.g4')
-	superClass = 'org.transscript.antlr.Crsx3Parser'
+	superClass = 'org.transscript.antlr.TSParser'
 }
 
 task coreTermParser(type: Antlr4Task, dependsOn: ':coreParsers') {
@@ -50,7 +50,7 @@ task transScriptMetaParser(type: Antlr4Task, dependsOn: ':transScriptParsers') {
 	grammar = file(transScriptSrc + '/parser/TransScriptMetaParser.g4')
 	generatedFileDir = file('src/org/transscript/parser')
 	packageName = 'org.transscript.parser'
-	superClass = 'org.transscript.antlr.Crsx3Parser'
+	superClass = 'org.transscript.antlr.TSParser'
 }
 
 task transScriptTermParser(type: Antlr4Task, dependsOn: ':transScriptParsers') {
@@ -83,7 +83,7 @@ task textMetaParser(type: Antlr4Task, dependsOn: ':textParsers') {
 	grammar = file(transScriptSrc + '/text/Text4MetaParser.g4')
 	generatedFileDir = file('src/org/transscript/text')
 	packageName = 'org.transscript.text'
-	superClass = 'org.transscript.antlr.Crsx3Parser'
+	superClass = 'org.transscript.antlr.TSParser'
 }
 
 task textTermParser(type: Antlr4Task, dependsOn: ':textParsers') {
@@ -125,5 +125,5 @@ sourceSets {
 dependencies {
 	compile 'org.crsx:crsx3@jar'
 	compile 'org.antlr:antlr4:4.5'
-	compile 'org.transscript:transscript:1.0.0-ALPHA@jar' // Use previous runtime
+	compile project.hasProperty('dev') ? 'org.transscript:transscript:1.0.0-SNAPSHOT@jar' : 'org.transscript:transscript:1.0.0-ALPHA@jar' 
 }

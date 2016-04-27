@@ -1,8 +1,0 @@
-data Bool ( True, False )
-
-func Bool And(data Bool, data Bool) 
-rule And(True, True) → True
-rule And(True, #)    → #
-
-func Bool Main
-rule Main → And(True, True)

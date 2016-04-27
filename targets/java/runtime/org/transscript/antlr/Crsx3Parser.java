@@ -92,7 +92,7 @@ public class Crsx3Parser extends Parser implements net.sf.crsx.Parser, Cloneable
 	 */
 	public org.transscript.runtime.Parser asCrsx4Parser()
 	{
-		return new TransScriptParserAdapter(this);
+		return new TSParserAdapter(this);
 	}
 
 	/**

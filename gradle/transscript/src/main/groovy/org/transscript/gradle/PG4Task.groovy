@@ -34,9 +34,13 @@ class PG4Task extends DefaultTask {
     @Optional
     String defaultRule = ""
     
-	@Input
+    @Input
     @Optional
     boolean ncg = false
+    
+    @Input
+    @Optional
+    boolean np = false
     
 	@TaskAction
 	def generate() {
@@ -86,7 +90,7 @@ class PG4Task extends DefaultTask {
 			
 				// .nterm -> term lexer/parser
 				String termparser = basename + 'Term.g4'
-				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.transscript.antlr.ANTLRMeta\';)', 'rules=pg/genparser.crs', 'input=' + nterm, 'wrapper=MakeParser', 'output=' + termparser ])
+				crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.transscript.antlr.ANTLRMeta\';)', 'rules=pg/genparser.crs', 'input=' + nterm, np ? 'np' : '', 'wrapper=MakeParser', 'output=' + termparser ])
 					
 				// .nterm -> meta lexer
 				String metalexer = basename + 'MetaLexer.g4' // generate meta lexer

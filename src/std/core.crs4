@@ -1,5 +1,3 @@
-
-
 enum OK_SORT | OK
 
 
@@ -11,9 +9,12 @@ enum OK_SORT | OK
 func Eval<a>(eager a) -> a
 rule Eval(#) → #
 
+func Then<a b>(eager a, (a) -> b) -> b
+rule Then(#, #cont) → #cont(#)
+
 // --- External Environment
 
-extern func IfDef<a b c>(eager {a: b}, eager a /* Key */, c, c) -> c
+extern func IfDef<a>(eager String /* Key */, ()->a, ()->a) -> a
 extern func GetEnv(eager String /* Key */, String /* Default */) -> String
 
 // --- Optional value
@@ -21,45 +22,43 @@ extern func GetEnv(eager String /* Key */, String /* Default */) -> String
 enum Option<a> | SOME(a) | NONE
 
 func UnSOME<a>(Option<a>) -> a
-rule UnSOME(SOME(#)) → #
-
-// TODO: unable when not using interpreter (which is too strict)
-//UnSOME(NONE)    → $(Error, "Error: no optional value."),
+rule UnSOME(SOME(#:a)) → #
+rule UnSOME(NONE)      → Error<a>("Error: no optional value.")
 
 /* `HasOption(#option)`
    Whether #option is `SOME` value.
  */
-func HasOption<a>(Option<a>) -> Boolean
+func HasOption<a>(Option<a>) -> Bool
 rule HasOption(NONE)    → FALSE
-rule HasOption(SOME(#)) → TRUE
+rule HasOption(SOME(#:a)) → TRUE
 
-func Maybe<a b>([a]->b, Option<a>) -> Option<b>
-rule Maybe([x]->#(x), NONE) → NONE
-rule Maybe([x]->#(x), SOME(#val)) → SOME(#(#val))
+func Maybe<a b>((a)->b, Option<a>) -> Option<b>
+rule Maybe((x)->#(x), NONE) → NONE
+rule Maybe((x)->#(x), SOME(#val)) → SOME(#(#val))
 
-// --- Boolean
+// --- Bool
 
-enum Boolean | TRUE | FALSE
+enum Bool | TRUE | FALSE
 
-func If<a>(Boolean, a, a) -> a
-rule If(TRUE,  #1, #2) → #1
-rule If(FALSE, #1, #2) → #2
+func If<a>(Bool, ()->a, ()->a) -> a
+rule If(TRUE,  #1, #2) → #1()
+rule If(FALSE, #1, #2) → #2()
 
-func And(Boolean, Boolean) -> Boolean
+func And(Bool, Bool) -> Bool
 rule And(TRUE, #)  → #
 rule And(FALSE, #) → FALSE
 
-func Or(Boolean, Boolean) -> Boolean
+func Or(Bool, Bool) -> Bool
 rule Or(TRUE, #)  → TRUE
 rule Or(FALSE, #) → #
 
-func Not(Boolean) -> Boolean
+func Not(Bool) -> Bool
 rule Not(TRUE)  → FALSE
 rule Not(FALSE) → TRUE
 
-extern func Equal<a b>(eager a, eager b) -> Boolean
+extern func Equal<a b>(eager a, eager b) -> Bool
 
-extern func SameVariable<a b>(a, b) -> Boolean
+extern func SameVariable<a b>(a, b) -> Bool
 
 // --- Debugging
 
