@@ -31,25 +31,17 @@ import org.transscript.runtime.utils.Scoping;
  */
 public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Cloneable
 {
-	// State
-
-	/** Had error? */
-	protected boolean error;
-
 	// Constructor
 
 	/** Constructor used by TS to gather information about categories */
 	protected TSParser()
 	{
 		super(null);
-		addErrorListener(new TSAntlrErrorListener());
-
 	}
 
 	protected TSParser(TokenStream input)
 	{
 		super(input);
-		addErrorListener(new TSAntlrErrorListener());
 	}
 
 	// Local methods overridden by generated parser
@@ -210,12 +202,14 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 		ToSinkListener listener = new ToSinkListener(sink, _prefix(), _metachar(), this, bounds, freshes);
 		//setTrace(true);
 		addParseListener(listener);
-
+		
+		TSAntlrErrorListener errorListener = new TSAntlrErrorListener();
+		addErrorListener(errorListener);
 		// Retrieve method to call.
 		realParse(category);
 
-		if (error)
-			throw new RuntimeException("Parse error"); // TODO: better error message.
+		if (errorListener.error)
+			throw new RuntimeException("Parse error");  
 
 		return sink;
 	}
@@ -256,8 +250,10 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 		throw new UnsupportedOperationException();
 	}
 
-	class TSAntlrErrorListener extends ConsoleErrorListener
+	static class TSAntlrErrorListener extends ConsoleErrorListener
 	{
+		boolean error;
+		
 		
 		// Error listener
 

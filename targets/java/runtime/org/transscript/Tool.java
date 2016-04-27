@@ -4,6 +4,8 @@ package org.transscript;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -24,12 +26,17 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
+import org.transscript.compiler.core.Core;
+import org.transscript.compiler.parser.TransScript;
 import org.transscript.compiler.text.Printer;
 import org.transscript.compiler.text.Text4.Text4_xtext_xsort;
+import org.transscript.parser.TransScriptMetaParser;
+import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.Normalizer;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
+import org.transscript.runtime.utils.Scoping;
 
 /**
  * TransScript command line.
@@ -46,6 +53,8 @@ public class Tool
 		addCommand("run", Tool::run, Tool::helpRun);
 		addCommand("build", Tool::build, Tool::helpBuild);
 		addCommand("test", Tool::test, Tool::helpTest);
+		addCommand("parse", Tool::parse, Tool::helpParse);
+
 	}
 
 	static void addCommand(String name, Consumer<Map<String, String>> command, Runnable help)
@@ -88,6 +97,7 @@ public class Tool
 	static void helpRun()
 	{
 		System.out.println("Usage: java -jar <transscript.jar> run [<args>]");
+		System.out.println("Compile and run TransScript program");
 		System.out.println("where <args> must be at least either rules or class");
 		System.out.println("\n<args> are:");
 		helpCommon();
@@ -97,7 +107,7 @@ public class Tool
 		System.exit(0);
 	}
 
-	/* Build and run a TransScript system */
+	/** Build and run a TransScript system */
 	static void run(Map<String, String> env)
 	{
 		String clazz = env.get("class");
@@ -221,12 +231,57 @@ public class Tool
 		System.exit(0);
 	}
 
-	/* Test a TransScript program */
+	/** Test TransScript program */
 	static void test(Map<String, String> env)
 	{
 		//env.put("wrapper", "Tests");
 		env.put("main", "Tests");
 		run(env);
+	}
+
+	static void helpParse()
+	{
+		System.out.println("Usage: java -jar <transscript.jar> parse <rules=file.tsc>");
+		System.out.println("Parse TransScript program and print out expanded term.");
+		helpCommon();
+		System.exit(0);
+	}
+
+	/** Just parse TransScript program */
+	static void parse(Map<String, String> env)
+	{
+		String inputname = env.get("rules");
+		if (inputname == null)
+			helpParse();
+
+		try (FileReader reader = new FileReader(inputname))
+		{
+			Context context = new Context();
+			addGrammars(context, env.get("grammars"));
+			addGrammars(context, TransScriptMetaParser.class.getName());
+				
+			setBootParserPath(context, env.get("bootparserpath"));
+
+			TransScriptMetaParser parser = new TransScriptMetaParser();
+
+			// TODO: should be generic.
+			TransScript.init(context);
+			Core.init(context);
+			
+			BufferSink buffer = context.makeBuffer();
+			parser.parse(buffer, "transscript", reader, "inputname", 1, 1, new Scoping(), new Scoping());
+			Term result = buffer.term();
+			printTerm(context, result, "sysout", System.out);
+		}
+		catch (FileNotFoundException e)
+		{
+			fatal("File not found: " + inputname, e);
+		}
+		catch (IOException e)
+		{
+			fatal("", e);
+		}
+
 	}
 
 	/* 
@@ -351,7 +406,6 @@ public class Tool
 		catch (IOException e)
 		{
 			fatal("Error while closing Java compiler tool file manager", e);
-
 		}
 	}
 
@@ -489,18 +543,7 @@ public class Tool
 
 		// Add grammars
 		String grammars = env.get("grammar");
-		if (grammars != null)
-		{
-			grammars = grammars.trim();
-			// Support crsx3 format
-			if (grammars.charAt(0) == '(')
-				grammars = grammars.replace("(", "").replace(")", "").replace("\'", "").replace(';', ',');
-			String[] array = grammars.split(",");
-			for (int i = 0; i < array.length; i++)
-			{
-				context.registerParser(array[i].trim());
-			}
-		}
+		addGrammars(context, grammars);
 
 		// Look at arguments
 		String arg = env.get("arg");
@@ -557,20 +600,7 @@ public class Tool
 			}
 		}
 
-		try
-		{
-			if (result instanceof Text4_xtext_xsort)
-			{
-				context.sd = 0;
-				result = Printer.PrintText(context, (Text4_xtext_xsort) result);
-				result = Normalizer.force(context, result);
-			}
-			output.append(result.toString());
-		}
-		catch (IOException e)
-		{
-			fatal("error while writing to the output " + outputEntry, e);
-		}
+		printTerm(context, result, outputEntry, output);
 
 		if (output instanceof Closeable && output != System.out)
 
@@ -585,6 +615,42 @@ public class Tool
 			}
 		}
 
+	}
+
+	// Registers grammar(s) to context.
+	private static void addGrammars(Context context, String grammar)
+	{
+		if (grammar != null)
+		{
+			grammar = grammar.trim();
+			// Support crsx3 format
+			if (grammar.charAt(0) == '(')
+				grammar = grammar.replace("(", "").replace(")", "").replace("\'", "").replace(';', ',');
+			String[] array = grammar.split(",");
+			for (int i = 0; i < array.length; i++)
+			{
+				context.registerParser(array[i].trim());
+			}
+		}
+	}
+
+	// Print term to given output
+	private static void printTerm(Context context, Term result, String outputName, Appendable output)
+	{
+		try
+		{
+			if (result instanceof Text4_xtext_xsort)
+			{
+				context.sd = 0;
+				result = Printer.PrintText(context, (Text4_xtext_xsort) result);
+				result = Normalizer.force(context, result);
+			}
+			output.append(result.toString());
+		}
+		catch (IOException e)
+		{
+			fatal("error while writing to the output " + outputName, e);
+		}
 	}
 
 	/* Set TransScript parsers classpath */
@@ -605,20 +671,6 @@ public class Tool
 			}).toArray(URL[]::new));
 		}
 	}
-
-//	/** Parse TransScript term and send result to sink */
-//	static void parseTerm(Sink sink, String inputname)
-//	{
-//		try
-//		{
-//			ParsingUtils.parseTerm(sink, inputname);
-//		}
-//		catch (IOException e)
-//		{
-//			fatal("error while loading input file " + inputname, e);
-//		}
-//
-//	}
 
 	/** Set context field value to what the corresponding value in the environment */
 	static void setProperty(Context context, String name, Map<String, String> env)

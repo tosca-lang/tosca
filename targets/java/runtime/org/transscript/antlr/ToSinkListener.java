@@ -632,11 +632,11 @@ public class ToSinkListener implements ParseTreeListener
 
 							// Add directly bound variable.
 							// REVISIT: should be user-specified.
-							for (Object variable : bounds)
+							for (Pair<String, Variable> bound : bounds)
 							{
-								if (variable == MARKER)
+								if (bound == MARKER)
 									break;
-								sink = sink.use((Variable) variable);
+								sink.use(bound.snd);
 							}
 							if (termType != null)
 								metasink().type(termType);

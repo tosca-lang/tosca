@@ -226,22 +226,22 @@ func NScope(TransScript_scope_sort) -> Core_cterm_sort
   rule NScope(scope⟦ ( ##formalParams ⟧) → NFormalParams(#formalParams, TRUE)
 
 func NBinders(TransScript_binders_sort) -> Core_cterm_sort
-  //rule NBinders(binders⟦ v ##csortAnno? ##binders ⟧) → cterm⟦ [ x ] ⟨cterm: NBinders[#binders[x]]⟩ ⟧
-
-  //rule NBinders(TransScript_binders_A1(#sortAnno?, [x] -> #binders[x]))
-  //→ cterm⟦ [ x ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ] ⟨cterm: NBinders(#binders[x])⟩ ⟧
 
     // BUG: should be #binders[x]
-    rule NBinders(TransScript_binders_A1(#sortAnno?:List<TransScript_sortAnno_sort>, [x] -> #binders[x] : TransScript_binders_sort))
-    → Core_cterm_A6(NMaybeSortAnno(#sortAnno?), [x:String] -> NBinders(#binders[x]))
+    rule NBinders(binders⟦ b ##sortAnno? ##binders ⟧)
+  //  rule NBinders(TransScript_binders_A1(#sortAnno?:List<TransScript_sortAnno_sort>, [x] -> #binders[x] : TransScript_binders_sort))
+    //→ Core_cterm_A6(NMaybeSortAnno(#sortAnno?), [x:String] -> NBinders(#binders[x]))
+    → cterm⟦ [ x ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ] ⟨cterm: NBinders(#binders[x])⟩ ⟧
 
     rule NBinders(binders⟦ ] -> ##term ⟧) → NTerm(#term)
 
 func NFormalParams(TransScript_formalParams_sort, Bool) -> Core_cterm_sort
-    //rule NBinders(binders⟦ ##VARIABLE ##binders ⟧) → cterm⟦ [ x ] ⟨cterm: NBinders[#binders[x]]⟩ ⟧
 
-    rule NFormalParams(TransScript_formalParams_A1(#sortAnno?:List<TransScript_sortAnno_sort>, [x] -> #formalParams[x]  : TransScript_formalParams_sort ), #empty)
-    → Core_cterm_A7(NMaybeSortAnno(#sortAnno?), [x:String] -> NFormalParams(#formalParams[x], FALSE))
+    rule NFormalParams(formalParams⟦ f ##sortAnno? ##formalParams ⟧, #empty)
+    → cterm⟦ (f) ⟨cterm: NFormalParams(#formalParams[f], FALSE)⟩ ⟧
+
+    //rule NFormalParams(TransScript_formalParams_A1(#sortAnno?:List<TransScript_sortAnno_sort>, [x] -> #formalParams[x]  : TransScript_formalParams_sort ), #empty)
+    //→ Core_cterm_A7(NMaybeSortAnno(#sortAnno?), [x:String] -> NFormalParams(#formalParams[x], FALSE))
 
     rule NFormalParams(formalParams⟦ ) -> ##term          ⟧, FALSE) → NTerm(#term)
     rule NFormalParams(formalParams⟦ ) -> ##term          ⟧, TRUE) → cterm⟦ thunk ⟨cterm: NTerm(#term)⟩ ⟧
