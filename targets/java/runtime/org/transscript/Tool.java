@@ -26,7 +26,6 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
-import org.transscript.compiler.core.Core;
 import org.transscript.compiler.parser.TransScript;
 import org.transscript.compiler.text.Printer;
 import org.transscript.compiler.text.Text4.Text4_xtext_xsort;
@@ -37,6 +36,8 @@ import org.transscript.runtime.Normalizer;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
 import org.transscript.runtime.utils.Scoping;
+import org.transscript.tool.TermPrinter;
+import org.transscript.tool.ToolContext;
 
 /**
  * TransScript command line.
@@ -256,22 +257,21 @@ public class Tool
 
 		try (FileReader reader = new FileReader(inputname))
 		{
-			Context context = new Context();
+			ToolContext context = new ToolContext();
+			//context.dummySink = true;
 			addGrammars(context, env.get("grammars"));
 			addGrammars(context, TransScriptMetaParser.class.getName());
 				
 			setBootParserPath(context, env.get("bootparserpath"));
 
-			TransScriptMetaParser parser = new TransScriptMetaParser();
-
-			// TODO: should be generic.
+			// Register builtin transscript descriptors
 			TransScript.init(context);
-			Core.init(context);
+			
+			TransScriptMetaParser parser = new TransScriptMetaParser();
 			
 			BufferSink buffer = context.makeBuffer();
 			parser.parse(buffer, "transscript", reader, "inputname", 1, 1, new Scoping(), new Scoping());
-			Term result = buffer.term();
-			printTerm(context, result, "sysout", System.out);
+			printTerm(context, buffer.term(), "sysout", System.out);
 		}
 		catch (FileNotFoundException e)
 		{
@@ -645,7 +645,8 @@ public class Tool
 				result = Printer.PrintText(context, (Text4_xtext_xsort) result);
 				result = Normalizer.force(context, result);
 			}
-			output.append(result.toString());
+
+			new TermPrinter().print(result, output);
 		}
 		catch (IOException e)
 		{

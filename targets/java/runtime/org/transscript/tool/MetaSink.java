@@ -1,3 +1,4 @@
+// Copyright (c) 2016 IBM Corporation.
 package org.transscript.tool;
 
 import org.transscript.runtime.Sink;
@@ -47,7 +48,10 @@ public abstract class MetaSink extends Sink
 	 * @param param to be bound here   
 	 * @return this sink 
 	 */
-	public abstract Sink param(Variable param);
+	public Sink param(Variable param)
+	{
+		return this;
+	}
 	
 	/**
 	 * Start a meta-application.
@@ -57,31 +61,46 @@ public abstract class MetaSink extends Sink
 	 * @param name of meta-variable to use
 	 * @return this sink 
 	 */
-	public abstract Sink startMetaApplication(String name);
+	public Sink startMetaApplication(String name)
+	{
+		return this;
+	}
  
 	/**
 	 * End of previously started meta-application subterm.
 	 * @return this sink 
 	 */
-	public abstract Sink endMetaApplication();
-
+	public Sink endMetaApplication()
+	{
+		return this;
+	}
+	
 	/**
 	 * Start meta-application substitutes
 	 * 
 	 * @return this sink
 	 */
-	public abstract Sink startSubstitutes();
+	public Sink startSubstitutes()
+	{
+		return this;
+	}
 	
 	/**
 	 * Ends meta-application substitutes
 	 * 
 	 * @return this sink
 	 */
-	public abstract Sink endSubstitutes();
+	public Sink endSubstitutes()
+	{
+		return this;
+	}
 
 	/**
 	 * Receive meta-application simple type or constructor qualifier
 	 */
-	public abstract Sink type(String type);
+	public Sink type(String type)
+	{
+		return this;
+	}
 
 }

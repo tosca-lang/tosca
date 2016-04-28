@@ -626,21 +626,23 @@ public class ToSinkListener implements ParseTreeListener
 							sink = sink.literal(t);
 							break;
 						case METAVAR :
+							assert metasink() != null;
+
 							String metaname = fixupMetachar(context.getText());
 
 							metasink().startMetaApplication(metaname);
-
-							// Add directly bound variable.
+							metasink().startSubstitutes();
+							// Add all bound variables.
 							// REVISIT: should be user-specified.
 							for (Pair<String, Variable> bound : bounds)
 							{
-								if (bound == MARKER)
-									break;
-								sink.use(bound.snd);
+								if (bound != MARKER)
+									sink.use(bound.snd);
 							}
+							metasink().endSubstitutes();
+
 							if (termType != null)
 								metasink().type(termType);
-
 							metasink().endMetaApplication();
 							break;
 						default :

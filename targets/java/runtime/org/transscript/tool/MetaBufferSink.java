@@ -1,5 +1,4 @@
 // Copyright (c) 2016 IBM Corporation.
-
 package org.transscript.tool;
 
 import static org.transscript.compiler.parser.TransScript.*;
@@ -230,7 +229,7 @@ public class MetaBufferSink extends MetaSink
 		else
 			subst = Cons(
 					context,
-					TransScript_xsubst(context, Cons(context, TransScript_xterms(context, toTerms(mparams.snd)), Nil(context))),
+					TransScript_xsubst(context, Cons(context, TransScript_xterms(context, toTerms(mparams.thd)), Nil(context))),
 					Nil(context));
 
 		TransScript_xterm_xsort term = TransScript_xterm(

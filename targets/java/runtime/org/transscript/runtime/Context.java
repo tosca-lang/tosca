@@ -14,7 +14,7 @@ import java.util.function.Supplier;
  * 
  * @author villardl
  */
-final public class Context
+public class Context
 {
 	/**
 	 * Timestamp.
@@ -115,8 +115,8 @@ final public class Context
 	 */
 	public ConstructionDescriptor lookupDescriptor(String symbol)
 	{
-		return descriptors.get(symbol);
-	} 
+		return descriptors.get(symbol); 
+	}
 
 	/**
 	 * Register symbol
@@ -140,13 +140,13 @@ final public class Context
 	{
 		register(new ConstructionDescriptor()
 			{
-				
+
 				@Override
 				public String symbol()
 				{
 					return symbol;
 				}
-				
+
 				@Override
 				public Term make()
 				{
@@ -154,7 +154,7 @@ final public class Context
 				}
 			});
 	}
-	
+
 	// --- Parser management
 
 	/**
@@ -216,12 +216,12 @@ final public class Context
 			throws InstantiationException, IllegalAccessException
 	{
 		Parser parser;
-//		if (Crsx3Parser.class.isAssignableFrom(parserClass))
-//		{
-//			Crsx3Parser oldParser = (Crsx3Parser) parserClass.newInstance();
-//			parser = oldParser.asCrsx4Parser();
-//		}
-//		else 
+		//		if (Crsx3Parser.class.isAssignableFrom(parserClass))
+		//		{
+		//			Crsx3Parser oldParser = (Crsx3Parser) parserClass.newInstance();
+		//			parser = oldParser.asCrsx4Parser();
+		//		}
+		//		else 
 		if (Parser.class.isAssignableFrom(parserClass))
 		{
 			parser = (Parser) parserClass.newInstance();
@@ -294,5 +294,5 @@ final public class Context
 			return realParent.loadClass(name);
 		}
 	}
-
+ 
 }

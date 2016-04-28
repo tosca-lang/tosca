@@ -32,14 +32,20 @@ public abstract class Sink
 	 * @param descriptor of the construction
 	 * @return this sink
 	 */
-	public abstract Sink start(ConstructionDescriptor descriptor);
+	public Sink start(ConstructionDescriptor descriptor)
+	{
+		return this;
+	}
 
 	/**
 	 * End of construction.
 	 * 
 	 * @return this sink
 	 */
-	public abstract Sink end();
+	public Sink end()
+	{
+		return this;
+	}
 
 	/**
 	 * Receives the declaration of a bound variable. 
@@ -47,7 +53,10 @@ public abstract class Sink
 	 * @param binder to be bound here. The {@link Ref reference} is used by this method.
 	 * @return this sink.
 	 */
-	public abstract Sink bind(Variable binder);
+	public Sink bind(Variable binder)
+	{
+		return this;
+	}
 	
 	/**
 	 * Insert variable occurrence subterm.
@@ -55,7 +64,10 @@ public abstract class Sink
 	 * @param variable to reference. The {@link Ref reference} is used by this method.
 	 * @return this sink
 	 */
-	public abstract Sink use(Variable variable);
+	public Sink use(Variable variable)
+	{
+		return this;
+	}
 
 	/**
 	 * Insert string literal subterm.
@@ -63,25 +75,33 @@ public abstract class Sink
 	 * @param literal to add
 	 * @return this sink
 	 */
-	public abstract Sink literal(String literal);
+	public Sink literal(String literal)
+	{
+		return this;
+	}
 	
 	/**
 	 * Insert double literal subterm.
 	 * 
 	 * @return this sink
 	 */
-	public abstract Sink literal(double literal);
+	public Sink literal(double literal)
+	{
+		return this;
+	}
 
 	/**
 	 * Copy given term
 	 * @param term
 	 */
-	public abstract Sink copy(Term term);
+	public Sink copy(Term term)
+	{
+		return this;
+	}
 	
 	/**
 	 * @return the context
 	 */
 	public abstract Context context();
-
 
 }

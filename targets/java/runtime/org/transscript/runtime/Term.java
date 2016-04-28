@@ -88,7 +88,7 @@ public interface Term extends Ref
 
 	default Variable param(int i, int j)
 	{
-		throw new UnsupportedOperationException();
+		return null;
 	}
 
 	/**

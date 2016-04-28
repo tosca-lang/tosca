@@ -34,7 +34,6 @@ public interface StringTerm extends Term
 		return new VarStringTerm(context.makeGlobalName(hint));
 	}
 
-	
 	/**
 	 * Create an unevaluated string.
 	 * @param f the function producing a string

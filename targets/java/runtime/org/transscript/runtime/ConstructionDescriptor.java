@@ -19,4 +19,5 @@ public interface ConstructionDescriptor
 	 */
 	public String symbol();
 
+	
 }
