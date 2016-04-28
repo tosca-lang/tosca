@@ -814,7 +814,7 @@ func JavaBody(eager {String : JavaEnvEntry}, Option<List<Core_cdecl_sort>>) -> T
   rule JavaBody(#env, SOME(#rules:List<Core_cdecl_sort>))
   → text⟦
     ) {
-        if (context.sd < 256) {
+        if (context.sd++ < 256) {
           †⟨TextFold(Map<Text4_text_sort Text4_text_sort>((x) -> JavaApplyData(x), GetData(#env)), text⟦⟧)⟩
           †⟨TextFold(Map<Core_cdecl_sort Text4_text_sort>((x) -> JavaBodyRule(#env, x), #rules), text⟦⟧)⟩
         }

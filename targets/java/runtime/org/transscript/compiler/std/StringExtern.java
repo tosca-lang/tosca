@@ -4,8 +4,11 @@ package org.transscript.compiler.std;
 
 import static org.transscript.compiler.std.Core.FALSE;
 import static org.transscript.compiler.std.Core.TRUE;
+import static org.transscript.compiler.std.Core.lazyBool;
 import static org.transscript.runtime.DoubleTerm.doubleTerm;
 import static org.transscript.runtime.StringTerm.stringTerm;
+import static org.transscript.runtime.StringTerm.lazyStringTerm; 
+import static org.transscript.runtime.Term.force;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -64,8 +67,8 @@ public class StringExtern
 	 */
 	public static Bool StartsWith(Context context, StringTerm str, StringTerm prefix)
 	{
-		StringTerm estr = Term.force(context, str);
-		StringTerm eprefix = Term.force(context, prefix);
+		StringTerm estr = force(context, str);
+		StringTerm eprefix = force(context, prefix);
 		if (estr.data() && eprefix.data())
 		{
 			boolean result = estr.unbox().startsWith(eprefix.unbox());
@@ -204,10 +207,16 @@ public class StringExtern
 	 */
 	public static StringTerm ConcatString(Context context, StringTerm str1, StringTerm str2)
 	{
-		StringTerm result = stringTerm(str1.unbox() + str2.unbox());
-		str1.release();
-		str2.release();
-		return result;
+		final StringTerm estr1 = force(context, str1);
+		final StringTerm estr2 = force(context, str2);
+		if (estr1.data() && estr2.data())
+		{
+			StringTerm result = stringTerm(estr1.unbox() + estr2.unbox());
+			estr1.release();
+			estr2.release();
+			return result;
+		}
+		return lazyStringTerm(c -> ConcatString(c, estr1, estr2));
 	}
 
 	public static DoubleTerm Length(Context context, StringTerm str)
@@ -249,10 +258,17 @@ public class StringExtern
 	 */
 	public static Bool StringEqual(Context context, StringTerm str1, StringTerm str2)
 	{
-		final boolean result = str1.unbox().equals(str2.unbox());
-		str1.release();
-		str2.release();
-		return result ? TRUE(context) : FALSE(context);
+		final StringTerm estr1 = force(context, str1);
+		final StringTerm estr2 = force(context, str2);
+		if (estr1.data() && estr2.data())
+		{
+			final boolean result = estr1.unbox().equals(estr2.unbox());
+			estr1.release();
+			estr2.release();
+			return result ? TRUE(context) : FALSE(context);
+		}
+		return lazyBool(c -> StringEqual(c, estr1, estr2));
+		
 	}
 
 	public static Bool Contains(Context context, StringTerm string, StringTerm search)
