@@ -1,26 +1,28 @@
-/* Copyright (c) 2015 IBM Corporation. */
+/* Copyright (c) 2015-2016 IBM Corporation. */
 
 /*
- * Standard library for string.
+ * Standard String library
  */
 
 import Std::Core
 import Std::Num
 import Parser::TransScript
-// --- Wrapper
-
-//String | ( String(String)  )
 
 // --- Querying
 
-extern func Contains(String /* string */, String /* search string */) -> Bool
+/* @return TRUE if and only if the first given string contains the second given string */
+extern func Contains(String, String) -> Bool
 
-extern func Length(String /* string */) -> Numeric
+/* @return the length of the given string */
+extern func Length(String) -> Numeric
 
-extern func StartsWith(String /* string */, String /* search string */) -> Bool
+/* Tests if the beginning of the given string starts with the specified prefix. */
+extern func StartsWith(String /* string */, String /* prefix */) -> Bool
 
-extern func EndsWith(String /* string */, String /* search string */) -> Bool
+/* Tests if the ending of the given string finishes with the specified suffix. */
+extern func EndsWith(String /* string */, String /* suffix */) -> Bool
 
+/* @return TRUE if and only if the given strings are equals. */
 extern func StringEqual(String /* string */, String /* other string */) -> Bool
 
 // --- Mutation
@@ -33,11 +35,7 @@ extern func DownCase(eager String) -> String
 
 extern func Substring(eager String, eager Numeric, eager Numeric) -> String
 
-func UnString(eager String) -> String
-rule UnString(#string) → Rescape(#string)
-
-/*
- * Make sure the given string first character is upper case
+/* @return the given string for which he first character is upper case
  */
 func UpCaseFirst(String) -> String
 rule UpCaseFirst(#string)
@@ -45,8 +43,7 @@ rule UpCaseFirst(#string)
     ()->"",
     ()->ConcatString(UpCase(Substring(#string, 0, 1)), Substring(#string, 1, Length(#string))))
 
-/*
- * Make sure the given string first character is lower case
+/* @return the given string for which the first character is lower case
  */
 func DownCaseFirst(String) ->String
 rule DownCaseFirst(#string)
@@ -67,32 +64,34 @@ rule RemoveFirstChar(#string) → Substring(#string, 1, Length(#string))
 func RemoveLastChar(eager String) -> String
 rule RemoveLastChar(#string) → Substring(#string, 0, Minus(Length(#string), 1))
 
-/*
- * Trim leading and trailing spaces
+/* Trim leading and trailing spaces
  */
 extern func Trim(eager String) -> String
 
 extern func Replace(eager String, eager String, eager String) -> String
 
+/* @return the string after the first occurrence of the given first string, or
+          the empty string if there is no such occurrences
+*/
 extern func AfterFirst(eager String, eager String) -> String
 
-func AfterLast(eager String, eager String) -> String
+
+extern func BeforeFirst(eager String, eager String) -> String
 
 extern func Escape(String) -> String
 extern func FormatNumber(Numeric) -> String
 extern func Mangle(String) -> String
 
+func AfterLast(eager String, eager String) -> String
 
-rule AfterLast(#string, #sep)
-→ If<String>(Contains(#string, #sep),
+  rule AfterLast(#string, #sep)
+  → If<String>(Contains(#string, #sep),
       ()->AfterLast2(AfterFirst(#string, #sep), #sep),
       ()->#string)
 
 // Internal helper.
 func AfterLast2(eager String, String) -> String
 rule AfterLast2(#string, #sep) → AfterLast(#string, #sep)
-
-extern func BeforeFirst(eager String, eager String) -> String
 
 func BeforeLast(eager String, eager String) -> String
 
