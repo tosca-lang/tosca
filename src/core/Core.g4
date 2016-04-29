@@ -16,11 +16,11 @@ ccrsx
     ;
 
 cdecl
-    : RULE cterm ARROW cterm                               /* Rule declaration */
-    | DATA  csortvars? CONSTRUCTOR cforms                   /* Data sort declaration */
-    | EXTERN? FN csortvars? csort CONSTRUCTOR csorts?       /* Function sort declaration */
-    | IMPORT MODULE cqconstructor                           /* Import module declaration */
-    | IMPORT GRAMMAR  cqconstructor                         /* Import grammar declaration */
+    : RULE cterm ARROW cterm                                         /* Rule declaration */
+    | DATA  csortvars? CONSTRUCTOR cforms                            /* Data sort declaration */
+    | canno* EXTERN? FN csortvars? csort CONSTRUCTOR csorts?          /* Function sort declaration */
+    | IMPORT MODULE cqconstructor                                    /* Import module declaration */
+    | IMPORT GRAMMAR  cqconstructor                                  /* Import grammar declaration */
     ;
 
 // -- Term
@@ -80,6 +80,10 @@ cmapentry
     | STRING                                             /* match / construct named property          */
     | NOT STRING                                         /* no named property (match only)            */
     | STRING COLON cterm                                 /* match named property value / construct    */
+    ;
+
+canno
+    : AT CONSTRUCTOR                                                 /* General purpose annotation */
     ;
 
 // -- Sorts
@@ -185,6 +189,7 @@ GT              : '>';
 COMMA           : ',';
 DOT             : '.';
 NOT             : '¬';
+AT              : '@';
 
 // -- Common lexing rules with TransScript.g4.
 //    Cannot extract these rules yet as the antlr meta parser generator does not support modular grammars yet

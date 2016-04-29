@@ -164,9 +164,10 @@ ruleDecl
 
 // Function declaration, signature and optional body
 
+// TODO: deprecate EXTERN
 fnDecl
-    : EXTERN? FUNC fnFixity sortParams? fnParamDecls?
-              FNTYPE sort fnBody?                                    /* Function declaration  */
+    : anno* EXTERN? FUNC fnFixity sortParams? fnParamDecls?
+            FNTYPE sort fnBody?                                    /* Function declaration  */
     ;
 
 fnFixity
@@ -344,6 +345,10 @@ operator
     | NOT
     ;
 
+anno
+    : AT CONSTRUCTOR                                                 /* General purpose annotation */
+    ;
+
 // Lexer rules
 
 // Keyword as token
@@ -378,6 +383,7 @@ LSQUARE         : '[';
 RSQUARE         : ']';
 FNTYPE          : '->';
 NOT             : '¬';
+AT              : '@';
 
 FIXITY          : 'infix' | 'infixr' | 'infixl' | 'postfix' | 'prefix';
 
