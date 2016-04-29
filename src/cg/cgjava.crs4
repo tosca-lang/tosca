@@ -14,6 +14,7 @@ import Std::Mapdef
 import Std::Language
 
 import Core::Core
+import Core::Utils
 import Text::Text4
 import Systemdef
 
@@ -700,9 +701,16 @@ rule JavaMethod(#constructor, #classname, #rules, #datasorts, #funcsorts)
                         MapGet<String List>(#rules, #constructor))⟩⟧
 
 func JavaMethodSig(eager {String : JavaEnvEntry}, Core_cdecl_sort, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
-rule JavaMethodSig(#env, cdecl⟦ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #rules)
+rule JavaMethodSig(#env, cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #rules)
 → text⟦†⟨ReturnType(#csortvars?, #csort)⟩⟨STRING:ToJavaMethodName(#CONSTRUCTOR)⟩(Context context†⟨ThunkMakerSig(#csortvars?)⟩†⟨
-      JavaSigMaybeArgs(SetMethodName(SetThunkMaker(AddThunk(SetContext(#env, text⟦context⟧, 1), ThunkMakerArg(#csortvars?)), ThunkMaker(#csort)), text⟦⟨STRING: ToJavaMethodName(#CONSTRUCTOR)⟩⟧), #csorts?, #rules)⟩⟧   // )
+      JavaSigMaybeArgs(
+         SetMethodName(
+           SetThunkMaker(
+             AddThunk(
+               SetContext(SetFnAnno(#env, #canno*), text⟦context⟧, 1),
+               ThunkMakerArg(#csortvars?)),
+             ThunkMaker(#csort)),
+           text⟦⟨STRING: ToJavaMethodName(#CONSTRUCTOR)⟩⟧), #csorts?, #rules)⟩⟧   // )
 
 // --- Generate return type
 
@@ -820,7 +828,7 @@ func JavaBody(eager {String : JavaEnvEntry}, Option<List<Core_cdecl_sort>>) -> T
     ) {
         †⟨TextFold(Map<Core_cdecl_sort Text4_text_sort>((x) -> JavaBodyRule(#env, x), #rules), text⟦⟧)⟩
 
-        return †⟨GetThunkMaker(#env)⟩(c -> †⟨GetMethodName(#env)⟩(c†⟨TextFold(GetThunk(#env), text⟦, ⟧)⟩));
+        †⟨FallbackThunk(#env, HasAnnotation("Fallback", GetFnAnno(#env)))⟩
       }⟧
 
 // Generate code to normalize arguments marked as 'data'
@@ -828,11 +836,20 @@ func JavaApplyData(Text4_text_sort) -> Text4_text_sort
 rule JavaApplyData(#term)
 → text⟦†⟨#term⟩.eval(context).release();⟧
 
+/* Generate fallback thunk (or error) if function is not complete */
+func FallbackThunk({String : JavaEnvEntry}, Bool) -> Text4_text_sort
+
+  rule FallbackThunk(#env, TRUE)  → text⟦⟧
+
+  rule FallbackThunk(#env, FALSE)
+  //→ text⟦return †⟨GetThunkMaker(#env)⟩(c -> †⟨GetMethodName(#env)⟩(c†⟨TextFold(GetThunk(#env), text⟦, ⟧)⟩));⟧
+  → text⟦throw new RuntimeException("Missing case");⟧
+
 // --- Start method body
 
 func JavaBodyRule(eager {String : JavaEnvEntry}, Core_cdecl_sort) -> Text4_text_sort
-  rule JavaBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR → ##cterm2 ⟧)
-  → JavaContractum(#env, #cterm2)
+  rule JavaBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR → ##cterm ⟧)
+  → JavaContractum(#env, #cterm)
 
   rule JavaBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR ( ##cterm* ) → ##cterm2 ⟧)
   → JavaPattern(#env, #cterm*, #cterm2)
@@ -1209,6 +1226,8 @@ func JavaExprMaybeVar(eager {String : JavaEnvEntry}, Option<VarEntry>, String, (
 
 func JavaExprMeta(eager {String : JavaEnvEntry}, String, List<Core_cterms_sort>, List<Core_csubst_sort>, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
+   // TODO: check that metavar is defined
+
   // No arguments -> just return the metavariable.
   rule JavaExprMeta(#env, #metavar, cterms?⟦⟧, csubst?⟦⟧, #cont)
   → text⟦†⟨GetMetaVar(#env, #metavar)⟩†⟨#cont(#env)⟩⟧
@@ -1368,6 +1387,7 @@ enum JavaEnvEntry | ENum(Numeric) |  EText(Text4_text_sort) | ETexts(List<Text4_
                   | EMapVar({ String : VarEntry }) | EMapDecl({ String : Core_cdecl_sort })
                   | EParams(List<Pair<Text4_text_sort Core_csort_sort>>)
                   | EContext(Text4_text_sort /* context java variable */, Numeric /* Counter */)
+                  | EFnAnno(List<Core_canno_sort>)
 
 func NewEnv -> {String : JavaEnvEntry}
 rule NewEnv →
@@ -1468,6 +1488,9 @@ rule UnContext(EContext(#1, #2)) → #1
 
 func UnContextCount(JavaEnvEntry) -> Numeric
 rule UnContextCount(EContext(#1, #2)) → #2
+
+func UnFnAnno(JavaEnvEntry) -> List<Core_canno_sort>
+rule UnFnAnno(EFnAnno(#1)) → #1
 
 // --- Data sorts
 
@@ -1678,3 +1701,11 @@ rule SetContext(#env, #context, #count) → SetValue(#env, "context", EContext(#
 func NewContext(eager {String : JavaEnvEntry}) -> {String : JavaEnvEntry}
 rule NewContext(#env)
 → SetContext(#env, text⟦c†⟨NumberToText(GetContextCount(#env))⟩⟧, Plus(GetContextCount(#env), 1))
+
+// --- function annotation
+
+func GetFnAnno({String : JavaEnvEntry}) -> List<Core_canno_sort>
+rule GetFnAnno(#env) → GetValue<List>(#env, "fnanno", (x) -> UnFnAnno(x))
+
+func SetFnAnno({String : JavaEnvEntry}, List<Core_canno_sort>) -> {String : JavaEnvEntry}
+rule SetFnAnno(#env, #anno*) → SetValue(#env, "fnanno", EFnAnno(#anno*))

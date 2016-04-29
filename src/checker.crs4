@@ -1,0 +1,51 @@
+// Copyright (c) 2016 IBM Corporation.
+
+import Std::Core
+import Std::Listdef
+import Std::Mapdef
+
+import Systemdef
+import Core::Core
+import Core::Utils
+
+/* Perform various checks on the given module content */
+func CheckCore(#content: LoadedContent) -> LoadedContent
+→ CheckFallback(#content)
+
+/*
+ * Analysis module content and add missing @Fallback annotation
+ */
+func CheckFallback(LoadedContent) -> LoadedContent
+  rule CheckFallback(LoadedContent(#imports:List<Core_cqconstructor_sort>, #rules:{String:List<Core_cdecl_sort>},
+                                 #datasorts:{String:Core_cdecl_sort}, #funcsorts:{String:Core_cdecl_sort}))
+  → LoadedContent(#imports, #rules, #datasorts,
+    FoldlP<String {String:Core_cdecl_sort}>(
+      (name sorts) -> CheckFallbackFunc(sorts, UnSOME<Core_cdecl_sort>(MapGet<String Core_cdecl_sort>(#funcsorts, name)),
+        HasFallback(MapGet<String List>(#rules, name))),
+          #funcsorts, MapKeys<String Core_cdecl_sort>(#funcsorts)))
+
+func CheckFallbackFunc(#funcsorts: {String:Core_cdecl_sort},  #sort: Core_cdecl_sort, #fallback: Bool) -> {String:Core_cdecl_sort}
+  rule CheckFallbackFunc(#funcsorts,
+    cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #fallback)
+  → PutFuncSort(#funcsorts, cdecl⟦ ⟨canno*: CheckFallbackAnno(#canno*, #fallback, HasAnnotation("Fallback", #canno*))⟩ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, TRUE)
+
+func CheckFallbackAnno(List<Core_canno_sort>, Bool /* Fallback */, Bool /* Has Fallback */) -> List<Core_canno_sort>
+  rule CheckFallbackAnno(#anno*, TRUE, TRUE)   → #anno*
+  rule CheckFallbackAnno(#anno*, TRUE, FALSE)  → AddAnnotation("Fallback", #anno*)
+  rule CheckFallbackAnno(#anno*, FALSE, TRUE)  → Error<List>("Invalid @Fallback annotation: function declaration does not have a fallback rule.")
+  rule CheckFallbackAnno(#anno*, FALSE, FALSE) → #anno*
+
+func HasFallback(#orules: Option<List<Core_cdecl_sort>>) -> Bool
+→ IfPresent<List Bool>(#orules,
+    (rs) -> IsNotEmpty<Core_cdecl_sort>(Filter<Core_cdecl_sort>((rr)->IsFallbackRule(rr), rs)),
+    () -> FALSE)
+
+func IsFallbackRule(Core_cdecl_sort) -> Bool
+  rule IsFallbackRule(cdecl⟦ rule ##cqconstructor ##csortargs? ##csortanno? → ##cterm ⟧)
+  → TRUE
+
+  rule IsFallbackRule(cdecl⟦ rule ##cqconstructor ##csortargs? ( ) ##csortanno? → ##cterm ⟧)
+  → TRUE
+
+  rule IsFallbackRule(cdecl⟦ rule ##cqconstructor ##csortargs? ( ##cterm* ) ##csortanno? → ##cterm ⟧ )
+  → Not(HasOption<Core_cterm_sort>(PickFirst<Core_cterm_sort>(#cterm*, (term) -> Not(IsMeta(term)))))
