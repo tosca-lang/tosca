@@ -35,7 +35,7 @@ task compileTransScript(type: TransScriptTask, dependsOn:':targets:java:parsers:
 	outputDir   = project.hasProperty('dev') ? file('compilerdev') : file('compiler')
 	packageName = 'org.transscript.compiler'
 	usecompiler = !project.hasProperty('crsx3')
-	if (!project.hasProperty('dev')) bootparserpath =  "file:parsers/build/classes/main/" // override TransScript parsers location. MUST END WITH /
+	bootparserpath =  "file:parsers/build/classes/main/" // override TransScript parsers location. MUST END WITH /
 }
 
 
