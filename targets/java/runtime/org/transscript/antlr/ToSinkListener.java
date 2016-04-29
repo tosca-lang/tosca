@@ -523,7 +523,7 @@ public class ToSinkListener implements ParseTreeListener
 		String[] snames = names.trim().split(" ");
 		Variable[] binders = new Variable[snames.length];
 
-		bounds.add(MARKER);
+		bounds.push(MARKER);
 		for (int i = 0; i < snames.length; i++)
 		{
 			String id = snames[i];
