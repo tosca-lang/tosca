@@ -3,6 +3,7 @@
  * TransScript Java 8 backend code generator
  */
 
+
 import Std::Core
 import Std::String
 import Std::Num
@@ -13,16 +14,17 @@ import Std::Mapdef
 import Std::Language
 
 import Core::Core
-
 import Text::Text4
 import Systemdef
 
 // ===== API
 
+
 /*
  * Generates Java code from Core TransScript
  * @param System The TransScript system
  */
+
 func TransScriptToJava(TSystem) -> Text4_text_sort
 rule TransScriptToJava(TSystem(#url:String, #modules:{String : Module}))
 → JavaUnits(#url, MapValues<String Module>(#modules))
@@ -546,7 +548,9 @@ func SortsToGetValue(List<Core_csort_sort>, eager Numeric) -> Text4_text_sort
 
 func SortToGetValue(List<Text4_text_sort>, eager Numeric, eager Numeric) -> Text4_text_sort
   rule SortToGetValue(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex)
-  → text⟦public †⟨#type⟩ getField†⟨FieldSuffix(#index)⟩() {
+  → text⟦public †⟨#type⟩ getField†⟨FieldSuffix(#index)⟩(Context ctx, boolean force) {
+            if (force)
+               field†⟨FieldSuffix(#index)⟩ = force(ctx, field†⟨FieldSuffix(#index)⟩);
             return field†⟨FieldSuffix(#index)⟩;
          }⟧
 
@@ -814,10 +818,8 @@ func JavaBody(eager {String : JavaEnvEntry}, Option<List<Core_cdecl_sort>>) -> T
   rule JavaBody(#env, SOME(#rules:List<Core_cdecl_sort>))
   → text⟦
     ) {
-        if (context.sd++ < 256) {
-          †⟨TextFold(Map<Text4_text_sort Text4_text_sort>((x) -> JavaApplyData(x), GetData(#env)), text⟦⟧)⟩
-          †⟨TextFold(Map<Core_cdecl_sort Text4_text_sort>((x) -> JavaBodyRule(#env, x), #rules), text⟦⟧)⟩
-        }
+        †⟨TextFold(Map<Core_cdecl_sort Text4_text_sort>((x) -> JavaBodyRule(#env, x), #rules), text⟦⟧)⟩
+
         return †⟨GetThunkMaker(#env)⟩(c -> †⟨GetMethodName(#env)⟩(c†⟨TextFold(GetThunk(#env), text⟦, ⟧)⟩));
       }⟧
 
@@ -863,7 +865,8 @@ func JavaPatternTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, Text4_text_
 
   rule JavaPatternTerm(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #term, #csort, #storage, #cont)
   → text⟦
-      †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨ResolveTypeParamCons(#csort)⟩ ⟨STRING: value:String⟩ = force(context, †⟨#term⟩).†⟨MethodNameAs(#CONSTRUCTOR)⟩(context);
+      †⟨ForceParameter(#env, #term, #storage)⟩
+      †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨ResolveTypeParamCons(#csort)⟩ ⟨STRING: value:String⟩ = †⟨#term⟩.†⟨MethodNameAs(#CONSTRUCTOR)⟩(context);
       if (⟨STRING: value⟩ == null) {
         break †⟨GetLabel(#env)⟩;
       }†⟨
@@ -919,10 +922,11 @@ func JavaPatternSubs(eager {String : JavaEnvEntry}, List<Core_cterm_sort>,
 
   rule JavaPatternSubs(#env, cterm*⟦ ##cterm ##cterm* ⟧, #term, #index, #csort*, #cont)
   → text⟦
-      †⟨MaybeSortToType(SubSort(#env, #cterm, #csort*))⟩ ⟨STRING: sub:String⟩ = †⟨#term⟩.getField†⟨FieldSuffix(#index)⟩();†⟨
+      †⟨MaybeSortToType(SubSort(#env, #cterm, #csort*))⟩ ⟨STRING: sub:String⟩ = †⟨#term⟩.getField†⟨FieldSuffix(#index)⟩(†⟨GetContext(#env)⟩, true);†⟨
       JavaPatternTerm(SetSubBinderIndex(SetParent(SetSubIndex(#env, #index), #term), 1),
                   #cterm, text⟦⟨STRING: sub⟩⟧, SubSort(#env, #cterm, #csort*), ARGUMENT,
                   (x) -> JavaPatternSubs(x, #cterm*, #term, NumberPlus(#index, 1), Maybe<List List>((x)->Tail<Core_csort_sort>(x), #csort*), #cont))⟩⟧
+
 
 // --- Variable pattern matching outside of meta
 
@@ -965,6 +969,12 @@ func JavaFindBoundVar(eager {String : JavaEnvEntry},Core_cterm_sort) -> Text4_te
 //JavaFindBoundVar(#env, #cterm)
 //→ $(Error, $(:, "Invalid argument in metavariable: ", $(Show, #cterm)))
 
+//  --------- Helper function for pattern matching
+
+/* Generate force call if term is a parameter */
+func ForceParameter({String : JavaEnvEntry}, Text4_text_sort, Storage) -> Text4_text_sort
+  rule ForceParameter(#env, #term, PARAMETER) →  text⟦†⟨#term⟩ = force(†⟨GetContext(#env)⟩, †⟨#term⟩);⟧
+  rule ForceParameter(#env, #term, #storage)  →  text⟦⟧
 
 /* Extract type parameter from constructor sort */
 func ResolveTypeParamCons(Option<Core_csort_sort>) -> Text4_text_sort
