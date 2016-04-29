@@ -45,9 +45,10 @@ rule NDecl(decl⟦ enum ##constructor ##sortParams? ##variant+ ⟧)
 /* Convert function.
    Fixity is only used by the parser and can be eliminated. Still need to access the constructor
 */
-rule NDecl(decl⟦ ##extern_TOK? func ##fnFixity ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
+
+rule NDecl(decl⟦ ##anno* ##extern_TOK? func ##fnFixity ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
 → cdecl+⟦
-  ##extern_TOK? func ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨csort: NSort(#sort)⟩ ⟨CONSTRUCTOR: NConstructor(GetConstructor(#fnFixity))⟩  ⟨csorts?: NMaybeParamDecls(#fnParamDecls?)⟩
+  ⟨canno*: Map<TransScript_anno_sort Core_canno_sort>((anno)->NAnno(anno), #anno*)⟩ ##extern_TOK? func ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨csort: NSort(#sort)⟩ ⟨CONSTRUCTOR: NConstructor(GetConstructor(#fnFixity))⟩  ⟨csorts?: NMaybeParamDecls(#fnParamDecls?)⟩
   ⟨cdecl+: NMaybeBody(#fnBody?, GetConstructor(#fnFixity), #fnParamDecls?)⟩
 ⟧
 
@@ -145,6 +146,11 @@ func NSortQualifiers(List<TransScript_sortQualifier_sort>) -> List<Core_csortqua
 func NMaybeSortArgs(List<TransScript_sortArgs_sort>) -> List<Core_csortargs_sort>
   rule NMaybeSortArgs(sortArgs?⟦             ⟧) → csortargs?⟦ ⟧
   rule NMaybeSortArgs(sortArgs?⟦ < ##sort* > ⟧) → csortargs?⟦ <  ⟨csort*: Map<TransScript_sort_sort Core_csort_sort>((x)->NSort(x), #sort*)⟩ > ⟧
+
+// ---- Annotation
+
+func NAnno(TransScript_anno_sort) -> Core_canno_sort
+rule NAnno(anno⟦ @ ##CONSTRUCTOR ⟧) → canno⟦ @ ##CONSTRUCTOR ⟧
 
 // ---- Function declaration
 

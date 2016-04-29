@@ -19,7 +19,7 @@ public class Normalizer
 	 * @param context
 	 * @param main returning an evaluated or partially evaluated term.
 	 * @param args 
-	 * @return data term. Might contains non-evaluated sub functions.
+	 * @return a data term. Might contains non-evaluated sub functions.
 	 * 
 	 * @throws InvocationTargetException 
 	 * @throws IllegalArgumentException 
@@ -33,10 +33,7 @@ public class Normalizer
 		if (args != null)
 			System.arraycopy(args, 0, objs, 1, args.length);
 		
-
-		context.sd = 0;
 		Term term = (Term) main.invoke(null, objs);
-		context.sd = 0;
 		return force(context, term);
 	}
 
@@ -45,7 +42,7 @@ public class Normalizer
 	 * 
 	 * @param context
 	 * @param term The reference is used by this method.
-	 * @return normalized term.
+	 * @return a data term.
 	 */
 	public static Term force(Context context, Term term)
 	{

@@ -140,27 +140,12 @@ public interface Term extends Ref
 	}
 
 	/**
-	 * Evaluates this term (if needed) so that the top-level term is (potentially fully) evaluated.
-	 *  
-	 * The reference to this term is consumed.
-	 *
-	 * @param ctx
-	 * @return A new reference to the evaluated term. It might still be a function if the evaluation has been interrupted
-	 */
-//	default Term force(Context ctx)
-//	{
-//		return eval(ctx);
-//	}
-
-	/**
-	 * Evaluates this term (if needed) and return a new reference to 
-	 * the (potentially fully) evaluated term.
+	 * Evaluates thunk (if needed).
 	 * 
 	 * The reference to this term is consumed.
 	 * 
 	 * @param context
-	 * @return A new reference to the evaluated term. It might still be a function if the evaluation has been interrupted
-	 * @deprecated
+	 * @return A new reference to the evaluated term. It might still be a thunk if the evaluation has been interrupted
 	 */
 	default Term eval(Context context)
 	{
@@ -265,5 +250,6 @@ public interface Term extends Ref
 		}
 		return copy;
 	}
-
+	
+	
 }

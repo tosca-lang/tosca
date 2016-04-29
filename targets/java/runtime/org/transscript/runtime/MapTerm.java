@@ -254,6 +254,12 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		{
 			super(f);
 		}
+		
+		@Override
+		public boolean data()
+		{
+			return false;
+		}
 
 		@Override
 		public Term copy(Context c)
@@ -264,43 +270,43 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		@Override
 		public MapTerm<K, V> extend()
 		{
-			throw new RuntimeException();
+			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
 		}
 
 		@Override
 		public void putValue(K key, V value)
 		{
-			throw new RuntimeException();
+			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
 		}
 
 		@Override
 		public List<V> values(Context context)
 		{
-			throw new RuntimeException();
+			throw new RuntimeException("Fatal error: cannot query unevaluated map.");
 		}
 
 		@Override
 		public Option<V> getValue(Context context, K key)
 		{
-			throw new RuntimeException();
+			throw new RuntimeException("Fatal error: cannot query unevaluated map.");
 		}
 
 		@Override
 		public List<K> keys(Context context)
 		{
-			throw new RuntimeException();
+			throw new RuntimeException("Fatal error: cannot query unevaluated map.");
 		}
 
 		@Override
 		public void putVar(Variable key, V value)
 		{
-			throw new RuntimeException();
+			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
 		}
 
 		@Override
 		public Option<V> getValueVar(Context context, Variable key)
 		{
-			throw new RuntimeException();
+			throw new RuntimeException("Fatal error: cannot query unevaluated map.");
 		}
 
 	}

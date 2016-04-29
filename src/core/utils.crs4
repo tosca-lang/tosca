@@ -1,0 +1,29 @@
+// Copyright (c) 2016 IBM Corporation.
+/*
+ *  Various utility function related to the Core language
+ */
+
+import Std::Core
+import Std::Listdef
+import Std::String
+import Core::Core
+
+/* @return TRUE if the term is a meta-application. Ignore binders and formal parameters  */
+func IsMeta(Core_cterm_sort) -> Bool
+  rule IsMeta(cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧) → TRUE
+  rule IsMeta(cterm⟦ [ v ##csortanno? ] ##cterm ⟧)                 → IsMeta(#cterm[var:String])
+  rule IsMeta(cterm⟦ ( f ##csortanno? ) ##cterm ⟧)                 → IsMeta(#cterm[var:String])
+  rule IsMeta(cterm⟦ thunk ##cterm ⟧)                              → IsMeta(#cterm)
+  rule IsMeta(#term)                                              → FALSE
+
+/* Check whether the given annotation is in the given list */
+func HasAnnotation(#anno: String, #anno*: List<Core_canno_sort>) -> Bool
+→ HasOption<Core_canno_sort>(PickFirst<Core_canno_sort>(#anno*, (anno) -> EqualAnno(#anno, anno)))
+
+/* Whether the 2 annotation are equals */
+func EqualAnno(String, Core_canno_sort) -> Bool
+rule EqualAnno(#anno, canno⟦ @ ##CONSTRUCTOR ⟧) → StringEqual(#CONSTRUCTOR, #anno)
+
+/* Add annotation to list. Does not check if already there. */
+func AddAnnotation(#anno: String, #anno*: List<Core_canno_sort>) ->  List<Core_canno_sort>
+→ Cons(canno⟦ @ ⟨CONSTRUCTOR: #anno⟩ ⟧, #anno*)

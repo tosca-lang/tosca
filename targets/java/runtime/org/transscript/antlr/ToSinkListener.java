@@ -719,7 +719,7 @@ public class ToSinkListener implements ParseTreeListener
 		{
 			MetaBufferSink innersink = new MetaBufferSink(sink.context());
 			parser.parse(innersink, category, reader, null, line, column, bounds, freshes);
-			sink.copy(innersink.metaterm().asTransScript_xterm(sink.context()).getField1());
+			sink.copy(innersink.metaterm().asTransScript_xterm(sink.context()).getField1(sink.context(), false));
 		}
 		catch (RuntimeException e)
 		{
@@ -735,7 +735,7 @@ public class ToSinkListener implements ParseTreeListener
 	{
 		try (Reader reader = new StringReader(text))
 		{
-			org.transscript.runtime.Parser innerParser = sink.context().getParser("term", true);
+			org.transscript.runtime.Parser innerParser = sink.context().getParser("term", false);
 			BufferSink buffer = sink.context().makeBuffer();
 			innerParser.parser().parse(buffer, "term", reader, null, line, column, bounds, freshes);
 			metasink().copy((TransScript_xterm_xsort) buffer.term());
