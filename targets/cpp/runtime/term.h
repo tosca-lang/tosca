@@ -17,11 +17,13 @@ namespace runtime
 {
 
 class _Variable;
-using Variable = _Variable&;
+
+//using Variable = _Variable&;
+typedef _Variable& Variable;
 
 class _Term;
-
-using Term = _Term&;
+//using Term = _Term&;
+typedef _Term& Term;
 
 class _Ref
 {
@@ -115,7 +117,9 @@ public:
  * String term type
  */
 class _StringTerm;
-using StringTerm = _StringTerm&;
+//using StringTerm = _StringTerm&;
+typedef _StringTerm& StringTerm;
+
 class _StringTerm: public _Term
 {
 public:
