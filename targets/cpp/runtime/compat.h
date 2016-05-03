@@ -2,24 +2,52 @@
 #ifndef _COMPAT_H
 #define _COMPAT_H
 
-// Various macros/functions helping cross-compilers compatibility
-/*
-// C++11 nullptr workaround as documented in the C++11 spec.
-const class
+#include <stdexcept>
+
+// c++17
+template<typename T>
+class Optional
 {
-    public:
-    template<class T> operator T*() const
+public:
+    static Optional<T> nullopt;
+
+    Optional()
     {
-        return 0;
     }
 
-    template<class C, class T> operator T C::*() const
+    virtual const T value()
     {
-        return 0;
+        throw std::runtime_error("Bad optional access");
     }
+
+};
+
+template<typename T>
+class OptionalSome : public Optional<T>
+{
+public:
+    OptionalSome(const T value) :
+            v(value)
+    {
+    }
+
+    const T value()
+    {
+        return v;
+    }
+
 private:
-    void operator&() const;
-} nullptr = {};
-*/
+    /* The value */
+    const T v;
+};
+
+template<typename T>
+Optional<T> Optional<T>::nullopt = Optional<T>();
+
+template<typename T>
+Optional<T> make_optional(T value) {
+    return OptionalSome<T>(value);
+}
+
 
 #endif
