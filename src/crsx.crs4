@@ -7,6 +7,7 @@ import Systemdef
 import Normalizer
 import Checker
 import Cg::Cgjava
+import Cg::Cpp::Cgcpp
 import Std::Core
 import Std::Listdef
 import Std::String
@@ -36,7 +37,9 @@ func MaybeLoadModule(TSystem, Option<Module>) -> Text4_text_sort
 
 // Done loading all modules. Generate code.
 rule MaybeLoadModule(#system, NONE)
-→ TransScriptToJava(#system)
+→ IfDef<Text4_text_sort>("cpp",
+    ()->TransScriptToCpp(#system),
+    ()->TransScriptToJava(#system))
 
 rule MaybeLoadModule(#system, SOME(Module::Module(#url:String, Content::NOTLOADED)))
 → CompileSystem(PutModule(#system, #url, Module(#url, LoadModule(#url))))

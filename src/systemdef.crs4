@@ -85,11 +85,17 @@ rule PutModule(TSystem(#mainurl, #modules), #url, #module)
 
 // --- Loaded content lookup functions.
 
-func GetFuncSorts(LoadedContent) -> {String: Core_cdecl_sort}
-rule GetFuncSorts(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #funcsorts
+func GetImports(LoadedContent) -> List<Core_cqconstructor_sort>
+rule GetImports(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #imports
 
 func GetRules(LoadedContent) -> {String: List<Core_cdecl_sort>}
 rule GetRules(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #rules
+
+func GetDataSorts(LoadedContent) -> {String: Core_cdecl_sort}
+rule GetDataSorts(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #datasorts
+
+func GetFuncSorts(LoadedContent) -> {String: Core_cdecl_sort}
+rule GetFuncSorts(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #funcsorts
 
 // --- Loaded content mutation functions.
 

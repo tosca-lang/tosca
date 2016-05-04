@@ -35,6 +35,9 @@ extern func DownCase(eager String) -> String
 
 extern func Substring(eager String, eager Numeric, eager Numeric) -> String
 
+/* Converts all of the characters of the given string to upper case */
+extern func ToUpperCase(String) -> String
+
 /* @return the given string for which he first character is upper case
  */
 func UpCaseFirst(String) -> String
@@ -56,7 +59,6 @@ rule DownCaseFirst(#string)
  */
 func RemoveFirstChar(eager String) -> String
 rule RemoveFirstChar(#string) → Substring(#string, 1, Length(#string))
-
 
 /*
  * Returns given string without its last character
@@ -105,6 +107,11 @@ rule BeforeLast2(#Before, #Sep, #After)
 → If<String>(StringEqual(#After, ""),
     ()->#Before,
     ()->ConcatString(#Before, ConcatString(#Sep, #After)))
+
+/* Returns a new String joining the given list of strings together with the specified separator.*/
+func Join(List<String>, String) -> String
+rule Join((                ), #sep) → ""
+rule Join(Cons(#str, #strs)), #sep) → FoldlP<String String>((str r) -> ConcatString(str, ConcatString(#sep, r)), #str, #strs)
 
 // --- Parsing
 

@@ -1,0 +1,32 @@
+// Copyright (c) 2016 IBM Corporation.
+/*
+ * TransScript C++11-- backend code generator
+ */
+
+
+import Std::Core
+import Std::Listdef
+import Std::Mapdef
+import Text::Text4
+
+import Systemdef
+import Cg::Cpp::Header
+
+// ===== API
+
+/*
+ * Generates C++ code from Core TransScript
+ * @param System The TransScript system
+ */
+func TransScriptToCpp(TSystem) -> Text4_text_sort
+rule TransScriptToCpp(TSystem(#url:String, #modules:{String : Module}))
+→ CppUnits(MapValues<String Module>(#modules))
+
+// --- Generate code.
+
+/*
+ Each TS module corresponds to two C++ files: the header containing enumerations
+ and function signatures, and the source file containing function bodies.
+*/
+func CppUnits(#modules: List<Module>) -> Text4_text_sort
+→ Map<Module Text4_text_sort>((mod) -> CppHeader(mod), #modules)

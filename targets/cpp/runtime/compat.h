@@ -12,8 +12,10 @@ public:
     static Optional<T> nullopt;
 
     Optional()
-    {
-    }
+    {}
+
+    virtual ~Optional() {}
+
 
     virtual const T value()
     {

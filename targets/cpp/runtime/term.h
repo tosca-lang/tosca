@@ -110,8 +110,25 @@ public:
     template<typename T>
     static T Subst(Context c, T term, std::initializer_list<Term> from, std::initializer_list<Term> to);
 
+}; // _Term
+
+
+/*
+ * Base class for variable
+ */
+class _Variable: public _Term
+{
+protected:
+    _Variable(std::string value);
+
+
+    /* Globally unique variable name */
+    std::string name;
+
+    /* Count the number of variable use (in the term tree) */
+    unsigned long uses;
 };
-// _Term
+
 
 /**
  * String term type
@@ -120,19 +137,18 @@ class _StringTerm;
 //using StringTerm = _StringTerm&;
 typedef _StringTerm& StringTerm;
 
+// Construction
+StringTerm stringTerm(std::string&& str);
+
 class _StringTerm: public _Term
 {
 public:
-
-    // Construction
-    static StringTerm stringTerm(std::string&& str);
 
     /** Peek at native string value */
     virtual Optional<std::string> Unbox() const
     {
         return Optional<std::string>::nullopt;
     }
-
 };
 // _StringTerm
 
@@ -143,15 +159,14 @@ class _ValStringTerm: public _StringTerm
 {
 protected:
     /** The string value */
-    std::string& value;
+    std::string value;
 
 public:
-    _ValStringTerm(std::string& value);
-
-    ~_ValStringTerm();
+    _ValStringTerm(std::string value);
 
     Term Copy(Context c);
     Optional<std::string> Unbox() const;
+
 
 };
 // _StringTerm

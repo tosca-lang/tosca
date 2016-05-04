@@ -1,0 +1,10 @@
+import Std::String
+import Text::Text4
+
+/** Convert data sort name to corresponding C++ class name */
+func DSNameToCppClassName(#name: String) -> Text4_text_sort
+→ text⟦⟨STRING: #name⟩_⟧
+
+/** Convert data sort name to equivalent C++ class name reference */
+func DSNameToCppClassNameRef(#name: String) -> Text4_text_sort
+→ text⟦⟨STRING: #name⟩⟧

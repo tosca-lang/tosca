@@ -2,7 +2,6 @@
 /*
  *  Various utility function related to the Core language
  */
-
 import Std::Core
 import Std::Listdef
 import Std::String
@@ -27,3 +26,11 @@ rule EqualAnno(#anno, canno⟦ @ ##CONSTRUCTOR ⟧) → StringEqual(#CONSTRUCTOR
 /* Add annotation to list. Does not check if already there. */
 func AddAnnotation(#anno: String, #anno*: List<Core_canno_sort>) ->  List<Core_canno_sort>
 → Cons(canno⟦ @ ⟨CONSTRUCTOR: #anno⟩ ⟧, #anno*)
+
+/* Convert qualified constructor to string, using given separator */
+func QConsToString(Core_cqconstructor_sort, String) -> String
+rule QConsToString(cqconstructor⟦ ##csortqualifier* ##CONSTRUCTOR ⟧, #sep)
+→ Join(Cons(#CONSTRUCTOR, Map<String String>((sort) -> QSortToString(sort), #csortqualifier*)), #sep)
+
+func QSortToString(Core_csortqualifier_sort) -> String
+rule QSortToString(csortqualifier⟦ ##CONSTRUCTOR :: ⟧) → #CONSTRUCTOR

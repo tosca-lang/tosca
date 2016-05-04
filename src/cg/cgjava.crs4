@@ -31,6 +31,7 @@ rule TransScriptToJava(TSystem(#url:String, #modules:{String : Module}))
 → JavaUnits(#url, MapValues<String Module>(#modules))
 
 // --- Generate code.
+
 /*
  Each Crsx module corresponds to a single Java class.
 
@@ -91,7 +92,7 @@ rule JavaUnit(#mainurl, Module(#url:String,
 func JavaImport(Core_cqconstructor_sort) -> Text4_text_sort
 rule JavaImport(#name)
 → text⟦
-import static †⟨PathToImport(QConsToString(#name))⟩.*;⟧
+import static †⟨PathToImport(QConsToString(#name, "::"))⟩.*;⟧ // TODO: maybe use '.' separator
 
 func JavaClassVisibility(String, String) -> Text4_text_sort
 rule JavaClassVisibility(#mainurl, #url)
@@ -1305,7 +1306,7 @@ rule InitModule(#data, #func, #imports)
 func RegisterImport(eager Core_cqconstructor_sort) -> Text4_text_sort
 rule RegisterImport(#name)
 → text⟦
-    †⟨PathToImport(QConsToString(#name))⟩.init(context);⟧
+    †⟨PathToImport(QConsToString(#name, "::"))⟩.init(context);⟧ // TODO: maybe use '.' sep
 
 func RegisterDataSort(Core_cdecl_sort) -> Text4_text_sort
 rule RegisterDataSort(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
@@ -1358,20 +1359,9 @@ If<String>(Contains(#subpackage, "."),
 func ClassName(String) -> String
 rule ClassName(#name) → UpCaseFirst(AfterLast(BeforeLast(#name, "."), "/"))
 
-/* Qualified constructor to string */
-func QConsToString(Core_cqconstructor_sort) -> String
-rule QConsToString(cqconstructor⟦ ##csortqualifier* ##CONSTRUCTOR ⟧)
-→ ConcatString(QQSortToString(#csortqualifier*), #CONSTRUCTOR)
-
-func QQSortToString(List<Core_csortqualifier_sort>) -> String
-rule QQSortToString(csortqualifier*⟦⟧) → ""
-rule QQSortToString(csortqualifier*⟦ ##CONSTRUCTOR :: ##csortqualifier* ⟧)
-→ ConcatString(#CONSTRUCTOR, ConcatString("::", QQSortToString(#csortqualifier*)))
-
-
 // ----------- Code generation environment
 
-// To change when upgrade to crsx4.
+// To change when upgrade to TS.
 
 enum VarEntry
   | Free(Text4_text_sort /* Java var */, Option<Core_csort_sort>)

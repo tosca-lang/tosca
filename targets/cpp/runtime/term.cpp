@@ -35,22 +35,25 @@ void _Ref::Release()
         delete this;
 }
 
+// --- Term
+
+// --- Variable
+
+_Variable::_Variable(std::string n) :
+        name(n), uses(0)
+{
+}
+
 // --- String
 
-static StringTerm stringTerm(std::string&& val)
+StringTerm stringTerm(std::string&& val)
 {
     return *(new _ValStringTerm(val));
 }
 
-
-_ValStringTerm::_ValStringTerm(std::string& val) :
+_ValStringTerm::_ValStringTerm(std::string val) :
         value(val)
 {
-}
-
-_ValStringTerm::~_ValStringTerm()
-{
-    // value will be deleted.
 }
 
 Term _ValStringTerm::Copy(Context c)
@@ -71,7 +74,6 @@ using namespace ts::runtime;
 
 int main(int argc, char **argv)
 {
-    std::string s {"Boo"};
     StringTerm v = stringTerm("boo");
 
     //Optional<StringTerm> o = make_optional<StringTerm>(new _ValStringTerm(new std::string("Boo")));
