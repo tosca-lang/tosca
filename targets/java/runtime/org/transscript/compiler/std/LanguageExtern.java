@@ -17,6 +17,7 @@ import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
 import org.transscript.runtime.utils.Scoping;
 import org.transscript.runtime.utils.StringUtils;
+import org.transscript.tool.Utils;
 
 /**
  * Utility function related to programming languages
@@ -81,9 +82,12 @@ public class LanguageExtern
 		StringTerm ecategory = force(context, category);
 		StringTerm efilename = force(context, filename);
 		a eterm = force(context, term);
-		 
-		
-		
+
+		Utils.saveTerm(context, ecategory.unbox(), eterm, efilename.unbox());
+
+		ecategory.release();
+		efilename.release();
+
 		return result;
 	}
 
