@@ -16,6 +16,8 @@ import org.transscript.runtime.Variable;
  */
 public class TermPrinter
 {
+	
+	// TODO: release term during traversal.
 
 	/**
 	 * Print term to output
