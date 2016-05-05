@@ -620,7 +620,7 @@ public class ToSinkListener implements ParseTreeListener
 							String t = context.getText();
 
 							// TODO: SHOULD FIND A BETTER WAY, like another sort case.
-							if (t.startsWith("\""))
+							if (t.length() >= 2 && t.startsWith("\"") && t.endsWith("\""))
 								t = StringUtils.unquoteJava(t);
 
 							sink = sink.literal(t);
