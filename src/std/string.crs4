@@ -112,16 +112,3 @@ rule BeforeLast2(#Before, #Sep, #After)
 func Join(List<String>, String) -> String
 rule Join((                                   ), #sep) → ""
 rule Join(Cons(#str:String, #strs:List<String>), #sep) → FoldlP<String String>((str r) -> ConcatString(str, ConcatString(#sep, r)), #str, #strs)
-
-// --- Parsing
-
-/* Parse external resource using parser identified by the given category
- * @return a parsed term.
- */
-extern func ParseResource<a>(String /* category */ , eager String /* filename */) -> a
-
-/* Parse external resource as term file format.
- * @return a parsed term.
- */
-func ParseTerm<a>(#filename: String /* file location */) -> a
-→ ParseResource<a>("term", #filename)

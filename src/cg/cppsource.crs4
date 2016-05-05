@@ -1,0 +1,12 @@
+// Copyright (c) 2016 IBM Corporation.
+/*
+ * Generate C++ source file
+ */
+import Std::Path
+import Text::Text4
+import Systemdef
+
+/* Generate C++ source file for module */
+func CppSource(Module) -> Text4_text_sort
+rule CppSource(Module(#url:String, Content::Loaded(#content:LoadedContent)))
+→ text⟦#include "†⟨PathFileStem(#url).h⟩"⟧

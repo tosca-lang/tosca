@@ -27,8 +27,6 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 import org.transscript.compiler.parser.TransScript;
-import org.transscript.compiler.text.Printer;
-import org.transscript.compiler.text.Text4.Text4_xtext_xsort;
 import org.transscript.parser.TransScriptMetaParser;
 import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.Context;
@@ -36,8 +34,8 @@ import org.transscript.runtime.Normalizer;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
 import org.transscript.runtime.utils.Scoping;
-import org.transscript.tool.TermPrinter;
 import org.transscript.tool.ToolContext;
+import org.transscript.tool.Utils;
 
 /**
  * TransScript command line.
@@ -177,11 +175,11 @@ public class Tool
 		// Input rules to compile
 		String rules = env.get("rules");
 		if (rules == null)
-			fatal("Missing rules filename. Add rules=<filename>", null);
+			Utils.fatal("Missing rules filename. Add rules=<filename>", null);
 
 		final File rulesFile = new File(rules);
 		if (!rulesFile.exists())
-			fatal("Input file not found: " + rules, null);
+			Utils.fatal("Input file not found: " + rules, null);
 
 		String target = env.get("cpp") != null ? "cpp": "java";
 	
@@ -277,15 +275,15 @@ public class Tool
 			
 			BufferSink buffer = context.makeBuffer();
 			parser.parse(buffer, "transscript", reader, "inputname", 1, 1, new Scoping(), new Scoping());
-			printTerm(context, buffer.term(), "sysout", System.out);
+			Utils.printTerm(context, null, buffer.term(), "sysout", System.out);
 		}
 		catch (FileNotFoundException e)
 		{
-			fatal("File not found: " + inputname, e);
+			Utils.fatal("File not found: " + inputname, e);
 		}
 		catch (IOException e)
 		{
-			fatal("", e);
+			Utils.fatal("", e);
 		}
 
 	}
@@ -407,7 +405,7 @@ public class Tool
 		}
 		catch (MalformedURLException e)
 		{
-			fatal("Invalid destination", e); // shouldn't occur anyway
+			Utils.fatal("Invalid destination", e); // shouldn't occur anyway
 			return null;
 		}
 	}
@@ -440,7 +438,7 @@ public class Tool
 		}
 		catch (IOException e)
 		{
-			fatal("Error while closing Java compiler tool file manager", e);
+			Utils.fatal("Error while closing Java compiler tool file manager", e);
 		}
 	}
 
@@ -450,7 +448,7 @@ public class Tool
 		URL url = Tool.class.getResource("/org/transscript/Tool.class");
 
 		if (url == null || url.getProtocol() == null)
-			fatal("Couldn't determine org.transscript.Tool location", null);
+			Utils.fatal("Couldn't determine org.transscript.Tool location", null);
 
 		if (url.getProtocol().equals("file"))
 		{
@@ -461,7 +459,7 @@ public class Tool
 			String path = url.getPath();
 			return path.replace("file:", "").replace("!/org/transscript/Tool.class", "");
 		}
-		fatal("Couldn't determine org.transscript.Tool location (unsupported protocol)", null);
+		Utils.fatal("Couldn't determine org.transscript.Tool location (unsupported protocol)", null);
 		return null;
 	}
 
@@ -477,7 +475,7 @@ public class Tool
 		}
 		catch (ClassNotFoundException e)
 		{
-			fatal("Class " + name + " not found.", e);
+			Utils.fatal("Class " + name + " not found.", e);
 			return null;
 		}
 	}
@@ -500,7 +498,7 @@ public class Tool
 		}
 		catch (NoSuchMethodException e)
 		{
-			fatal("Method " + name + " does not exist", e);
+			Utils.fatal("Method " + name + " does not exist", e);
 			return null;
 		}
 	}
@@ -524,21 +522,6 @@ public class Tool
 	static <T> T getInternalProperty(Map<String, Object> internal, String name)
 	{
 		return internal == null ? null : (T) internal.get(name);
-	}
-
-	/** Print fatal error and exit. */
-	static void fatal(String message, Exception e)
-	{
-		System.out.println(message);
-		if (e != null)
-			e.printStackTrace();
-		System.exit(0);
-	}
-
-	/** Print warning */
-	static void warning(String message)
-	{
-		System.out.println(message);
 	}
 
 	/**
@@ -573,7 +556,7 @@ public class Tool
 		}
 		catch (Exception e)
 		{
-			fatal("problem occurred while initializing the TransScript system", e);
+			Utils.fatal("problem occurred while initializing the TransScript system", e);
 		}
 
 		// Add grammars
@@ -616,7 +599,7 @@ public class Tool
 		catch (Exception e)
 		{
 			result = null;
-			fatal("problem occurred while running the TransScript system", e);
+			Utils.fatal("problem occurred while running the TransScript system", e);
 		}
 
 		// initialize output
@@ -631,11 +614,11 @@ public class Tool
 			}
 			catch (IOException e)
 			{
-				fatal("error while opening the output " + outputEntry, e);
+				Utils.fatal("error while opening the output " + outputEntry, e);
 			}
 		}
 
-		printTerm(context, result, outputEntry, output);
+		Utils.printTerm(context, null, result, outputEntry, output);
 
 		if (output instanceof Closeable && output != System.out)
 
@@ -646,7 +629,7 @@ public class Tool
 			}
 			catch (IOException e)
 			{
-				fatal("error while closing the output", e);
+				Utils.fatal("error while closing the output", e);
 			}
 		}
 
@@ -669,26 +652,6 @@ public class Tool
 		}
 	}
 
-	// Print term to given output
-	private static void printTerm(Context context, Term result, String outputName, Appendable output)
-	{
-		try
-		{
-			if (result instanceof Text4_xtext_xsort)
-			{
-				context.sd = 0;
-				result = Printer.PrintText(context, (Text4_xtext_xsort) result);
-				result = Normalizer.force(context, result);
-			}
-
-			new TermPrinter().print(result, output);
-		}
-		catch (IOException e)
-		{
-			fatal("error while writing to the output " + outputName, e);
-		}
-	}
-
 	/* Set TransScript parsers classpath */
 	private static void setBootParserPath(Context context, String paths)
 	{
@@ -701,7 +664,7 @@ public class Tool
 				}
 				catch (Exception e)
 				{
-					fatal("Invalid URL specified in bootparserpath: " + path, e);
+					Utils.fatal("Invalid URL specified in bootparserpath: " + path, e);
 					return null;
 				}
 			}).toArray(URL[]::new));
@@ -728,14 +691,14 @@ public class Tool
 					}
 					catch (NumberFormatException e)
 					{
-						warning("Expected a integer for " + name + ". Got: " + value);
+						Utils.warning("Expected a integer for " + name + ". Got: " + value);
 					}
 				}
 
 			}
 			catch (Exception e)
 			{
-				fatal("Internal error", e);
+				Utils.fatal("Internal error", e);
 			}
 		}
 	}

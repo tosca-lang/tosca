@@ -6,8 +6,8 @@
  */
 
 import Std::Core
-import Std::String
 import Std::Listdef
+import Std::Language
 
 enum Test | TestCase(Bool)
           | TestGroup( List<Test> )

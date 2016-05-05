@@ -11,6 +11,7 @@ import Cg::Cgcpp
 import Std::Core
 import Std::Listdef
 import Std::String
+import Std::Language
 import Core::Core
 import Parser::TransScript
 import Text::Text4

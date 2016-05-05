@@ -8,20 +8,12 @@ import static org.transscript.runtime.DoubleTerm.doubleTerm;
 import static org.transscript.runtime.StringTerm.stringTerm;
 import static org.transscript.runtime.Term.force;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-
 import org.transscript.compiler.std.Core.Bool;
-import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.DoubleTerm;
 import org.transscript.runtime.Functions.ThunkMaker;
-import org.transscript.runtime.Parser;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
-import org.transscript.runtime.utils.Scoping;
 import org.transscript.runtime.utils.StringUtils;
 
 /**
@@ -296,47 +288,6 @@ public class StringExtern
 		evnum.release();
 
 		return result;
-	}
-
-	/**
-	 * 
-	 * @param context
-	 * @param category
-	 * @param filename
-	 * @return
-	 */
-	@SuppressWarnings("unchecked")
-	public static <a extends Term> a ParseResource(Context context, ThunkMaker<a> tma, StringTerm category, StringTerm filename)
-	{
-		if (!category.data() || !filename.data())
-			throw new RuntimeException("Invalid argument in EndsWith");
-
-		Parser parser = context.getParser(category.unbox(), false);
-		if (parser == null)
-			throw new RuntimeException("Fatal error: no parser found for category " + category);
-
-		BufferSink buffer = context.makeBuffer();
-		try (Reader reader = new FileReader(filename.unbox()))
-		{
-			parser.parse(buffer, category.unbox(), reader, null, 0, 0, new Scoping(), new Scoping());
-		}
-		catch (FileNotFoundException e)
-		{
-			throw new RuntimeException("Fatal error: file not found " + filename, e);
-		}
-		catch (IOException e)
-		{
-			throw new RuntimeException(e);
-		}
-		finally
-		{
-			category.release();
-			filename.release();
-		}
-
-		Term result = buffer.term();
-
-		return (a) result;
 	}
 
 }
