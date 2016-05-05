@@ -1,0 +1,195 @@
+// Copyright (c) 2016 IBM Corporation.
+
+import Std::Core
+import Std::String
+import Std::Num
+import Std::Listdef
+import Std::Text
+import Text::Text4
+import Core::Core
+
+/* Generate a constructor method for the given form. Generate body only if asked for. */
+func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Text4_text_sort
+  rule CppMethodNew(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #body)
+  → text⟦
+    †⟨CppTemplatePrefix(#csortvars?)⟩
+    †⟨CppTypeName(#csortvars?, #sortname)⟩ †⟨CppConsMethodName(#CONSTRUCTOR)⟩ (Context context†⟨MaybeCppFormalParams(#csorts?, text⟦, ⟧, FALSE)⟩)†⟨
+    If<Text4_text_sort>(#body, ()->text⟦{
+       return (*new †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩(†⟨MaybeCppFormalParams(#csorts?, text⟦⟧, TRUE)⟩));
+    }⟧, ()->text⟦;⟧)⟩
+  ⟧
+/*
+  rule FormToCppMethodNew(#constructor, #csortvars?, cform⟦ allows-variable ⟧, #body)
+  → text⟦
+    static †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ Var⟨STRING: ToJavaClassName(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨STRING: ToJavaMethodName(ConcatString("var", #constructor))⟩ (Context ctx, String hint)
+    {
+      return new Var⟨STRING: ToJavaClassName(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(ctx.makeGlobalName(hint));
+    }⟧
+*/
+
+/* Generate a lookup method for the given form. Generate body only if asked for. */
+func CppMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Text4_text_sort
+  rule CppMethodAs(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #body)
+  → text⟦
+    virtual Optional<†⟨FormCppClassName(#CONSTRUCTOR)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩&> †⟨CppAsMethodName(#CONSTRUCTOR)⟩(Context context)†⟨
+    If<Text4_text_sort>(#body, ()->text⟦{
+       return Optional<†⟨FormCppClassName(#CONSTRUCTOR)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩&>::nullopt;
+    }⟧, ()->text⟦;⟧)⟩⟧
+
+  rule CppMethodAs(#enumname, #csortvars?, cform⟦ allows-variable ⟧)
+  → text⟦⟧
+
+/*
+func FormToMethodMemoAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
+  rule FormToMethodMemoAs(#enumname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  → text⟦
+   @Override
+   final public †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ †⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
+   {
+     return eval(context).†⟨MethodNameAs(#CONSTRUCTOR)⟩(context);
+   }⟧
+
+ rule FormToMethodMemoAs(#enumname, #csortvars?, cform⟦ allows-variable ⟧)
+ → text⟦⟧
+*/
+
+
+// --- Sort translation
+
+/* Generate template prefix for given sort variables */
+func CppTemplatePrefix(List<Core_csortvars_sort>) -> Text4_text_sort
+  rule CppTemplatePrefix(csortvars?⟦⟧) → text⟦⟧
+
+  rule CppTemplatePrefix(csortvars?⟦ ∀ ##variable_TOK+ . ⟧)
+  → text⟦template <†⟨CppTypeParameters(#variable_TOK+)⟩>⟧
+
+/* Generate comma-seperated list of type parameters */
+func CppTypeParameters(#vars: List<String>) -> Text4_text_sort
+→ TextFold(Map<String Text4_text_sort>((var) -> text⟦typename ⟨STRING: var⟩⟧, #vars), text⟦, ⟧)
+
+/* Generate comma-separated list of type arguments from sort variables, if any*/
+func MaybeCppTypeArguments(List<Core_csortvars_sort>) -> Text4_text_sort
+  rule MaybeCppTypeArguments(csortvars?⟦⟧) → text⟦⟧
+  rule MaybeCppTypeArguments(csortvars?⟦ ∀ ##variable_TOK+ . ⟧) → text⟦<†⟨CppTypeArguments(#variable_TOK+)⟩>⟧
+
+/* Generate comma-separated list of type arguments from sort variables */
+func CppTypeArguments(#vars: List<String>) -> Text4_text_sort
+→ TextFold(Map<String Text4_text_sort>((var) -> text⟦⟨STRING: var⟩⟧, #vars), text⟦, ⟧)
+
+/* Generate (possibility dependent) type name corresponding to the given data sort type */
+func CppTypeName(List<Core_csortvars_sort>, String) -> Text4_text_sort
+  rule CppTypeName(csortvars?⟦⟧, #sortname)
+  → SortNameToCppClassNameRef(#sortname)
+
+  rule CppTypeName(csortvars?⟦ ∀ ##variable_TOK+ . ⟧, #sortname)
+  → text⟦typename †⟨SortNameToCppClassName(#sortname)⟩<†⟨CppTypeArguments(#variable_TOK+)⟩>&⟧
+
+/* Generate arguments for template instantiation */
+func MaybeCppTemplateArgs(List<Core_csorts_sort>) -> Text4_text_sort
+    rule MaybeCppTemplateArgs(csorts?⟦ ⟧)
+    → text⟦⟧
+
+    rule MaybeCppTemplateArgs(csorts?⟦ ( ##csort* )⟧)
+    → text⟦<†⟨TextFold(Map<Core_csort_sort Text4_text_sort>((csort) -> CppType(csort), #csort*), text⟦, ⟧)⟩>⟧
+
+/* Convert list of sorts to a list of formal parameters or arguments. */
+func MaybeCppFormalParams(List<Core_csorts_sort>, Text4_text_sort, Bool /* omit types */) -> Text4_text_sort
+  rule MaybeCppFormalParams(csorts?⟦⟧, #sep, #isarg)
+  → text⟦⟧
+
+  rule MaybeCppFormalParams(csorts?⟦ ( ##csort*) ⟧, #sep, #isarg)
+  → CppFormalParams(#csort*, 1, #sep, #isarg)
+
+func CppFormalParams(List<Core_csort_sort>, Numeric, Text4_text_sort, Bool) -> Text4_text_sort
+  rule CppFormalParams(csort*⟦⟧, #index, #sep, #isarg)
+  → text⟦⟧
+
+  rule CppFormalParams(csort*⟦ ##csort ##csort* ⟧, #index, #sep, #isarg)
+  → text⟦†⟨#sep⟩†⟨CppFormalParam(CppTypes(#csort), #index, 1, #isarg)⟩†⟨CppFormalParams(#csort*, Plus(#index, 1), text⟦, ⟧, #isarg)⟩⟧
+
+func CppFormalParam(List<Text4_text_sort>, Numeric, Numeric, Bool) -> Text4_text_sort
+  rule CppFormalParam(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex, #isarg)
+  → text⟦†⟨If<Text4_text_sort>(#isarg, ()->text⟦⟧, ()->text⟦†⟨#type⟩ ⟧)⟩param†⟨NumberToText(#index)⟩⟧
+
+  rule CppFormalParam(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex, #isarg)
+  → text⟦†⟨If<Text4_text_sort>(#isarg, ()->text⟦⟧, ()->text⟦†⟨#type⟩ ⟧)⟩param†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩, †⟨CppFormalParam(#types, #index, Plus(#subindex, 1), #isarg)⟩⟧
+
+
+/* Translate TS sort to equivalent list of C++ types:
+ * A list of types corresponding to syntactic variable sorts and a type for the last sort
+ */
+func CppTypes(#csort: Core_csort_sort) -> List<Text4_text_sort>
+→ CppTypes2(#csort, ())
+
+func CppTypes2(Core_csort_sort, List<Text4_text_sort> /* formal params */) -> List<Text4_text_sort>
+
+  rule CppTypes2(csort⟦ ##CONSTRUCTOR ##csorts? ⟧, ())
+  → Cons(text⟦†⟨SortNameToCppClassName(CppFixupPrimitiveType(#CONSTRUCTOR))⟩†⟨MaybeCppTemplateArgs(#csorts?)⟩⟧, Nil)
+/*
+  rule CppTypes2(csort⟦ ##CONSTRUCTOR ##csorts? ⟧, Cons(#formal:Text4_text_sort, #formals:List<Text4_text_sort>))
+  → Cons(text⟦Closure†⟨NumberToText(Plus(ListLength<Text4_text_sort>(#formals), 1))⟩<⟨STRING:
+       ToJavaClassName(FixupPrimitiveType(#CONSTRUCTOR))⟩†⟨MaybeSortsToTypeParams(#csorts?) /* Return type */⟩, †⟨
+       TextFold(Cons(#formal, #formals), text⟦, ⟧) /* Formal params */⟩>⟧, Nil)
+*/
+  rule CppTypes2(csort⟦ ##VARIABLE ⟧, ())
+  → Cons(text⟦⟨STRING: #VARIABLE⟩⟧, Nil)
+/*
+  rule CppTypes2(csort⟦ ##VARIABLE ⟧, Cons(#formal:Text4_text_sort, #formals:List<Text4_text_sort>))
+  → Cons(text⟦Closure†⟨NumberToText(Plus(ListLength<Text4_text_sort>(#formals), 1))⟩<⟨STRING: #VARIABLE /* Return type */⟩, †⟨
+       TextFold(Cons(#formal, #formals), text⟦, ⟧) /* Formal params */⟩>⟧, Nil)
+
+  rule CppTypes2(csort⟦ [ ##csort ] ##csort2 ⟧, #formals)
+  → Cons(text⟦Var†⟨SortToType(#csort)⟩⟧, CppTypes2(#csort2, #formals))
+
+  rule CppTypes2(csort⟦ ( ##csort ) ##csort2 ⟧, #formals)
+  → CppTypes2(#csort2, Concat<Text4_text_sort>(#formals, CppTypes(#csort)))
+
+  rule CppTypes2(csort⟦ { ##csort1 : ##csort2 } ⟧, ())
+  → Cons(text⟦MapTerm<†⟨SortToType(#csort1)⟩,†⟨SortToType(#csort2)⟩>⟧, Nil)
+
+  rule CppTypes2(csort⟦ { ##cmapsort } ⟧, Cons(#formal:Text4_text_sort, #formals:List<Text4_text_sort>))
+  → Cons(text⟦Closure†⟨NumberToText(Plus(ListLength<Text4_text_sort>(#formals), 1))⟩<MapTerm, †⟨
+       TextFold(Cons(#formal, #formals), text⟦, ⟧) /* Formal params */⟩>⟧, Nil)
+
+  rule CppTypes2(csort⟦ data ##csort ⟧, #formals)
+  → CppTypes2(#csort, #formals)
+
+  rule CppTypes2(csort⟦ thunk ##csort ⟧, #formals)
+  → Cons(text⟦LazyTerm<†⟨SortToType(#csort)⟩>⟧, Nil)
+*/
+
+/* Same as above, expect ignore syntactic variables */
+func CppType(#csort: Core_csort_sort) -> Text4_text_sort
+→ Last<Text4_text_sort>(CppTypes(#csort)) // TODO: could optimize
+
+/* Rename builtin types to avoid conflict with C++ types */
+func CppFixupPrimitiveType(#typename: String) -> String
+→ If<String>(StringEqual(#typename, "String"), ()->"StringTerm",
+    ()->If<String>(StringEqual(#typename, "Numeric"), ()->"DoubleTerm",
+         ()->#typename))
+
+// --- Basic conversion functions
+
+/* Convert data sort name to corresponding C++ class name */
+func SortNameToCppClassName(#name: String) -> Text4_text_sort
+→ text⟦_⟨STRING: #name⟩⟧
+
+/* Convert data sort name to equivalent C++ class name reference */
+func SortNameToCppClassNameRef(#name: String) -> Text4_text_sort
+→ text⟦⟨STRING: #name⟩⟧
+
+/* Convert data form to corresponding C++ constructor method name */
+func CppConsMethodName(#name: String) -> Text4_text_sort
+→ text⟦⟨STRING: #name⟩⟧
+
+/* Convert data form to corresponding C++ 'as' method name */
+func CppAsMethodName(#name: String) -> Text4_text_sort
+→ text⟦as⟨STRING: #name⟩⟧
+
+/* Convert data form to corresponding C++ class name */
+func FormCppClassName(#name: String) -> Text4_text_sort
+→ text⟦_⟨STRING: #name⟩⟧
+
+/* Convert data form to corresponding C++ class name reference */
+func FormCppClassNameRef(#name: String) -> Text4_text_sort
+→ text⟦_⟨STRING: #name⟩&⟧

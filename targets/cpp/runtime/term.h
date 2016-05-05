@@ -185,9 +185,9 @@ class _List : public _Term
 {
     typedef _List<a>& type;
 
-    virtual Optional<_Cons<a>> asCons(Context context)
+    virtual Optional<_Cons<a>&> asCons(Context context)
     {
-      return Optional<_Cons<a>>::nullopt;
+      return Optional<_Cons<a>&>::nullopt;
     }
 };
 
@@ -200,9 +200,9 @@ public:
 
     }
 
-    virtual Optional<_Cons<a>> asCons(Context context)
+    virtual Optional<_Cons<a>&> asCons(Context context)
     {
-        return Optional<_Cons<a>>(this);
+        return Optional<_Cons<a>&>(this);
     }
 };
 

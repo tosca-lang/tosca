@@ -1,0 +1,60 @@
+// Copyright (c) 2016 IBM Corporation.
+/*
+ * Generate C++ header file
+ */
+import Std::Core
+import Std::Path
+import Std::String
+import Std::Mapdef
+import Std::Listdef
+import Core::Core
+import Core::Utils
+import Std::Text
+import Text::Text4
+import Cg::Cpputils
+
+import Systemdef
+
+/* Generate C++ header file for module */
+func CppHeader(Module) -> Text4_text_sort
+rule CppHeader(Module(#url:String, Content::Loaded(#content:LoadedContent)))
+→ text⟦#ifndef †⟨HeaderGuard(#url)⟩
+#define †⟨HeaderGuard(#url)⟩
+#include "ts.h"
+†⟨CppIncludes(GetImports(#content))⟩
+†⟨CppForwardDecls(MapValues<String Core_cdecl_sort>(GetDataSorts(#content)))⟩
+†⟨CppClassDecls(MapValues<String Core_cdecl_sort>(GetDataSorts(#content)))⟩
+
+#endif⟧
+
+/* Generate C++ header guard */
+func HeaderGuard(#url: String) -> Text4_text_sort
+→ text⟦_⟨STRING: UpCase(PathFileStem(#url))⟩⟧
+
+/* Generate C++ header inclusion declarations */
+func CppIncludes(#imports: List<Core_cqconstructor_sort>) -> Text4_text_sort
+→ TextFold(Map<Core_cqconstructor_sort Text4_text_sort>((imp) -> text⟦
+#include "⟨STRING: QConsToString(imp, "/")⟩"⟧, #imports), text⟦⟧)
+
+/* Generate data sorts forward declarations */
+func CppForwardDecls(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
+→ TextFold(Map<Core_cdecl_sort Text4_text_sort>((decl) -> CppForwardDecl(decl), #datasorts), text⟦⟧)
+
+func CppForwardDecl(Core_cdecl_sort) -> Text4_text_sort
+rule CppForwardDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
+→ text⟦†⟨CppTemplatePrefix(#csortvars?)⟩
+class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩;⟧
+
+/* Generate class and method signatures for data sorts */
+func CppClassDecls(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
+→ TextFold(Map<Core_cdecl_sort Text4_text_sort>((decl) -> CppClassDecl(decl), #datasorts), text⟦⟧)
+
+func CppClassDecl(Core_cdecl_sort) -> Text4_text_sort
+rule CppClassDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
+→ text⟦
+†⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, IsNotEmpty<Core_csortvars_sort>(#csortvars?)), #cform*), text⟦⟧)⟩
+†⟨CppTemplatePrefix(#csortvars?)⟩
+class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩ : public _Term
+{
+  †⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, IsNotEmpty<Core_csortvars_sort>(#csortvars?)), #cform*), text⟦⟧)⟩
+}⟧
