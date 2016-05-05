@@ -201,7 +201,10 @@ public class Tool
 		buildEnv.put("class", "org.transscript.compiler.Crsx");
 		buildEnv.put("main", "Compile");
 		if (target.equals("cpp"))
+		{
 			System.setProperty("cpp", "1");
+			System.setProperty("headerfile", output.replace(".cpp", ".h"));
+		}
 		
 		// TODO: this shouldn't be needed.
 		buildEnv.put("grammar", parsers); // Temporary.
@@ -373,8 +376,8 @@ public class Tool
 		}
 
 		// Compute output java filename
-		String output = inputFile.getName().replace(".crs4", ".h").replace(
-				".tsc", ".h");
+		String output = inputFile.getName().replace(".crs4", ".cpp").replace(
+				".tsc", ".cpp");
 		
 		output = dest + File.separator + output; // dest / output.h
 

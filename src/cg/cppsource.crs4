@@ -9,4 +9,4 @@ import Systemdef
 /* Generate C++ source file for module */
 func CppSource(Module) -> Text4_text_sort
 rule CppSource(Module(#url:String, Content::Loaded(#content:LoadedContent)))
-→ text⟦#include "†⟨PathFileStem(#url).h⟩"⟧
+→ text⟦#include "⟨STRING: PathFileStem(#url)⟩.h"⟧

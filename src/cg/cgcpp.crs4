@@ -7,10 +7,13 @@ import Std::Core
 import Std::Listdef
 import Std::Mapdef
 import Std::Text
+import Std::Path
+import Std::Language
 import Text::Text4
 
 import Systemdef
 import Cg::Cppheader
+import Cg::Cppsource
 
 // ===== API
 
@@ -20,7 +23,7 @@ import Cg::Cppheader
  */
 func TransScriptToCpp(TSystem) -> Text4_text_sort
 rule TransScriptToCpp(TSystem(#url:String, #modules:{String : Module}))
-→ CppUnits(MapValues<String Module>(#modules))
+→ CppUnit(Head<Module>(MapValues<String Module>(#modules)))
 
 // --- Generate code.
 
@@ -28,5 +31,5 @@ rule TransScriptToCpp(TSystem(#url:String, #modules:{String : Module}))
  Each TS module corresponds to two C++ files: the header containing enumerations
  and function signatures, and the source file containing function bodies.
 */
-func CppUnits(#modules: List<Module>) -> Text4_text_sort
-→ TextFold(Map<Module Text4_text_sort>((mod) -> CppHeader(mod), #modules), text⟦⟧)
+func CppUnit(#module: Module) -> Text4_text_sort
+→ SaveResource<Text4_text_sort Text4_text_sort>("text", GetEnv("headerfile", "header.h"), CppHeader(#module), CppSource(#module))
