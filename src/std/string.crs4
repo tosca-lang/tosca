@@ -105,16 +105,3 @@ rule BeforeLast2(#Before, #Sep, #After)
 → If<String>(StringEqual(#After, ""),
     ()->#Before,
     ()->ConcatString(#Before, ConcatString(#Sep, #After)))
-
-// --- Parsing
-
-/* Parse external resource using parser identified by the given category
- * @return a parsed term.
- */
-extern func ParseResource<a>(String /* category */ , eager String /* filename */) -> a
-
-/* Parse external resource as term file format.
- * @return a parsed term.
- */
-func ParseTerm<a>(#filename: String /* file location */) -> a
-→ ParseResource<a>("term", #filename)
