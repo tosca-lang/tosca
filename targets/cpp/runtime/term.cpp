@@ -51,7 +51,7 @@ StringTerm stringTerm(std::string&& val)
     return *(new _ValStringTerm(val));
 }
 
-_ValStringTerm::_ValStringTerm(std::string val) :
+_ValStringTerm::_ValStringTerm(std::string& val) :
         value(val)
 {
 }
@@ -62,9 +62,9 @@ Term _ValStringTerm::Copy(Context c)
     return *this;
 }
 
-Optional<std::string> _ValStringTerm::Unbox() const
+Optional<std::string&> _ValStringTerm::Unbox() const
 {
-    return make_optional<std::string>(value);
+    return make_optional<std::string&>(value);
 }
 
 } // runtime
@@ -74,6 +74,8 @@ using namespace ts::runtime;
 
 int main(int argc, char **argv)
 {
+    Context ctx = *(new _Context());
+    _List<_StringTerm&>& nil = Nil<_StringTerm&>(ctx);
     StringTerm v = stringTerm("boo");
 
     //Optional<StringTerm> o = make_optional<StringTerm>(new _ValStringTerm(new std::string("Boo")));

@@ -2,9 +2,10 @@
 #ifndef _TS_H
 #define _TS_H
 
-class Context {
+class _Context {
 
 };
+typedef _Context& Context;
 
 #endif
 

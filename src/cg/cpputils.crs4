@@ -27,7 +27,7 @@ func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> T
     }⟧
 */
 
-/* Generate a lookup method for the given form. Generate body only if asked for. */
+/* Generate base lookup method (the 'as' method) for the given form. Generate body only if asked for. */
 func CppMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Text4_text_sort
   rule CppMethodAs(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #body)
   → text⟦
@@ -52,6 +52,15 @@ func FormToMethodMemoAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> T
  rule FormToMethodMemoAs(#enumname, #csortvars?, cform⟦ allows-variable ⟧)
  → text⟦⟧
 */
+
+/* Generate overridden lookup method (the 'as' method) for the given form. Generate body only if asked for. */
+func CppFormMethodAs(String, List<Core_csortvars_sort>, String, Bool) -> Text4_text_sort
+  rule CppFormMethodAs(#sortname, #csortvars?, #formname, #body)
+  → text⟦
+    virtual Optional<†⟨FormCppClassName(#formname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩&> †⟨CppAsMethodName(#formname)⟩(Context context)†⟨
+    If<Text4_text_sort>(#body, ()->text⟦{
+       return make_optional<†⟨FormCppClassName(#formname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩&>(*this);
+    }⟧, ()->text⟦;⟧)⟩⟧
 
 
 // --- Sort translation
@@ -109,14 +118,15 @@ func CppFormalParams(List<Core_csort_sort>, Numeric, Text4_text_sort, Bool) -> T
 
 func CppFormalParam(List<Text4_text_sort>, Numeric, Numeric, Bool) -> Text4_text_sort
   rule CppFormalParam(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex, #isarg)
-  → text⟦†⟨If<Text4_text_sort>(#isarg, ()->text⟦⟧, ()->text⟦†⟨#type⟩ ⟧)⟩param†⟨NumberToText(#index)⟩⟧
+  → text⟦†⟨If<Text4_text_sort>(#isarg, ()->text⟦⟧, ()->text⟦†⟨#type⟩& ⟧)⟩param†⟨NumberToText(#index)⟩⟧
 
   rule CppFormalParam(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex, #isarg)
-  → text⟦†⟨If<Text4_text_sort>(#isarg, ()->text⟦⟧, ()->text⟦†⟨#type⟩ ⟧)⟩param†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩, †⟨CppFormalParam(#types, #index, Plus(#subindex, 1), #isarg)⟩⟧
+  → text⟦†⟨If<Text4_text_sort>(#isarg, ()->text⟦⟧, ()->text⟦†⟨#type⟩& ⟧)⟩param†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩, †⟨CppFormalParam(#types, #index, Plus(#subindex, 1), #isarg)⟩⟧
 
 
 /* Translate TS sort to equivalent list of C++ types:
  * A list of types corresponding to syntactic variable sorts and a type for the last sort
+ * Note: return a type, not a type reference
  */
 func CppTypes(#csort: Core_csort_sort) -> List<Text4_text_sort>
 → CppTypes2(#csort, ())

@@ -57,4 +57,19 @@ rule CppClassDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩ : public _Term
 {
   †⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, IsNotEmpty<Core_csortvars_sort>(#csortvars?)), #cform*), text⟦⟧)⟩
-}⟧
+}
+†⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppFormClass(#CONSTRUCTOR, #csortvars?, cform), #cform*), text⟦⟧)⟩
+⟧
+
+/* Generate class and method signatures for the given data form */
+func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
+  rule CppFormClass(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  → text⟦
+  †⟨CppTemplatePrefix(#csortvars?)⟩
+  class †⟨FormCppClassName(#CONSTRUCTOR)⟩: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩
+  {
+    †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, IsNotEmpty<Core_csortvars_sort>(#csortvars?))⟩
+  }⟧
+
+  rule CppFormClass(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
+  → text⟦/*TODO: allows-variable*/⟧
