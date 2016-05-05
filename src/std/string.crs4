@@ -6,6 +6,7 @@
 
 import Std::Core
 import Std::Num
+import Std::Listdef
 import Parser::TransScript
 
 // --- Querying
@@ -30,13 +31,12 @@ extern func StringEqual(String /* string */, String /* other string */) -> Bool
 extern func ConcatString(String, String) -> String
 
 extern func Rescape(eager String) -> String
-extern func UpCase(eager String) -> String
 extern func DownCase(eager String) -> String
 
 extern func Substring(eager String, eager Numeric, eager Numeric) -> String
 
 /* Converts all of the characters of the given string to upper case */
-extern func ToUpperCase(String) -> String
+extern func UpCase(eager String) -> String
 
 /* @return the given string for which he first character is upper case
  */
@@ -110,8 +110,8 @@ rule BeforeLast2(#Before, #Sep, #After)
 
 /* Returns a new String joining the given list of strings together with the specified separator.*/
 func Join(List<String>, String) -> String
-rule Join((                ), #sep) → ""
-rule Join(Cons(#str, #strs)), #sep) → FoldlP<String String>((str r) -> ConcatString(str, ConcatString(#sep, r)), #str, #strs)
+rule Join((                                   ), #sep) → ""
+rule Join(Cons(#str:String, #strs:List<String>), #sep) → FoldlP<String String>((str r) -> ConcatString(str, ConcatString(#sep, r)), #str, #strs)
 
 // --- Parsing
 

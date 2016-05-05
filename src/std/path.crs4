@@ -7,12 +7,10 @@ import Std::String
 
 /* @return the last component of a path, the file name */
 func PathFileName(#path: String) -> String
-→ If<String>(Contains(#path, "/")), ()->AfterLast(#path, "/"), #path)
+→ If<String>(Contains(#path, "/"), ()->AfterLast(#path, "/"), ()->#path)
 
 /* @return the file name without the extension */
 func PathFileStem(#path: String) -> String
 → If<String>(Contains(PathFileName(#path), "."),
-    ()->BeforeLast(PathFileName(#path, ".")),
-    ()->PathFileName(#path, "."))
-
-     
+    ()->BeforeLast(PathFileName(#path), "."),
+    ()->PathFileName(#path))

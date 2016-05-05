@@ -89,7 +89,8 @@ public class Tool
 		System.out.println("  build-dir=<directory>     where to store the intermediate files. Default is current directory");
 		System.out.println("  javabasepackage=<name>    Java base package name of generated Java files");
 		System.out.println("  javapackage=<name>        Java sub package name of generated Java files");
-		System.out.println("  parsers=<classnames>     Comma separated list of parsers classname");
+		System.out.println("  parsers=<classnames>      Comma separated list of parsers classname");
+		System.out.println("  cpp                       Set target language to C++");
 		System.out.println(
 				"  bootparserpath=<name>     where to look for builtin parsers. Only used for bootstrapping TransScript");
 
@@ -180,25 +181,30 @@ public class Tool
 
 		final File rulesFile = new File(rules);
 		if (!rulesFile.exists())
-			fatal("Input file not found", null);
+			fatal("Input file not found: " + rules, null);
 
-		// For java target (and there is no other targets for now)
-		// get base package and sub package name.
+		String target = env.get("cpp") != null ? "cpp": "java";
+	
+		
+		// For java target  get base package and sub package name.
 		String javabasepackage = env.get("javabasepackage");
 		String javapackage = env.get("javapackage");
 		String dest = env.get("build-dir");
-		String output = targetJavaFilename(rules, dest, javabasepackage, javapackage, true);
+		String output = target.equals("java") ? targetJavaFilename(rules, dest, javabasepackage, javapackage, true) : targetCppFilename(rules, dest, true);
+		
 		String parsers = "org.transscript.core.CoreMetaParser,org.transscript.parser.TransScriptMetaParser,org.transscript.text.Text4MetaParser";
 		if (env.get("parsers") != null)
 			parsers += "," + env.get("parsers");
 
 		Map<String, String> buildEnv = new HashMap<>(env);
 
-		// First: Produce java source file.
+		// First: Produce source file.
 
 		buildEnv.put("class", "org.transscript.compiler.Crsx");
 		buildEnv.put("main", "Compile");
-
+		if (target.equals("cpp"))
+			System.setProperty("cpp", "1");
+		
 		// TODO: this shouldn't be needed.
 		buildEnv.put("grammar", parsers); // Temporary.
 		buildEnv.put("sink", "org.transscript.runtime.text.TextSink");
@@ -284,7 +290,7 @@ public class Tool
 
 	}
 
-	/* 
+	/** 
 	 * Get the absolute name of the target java file
 	 * @param input TransScript file
 	 * @param dest target directory
@@ -349,7 +355,36 @@ public class Tool
 		return name;
 	}
 
-	/* 
+	/** 
+	 * Get the absolute name of the target cpp file
+	 * @param input TransScript file
+	 * @param dest target directory
+	 * @param makeDirs whether to make destination directories.
+	 */
+	static String targetCppFilename(String input, String dest, boolean makeDirs)
+	{
+		final File inputFile = new File(input);
+
+		if (dest == null)
+			dest = inputFile.getAbsoluteFile().getParentFile().getAbsolutePath();
+
+		if (makeDirs)
+		{
+			File destFile = new File(dest);
+			destFile.mkdirs();
+		}
+
+		// Compute output java filename
+		String output = inputFile.getName().replace(".crs4", ".h").replace(
+				".tsc", ".h");
+		
+		output = dest + File.separator + output; // dest / output.h
+
+		return output;
+
+	}
+	
+	/** 
 	 * Get the classloader needed to compile and run the given TransScript file.
 	 * 
 	 * @param input input TransScript file

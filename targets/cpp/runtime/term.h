@@ -171,6 +171,48 @@ public:
 };
 // _StringTerm
 
+template<typename a>
+class _List;
+
+template<typename a>
+class _Cons;
+
+/**
+ * List, just to try templates
+ */
+template<typename a>
+class _List : public _Term
+{
+    typedef _List<a>& type;
+
+    virtual Optional<_Cons<a>> asCons(Context context)
+    {
+      return Optional<_Cons<a>>::nullopt;
+    }
+};
+
+template<typename a>
+class _Cons : public _List<a>
+{
+public:
+    _Cons(a param1, typename _List<a>::List param2)
+    {
+
+    }
+
+    virtual Optional<_Cons<a>> asCons(Context context)
+    {
+        return Optional<_Cons<a>>(this);
+    }
+};
+
+template<typename a>
+typename _List<a>::type Cons(Context context, a param1, typename _List<a>::type param2)
+{
+    return (*new _Cons<a>(param1, param2));
+}
+
+
 }// runtime
 } // ts
 #endif

@@ -30,7 +30,7 @@ func AddAnnotation(#anno: String, #anno*: List<Core_canno_sort>) ->  List<Core_c
 /* Convert qualified constructor to string, using given separator */
 func QConsToString(Core_cqconstructor_sort, String) -> String
 rule QConsToString(cqconstructor⟦ ##csortqualifier* ##CONSTRUCTOR ⟧, #sep)
-→ Join(Cons(#CONSTRUCTOR, Map<String String>((sort) -> QSortToString(sort), #csortqualifier*)), #sep)
+→ Join(Cons(#CONSTRUCTOR, Map<Core_csortqualifier_sort String>((sort) -> QSortToString(sort), #csortqualifier*)), #sep)
 
 func QSortToString(Core_csortqualifier_sort) -> String
 rule QSortToString(csortqualifier⟦ ##CONSTRUCTOR :: ⟧) → #CONSTRUCTOR

@@ -7,7 +7,7 @@ import Systemdef
 import Normalizer
 import Checker
 import Cg::Cgjava
-import Cg::Cpp::Cgcpp
+import Cg::Cgcpp
 import Std::Core
 import Std::Listdef
 import Std::String
