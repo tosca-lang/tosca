@@ -8,4 +8,3 @@ class _Context {
 typedef _Context& Context;
 
 #endif
-

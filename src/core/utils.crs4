@@ -34,3 +34,14 @@ rule QConsToString(cqconstructor⟦ ##csortqualifier* ##CONSTRUCTOR ⟧, #sep)
 
 func QSortToString(Core_csortqualifier_sort) -> String
 rule QSortToString(csortqualifier⟦ ##CONSTRUCTOR :: ⟧) → #CONSTRUCTOR
+
+/* @return true if the sort declaration is parameterized*/
+func HasSortVars(Core_cdecl_sort) -> Bool
+  rule HasSortVars(cdecl⟦ data ##csortvars ##CONSTRUCTOR ##cforms ⟧)
+  → TRUE
+
+  rule HasSortVars(cdecl⟦ ##canno* ##extern_TOK? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧)
+  → TRUE
+
+  rule HasSortVars(#)
+  → FALSE

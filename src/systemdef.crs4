@@ -97,6 +97,9 @@ rule GetDataSorts(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #
 func GetFuncSorts(LoadedContent) -> {String: Core_cdecl_sort}
 rule GetFuncSorts(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #funcsorts
 
+func GetFuncSort(#content: LoadedContent, #key: String) -> Option<Core_cdecl_sort>
+→ MapGet<String Core_cdecl_sort>(GetFuncSorts(#content), #key)
+
 // --- Loaded content mutation functions.
 
 /* Add rule to module content. Always succeed.

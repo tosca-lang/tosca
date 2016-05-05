@@ -1,0 +1,65 @@
+// Copyright (c) 2016 IBM Corporation.
+/*
+ * Environment for C++ code generation
+ */
+import Std::Core
+import Std::Mapdef
+import Std::Pairdef
+import Std::Listdef
+import Text::Text4
+import Core::Core
+import Systemdef
+
+/* Environment entry sort */
+enum EnvEntry | EContent(LoadedContent)
+              | EParams(List<Pair<Text4_text_sort Core_csort_sort>>)
+
+/* Corresponding unwrappers */
+func UnContent(EnvEntry) -> LoadedContent
+rule UnContent(EContent(#)) → #
+
+func UnParams(EnvEntry) -> List<Pair<Text4_text_sort Core_csort_sort>>
+rule UnParams(EParams(#)) → #
+
+/* Create a new empty environment */
+func CppNewEnv -> {String : EnvEntry}
+→ MapNew<String EnvEntry>
+
+// --- Module content
+
+func SetContent(#env: {String : EnvEntry}, #content: LoadedContent) -> {String : EnvEntry}
+→ SetValue(#env, "content", EContent(#content))
+
+func GetContent(#env: {String : EnvEntry}) -> LoadedContent
+→ UnContent(GetValue(#env, "content"))
+
+// --- Method arguments
+
+func GetParams(#env: {String : EnvEntry}) -> List<Pair<Text4_text_sort Core_csort_sort>>
+→ UnParams(GetValue(#env, "params"))
+
+func SetParams(#env: {String : EnvEntry}, #params: List<Pair<Text4_text_sort Core_csort_sort>>) -> {String : EnvEntry}
+→ SetValue(#env, "params",  EParams(#params))
+
+func AddParam(#env: {String : EnvEntry}, #param: Text4_text_sort, #csort: Core_csort_sort) -> {String : EnvEntry}
+→ SetValue(#env, "params", EParams(Append<Pair>(PairCons(#param, #csort), GetParams(#env))))
+
+// Move to the next parameter
+func NextParam(#env: {String : EnvEntry}) -> {String : EnvEntry}
+→ SetParams(#env, Tail<Pair>(GetParams(#env)))
+
+// Get the current parameter name
+func CurrentParam(#env: {String : EnvEntry}) -> Text4_text_sort
+→ Fst<Text4_text_sort Core_csort_sort>(Head<Pair>(GetParams(#env)))
+
+// Get the current parameter sort
+func CurrentParamSort(#env: {String : EnvEntry}) -> Core_csort_sort
+→ Snd<Text4_text_sort Core_csort_sort>(Head<Pair>(GetParams(#env)))
+
+// --- Some generic helper functions
+
+func GetValue(#env: {String : EnvEntry}, #key: String) -> EnvEntry
+→ UnSOME<EnvEntry>(MapGet<String EnvEntry>(#env, #key))
+
+func SetValue(#env: {String : EnvEntry}, #key: String, #value: EnvEntry) -> {String : EnvEntry}
+→ MapPut<String EnvEntry>(#env, #key, #value)

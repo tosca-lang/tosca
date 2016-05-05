@@ -11,7 +11,8 @@ import Core::Core
 import Core::Utils
 import Std::Text
 import Text::Text4
-import Cg::Cpputils
+import Cg::Cppcommon
+import Cg::Cppenv
 
 import Systemdef
 
@@ -24,7 +25,7 @@ rule CppHeader(Module(#url:String, Content::Loaded(#content:LoadedContent)))
 †⟨CppIncludes(GetImports(#content))⟩
 †⟨CppForwardDecls(MapValues<String Core_cdecl_sort>(GetDataSorts(#content)))⟩
 †⟨CppClassDecls(MapValues<String Core_cdecl_sort>(GetDataSorts(#content)))⟩
-
+†⟨CppFunctionDecls(SetContent(CppNewEnv, #content))⟩
 #endif⟧
 
 /* Generate C++ header guard */
@@ -35,6 +36,8 @@ func HeaderGuard(#url: String) -> Text4_text_sort
 func CppIncludes(#imports: List<Core_cqconstructor_sort>) -> Text4_text_sort
 → TextFold(Map<Core_cqconstructor_sort Text4_text_sort>((imp) -> text⟦
 #include "⟨STRING: QConsToString(imp, "/")⟩"⟧, #imports), text⟦⟧)
+
+// --------- Data sorts
 
 /* Generate data sorts forward declarations */
 func CppForwardDecls(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
@@ -69,7 +72,14 @@ func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_t
   class †⟨FormCppClassName(#CONSTRUCTOR)⟩: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩
   {
     †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, IsNotEmpty<Core_csortvars_sort>(#csortvars?))⟩
+    †⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, IsNotEmpty<Core_csortvars_sort>(#csortvars?))⟩
   }⟧
 
   rule CppFormClass(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦/*TODO: allows-variable*/⟧
+
+// --------- Function sorts
+
+/* Generate function declarations corresponding to function sorts. */
+func CppFunctionDecls(#env: {String : EnvEntry}) -> Text4_text_sort
+→ TextFold(Map<String Text4_text_sort>((key) ->CppFunctionDecl(#env, key), MapKeys<String Core_cdecl_sort>(GetFuncSorts(GetContent(#env)))), text⟦⟧)
