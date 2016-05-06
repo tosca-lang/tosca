@@ -39,14 +39,27 @@ func CppIncludes(#imports: List<Core_cqconstructor_sort>) -> Text4_text_sort
 
 // --------- Data sorts
 
-/* Generate data sorts forward declarations */
+/* Generate data sort and data form forward declarations */
 func CppForwardDecls(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
 → TextFold(Map<Core_cdecl_sort Text4_text_sort>((decl) -> CppForwardDecl(decl), #datasorts), text⟦⟧)
 
 func CppForwardDecl(Core_cdecl_sort) -> Text4_text_sort
 rule CppForwardDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
-→ text⟦†⟨CppTemplatePrefix(#csortvars?)⟩
-class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩;⟧
+→ text⟦
+†⟨CppTemplatePrefix(#csortvars?)⟩
+class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩;
+†⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppForwardForm(#CONSTRUCTOR, #csortvars?, cform), #cform*), text⟦⟧)⟩⟧
+
+func CppForwardForm(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
+  rule CppForwardForm(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  → text⟦
+    †⟨CppTemplatePrefix(#csortvars?)⟩
+    class †⟨FormCppClassName(#CONSTRUCTOR)⟩;⟧
+
+  rule CppForwardForm(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
+  → text⟦
+    †⟨CppTemplatePrefix(#csortvars?)⟩
+    class †⟨SortNameToCppClassName(#sortname)⟩Var;⟧
 
 /* Generate class and method signatures for data sorts */
 func CppClassDecls(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
@@ -60,7 +73,7 @@ rule CppClassDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩ : public _Term
 {
   †⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, IsNotEmpty<Core_csortvars_sort>(#csortvars?)), #cform*), text⟦⟧)⟩
-}
+};
 †⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppFormClass(#CONSTRUCTOR, #csortvars?, cform), #cform*), text⟦⟧)⟩
 ⟧
 
@@ -73,7 +86,7 @@ func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_t
   {
     †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, IsNotEmpty<Core_csortvars_sort>(#csortvars?))⟩
     †⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, IsNotEmpty<Core_csortvars_sort>(#csortvars?))⟩
-  }⟧
+  };⟧
 
   rule CppFormClass(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦/*TODO: allows-variable*/⟧

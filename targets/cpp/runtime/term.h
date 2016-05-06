@@ -8,13 +8,17 @@
 #include <string>
 
 #include "compat.h"
-#include "ts.h"
 
-namespace ts
-{
+class _Context;
+typedef _Context& Context;
 
-namespace runtime
-{
+//
+//
+//namespace ts
+//{
+//
+//namespace runtime
+//{
 
 class _Variable;
 
@@ -242,6 +246,6 @@ _List<a>& Nil(Context context)
 }
 
 
-}// runtime
-} // ts
+//}// runtime
+//} // ts
 #endif

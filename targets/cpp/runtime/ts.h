@@ -2,6 +2,8 @@
 #ifndef _TS_H
 #define _TS_H
 
+#include "term.h"
+
 class _Context {
 
 };

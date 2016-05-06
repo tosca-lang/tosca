@@ -90,7 +90,7 @@ func CppFunctionDecl2({String : EnvEntry}, Core_cdecl_sort, Bool) -> Text4_text_
 rule CppFunctionDecl2(#env, cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #body)
 → text⟦
    †⟨CppTemplatePrefix(#csortvars?)⟩
-   †⟨CppType(#csort)⟩ †⟨CppFnName(#CONSTRUCTOR)⟩(Context ctx†⟨CppMaybeFunctionParams(#env, #csorts?, #body)⟩⟧
+   †⟨CppTypeRef(#csort)⟩ †⟨CppFnName(#CONSTRUCTOR)⟩(Context ctx†⟨CppMaybeFunctionParams(#env, #csorts?, #body)⟩⟧
 
 func CppMaybeFunctionParams({String : EnvEntry}, List<Core_csorts_sort>, Bool) -> Text4_text_sort
    rule CppMaybeFunctionParams(#env, csorts?⟦⟧, #body)
@@ -176,8 +176,9 @@ func CppTypeName(List<Core_csortvars_sort>, String) -> Text4_text_sort
   rule CppTypeName(csortvars?⟦⟧, #sortname)
   → SortNameToCppClassNameRef(#sortname)
 
+  //TODO: might need typename when occurs within a template class.
   rule CppTypeName(csortvars?⟦ ∀ ##variable_TOK+ . ⟧, #sortname)
-  → text⟦typename †⟨SortNameToCppClassName(#sortname)⟩<†⟨CppTypeArguments(#variable_TOK+)⟩>&⟧
+  → text⟦†⟨SortNameToCppClassName(#sortname)⟩<†⟨CppTypeArguments(#variable_TOK+)⟩>&⟧
 
 /* Generate arguments for template instantiation */
 func MaybeCppTemplateArgs(List<Core_csorts_sort>) -> Text4_text_sort
@@ -258,13 +259,15 @@ func CppTypes2(Core_csort_sort, List<Text4_text_sort> /* formal params */) -> Li
 func CppType(#csort: Core_csort_sort) -> Text4_text_sort
 → Last<Text4_text_sort>(CppTypes(#csort)) // TODO: could optimize
 
+/* Same as above, but return a reference type */
+func CppTypeRef(#csort: Core_csort_sort) -> Text4_text_sort
+→ text⟦†⟨CppType(#csort)⟩&⟧
+
 /* Rename builtin types to avoid conflict with C++ types */
 func CppFixupPrimitiveType(#typename: String) -> String
 → If<String>(StringEqual(#typename, "String"), ()->"StringTerm",
     ()->If<String>(StringEqual(#typename, "Numeric"), ()->"DoubleTerm",
          ()->#typename))
-
-
 
 // --- Basic conversion functions
 
@@ -274,7 +277,7 @@ func SortNameToCppClassName(#name: String) -> Text4_text_sort
 
 /* Convert data sort name to equivalent C++ class name reference */
 func SortNameToCppClassNameRef(#name: String) -> Text4_text_sort
-→ text⟦⟨STRING: #name⟩⟧
+→ text⟦_⟨STRING: #name⟩&⟧
 
 /* Convert data form to corresponding C++ constructor method name */
 func CppConsMethodName(#name: String) -> Text4_text_sort
