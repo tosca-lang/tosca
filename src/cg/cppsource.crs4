@@ -35,7 +35,8 @@ rule CppClassDef(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 func CppFormDefs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
 
   rule CppFormDefs(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
-  → text⟦†⟨WhenNoParams(#csortvars?, ()->CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, FALSE))⟩
+  → text⟦†⟨WhenNoParams(#csortvars?, ()->CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE))⟩
+  †⟨WhenNoParams(#csortvars?, ()->CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, FALSE))⟩
   †⟨WhenNoParams(#csortvars?, ()->CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, FALSE))⟩⟧
 
   rule CppFormDefs(#sortname, #csortvars?, cform⟦ allows-variable ⟧)

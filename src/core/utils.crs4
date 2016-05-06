@@ -35,6 +35,10 @@ rule QConsToString(cqconstructor⟦ ##csortqualifier* ##CONSTRUCTOR ⟧, #sep)
 func QSortToString(Core_csortqualifier_sort) -> String
 rule QSortToString(csortqualifier⟦ ##CONSTRUCTOR :: ⟧) → #CONSTRUCTOR
 
+/* @return true if there is at least one sort in the given list */
+func HasSorts(#csorts? :List<Core_csorts_sort>) -> Bool
+→ IsNotEmpty<Core_csorts_sort>(#csorts?)
+
 /* @return true if the sort declaration is parameterized*/
 func HasSortVars(Core_cdecl_sort) -> Bool
   rule HasSortVars(cdecl⟦ data ##csortvars ##CONSTRUCTOR ##cforms ⟧)

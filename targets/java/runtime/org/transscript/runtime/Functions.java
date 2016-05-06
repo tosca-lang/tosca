@@ -25,6 +25,16 @@ public class Functions
 		return new Closure2<>(function, captures);
 	}
 
+	public static <R extends Term, P1 extends Term, P2 extends Term, P3 extends Term> Closure3<R, P1, P2, P3> newClosure(Function3<R, P1, P2, P3> function, Term... captures)
+	{
+		return new Closure3<>(function, captures);
+	}
+
+	public static <R extends Term, P1 extends Term, P2 extends Term, P3 extends Term, P4 extends Term> Closure4<R, P1, P2, P3, P4> newClosure(Function4<R, P1, P2, P3, P4> function, Term... captures)
+	{
+		return new Closure4<>(function, captures);
+	}
+
 	static public class Closure1<R extends Term, P1 extends Term> implements Term
 	{
 		Function1<R, P1> function;
@@ -75,6 +85,56 @@ public class Functions
 
 	}
 
+	static public class Closure3<R extends Term, P1 extends Term, P2 extends Term, P3 extends Term> implements Term
+	{
+		Function3<R, P1, P2, P3> function;
+		Term[] captures;
+
+		public Closure3(Function3<R, P1, P2, P3> function, Term[] captures)
+		{
+			this.function = function;
+			this.captures = captures;
+		}
+
+		@Override
+		public Term copy(Context c)
+		{
+			// TODO: ref counting for captured terms.
+			return new Closure3<>(function, captures);
+		}
+
+		public R eval(Context context, P1 p1, P2 p2, P3 p3)
+		{
+			return function.apply(context, p1, p2, p3);
+		}
+
+	}
+
+	static public class Closure4<R extends Term, P1 extends Term, P2 extends Term, P3 extends Term, P4 extends Term> implements Term
+	{
+		Function4<R, P1, P2, P3, P4> function;
+		Term[] captures;
+
+		public Closure4(Function4<R, P1, P2, P3, P4> function, Term[] captures)
+		{
+			this.function = function;
+			this.captures = captures;
+		}
+
+		@Override
+		public Term copy(Context c)
+		{
+			// TODO: ref counting for captured terms.
+			return new Closure4<>(function, captures);
+		}
+
+		public R eval(Context context, P1 p1, P2 p2, P3 p3, P4 p4)
+		{
+			return function.apply(context, p1, p2, p3, p4);
+		}
+
+	}
+	
 	public interface Function1<R extends Term, P1 extends Term>
 	{
 		public R apply(Context context, P1 p1);
@@ -84,4 +144,15 @@ public class Functions
 	{
 		public R apply(Context context, P1 p1, P2 p2);
 	}
+	
+	public interface Function3<R extends Term, P1 extends Term, P2 extends Term, P3 extends Term>
+	{
+		public R apply(Context context, P1 p1, P2 p2, P3 p3);
+	}
+	
+	public interface Function4<R extends Term, P1 extends Term, P2 extends Term, P3 extends Term, P4 extends Term>
+	{
+		public R apply(Context context, P1 p1, P2 p2, P3 p3, P4 p4);
+	}
+	
 }

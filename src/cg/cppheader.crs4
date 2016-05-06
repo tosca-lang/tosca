@@ -84,6 +84,7 @@ func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_t
   †⟨CppTemplatePrefix(#csortvars?)⟩
   class †⟨FormCppClassName(#CONSTRUCTOR)⟩: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩
   {
+    †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
     †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
     †⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
   };⟧

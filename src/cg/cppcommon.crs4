@@ -41,9 +41,6 @@ func CppMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Te
        return Optional<†⟨FormCppClassName(#CONSTRUCTOR)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩&>::nullopt;
     }⟧, ()->text⟦;⟧)⟩⟧
 
-  rule CppMethodAs(#enumname, #csortvars?, cform⟦ allows-variable ⟧)
-  → text⟦⟧
-
 /*
 func FormToMethodMemoAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
   rule FormToMethodMemoAs(#enumname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
@@ -57,6 +54,17 @@ func FormToMethodMemoAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> T
  rule FormToMethodMemoAs(#enumname, #csortvars?, cform⟦ allows-variable ⟧)
  → text⟦⟧
 */
+
+
+/* Generate constructor. */
+func CppFormConstructor(String, List<Core_csortvars_sort>, String, List<Core_csorts_sort>, Bool) -> Text4_text_sort
+  rule CppFormConstructor(#sortname, #csortvars?, #formname, #csorts?, #header)
+  → text⟦
+    †⟨CppFormQualifier(#formname, #csortvars?, #header)⟩†⟨FormCppClassName(#sortname)⟩(†⟨MaybeCppFormalParams(#csorts?, text⟦⟧, FALSE)⟩)†⟨
+    If<Text4_text_sort>(GenBody(#csortvars?, #header),
+      ()->text⟦†⟨TextIf(HasSorts(#csorts?),
+        ()->text⟦: †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppInitField(isvar, type, index, subindex))⟩⟧)⟩{}⟧,
+      ()->text⟦;⟧)⟩⟧
 
 /* Generate overridden lookup method (the 'as' method) for the given form. Generate body only if asked for. */
 func CppFormMethodAs(String, List<Core_csortvars_sort>, String, Bool) -> Text4_text_sort
@@ -75,6 +83,42 @@ func CppFormMethodCopy(String, List<Core_csortvars_sort>, String, Bool) -> Text4
     If<Text4_text_sort>(GenBody(#csortvars?, #header), ()->text⟦{
        return (*new †⟨FormCppClassName(#formname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩());
     }⟧, ()->text⟦;⟧)⟩⟧
+
+// --- Generate code for class field declarations, initialization, lookup, and update
+
+/* Generic form sorts traversal */
+func MaybeCppClassFields(List<Core_csorts_sort>, (Bool Text4_text_sort Numeric Numeric)->Text4_text_sort) -> Text4_text_sort
+  rule MaybeCppClassFields(csorts?⟦⟧, #print)
+  → text⟦⟧
+
+  rule MaybeCppClassFields(csorts?⟦ ( ##csort* ) ⟧, #print)
+  → CppClassFields(#csort*, 1, #print)
+
+func CppClassFields(List<Core_csort_sort>, Numeric, (Bool Text4_text_sort Numeric Numeric)->Text4_text_sort) -> Text4_text_sort
+  rule CppClassFields(csort*⟦⟧, #index, #print)
+  → text⟦⟧
+
+  rule CppClassFields(csort*⟦ ##csort ##csort* ⟧, #index, #print)
+  → text⟦†⟨CppClassField(CppTypes(#csort), #index, 1, #print)⟩†⟨CppClassFields(#csort*, Plus(#index, 1), #print)⟩⟧
+
+func CppClassField(List<Text4_text_sort>, Numeric, Numeric, (Bool Text4_text_sort Numeric Numeric)->Text4_text_sort) -> Text4_text_sort
+  rule CppClassField(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex, #print)
+  → #print(FALSE, #type, #index, #subindex)
+
+  rule CppClassField(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex, #print)
+  → text⟦†⟨#print(TRUE, #type, #index, #subindex)⟩†⟨CppClassField(#types, #index, Plus(#subindex, 1), #print)⟩⟧
+
+/* Field initialization helper */
+func CppInitField(Bool, Text4_text_sort, Numeric, Numeric) -> Text4_text_sort
+rule CppInitField(FALSE, #type, #index, #subindex) → text⟦†⟨FieldName(#index)⟩(†⟨ParamName(#index)⟩)⟧
+rule CppInitField(TRUE, #type, #index, #subindex)  → text⟦†⟨VarFieldName(#index, #subindex)⟩(†⟨VarParamName(#index, #subindex)⟩)⟧
+
+func FieldName(#index: Numeric) -> Text4_text_sort
+→ text⟦field†⟨NumberToText(#index)⟩⟧
+
+func VarFieldName(#index: Numeric, #subindex: Numeric) -> Text4_text_sort
+→ text⟦field†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩⟧
+
 
 // --- Function translation functions
 
@@ -200,11 +244,16 @@ func CppFormalParams(List<Core_csort_sort>, Numeric, Text4_text_sort, Bool) -> T
 
 func CppFormalParam(List<Text4_text_sort>, Numeric, Numeric, Bool) -> Text4_text_sort
   rule CppFormalParam(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex, #isarg)
-  → text⟦†⟨If<Text4_text_sort>(#isarg, ()->text⟦⟧, ()->text⟦†⟨#type⟩& ⟧)⟩param†⟨NumberToText(#index)⟩⟧
+  → text⟦†⟨If<Text4_text_sort>(#isarg, ()->text⟦⟧, ()->text⟦†⟨#type⟩& ⟧)⟩†⟨ParamName(#index)⟩⟧
 
   rule CppFormalParam(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex, #isarg)
-  → text⟦†⟨If<Text4_text_sort>(#isarg, ()->text⟦⟧, ()->text⟦†⟨#type⟩& ⟧)⟩param†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩, †⟨CppFormalParam(#types, #index, Plus(#subindex, 1), #isarg)⟩⟧
+  → text⟦†⟨If<Text4_text_sort>(#isarg, ()->text⟦⟧, ()->text⟦†⟨#type⟩& ⟧)⟩†⟨VarParamName(#index, #subindex)⟩, †⟨CppFormalParam(#types, #index, Plus(#subindex, 1), #isarg)⟩⟧
 
+func ParamName(#index: Numeric) -> Text4_text_sort
+→ text⟦param†⟨NumberToText(#index)⟩⟧
+
+func VarParamName(#index: Numeric, #subindex: Numeric) -> Text4_text_sort
+→ text⟦param†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩⟧
 
 /* Translate TS sort to equivalent list of C++ types:
  * A list of types corresponding to syntactic variable sorts and a type for the last sort
