@@ -13,13 +13,13 @@ import Systemdef
 
 // --- Data translation functions
 
-/* Generate a constructor method for the given form. Generate body only if asked for. */
+/* Generate a constructor method for the given form. */
 func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Text4_text_sort
-  rule CppMethodNew(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #body)
+  rule CppMethodNew(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #header)
   → text⟦
     †⟨CppTemplatePrefix(#csortvars?)⟩
     †⟨CppTypeName(#csortvars?, #sortname)⟩ †⟨CppConsMethodName(#CONSTRUCTOR)⟩ (Context context†⟨MaybeCppFormalParams(#csorts?, text⟦, ⟧, FALSE)⟩)†⟨
-    If<Text4_text_sort>(#body, ()->text⟦{
+    If<Text4_text_sort>(GenBody(#csortvars?, #header), ()->text⟦{
        return (*new †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩(†⟨MaybeCppFormalParams(#csorts?, text⟦⟧, TRUE)⟩));
     }⟧, ()->text⟦;⟧)⟩
   ⟧
@@ -32,12 +32,12 @@ func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> T
     }⟧
 */
 
-/* Generate base lookup method (the 'as' method) for the given form. Generate body only if asked for. */
+/* Generate base lookup method (the 'as' method) for the given form. */
 func CppMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Text4_text_sort
-  rule CppMethodAs(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #body)
+  rule CppMethodAs(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #header)
   → text⟦
-    virtual Optional<†⟨FormCppClassName(#CONSTRUCTOR)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩&> †⟨CppAsMethodName(#CONSTRUCTOR)⟩(Context context)†⟨
-    If<Text4_text_sort>(#body, ()->text⟦{
+    †⟨TextIf(#header, ()->text⟦virtual⟧)⟩ Optional<†⟨FormCppClassName(#CONSTRUCTOR)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩&> †⟨CppAsMethodName(#CONSTRUCTOR)⟩(Context context)†⟨
+    If<Text4_text_sort>(GenBody(#csortvars?, #header), ()->text⟦{
        return Optional<†⟨FormCppClassName(#CONSTRUCTOR)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩&>::nullopt;
     }⟧, ()->text⟦;⟧)⟩⟧
 
@@ -60,26 +60,21 @@ func FormToMethodMemoAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> T
 
 /* Generate overridden lookup method (the 'as' method) for the given form. Generate body only if asked for. */
 func CppFormMethodAs(String, List<Core_csortvars_sort>, String, Bool) -> Text4_text_sort
-  rule CppFormMethodAs(#sortname, #csortvars?, #formname, #body)
+  rule CppFormMethodAs(#sortname, #csortvars?, #formname, #header)
   → text⟦
-    virtual Optional<†⟨FormCppClassName(#formname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩&> †⟨CppAsMethodName(#formname)⟩(Context context)†⟨
-    If<Text4_text_sort>(#body, ()->text⟦{
+    Optional<†⟨FormCppClassName(#formname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩&> †⟨CppFormQualifier(#formname, #csortvars?, #header)⟩†⟨CppAsMethodName(#formname)⟩(Context context)†⟨
+    If<Text4_text_sort>(GenBody(#csortvars?, #header), ()->text⟦{
        return make_optional<†⟨FormCppClassName(#formname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩&>(*this);
     }⟧, ()->text⟦;⟧)⟩⟧
 
-
 /* Generate overridden copy method for the given form. Generate body only if asked for. */
 func CppFormMethodCopy(String, List<Core_csortvars_sort>, String, Bool) -> Text4_text_sort
-  rule CppFormMethodCopy(#sortname, #csortvars?, #formname, #body)
+  rule CppFormMethodCopy(#sortname, #csortvars?, #formname, #header)
   → text⟦
-    virtual Term copy(Context context)†⟨
-    If<Text4_text_sort>(#body, ()->text⟦{
-       return new †⟨FormCppClassName(#formname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩();
+    Term †⟨CppQualifier(#formname, #csortvars?, #header)⟩Copy(Context context)†⟨
+    If<Text4_text_sort>(GenBody(#csortvars?, #header), ()->text⟦{
+       return (*new †⟨FormCppClassName(#formname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩());
     }⟧, ()->text⟦;⟧)⟩⟧
-
-  rule CppMethodAs(#enumname, #csortvars?, cform⟦ allows-variable ⟧)
-  → text⟦⟧
-
 
 // --- Function translation functions
 
@@ -298,3 +293,21 @@ func FormCppClassNameRef(#name: String) -> Text4_text_sort
 /* Convert TS function name to corresponding C++ function name  */
 func CppFnName(#name: String) -> Text4_text_sort
 → text⟦_⟨STRING: #name⟩⟧
+
+// --- helper function
+
+/* Whether to generate function body */
+func GenBody(#csortvars? : List<Core_csortvars_sort>, #header : Bool) -> Bool
+→ Or(
+    And(IsEmpty<Core_csortvars_sort>(#csortvars?), Not(#header)),
+    And(IsNotEmpty<Core_csortvars_sort>(#csortvars?), #header))
+
+/* Generate method qualifier, only for non-templated method in source file */
+func CppQualifier(#sortname: String, #csortvars? : List<Core_csortvars_sort>, #header : Bool) -> Text4_text_sort
+→ TextIf(And(IsEmpty<Core_csortvars_sort>(#csortvars?), Not(#header)),
+    ()->text⟦†⟨SortNameToCppClassName(#sortname)⟩::⟧)
+
+/* Generate method qualifier, only for non-templated method in source file */
+func CppFormQualifier(#formname: String, #csortvars? : List<Core_csortvars_sort>, #header : Bool) -> Text4_text_sort
+→ TextIf(And(IsEmpty<Core_csortvars_sort>(#csortvars?), Not(#header)),
+    ()->text⟦†⟨FormCppClassName(#formname)⟩::⟧)

@@ -1,4 +1,4 @@
-
+/* Copyright (c) 2016 IBM Corporation. */
 import Std::Core
 import Std::Listdef
 import Std::Pairdef
@@ -53,23 +53,35 @@ rule Text-Integer(#t) → text⟦⟨STRING: FormatNumber(#t) ⟩⟧
 func Text-Mangle(eager String) -> Text4_text_sort
 rule Text-Mangle(#t) → text⟦⟨STRING: Mangle(#t) ⟩⟧
 
+/* Apply given function only if condition is met.
+  Otherwise produces the empty text
+*/
+func TextIf(#cond: Bool, #: ()->Text4_text_sort) -> Text4_text_sort
+→ If<Text4_text_sort>(#cond, #, ()->text⟦⟧)
+
+/* Apply each item in the given list to the given function producing text.
+   Concatenate produced text using no separator
+ */
+func TextMapFold<a>(#f: (a) -> Text4_text_sort, #list: List<a>) -> Text4_text_sort
+→ TextFold(Map<a Text4_text_sort>(#f, #list), text⟦⟧)
+
 func TextFold(List<Text4_text_sort>, Text4_text_sort) -> Text4_text_sort
-rule TextFold(()         , #sep) → text⟦⟧
-rule TextFold(Cons(#1:Text4_text_sort, #s:List<Text4_text_sort>), #sep) → text⟦†⟨ #1 ⟩†⟨ TextFold1(#s, #sep) ⟩⟧
+  rule TextFold(()         , #sep) → text⟦⟧
+  rule TextFold(Cons(#1:Text4_text_sort, #s:List<Text4_text_sort>), #sep) → text⟦†⟨ #1 ⟩†⟨ TextFold1(#s, #sep) ⟩⟧
 
 func TextFold1(List<Text4_text_sort>, Text4_text_sort) -> Text4_text_sort
-rule TextFold1(()     , #sep) → text⟦⟧
-rule TextFold1(Cons(#1:Text4_text_sort, #s:List<Text4_text_sort>), #sep) → text⟦†⟨ #sep ⟩†⟨ #1 ⟩†⟨ TextFold1(#s, #sep) ⟩⟧
+  rule TextFold1(()     , #sep) → text⟦⟧
+  rule TextFold1(Cons(#1:Text4_text_sort, #s:List<Text4_text_sort>), #sep) → text⟦†⟨ #sep ⟩†⟨ #1 ⟩†⟨ TextFold1(#s, #sep) ⟩⟧
 
 func ReverseTextFold(List<Text4_text_sort>, Text4_text_sort) -> Text4_text_sort
-rule ReverseTextFold(()        , #sep)
-→ text⟦⟧
+  rule ReverseTextFold(()        , #sep)
+  → text⟦⟧
 
-rule ReverseTextFold(Cons(#1:Text4_text_sort, List<Text4_text_sort>::Nil)     , #sep)
-→ text⟦†⟨ #1 ⟩⟧
+  rule ReverseTextFold(Cons(#1:Text4_text_sort, List<Text4_text_sort>::Nil), #sep)
+  → text⟦†⟨ #1 ⟩⟧
 
-rule ReverseTextFold(Cons(#1:Text4_text_sort, List<Text4_text_sort>::Cons(#2:Text4_text_sort, #s:List<Text4_text_sort>)), #sep)
-→ text⟦†⟨ ReverseTextFold(Cons(#2, #s), #sep) ⟩†⟨ #sep ⟩†⟨ #1 ⟩⟧
+  rule ReverseTextFold(Cons(#1:Text4_text_sort, List<Text4_text_sort>::Cons(#2:Text4_text_sort, #s:List<Text4_text_sort>)), #sep)
+  → text⟦†⟨ ReverseTextFold(Cons(#2, #s), #sep) ⟩†⟨ #sep ⟩†⟨ #1 ⟩⟧
 
 // -- Conversion
 

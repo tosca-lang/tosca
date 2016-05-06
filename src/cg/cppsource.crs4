@@ -2,11 +2,46 @@
 /*
  * Generate C++ source file
  */
+import Std::Core
 import Std::Path
+import Std::Listdef
+import Std::Text
+import Std::Mapdef
+import Core::Core
 import Text::Text4
+import Cg::Cppcommon
 import Systemdef
 
 /* Generate C++ source file for module */
 func CppSource(Module) -> Text4_text_sort
 rule CppSource(Module(#url:String, Content::Loaded(#content:LoadedContent)))
-→ text⟦#include "⟨STRING: PathFileStem(#url)⟩.h"⟧
+→ text⟦#include "⟨STRING: PathFileStem(#url)⟩.h"
+†⟨CppClassDefs(MapValues<String Core_cdecl_sort>(GetDataSorts(#content)))⟩⟧
+
+// --------- Data sorts
+
+/* Generate class definition and method body for data sorts */
+func CppClassDefs(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
+→ TextMapFold<Core_cdecl_sort>((decl) -> CppClassDef(decl), #datasorts)
+
+func CppClassDef(Core_cdecl_sort) -> Text4_text_sort
+rule CppClassDef(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
+→ text⟦†⟨TextMapFold<Core_cform_sort>((cform) -> WhenNoParams(#csortvars?, ()->CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, FALSE)), #cform*)⟩
+†⟨TextMapFold<Core_cform_sort>((cform) -> WhenNoParams(#csortvars?, ()->CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, FALSE)), #cform*)⟩
+†⟨TextMapFold<Core_cform_sort>((cform) -> CppFormDefs(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩⟧
+
+
+/* Generate class and method definitions for the given data form */
+func CppFormDefs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
+
+  rule CppFormDefs(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  → text⟦†⟨WhenNoParams(#csortvars?, ()->CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, FALSE))⟩
+  †⟨WhenNoParams(#csortvars?, ()->CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, FALSE))⟩⟧
+
+  rule CppFormDefs(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
+  → text⟦/*TODO: allows-variable*/⟧
+
+
+/* Apply function the list of template parameters is empty */
+func WhenNoParams(#csortvars?: List<Core_csortvars_sort>, #: ()->Text4_text_sort) -> Text4_text_sort
+→  TextIf(IsEmpty<Core_csortvars_sort>(#csortvars?), #)

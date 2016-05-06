@@ -68,11 +68,11 @@ func CppClassDecls(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
 func CppClassDecl(Core_cdecl_sort) -> Text4_text_sort
 rule CppClassDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 → text⟦
-†⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, IsNotEmpty<Core_csortvars_sort>(#csortvars?)), #cform*), text⟦⟧)⟩
+†⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*), text⟦⟧)⟩
 †⟨CppTemplatePrefix(#csortvars?)⟩
 class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩ : public _Term
 {
-  †⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, IsNotEmpty<Core_csortvars_sort>(#csortvars?)), #cform*), text⟦⟧)⟩
+  †⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*), text⟦⟧)⟩
 };
 †⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppFormClass(#CONSTRUCTOR, #csortvars?, cform), #cform*), text⟦⟧)⟩
 ⟧
@@ -84,8 +84,8 @@ func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_t
   †⟨CppTemplatePrefix(#csortvars?)⟩
   class †⟨FormCppClassName(#CONSTRUCTOR)⟩: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩
   {
-    †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, IsNotEmpty<Core_csortvars_sort>(#csortvars?))⟩
-    †⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, IsNotEmpty<Core_csortvars_sort>(#csortvars?))⟩
+    †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
+    †⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
   };⟧
 
   rule CppFormClass(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
