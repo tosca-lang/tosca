@@ -1,0 +1,35 @@
+// Copyright (c) 2016 IBM Corporation.
+
+/**
+ * Build C++ TransScript library.  
+ */
+apply plugin: 'cpp'
+
+model {
+	buildTypes {
+		debug
+		release
+	}
+	
+	components {
+		transscript(NativeLibrarySpec) {
+			sources {
+				cpp {
+					source {
+						srcDir "runtime"
+						include "**/*.cpp"
+					}
+				}
+			}
+		}
+	}
+	
+	binaries {
+		all {
+			cppCompiler.args "-std=c++0x"
+		}
+	}
+}
+
+
+

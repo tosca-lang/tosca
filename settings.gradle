@@ -1,4 +1,4 @@
 rootProject.name = 'transscript'
-include 'targets:java', 'targets:java:parsers', 'tests'
+include 'targets:java', 'targets:java:parsers', 'targets:cpp', 'tests'
 // Uncomment below when nparsers is true
 //include 'targets:java', 'targets:java:parsers', 'targets:java:nparsers', 'tests'

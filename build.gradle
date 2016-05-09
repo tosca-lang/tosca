@@ -87,5 +87,5 @@ task cleanTextParsers(overwrite : true) {}
 
 // --- The Gradle wrapper.
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.2'
+    gradleVersion = '2.13'
 }
