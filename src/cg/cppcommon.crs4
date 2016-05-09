@@ -36,7 +36,7 @@ func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> T
 func CppMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Text4_text_sort
   rule CppMethodAs(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #header)
   → text⟦
-    †⟨TextIf(#header, ()->text⟦virtual⟧)⟩ Optional<†⟨FormCppClassName(#CONSTRUCTOR)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩&> †⟨CppAsMethodName(#CONSTRUCTOR)⟩(Context context)†⟨
+    †⟨TextIf(#header, ()->text⟦virtual⟧)⟩ Optional<†⟨FormCppClassName(#CONSTRUCTOR)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩&> †⟨CppFormQualifier(#sortname, #csortvars?, #header)⟩†⟨CppAsMethodName(#CONSTRUCTOR)⟩(Context context)†⟨
     If<Text4_text_sort>(GenBody(#csortvars?, #header), ()->text⟦{
        return Optional<†⟨FormCppClassName(#CONSTRUCTOR)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩&>::nullopt;
     }⟧, ()->text⟦;⟧)⟩⟧
