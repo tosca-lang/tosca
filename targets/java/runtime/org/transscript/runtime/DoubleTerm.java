@@ -76,6 +76,13 @@ public interface DoubleTerm extends Term
 			return value;
 		}
 
+		@Override
+		public boolean equals(Object other)
+		{
+			if (other instanceof DoubleValue)
+				return ((DoubleValue) other).unbox() == this.value;
+			return false;
+		}
 	}
 
 	public static class VarDoubleTerm extends Variable
