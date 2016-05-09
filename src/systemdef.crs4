@@ -91,6 +91,10 @@ rule GetImports(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #im
 func GetRules(LoadedContent) -> {String: List<Core_cdecl_sort>}
 rule GetRules(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #rules
 
+func GetRulesForKey(String, LoadedContent) -> Option<List<Core_cdecl_sort>>
+rule GetRulesForKey(#key, LoadedContent(#imports, #rules, #datasorts, #funcsorts))
+→ MapGet<String List>(#rules, #key)
+
 func GetDataSorts(LoadedContent) -> {String: Core_cdecl_sort}
 rule GetDataSorts(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #datasorts
 

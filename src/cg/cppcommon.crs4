@@ -26,9 +26,9 @@ func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> T
 /*
   rule FormToCppMethodNew(#constructor, #csortvars?, cform⟦ allows-variable ⟧, #body)
   → text⟦
-    static †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ Var⟨STRING: ToJavaClassName(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨STRING: ToJavaMethodName(ConcatString("var", #constructor))⟩ (Context ctx, String hint)
+    static †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ Var⟨STRING: ToCppClassName(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ †⟨CppFnName(ConcatString("var", #constructor))⟩ (Context ctx, String hint)
     {
-      return new Var⟨STRING: ToJavaClassName(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(ctx.makeGlobalName(hint));
+      return new Var⟨STRING: ToCppClassName(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(ctx.makeGlobalName(hint));
     }⟧
 */
 
@@ -123,44 +123,45 @@ func CppInitField(Bool, Text4_text_sort, Numeric, Numeric) -> Text4_text_sort
 rule CppInitField(FALSE, #type, #index, #subindex) → text⟦†⟨FieldSep(text⟦, ⟧, #index, #subindex)⟩†⟨FieldName(#index)⟩(†⟨ParamName(#index)⟩)⟧
 rule CppInitField(TRUE, #type, #index, #subindex)  → text⟦†⟨FieldSep(text⟦, ⟧, #index, #subindex)⟩†⟨VarFieldName(#index, #subindex)⟩(†⟨VarParamName(#index, #subindex)⟩)⟧
 
-
 // --- Function translation functions
 
-func CppFunctionDecl(#env: {String : EnvEntry}, #key: String) -> Text4_text_sort
-→ CppFunctionDecl2(#env, UnSOME<Core_cdecl_sort>(GetFuncSort(GetContent(#env), #key)), HasSortVars(UnSOME<Core_cdecl_sort>(GetFuncSort(GetContent(#env), #key))))
+func CppFunctionDecl(#env: {String : EnvEntry}, #key: String, #header :Bool) -> Text4_text_sort
+→ CppFunctionDecl2(#env, UnSOME<Core_cdecl_sort>(GetFuncSort(GetContent(#env), #key)), #header)
 
 func CppFunctionDecl2({String : EnvEntry}, Core_cdecl_sort, Bool) -> Text4_text_sort
-rule CppFunctionDecl2(#env, cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #body)
-→ text⟦
+rule CppFunctionDecl2(#env, cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #header)
+→ Then<{String : EnvEntry} Text4_text_sort>(SetFnAnno(#env, #canno*), (env)->
+  Then<{String : EnvEntry} Text4_text_sort>(SetContext(env, text⟦ctx⟧, 1), (env)->text⟦
    †⟨CppTemplatePrefix(#csortvars?)⟩
-   †⟨CppTypeRef(#csort)⟩ †⟨CppFnName(#CONSTRUCTOR)⟩(Context ctx†⟨CppMaybeFunctionParams(#env, #csorts?, #body)⟩⟧
+   †⟨CppTypeRef(#csort)⟩ †⟨CppFnName(#CONSTRUCTOR)⟩(Context ctx†⟨CppMaybeFunctionParams(env, #csorts?, (env) ->
+      CppMaybeBody(env, #CONSTRUCTOR, GenBody(#csortvars?, #header)))⟩⟧ // missing )
+  ))
 
-func CppMaybeFunctionParams({String : EnvEntry}, List<Core_csorts_sort>, Bool) -> Text4_text_sort
-   rule CppMaybeFunctionParams(#env, csorts?⟦⟧, #body)
-   → CppBody(#env, #body)
+func CppMaybeFunctionParams({String : EnvEntry}, List<Core_csorts_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+   rule CppMaybeFunctionParams(#env, csorts?⟦⟧, #cont)
+   → #cont(#env)
 
-   rule CppMaybeFunctionParams(#env, csorts?⟦ ( ##csort* ) ⟧, #body)
-   → CppFunctionParams(#env, #csort*, #body)
+   rule CppMaybeFunctionParams(#env, csorts?⟦ ( ##csort* ) ⟧, #cont)
+   → CppFunctionParams(#env, #csort*, #cont)
 
 /* Generate method signature and record the argument names in the environment, keeping them in order */
-func CppFunctionParams({String : EnvEntry}, List<Core_csort_sort>, Bool) -> Text4_text_sort
+func CppFunctionParams({String : EnvEntry}, List<Core_csort_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule CppFunctionParams(#env, csort*⟦ ⟧, #body)
-   → CppBody(#env, #body)
+  rule CppFunctionParams(#env, csort*⟦ ⟧, #cont)
+   → #cont(#env)
 
-  rule CppFunctionParams(#env, csort*⟦ ##csort ##csort* ⟧, #body)
-  → CppFunctionParam(#env, CppTypes(#csort), #csort, (env) -> CppFunctionParams(env, #csort*, #body))
+  rule CppFunctionParams(#env, csort*⟦ ##csort ##csort* ⟧, #cont)
+  → CppFunctionParam(#env, CppTypes(#csort), #csort, (env) -> CppFunctionParams(env, #csort*, #cont))
 
 func CppFunctionParam({String : EnvEntry}, List<Text4_text_sort>, Core_csort_sort, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   // Monomorphic sort
-  rule CppFunctionParam(#env, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #next)
-  → text⟦, †⟨#type⟩ ⟨STRING: value:String⟩†⟨#next(AddParam(#env, text⟦⟨STRING: value⟩⟧, csort⟦ ##CONSTRUCTOR ##csorts? ⟧))⟩⟧
+  rule CppFunctionParam(#env, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #cont)
+  → text⟦, †⟨#type⟩ ⟨STRING: value:String⟩†⟨#cont(AddParam(#env, text⟦⟨STRING: value⟩⟧, csort⟦ ##CONSTRUCTOR ##csorts? ⟧))⟩⟧
 
   // Sort variable
-  rule CppFunctionParam(#env, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), csort⟦ ##VARIABLE ⟧, #next)
-  → text⟦, †⟨#type⟩ ⟨STRING: value:String⟩†⟨#next(AddParam(#env, text⟦⟨STRING: value⟩⟧, csort⟦ ##VARIABLE ⟧))⟩⟧
-
+  rule CppFunctionParam(#env, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), csort⟦ ##VARIABLE ⟧, #cont)
+  → text⟦, †⟨#type⟩ ⟨STRING: value:String⟩†⟨#cont(AddParam(#env, text⟦⟨STRING: value⟩⟧, csort⟦ ##VARIABLE ⟧))⟩⟧
 
 /*
   // Syntactic variable sort
@@ -186,11 +187,241 @@ func CppFunctionParam({String : EnvEntry}, List<Text4_text_sort>, Core_csort_sor
 */
 
 /* Generate function body */
-func CppBody({String : EnvEntry}, Bool) -> Text4_text_sort
-  rule CppBody(#env, FALSE) → text⟦);⟧
-  rule CppBody(#env, TRUE)  → text⟦) {
+func CppMaybeBody({String : EnvEntry}, String, Bool) -> Text4_text_sort
+  rule CppMaybeBody(#env, #key, FALSE) → text⟦);⟧
+  rule CppMaybeBody(#env, #key, TRUE)  → text⟦) {†⟨CppBody(#env, GetRulesForKey(#key, GetContent(#env)))⟩}⟧
 
-  }⟧
+
+func CppBody({String : EnvEntry}, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
+
+// No rules: it must be an external function (not yet checked but should)
+  rule CppBody(#env, NONE)
+  → text⟦TODO EXTERN⟧
+
+  // At least one rule: not external
+  rule CppBody(#env, SOME(#rules:List<Core_cdecl_sort>))
+  → text⟦
+      †⟨TextMapFold<Core_cdecl_sort>((r) -> CppBodyRule(NewMetas(NewVars(#env)), r), #rules)⟩
+      †⟨TextIf(Not(HasAnnotation("Fallback", GetFnAnno(#env))), ()->text⟦throw std::runtime_error("Missing case");⟧ )⟩⟧
+
+// --- Start method body
+
+func CppBodyRule({String : EnvEntry}, Core_cdecl_sort) -> Text4_text_sort
+
+  rule CppBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR → ##cterm ⟧)
+  → CppContractum(#env, #cterm)
+
+  rule CppBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR ( ##cterm* ) → ##cterm2 ⟧)
+  → CppPattern(#env, #cterm*, #cterm2)
+
+// --- Pattern matching
+
+func CppPattern({String : EnvEntry}, List<Core_cterm_sort>, Core_cterm_sort) -> Text4_text_sort
+
+  // TODO: case where there is only one rule.
+  rule CppPattern(#env, #cterms, #contractum)
+  → text⟦⟨STRING: label:String⟩:{}⟧
+
+// ----- Contraction
+
+func CppContractum(#env: {String : EnvEntry}, #term: Core_cterm_sort) -> Text4_text_sort
+→ CppStatementTerm(SetTail(#env, TRUE), #term)
+
+func CppStatementTerm(#env: {String : EnvEntry}, #cterm: Core_cterm_sort) -> Text4_text_sort
+→ text⟦†⟨CppFreshesTerm(SetCounter(#env, 0), #cterm, (env) ->
+     text⟦†⟨TextIf(GetTail(env), ()->text⟦return ⟧)⟩†⟨CppExprTerm(SetCounter(env, 0), #cterm, (env) -> text⟦⟧)⟩;⟧)⟩⟧
+
+// ---- Generate fresh variable - Only in Cpp statement mode
+
+func CppFreshesTerm({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  rule CppFreshesTerm(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #cont)
+  → CppFreshesMaybeTerms(#env, #cterms?, #cont)
+
+  rule CppFreshesTerm(#env, cterm⟦ ##cliteral ⟧, #cont)
+  → #cont(#env)
+
+  rule CppFreshesTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #cont)
+  → CppFreshesVariable(#env, MaybeGetVar(#env, #VARIABLE), #VARIABLE, #csortanno?, #cont)
+
+  rule CppFreshesTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
+  → CppFreshesMaybeTerms(#env, #cterms?, (env) -> CppFreshesMaybeSubst(env, #csubst?, #cont))
+
+  //  rule CppFreshesTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]:Core_cterm_sort), #cont)
+  rule CppFreshesTerm(#env, cterm⟦ [ x ##csortanno? ] ##cterm⟧, #cont)
+  → CppFreshesVariable(#env, NONE, var:String, #csortanno?, (env) -> CppFreshesTerm(env, #cterm[var], #cont))
+
+  //→ text⟦
+  //Variable fresh†⟨NumberToText(GetCounter(#env))⟩ = context.makeVariable("x");†⟨CppFreshesTerm(IncCounter(AddVar(#env, var:Core_cterm_sort, Fresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], #cont)⟩⟧
+
+  // TODO: track var to avoid generating dummy fresh variables
+  //rule CppFreshesTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]:Core_cterm_sort), #cont)
+  rule CppFreshesTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm⟧, #cont)
+  → CppFreshesTerm(#env, #cterm[var:String], #cont)
+
+  rule CppFreshesTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)
+  → CppFreshesTerm(#env, #cterm, #cont)
+
+func CppFreshesMaybeTerms({String : EnvEntry}, List<Core_cterms_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  rule CppFreshesMaybeTerms(#env, cterms?⟦⟧, #cont)
+  → #cont(#env)
+
+  rule CppFreshesMaybeTerms(#env, cterms?⟦ () ⟧, #cont)
+  → #cont(#env)
+
+  rule CppFreshesMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, #cont)
+  → CppFreshesTerms(#env, #cterm*, #cont)
+
+func CppFreshesTerms({String : EnvEntry}, List<Core_cterm_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  rule CppFreshesTerms(#env, cterm*⟦⟧, #cont)
+  → #cont(#env)
+
+  rule CppFreshesTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, #cont)
+  → CppFreshesTerm(#env, #cterm, (env) -> CppFreshesTerms(env, #cterm*, #cont))
+
+func CppFreshesMaybeSubst({String : EnvEntry}, List<Core_csubst_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  rule CppFreshesMaybeSubst(#env, csubst?⟦⟧, #cont)
+  → #cont(#env)
+
+  rule CppFreshesMaybeSubst(#env, csubst?⟦ [ ##cterm* ] ⟧, #cont)
+  → CppFreshesTerms(#env, #cterm*, #cont)
+
+func CppFreshesVariable({String : EnvEntry}, Option<VarEntry>, String, List<Core_csortanno_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  // untyped fresh var
+  rule CppFreshesVariable(#env, NONE, #var, csortanno?⟦  ⟧, #cont)
+  → text⟦
+   VarStringTerm fresh†⟨NumberToText(GetCounter(#env))⟩ = varStringTerm(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show<String>(#var))⟩);†⟨
+     #cont(IncCounter(AddVar(#env, #var, Fresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, NONE))))⟩⟧
+
+  // New typed fresh variable
+  rule CppFreshesVariable(#env, NONE, #var, csortanno?⟦ : ##csort ⟧, #cont)
+  → text⟦
+   Var†⟨CppType(#csort)⟩ fresh†⟨NumberToText(GetCounter(#env))⟩ = var†⟨CppType(#csort)⟩(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show<String>(#var))⟩);⟨
+     #cont(IncCounter(AddVar(#env, #var, Fresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, SOME(#csort)))))⟩⟧
+
+  // Variable already exists
+  rule CppFreshesVariable(#env, SOME(#:VarEntry), #var, #csortanno?, #cont)
+  → #cont(#env)
+
+// ---- Generate term code - C++ expression mode
+
+func CppExprTerm({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+ rule CppExprTerm(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #cont)
+ → CppExprConstruction(#env, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #cont)
+
+ rule CppExprTerm(#env, cterm⟦ ##cliteral ⟧, #cont)
+ → text⟦
+     †⟨CppExprLiteral(#cliteral)⟩†⟨#cont(#env)⟩⟧
+
+ rule CppExprTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #cont)
+ → CppExprMaybeVar(#env, MaybeGetVar(#env, #VARIABLE), #VARIABLE, #cont)
+
+ rule CppExprTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
+ → CppExprMeta(#env, #METAVAR, #cterms?, #csubst?, #cont)
+
+ rule CppExprTerm(#env, cterm⟦ [ x ##csortanno? ] ##cterm ⟧, #cont)
+ → text⟦
+     fresh†⟨NumberToText(GetCounter(#env))⟩, †⟨CppExprTerm(AddVar(IncCounter(#env), var:String, Fresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
+
+ rule CppExprTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧, #cont)
+ → text⟦newClosure((†⟨GetContext(NewContext(#env))⟩†⟨CppExprLambda(NewContext(#env), Core_cterm_A7(#csortanno?, [y:String] -> #cterm[y]), #cont)⟩⟧
+
+ rule CppExprTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)
+ → text⟦thunk(†⟨GetContext(NewContext(#env))⟩ -> ⟨CppExprTerm(NewContext(#env), #cterm, (env) -> text⟦)⟨#cont(env)⟩⟧)⟩⟧
+
+// ---- construction expression
+
+func CppExprConstruction({String : EnvEntry}, String,  List<Core_csortargs_sort>, List<Core_cterms_sort>, List<Core_csortanno_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+ rule CppExprConstruction(#env, #constructor, #csortargs?, #cterms?, #csortanno?, #cont)
+ → text⟦†⟨CppFnName(#constructor)⟩(†⟨GetContext(#env)⟩†⟨CppExprMaybeTerms(#env, #cterms?, #cont)⟩⟧
+
+func CppExprMaybeTerms({String : EnvEntry}, List<Core_cterms_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+ rule CppExprMaybeTerms(#env, cterms?⟦⟧, #cont)
+ → text⟦)†⟨#cont(#env)⟩⟧
+
+ rule CppExprMaybeTerms(#env, cterms?⟦()⟧, #cont)
+ → text⟦)†⟨#cont(#env)⟩⟧
+
+ rule CppExprMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, #cont)
+ → CppExprTerms(#env, #cterm*, #cont)
+
+func CppExprTerms({String : EnvEntry}, List<Core_cterm_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+ rule CppExprTerms(#env, cterm*⟦⟧, #cont)
+ → text⟦)†⟨#cont(#env)⟩⟧
+
+ rule CppExprTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, #cont)
+ → text⟦, †⟨CppExprTerm(#env, #cterm, (env) -> CppExprTerms(env, #cterm*, #cont))⟩⟧
+
+// --- Variable
+
+func CppExprMaybeVar({String : EnvEntry}, Option<VarEntry>, String, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+ rule CppExprMaybeVar(#env, NONE, #svar, #cont) // Fresh variable must have been declared
+ → #cont(#env)
+
+ rule CppExprMaybeVar(#env, SOME(VarEntry::Formal(#var:Text4_text_sort, #type:Option<Core_csort_sort>)), #svar, #cont)
+ → text⟦†⟨#var⟩†⟨#cont(#env)⟩⟧
+
+ // fallback
+ rule CppExprMaybeVar(#env, SOME(#varEntry:VarEntry), #svar, #cont)
+ → text⟦†⟨UnVarVar(#varEntry)⟩.use()†⟨#cont(#env)⟩⟧
+
+// ----  metavar expression
+
+func CppExprMeta({String : EnvEntry}, String, List<Core_cterms_sort>, List<Core_csubst_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  // TODO: check that metavar is defined
+
+ // No arguments -> just return the metavariable.
+ rule CppExprMeta(#env, #metavar, cterms?⟦⟧, csubst?⟦⟧, #cont)
+ → text⟦†⟨GetMetaVar(#env, #metavar)⟩†⟨#cont(#env)⟩⟧
+
+ // No arguments in parenthesis -> call lambda with no param.
+ rule CppExprMeta(#env, #metavar, cterms?⟦ () ⟧, csubst?⟦⟧, #cont)
+ → text⟦†⟨GetMetaVar(#env, #metavar)⟩.eval(context)†⟨#cont(#env)⟩⟧
+
+ // Apply arguments -> call lambda
+ rule CppExprMeta(#env, #metavar, cterms?⟦ ( ##cterm* ) ⟧, csubst?⟦⟧, #cont)
+ → text⟦†⟨GetMetaVar(#env, #metavar)⟩.eval(†⟨GetContext(#env)⟩†⟨CppExprTerms(#env, #cterm*, #cont)⟩⟧
+
+ // Substitution
+ rule CppExprMeta(#env, #metavar, cterms?⟦⟧, csubst?⟦ [ ##cterm* ] ⟧, #cont)
+ → text⟦subst(†⟨GetContext(#env)⟩, †⟨GetMetaVar(#env, #metavar)⟩†⟨CppExprMetaArgs(#env, GetMetaArgs(#env, #metavar), #cterm*, #cont)⟩⟧
+
+ // TODO: call and subsitution
+
+func CppExprMetaArgs({String : EnvEntry}, List<Text4_text_sort> /* pattern args */, List<Core_cterm_sort> /* contraction args */,
+                    ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+ rule CppExprMetaArgs(#env, (), #args,  #cont)
+ → text⟦)†⟨#cont(#env)⟩⟧
+
+ rule CppExprMetaArgs(#env, Cons(#binder:Text4_text_sort,  #binders: List<Text4_text_sort>), Cons(#arg:Core_cterm_sort, #args:List<Core_cterm_sort>), #cont)
+ → text⟦,†⟨#binder⟩,†⟨CppExprTerm(#env, #arg, (env) -> CppExprMetaArgs(env, #binders, #args, #cont))⟩⟧
+
+// ---- lambda expression
+
+func CppExprLambda({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+ rule CppExprLambda(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]: Core_cterm_sort), #cont)
+ → text⟦, p†⟨NumberToText(GetCounter(#env))⟩†⟨CppExprLambda(AddVar(IncCounter(#env), var:String, Formal(text⟦p†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
+
+ // fallback
+ rule CppExprLambda(#env, #cterm, #cont)
+ → text⟦) -> †⟨CppExprTerm(#env, #cterm, (env) -> text⟦)†⟨#cont(env)⟩⟧)⟩⟧
+
+// --- Literal
+
+func CppExprLiteral(Core_cliteral_sort) -> Text4_text_sort
+  rule CppExprLiteral(cliteral⟦ ##STRING ⟧) → text⟦stringTerm(†⟨Text-QuoteEscape(#STRING)⟩)⟧
+  rule CppExprLiteral(cliteral⟦ ##NUMBER ⟧) → text⟦doubleTerm(⟨STRING: #NUMBER⟩)⟧
 
 // --- Sort translation functions
 
@@ -273,7 +504,7 @@ func CppTypes2(Core_csort_sort, List<Text4_text_sort> /* formal params */) -> Li
 /*
   rule CppTypes2(csort⟦ ##CONSTRUCTOR ##csorts? ⟧, Cons(#formal:Text4_text_sort, #formals:List<Text4_text_sort>))
   → Cons(text⟦Closure†⟨NumberToText(Plus(ListLength<Text4_text_sort>(#formals), 1))⟩<⟨STRING:
-       ToJavaClassName(FixupPrimitiveType(#CONSTRUCTOR))⟩†⟨MaybeSortsToTypeParams(#csorts?) /* Return type */⟩, †⟨
+       ToCppClassName(FixupPrimitiveType(#CONSTRUCTOR))⟩†⟨MaybeSortsToTypeParams(#csorts?) /* Return type */⟩, †⟨
        TextFold(Cons(#formal, #formals), text⟦, ⟧) /* Formal params */⟩>⟧, Nil)
 */
   rule CppTypes2(csort⟦ ##VARIABLE ⟧, ())
@@ -345,7 +576,7 @@ func FormCppClassNameRef(#name: String) -> Text4_text_sort
 
 /* Convert TS function name to corresponding C++ function name  */
 func CppFnName(#name: String) -> Text4_text_sort
-→ text⟦_⟨STRING: #name⟩⟧
+→ text⟦⟨STRING: #name⟩⟧
 
 // --- helper function
 

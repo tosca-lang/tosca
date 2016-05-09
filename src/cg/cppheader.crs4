@@ -107,4 +107,4 @@ rule CppDeclField(TRUE, #type, #index, #subindex)  → text⟦†⟨#type⟩& �
 
 /* Generate function declarations corresponding to function sorts. */
 func CppFunctionDecls(#env: {String : EnvEntry}) -> Text4_text_sort
-→ TextFold(Map<String Text4_text_sort>((key) ->CppFunctionDecl(#env, key), MapKeys<String Core_cdecl_sort>(GetFuncSorts(GetContent(#env)))), text⟦⟧)
+→ TextMapFold<String>((key) ->CppFunctionDecl(#env, key, TRUE), MapKeys<String Core_cdecl_sort>(GetFuncSorts(GetContent(#env))))

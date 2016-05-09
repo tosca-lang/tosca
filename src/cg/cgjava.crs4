@@ -616,16 +616,6 @@ func MaybeSortsToTypeParams(List<Core_csorts_sort>) -> Text4_text_sort
   rule MaybeSortsToTypeParams(csorts?⟦ ( ##csort* )⟧)
   → text⟦<†⟨TextFold( Flatten<Text4_text_sort>(Map<Core_csort_sort List>((x) -> SortToTypes(x), #csort*)), text⟦, ⟧)⟩>⟧
 
-
-/** Get sort from annotation */
-func MaybeSortAnnoToSort(List<Core_csortanno_sort>) -> Option<Core_csort_sort>
-  rule MaybeSortAnnoToSort(csortanno?⟦ ⟧)
-  → NONE
-
- rule MaybeSortAnnoToSort(csortanno?⟦ : ##csort ⟧)
-  → SOME(#csort)
-
-
 /** Convert sort annotation to equivalent Java type */
 func MaybeSortAnnoToType(List<Core_csortanno_sort>) -> Text4_text_sort
   rule MaybeSortAnnoToType(csortanno?⟦ ⟧)

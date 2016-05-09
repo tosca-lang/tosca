@@ -10,13 +10,15 @@ import Std::Mapdef
 import Core::Core
 import Text::Text4
 import Cg::Cppcommon
+import Cg::Cppenv
 import Systemdef
 
 /* Generate C++ source file for module */
 func CppSource(Module) -> Text4_text_sort
 rule CppSource(Module(#url:String, Content::Loaded(#content:LoadedContent)))
 → text⟦#include "⟨STRING: PathFileStem(#url)⟩.h"
-†⟨CppClassDefs(MapValues<String Core_cdecl_sort>(GetDataSorts(#content)))⟩⟧
+†⟨CppClassDefs(MapValues<String Core_cdecl_sort>(GetDataSorts(#content)))⟩
+†⟨CppFunctionDefs(SetContent(CppNewEnv, #content))⟩⟧
 
 // --------- Data sorts
 
@@ -42,7 +44,13 @@ func CppFormDefs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_te
   rule CppFormDefs(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦/*TODO: allows-variable*/⟧
 
+// --------- Function sorts and associated rules
 
-/* Apply function the list of template parameters is empty */
+/* Generate function definitions corresponding to function sorts. */
+func CppFunctionDefs(#env: {String : EnvEntry}) -> Text4_text_sort
+→ TextMapFold<String>((key) -> CppFunctionDecl(#env, key, FALSE), MapKeys<String Core_cdecl_sort>(GetFuncSorts(GetContent(#env))))
+
+
+/* Apply function when the list of template parameters is empty */
 func WhenNoParams(#csortvars?: List<Core_csortvars_sort>, #: ()->Text4_text_sort) -> Text4_text_sort
 →  TextIf(IsEmpty<Core_csortvars_sort>(#csortvars?), #)

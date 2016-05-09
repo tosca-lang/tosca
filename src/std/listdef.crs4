@@ -53,6 +53,10 @@ func Head<a>(List<a>) -> a
 rule Head((                   )) → Error<a>("Head of empty list")
 rule Head(Cons(#:a, #s:List<a>)) → #
 
+/* @return head of the list, as an Option */
+func HeadO<a>(List<a>) -> Option<a>
+rule HeadO((                   )) → NONE
+rule HeadO(Cons(#:a, #s:List<a>)) → SOME(#)
 
 /* @return last item of the list */
 func Last<a>(List<a>) -> a

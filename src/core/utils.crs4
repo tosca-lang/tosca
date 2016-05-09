@@ -49,3 +49,8 @@ func HasSortVars(Core_cdecl_sort) -> Bool
 
   rule HasSortVars(#)
   → FALSE
+
+/** Get sort from annotation */
+func MaybeSortAnnoToSort(List<Core_csortanno_sort>) -> Option<Core_csort_sort>
+  rule MaybeSortAnnoToSort(csortanno?⟦ ⟧)          → NONE
+  rule MaybeSortAnnoToSort(csortanno?⟦ : ##csort ⟧) → SOME(#csort)
