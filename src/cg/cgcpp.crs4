@@ -1,4 +1,7 @@
-// Copyright (c) 2016 IBM Corporation.
+
+
+ // Copyright (c) 2016 IBM Corporation.
+
 /*
  * TransScript C++11-- backend code generator
  */
@@ -32,4 +35,5 @@ rule TransScriptToCpp(TSystem(#url:String, #modules:{String : Module}))
  and function signatures, and the source file containing function bodies.
 */
 func CppUnit(#module: Module) -> Text4_text_sort
-→ SaveResource<Text4_text_sort Text4_text_sort>("text", GetEnv("headerfile", "header.h"), CppHeader(#module), CppSource(#module))
+→ SaveResource<Text4_text_sort Text4_text_sort>("text", GetEnv("headerfile", "header.h"),
+    CppHeader(#module), CppSource(#module))

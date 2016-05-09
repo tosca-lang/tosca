@@ -60,7 +60,7 @@ func FormToMethodMemoAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> T
 func CppFormConstructor(String, List<Core_csortvars_sort>, String, List<Core_csorts_sort>, Bool) -> Text4_text_sort
   rule CppFormConstructor(#sortname, #csortvars?, #formname, #csorts?, #header)
   → text⟦
-    †⟨CppFormQualifier(#formname, #csortvars?, #header)⟩†⟨FormCppClassName(#sortname)⟩(†⟨MaybeCppFormalParams(#csorts?, text⟦⟧, FALSE)⟩)†⟨
+    †⟨CppQualifier(#formname, #csortvars?, #header)⟩†⟨FormCppClassName(#formname)⟩(†⟨MaybeCppFormalParams(#csorts?, text⟦⟧, FALSE)⟩)†⟨
     If<Text4_text_sort>(GenBody(#csortvars?, #header),
       ()->text⟦†⟨TextIf(HasSorts(#csorts?),
         ()->text⟦: †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppInitField(isvar, type, index, subindex))⟩⟧)⟩{}⟧,
@@ -108,16 +108,20 @@ func CppClassField(List<Text4_text_sort>, Numeric, Numeric, (Bool Text4_text_sor
   rule CppClassField(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex, #print)
   → text⟦†⟨#print(TRUE, #type, #index, #subindex)⟩†⟨CppClassField(#types, #index, Plus(#subindex, 1), #print)⟩⟧
 
-/* Field initialization helper */
-func CppInitField(Bool, Text4_text_sort, Numeric, Numeric) -> Text4_text_sort
-rule CppInitField(FALSE, #type, #index, #subindex) → text⟦†⟨FieldName(#index)⟩(†⟨ParamName(#index)⟩)⟧
-rule CppInitField(TRUE, #type, #index, #subindex)  → text⟦†⟨VarFieldName(#index, #subindex)⟩(†⟨VarParamName(#index, #subindex)⟩)⟧
-
 func FieldName(#index: Numeric) -> Text4_text_sort
 → text⟦field†⟨NumberToText(#index)⟩⟧
 
 func VarFieldName(#index: Numeric, #subindex: Numeric) -> Text4_text_sort
 → text⟦field†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩⟧
+
+/* Print separator when not first field */
+func FieldSep(#sep: Text4_text_sort, #index: Numeric, #subindex: Numeric) -> Text4_text_sort
+→ TextIf(Not(And(NumberEqual(#index, 1), NumberEqual(#subindex, 1))), ()->#sep)
+
+/* Field initialization helper */
+func CppInitField(Bool, Text4_text_sort, Numeric, Numeric) -> Text4_text_sort
+rule CppInitField(FALSE, #type, #index, #subindex) → text⟦†⟨FieldSep(text⟦, ⟧, #index, #subindex)⟩†⟨FieldName(#index)⟩(†⟨ParamName(#index)⟩)⟧
+rule CppInitField(TRUE, #type, #index, #subindex)  → text⟦†⟨FieldSep(text⟦, ⟧, #index, #subindex)⟩†⟨VarFieldName(#index, #subindex)⟩(†⟨VarParamName(#index, #subindex)⟩)⟧
 
 
 // --- Function translation functions

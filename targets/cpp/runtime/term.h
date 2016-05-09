@@ -58,7 +58,7 @@ public:
     /**
      * @return shallow copy of this term.
      */
-    virtual Term Copy(Context c) = 0;
+  //  virtual Term Copy(Context c) = 0;
 
     /** @return true when this term is data */
     virtual bool Data() const

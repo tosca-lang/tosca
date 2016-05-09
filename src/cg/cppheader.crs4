@@ -84,13 +84,24 @@ func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_t
   †⟨CppTemplatePrefix(#csortvars?)⟩
   class †⟨FormCppClassName(#CONSTRUCTOR)⟩: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩
   {
+  public:
     †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
+
     †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
-    †⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
+
+  protected:
+    †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppDeclField(isvar, type, index, subindex))⟩
   };⟧
 
   rule CppFormClass(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦/*TODO: allows-variable*/⟧
+//†⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
+// --------- Form to class fields
+
+/* Field declaration helper */
+func CppDeclField(Bool, Text4_text_sort, Numeric, Numeric) -> Text4_text_sort
+rule CppDeclField(FALSE, #type, #index, #subindex) → text⟦†⟨#type⟩& †⟨FieldName(#index)⟩;⟧
+rule CppDeclField(TRUE, #type, #index, #subindex)  → text⟦†⟨#type⟩& †⟨VarFieldName(#index, #subindex)⟩;⟧
 
 // --------- Function sorts
 
