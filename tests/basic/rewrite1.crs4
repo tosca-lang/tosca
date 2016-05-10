@@ -4,7 +4,7 @@
 
 enum Bool | True | False
 
-func And(eager Bool, eager Bool) -> Bool
+func And(Bool, Bool) -> Bool
 rule And(True, True) → True
 rule And(False, #2 : Bool)  → False
 rule And(#1 : Bool, False)  → False

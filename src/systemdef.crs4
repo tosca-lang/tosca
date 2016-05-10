@@ -104,6 +104,30 @@ rule GetFuncSorts(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #
 func GetFuncSort(#content: LoadedContent, #key: String) -> Option<Core_cdecl_sort>
 → MapGet<String Core_cdecl_sort>(GetFuncSorts(#content), #key)
 
+func MaybeFindFormContent(#content: LoadedContent, #datasort: Option<Core_csort_sort>, #formname: String) -> Option<Core_cform_sort>
+→ MaybeO<Core_csort_sort Core_cform_sort>((csort)->FindFormContent(#content, csort, #formname), #datasort)
+
+func FindFormContent(#content: LoadedContent, #datasort: Core_csort_sort, #formname: String) -> Option<Core_cform_sort>
+→ FindFormDataSorts(GetDataSorts(#content), #datasort, #formname)
+
+func MaybeFindFormDataSorts(#datasorts: {String: Core_cdecl_sort}, #datasort: Option<Core_csort_sort>, #formname: String) -> Option<Core_cform_sort>
+→ MaybeO<Core_csort_sort Core_cform_sort>((csort)->FindFormDataSorts(#datasorts, csort, #formname), #datasort)
+
+func FindFormDataSorts(#datasorts: {String: Core_cdecl_sort}, #datasort: Core_csort_sort, #formname: String) -> Option<Core_cform_sort>
+→ MaybeO<Core_cdecl_sort Core_cform_sort>((cdecl)->FindFormDecl(cdecl, #formname), LookupDataSortDecl(#datasorts, #datasort))
+
+/* Find form of the given name in the data sort */
+func FindFormDecl(Core_cdecl_sort, String) -> Option<Core_cform_sort>
+  rule FindFormDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, #formname)
+  → PickFirst<Core_cform_sort>(#cform*, (x) -> MatchConsForm(x, #formname))
+
+  rule FindFormDecl(#cdecl, #formname)
+  → NONE
+
+func MatchConsForm(Core_cform_sort, String) -> Bool
+  rule MatchConsForm(cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #formname) → StringEqual(#CONSTRUCTOR, #formname)
+  rule MatchConsForm(#, #formname)                                → FALSE
+
 // --- Loaded content mutation functions.
 
 /* Add rule to module content. Always succeed.

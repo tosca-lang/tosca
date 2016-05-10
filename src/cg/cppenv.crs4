@@ -31,6 +31,7 @@ enum EnvEntry | EContent(LoadedContent)
               | EMapVar({ String : VarEntry })
               | EContext(Text4_text_sort /* context variable */, Numeric /* Counter */)
               | EMapMeta({String : MetaEntry})
+              | EText(Text4_text_sort)
 
 /* Corresponding unwrappers */
 func UnContent(EnvEntry) -> LoadedContent
@@ -78,6 +79,9 @@ rule UnMetaVar(MetaVar(#1, #2)) → #1
 func UnMetaArgs(MetaEntry) -> List<Text4_text_sort>
 rule UnMetaArgs(MetaVar(#1, #2)) → #2
 
+func UnText(EnvEntry) -> Text4_text_sort
+rule UnText(EText(#)) → #
+
 /* Create a new empty environment */
 func CppNewEnv -> {String : EnvEntry}
 → MapNew<String EnvEntry>
@@ -91,6 +95,9 @@ func GetContent(#env: {String : EnvEntry}) -> LoadedContent
 → UnContent(GetValue(#env, "content"))
 
 // --- Method arguments
+
+func NewParams(#env: {String : EnvEntry}) -> {String : EnvEntry}
+→ SetValue(#env, "params", EParams(()))
 
 func GetParams(#env: {String : EnvEntry}) -> List<Pair<Text4_text_sort Core_csort_sort>>
 → UnParams(GetValue(#env, "params"))
@@ -187,6 +194,41 @@ func SetContext(#env: {String : EnvEntry}, #context: Text4_text_sort, #count: Nu
 
 func NewContext(#env: {String : EnvEntry}) -> {String : EnvEntry}
 → SetContext(#env, text⟦c†⟨NumberToText(GetContextCount(#env))⟩⟧, Plus(GetContextCount(#env), 1))
+
+// --- Rule case label
+
+func GetLabel(#env: {String : EnvEntry}) -> Text4_text_sort
+→ UnText(GetValue(#env, "label"))
+
+func SetLabel(#env: {String : EnvEntry}, #label: Text4_text_sort) -> {String : EnvEntry}
+→ SetValue(#env, "label", EText(#label))
+
+// --- Parent term
+
+func GetParent(#env: {String : EnvEntry}) -> Text4_text_sort
+→ UnText(GetValue(#env, "parent"))
+
+func SetParent(#env: {String : EnvEntry}, #parent: Text4_text_sort) -> {String : EnvEntry}
+→ SetValue(#env, "parent",  EText(#parent))
+
+// --- sub index
+
+func GetSubIndex(#env: {String : EnvEntry}) -> Numeric
+→ UnNum(GetValue(#env, "subindex"))
+
+func SetSubIndex(#env: {String : EnvEntry}, #index: Numeric) -> {String : EnvEntry}
+→ SetValue(#env, "subindex", ENum(#index))
+
+// --- sub binder index
+
+func GetSubBinderIndex(#env: {String : EnvEntry}) -> Numeric
+→ UnNum(GetValue(#env, "binderindex"))
+
+func SetSubBinderIndex(#env: {String : EnvEntry}, #index: Numeric) -> {String : EnvEntry}
+→ SetValue(#env, "binderindex", ENum(#index))
+
+func IncSubBinderIndex(#env: {String : EnvEntry}) -> {String : EnvEntry}
+→ SetValue(#env, "binderindex", ENum(Plus(GetSubBinderIndex(#env), 1)))
 
 // --- Some generic helper functions
 

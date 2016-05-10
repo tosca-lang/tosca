@@ -10,4 +10,11 @@ class _Context {
 };
 typedef _Context& Context;
 
+template <typename T>
+T force(Context ctx, T term)
+{
+    return term;
+}
+
+
 #endif

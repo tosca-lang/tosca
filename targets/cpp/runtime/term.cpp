@@ -62,9 +62,9 @@ Term _ValStringTerm::Copy(Context c)
     return *this;
 }
 
-Optional<std::string&> _ValStringTerm::Unbox() const
+Optional<std::string> _ValStringTerm::Unbox() const
 {
-    return make_optional<std::string&>(value);
+    return make_optional<std::string>(&value);
 }
 //
 //} // runtime

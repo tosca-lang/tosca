@@ -878,7 +878,8 @@ func JavaPatternTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, Text4_text_
       if (⟨STRING: value⟩ == null) {
         break †⟨GetLabel(#env)⟩;
       }†⟨
-      JavaPatternMaybeSubs(#env, #cterms?, text⟦⟨STRING: value⟩⟧, FindForm(Maybe<Core_csort_sort Option>((x) -> LookupDataSortDecl(GetDataSorts(#env), x), #csort), #CONSTRUCTOR), #cont)⟩⟧
+      JavaPatternMaybeSubs(#env, #cterms?, text⟦⟨STRING: value⟩⟧, MaybeFindFormDataSorts(GetDataSorts(#env), #csort, #CONSTRUCTOR), #cont)⟩⟧
+//FindForm(Maybe<Core_csort_sort Option>((x) -> LookupDataSortDecl(GetDataSorts(#env), x), #csort), #CONSTRUCTOR)
 
   // TODO: check literal
   rule JavaPatternTerm(#env, cterm⟦ ##cliteral ⟧, #term, #csort, #storage, #cont)
@@ -1258,7 +1259,7 @@ func JavaExprLambda(eager {String : JavaEnvEntry}, Core_cterm_sort, ({String : J
   → text⟦) -> †⟨JavaExprTerm(#env, #cterm, (env) -> text⟦)†⟨#cont(env)⟩⟧)⟩⟧
 
 //--- Find form in sort.
-
+/*
 func FindForm(Option<Option<Core_cdecl_sort>>, String) -> Option<Core_cform_sort>
   rule FindForm(NONE, #formname)
   → NONE
@@ -1268,14 +1269,7 @@ func FindForm(Option<Option<Core_cdecl_sort>>, String) -> Option<Core_cform_sort
 
   rule FindForm(SOME(Option<Core_cdecl_sort>::SOME(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)), #formname)
   → PickFirst<Core_cform_sort>(#cform*, (x) -> MatchConsForm(x, #formname))
-
-func MatchConsForm(Core_cform_sort, String) -> Bool
-  rule MatchConsForm(cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #formname)
-  → StringEqual(#CONSTRUCTOR, #formname)
-
-  rule MatchConsForm(#, #formname)
-  → FALSE
-
+*/
 // ----- initModule
 
 /* Generate code initializing a module.

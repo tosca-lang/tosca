@@ -72,9 +72,9 @@ public:
      * @param i the sub index
      * @return a subterm or null if none at the given index. does not create a new reference.
      */
-    virtual Optional<Term> Sub(int i) const
+    virtual Optional<_Term> Sub(int i) const
     {
-        return Optional<Term>::nullopt;
+        return Optional<_Term>::nullopt;
     }
 
     /**
@@ -94,9 +94,9 @@ public:
      * @param index
      * @return a binder, or null.
      */
-    virtual Optional<Variable> Binder(int i, int j)
+    virtual Optional<_Variable> Binder(int i, int j)
     {
-        return Optional<Variable>::nullopt;
+        return Optional<_Variable>::nullopt;
     }
 
     /**
@@ -125,7 +125,6 @@ class _Variable: public _Term
 protected:
     _Variable(std::string value);
 
-
     /* Globally unique variable name */
     std::string name;
 
@@ -149,9 +148,9 @@ class _StringTerm: public _Term
 public:
 
     /** Peek at native string value */
-    virtual Optional<std::string&> Unbox() const
+    virtual Optional<std::string> Unbox() const
     {
-        return Optional<std::string&>::nullopt;
+        return Optional<std::string>::nullopt;
     }
 };
 // _StringTerm
@@ -169,82 +168,11 @@ public:
     _ValStringTerm(std::string& value);
 
     Term Copy(Context c);
-    Optional<std::string&> Unbox() const;
+    Optional<std::string> Unbox() const;
 
 
 };
 // _StringTerm
-
-template<typename a>
-class _List;
-
-template<typename a>
-class _Cons;
-
-template<typename a>
-class _Nil;
-
-/**
- * List, just to try templates
- */
-template<typename a>
-class _List : public _Term
-{
-    virtual Optional<_Cons<a>&> asCons(Context context)
-    {
-      return Optional<_Cons<a>&>::nullopt;
-    }
-
-    virtual Optional<_Nil<a>&> asNil(Context context)
-      {
-        return Optional<_Nil<a>&>::nullopt;
-      }
-};
-
-template<typename a>
-class _Cons : public _List<a>
-{
-public:
-    _Cons(a param1, _List<a>& param2)
-    {
-
-    }
-
-    virtual Optional<_Cons<a>&> asCons(Context context)
-    {
-        return Optional<_Cons<a>&>(*this);
-    }
-};
-
-template<typename a>
-class _Nil : public _List<a>
-{
-public:
-    _Nil()
-    {  }
-
-    virtual Optional<_Nil<a>&> asNil(Context context)
-    {
-        return make_optional<_Nil<a>&>(*this);
-    }
-
-    virtual Term Copy(Context c) {
-        return (*new _Nil<a>());
-    }
-};
-
-template<typename a>
-_List<a>& Cons(Context context, a param1, _List<a>& param2)
-{
-    return (*new _Cons<a>(param1, param2));
-}
-
-template<typename a>
-_List<a>& Nil(Context context)
-{
-    return (*new _Nil<a>());
-}
-
 
 //}// runtime
 //} // ts

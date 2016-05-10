@@ -72,7 +72,8 @@ rule CppClassDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 †⟨CppTemplatePrefix(#csortvars?)⟩
 class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩ : public _Term
 {
-  †⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*), text⟦⟧)⟩
+public:
+  †⟨TextMapFold<Core_cform_sort>((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*)⟩
 };
 †⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppFormClass(#CONSTRUCTOR, #csortvars?, cform), #cform*), text⟦⟧)⟩
 ⟧
@@ -86,8 +87,8 @@ func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_t
   {
   public:
     †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
-
     †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
+    †⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
 
   protected:
     †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppDeclField(isvar, type, index, subindex))⟩
