@@ -4,17 +4,22 @@
 
 #include <stdexcept>
 #include "term.h"
+#include "closure.h"
 
-class _Context {
+class _Context
+{
 
 };
 typedef _Context& Context;
 
-template <typename T>
+template<typename T>
 T force(Context ctx, T term)
 {
     return term;
 }
+
+
+/* Builtin identity function */
 
 
 #endif

@@ -3,10 +3,9 @@
 #define _COMPAT_H
 
 #include <iostream>
-
 #include <stdexcept>
 
-// c++17
+// C++17: std::optional
 template<typename T>
 class Optional
 {

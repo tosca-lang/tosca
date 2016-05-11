@@ -170,9 +170,8 @@ public:
     Term Copy(Context c);
     Optional<std::string> Unbox() const;
 
-
 };
-// _StringTerm
+
 
 //}// runtime
 //} // ts

@@ -9,4 +9,4 @@ rule Map(#, ())           → ()
 rule Map(#, Cons(#1:String, #s:ListStr)) → Cons(#(#1), Map(#, #s))
 
 func Tests -> ListStr
-rule Tests → Map( (x) -> x, Cons("1", Cons("2", Nil)) )
+→ Map((x) -> x, Cons("1", Cons("2", Nil)) )
