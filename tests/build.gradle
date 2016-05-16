@@ -5,15 +5,15 @@
 import org.transscript.gradle.*
 
 apply plugin:'org.transscript.gradle'
-	
+
 repositories {
-	flatDir { dirs '../targets/java/dist' } // crsx4 
+	flatDir { dirs '../targets/java/dist' } // crsx4
 	flatDir { dirs '../targets/java/lib' }  // where to find crsx3.jar
 	mavenCentral() // Where to find ANTLR
 }
 
 dependencies {
-	transscript 'org.transscript:transscript:1.0.0-SNAPSHOT@jar' // Test against the latest snapshot. 
+	transscript 'org.transscript:transscript:1.0.0-SNAPSHOT@jar' // Test against the latest snapshot.
 	//crsx4 'org.crsx:crsx3@jar'
 	//crsx4 'org.antlr:antlr4:4.5'
 }
@@ -22,12 +22,14 @@ dependencies {
 
 task smoketest(type: TransScriptTask) {
 	command = 'test'
-	sources = fileTree('.').include('basic/*.crs4').include('parser/core.crs4')
-	outputDir = file('results')
+	sources = fileTree('.').include('basic/Equal.crs4')
+  // sources = fileTree('.').include('std/list/Elem.crs4')
+  // sources = fileTree('.').include('basic/*.crs4').include('parser/core.crs4')
+  outputDir = file('results')
 	packageName = 'org.transscript.tests'
 	usecompiler = true
 	outputs.upToDateWhen { false }
-}	
+}
 
 
 smoketest.dependsOn tasks.getByPath(':targets:java:snapshot')

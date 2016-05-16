@@ -1,0 +1,5 @@
+
+import Std::Core
+
+func Tests -> Bool
+rule Tests → Equal<Bool Bool>(TRUE,TRUE)
