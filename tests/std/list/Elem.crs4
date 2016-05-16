@@ -1,0 +1,22 @@
+/*
+ * Tests for Element
+ */
+import Std::Listdef
+import Std::Core
+import Std::Num
+
+func Tests -> List<Bool>
+rule Tests →
+Cons(
+  /* Elem(TRUE, [TRUE]) */
+  Elem<Bool>(TRUE, Cons(TRUE, Nil)),
+Cons(
+  /* Elem(5, [3,2,1]) */
+  Equal<Bool Bool>(FALSE, Elem<Numeric>(5, Cons(3, Cons(2, Cons(1,Nil))))),
+Cons(
+  /* Elem(a, [b, a, c])*/
+  Equal<Bool Bool>(TRUE, Elem<String>("a", Cons("b", Cons("a", Cons("c", Nil))))),
+Cons(
+  /* Elem([1], [[1],[2,3]]) */
+  Equal<Bool Bool>(TRUE, Elem<List<Numeric>>(Cons(1, Nil), Cons( Cons(1,Nil), Cons(Cons(2,Cons(3,Nil)), Nil))  )),
+Nil))))
