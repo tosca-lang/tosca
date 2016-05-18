@@ -133,8 +133,8 @@ func MatchConsForm(Core_cform_sort, String) -> Bool
 /* Put the given constructor and rules list pair to the given loaded content.
    If the loaded content already contains the entry for the given constructor, it is replaced.
 */
-func PutRules(LoadedContent, String, List<Core_cdecl_sort>) -> LoadedContent
-rule PutRules(LoadedContent(#imports, #rules, #datasorts, #funcsorts), #constructor, #rulesForCons)
+func PutRulesL(LoadedContent, String, List<Core_cdecl_sort>) -> LoadedContent
+rule PutRulesL(LoadedContent(#imports, #rules, #datasorts, #funcsorts), #constructor, #rulesForCons)
 → LoadedContent(#imports, MapPut<String List>(#rules, #constructor, #rulesForCons), #datasorts, #funcsorts)
 
 /* Add rule to module content. Always succeed. */
@@ -150,7 +150,7 @@ rule PutRule1(SOME(#rulesForCons:List<Core_cdecl_sort>), #rules, #constructor, #
 → MapPut<String List>(#rules, #constructor, Append<Core_cdecl_sort>(#rule, #rulesForCons))  // Keep rules in order.
 
 /*  Add data sort to module content. Fail if data sort already exists. */
-func PutDataSort(eager { String : Core_cdecl_sort }, Core_cdecl_sort) -> { String : Core_cdecl_sort }
+func PutDataSort({ String : Core_cdecl_sort }, Core_cdecl_sort) -> {String : Core_cdecl_sort}
 rule PutDataSort(#data, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)
 → PutDataSort1(MapGet<String Core_cdecl_sort>(#data, #CONSTRUCTOR), #data, #CONSTRUCTOR,  cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)
 
@@ -159,12 +159,16 @@ rule PutDataSort1(NONE, #data, #constructor, #decl)
 → MapPut<String Core_cdecl_sort>(#data, #constructor, #decl)
 
 rule PutDataSort1(SOME(#datasort:Core_cdecl_sort), #data, #constructor, #rule)
-→ Error<{ String : Core_cdecl_sort}>(ConcatString("Data sort already declared:", #constructor))
+→ Error<{String : Core_cdecl_sort}>(ConcatString("Data sort already declared:", #constructor))
 
-/* Add/Update function sort to module content.
- */
+/* Add/Update function sort to module content. */
 // FIXME: lazy call to MapGet...
-func PutFuncSort(eager { String : Core_cdecl_sort }, Core_cdecl_sort, Bool) -> {String : Core_cdecl_sort}
+
+func PutFuncSortL(LoadedContent, Core_cdecl_sort, Bool) -> LoadedContent
+rule PutFuncSortL(LoadedContent(#imports, #rules, #datasorts, #funcsorts), #funcsort, #overwrite)
+→ LoadedContent(#imports, #rules, #datasorts, PutFuncSort(#funcsorts, #funcsort, #overwrite))
+
+func PutFuncSort({String : Core_cdecl_sort}, Core_cdecl_sort, Bool) -> {String : Core_cdecl_sort}
   rule PutFuncSort(#func, cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #overwrite)
   → PutFuncSort1(MapGet<String Core_cdecl_sort>(#func, #CONSTRUCTOR), #func, #CONSTRUCTOR,  cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #overwrite)
 

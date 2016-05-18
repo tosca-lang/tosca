@@ -9,11 +9,11 @@ import Core::Core
 
 /* @return TRUE if the term is a meta-application. Ignore binders and formal parameters  */
 func IsMeta(Core_cterm_sort) -> Bool
-  rule IsMeta(cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧) → TRUE
-  rule IsMeta(cterm⟦ [ v ##csortanno? ] ##cterm ⟧)                 → IsMeta(#cterm[var:String])
-  rule IsMeta(cterm⟦ ( f ##csortanno? ) ##cterm ⟧)                 → IsMeta(#cterm[var:String])
-  rule IsMeta(cterm⟦ thunk ##cterm ⟧)                              → IsMeta(#cterm)
-  rule IsMeta(#term)                                              → FALSE
+rule IsMeta(cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧) → TRUE
+rule IsMeta(cterm⟦ [ v ##csortanno? ] ##cterm ⟧)                 → IsMeta(#cterm[var:String])
+rule IsMeta(cterm⟦ ( f ##csortanno? ) ##cterm ⟧)                 → IsMeta(#cterm[var:String])
+rule IsMeta(cterm⟦ thunk ##cterm ⟧)                              → IsMeta(#cterm)
+rule IsMeta(#term)                                              → FALSE
 
 /* Check whether the given annotation is in the given list */
 func HasAnnotation(#anno: String, #anno*: List<Core_canno_sort>) -> Bool
@@ -39,18 +39,26 @@ rule QSortToString(csortqualifier⟦ ##CONSTRUCTOR :: ⟧) → #CONSTRUCTOR
 func HasSorts(#csorts? :List<Core_csorts_sort>) -> Bool
 → IsNotEmpty<Core_csorts_sort>(#csorts?)
 
-/* @return true if the sort declaration is parameterized*/
+/* @return true if the sort declaration is parameterized */
 func HasSortVars(Core_cdecl_sort) -> Bool
-  rule HasSortVars(cdecl⟦ data ##csortvars ##CONSTRUCTOR ##cforms ⟧)
-  → TRUE
+rule HasSortVars(cdecl⟦ data ##csortvars ##CONSTRUCTOR ##cforms ⟧)                                 → TRUE
+rule HasSortVars(cdecl⟦ ##canno* ##extern_TOK? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧) → TRUE
+rule HasSortVars(#)                                                                                → FALSE
 
-  rule HasSortVars(cdecl⟦ ##canno* ##extern_TOK? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧)
-  → TRUE
-
-  rule HasSortVars(#)
-  → FALSE
-
-/** Get sort from annotation */
+/* @return sort from sort annotation, or NONE */
 func MaybeSortAnnoToSort(List<Core_csortanno_sort>) -> Option<Core_csort_sort>
-  rule MaybeSortAnnoToSort(csortanno?⟦ ⟧)          → NONE
-  rule MaybeSortAnnoToSort(csortanno?⟦ : ##csort ⟧) → SOME(#csort)
+rule MaybeSortAnnoToSort(csortanno?⟦ ⟧)           → NONE
+rule MaybeSortAnnoToSort(csortanno?⟦ : ##csort ⟧) → SOME(#csort)
+
+/* @return sort from term, or NONE */
+func TermSort(Core_cterm_sort) -> Option<Core_csort_sort>
+rule TermSort(cterm⟦ ##cqconstructor ##csortargs? ##cterms? : ##csort ⟧) → SOME(#csort)
+rule TermSort(cterm⟦ ##METAVAR ##cterms? ##csubst? : ##csort ⟧)          → SOME(#csort)
+rule TermSort(cterm⟦ ##STRING ⟧)                                         → SOME(csort⟦ String ⟧)
+rule TermSort(cterm⟦ ##NUMBER ⟧)                                         → SOME(csort⟦ Numeric ⟧)
+rule TermSort(cterm⟦ ##cvariable : ##csort ⟧)                            → SOME(#csort)
+rule TermSort(cterm⟦ { ##cmapentries } ⟧)                                → NONE  // TODO:
+rule TermSort(cterm⟦ [ x ##csortanno? ] ##cterm ⟧)                       → TermSort(#cterm)
+rule TermSort(cterm⟦ ( x ##csortanno? ) ##cterm ⟧)                       → TermSort(#cterm)
+rule TermSort(cterm⟦ thunk ##cterm ⟧)                                    → TermSort(#cterm)
+rule TermSort(#)                                                         → NONE
