@@ -95,7 +95,7 @@ rule CCBinderUp(#csortanno?, [x] -> PairCons(#env:Env, #cterm[x] : Core_cterm_so
 
 func CCFormalUp(List<Core_csortanno_sort>, [String] -> Pair<Env Core_cterm_sort>) -> Pair<Env Core_cterm_sort>
 rule CCFormalUp(#csortanno?, [f] -> PairCons(#env:Env, #cterm[f]:Core_cterm_sort))
-→ PairCons(#env, cterm⟦ ( f ##csortanno? ) #cterm ⟧)
+→ PairCons(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧)
 
 func CCMaybeTermsUp(Pair<Env List<Core_cterm_sort>>) -> Pair<Env List<Core_cterms_sort>>
 rule CCMaybeTermsUp(PairCons(#env:Env, #cterm*:List<Core_cterm_sort>)) → PairCons(#env, cterms?⟦ ( ##cterm* ) ⟧)
