@@ -35,7 +35,7 @@ public class Functions
 		return new Closure4<>(function, captures);
 	}
 
-	static public class Closure1<R extends Term, P1 extends Term> implements Term
+	static public class Closure1<R extends Term, P1 extends Term>  
 	{
 		Function1<R, P1> function;
 		Term[] captures;
@@ -46,12 +46,12 @@ public class Functions
 			this.captures = captures;
 		}
 
-		@Override
-		public Term copy(Context c)
-		{
-			// TODO: ref counting for captured terms.
-			return new Closure1<>(function, captures);
-		}
+//		@Override
+//		public Term copy(Context c)
+//		{
+//			// TODO: ref counting for captured terms.
+//			return new Closure1<>(function, captures);
+//		}
 
 		public R eval(Context context, P1 p1)
 		{
@@ -60,7 +60,7 @@ public class Functions
 
 	}
 
-	static public class Closure2<R extends Term, P1 extends Term, P2 extends Term> implements Term
+	static public class Closure2<R extends Term, P1 extends Term, P2 extends Term> 
 	{
 		Function2<R, P1, P2> function;
 		Term[] captures;
@@ -70,13 +70,13 @@ public class Functions
 			this.function = function;
 			this.captures = captures;
 		}
-
-		@Override
-		public Term copy(Context c)
-		{
-			// TODO: ref counting for captured terms.
-			return new Closure2<>(function, captures);
-		}
+//
+//		@Override
+//		public Term copy(Context c)
+//		{
+//			// TODO: ref counting for captured terms.
+//			return new Closure2<>(function, captures);
+//		}
 
 		public R eval(Context context, P1 p1, P2 p2)
 		{
@@ -85,7 +85,7 @@ public class Functions
 
 	}
 
-	static public class Closure3<R extends Term, P1 extends Term, P2 extends Term, P3 extends Term> implements Term
+	static public class Closure3<R extends Term, P1 extends Term, P2 extends Term, P3 extends Term>  
 	{
 		Function3<R, P1, P2, P3> function;
 		Term[] captures;
@@ -96,12 +96,12 @@ public class Functions
 			this.captures = captures;
 		}
 
-		@Override
-		public Term copy(Context c)
-		{
-			// TODO: ref counting for captured terms.
-			return new Closure3<>(function, captures);
-		}
+//		@Override
+//		public Term copy(Context c)
+//		{
+//			// TODO: ref counting for captured terms.
+//			return new Closure3<>(function, captures);
+//		}
 
 		public R eval(Context context, P1 p1, P2 p2, P3 p3)
 		{
@@ -110,7 +110,7 @@ public class Functions
 
 	}
 
-	static public class Closure4<R extends Term, P1 extends Term, P2 extends Term, P3 extends Term, P4 extends Term> implements Term
+	static public class Closure4<R extends Term, P1 extends Term, P2 extends Term, P3 extends Term, P4 extends Term>  
 	{
 		Function4<R, P1, P2, P3, P4> function;
 		Term[] captures;
@@ -120,13 +120,13 @@ public class Functions
 			this.function = function;
 			this.captures = captures;
 		}
-
-		@Override
-		public Term copy(Context c)
-		{
-			// TODO: ref counting for captured terms.
-			return new Closure4<>(function, captures);
-		}
+//
+//		@Override
+//		public Term copy(Context c)
+//		{
+//			// TODO: ref counting for captured terms.
+//			return new Closure4<>(function, captures);
+//		}
 
 		public R eval(Context context, P1 p1, P2 p2, P3 p3, P4 p4)
 		{

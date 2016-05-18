@@ -12,13 +12,8 @@ class Optional
 public:
     static Optional<T> nullopt;
 
-    Optional() : v(0)
-    {
-    }
-
-    Optional(T* value) : v(value)
-    {
-    }
+    Optional() : v(0) {}
+    Optional(T& val) : v(&val){}
 
     explicit operator bool() const
     {
@@ -34,14 +29,14 @@ public:
 
 private:
     /* A pointer (possibly empty) to the value */
-    T* const v;
+    T* v;
 };
 
 template<typename T>
 Optional<T> Optional<T>::nullopt = Optional<T>();
 
 template<typename T>
-Optional<T> make_optional(T* value)
+Optional<T> make_optional(T& value)
 {
     return Optional<T>(value);
 }

@@ -35,7 +35,7 @@ enum Content
 /* The actual module content. Sorts and rules are indexed for fast lookup. */
 enum LoadedContent |
     LoadedContent(
-           List<Core_cqconstructor_sort /* Constructor */>,                       /* Imports */
+           List<Core_cqconstructor_sort /* Constructor */>,     /* Imports */
            {String /* Constructor */ : List<Core_cdecl_sort>},  /* Rules */
            {String /* Constructor */ : Core_cdecl_sort},        /* DataSorts */
            {String /* Constructor */ : Core_cdecl_sort})        /* FuncSorts */
@@ -130,21 +130,26 @@ func MatchConsForm(Core_cform_sort, String) -> Bool
 
 // --- Loaded content mutation functions.
 
-/* Add rule to module content. Always succeed.
+/* Put the given constructor and rules list pair to the given loaded content.
+   If the loaded content already contains the entry for the given constructor, it is replaced.
 */
-func PutRule(eager { String : List<Core_cdecl_sort>}, Core_cdecl_sort) -> { String : List<Core_cdecl_sort> }
+func PutRules(LoadedContent, String, List<Core_cdecl_sort>) -> LoadedContent
+rule PutRules(LoadedContent(#imports, #rules, #datasorts, #funcsorts), #constructor, #rulesForCons)
+→ LoadedContent(#imports, MapPut<String List>(#rules, #constructor, #rulesForCons), #datasorts, #funcsorts)
+
+/* Add rule to module content. Always succeed. */
+func PutRule({String : List<Core_cdecl_sort>}, Core_cdecl_sort) -> {String : List<Core_cdecl_sort>}
 rule PutRule(#rules, cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
 → PutRule1(MapGet<String List>(#rules, #CONSTRUCTOR), #rules, #CONSTRUCTOR, cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
 
-func PutRule1(Option<List<Core_cdecl_sort>>, { String : List<Core_cdecl_sort>}, String, Core_cdecl_sort) -> { String : List<Core_cdecl_sort> }
+func PutRule1(Option<List<Core_cdecl_sort>>, {String : List<Core_cdecl_sort>}, String, Core_cdecl_sort) -> { String : List<Core_cdecl_sort> }
 rule PutRule1(NONE, #rules, #constructor, #rule)
 → MapPut<String List>(#rules, #constructor, (#rule,))
 
-rule  PutRule1(SOME(#rulesForCons:List<Core_cdecl_sort>), #rules, #constructor, #rule)
+rule PutRule1(SOME(#rulesForCons:List<Core_cdecl_sort>), #rules, #constructor, #rule)
 → MapPut<String List>(#rules, #constructor, Append<Core_cdecl_sort>(#rule, #rulesForCons))  // Keep rules in order.
 
-/*  Add data sort to module content. Fail if data sort already exists.
-*/
+/*  Add data sort to module content. Fail if data sort already exists. */
 func PutDataSort(eager { String : Core_cdecl_sort }, Core_cdecl_sort) -> { String : Core_cdecl_sort }
 rule PutDataSort(#data, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)
 → PutDataSort1(MapGet<String Core_cdecl_sort>(#data, #CONSTRUCTOR), #data, #CONSTRUCTOR,  cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)

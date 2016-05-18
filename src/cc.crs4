@@ -1,0 +1,149 @@
+// Copyright (c) 2016 IBM Corporation.
+import Std::Core
+import Std::Mapdef
+import Std::Listdef
+import Std::Pairdef
+import Std::String
+import Std::Num
+import Core::Core
+import Core::Utils
+import Systemdef
+
+/* Convert closures in the given module. */
+func CCCore(#content: LoadedContent) -> LoadedContent
+→ IfDef<LoadedContent>("cpp",
+    () -> FoldlP<String LoadedContent>((key content) -> CCRules(key, UnSOME<List>(GetRulesForKey(key, content)), content),
+                                      #content,
+                                      MapKeys<String List>(GetRules(#content))),
+    () -> #content)
+
+// --- Pre-traversal handlers
+
+/* Convert the given rules.
+   Store each converted rule in an environment and update the module content on the way up.
+ */
+func CCRules(#key: String, #rules: List<Core_cdecl_sort>, #content: LoadedContent) -> LoadedContent
+→ CCRulesUp(#key, FoldlP<Core_cdecl_sort Env>((rul env) -> CCRule(env, rul), EnvNew(#key, #content), #rules))
+
+func CCRule(Env, Core_cdecl_sort) -> Env
+rule CCRule(#env, cdecl⟦ rule ##cterm1 → ##cterm2 ⟧) → CCRuleUp(#cterm1, CCTerm(#env, #cterm2))
+
+/* Traverse down the term given term and search for closures */
+// TODO: extract boilerplate
+func CCTerm(Env, Core_cterm_sort) -> Pair<Env Core_cterm_sort>
+rule CCTerm(#env, cterm⟦ ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧) → CCConsUp(#cqconstructor, #csortargs?, CCMaybeTerms(#env, #cterms?), #csortanno?)
+rule CCTerm(#env, cterm⟦ ##cliteral ⟧)                                          → PairCons(#env, cterm⟦ ##cliteral ⟧)
+rule CCTerm(#env, cterm⟦ ##VARIABLE ⟧)                                          → PairCons(#env, cterm⟦ ##VARIABLE ⟧)
+rule CCTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)          → CCMetaUp(#METAVAR, CCMaybeTerms(#env, #cterms?), #csubst?, #csortanno?)
+rule CCTerm(#env, cterm⟦ [ x ##csortanno? ] ##cterm ⟧)                          → CCBinderUp(#csortanno?, [x] -> CCTerm(#env, #cterm[x]))
+rule CCTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧)                          → CCFormal(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧, cterm⟦ ( f ##csortanno? ) ##cterm ⟧)
+
+func CCMaybeTerms(Env, List<Core_cterms_sort>) -> Pair<Env List<Core_cterms_sort>>
+rule CCMaybeTerms(#env, cterms?⟦              ⟧) → PairCons(#env, cterms?⟦⟧)
+rule CCMaybeTerms(#env, cterms?⟦ ()           ⟧) → PairCons(#env, cterms?⟦⟧)
+rule CCMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧) → CCMaybeTermsUp(CCTerms(#env, #cterm*))
+
+/*
+func CCMaybeSubst(Env, List<Core_csubst_sort>) -> Pair<Env List>
+rule CCMaybeSubst(#env, csubst?⟦              ⟧) → PairCons(#env, csubst?⟦⟧)
+rule CCMaybeSubst(#env, csubst?⟦ [ ##cterm* ] ⟧) → CCMaybeSubstUp(CCTerms(#env, #cterm*))
+*/
+
+func CCTerms(Env, List<Core_cterm_sort>) -> Pair<Env List<Core_cterm_sort>>
+rule CCTerms(#env, cterm*⟦                  ⟧) → PairCons(#env, cterm*⟦⟧)
+rule CCTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧) → CCTermsUp(CCTerm(#env, #cterm), #cterm*)
+
+// --- Process formal parameters. Setup environment for possible lifting.
+
+func CCFormal(Env, Core_cterm_sort, Core_cterm_sort /* original lambda term */) -> Pair<Env Core_cterm_sort>
+rule CCFormal(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧, #lambda) → CCFormalUp(#csortanno?, [f] -> CCFormal(EnvAddParam(#env, f, MaybeSortAnnoToSort(#csortanno?)), #cterm[f], #lambda))
+rule CCFormal(#env, #cterm, #lambda) → CCFormal2(#env, #cterm, #lambda)
+
+// Helper due to issue #15
+func CCFormal2(#env: Env, #cterm: Core_cterm_sort, #lambda : Core_cterm_sort) -> Pair<Env Core_cterm_sort>
+→ If<Pair>(MustConvert(#env, #cterm), ()->CCLift(#env, #cterm, #lambda), ()->CCTerm(#env, #cterm))
+
+// --- Closure conversion happens here
+
+func CCLift(Env, Core_cterm_sort, Core_cterm_sort) -> Pair<Env Core_cterm_sort>
+rule CCLift(#env, #cterm, #lambda) → PairCons(#env, cterm⟦ ⟨CONSTRUCTOR: CCName(#env)⟩ ( ⟨cterm*: CCExpandParams(EnvParams(#env))⟩ ) ⟧)
+
+func CCExpandParams(List<Pair<String Option<Core_csort_sort>>>) -> List<Core_cterm_sort>
+rule CCExpandParams(())                                      → ()
+
+// use #VARIABLE due to issue #20
+rule CCExpandParams(Cons(Pair<String Option<Core_csort_sort>>::PairCons(#VARIABLE:String, #sort?:Option<Core_csort_sort>), #params:List)) → cterm*⟦ ##VARIABLE ⟨cterm*: CCExpandParams(#params)⟩ ⟧
+
+/* Produce a unique, deterministic, function name */
+func CCName(#env: Env) -> String → ConcatString(EnvName(#env), ConcatString("$", FormatNumber(EnvCounter(#env))))
+
+// --- Post traversal handlers
+
+func CCRulesUp(#key: String, #env: Env) -> LoadedContent → PutRules(EnvContent(#env), #key, EnvRules(#env))
+
+func CCRuleUp(Core_cterm_sort, Pair<Env Core_cterm_sort>) -> Env
+rule CCRuleUp(#cterm1, PairCons(#env:Env, #cterm2:Core_cterm_sort)) → EnvAddRule(#env, cdecl⟦ rule ##cterm1 → ##cterm2 ⟧)
+
+func CCConsUp(Core_cqconstructor_sort, List<Core_csortargs_sort>, Pair<Env List<Core_cterms_sort>>, List<Core_csortanno_sort>) -> Pair<Env Core_cterm_sort>
+rule CCConsUp(#cqconstructor, #csortargs?, PairCons(#env:Env, #cterms?:List), #csortanno?) → PairCons(#env, cterm⟦ ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧)
+
+func CCMetaUp(String, Pair<Env List<Core_cterms_sort>>, List<Core_csubst_sort>, List<Core_csortanno_sort>) -> Pair<Env Core_cterm_sort>
+rule CCMetaUp(#METAVAR, PairCons(#env:Env, #cterms?:List), #csubst?, #csortanno?) → PairCons(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)
+
+func CCBinderUp(List<Core_csortanno_sort>, [String] -> Pair<Env Core_cterm_sort>) -> Pair<Env Core_cterm_sort>
+rule CCBinderUp(#csortanno?, [x] -> PairCons(#env:Env, #cterm[x] : Core_cterm_sort)) → PairCons(#env, cterm⟦ [ x ##csortanno? ] ##cterm ⟧ )
+
+func CCFormalUp(List<Core_csortanno_sort>, [String] -> Pair<Env Core_cterm_sort>) -> Pair<Env Core_cterm_sort>
+rule CCFormalUp(#csortanno?, [f] -> PairCons(#env:Env, #cterm[f]:Core_cterm_sort))
+→ PairCons(#env, cterm⟦ ( f ##csortanno? ) #cterm ⟧)
+
+func CCMaybeTermsUp(Pair<Env List<Core_cterm_sort>>) -> Pair<Env List<Core_cterms_sort>>
+rule CCMaybeTermsUp(PairCons(#env:Env, #cterm*:List<Core_cterm_sort>)) → PairCons(#env, cterms?⟦ ( ##cterm* ) ⟧)
+
+func CCTermsUp(Pair<Env Core_cterm_sort>, List<Core_cterm_sort>) -> Pair<Env List<Core_cterm_sort>>
+rule CCTermsUp(PairCons(#env:Env, #cterm: Core_cterm_sort), #cterm*) → UnPair<Env List Pair>(CCTerms(#env, #cterm*), (env cterms) -> PairCons(env, cterm*⟦ ##cterm ⟨cterm*: cterms⟩ ⟧))
+
+/* @return TRUE if term is a closure not of the form (x1 .. xn) -> F(x1 .. xn, #1 .. #M)
+   where #1 .. #M are captured meta-variables.
+   TODO: consider other evaluation order, for instance by capturing evaluated function.
+ */
+func MustConvert(Env, Core_cterm_sort) -> Bool
+rule MustConvert(#env, cterm⟦ ##VARIABLE ⟧) → TRUE
+rule MustConvert(#env, #cterm)              → FALSE // TODO!
+
+// -- Environment
+
+enum Env | Env(
+                 String,                 // Function constructor
+                 LoadedContent,          // The module content
+                 List<Core_cdecl_sort>,  // List of converted rules
+                 List<Pair<String  Option<Core_csort_sort>>>,        // List of formal parameters with types
+                 Numeric                 // A counter
+              )
+
+
+func EnvNew(#name: String, #content: LoadedContent) -> Env → Env(#name, #content, (), (), 1)
+
+func EnvName(Env) -> String
+rule EnvName(Env(#name, #content, #rules, #params, #counter)) → #name
+
+func EnvContent(Env) -> LoadedContent
+rule EnvContent(Env(#name, #content, #rules, #params, #counter)) → #content
+
+func EnvRules(Env) -> List<Core_cdecl_sort>
+rule EnvRules(Env(#name, #content, #rules, #params, #counter)) → #rules
+
+func EnvParams(Env) -> List<Pair<String  Option<Core_csort_sort>>>
+rule EnvParams(Env(#name, #content, #rules, #params, #counter)) → #params
+
+func EnvCounter(Env) -> Numeric
+rule EnvCounter(Env(#name, #content, #rules, #params, #counter)) → #counter
+
+func EnvAddRule(Env, Core_cdecl_sort) -> Env
+rule EnvAddRule(Env(#name, #content, #rules, #params, #counter), #rule) → Env(#name, #content, Cons(#rule, #rules), #params, #counter)
+
+func EnvAddParam(Env, String, Option<Core_csort_sort>) -> Env
+rule EnvAddParam(Env(#name, #content, #rules, #params, #counter), #param, #sort) → Env(#name, #content, #rules, Append<Pair>(PairCons(#param, #sort), #params), #counter)
+
+func EnvIncCounter(Env) -> Env
+rule EnvIncCounter(Env(#name, #content, #rules, #params, #counter)) → Env(#name, #content, #rules, #params, Plus(#counter, 1))

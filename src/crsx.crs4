@@ -6,6 +6,7 @@
 import Systemdef
 import Normalizer
 import Checker
+import Cc
 import Cg::Cgjava
 import Cg::Cgcpp
 import Std::Core
@@ -47,7 +48,7 @@ rule MaybeLoadModule(#system, SOME(Module::Module(#url:String, Content::NOTLOADE
 
 func LoadModule(String) -> Content
 rule LoadModule(#url)
-→ Loaded(CheckCore(LoadCore(If<Core_ccrsx_sort>(EndsWith(#url, ".crsc"), ()->ParseCore(#url), ()->ParseTransScript(#url)))))
+→ Loaded(CCCore(CheckCore(LoadCore(If<Core_ccrsx_sort>(EndsWith(#url, ".crsc"), ()->ParseCore(#url), ()->ParseTransScript(#url))))))
 
 func ParseCore(String) -> Core_ccrsx_sort
 rule ParseCore(#url) → ParseResource<Core_ccrsx_sort>("ccrsx", #url)

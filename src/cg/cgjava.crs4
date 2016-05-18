@@ -968,7 +968,7 @@ func JavaPatternMaybeMetaArgs(eager {String : JavaEnvEntry}, String, List<Core_c
   rule JavaPatternMaybeMetaArgs(#env, #metavar, csubst?⟦ [ ##cterm* ] ⟧, #term, #csort, #cont)
   → #cont(AddMeta(#env, #metavar, #term, Map<Core_cterm_sort Text4_text_sort>((x) -> JavaFindBoundVar(#env, x), #cterm*)))
 
-func JavaFindBoundVar(eager {String : JavaEnvEntry},Core_cterm_sort) -> Text4_text_sort
+func JavaFindBoundVar({String : JavaEnvEntry}, Core_cterm_sort) -> Text4_text_sort
 
   rule JavaFindBoundVar(#env, cterm⟦ ##VARIABLE ⟧)
   → GetVar(#env, #VARIABLE)
@@ -997,20 +997,17 @@ func ResolveTypeParamCons(Option<Core_csort_sort>) -> Text4_text_sort
   → text⟦⟧
 
 /* Get sub sort. Get it from term and if not available on sort */
-func SubSort(eager {String : JavaEnvEntry}, Core_cterm_sort, Option<List<Core_csort_sort>>) -> Option<Core_csort_sort>
+func SubSort({String : JavaEnvEntry}, Core_cterm_sort, Option<List<Core_csort_sort>>) -> Option<Core_csort_sort>
 rule SubSort(#env, #cterm, #csorts?)
 → SubSort2(SubSortFromTerm(#env, #cterm), #csorts?)
 
 func SubSort2(Option<Core_csort_sort>, Option<List<Core_csort_sort>>) -> Option<Core_csort_sort>
+rule SubSort2(SOME(#csort:Core_csort_sort), #)       → SOME(#csort)
+rule SubSort2(NONE, NONE)                            → NONE
+rule SubSort2(NONE, SOME(csort*⟦ ##csort ##csort* ⟧)) → SOME(#csort)
 
-  rule SubSort2(SOME(#csort:Core_csort_sort), #)
-  → SOME(#csort)
-
-  rule SubSort2(NONE, NONE)
-  → NONE
-
-  rule SubSort2(NONE, SOME(csort*⟦ ##csort ##csort* ⟧))
-  → SOME(#csort)
+// TODO: enable when fixing issue #19
+//rule SubSort2(NONE, SOME(csort*⟦ ⟧))                  → Error<Option>("Error: could not find type for sub term.")
 
 func SubSortFromTerm(eager {String : JavaEnvEntry}, Core_cterm_sort) -> Option<Core_csort_sort>
 

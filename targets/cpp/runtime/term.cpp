@@ -18,18 +18,18 @@ _Ref::_Ref() :
 
 _Ref::~_Ref()
 {
-    assert(refcount == 0);
+    // assert(refcount == 0);
 }
 
 void _Ref::Ref()
 {
-    assert(refcount > 0);
+    // assert(refcount > 0);
     refcount++;
 }
 
 void _Ref::Release()
 {
-    assert(refcount > 0);
+    //assert(refcount > 0);
     refcount--;
     if (refcount == 0)
         delete this;
@@ -45,15 +45,19 @@ _Variable::_Variable(std::string n) :
 }
 
 // --- String
-
+//
 StringTerm stringTerm(std::string&& val)
 {
-    return *(new _ValStringTerm(val));
+    return *(new _ValStringTerm(*(new std::string(val))));
 }
 
 _ValStringTerm::_ValStringTerm(std::string& val) :
         value(val)
+{}
+
+_ValStringTerm::~_ValStringTerm()
 {
+    delete &value;
 }
 
 Term _ValStringTerm::Copy(Context c)
@@ -64,7 +68,7 @@ Term _ValStringTerm::Copy(Context c)
 
 Optional<std::string> _ValStringTerm::Unbox() const
 {
-    return make_optional<std::string>(&value);
+    return make_optional<std::string>(value);
 }
 //
 //} // runtime
@@ -72,17 +76,3 @@ Optional<std::string> _ValStringTerm::Unbox() const
 
 //using namespace ts::runtime;
 //
-//int main(int argc, char **argv)
-//{
-//    Context ctx = *(new _Context());
-//    _List<_StringTerm&>& nil = Nil<_StringTerm&>(ctx);
-//    StringTerm v = stringTerm("boo");
-//
-//    //Optional<StringTerm> o = make_optional<StringTerm>(new _ValStringTerm(new std::string("Boo")));
-//    std::cout << "boo!" << v.refcount;
-//
-//    v.Release();
-//    std::cout << "\nboo!" << v.refcount;
-//
-//}
-

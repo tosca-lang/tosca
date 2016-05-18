@@ -72,7 +72,7 @@ func CppFormMethodAs(String, List<Core_csortvars_sort>, String, Bool) -> Text4_t
   → text⟦
     Optional<†⟨FormCppClassName(#formname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩> †⟨CppFormQualifier(#formname, #csortvars?, #header)⟩†⟨CppAsMethodName(#formname)⟩(Context context)†⟨
     If<Text4_text_sort>(GenBody(#csortvars?, #header), ()->text⟦{
-       return make_optional<†⟨FormCppClassName(#formname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩>(this);
+       return make_optional<†⟨FormCppClassName(#formname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩>(*this);
     }⟧, ()->text⟦;⟧)⟩⟧
 
 /* Generate overridden copy method for the given form. Generate body only if asked for. */
@@ -606,9 +606,8 @@ func CppExprLambda({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) -
  rule CppExprLambda(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #cont)
  → text⟦&†⟨SortNameToCppClassName(#CONSTRUCTOR)⟩, 0)†⟨#cont(#env)⟩⟧
 
-  // TODO: captures
-  rule CppExprLambda(#env, cterm⟦ ##VARIABLE ⟧, #cont)
-  → text⟦&identity, 0)†⟨#cont(#env)⟩⟧
+  rule CppExprLambda(#env, #cterm, #cont)
+  → Error<Text4_text_sort>("Internal Error: Invalid lambda expression. Lambda must be of the form (x .. y) -> C(x .. y, #1 .. #n)")
 
 // --- Literal
 

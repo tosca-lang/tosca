@@ -4,39 +4,98 @@
 
 #include "term.h"
 
-/* Provide generic classes to create closure */
+// Provide commonly used closure signatures.
+//
+// Could propably be more generic but need to dig deep
+// into C++ metaprogramming.
+//
+// No need to do more, as C++11 renders this code obsolete.
 
-template <typename R, typename P1>
-class _Closure1: public _Term
+typedef Ref (*Function)();
+typedef Ref (*Fun0)(Context ctx);
+typedef Ref (*Fun1)(Context ctx, Ref);
+typedef Ref (*Fun2)(Context ctx, Ref, Ref);
+typedef Ref (*Fun3)(Context ctx, Ref, Ref, Ref);
+typedef Ref (*Fun4)(Context ctx, Ref, Ref, Ref, Ref);
+
+/* Closure with one free variable, no capture. Arity must be one. */
+template<typename R, typename P1>
+class _Closure1: public _Ref
 {
 public:
-    typedef R(*Function1)(Context, P1);
+    _Closure1(Function f) : function(f) {}
+    virtual ~_Closure1() {}
 
-    _Closure1(Function1 f1, _Term** cptrs) : function(f1), captures(cptrs)
-    {}
+    virtual R eval(Context context, P1 p1)
+    {
+        return dynamic_cast<R>(reinterpret_cast<Fun1>(function)(context, p1));
+    }
+
+protected:
+    Function function;
+};
+
+/* Closure with one free variable, with capture. */
+template<typename R, typename P1, int arity>
+class _Closure1C: public _Closure1<R, P1> {};
+
+/* Closure with one free variable, For function arity 2. */
+template<typename R, typename P1>
+class _Closure1C<R, P1, 2> : public _Closure1<R, P1>
+{
+public:
+    _Closure1C(Function f, Ref c1) :
+            _Closure1<R, P1>::_Closure1(f), cptr1(c1) {}
+
+    ~_Closure1C()
+    {
+        cptr1.Release();
+    }
 
     R eval(Context context, P1 p1)
     {
-        return function(context, p1);
+        return dynamic_cast<R>(reinterpret_cast<Fun2>(_Closure1<R, P1>::function)(context, p1, NewRef(cptr1)));
     }
 
 private:
-    Function1 function;
-    _Term** captures;
+    Ref cptr1;
+};
+
+/* Closure with one free variable, For function arity 2. */
+template<typename R, typename P1>
+class _Closure1C<R, P1, 3> : public _Closure1<R, P1>
+{
+public:
+    _Closure1C(Function f, Ref c1, Ref c2) :
+            _Closure1<R, P1>::_Closure1(f), cptr1(c1), cptr2(c2) {}
+
+    ~_Closure1C()
+    {
+        cptr1.Release();
+        cptr2.Release();
+    }
+
+    R eval(Context context, P1 p1)
+    {
+        return dynamic_cast<R>(reinterpret_cast<Fun3>(_Closure1<R, P1>::function)(context, p1, NewRef(cptr1), NewRef(cptr2)));
+    }
+
+private:
+    Ref cptr1;
+    Ref cptr2;
 };
 
 // Don't use typename _Closure1<R, P1>::Function1 here because it's a non-deduced context.
-template <typename R, typename P1>
-_Closure1<R, P1>& closure(R (*function)(Context, P1), _Term** captures)
+template<typename R, typename P1, typename P2>
+_Closure1<R&, P1&>& closure(R (*function)(Context ctx, P1&, P2&), P2& c1)
 {
-    return *(new _Closure1<R, P1>(function, captures));
+    return *(new _Closure1C<R&, P1&, 2>(reinterpret_cast<Function>(function), c1));
 }
 
-template <typename T>
-T identity(Context ctx, T value)
+template<typename R, typename P1, typename P2, typename P3>
+_Closure1<R&, P1&>& closure(R (*function)(Context ctx, P1&, P2&, P3&), P2& c1, P3& c2)
 {
-    return value;
+    return *(new _Closure1C<R&, P1&, 3>(reinterpret_cast<Function>(function), c1, c2));
 }
-
 
 #endif

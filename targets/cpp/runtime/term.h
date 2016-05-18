@@ -4,7 +4,6 @@
 #define _TERM_H
 
 #include <cassert>
-#include <initializer_list>
 #include <string>
 
 #include "compat.h"
@@ -29,6 +28,9 @@ class _Term;
 //using Term = _Term&;
 typedef _Term& Term;
 
+class _Ref;
+typedef _Ref& Ref;
+
 class _Ref
 {
 public:
@@ -48,6 +50,13 @@ public:
     void Release();
 
 };
+
+/* Just a convenient function for the user code to look nicer */
+template<typename T>
+inline T& NewRef(T& ref) {
+    ref.Ref();
+    return static_cast<T&>(ref);
+}
 
 /*
  * Base class for all terms, typed or not.
@@ -146,6 +155,7 @@ StringTerm stringTerm(std::string&& str);
 class _StringTerm: public _Term
 {
 public:
+    virtual ~_StringTerm() { };
 
     /** Peek at native string value */
     virtual Optional<std::string> Unbox() const
@@ -166,6 +176,7 @@ protected:
 
 public:
     _ValStringTerm(std::string& value);
+    ~_ValStringTerm();
 
     Term Copy(Context c);
     Optional<std::string> Unbox() const;
