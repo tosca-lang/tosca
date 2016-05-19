@@ -95,17 +95,17 @@ rule CCReturnSort(SOME(#csort:Core_csort_sort)) → #csort
 // -- Generate rule for the lifted function.
 
 func CCLiftedRule(#env: Env, #name: String, #lambda: Core_cterm_sort) -> Core_cdecl_sort
-→  cdecl⟦ rule ⟨CONSTRUCTOR: #name⟩ ( ⟨cterm*: CCLiftedPattern(0, ListLength<Pair>(EnvParams(#env)))⟩ ) → ⟨cterm: CCLiftedContractum(#lambda, 0)⟩ ⟧
+→  cdecl⟦ rule ⟨CONSTRUCTOR: #name⟩ ( ⟨cterm*: CCLiftedPattern(0, ListLength<Pair>(EnvParams(#env)))⟩ ) → ⟨cterm: CCLiftedContractum(#lambda, 0, MapNew<String Core_cterm_sort>)⟩ ⟧
 
 func CCLiftedPattern(#i: Numeric, #until: Numeric) -> List<Core_cterm_sort>
 → If<List<Core_cterm_sort>>(NumberLessThan(#i, #until),
     ()->cterm*⟦ ⟨METAVAR: CCMetaVar(#i)⟩ ⟨cterm*: CCLiftedPattern(Plus(#i, 1), #until)⟩ ⟧,
     ()->cterm*⟦⟧)
 
-func CCLiftedContractum(Core_cterm_sort, Numeric) -> Core_cterm_sort
-rule CCLiftedContractum(cterm⟦ ( f ##csortanno? ) ##cterm ⟧, #i) → CCLiftedContractum(#cterm[cterm⟦ ⟨METAVAR: CCMetaVar(#i)⟩ ⟧], Plus(#i, 1))
-rule CCLiftedContractum(#cterm, #i) → #cterm // TODO: captures
-
+// TODO: don't use builtin substitution due to issue #24
+func CCLiftedContractum(Core_cterm_sort, Numeric, {String : Core_cterm_sort}) -> Core_cterm_sort
+rule CCLiftedContractum(cterm⟦ ( f ##csortanno? ) ##cterm ⟧, #i, #subst) → CCLiftedContractum(#cterm[f:String], Plus(#i, 1), MapPutVar<String Core_cterm_sort String>(#subst, f, cterm⟦⟨METAVAR: CCMetaVar(#i)⟩⟧))
+rule CCLiftedContractum(#cterm, #i, #subst) → Substitute(#cterm, #subst)
 
 func CCMetaVar(#i: Numeric) -> String → ConcatString("#", FormatNumber(Plus(#i, 1)))
 
@@ -135,7 +135,7 @@ func CCTermsUp(Pair<Env Core_cterm_sort>, List<Core_cterm_sort>) -> Pair<Env Lis
 rule CCTermsUp(PairCons(#env:Env, #cterm: Core_cterm_sort), #cterm*) → UnPair<Env List Pair>(CCTerms(#env, #cterm*), (env cterms) -> PairCons(env, cterm*⟦ ##cterm ⟨cterm*: cterms⟩ ⟧))
 
 /* @return TRUE if term is a closure not of the form (x1 .. xn) -> F(x1 .. xn, #1 .. #M)
-   where #1 .. #M are captured meta-variables.
+   where #1 .. #M are captured variables and meta-variables.
    TODO: consider other evaluation order, for instance by capturing evaluated function.
  */
 func MustConvert(Env, Core_cterm_sort) -> Bool
