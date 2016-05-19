@@ -23,6 +23,7 @@ import org.antlr.v4.runtime.dfa.DFA;
 import org.transscript.runtime.Parser;
 import org.transscript.runtime.Sink;
 import org.transscript.runtime.utils.Scoping;
+import org.transscript.tool.Utils;
 
 /**
  * Base class for meta and term parsers.
@@ -205,11 +206,12 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 		
 		TSAntlrErrorListener errorListener = new TSAntlrErrorListener();
 		addErrorListener(errorListener);
+		//addErrorListener(new DiagnosticErrorListener(false));
 		// Retrieve method to call.
 		realParse(category);
 
 		if (errorListener.error)
-			throw new RuntimeException("Parse error");  
+			Utils.fatal("Error(s) while parsing " + unit + ". Exiting.", null);  
 
 		return sink;
 	}

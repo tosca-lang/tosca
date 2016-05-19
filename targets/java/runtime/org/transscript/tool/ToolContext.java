@@ -2,7 +2,6 @@
 
 package org.transscript.tool;
 
-import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.ConstructionDescriptor;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.Term;
