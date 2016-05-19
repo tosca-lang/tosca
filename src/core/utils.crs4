@@ -56,7 +56,7 @@ rule TermSort(cterm⟦ ##cqconstructor ##csortargs? ##cterms? : ##csort ⟧) →
 rule TermSort(cterm⟦ ##METAVAR ##cterms? ##csubst? : ##csort ⟧)          → SOME(#csort)
 rule TermSort(cterm⟦ ##STRING ⟧)                                         → SOME(csort⟦ String ⟧)
 rule TermSort(cterm⟦ ##NUMBER ⟧)                                         → SOME(csort⟦ Numeric ⟧)
-rule TermSort(cterm⟦ ##cvariable : ##csort ⟧)                            → SOME(#csort)
+rule TermSort(cterm⟦ ##VARIABLE : ##csort ⟧)                             → SOME(#csort)
 rule TermSort(cterm⟦ { ##cmapentries } ⟧)                                → NONE  // TODO:
 rule TermSort(cterm⟦ [ x ##csortanno? ] ##cterm ⟧)                       → TermSort(#cterm)
 rule TermSort(cterm⟦ ( x ##csortanno? ) ##cterm ⟧)                       → TermSort(#cterm)

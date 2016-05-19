@@ -56,7 +56,7 @@ public class Utils
 	public static void fatal(String message, Exception e)
 	{
 		System.out.println(message);
-		if (e != null)
+		if (e != null && System.getenv("stacktrace") != null)
 			e.printStackTrace();
 		System.exit(0);
 	}

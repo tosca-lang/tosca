@@ -29,7 +29,11 @@ cterm
     : cqconstructor csortargs? cterms? csortanno?                    /* Constant/Construction */
     | METAVAR cterms? csubst? csortanno?                             /* Meta variable/call/substitution */
     | cliteral                                                       /* Literal construction */
-    | cvariable csortanno?                                           /* Variable */
+    | VARIABLE<variable> csortanno?                                  /* Variable */
+                              /* <variable> means 1. maps VARIABLE to a syntactic variable
+                                                  2. look for a bound variable that matches VARIABLE
+                                                     in the current tracked bound variables (innermost scope first).
+                                                    VARIABLE is free if not found in scope.  */
     | LCURLY cmapentries? RCURLY                                     /* Association map */
 
     // KEEP AT THE 6TH ALTERNATIVE UNTIL METAPARSER GENERATOR PROPERLY HANDLE BOUNDVAR
@@ -56,14 +60,6 @@ ccommaterms
 cliteral
     : STRING                                                    /* String literal */
     | NUMBER                                                    /* Number literal */
-    ;
-
-cvariable
-    : VARIABLE<variable=cterm>           /* Variable occurrence */
-                                        /* <variable> means 1. maps VARIABLE to a syntactic variable
-                                              2. look for a bound variable that matches VARIABLE
-                                                 in the current tracked bound variables (innermost scope first).
-                                                 VARIABLE is free if not found in scope.  */
     ;
 
 cmapentries

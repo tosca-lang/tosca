@@ -72,6 +72,7 @@ public class Tool
 		System.out.println("  build         Build a TransScript program");
 		System.out.println("  run           Run a TransScript program. Build it if necessary");
 		System.out.println("  test          Run the tests defined in the TransScript program");
+		System.out.println("  parse         Parse a TransScript program");
 		System.out.println("\nFor additional help, type java -jar transscript.jar command help.");
 		System.exit(0);
 	}
@@ -249,9 +250,11 @@ public class Tool
 
 	static void helpParse()
 	{
-		System.out.println("Usage: java -jar <transscript.jar> parse <rules=file.tsc>");
-		System.out.println("Parse TransScript program and print out expanded term.");
+		System.out.println("Usage: java -jar <transscript.jar> parse [<args>] <rules=file.tsc>");
+		System.out.println("Parse TransScript program.");
+		System.out.println("\n<args> are:");
 		helpCommon();
+		System.out.println("  quiet               does not print the parsed program as term.");
 		System.exit(0);
 	}
 
@@ -262,23 +265,26 @@ public class Tool
 		if (inputname == null)
 			helpParse();
 
+		ToolContext context = new ToolContext();
+		addGrammars(context, env.get("grammars"));
+		addGrammars(context, TransScriptMetaParser.class.getName());
+
+		setBootParserPath(context, env.get("bootparserpath"));
+		boolean quiet = env.get("quiet") != null;
+
+		// Register builtin transscript descriptors
+		TransScript.init(context);
+
 		try (FileReader reader = new FileReader(inputname))
 		{
-			ToolContext context = new ToolContext();
-			//context.dummySink = true;
-			addGrammars(context, env.get("grammars"));
-			addGrammars(context, TransScriptMetaParser.class.getName());
-				
-			setBootParserPath(context, env.get("bootparserpath"));
 
-			// Register builtin transscript descriptors
-			TransScript.init(context);
-			
 			TransScriptMetaParser parser = new TransScriptMetaParser();
-			
+
 			BufferSink buffer = context.makeBuffer();
-			parser.parse(buffer, "transscript", reader, "inputname", 1, 1, new Scoping(), new Scoping());
-			Utils.printTerm(context, null, buffer.term(), "sysout", System.out);
+			parser.parse(buffer, "transscript", reader, inputname, 1, 1, new Scoping(), new Scoping());
+			if (!quiet)
+				Utils.printTerm(context, null, ((BufferSink) buffer).term(), "sysout", System.out);
+
 		}
 		catch (FileNotFoundException e)
 		{
@@ -288,7 +294,6 @@ public class Tool
 		{
 			Utils.fatal("", e);
 		}
-
 	}
 
 	/** 

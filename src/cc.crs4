@@ -139,7 +139,7 @@ rule CCTermsUp(PairCons(#env:Env, #cterm: Core_cterm_sort), #cterm*) → UnPair<
    TODO: consider other evaluation order, for instance by capturing evaluated function.
  */
 func MustConvert(Env, Core_cterm_sort) -> Bool
-rule MustConvert(#env, cterm⟦ ##cvariable ##csortanno? ⟧)  → TRUE
+rule MustConvert(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧)  → TRUE
 rule MustConvert(#env, #cterm)                             → FALSE // TODO!
 
 // -- Environment

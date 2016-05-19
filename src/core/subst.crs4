@@ -14,7 +14,7 @@ rule Substitute(cterm⟦ #cliteral                                           ⟧
 
 // TODO: replace when issue #20 is fixed
 //rule Substitute(cterm⟦ ##VARIABLE ##csortanno?                             ⟧, #subst) → cterm⟦ ⟨VARIABLE: SubstVariable(#VARIABLE, #subst)⟩ ##csortanno? ⟧
-rule Substitute(cterm⟦ ##VARIABLE ##csortanno?                             ⟧, #subst) → Core_cterm_A4(Core_cvariable(SubstVariable(#VARIABLE, #subst)), #csortanno?)
+rule Substitute(cterm⟦ ##VARIABLE ##csortanno?                             ⟧, #subst) → Core_cterm_A4(SubstVariable(#VARIABLE, #subst), #csortanno?)
 
 rule Substitute(cterm⟦ { ##cmapentries? }                                  ⟧, #subst) → cterm⟦ { ⟨cmapentries?: SubstMaybeMapEntries(#cmapentries?, #subst)⟩ } ⟧
 rule Substitute(cterm⟦ [ x ##csortanno ] ##cterm                           ⟧, #subst) → cterm⟦ [ x ##csortanno ] ⟨cterm: Substitute(#cterm, #subst)⟩ ⟧
