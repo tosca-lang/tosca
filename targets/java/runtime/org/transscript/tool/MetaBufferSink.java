@@ -179,7 +179,7 @@ public class MetaBufferSink extends MetaSink
 	public Sink use(Variable variable)
 	{
 		TransScript_xterm_xsort term = TransScript_xterm(
-				context, TransScript_xaterm_xA4(context, TransScript_xvariable(context, (StringTerm) variable.use(), Nil(context))),
+				context, TransScript_xaterm_xA4(context, (StringTerm) variable.use(), Nil(context)),
 				Nil(context));
 
 		addSub(term);

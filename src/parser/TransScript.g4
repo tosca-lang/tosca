@@ -226,10 +226,10 @@ nterm[int p]
 
 // Atom term
 aterm
-    : cons                                                 /* Construction with zero or more args */
+    : cons                                                           /* Construction with zero or more args */
     | literal                                                        /* Literal construction */
     | groupOrList                                                    /* Grouped expression or List */
-    | variable                                                       /* Variable */
+    | VARIABLE<variable> sortAnno?                                   /* Variable occurrence, with optional sort */                                                       /* Variable */
     | map
     | metapp                                                         /* Meta variable/Function call/Substitution */
     | dispatch                                                       /* Dispatch expression */
@@ -286,10 +286,6 @@ groupOrList
  // TODO: enable below when meta parser handle + properly.
  //   | LPAR term[0] RPAR                                            /* Grouped term */
 //    | LPAR term[0] (COMMA term[0])+ RPAR                           /* Multiple terms list */
-    ;
-
-variable
-    : VARIABLE<variable> sortAnno?                                   /* Variable occurrence, with optional sort */
     ;
 
 literal
