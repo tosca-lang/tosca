@@ -234,6 +234,23 @@ rule Zip(() ,      # )      → Error<List>("ListExtension.Zip: second argument 
 rule Zip(#  ,      ())      → Error<List>("ListExtension.Zip: first argument list was longer")
 rule Zip(Cons(#X:a, #XS:List<a>), Cons(#Y:b, #YS:List<b>)) → Cons(PairCons(#X,#Y), Zip<a b>(#XS,#YS))
 
+/* `UnZipF(#XS)`
+   @param  `#XS` list of pairs
+   @return a list of the pairs first component
+*/
+func UnZipF<a b>(List<Pair<a b>>) -> List<a>
+rule UnZipF(())      → ()
+rule UnZipF(Cons(Pair<a b>::PairCons(#F: a, #S: b), #XS:List<Pair<a b>>)) → Cons(#F, UnZipF<a b>(#XS))
+
+/* `UnZipS(#XS)`
+   @param  `#XS` list of pairs
+   @return a list of the pairs second component
+*/
+func UnZipS<a b>(List<Pair<a b>>) -> List<b>
+rule UnZipS(())      → ()
+rule UnZipS(Cons(Pair<a b>::PairCons(#F: a, #S: b), #XS:List<Pair<a b>>)) → Cons(#S, UnZipS<a b>(#XS))
+
+
 /* `LookUp( #Key, #KeyValueList)`
     @param `#Key`          a key
     @param `#KeyValueList` a list of key-value pairs

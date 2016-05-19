@@ -1,0 +1,53 @@
+// Copyright (c) 2016 IBM Corporation.
+
+import Std::Core
+import Std::Mapdef
+import Std::Listdef
+import Core::Core
+
+/* Substitute variables and meta-variables in the given term
+   by their corresponding meta-variable. */
+func Substitute(Core_cterm_sort, {String : String}) -> Core_cterm_sort
+rule Substitute(cterm⟦ ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧, #subst) → cterm⟦ ##cqconstructor ##csortargs? ⟨cterms?: SubstMaybeTerms(#cterms?, #subst)⟩ ##csortanno? ⟧
+rule Substitute(cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno?          ⟧, #subst) → cterm⟦ ⟨METAVAR: SubstMetaVar(#METAVAR, #subst)⟩ ⟨cterms?: SubstMaybeTerms(#cterms?, #subst)⟩ ⟨csubst?: SubstMaybeSubst(#csubst?, #subst)⟩ ##csortanno? ⟧
+rule Substitute(cterm⟦ #cliteral                                           ⟧, #subst) → cterm⟦ #cliteral ⟧
+
+// TODO: replace when issue #20 is fixed
+//rule Substitute(cterm⟦ ##VARIABLE ##csortanno?                             ⟧, #subst) → cterm⟦ ⟨VARIABLE: SubstVariable(#VARIABLE, #subst)⟩ ##csortanno? ⟧
+rule Substitute(cterm⟦ ##VARIABLE ##csortanno?                             ⟧, #subst) → Core_cterm_A4(Core_cvariable(SubstVariable(#VARIABLE, #subst)), #csortanno?)
+
+rule Substitute(cterm⟦ { ##cmapentries? }                                  ⟧, #subst) → cterm⟦ { ⟨cmapentries?: SubstMaybeMapEntries(#cmapentries?, #subst)⟩ } ⟧
+rule Substitute(cterm⟦ [ x ##csortanno ] ##cterm                           ⟧, #subst) → cterm⟦ [ x ##csortanno ] ⟨cterm: Substitute(#cterm, #subst)⟩ ⟧
+rule Substitute(cterm⟦ ( f ##csortanno ) ##cterm                           ⟧, #subst) → cterm⟦ ( f ##csortanno ) ⟨cterm: Substitute(#cterm, #subst)⟩ ⟧
+rule Substitute(cterm⟦ thunk ##cterm                                       ⟧, #subst) → cterm⟦ thunk ⟨cterm: Substitute(#cterm, #subst)⟩ ⟧
+
+func SubstMaybeTerms(List<Core_cterms_sort>, {String : String}) -> List<Core_cterms_sort>
+rule SubstMaybeTerms(cterms?⟦              ⟧, #subst) → cterms?⟦ ⟧
+rule SubstMaybeTerms(cterms?⟦ (          ) ⟧, #subst) → cterms?⟦ () ⟧
+rule SubstMaybeTerms(cterms?⟦ ( ##cterm* ) ⟧, #subst) → cterms?⟦ ( ⟨cterm*: SubstTerms(#cterm*, #subst)⟩ ) ⟧
+
+func SubstMaybeSubst(List<Core_csubst_sort>, {String : String}) -> List<Core_csubst_sort>
+rule SubstMaybeSubst(csubst?⟦              ⟧, #subst) → csubst?⟦ ⟧
+rule SubstMaybeSubst(csubst?⟦ [ ##cterm* ] ⟧, #subst) → csubst?⟦ [ ⟨cterm*: SubstTerms(#cterm*, #subst)⟩ ] ⟧
+
+func SubstTerms(List<Core_cterm_sort>, {String : String}) -> List<Core_cterm_sort>
+rule SubstTerms(cterm*⟦                  ⟧, #subst) → cterm*⟦ ⟧
+rule SubstTerms(cterm*⟦ ##cterm ##cterm* ⟧, #subst) → cterm*⟦ ⟨cterm: Substitute(#cterm, #subst)⟩ ⟨cterm*: SubstTerms(#cterm*, #subst)⟩ ⟧
+
+func SubstMetaVar(#metavar: String, #subst: {String : String}) -> String
+→ IfPresent<String String>(MapGet<String String>(#subst, #metavar), (substitute) -> substitute, ()->#metavar)
+
+func SubstVariable(#var: String, #subst: {String : String}) -> String
+→ IfPresent<String String>(MapGetVar<String String String>(#subst, #var), (substitute) -> substitute, ()->#var)
+
+func SubstMaybeMapEntries(List<Core_cmapentries_sort>, {String : String}) -> List<Core_cmapentries_sort>
+rule SubstMaybeMapEntries(cmapentries?⟦              ⟧, #subst) → cmapentries?⟦⟧
+rule SubstMaybeMapEntries(cmapentries?⟦ ##cmapentry* ⟧, #subst) → cmapentries?⟦ ⟨cmapentry*: SubstMapEntries(#cmapentry*, #subst)⟩ ⟧
+
+func SubstMapEntries(List<Core_cmapentry_sort>, {String : String}) -> List<Core_cmapentry_sort>
+rule SubstMapEntries(cmapentry*⟦                          ⟧, #subst) → cmapentry*⟦⟧
+rule SubstMapEntries(cmapentry*⟦ ##cmapentry ##cmapentry* ⟧, #subst) → cmapentry*⟦ ⟨cmapentry: SubstMapEntry(#cmapentry, #subst)⟩ ⟨cmapentry*: SubstMapEntries(#cmapentry*, #subst)⟩ ⟧
+
+func SubstMapEntry(Core_cmapentry_sort, {String : String}) -> Core_cmapentry_sort
+rule SubstMapEntry(cmapentry⟦ : ##METAVAR ⟧, #subst) → cmapentry⟦ : ⟨METAVAR: SubstMetaVar(#METAVAR, #subst)⟩ ⟧
+//  DO THE REST WHEN REAL SUPPORT FOR MAP

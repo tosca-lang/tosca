@@ -7,6 +7,7 @@ import Std::String
 import Std::Num
 import Core::Core
 import Core::Utils
+import Core::Subst
 import Systemdef
 
 /* Convert closures in the given module. */
@@ -68,38 +69,45 @@ func CCFormal2(#env: Env, #cterm: Core_cterm_sort, #lambda : Core_cterm_sort) ->
 // --- Closure conversion happens here
 
 func CCLift(Env, Core_cterm_sort, Core_cterm_sort) -> Pair<Env Core_cterm_sort>
-rule CCLift(#env, #cterm, #lambda) → PairCons(CCLiftedDecl(#env, CCName(#env), #cterm, #lambda), cterm⟦ ⟨CONSTRUCTOR: CCName(#env)⟩ ( ⟨cterm*: CCExpandParams(EnvParams(#env))⟩ ) ⟧)
+rule CCLift(#env, #cterm, #lambda) → PairCons(CCLiftedDecl(#env, CCName(#env), #cterm, #lambda), cterm⟦ ⟨CONSTRUCTOR: CCName(#env)⟩ ( ⟨cterm*: CCCallArgs(EnvParams(#env))⟩ ) ⟧)
 
-func CCExpandParams(List<Pair<String Core_csort_sort>>) -> List<Core_cterm_sort>
-rule CCExpandParams(())                                      → ()
-
-// use #VARIABLE due to issue #20
-rule CCExpandParams(Cons(Pair<String Core_csort_sort>::PairCons(#VARIABLE:String, #sort:Core_csort_sort), #params:List)) → cterm*⟦ ##VARIABLE ⟨cterm*: CCExpandParams(#params)⟩ ⟧
+func CCCallArgs(List<Pair<String Core_csort_sort>>) -> List<Core_cterm_sort>
+rule CCCallArgs(()) → cterm*⟦⟧
+rule CCCallArgs(Cons(Pair<String Core_csort_sort>::PairCons(#VARIABLE : String, #csort: Core_csort_sort), #pairs:List<Pair<String Core_csort_sort>>)) → cterm*⟦ ##VARIABLE ⟨cterm*: CCCallArgs(#pairs)⟩ ⟧
 
 /* Produce a unique, deterministic, function name */
 func CCName(#env: Env) -> String → ConcatString(EnvName(#env), ConcatString("$", FormatNumber(EnvCounter(#env))))
 
-/* Generate lifted function sort and associated rule */
+/* Generate lifted function sort and associated rule. Recursively CC the lifted function. */
 func CCLiftedDecl(#env: Env, #name: String, #cterm: Core_cterm_sort, #lambda: Core_cterm_sort) -> Env
 → EnvIncCounter(EnvSetContent(#env, PutRulesL(PutFuncSortL(EnvContent(#env), CCLiftedFunSort(#env, #name, #cterm), FALSE),
                                               #name, (CCLiftedRule(#env, #name, #lambda),))))
+
 // -- Generate sort for the lifted function
 
 func CCLiftedFunSort(#env : Env, #name: String, #cterm: Core_cterm_sort) -> Core_cdecl_sort
-→ cdecl⟦ func ⟨csort: CCReturnSort(TermSort(#cterm))⟩ ⟨CONSTRUCTOR: #name⟩ ( ⟨csort*: CCExpandParamTypes(EnvParams(#env))⟩ ) ⟧
+→ cdecl⟦ func ⟨csort: CCReturnSort(TermSort(#cterm))⟩ ⟨CONSTRUCTOR: #name⟩ ( ⟨csort*: UnZipS<String Core_csort_sort>(EnvParams(#env))⟩ ) ⟧
 
 func CCReturnSort(Option<Core_csort_sort>) -> Core_csort_sort
 rule CCReturnSort(NONE)                         → Error<Core_csort_sort>("Fatal error: missing term sort annotation (needed by closure converter)")
 rule CCReturnSort(SOME(#csort:Core_csort_sort)) → #csort
 
-func CCExpandParamTypes(List<Pair<String Core_csort_sort>>) -> List<Core_csort_sort>
-rule CCExpandParamTypes(())                                      → ()
-rule CCExpandParamTypes(Cons(Pair<String Core_csort_sort>::PairCons(#VARIABLE:String, #csort: Core_csort_sort), #params:List)) → csort*⟦ ##csort ⟨csort*: CCExpandParamTypes(#params)⟩ ⟧
+// -- Generate rule for the lifted function.
 
-// -- Generate rule for the lifted function
+func CCLiftedRule(#env: Env, #name: String, #lambda: Core_cterm_sort) -> Core_cdecl_sort
+→  cdecl⟦ rule ⟨CONSTRUCTOR: #name⟩ ( ⟨cterm*: CCLiftedPattern(0, ListLength<Pair>(EnvParams(#env)))⟩ ) → ⟨cterm: CCLiftedContractum(#lambda, 0)⟩ ⟧
 
-func CCLiftedRule(#env: Env, #name: String, #cterm: Core_cterm_sort) -> Core_cdecl_sort
-→  cdecl⟦ rule ⟨CONSTRUCTOR: #name⟩ → 0 ⟧
+func CCLiftedPattern(#i: Numeric, #until: Numeric) -> List<Core_cterm_sort>
+→ If<List<Core_cterm_sort>>(NumberLessThan(#i, #until),
+    ()->cterm*⟦ ⟨METAVAR: CCMetaVar(#i)⟩ ⟨cterm*: CCLiftedPattern(Plus(#i, 1), #until)⟩ ⟧,
+    ()->cterm*⟦⟧)
+
+func CCLiftedContractum(Core_cterm_sort, Numeric) -> Core_cterm_sort
+rule CCLiftedContractum(cterm⟦ ( f ##csortanno? ) ##cterm ⟧, #i) → CCLiftedContractum(#cterm[cterm⟦ ⟨METAVAR: CCMetaVar(#i)⟩ ⟧], Plus(#i, 1))
+rule CCLiftedContractum(#cterm, #i) → #cterm // TODO: captures
+
+
+func CCMetaVar(#i: Numeric) -> String → ConcatString("#", FormatNumber(Plus(#i, 1)))
 
 // --- Post traversal handlers
 
@@ -140,7 +148,7 @@ enum Env | Env(
                  String,                 // Function constructor
                  LoadedContent,          // The module content
                  List<Core_cdecl_sort>,  // List of converted rules
-                 List<Pair<String Core_csort_sort>>,        // List of formal parameters with types
+                 List<Pair<String Core_csort_sort>>,        // List of formal parameters with sorts
                  Numeric                 // A counter
               )
 

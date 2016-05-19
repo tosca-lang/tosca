@@ -1,7 +1,6 @@
 // Copyright (c) 2016 IBM Corporation.
 
-/* Simple closure test, no syntactic variable */
-
+/* Simple closure test */
 enum ListStr | Cons(String, ListStr) | Nil
 
 func Map((String) -> String, ListStr) -> ListStr
@@ -9,4 +8,4 @@ rule Map(#, ())           → ()
 rule Map(#, Cons(#1:String, #s:ListStr)) → Cons(#(#1), Map(#, #s))
 
 func Tests -> ListStr
-→ Map((x:String) -> x : String, Cons("1", Cons("2", Nil)) )
+→ Map((x : String) -> x : String, Cons("1", Cons("2", Nil)) )
