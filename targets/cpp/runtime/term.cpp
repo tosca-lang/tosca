@@ -46,9 +46,14 @@ _Variable::_Variable(std::string n) :
 
 // --- String
 //
-StringTerm stringTerm(std::string&& val)
+_StringTerm& stringTerm(std::string&& val)
 {
     return *(new _ValStringTerm(*(new std::string(val))));
+}
+
+VarStringTerm varStringTerm(std::string&& val)
+{
+    return *(new _VarStringTerm(*(new std::string(val))));
 }
 
 _ValStringTerm::_ValStringTerm(std::string& val) :
@@ -70,6 +75,9 @@ Optional<std::string> _ValStringTerm::Unbox() const
 {
     return make_optional<std::string>(value);
 }
+
+_VarStringTerm::_VarStringTerm(std::string& name) : _Variable(name) {}
+
 //
 //} // runtime
 //} // ts

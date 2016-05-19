@@ -132,7 +132,7 @@ public:
 class _Variable: public _Term
 {
 protected:
-    _Variable(std::string value);
+    _Variable(std::string name);
 
     /* Globally unique variable name */
     std::string name;
@@ -182,6 +182,18 @@ public:
     Optional<std::string> Unbox() const;
 
 };
+
+/**
+ * Variable of type String
+ */
+class _VarStringTerm: public _StringTerm, _Variable
+{
+public:
+    _VarStringTerm(std::string& name);
+};
+typedef _VarStringTerm& VarStringTerm;
+
+VarStringTerm varStringTerm(std::string&& str);
 
 
 //}// runtime

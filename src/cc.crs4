@@ -76,7 +76,7 @@ rule CCCallArgs(()) → cterm*⟦⟧
 rule CCCallArgs(Cons(Pair<String Core_csort_sort>::PairCons(#VARIABLE : String, #csort: Core_csort_sort), #pairs:List<Pair<String Core_csort_sort>>)) → cterm*⟦ ##VARIABLE ⟨cterm*: CCCallArgs(#pairs)⟩ ⟧
 
 /* Produce a unique, deterministic, function name */
-func CCName(#env: Env) -> String → ConcatString(EnvName(#env), ConcatString("$", FormatNumber(EnvCounter(#env))))
+func CCName(#env: Env) -> String → ConcatString(EnvName(#env), ConcatString("CC", FormatNumber(EnvCounter(#env))))
 
 /* Generate lifted function sort and associated rule. Recursively CC the lifted function. */
 func CCLiftedDecl(#env: Env, #name: String, #cterm: Core_cterm_sort, #lambda: Core_cterm_sort) -> Env

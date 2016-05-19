@@ -85,17 +85,25 @@ private:
     Ref cptr2;
 };
 
-// Don't use typename _Closure1<R, P1>::Function1 here because it's a non-deduced context.
-template<typename R, typename P1, typename P2>
-_Closure1<R&, P1&>& closure(R (*function)(Context ctx, P1&, P2&), P2& c1)
+template<typename R, typename P1>
+_Closure1<R, P1>& closure(R (*function)(Context ctx, P1))
 {
-    return *(new _Closure1C<R&, P1&, 2>(reinterpret_cast<Function>(function), c1));
+    return *(new _Closure1<R, P1>(reinterpret_cast<Function>(function)));
+}
+
+
+// Don't use typename _Closure1<R, P1>::Function1 here because it's a non-deduced context.
+// Somehow:
+template<typename R, typename P1, typename P2>
+_Closure1<R, P1>& closure(R (*function)(Context ctx, P1, P2&), P2& c1)
+{
+    return *(new _Closure1C<R, P1, 2>(reinterpret_cast<Function>(function), c1));
 }
 
 template<typename R, typename P1, typename P2, typename P3>
-_Closure1<R&, P1&>& closure(R (*function)(Context ctx, P1&, P2&, P3&), P2& c1, P3& c2)
+_Closure1<R, P1>& closure(R (*function)(Context ctx, P1, P2&, P3&), P2& c1, P3& c2)
 {
-    return *(new _Closure1C<R&, P1&, 3>(reinterpret_cast<Function>(function), c1, c2));
+    return *(new _Closure1C<R, P1, 3>(reinterpret_cast<Function>(function), c1, c2));
 }
 
 #endif

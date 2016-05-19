@@ -19,7 +19,7 @@ _StringTerm& cid(Context ctx, _Closure1<_StringTerm&, _StringTerm&>& callback)
 int main(int argc, char **argv)
 {
     Context ctx = *(new _Context());
-    _StringTerm& r = cid(ctx, closure(&concat,  stringTerm("5")));
+    _StringTerm& r = cid(ctx, closure(&concat, stringTerm("5")));
     std::cout << r.Unbox().value() << "\n";
     delete &r;
 

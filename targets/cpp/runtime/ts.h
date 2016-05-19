@@ -18,8 +18,11 @@ T force(Context ctx, T term)
     return term;
 }
 
-
-/* Builtin identity function */
-
+/* Small utility function turning a rvalue into an lvalue */
+template<typename T>
+T& lvalue(T&& r)
+{
+    return r;
+}
 
 #endif

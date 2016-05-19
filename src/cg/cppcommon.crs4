@@ -427,69 +427,45 @@ func CppFreshesTerm({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) 
   rule CppFreshesTerm(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #cont)
   → CppFreshesMaybeTerms(#env, #cterms?, #cont)
 
-  rule CppFreshesTerm(#env, cterm⟦ ##cliteral ⟧, #cont)
-  → #cont(#env)
-
   rule CppFreshesTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #cont)
   → CppFreshesVariable(#env, MaybeGetVar(#env, #VARIABLE), #VARIABLE, #csortanno?, #cont)
 
   rule CppFreshesTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
   → CppFreshesMaybeTerms(#env, #cterms?, (env) -> CppFreshesMaybeSubst(env, #csubst?, #cont))
 
-  //  rule CppFreshesTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]:Core_cterm_sort), #cont)
   rule CppFreshesTerm(#env, cterm⟦ [ x ##csortanno? ] ##cterm⟧, #cont)
   → CppFreshesVariable(#env, NONE, var:String, #csortanno?, (env) -> CppFreshesTerm(env, #cterm[var], #cont))
 
-  //→ text⟦
-  //Variable fresh†⟨NumberToText(GetCounter(#env))⟩ = context.makeVariable("x");†⟨CppFreshesTerm(IncCounter(AddVar(#env, var:Core_cterm_sort, Fresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], #cont)⟩⟧
-
   // TODO: track var to avoid generating dummy fresh variables
-  //rule CppFreshesTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]:Core_cterm_sort), #cont)
-  rule CppFreshesTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧, #cont)
-  → CppFreshesTerm(#env, #cterm[var:String], #cont)
-
-  rule CppFreshesTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)
-  → CppFreshesTerm(#env, #cterm, #cont)
+  rule CppFreshesTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧, #cont) → CppFreshesTerm(#env, #cterm[var:String], #cont)
+  rule CppFreshesTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)              → CppFreshesTerm(#env, #cterm, #cont)
+  rule CppFreshesTerm(#env, cterm⟦ ##cliteral ⟧, #cont)                 → #cont(#env)
 
 func CppFreshesMaybeTerms({String : EnvEntry}, List<Core_cterms_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
-
-  rule CppFreshesMaybeTerms(#env, cterms?⟦⟧, #cont)
-  → #cont(#env)
-
-  rule CppFreshesMaybeTerms(#env, cterms?⟦ () ⟧, #cont)
-  → #cont(#env)
-
-  rule CppFreshesMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, #cont)
-  → CppFreshesTerms(#env, #cterm*, #cont)
+  rule CppFreshesMaybeTerms(#env, cterms?⟦⟧, #cont)                      → #cont(#env)
+  rule CppFreshesMaybeTerms(#env, cterms?⟦ () ⟧, #cont)                  → #cont(#env)
+  rule CppFreshesMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, #cont)        → CppFreshesTerms(#env, #cterm*, #cont)
 
 func CppFreshesTerms({String : EnvEntry}, List<Core_cterm_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
-
-  rule CppFreshesTerms(#env, cterm*⟦⟧, #cont)
-  → #cont(#env)
-
-  rule CppFreshesTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, #cont)
-  → CppFreshesTerm(#env, #cterm, (env) -> CppFreshesTerms(env, #cterm*, #cont))
+  rule CppFreshesTerms(#env, cterm*⟦⟧, #cont)                   → #cont(#env)
+  rule CppFreshesTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, #cont) → CppFreshesTerm(#env, #cterm, (env) -> CppFreshesTerms(env, #cterm*, #cont))
 
 func CppFreshesMaybeSubst({String : EnvEntry}, List<Core_csubst_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
-
-  rule CppFreshesMaybeSubst(#env, csubst?⟦⟧, #cont)
-  → #cont(#env)
-
-  rule CppFreshesMaybeSubst(#env, csubst?⟦ [ ##cterm* ] ⟧, #cont)
-  → CppFreshesTerms(#env, #cterm*, #cont)
+  rule CppFreshesMaybeSubst(#env, csubst?⟦⟧, #cont)               → #cont(#env)
+  rule CppFreshesMaybeSubst(#env, csubst?⟦ [ ##cterm* ] ⟧, #cont) → CppFreshesTerms(#env, #cterm*, #cont)
 
 func CppFreshesVariable({String : EnvEntry}, Option<VarEntry>, String, List<Core_csortanno_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   // untyped fresh var
   rule CppFreshesVariable(#env, NONE, #var, csortanno?⟦  ⟧, #cont)
   → text⟦
-   VarStringTerm fresh†⟨NumberToText(GetCounter(#env))⟩ = varStringTerm(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show<String>(#var))⟩);†⟨
+   VarStringTerm& fresh†⟨NumberToText(GetCounter(#env))⟩ = varStringTerm(†⟨Text-QuoteEscape(Show<String>(#var))⟩);†⟨
      #cont(IncCounter(AddVar(#env, #var, Fresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, NONE))))⟩⟧
 
   // New typed fresh variable
   rule CppFreshesVariable(#env, NONE, #var, csortanno?⟦ : ##csort ⟧, #cont)
   → text⟦
-   Var†⟨CppType(#csort)⟩ fresh†⟨NumberToText(GetCounter(#env))⟩ = var†⟨CppType(#csort)⟩(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show<String>(#var))⟩);⟨
+   Var†⟨CppType(#csort)⟩& fresh†⟨NumberToText(GetCounter(#env))⟩ = var†⟨CppType(#csort)⟩(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show<String>(#var))⟩);⟨
      #cont(IncCounter(AddVar(#env, #var, Fresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, SOME(#csort)))))⟩⟧
 
   // Variable already exists
@@ -604,7 +580,7 @@ func CppExprLambda({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) -
 
  // TODO: captures
  rule CppExprLambda(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #cont)
- → text⟦&†⟨SortNameToCppClassName(#CONSTRUCTOR)⟩, 0)†⟨#cont(#env)⟩⟧
+ → text⟦&†⟨CppConsMethodName(#CONSTRUCTOR)⟩)†⟨#cont(#env)⟩⟧
 
   rule CppExprLambda(#env, #cterm, #cont)
   → Error<Text4_text_sort>("Internal Error: Invalid lambda expression. Lambda must be of the form (x .. y) -> C(x .. y, #1 .. #n)")
@@ -696,7 +672,7 @@ func CppTypes2(Core_csort_sort, List<Text4_text_sort> /* formal params */) -> Li
 
   rule CppTypes2(csort⟦ ##CONSTRUCTOR ##csorts? ⟧, Cons(#formal:Text4_text_sort, #formals:List<Text4_text_sort>))
   → Cons(text⟦_Closure†⟨NumberToText(Plus(ListLength<Text4_text_sort>(#formals), 1))⟩<†⟨
-       SortNameToCppClassName(CppFixupPrimitiveType(#CONSTRUCTOR))⟩†⟨MaybeCppTemplateArgs(#csorts?) /* Return type */⟩, †⟨
+       SortNameToCppClassName(CppFixupPrimitiveType(#CONSTRUCTOR))⟩&†⟨MaybeCppTemplateArgs(#csorts?) /* Return type */⟩, †⟨
        TextFold(Cons(#formal, #formals), text⟦, ⟧) /* Formal params */⟩>⟧, Nil)
 
   rule CppTypes2(csort⟦ ##VARIABLE ⟧, ())
@@ -709,8 +685,8 @@ func CppTypes2(Core_csort_sort, List<Text4_text_sort> /* formal params */) -> Li
   rule CppTypes2(csort⟦ [ ##csort ] ##csort2 ⟧, #formals)
   → Cons(text⟦_Var†⟨CppType(#csort)⟩⟧, CppTypes2(#csort2, #formals))
 
-  rule CppTypes2(csort⟦ ( ##csort ) ##csort2 ⟧, #formals)
-  → CppTypes2(#csort2, Concat<Text4_text_sort>(#formals, CppTypes(#csort)))
+  rule CppTypes2(csort⟦ ( ##csort ) ##csort2 ⟧, #formals) // no higher-order csort for now.
+  → CppTypes2(#csort2, Append<Text4_text_sort>(CppTypeRef(#csort), #formals))
 
   rule CppTypes2(csort⟦ { ##csort1 : ##csort2 } ⟧, ())
   → Cons(text⟦_MapTerm<†⟨CppType(#csort1)⟩,†⟨CppType(#csort2)⟩>⟧, Nil)
