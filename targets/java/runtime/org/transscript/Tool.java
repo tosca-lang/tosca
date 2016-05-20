@@ -8,11 +8,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -67,13 +68,13 @@ public class Tool
 	 */
 	public static void printUsage()
 	{
-		System.out.println("Usage: java -jar <transscript.jar> <command> [<args>]");
+		System.out.println("Usage: java -jar <tosca.jar> <command> [<args>]");
 		System.out.println("\nThe commands are:");
-		System.out.println("  build         Build a TransScript program");
-		System.out.println("  run           Run a TransScript program. Build it if necessary");
-		System.out.println("  test          Run the tests defined in the TransScript program");
-		System.out.println("  parse         Parse a TransScript program");
-		System.out.println("\nFor additional help, type java -jar transscript.jar command help.");
+		System.out.println("  build         Build a Tosca program");
+		System.out.println("  run           Run a Tosca program. Build it if necessary");
+		System.out.println("  test          Run the tests defined in the Tosca program");
+		System.out.println("  parse         Parse a Tosca program");
+		System.out.println("\nFor additional help, type java -jar tosca.jar command help.");
 		System.exit(0);
 	}
 
@@ -82,23 +83,24 @@ public class Tool
 	 */
 	static void helpCommon()
 	{
-		System.out.println("  rules=<filename>          the TransScript program filename. Cannot be used with option class");
+		System.out.println("  rules=<filename>          the Tosca program filename. Cannot be used with option class");
 		System.out.println(
-				"  class=<classname>         the name of the compiled TransScript program to run. Cannot be used with option rules");
+				"  class=<classname>         the name of the compiled Tosca program to run. Cannot be used with option rules");
 		System.out.println("  build-dir=<directory>     where to store the intermediate files. Default is current directory");
 		System.out.println("  javabasepackage=<name>    Java base package name of generated Java files");
 		System.out.println("  javapackage=<name>        Java sub package name of generated Java files");
 		System.out.println("  parsers=<classnames>      Comma separated list of parsers classname");
 		System.out.println("  cpp                       Set target language to C++");
-		System.out.println(
-				"  bootparserpath=<name>     where to look for builtin parsers. Only used for bootstrapping TransScript");
+		System.out.println("  java                      Set target language to Java (default)");
+		System.out.println("  bootparserpath=<name>     where to look for builtin parsers. Only used for bootstrapping Tosca");
+		System.out.println("  stacktrace                print Java stack trace when an error occur");
 
 	}
 
 	static void helpRun()
 	{
-		System.out.println("Usage: java -jar <transscript.jar> run [<args>]");
-		System.out.println("Compile and run TransScript program");
+		System.out.println("Usage: java -jar <tosca.jar> run [<args>]");
+		System.out.println("Compile and run Tosca program");
 		System.out.println("where <args> must be at least either rules or class");
 		System.out.println("\n<args> are:");
 		helpCommon();
@@ -108,8 +110,17 @@ public class Tool
 		System.exit(0);
 	}
 
-	/** Build and run a TransScript system */
+	/** Build and run a Tosca system */
 	static void run(Map<String, String> env)
+	{
+		if (env.containsKey("cpp"))
+			runCpp(env);
+		else
+			runJava(env);
+	}
+
+	/** Build and run a Java Tosca system */
+	static void runJava(Map<String, String> env)
 	{
 		String clazz = env.get("class");
 		String rules = env.get("rules");
@@ -120,14 +131,14 @@ public class Tool
 		if (clazz != null && rules != null)
 			helpRun();
 
+		int result = 0;
 		if (rules != null)
 		{
 			String buildir = env.get("build-dir");
 			String javabasepackage = env.get("javabasepackage");
 			String javapackage = env.get("javapackage");
 
-			// First: build
-
+			// Configure builder
 			Map<String, String> buildEnv = new HashMap<>();
 
 			buildEnv.put("rules", rules);
@@ -138,31 +149,59 @@ public class Tool
 			if (javapackage != null)
 				buildEnv.put("javapackage", javapackage);
 
-			build(buildEnv);
+			result = build(buildEnv);
 
 			clazz = targetClassFilename(rules, javabasepackage, javapackage);
 			classLoader = classLoader(rules, buildir);
 		}
 
-		// Second: run
-		Map<String, Object> runEnv = new HashMap<>();
-
-		if (classLoader != null)
-			runEnv.put("classloader", classLoader);
-
-		env.put("class", clazz);
-
-		if (env.get("main") == null)
+		if (result != -1)
 		{
-			String wrapper = env.get("wrapper");
-			env.put("wrapper", wrapper == null ? "Main" : wrapper);
+			// Second: run
+			Map<String, Object> runEnv = new HashMap<>();
+
+			if (classLoader != null)
+				runEnv.put("classloader", classLoader);
+
+			env.put("class", clazz);
+			rewrite(env, runEnv);
 		}
-		rewrite(env, runEnv);
+	}
+
+	/** Build and run a C++ Tosca system */
+	private static void runCpp(Map<String, String> env)
+	{
+		String rules = env.get("rules");
+
+		if (rules == null)
+			helpRun();
+
+		String buildir = env.get("build-dir");
+
+		// Configure builder
+		Map<String, String> buildEnv = new HashMap<>();
+
+		buildEnv.put("rules", rules);
+		buildEnv.put("build-dir", buildir);
+		buildEnv.put("verbose", env.get("verbose"));
+		buildEnv.put("cpp", "1");
+
+		int result = build(buildEnv);
+
+		if (result != -1)
+		{
+			String dest = resolveBuildDir(rules, buildir);
+			String name = Utils.getBaseName(rules);
+
+			String execdir = Paths.get(dest, "build", "exe", name).toString();
+
+			Utils.exec(execdir, false, Paths.get(".", name).toString());
+		}
 	}
 
 	public static void helpBuild()
 	{
-		System.out.println("Usage: java -jar <transscript.jar> build [<args>]");
+		System.out.println("Usage: java -jar <tosca.jar> build [<args>]");
 		System.out.println("\n<args> are:");
 		helpCommon();
 		System.out.println("  only-source               only produce source file, no executable.");
@@ -170,9 +209,11 @@ public class Tool
 		System.exit(0);
 	}
 
-	/* Build a TransScript program */
-	static void build(Map<String, String> env)
+	/* Build a Tosca program targeting multiple languages */
+	static int build(Map<String, String> env)
 	{
+		// TODO: extract target language specific option in helper methods
+
 		// Input rules to compile
 		String rules = env.get("rules");
 		if (rules == null)
@@ -182,15 +223,16 @@ public class Tool
 		if (!rulesFile.exists())
 			Utils.fatal("Input file not found: " + rules, null);
 
-		String target = env.get("cpp") != null ? "cpp": "java";
-	
-		
-		// For java target  get base package and sub package name.
+		String target = env.get("cpp") != null ? "cpp" : "java";
+
+		// For java target get base package and sub package name.
 		String javabasepackage = env.get("javabasepackage");
 		String javapackage = env.get("javapackage");
-		String dest = env.get("build-dir");
-		String output = target.equals("java") ? targetJavaFilename(rules, dest, javabasepackage, javapackage, true) : targetCppFilename(rules, dest, true);
-		
+		String dest = resolveBuildDir(rules, env.get("build-dir"));
+		String output = target.equals("java")
+				? targetJavaFilename(rules, dest, javabasepackage, javapackage, true)
+				: targetCppFilename(rules, dest, true);
+
 		String parsers = "org.transscript.core.CoreMetaParser,org.transscript.parser.TransScriptMetaParser,org.transscript.text.Text4MetaParser";
 		if (env.get("parsers") != null)
 			parsers += "," + env.get("parsers");
@@ -206,7 +248,7 @@ public class Tool
 			System.setProperty("cpp", "1");
 			System.setProperty("headerfile", output.replace(".cpp", ".h"));
 		}
-		
+
 		// TODO: this shouldn't be needed.
 		buildEnv.put("grammar", parsers); // Temporary.
 		buildEnv.put("sink", "org.transscript.runtime.text.TextSink");
@@ -226,39 +268,93 @@ public class Tool
 
 		rewrite(buildEnv, null);
 
-		// Second: Compile produced Java file.
-		if (env.get("only-source") == null)
-			compileJava(Arrays.asList(new File(output)));
+		// Second: Compile 
+		if (env.get("java") != null)
+			return compileJava(env, output);
+		else if (env.get("cpp") != null)
+			return compileCpp(env, rules, dest);
+		return -1;
+	}
+
+	/* Compile generated cpp files */
+	static int compileCpp(Map<String, String> env, String input, String buildir)
+	{
+
+		final String root = toscaPath();
+		final String cppRoot = root + File.separator + "targets" + File.separator + "cpp";
+		final String name = Utils.getBaseName(input);
+
+		// Instantiate templates
+		String gradleBuild = Utils.getCppGradleTemplate(root);
+		gradleBuild = gradleBuild.replace("%NAME%", name);
+		gradleBuild = gradleBuild.replace("%CPPROOT%", cppRoot);
+
+		try (FileWriter writer = new FileWriter(buildir + File.separator + "build.gradle"))
+		{
+			writer.write(gradleBuild);
+		}
+		catch (IOException e)
+		{
+			Utils.fatal("An error occured while writing build.gradle", e);
+			return -1;
+		}
+
+		String gradleSettings = Utils.getCppSettingsGradleTemplate(root);
+		gradleSettings = gradleSettings.replace("%NAME%", name);
+		gradleSettings = gradleSettings.replace("%CPPROOT%", cppRoot);
+
+		try (FileWriter writer = new FileWriter(buildir + File.separator + "settings.gradle"))
+		{
+			writer.write(gradleSettings);
+		}
+		catch (IOException e)
+		{
+			Utils.fatal("An error occured while writing build.gradle", e);
+			return -1;
+		}
+
+		// Copy gradle wrapper
+		Utils.copyFile(Paths.get(root, "targets", "cpp", "resources", "gradlew"), Paths.get(buildir, "gradlew"));
+
+		Path wrapperPath = Paths.get(buildir, "gradle", "wrapper");
+		Utils.copyFile(
+				Paths.get(root, "targets", "cpp", "resources", "gradle", "wrapper", "gradle-wrapper.jar"),
+				wrapperPath.resolve(Paths.get("gradle-wrapper.jar")));
+		Utils.copyFile(
+				Paths.get(root, "targets", "cpp", "resources", "gradle", "wrapper", "gradle-wrapper.properties"),
+				wrapperPath.resolve(Paths.get("gradle-wrapper.properties")));
+
+		// Can now invoke gradlew to compile the code
+		return Utils.exec(buildir, env.containsKey("quiet"), "./gradlew");
 	}
 
 	public static void helpTest()
 	{
-		System.out.println("Usage: java -jar <transscript.jar> test [<args>]");
+		System.out.println("Usage: java -jar <tosca.jar> test [<args>]");
 		System.out.println("\n<args> are:");
 		helpCommon();
 
 		System.exit(0);
 	}
 
-	/** Test TransScript program */
+	/** Test Tosca program */
 	static void test(Map<String, String> env)
 	{
-		//env.put("wrapper", "Tests");
 		env.put("main", "Tests");
 		run(env);
 	}
 
 	static void helpParse()
 	{
-		System.out.println("Usage: java -jar <transscript.jar> parse [<args>] <rules=file.tsc>");
-		System.out.println("Parse TransScript program.");
+		System.out.println("Usage: java -jar <tosca.jar> parse [<args>] <rules=file.tsc>");
+		System.out.println("Parse Tosca program.");
 		System.out.println("\n<args> are:");
 		helpCommon();
 		System.out.println("  quiet               does not print the parsed program as term.");
 		System.exit(0);
 	}
 
-	/** Just parse TransScript program */
+	/** Just parse Tosca program */
 	static void parse(Map<String, String> env)
 	{
 		String inputname = env.get("rules");
@@ -298,16 +394,15 @@ public class Tool
 
 	/** 
 	 * Get the absolute name of the target java file
-	 * @param input TransScript file
+	 * The file name is of the form {dest}/{javabasepackage}/{javapackage}/{input}.java
+	 *
+	 * @param input Tosca file
 	 * @param dest target directory
 	 * @param makeDirs whether to make destination directories.
 	 */
 	static String targetJavaFilename(String input, String dest, String basepackage, String pkg, boolean makeDirs)
 	{
 		final File inputFile = new File(input);
-
-		if (dest == null)
-			dest = inputFile.getAbsoluteFile().getParentFile().getAbsolutePath();
 
 		// Offset destination considering package
 		if (basepackage != null)
@@ -322,8 +417,7 @@ public class Tool
 		}
 
 		// Compute output java filename
-		String output = inputFile.getName().replace(".crsc", ".java").replace(".crs4", ".java").replace(".crs", ".java").replace(
-				".tsc", ".java");
+		String output = inputFile.getName().replace(".crsc", ".java").replace(".crs4", ".java").replace(".tsc", ".java");
 		output = Character.toUpperCase(output.charAt(0)) + output.substring(1); // First character must be upper case.
 
 		output = dest + File.separator + output; // dest / output.java
@@ -331,9 +425,9 @@ public class Tool
 		return output;
 	}
 
-	/* 
+	/**
 	 * Get the relative name of the target class file
-	 * @param input input TransScript file
+	 * @param input input Tosca file
 	 * @param dest target directory
 	 * @param makeDirs whether to make destination directories.
 	 */
@@ -363,7 +457,7 @@ public class Tool
 
 	/** 
 	 * Get the absolute name of the target cpp file
-	 * @param input TransScript file
+	 * @param input Tosca file
 	 * @param dest target directory
 	 * @param makeDirs whether to make destination directories.
 	 */
@@ -371,8 +465,7 @@ public class Tool
 	{
 		final File inputFile = new File(input);
 
-		if (dest == null)
-			dest = inputFile.getAbsoluteFile().getParentFile().getAbsolutePath();
+		dest += File.separator + "src";
 
 		if (makeDirs)
 		{
@@ -381,19 +474,30 @@ public class Tool
 		}
 
 		// Compute output java filename
-		String output = inputFile.getName().replace(".crs4", ".cpp").replace(
-				".tsc", ".cpp");
-		
-		output = dest + File.separator + output; // dest / output.h
+		String output = inputFile.getName().replace(".crs4", ".cpp").replace(".tsc", ".cpp");
 
+		output = dest + File.separator + output; // dest / src / output.cpp
 		return output;
-
 	}
-	
+
+	/**
+	 * Resolve build directory. If not provided, resolve as follows:
+	 * {absolute(parent(input))}/build  
+	 * @return the resolved root directory where to store generated files
+	 */
+	static String resolveBuildDir(String input, String dest)
+	{
+		if (dest == null)
+			dest = new File(input).getAbsoluteFile().getParentFile().getAbsolutePath() + "/build";
+		else
+			dest = new File(dest).getAbsolutePath();
+		return dest;
+	}
+
 	/** 
-	 * Get the classloader needed to compile and run the given TransScript file.
+	 * Get the classloader needed to compile and run the given Tosca file.
 	 * 
-	 * @param input input TransScript file
+	 * @param input input Tosca file
 	 * @param dest target directory
 	 */
 	static ClassLoader classLoader(String input, String dest)
@@ -409,7 +513,7 @@ public class Tool
 		try
 		{
 			return new URLClassLoader(new URL[]
-				{destFile.getAbsoluteFile().toURI().toURL(), new File(transScriptPath()).toURI().toURL()});
+				{destFile.getAbsoluteFile().toURI().toURL(), new File(toscaPath()).toURI().toURL()});
 		}
 		catch (MalformedURLException e)
 		{
@@ -419,96 +523,76 @@ public class Tool
 	}
 
 	/** Compile the list of java files */
-	static void compileJava(List<File> filesToCompile)
+	static int compileJava(Map<String, String> env, String output)
 	{
-		List<String> optionList = new ArrayList<String>();
-
-		// Need the TransScript runtime and the generated parser on the classpath
-		optionList.add("-classpath");
-		optionList.add(transScriptPath());
-
-		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-
-		StandardJavaFileManager stdFileManager = compiler.getStandardFileManager(null, null, null);
-		Iterable<? extends JavaFileObject> fileObjects = stdFileManager.getJavaFileObjectsFromFiles(filesToCompile);
-
-		CompilationTask task = compiler.getTask(null, stdFileManager, null, optionList, null, fileObjects);
-
-		Boolean result = task.call();
-		if (!result)
+		if (env.get("only-source") != null)
 		{
-			System.exit(0);
-		}
+			List<File> filesToCompile = Arrays.asList(new File(output));
 
-		try
-		{
-			stdFileManager.close();
+			List<String> optionList = new ArrayList<String>();
+
+			// Need the Tosca runtime and the generated parser on the classpath
+			optionList.add("-classpath");
+			optionList.add(toscaPath());
+
+			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+
+			StandardJavaFileManager stdFileManager = compiler.getStandardFileManager(null, null, null);
+			Iterable<? extends JavaFileObject> fileObjects = stdFileManager.getJavaFileObjectsFromFiles(filesToCompile);
+
+			CompilationTask task = compiler.getTask(null, stdFileManager, null, optionList, null, fileObjects);
+
+			Boolean result = task.call();
+			try
+			{
+				stdFileManager.close();
+			}
+			catch (IOException e)
+			{
+				Utils.fatal("Error while closing Java compiler tool file manager", e);
+				return -1;
+			}
+			return result ? 0 : -1;
 		}
-		catch (IOException e)
-		{
-			Utils.fatal("Error while closing Java compiler tool file manager", e);
-		}
+		return -1;
 	}
 
-	/** Gets the path of this class */
-	static String transScriptPath()
-	{
-		URL url = Tool.class.getResource("/org/transscript/Tool.class");
-
-		if (url == null || url.getProtocol() == null)
-			Utils.fatal("Couldn't determine org.transscript.Tool location", null);
-
-		if (url.getProtocol().equals("file"))
-		{
-			return url.getPath().replace("/org/transscript/Tool.class", "");
-		}
-		if (url.getProtocol().equals("jar"))
-		{
-			String path = url.getPath();
-			return path.replace("file:", "").replace("!/org/transscript/Tool.class", "");
-		}
-		Utils.fatal("Couldn't determine org.transscript.Tool location (unsupported protocol)", null);
-		return null;
-	}
+	/** Cached tosca path */
+	static String toscaPath;
 
 	/** 
-	 * Load class or throw exception 
-	 * @param loader 
+	 * @return the tosca installation absolute root directory. 
 	 */
-	static Class<?> loadClass(String name, ClassLoader loader)
+	static String toscaPath()
 	{
-		try
+		if (toscaPath == null)
 		{
-			return loader.loadClass(name);
+			URL url = Tool.class.getResource("/org/transscript/Tool.class");
+
+			if (url == null || url.getProtocol() == null)
+				return Utils.fatal("Couldn't determine Tosca root location", null);
+
+			if (url.getProtocol().equals("file"))
+			{
+				// should be in targets/java/build
+
+				toscaPath = url.getPath().replace("targets/java/build/org/transscript/Tool.class", "");
+			}
+			else if (url.getProtocol().equals("jar"))
+			{
+				String path = url.getPath();
+				toscaPath = path.replace("file:", "").replace("!/org/transscript/Tool.class", "");
+			}
+			else
+				return Utils.fatal("Couldn't determine Tosca root location (unsupported protocol)", null);
 		}
-		catch (ClassNotFoundException e)
-		{
-			Utils.fatal("Class " + name + " not found.", e);
-			return null;
-		}
+		return toscaPath;
 	}
 
 	/** Gets the init method or throw exception */
 	static Method getInitMethod(Class<?> clss)
 	{
-		return getMethod(clss, "init", Context.class);
-	}
-
-	/** 
-	 * Gets the given method or throw exception.  
-	 * @throws NoSuchMethodException 
-	 */
-	static Method getMethod(Class<?> clss, String name, Class<?>... params)
-	{
-		try
-		{
-			return clss.getMethod(name, params);
-		}
-		catch (NoSuchMethodException e)
-		{
-			Utils.fatal("Method " + name + " does not exist", e);
-			return null;
-		}
+		return Utils.getMethod(clss, "init", Context.class);
 	}
 
 	/** 
@@ -524,7 +608,7 @@ public class Tool
 	}
 
 	/**
-	 * Gets internal property value.
+	 * Gets internal typed property value.
 	 */
 	@SuppressWarnings("unchecked")
 	static <T> T getInternalProperty(Map<String, Object> internal, String name)
@@ -539,7 +623,7 @@ public class Tool
 	{
 		Context context = new Context();
 
-		setProperty(context, "verbose", env);
+		context.verbose = Utils.GetIntProperty(env, "verbose", 0);
 		setBootParserPath(context, env.get("bootparserpath"));
 
 		String name = env.get("class");
@@ -554,7 +638,7 @@ public class Tool
 		if (loader == null)
 			loader = Tool.class.getClassLoader();
 
-		Class<?> clss = loadClass(name, loader);
+		Class<?> clss = Utils.loadClass(name, loader);
 
 		// Initialize system.
 		Method init = getInitMethod(clss);
@@ -564,7 +648,7 @@ public class Tool
 		}
 		catch (Exception e)
 		{
-			Utils.fatal("problem occurred while initializing the TransScript system", e);
+			Utils.fatal("problem occurred while initializing the Tosca system", e);
 		}
 
 		// Add grammars
@@ -597,7 +681,7 @@ public class Tool
 		// Look top-level method to invoke
 		String mainMethod = env.get("main");
 		mainMethod = mainMethod == null ? "Main" : mainMethod;
-		Method main = getMethod(clss, mainMethod, argTypes);
+		Method main = Utils.getMethod(clss, mainMethod, argTypes);
 
 		Term result;
 		try
@@ -607,7 +691,7 @@ public class Tool
 		catch (Exception e)
 		{
 			result = null;
-			Utils.fatal("problem occurred while running the TransScript system", e);
+			Utils.fatal("problem occurred while running the Tosca system", e);
 		}
 
 		// initialize output
@@ -660,7 +744,7 @@ public class Tool
 		}
 	}
 
-	/* Set TransScript parsers classpath */
+	/* Set Tosca parsers classpath */
 	private static void setBootParserPath(Context context, String paths)
 	{
 		if (paths != null)
@@ -676,38 +760,6 @@ public class Tool
 					return null;
 				}
 			}).toArray(URL[]::new));
-		}
-	}
-
-	/** Set context field value to what the corresponding value in the environment */
-	static void setProperty(Context context, String name, Map<String, String> env)
-	{
-		String value = env.get(name);
-		if (value != null)
-		{
-			try
-			{
-				Field field = context.getClass().getField(name);
-				Class<?> type = field.getType();
-				if (type == int.class)
-				{
-					try
-					{
-						int intvalue = Integer.parseInt(value);
-
-						field.set(context, intvalue);
-					}
-					catch (NumberFormatException e)
-					{
-						Utils.warning("Expected a integer for " + name + ". Got: " + value);
-					}
-				}
-
-			}
-			catch (Exception e)
-			{
-				Utils.fatal("Internal error", e);
-			}
 		}
 	}
 
@@ -749,7 +801,16 @@ public class Tool
 		if (environment.containsKey("help"))
 			helps.get(command).run();
 		else
+		{
+			// Set default target language to Java if not set
+			if (environment.get("cpp") == null)
+				environment.put("java", "1");
+
+			if (environment.get("stacktrace") != null)
+				System.setProperty("stacktrace", "1");
+
 			fun.accept(environment);
+		}
 	}
 
 }

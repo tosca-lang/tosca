@@ -1,7 +1,7 @@
 // Copyright (c) 2016 IBM Corporation.
 
 /**
- * Build C++ TransScript library.  
+ * Build C++ tosca library.  
  */
 apply plugin: 'cpp'
 
@@ -12,7 +12,7 @@ model {
 	}
 	
 	components {
-		transscript(NativeLibrarySpec) {
+		tosca(NativeLibrarySpec) {
 			sources {
 				cpp {
 					source {
@@ -28,8 +28,8 @@ model {
 		all {
 			cppCompiler.args "-std=c++0x"
 		}
+		withType(SharedLibraryBinarySpec) {
+			buildable = false
+		}
 	}
 }
-
-
-

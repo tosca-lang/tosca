@@ -7,5 +7,9 @@ func Map((String) -> String, ListStr) -> ListStr
 rule Map(#, ())           → ()
 rule Map(#, Cons(#1:String, #s:ListStr)) → Cons(#(#1), Map(#, #s))
 
-func Tests -> ListStr
-→ Map((x : String) -> x : String, Cons("1", Cons("2", Nil)) )
+func Head(ListStr) -> String
+rule Head(()) → ""
+rule Head(Cons(#1:String, #s:ListStr)) → #1
+
+func Tests -> String
+→ Head(Map((x : String) -> x : String, Cons("1", Cons("2", Nil))))

@@ -1,6 +1,6 @@
 // Copyright (c) 2016 IBM Corporation.
 #include "ts.h"
-
+/*
 _StringTerm& concat(Context ctx, _StringTerm& value, _StringTerm& value2)
 {
     return value;
@@ -27,3 +27,4 @@ int main(int argc, char **argv)
     std::cout << r.Unbox().value() << "\n";
     delete &r;
 }
+*/

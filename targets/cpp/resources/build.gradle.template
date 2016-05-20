@@ -1,0 +1,37 @@
+// Copyright (c) 2016 IBM Corporation.
+apply plugin: 'cpp'
+
+defaultTasks 'build'
+
+model {
+	buildTypes {
+		debug
+	}
+	
+	components {
+		%NAME%(NativeExecutableSpec) {
+			sources {
+				cpp {
+					source {
+						srcDir "src"
+                        include "**/*.cpp"
+                        
+                        srcDir "%CPPROOT%"
+                        include "standalone/test.cpp"
+					}
+					exportedHeaders {
+						srcDirs '%CPPROOT%/runtime'
+						include '*.h'
+					}
+				}
+			}
+		}
+	}
+		
+	binaries {
+		all {
+			cppCompiler.args "-std=c++0x"
+			lib project: ':targets:cpp', library: 'tosca', linkage: 'static'
+		}
+	}
+}

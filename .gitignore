@@ -4,3 +4,4 @@ targets/java/parsers/org/crsx/*
 src/parser/Crsx.crs
 src/pg/ANTLR.g4.term
 /doc/
+/build/

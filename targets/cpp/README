@@ -1,1 +1,1 @@
-C++ backend for TransScript. Target GCC 4.4.x releases (no lambdas).
+C++ backend for Tosca. Target Clang and GCC 4.4.x releases (no lambdas).

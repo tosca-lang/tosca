@@ -1,0 +1,3 @@
+rootProject.name = '%NAME%'
+include ':targets:cpp'
+project(':targets:cpp').projectDir = new File('%CPPROOT%')
