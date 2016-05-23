@@ -86,9 +86,9 @@ public class Tool
 		System.out.println(
 				"  class=<classname>         the name of the compiled TransScript program to run. Cannot be used with option rules");
 		System.out.println("  build-dir=<directory>     where to store the intermediate files. Default is current directory");
-		System.out.println("  javabasepackage=<name>    Java base package name of generated Java files");
-		System.out.println("  javapackage=<name>        Java sub package name of generated Java files");
-		System.out.println("  parsers=<classnames>     Comma separated list of parsers classname");
+		System.out.println("  base=<name>               base source directory");
+		System.out.println("  javabasepackage=<name>    java base package name of generated Java files");
+		System.out.println("  parsers=<classnames>      comma separated list of parsers classname");
 		System.out.println(
 				"  bootparserpath=<name>     where to look for builtin parsers. Only used for bootstrapping TransScript");
 
@@ -123,7 +123,6 @@ public class Tool
 		{
 			String buildir = env.get("build-dir");
 			String javabasepackage = env.get("javabasepackage");
-			String javapackage = env.get("javapackage");
 
 			// First: build
 
@@ -132,14 +131,13 @@ public class Tool
 			buildEnv.put("rules", rules);
 			buildEnv.put("build-dir", buildir);
 			buildEnv.put("verbose", env.get("verbose"));
+			buildEnv.put("base", env.get("base"));
 			if (javabasepackage != null)
 				buildEnv.put("javabasepackage", javabasepackage);
-			if (javapackage != null)
-				buildEnv.put("javapackage", javapackage);
 
 			build(buildEnv);
 
-			clazz = targetClassFilename(rules, javabasepackage, javapackage);
+			clazz = targetClassFilename(rules, javabasepackage, javaPackage(env.get("base"), rules));
 			classLoader = classLoader(rules, buildir);
 		}
 
@@ -182,9 +180,12 @@ public class Tool
 			Utils.fatal("Input file not found", null);
 
 		// For java target (and there is no other targets for now)
-		// get base package and sub package name.
+		// get base package and package name.
 		String javabasepackage = env.get("javabasepackage");
 		String javapackage = env.get("javapackage");
+		if (javapackage == null)
+			javapackage = javaPackage(env.get("base"), rules);
+		
 		String dest = env.get("build-dir");
 		String output = targetJavaFilename(rules, dest, javabasepackage, javapackage, true);
 		String parsers = "org.transscript.core.CoreMetaParser,org.transscript.parser.TransScriptMetaParser,org.transscript.text.Text4MetaParser";
@@ -206,6 +207,7 @@ public class Tool
 
 		if (javabasepackage != null)
 			System.setProperty("javabasepackage", javabasepackage);
+
 		if (javapackage != null)
 			System.setProperty("javapackage", javapackage);
 
@@ -287,9 +289,27 @@ public class Tool
 		}
 	}
 
-	/* 
+	/* Compute subpackage name */
+	static String javaPackage(String base, String input)
+	{
+		final File inputFile = new File(input);
+
+		if (base != null)
+		{
+			String inputPath = inputFile.getAbsoluteFile().getParentFile().getAbsolutePath();
+			String basePath = new File(base).getAbsolutePath();
+			String pkg = inputPath.replace(basePath, "").replace(File.separatorChar, '.');
+			return pkg.startsWith(".") ? pkg.substring(1) : pkg;
+		}
+		
+		return null;
+	}
+	
+	/**
 	 * Get the absolute name of the target java file
-	 * @param input TransScript file
+	 * 
+	 * @param base source directory
+	 * @param input Tosca file
 	 * @param dest target directory
 	 * @param makeDirs whether to make destination directories.
 	 */
@@ -297,10 +317,7 @@ public class Tool
 	{
 		final File inputFile = new File(input);
 
-		if (dest == null)
-			dest = inputFile.getAbsoluteFile().getParentFile().getAbsolutePath();
-
-		// Offset destination considering package
+		// Offset destination considering base package
 		if (basepackage != null)
 			dest += File.separator + basepackage.replace('.', File.separatorChar);
 		if (pkg != null)
@@ -313,14 +330,14 @@ public class Tool
 		}
 
 		// Compute output java filename
-		String output = inputFile.getName().replace(".crsc", ".java").replace(".crs4", ".java").replace(".crs", ".java").replace(
-				".tsc", ".java");
+		String output = inputFile.getName().replace(".crsc", ".java").replace(".crs4", ".java").replace(".tsc", ".java");
 		output = Character.toUpperCase(output.charAt(0)) + output.substring(1); // First character must be upper case.
 
 		output = dest + File.separator + output; // dest / output.java
 
 		return output;
 	}
+
 
 	/* 
 	 * Get the relative name of the target class file
@@ -336,7 +353,7 @@ public class Tool
 		// Offset destination considering package
 		if (basepackage != null)
 			name += basepackage;
-		if (pkg != null)
+		if (pkg != null && !pkg.equals(""))
 		{
 			if (!name.equals(""))
 				name += ".";

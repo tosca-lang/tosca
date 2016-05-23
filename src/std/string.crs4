@@ -6,7 +6,7 @@
 
 import Std::Core
 import Std::Num
-import Parser::TransScript
+import Std::Listdef
 
 // --- Querying
 
@@ -57,15 +57,13 @@ rule DownCaseFirst(#string)
 func RemoveFirstChar(eager String) -> String
 rule RemoveFirstChar(#string) → Substring(#string, 1, Length(#string))
 
-
 /*
  * Returns given string without its last character
  */
 func RemoveLastChar(eager String) -> String
 rule RemoveLastChar(#string) → Substring(#string, 0, Minus(Length(#string), 1))
 
-/* Trim leading and trailing spaces
- */
+/* Trim leading and trailing spaces */
 extern func Trim(eager String) -> String
 
 extern func Replace(eager String, eager String, eager String) -> String
@@ -74,7 +72,6 @@ extern func Replace(eager String, eager String, eager String) -> String
           the empty string if there is no such occurrences
 */
 extern func AfterFirst(eager String, eager String) -> String
-
 
 extern func BeforeFirst(eager String, eager String) -> String
 
@@ -105,3 +102,11 @@ rule BeforeLast2(#Before, #Sep, #After)
 → If<String>(StringEqual(#After, ""),
     ()->#Before,
     ()->ConcatString(#Before, ConcatString(#Sep, #After)))
+
+/* Splits the string around the given separator string */
+@Extern func Split(String, String) -> List<String>
+
+/* Join list of strings together using the given separator string */
+func Join(List<String>, String) -> String
+rule Join(()                             , #sep) → ""
+rule Join(Cons(#:String, #s:List<String>), #sep) → FoldlP<String String>((str strs)->ConcatString(strs, ConcatString(#sep, str)), #, #s)

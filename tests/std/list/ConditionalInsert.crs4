@@ -11,8 +11,7 @@ import Std::List
 import Test::Unit
 
 func Tests -> Test
-rule Tests → 
-RunTests(
+→ RunTests(
     TextGroup(
     (
     

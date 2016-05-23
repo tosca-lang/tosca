@@ -18,9 +18,10 @@ class TransScriptTask extends DefaultTask {
 	@Optional
 	File outputDir = project.buildDir
 
+	// Base package name.
 	@Input
 	@Optional
-	String packageName = "" // Base package name 
+	String packageName = ""  
 
 	@Input
 	@Optional
@@ -62,6 +63,7 @@ class TransScriptTask extends DefaultTask {
 				jargs << "build-dir=${outputDir}" 
 				if (bootparserpath != null)
 					jargs << "bootparserpath=${bootparserpath}"
+				jargs << "base=${sources.dir}"
 			} else {
 				def dest = computeDestination(source)
 				
@@ -76,8 +78,8 @@ class TransScriptTask extends DefaultTask {
 						
 			if (!"".equals(packageName))
 				jargs << "javabasepackage=${packageName}"
-			if (!"".equals(subpackage))
-				jargs << "javapackage=${subpackage}"
+			//if (!"".equals(subpackage))
+			//	jargs << "javapackage=${subpackage}"
 			
 			logger.debug "run transscript with args" + " " + jargs
 			
@@ -91,8 +93,9 @@ class TransScriptTask extends DefaultTask {
 		
 		inputs.removed { change ->
 			def source = change.file
-			logger.lifecycle "removed: ${source}"
-			//def dest = file(computeDestination(source))
+			def dest = file(computeDestination(source))
+			logger.lifecycle "removed: ${dest}"
+			
 			//delete dest
 		}
 
@@ -100,7 +103,7 @@ class TransScriptTask extends DefaultTask {
 		
 	/** Compute the name of the generated java file */
 	def computeDestination(File source) { 
-		def dest = source.absolutePath.replace((String) sources.dir, (String) outputDir).replace(".crs4", ".java")..replace(".tsc", ".java");
+		def dest = source.absolutePath.replace((String) sources.dir, (String) outputDir).replace(".crs4", ".java").replace(".tsc", ".java");
 		def lastSlash = dest.lastIndexOf('/');
 		if (lastSlash != -1)
 			dest = dest[0..lastSlash] + dest[lastSlash + 1].toUpperCase() + dest[lastSlash + 2..-1]

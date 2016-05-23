@@ -1319,40 +1319,32 @@ func RegisterDataForm(Core_cform_sort) -> Text4_text_sort
   rule RegisterDataForm(cform⟦ allows-variable ⟧)
   → text⟦⟧
 
-
 /* Print package declaration */
 func PackageDeclaration -> Text4_text_sort
-rule PackageDeclaration → PackageDeclaration2(GetEnv("javabasepackage", ""), GetEnv("javapackage", ""))
+→ PackageDeclaration2(GetEnv("javabasepackage", ""), GetEnv("javapackage", ""))
 
-func PackageDeclaration2(String, String) -> Text4_text_sort
-rule PackageDeclaration2(#base, #sub)
-→ text⟦
-package ⟨STRING:#base⟩†⟨PackageDeclaration3(If<String>(StringEqual(Trim(#base), ""), ()->"", ()->"."), #sub)⟩;⟧
+func PackageDeclaration2(#base: String, #sub: String) -> Text4_text_sort
+→ text⟦package ⟨STRING:#base⟩†⟨PackageDeclaration3(If<String>(StringEqual(Trim(#base), ""), ()->"", ()->"."), #sub)⟩;⟧
 
-func PackageDeclaration3(String, String) -> Text4_text_sort
-rule PackageDeclaration3(#sep, #sub)
+func PackageDeclaration3(#sep: String, #sub:String) -> Text4_text_sort
 → If<Text4_text_sort>(StringEqual(Trim(#sub), ""), ()->text⟦⟧, ()->text⟦⟨STRING:#sep⟩⟨STRING:#sub⟩⟧)
 
-// Print java import
-func PathToImport(String) -> Text4_text_sort
+// --- Print java import. Treat Std:: as special. All other prefixes are relative to javapackage
 
-rule PathToImport(#name)
-→ PathToImport2(If<String>(StartsWith(#name, "Std::"), ()->"org.transscript.compiler", ()->GetEnv("javabasepackage", "")), PathToDot(DownCaseFirst(#name)))
+func PathToImport(#name: String) -> Text4_text_sort
+→ PathToImport2(If<String>(StartsWith(#name, "Std::"), ()->"org.transscript.compiler", ()->GetEnv("javabasepackage", "")),
+                Map<String String>((s)->DownCaseFirst(s), Split(#name, "::")))
 
-func PathToImport2(String, String) -> Text4_text_sort
+func PathToImport2(#basepkg: String , #path: List<String>) -> Text4_text_sort
+→ If<Text4_text_sort>(StringEqual(#basepkg, ""),
+    ()->JoinPath(#path),
+    ()->text⟦†⟨StringToText(#basepkg)⟩.†⟨JoinPath(#path)⟩⟧)
 
-rule PathToImport2(#package, #name)
-→  text⟦†⟨StringToText(#package)⟩.†⟨StringToText(#name)⟩⟧
-
-func PathToDot(String) -> String
-rule PathToDot(#path) → PathToDot2(Replace(#path, "::", "."))
-
-func PathToDot2(String) -> String
-rule PathToDot2(#subpackage)
-→
-If<String>(Contains(#subpackage, "."),
-    () -> ConcatString(ConcatString(BeforeLast(#subpackage, "."), "."), UpCaseFirst(AfterLast(#subpackage, "."))),
-    () -> UpCaseFirst(#subpackage))
+/* Join path component together, making sure the last one starts with an upper case character */
+func JoinPath(List<String>) -> Text4_text_sort
+rule JoinPath((                               )) → text⟦⟧
+rule JoinPath(Cons(#:String, List<String>::Nil)) → text⟦⟨STRING: UpCaseFirst(#)⟩⟧
+rule JoinPath(Cons(#:String, #s: List<String> )) → text⟦⟨STRING: #⟩.†⟨JoinPath(#s)⟩⟧
 
 // Print class name
 func ClassName(String) -> String
