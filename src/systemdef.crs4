@@ -29,6 +29,7 @@ rule InitSystem(#url) → TSystem(#url, MapPut<String Module>(MapNew<String Modu
 /* A Crsx module  */
 enum Module | Module(String /* filename/module id */, Content /* of module */)
 
+
 // --- module representation
 
 /* Module content */
@@ -78,7 +79,7 @@ func IsDataSortS(#system: TSystem, #constructor: String) -> Bool
    @return a form or `NONE`
  */
 func FindFormS(#system: TSystem, #datasort: Core_csort_sort, #formname: String) -> Option<Core_cform_sort>
-→ PickFirst<Option<Core_cform_sort>>(Map<Module Option<Core_cform_sort>>((mod) -> FindFormM(mod, #datasort, #formname), MapValues<String Module>(GetModulesS(#system))))
+→ Head<Option<Core_cform_sort>>(Map<Module Option<Core_cform_sort>>((mod) -> FindFormM(mod, #datasort, #formname), MapValues<String Module>(GetModulesS(#system))))
 
 // --- System mutation functions. Convention: function name is suffixed by S
 
@@ -104,9 +105,6 @@ rule FindFormM(Module(#url, NOTLOADED       ), #datasort, #formname) → NONE
 rule FindFormM(Module(#url, Loaded(#content)), #datasort, #formname) → FindFormC(#content, #datasort, #formname)
 
 // --- Loaded content lookup functions. Convention: function name is suffixed by C
-
-func GetFuncSorts(LoadedContent) -> {String: Core_cdecl_sort}
-rule GetFuncSorts(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #funcsorts
 
 func GetRules(LoadedContent) -> {String: List<Core_cdecl_sort>}
 rule GetRules(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #rules
@@ -134,7 +132,7 @@ func IsDataSortC(#content: LoadedContent, #constructor: String) -> Bool
    @return a form or `NONE`
  */
 func FindFormC(#content: LoadedContent, #datasort: Core_csort_sort, #formname: String) -> Option<Core_cform_sort>
-→ FindFormI(GetDataSorts(#content), #datasort, #formname)
+→ FindFormI(GetDataSortsC(#content), #datasort, #formname)
 
 // --- Declaration querying functions. Convention: function name is suffixed by D
 
