@@ -4,6 +4,11 @@
 
    A system is composed of modules.
    Each module is composed of a set of data, functions and rules
+
+   Conventions (in order):
+   - functions are suffixed by either S, M, or C, based on whether they operate on System, Module or LoadedContent, respectively.
+   - functions operating on indexed data structure are suffixed by I
+   - functions raising an error are suffixed by E
  */
 
 import Std::Core
@@ -11,7 +16,6 @@ import Std::String
 import Std::Mapdef
 import Std::Listdef
 import Core::Core
-
 
 // --- System representation.
 
@@ -35,17 +39,20 @@ enum Content
 /* The actual module content. Sorts and rules are indexed for fast lookup. */
 enum LoadedContent |
     LoadedContent(
-           List<Core_cqconstructor_sort /* Constructor */>,                       /* Imports */
+           List<Core_cqconstructor_sort /* Constructor */>,     /* Imports */
            {String /* Constructor */ : List<Core_cdecl_sort>},  /* Rules */
            {String /* Constructor */ : Core_cdecl_sort},        /* DataSorts */
            {String /* Constructor */ : Core_cdecl_sort})        /* FuncSorts */
 
 
-// --- System lookup functions.
+// --- System lookup functions. Convention: function name is suffixed by S
 
-/*
-  Gets module for given url.
-  @return A module or NONE
+/* @return all indexed modules from the given system */
+func GetModulesS(TSystem) -> {String:Module}
+rule GetModulesS(TSystem(#url, #modules)) → #modules
+
+/* Gets module for given url.
+  @return A module or `NONE`
  */
 func LookupModule(TSystem, String /* url */) -> Option<Module>
 rule LookupModule(TSystem(#mainurl, #modules), #url)
@@ -63,18 +70,17 @@ func IsNotLoaded(Module) -> Bool
 rule IsNotLoaded(Module(#url, NOTLOADED))  → TRUE
 rule IsNotLoaded(Module(#url, Loaded(#c))) → FALSE
 
-/* Gets data sort from sort reference */
-func LookupDataSortDecl(eager { String : Core_cdecl_sort }, Core_csort_sort) -> Option<Core_cdecl_sort>
-  rule LookupDataSortDecl(#data, csort⟦ ##CONSTRUCTOR ##csorts? ⟧)
-  → MapGet<String Core_cdecl_sort>(#data, #CONSTRUCTOR)
+/* @return `TRUE` if `#constructor` is a data symbol in the given system */
+func IsDataSortS(#system: TSystem, #constructor: String) -> Bool
+→ HasOption<Module>(PickFirst<Module>(MapValues<String Module>(GetModulesS(#system)), (mod) -> IsDataSortM(mod, #constructor)))
 
-  rule LookupDataSortDecl(#data, csort⟦ data ##csort ⟧)
-  → LookupDataSortDecl(#data, #csort)
+/* Search for the form of the given `#formname` and of sort `#datasort` in the given `#sytem`
+   @return a form or `NONE`
+ */
+func FindFormS(#system: TSystem, #datasort: Core_csort_sort, #formname: String) -> Option<Core_cform_sort>
+→ PickFirst<Option<Core_cform_sort>>(Map<Module Option<Core_cform_sort>>((mod) -> FindFormM(mod, #datasort, #formname), MapValues<String Module>(GetModulesS(#system))))
 
-  rule LookupDataSortDecl(#data, #csort)
-  → NONE
-
-// --- System mutation functions.
+// --- System mutation functions. Convention: function name is suffixed by S
 
 /*
   Put module for given url into system.
@@ -83,7 +89,21 @@ func PutModule(TSystem, String, Module) -> TSystem
 rule PutModule(TSystem(#mainurl, #modules), #url, #module)
 → TSystem(#mainurl, MapPut<String Module>(#modules, #url, #module))
 
-// --- Loaded content lookup functions.
+// --- Module querying functions. Convention: function name is suffixed by M
+
+/* @return `TRUE` if `#constructor` is a data symbol in the given `#module` */
+func IsDataSortM(Module, String) -> Bool
+rule IsDataSortM(Module(#url, NOTLOADED       ), #constructor) → FALSE
+rule IsDataSortM(Module(#url, Loaded(#content)), #constructor) → IsDataSortC(#content, #constructor)
+
+/* Search for the form of the given `#formname` and of sort `#datasort` in the given `#module`
+   @return a form or `NONE`
+ */
+func FindFormM(Module, Core_csort_sort, String) -> Option<Core_cform_sort>
+rule FindFormM(Module(#url, NOTLOADED       ), #datasort, #formname) → NONE
+rule FindFormM(Module(#url, Loaded(#content)), #datasort, #formname) → FindFormC(#content, #datasort, #formname)
+
+// --- Loaded content lookup functions. Convention: function name is suffixed by C
 
 func GetFuncSorts(LoadedContent) -> {String: Core_cdecl_sort}
 rule GetFuncSorts(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #funcsorts
@@ -91,10 +111,54 @@ rule GetFuncSorts(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #
 func GetRules(LoadedContent) -> {String: List<Core_cdecl_sort>}
 rule GetRules(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #rules
 
-// --- Loaded content mutation functions.
+/* @return all indexed data sorts */
+func GetDataSortsC(LoadedContent) -> {String: Core_cdecl_sort}
+rule GetDataSortsC(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #datasorts
 
-/* Add rule to module content. Always succeed.
-*/
+func GetFuncSorts(LoadedContent) -> {String: Core_cdecl_sort}
+rule GetFuncSorts(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #funcsorts
+
+func GetFuncSort(#content: LoadedContent, #key: String) -> Option<Core_cdecl_sort>
+→ MapGet<String Core_cdecl_sort>(GetFuncSorts(#content), #key)
+
+func GetFuncSortCE(#content: LoadedContent, #key: String) -> Core_cdecl_sort
+→ IfPresent<Core_cdecl_sort Core_cdecl_sort>(MapGet<String Core_cdecl_sort>(GetFuncSorts(#content), #key),
+    (decl) -> decl,
+    ()->Error<Core_cdecl_sort>(ConcatString("Error: missing function declaration ", #key)))
+
+/* @return `TRUE` if `#constructor` is a data symbol in the given loaded `#content` */
+func IsDataSortC(#content: LoadedContent, #constructor: String) -> Bool
+→ HasOption<Core_cdecl_sort>(MapGet<String Core_cdecl_sort>(GetDataSortsC(#content), #constructor))
+
+/* Search for form of the given `#formname` and of sort `#datasort` in the given module `#content`
+   @return a form or `NONE`
+ */
+func FindFormC(#content: LoadedContent, #datasort: Core_csort_sort, #formname: String) -> Option<Core_cform_sort>
+→ FindFormI(GetDataSorts(#content), #datasort, #formname)
+
+// --- Declaration querying functions. Convention: function name is suffixed by D
+
+/* @return data sort declaration from sort reference, or `NONE` */
+func LookupDataSortDecl({String:Core_cdecl_sort}, Core_csort_sort) -> Option<Core_cdecl_sort>
+rule LookupDataSortDecl(#data, csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → MapGet<String Core_cdecl_sort>(#data, #CONSTRUCTOR)
+rule LookupDataSortDecl(#data, csort⟦ data ##csort            ⟧) → LookupDataSortDecl(#data, #csort)
+rule LookupDataSortDecl(#data, #csort                         ) → NONE
+
+func FindFormI(#datasorts: {String: Core_cdecl_sort}, #datasort: Core_csort_sort, #formname: String) -> Option<Core_cform_sort>
+→ MaybeO<Core_cdecl_sort Core_cform_sort>((cdecl)->FindFormD(cdecl, #formname), LookupDataSortDecl(#datasorts, #datasort))
+
+/* Find form of the given name in the data sort */
+func FindFormD(Core_cdecl_sort, String) -> Option<Core_cform_sort>
+rule FindFormD(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, #formname) → PickFirst<Core_cform_sort>(#cform*, (x) -> MatchConsForm(x, #formname))
+rule FindFormD(#cdecl,                                               #formname) → NONE
+
+func MatchConsForm(Core_cform_sort, String) -> Bool
+rule MatchConsForm(cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #formname) → StringEqual(#CONSTRUCTOR, #formname)
+rule MatchConsForm(#, #formname)                                → FALSE
+
+// --- Loaded content mutation functions. Convention: function name is suffixed by C
+
+/* Add rule to module content. Always succeed. */
 func PutRule(eager { String : List<Core_cdecl_sort>}, Core_cdecl_sort) -> { String : List<Core_cdecl_sort> }
 rule PutRule(#rules, cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
 → PutRule1(MapGet<String List>(#rules, #CONSTRUCTOR), #rules, #CONSTRUCTOR, cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
@@ -106,8 +170,7 @@ rule PutRule1(NONE, #rules, #constructor, #rule)
 rule  PutRule1(SOME(#rulesForCons:List<Core_cdecl_sort>), #rules, #constructor, #rule)
 → MapPut<String List>(#rules, #constructor, Append<Core_cdecl_sort>(#rule, #rulesForCons))  // Keep rules in order.
 
-/*  Add data sort to module content. Fail if data sort already exists.
-*/
+/*  Add data sort to module content. Fail if data sort already exists. */
 func PutDataSort(eager { String : Core_cdecl_sort }, Core_cdecl_sort) -> { String : Core_cdecl_sort }
 rule PutDataSort(#data, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)
 → PutDataSort1(MapGet<String Core_cdecl_sort>(#data, #CONSTRUCTOR), #data, #CONSTRUCTOR,  cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)
@@ -119,8 +182,7 @@ rule PutDataSort1(NONE, #data, #constructor, #decl)
 rule PutDataSort1(SOME(#datasort:Core_cdecl_sort), #data, #constructor, #rule)
 → Error<{ String : Core_cdecl_sort}>(ConcatString("Data sort already declared:", #constructor))
 
-/* Add/Update function sort to module content.
- */
+/* Add/Update function sort to module content. */
 // FIXME: lazy call to MapGet...
 func PutFuncSort(eager { String : Core_cdecl_sort }, Core_cdecl_sort, Bool) -> {String : Core_cdecl_sort}
   rule PutFuncSort(#func, cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #overwrite)
@@ -135,6 +197,8 @@ func PutFuncSort1(Option<Core_cdecl_sort>, { String : Core_cdecl_sort }, String,
 
   rule PutFuncSort1(SOME(#datasort:Core_cdecl_sort), #func, #constructor, #rule, FALSE)
   → Error<{String : Core_cdecl_sort}>(ConcatString("Function sort already declared:", #constructor))
+
+
 
 // --- Load core program into system
 

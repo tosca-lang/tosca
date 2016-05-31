@@ -1,0 +1,183 @@
+// Copyright (c) 2016 IBM Corporation.
+/*
+  Propagate missing sort annotations and arguments, but only to compensate the target language limitations.
+
+  For Java:
+  - Sort parameters must be instantiated (eg. ListLength<Numeric>(...))
+  - Meta-variable sort annotations must be specified (meta-variable declarations only)
+  - Data constructor must be prefixed by their sort. (eg. List<a>::Cons) (for now in pattern only)
+
+  For C++:
+  - ...
+
+  This is basically a simplified version of the Hindley-Milner type inference algo,
+  as decribed in http://lucacardelli.name/Papers/BasicTypechecking.pdf
+
+  Simplified in such way:
+  - Sorts must be specified on function signatures
+  - Only look for one sort instantiation; does not try to resolve sort constraints.
+
+  Also perform the followings checks:
+  - Mismatched number of arguments in rule and corresponding function sort.
+  - Invalid use of function symbol in pattern
+  - Invalid sort qualifier (in pattern only)
+  - Invalid meta-variable sort annotations
+
+ */
+import Std::Listdef
+import Std::Pairdef
+import Std::Mapdef
+import Std::String
+import Core::Core
+import Infer::Env
+import Systemdef
+
+/* Infer type of given system
+   @param System The Tosca system */
+func Infer(TSystem) -> TSystem
+rule Infer(TSystem(#url:String, #modules:{String : Module}))
+→ TSystem(#url, MapIndex<String Module>(Map<String Pair<String Module>>((mod) -> InferModule(mod, TSystem(#url, #modules)), MapValues<String Module>(#modules))))
+
+func InferModule(Module, TSystem) -> Pair<String Module>
+rule InferModule(Module(#url, #content), #system) → PairCons<String Module>(#url, Module(#url, InferContent(#content, #system)))
+
+func InferContent(#content: LoadedContent, #system: TSystem) -> LoadedContent
+→ FoldlP<String LoadedContent>((key content) -> InferRules(key, UnSOME<List>(GetRulesForKey(key, content)), content, #system),
+                               #content,
+                               MapKeys<String List>(GetRules(#content)))
+
+func InferRules(#key: String, #rules: List<Core_cdecl_sort>, #content: LoadedContent, #system:TSystem) -> LoadedContent
+→ InferRulesUp(#key, FoldlP<Core_cdecl_sort Env>((rul env) -> InferRule(env, rul), EnvNew(#content, #system), #rules))
+
+func InferRule(Env, Core_cdecl_sort) -> Core_cdecl_sort
+rule InferRule(#env, cdecl⟦ rule ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? → ##cterm2 ⟧)
+→ InferRuleUp(#CONSTRUCTOR, #csortargs?, #csortanno?, InferPattern(SetContractum(#env, #cterm2), #cterms?, GetFuncSortCE(GetContent(#env), #CONSTRUCTOR)))
+
+// --- Pattern
+
+/* Traverse pattern, reconstruct data constructor sort prefixes and meta-variable sort annotations.
+   Store (meta-variable, sort) pairs in the environment */
+func InferPattern(Env, List<Core_cterms_sort>, Core_cdecl_sort) -> Pair<List<Core_cterms_sort> /* pattern */ Core_cterm_sort /* contractum */>
+
+  rule InferPattern(#env, #cterms?, cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ( ##csort* ) ⟧)
+  → InferPatternUp(InferPatternMaybeTerms(#env, #cterms?, #csort*))
+
+  // The signature or rule is wrong.
+  rule InferPattern(#env, #cterms?, cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts ⟧)
+  → Error<Pair<List<Core_cterms_sort> Core_cterm_sort>>(ConcatString("Error: mismatched number of arguments in rule and corresponding function declaration for ", #CONSTRUCTOR))
+
+/* Reconstruct pattern and move on to contractum */
+func InferPatternUp(Pair<Env List<Core_cterms_sort>>) -> Pair<List<Core_cterms_sort> /* pattern */ Core_cterm_sort /* contractum */>
+rule InferPatternUp(PairCons(#env, #cterms?)) → PairCons(#cterms, InferContractum(#env))
+
+/* Traverse terms if any */
+func InferPatternMaybeTerms(Env, List<Core_cterms_sort>, List<Core_csort_sort>) -> Pair<Env List<Core_cterms_sort>>
+rule InferPatternMaybeTerms(#env, cterms?⟦              ⟧, #csort*) → PairCons(#env, cterms?⟦⟧) // TODO: check sort arity
+rule InferPatternMaybeTerms(#env, cterms?⟦ (          ) ⟧, #csort*) → PairCons(#env, cterms?⟦⟧)  // TODO: check sort arity
+rule InferPatternMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, #csort*) → UnPair<Env List Pair>(InferPatternTerms(#env, #cterm*, #csort*), (env terms)->PairCons(env, cterms?⟦ ( ⟨cterm*: terms⟩ )⟧))
+
+/* Traverse terms */
+func InferPatternTerms(Env, List<Core_cterm_sort>, List<Core_csort_sort>) -> Pair<Env List<Core_cterm_sort>>
+rule InferPatternTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦ ##csort ##csort*⟧) → InferPatternTermsUp(InferPatternTerm(#env, #cterm, #csort), #cterms, #csort*)
+
+/* Reconstruct terms */
+func InferPatternTermsUp(Pair<Env Core_cterm_sort>, List<Core_cterm_sort>, List<Core_csort_sort>) -> Pair<Env List<Core_cterm_sort>>
+rule InferPatternTermsUp(PairCons(#env, #cterm), #cterm*, #csort*)
+→ UnPair<Env List Pair>(InferPatternTerms(#env, #cterm*, #csort*), (env cterms) -> PairCons(env, cterm*⟦ ##cterm ⟨cterm*: cterms⟩⟧))
+
+/* Traverse term */
+func InferPatternTerm(Env, Core_cterm_sort, Core_csort_sort) -> Pair<Env Core_cterm_sort>
+
+  rule InferPatternTerm(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #csort)
+  → InferPatternCons(#env, IsDataSortS(GetSystem(#env)), #csortqualifier*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #csort)
+
+  rule InterPatternTerm(#env, cterm⟦ ##cliteral ⟧, #csort) → PairCons(#env, cterm⟦ ##cliteral ⟧)
+
+  // metavar arguments on pattern must all be variables. No need to traverse. TODO: could check arity
+  rule InferPatternTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #csort)
+  → CheckSortAnnoE(#csortanno?, #csort, () -> PairCons(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? : ##csort ⟧))
+
+  rule InferPatternTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #csort) // TODO: could check sort annotation
+  → PairCons(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧)
+
+  rule InferPatternTerm(#env, cterm⟦ [ v ##csortanno? ] ##cterm ⟧, csort⟦ [ ##csort1 ] ##csort ⟧)
+  → CheckSortAnnoE(#csortanno?, #csort1, ()->InferPatternBinderUp([v] -> InferPatternTerm(#env, #cterm[v], #csort), #csort1))
+
+  rule InferPatternTerm(#env, cterm⟦ [ v ##csortanno? ] ##cterm ⟧, #csort)
+  → Error<Pair<Env Core_cterm_sort>>("Type error") // TODO:
+
+  rule InferPatternTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧, csort⟦ ( ##csort1 ) ##csort ⟧)
+  → CheckSortAnnoE(#csortanno?, #csort1, ()->InferPatternFormalUp([f] -> InferPatternTerm(#env, #cterm[f], #csort), #csort1))
+
+  rule InferPatternTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧, #csort)
+  → Error<Pair<Env Core_cterm_sort>>("Type error") // TODO:
+
+  rule InferPatternTerm(#env, cterm⟦ thunk ##cterm ⟧, #csort)
+  → InferPatternTerm(#env, #cterm, #csort)
+
+/* Traverse construction */
+func InferPatternCons(Env, Bool, List<Core_csortqualifier_sort>, String, List<Core_csortargs_sort>, List<Core_cterms_sort>, List<Core_csortanno_sort>, Core_csort_sort) -> Pair<Env Core_cterm_sort>
+
+  rule InferPatternCons(#env, FALSE, #csortqualifier*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #csort)
+  → Error<Pair<Env Core_cterm_sort>>(ConcatString("Error: function symbol cannot occur in pattern: ", #CONSTRUCTOR))
+
+  // TODO: should use the sort annotation
+  rule InferPatternCons(#env, TRUE, #csortqualifier*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #csort)
+  → CheckSortQualifier(#csortqualifier*, #csort,
+      ()->InferPatternConsUp(#CONSTRUCTOR, #csortargs?, InferPatternSubs(#env, #cterms?, FindFormS(GetSystem(#env), #csort, #CONSTRUCTOR), #CONSTRUCTOR)), #csort)
+
+/* Reconstruct construction */
+func InferPatternConsUp(String, List<Core_csortargs_sort>, Pair<Env List<Core_cterms_sort>>, Core_csort_sort) -> Pair<Env Core_cterm_sort>
+rule InferPatternConsUp(#CONSTRUCTOR, #csortargs?, PairCons(#env, #cterms?), #csort) → PairCons(#env, cterm⟦ ##csort :: ##CONSTRUCTOR ##csortargs? ##cterms? : ##csort ⟧)
+
+/* Traverse construction sub terms */
+func InferPatternSubs(Env, List<Core_cterms_sort>, Option<Core_cform_sort>, String) -> Pair<Env List<Core_cterms_sort>>
+rule InferPatternSubs(#env, #cterms?, SOME(csort⟦ ##CONSTRUCTOR ( ##csort* ) ⟧), #formname) → InferPatternMaybeTerms(#env, #cterms?, #csort*)
+rule InferPatternSubs(#env, #cterms?, #cform                                  , #formname) → Error<Pair>(ConcatString("Error: missing enumeration type declaration for ", #formname))
+
+/* Reconstruct binder */
+// Note: #env is weak.
+func InferPatternBinderUp([String] -> Pair<Env Core_cterm_sort>, Core_csort_sort) -> Pair<Env Core_cterm_sort>
+rule InferPatternBinderUp([b] -> PairCons(#env, #cterm[b]), #csort) → PairCons(#env, cterm⟦ [ b : ##csort ] ##cterm ⟧)
+
+/* Reconstruct formal parameter */
+// Note: #env is weak.
+func InferPatternFormalUp([String] -> Pair<Env Core_cterm_sort>, Core_csort_sort) -> Pair<Env Core_cterm_sort>
+rule InferPatternFormalUp([f] -> PairCons(#env, #cterm[f]), #csort) → PairCons(#env, cterm⟦ ( f : ##csort ) ##cterm ⟧)
+
+// --- Contraction
+
+func InferContractum(#env: Env) -> Core_cterm_sort → GetContractum(#env)
+
+// Contraction:
+
+// Main idea : propagate type bottom up. Use sort unification to instantiate type variables
+
+/* Example
+ ListLength<a>( Cons(# : Int, Nil : List<a>) : List<Int> )
+ sort unification:
+
+ For data: unifyConstruction(List<a>::Cons(a, List<a>), (Int, List<a>))
+            unifySort(a, Int) = {a -> Int}
+            unifySort(List<a>, List<a>)) = unifySort(a, a) = { a -> a }
+    only need one instantiation. a -> Int
+
+ for function
+   ListLength<a>(List<a>)
+
+   unifySort(List<a>, List<Int>)
+
+ ListLength<a>( F : List<Int>::Cons(# : Int, List<a>::Nil : List<a>) )
+
+
+*/
+
+//func UnifySort(Core_csort_sort, Core_csort_sort) -> List<Pair<String Core_csort_sort>>
+
+
+// --- Various utility functions
+
+/* Check the given `#sortanno?` matches the given `#sort`. Output an error if not, otherwise apply `#result` */
+func CheckSortAnnoE<a>(List<Core_csortanno_sort>, Core_csort_sort, ()->a) -> a
+rule CheckSortAnnoE(csortanno?⟦           ⟧, #csort, #result) → #result()
+rule CheckSortAnnoE(csortanno?⟦ : ##csort ⟧, #csort, #result) → #result()  // TODO: really check when Equal is fixed.

@@ -36,8 +36,11 @@ func Maybe<a b>((a)->b, Option<a>) -> Option<b>
 rule Maybe((x)->#(x), NONE) → NONE
 rule Maybe((x)->#(x), SOME(#val)) → SOME(#(#val))
 
-/* Apply #true if option is present, otherwise #false
- */
+func MaybeO<a b>((a)->Option<b>, Option<a>) -> Option<b>
+rule MaybeO((x)->#(x), NONE)       → NONE
+rule MaybeO((x)->#(x), SOME(#val)) → #(#val)
+
+/* Apply `#true` if option is present, otherwise `#false` */
 func IfPresent<a b>(Option<a>, (a)->b, ()->b) -> b
 rule IfPresent(SOME(#:a), #true, #false) → #true(#)
 rule IfPresent(NONE     , #true, #false) → #false()
