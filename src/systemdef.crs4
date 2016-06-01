@@ -109,6 +109,11 @@ rule FindFormM(Module(#url, Loaded(#content)), #datasort, #formname) → FindFor
 func GetRules(LoadedContent) -> {String: List<Core_cdecl_sort>}
 rule GetRules(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #rules
 
+/* @return The list of rules for the given `#key` in the given `#system` */
+func GetRulesForKeyC(LoadedContent, String) -> Option<List<Core_cdecl_sort>>
+rule GetRulesForKeyC(LoadedContent(#imports, #rules, #datasorts, #funcsorts), #key)
+→ MapGet<String List>(#rules, #key)
+
 /* @return all indexed data sorts */
 func GetDataSortsC(LoadedContent) -> {String: Core_cdecl_sort}
 rule GetDataSortsC(LoadedContent(#imports, #rules, #datasorts, #funcsorts)) → #datasorts
@@ -156,6 +161,13 @@ rule MatchConsForm(#, #formname)                                → FALSE
 
 // --- Loaded content mutation functions. Convention: function name is suffixed by C
 
+
+/* Add `#rules` of given `#constructor` to module `#content`. Always succeed, replacing existing entry if any.
+   @return the updated content */
+func PutRulesC(LoadedContent, String, List<Core_cdecl_sort>) -> LoadedContent
+rule PutRulesC(LoadedContent(#imports, #rules, #datasorts, #funcsorts), #constructor, #rulesForCons)
+→ LoadedContent(#imports, MapPut<String List<Core_cdecl_sort>>(#rules, #constructor, #rulesForCons), #datasorts, #funcsorts)
+
 /* Add rule to module content. Always succeed. */
 func PutRule(eager { String : List<Core_cdecl_sort>}, Core_cdecl_sort) -> { String : List<Core_cdecl_sort> }
 rule PutRule(#rules, cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
@@ -195,8 +207,6 @@ func PutFuncSort1(Option<Core_cdecl_sort>, { String : Core_cdecl_sort }, String,
 
   rule PutFuncSort1(SOME(#datasort:Core_cdecl_sort), #func, #constructor, #rule, FALSE)
   → Error<{String : Core_cdecl_sort}>(ConcatString("Function sort already declared:", #constructor))
-
-
 
 // --- Load core program into system
 

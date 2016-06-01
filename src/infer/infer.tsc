@@ -33,26 +33,31 @@ import Core::Core
 import Infer::Env
 import Systemdef
 
-/* Infer type of given system
+/* Infer sorts of given `#system`
    @param System The Tosca system */
-func Infer(TSystem) -> TSystem
-rule Infer(TSystem(#url:String, #modules:{String : Module}))
-→ TSystem(#url, MapIndex<String Module>(Map<String Pair<String Module>>((mod) -> InferModule(mod, TSystem(#url, #modules)), MapValues<String Module>(#modules))))
+func InferSystem(TSystem) -> TSystem
+rule InferSystem(TSystem(#url:String, #modules:{String : Module}))
+→ TSystem(#url, MapIndex<String Module>(Map<Module Pair<String Module>>((mod) -> InferModule(mod, TSystem(#url, #modules)), MapValues<String Module>(#modules))))
 
 func InferModule(Module, TSystem) -> Pair<String Module>
-rule InferModule(Module(#url, #content), #system) → PairCons<String Module>(#url, Module(#url, InferContent(#content, #system)))
+rule InferModule(Module(#url:String, #content: Content), #system) → PairCons(#url, Module(#url, InferContent(#content, #system)))
 
-func InferContent(#content: LoadedContent, #system: TSystem) -> LoadedContent
-→ FoldlP<String LoadedContent>((key content) -> InferRules(key, UnSOME<List>(GetRulesForKey(key, content)), content, #system),
+func InferContent(Content, TSystem) -> Content
+rule InferContent(Loaded(#content:LoadedContent), #system)
+→ Loaded(FoldlP<String LoadedContent>((key content) -> InferRules(key, UnSOME<List>(GetRulesForKeyC(content, key)), content, #system),
                                #content,
-                               MapKeys<String List>(GetRules(#content)))
+                               MapKeys<String List>(GetRules(#content))))
 
-func InferRules(#key: String, #rules: List<Core_cdecl_sort>, #content: LoadedContent, #system:TSystem) -> LoadedContent
-→ InferRulesUp(#key, FoldlP<Core_cdecl_sort {String:EnvEntry}>((rul env) -> InferRule(env, rul), EnvNew(#content, #system), #rules))
+func InferRules(#key: String, #rules: List<Core_cdecl_sort>, #content: LoadedContent, #system: TSystem) -> LoadedContent
+→ PutRulesC(#content, #key, Map<Core_cdecl_sort Core_cdecl_sort>((rul) -> InferRule(EnvNew(#content, #system), rul), #rules))
 
 func InferRule({String:EnvEntry}, Core_cdecl_sort) -> Core_cdecl_sort
-rule InferRule(#env, cdecl⟦ rule ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? → ##cterm2 ⟧)
-→ InferRuleUp(#CONSTRUCTOR, #csortargs?, #csortanno?, InferPattern(SetContractum(#env, #cterm2), #cterms?, GetFuncSortCE(GetContent(#env), #CONSTRUCTOR)))
+rule InferRule(#env, cdecl⟦ rule ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? → ##cterm ⟧)
+→ InferRuleUp(#CONSTRUCTOR, #csortargs?, #csortanno?, InferPattern(SetContractum(#env, #cterm), #cterms?, GetFuncSortCE(GetContent(#env), #CONSTRUCTOR)))
+
+func InferRuleUp(String, List<Core_csortargs_sort>, List<Core_csortanno_sort>, Pair<List<Core_cterms_sort> Core_cterm_sort>) -> Core_cdecl_sort
+rule InferRuleUp(#CONSTRUCTOR, #csortargs?, #csortanno?, PairCons(#cterms?:List<Core_cterms_sort> , #cterm: Core_cterm_sort))
+→ cdecl⟦ rule ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? → ##cterm ⟧
 
 // --- Pattern
 
@@ -69,7 +74,7 @@ func InferPattern({String:EnvEntry}, List<Core_cterms_sort>, Core_cdecl_sort) ->
 
 /* Reconstruct pattern and move on to contractum */
 func InferPatternUp(Pair<{String:EnvEntry} List<Core_cterms_sort>>) -> Pair<List<Core_cterms_sort> /* pattern */ Core_cterm_sort /* contractum */>
-rule InferPatternUp(PairCons(#env, #cterms?)) → PairCons(#cterms?, InferContractum(#env))
+rule InferPatternUp(PairCons(#env:{String:EnvEntry}, #cterms?:List<Core_cterms_sort>)) → PairCons(#cterms?, InferContractum(#env))
 
 /* Traverse terms if any */
 func InferPatternMaybeTerms({String:EnvEntry}, List<Core_cterms_sort>, List<Core_csort_sort>) -> Pair<{String:EnvEntry} List<Core_cterms_sort>>
@@ -83,32 +88,34 @@ rule InferPatternTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦ ##csort #
 
 /* Reconstruct terms */
 func InferPatternTermsUp(Pair<{String:EnvEntry} Core_cterm_sort>, List<Core_cterm_sort>, List<Core_csort_sort>) -> Pair<{String:EnvEntry} List<Core_cterm_sort>>
-rule InferPatternTermsUp(PairCons(#env, #cterm), #cterm*, #csort*)
+rule InferPatternTermsUp(PairCons(#env:{String:EnvEntry} , #cterm:Core_cterm_sort), #cterm*, #csort*)
 → UnPair<{String:EnvEntry} List Pair>(InferPatternTerms(#env, #cterm*, #csort*), (env cterms) -> PairCons(env, cterm*⟦ ##cterm ⟨cterm*: cterms⟩⟧))
 
 /* Traverse term */
 func InferPatternTerm({String:EnvEntry}, Core_cterm_sort, Core_csort_sort) -> Pair<{String:EnvEntry} Core_cterm_sort>
 
   rule InferPatternTerm(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #csort)
-  → InferPatternCons(#env, IsDataSortS(GetSystem(#env)), #csortqualifier*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #csort)
+  → InferPatternCons(#env, IsDataSortS(GetSystem(#env), #CONSTRUCTOR), #csortqualifier*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #csort)
 
-  rule InterPatternTerm(#env, cterm⟦ ##cliteral ⟧, #csort) → PairCons(#env, cterm⟦ ##cliteral ⟧)
+  rule InferPatternTerm(#env, cterm⟦ ##cliteral ⟧, #csort) → PairCons(#env, cterm⟦ ##cliteral ⟧)
 
   // metavar arguments on pattern must all be variables. No need to traverse. TODO: could check arity
   rule InferPatternTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #csort)
-  → CheckSortAnnoE(#csortanno?, #csort, () -> PairCons(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? : ##csort ⟧))
+  // TODO: enable when issue #15 is fixed
+  //→ CheckSortAnnoE<Pair<{String:EnvEntry} Core_cterm_sort>>(#csortanno?, #csort, () -> PairCons(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? : ##csort ⟧))
+  → PairCons(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? : ##csort ⟧)
 
   rule InferPatternTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #csort) // TODO: could check sort annotation
   → PairCons(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧)
 
   rule InferPatternTerm(#env, cterm⟦ [ v ##csortanno? ] ##cterm ⟧, csort⟦ [ ##csort1 ] ##csort ⟧)
-  → CheckSortAnnoE(#csortanno?, #csort1, ()->InferPatternBinderUp([v] -> InferPatternTerm(#env, #cterm[v], #csort), #csort1))
+  → CheckSortAnnoE<Pair<{String:EnvEntry} Core_cterm_sort>>(#csortanno?, #csort1, ()->InferPatternBinderUp([v] -> InferPatternTerm(#env, #cterm[v], #csort), #csort1))
 
   rule InferPatternTerm(#env, cterm⟦ [ v ##csortanno? ] ##cterm ⟧, #csort)
   → Error<Pair<{String:EnvEntry} Core_cterm_sort>>("Type error") // TODO:
 
   rule InferPatternTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧, csort⟦ ( ##csort1 ) ##csort ⟧)
-  → CheckSortAnnoE(#csortanno?, #csort1, ()->InferPatternFormalUp([f] -> InferPatternTerm(#env, #cterm[f], #csort), #csort1))
+  → CheckSortAnnoE<Pair<{String:EnvEntry} Core_cterm_sort>>(#csortanno?, #csort1, ()->InferPatternFormalUp([f] -> InferPatternTerm(#env, #cterm[f], #csort), #csort1))
 
   rule InferPatternTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧, #csort)
   → Error<Pair<{String:EnvEntry} Core_cterm_sort>>("Type error") // TODO:
@@ -123,28 +130,29 @@ func InferPatternCons({String:EnvEntry}, Bool, List<Core_csortqualifier_sort>, S
   → Error<Pair<{String:EnvEntry} Core_cterm_sort>>(ConcatString("Error: function symbol cannot occur in pattern: ", #CONSTRUCTOR))
 
   // TODO: should use the sort annotation
+  // TODO: CheckSortQualifier
   rule InferPatternCons(#env, TRUE, #csortqualifier*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #csort)
-  → CheckSortQualifier(#csortqualifier*, #csort,
-      ()->InferPatternConsUp(#CONSTRUCTOR, #csortargs?, InferPatternSubs(#env, #cterms?, FindFormS(GetSystem(#env), #csort, #CONSTRUCTOR), #CONSTRUCTOR)), #csort)
+  → //CheckSortQualifier(#csortqualifier*, #csort,
+      InferPatternConsUp(#CONSTRUCTOR, #csortargs?, InferPatternSubs(#env, #cterms?, FindFormS(GetSystem(#env), #csort, #CONSTRUCTOR), #CONSTRUCTOR), #csort)
 
 /* Reconstruct construction */
 func InferPatternConsUp(String, List<Core_csortargs_sort>, Pair<{String:EnvEntry} List<Core_cterms_sort>>, Core_csort_sort) -> Pair<{String:EnvEntry} Core_cterm_sort>
-rule InferPatternConsUp(#CONSTRUCTOR, #csortargs?, PairCons(#env, #cterms?), #csort) → PairCons(#env, cterm⟦ ##csort :: ##CONSTRUCTOR ##csortargs? ##cterms? : ##csort ⟧)
+rule InferPatternConsUp(#CONSTRUCTOR, #csortargs?, PairCons(#env:{String:EnvEntry}, #cterms?:List<Core_cterms_sort>), #csort) → PairCons(#env, cterm⟦ ##csort :: ##CONSTRUCTOR ##csortargs? ##cterms? : ##csort ⟧)
 
 /* Traverse construction sub terms */
 func InferPatternSubs({String:EnvEntry}, List<Core_cterms_sort>, Option<Core_cform_sort>, String) -> Pair<{String:EnvEntry} List<Core_cterms_sort>>
-rule InferPatternSubs(#env, #cterms?, SOME(csort⟦ ##CONSTRUCTOR ( ##csort* ) ⟧), #formname) → InferPatternMaybeTerms(#env, #cterms?, #csort*)
+rule InferPatternSubs(#env, #cterms?, SOME(cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧), #formname) → InferPatternMaybeTerms(#env, #cterms?, #csort*)
 rule InferPatternSubs(#env, #cterms?, #cform                                  , #formname) → Error<Pair>(ConcatString("Error: missing enumeration type declaration for ", #formname))
 
 /* Reconstruct binder */
 // Note: #env is weak.
 func InferPatternBinderUp([String] -> Pair<{String:EnvEntry} Core_cterm_sort>, Core_csort_sort) -> Pair<{String:EnvEntry} Core_cterm_sort>
-rule InferPatternBinderUp([b] -> PairCons(#env, #cterm[b]), #csort) → PairCons(#env, cterm⟦ [ b : ##csort ] ##cterm ⟧)
+rule InferPatternBinderUp([b] -> PairCons(#env:{String:EnvEntry}, #cterm[b]:Core_cterm_sort), #csort) → PairCons(#env, cterm⟦ [ b : ##csort ] ##cterm ⟧)
 
 /* Reconstruct formal parameter */
 // Note: #env is weak.
 func InferPatternFormalUp([String] -> Pair<{String:EnvEntry} Core_cterm_sort>, Core_csort_sort) -> Pair<{String:EnvEntry} Core_cterm_sort>
-rule InferPatternFormalUp([f] -> PairCons(#env, #cterm[f]), #csort) → PairCons(#env, cterm⟦ ( f : ##csort ) ##cterm ⟧)
+rule InferPatternFormalUp([f] -> PairCons(#env:{String:EnvEntry}, #cterm[f]:Core_cterm_sort), #csort) → PairCons(#env, cterm⟦ ( f : ##csort ) ##cterm ⟧)
 
 // --- Contraction
 

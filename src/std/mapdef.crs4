@@ -6,6 +6,7 @@
  */
 import Std::Core
 import Std::Listdef
+import Std::Pairdef
 
 /* Extend the given map with the given key-value pair.
    If a entry for the given key already exists in the map, it is shadowed.
@@ -37,3 +38,7 @@ extern func MapValues<a b>({a : b}) -> List<b>
 
 /* Create new empty map */
 extern func MapNew<a b>() -> {a : b}
+
+/* @return a map containing the given list of key-value pairs*/
+func MapIndex<a b>(#entries: List<Pair<a b>>) -> {a:b}
+→ FoldlP<Pair<a b> {a:b}>((pair map) -> MapPut<a b>(map, Fst<a b>(pair), Snd<a b>(pair)), MapNew<a b>, #entries)
