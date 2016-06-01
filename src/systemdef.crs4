@@ -71,7 +71,7 @@ func IsNotLoaded(Module) -> Bool
 rule IsNotLoaded(Module(#url, NOTLOADED))  → TRUE
 rule IsNotLoaded(Module(#url, Loaded(#c))) → FALSE
 
-/* @return `TRUE` if `#constructor` is a data symbol in the given system */
+/* @return `TRUE` if `#constructor` is a data sort in the given system */
 func IsDataSortS(#system: TSystem, #constructor: String) -> Bool
 → HasOption<Module>(PickFirst<Module>(MapValues<String Module>(GetModulesS(#system)), (mod) -> IsDataSortM(mod, #constructor)))
 
@@ -92,7 +92,7 @@ rule PutModule(TSystem(#mainurl, #modules), #url, #module)
 
 // --- Module querying functions. Convention: function name is suffixed by M
 
-/* @return `TRUE` if `#constructor` is a data symbol in the given `#module` */
+/* @return `TRUE` if `#constructor` is a data sort in the given `#module` */
 func IsDataSortM(Module, String) -> Bool
 rule IsDataSortM(Module(#url, NOTLOADED       ), #constructor) → FALSE
 rule IsDataSortM(Module(#url, Loaded(#content)), #constructor) → IsDataSortC(#content, #constructor)
@@ -129,7 +129,7 @@ func GetFuncSortCE(#content: LoadedContent, #key: String) -> Core_cdecl_sort
     (decl) -> decl,
     ()->Error<Core_cdecl_sort>(ConcatString("Error: missing function declaration ", #key)))
 
-/* @return `TRUE` if `#constructor` is a data symbol in the given loaded `#content` */
+/* @return `TRUE` if `#constructor` is a data sort in the given loaded `#content` */
 func IsDataSortC(#content: LoadedContent, #constructor: String) -> Bool
 → HasOption<Core_cdecl_sort>(MapGet<String Core_cdecl_sort>(GetDataSortsC(#content), #constructor))
 

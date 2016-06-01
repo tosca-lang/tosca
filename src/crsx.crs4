@@ -1,11 +1,12 @@
 // Copyright (c) 2015 IBM Corporation.
 /*
- CRSX command line
+ Tosca command line
 */
 
 import Systemdef
 import Normalizer
 import Checker
+import Infer::Infer
 import Cg::Cgjava
 import Std::Core
 import Std::Listdef
@@ -37,7 +38,7 @@ func MaybeLoadModule(TSystem, Option<Module>) -> Text4_text_sort
 
 // Done loading all modules. Generate code.
 rule MaybeLoadModule(#system, NONE)
-→ TransScriptToJava(#system)
+→ TransScriptToJava(InferSystem(#system))
 
 rule MaybeLoadModule(#system, SOME(Module::Module(#url:String, Content::NOTLOADED)))
 → CompileSystem(PutModule(#system, #url, Module(#url, LoadModule(#url))))

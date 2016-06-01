@@ -68,8 +68,12 @@ func InferPattern({String:EnvEntry}, List<Core_cterms_sort>, Core_cdecl_sort) ->
   rule InferPattern(#env, #cterms?, cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ( ##csort* ) ⟧)
   → InferPatternUp(InferPatternMaybeTerms(#env, #cterms?, #csort*))
 
+  // TODO: could easily check arity
+  rule InferPattern(#env, cterms?⟦⟧, cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
+  → PairCons(cterms?⟦⟧, InferContractum(#env))
+
   // The signature or rule is wrong.
-  rule InferPattern(#env, #cterms?, cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts ⟧)
+  rule InferPattern(#env, #cterms?, cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
   → Error<Pair<List<Core_cterms_sort> Core_cterm_sort>>(ConcatString("Error: mismatched number of arguments in rule and corresponding function declaration for ", #CONSTRUCTOR))
 
 /* Reconstruct pattern and move on to contractum */
@@ -84,7 +88,10 @@ rule InferPatternMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, #csort*) → UnPa
 
 /* Traverse terms */
 func InferPatternTerms({String:EnvEntry}, List<Core_cterm_sort>, List<Core_csort_sort>) -> Pair<{String:EnvEntry} List<Core_cterm_sort>>
-rule InferPatternTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦ ##csort ##csort*⟧) → InferPatternTermsUp(InferPatternTerm(#env, #cterm, #csort), #cterm*, #csort*)
+rule InferPatternTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦ ##csort ##csort* ⟧) → InferPatternTermsUp(InferPatternTerm(#env, #cterm, #csort), #cterm*, #csort*)
+rule InferPatternTerms(#env, cterm*⟦                  ⟧, csort*⟦                  ⟧) → PairCons(#env, cterm*⟦⟧)
+rule InferPatternTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦                  ⟧) → Error<Pair<{String:EnvEntry} List<Core_cterm_sort>>>("Error: too many arguments.")
+rule InferPatternTerms(#env, cterm*⟦                  ⟧, csort*⟦ ##csort ##csort* ⟧) → Error<Pair<{String:EnvEntry} List<Core_cterm_sort>>>("Error: not enough arguments.")
 
 /* Reconstruct terms */
 func InferPatternTermsUp(Pair<{String:EnvEntry} Core_cterm_sort>, List<Core_cterm_sort>, List<Core_csort_sort>) -> Pair<{String:EnvEntry} List<Core_cterm_sort>>
@@ -95,7 +102,7 @@ rule InferPatternTermsUp(PairCons(#env:{String:EnvEntry} , #cterm:Core_cterm_sor
 func InferPatternTerm({String:EnvEntry}, Core_cterm_sort, Core_csort_sort) -> Pair<{String:EnvEntry} Core_cterm_sort>
 
   rule InferPatternTerm(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #csort)
-  → InferPatternCons(#env, IsDataSortS(GetSystem(#env), #CONSTRUCTOR), #csortqualifier*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #csort)
+  → InferPatternCons(#env, FindFormS(GetSystem(#env), #csort, #CONSTRUCTOR), #csortqualifier*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #csort)
 
   rule InferPatternTerm(#env, cterm⟦ ##cliteral ⟧, #csort) → PairCons(#env, cterm⟦ ##cliteral ⟧)
 
@@ -124,25 +131,26 @@ func InferPatternTerm({String:EnvEntry}, Core_cterm_sort, Core_csort_sort) -> Pa
   → InferPatternTerm(#env, #cterm, #csort)
 
 /* Traverse construction */
-func InferPatternCons({String:EnvEntry}, Bool, List<Core_csortqualifier_sort>, String, List<Core_csortargs_sort>, List<Core_cterms_sort>, List<Core_csortanno_sort>, Core_csort_sort) -> Pair<{String:EnvEntry} Core_cterm_sort>
+func InferPatternCons({String:EnvEntry}, Option<Core_cform_sort>, List<Core_csortqualifier_sort>, String, List<Core_csortargs_sort>, List<Core_cterms_sort>, List<Core_csortanno_sort>, Core_csort_sort) -> Pair<{String:EnvEntry} Core_cterm_sort>
 
-  rule InferPatternCons(#env, FALSE, #csortqualifier*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #csort)
+  rule InferPatternCons(#env, NONE, #csortqualifier*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #csort)
   → Error<Pair<{String:EnvEntry} Core_cterm_sort>>(ConcatString("Error: function symbol cannot occur in pattern: ", #CONSTRUCTOR))
 
   // TODO: should use the sort annotation
   // TODO: CheckSortQualifier
-  rule InferPatternCons(#env, TRUE, #csortqualifier*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #csort)
+  rule InferPatternCons(#env, SOME(#form:Core_cform_sort), #csortqualifier*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #csort)
   → //CheckSortQualifier(#csortqualifier*, #csort,
-      InferPatternConsUp(#CONSTRUCTOR, #csortargs?, InferPatternSubs(#env, #cterms?, FindFormS(GetSystem(#env), #csort, #CONSTRUCTOR), #CONSTRUCTOR), #csort)
+      InferPatternConsUp(#CONSTRUCTOR, #csortargs?, InferPatternSubs(#env, #cterms?, #form, #CONSTRUCTOR), #csort)
 
 /* Reconstruct construction */
 func InferPatternConsUp(String, List<Core_csortargs_sort>, Pair<{String:EnvEntry} List<Core_cterms_sort>>, Core_csort_sort) -> Pair<{String:EnvEntry} Core_cterm_sort>
 rule InferPatternConsUp(#CONSTRUCTOR, #csortargs?, PairCons(#env:{String:EnvEntry}, #cterms?:List<Core_cterms_sort>), #csort) → PairCons(#env, cterm⟦ ##csort :: ##CONSTRUCTOR ##csortargs? ##cterms? : ##csort ⟧)
 
 /* Traverse construction sub terms */
-func InferPatternSubs({String:EnvEntry}, List<Core_cterms_sort>, Option<Core_cform_sort>, String) -> Pair<{String:EnvEntry} List<Core_cterms_sort>>
-rule InferPatternSubs(#env, #cterms?, SOME(cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧), #formname) → InferPatternMaybeTerms(#env, #cterms?, #csort*)
-rule InferPatternSubs(#env, #cterms?, #cform                                  , #formname) → Error<Pair>(ConcatString("Error: missing enumeration type declaration for ", #formname))
+func InferPatternSubs({String:EnvEntry}, List<Core_cterms_sort>, Core_cform_sort, String) -> Pair<{String:EnvEntry} List<Core_cterms_sort>>
+rule InferPatternSubs(#env, #cterms? , cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧, #formname) → InferPatternMaybeTerms(#env, #cterms?, #csort*)
+rule InferPatternSubs(#env, cterms?⟦⟧, cform⟦ ##CONSTRUCTOR              ⟧, #formname) → PairCons(#env, cterms?⟦⟧)
+rule InferPatternSubs(#env, #cterms?, #cform                            , #formname) → Error<Pair>(ConcatString("Error: wrong arity for enumeration value ", #formname))
 
 /* Reconstruct binder */
 // Note: #env is weak.
