@@ -291,17 +291,65 @@ func OptimizeSorts(#env: {String : EnvEntry}) -> {String : EnvEntry}
 → SetSorts(#env, FoldlP<String {String : Core_csort_sort}>((key sorts) -> OptimizeSort(sorts, (key,), MapGet<String Core_csort_sort>(sorts, key)), GetSorts(#env), MapKeys<String Core_csort_sort>(GetSorts(#env))))
 
 func OptimizeSort({String : Core_csort_sort}, List<String>, Option<Core_csort_sort>) -> {String : Core_csort_sort}
-rule OptimizeSort(#sorts, #keys, SOME(csort⟦ ##VARIABLE ⟧)) → OptimizeSort(#sorts, Cons(#VARIABLE, #keys), MapGet<String Core_csort_sort>(#sorts, #VARIABLE))
+rule OptimizeSort(#sorts, #keys, SOME(csort⟦ ##VARIABLE ⟧))   → OptimizeSort(#sorts, Cons(#VARIABLE, #keys), MapGet<String Core_csort_sort>(#sorts, #VARIABLE))
 rule OptimizeSort(#sorts, #keys, SOME(#sort:Core_csort_sort)) → FoldlP<String {String : Core_csort_sort}>((key sorts)->MapPut<String Core_csort_sort>(sorts, key, #sort), #sorts, #keys)
-rule OptimizeSort(#sorts, #keys, NONE                    ) → #sorts
+rule OptimizeSort(#sorts, #keys, NONE                    )    → #sorts
 
 // ---- Apply sort instantiation
 
 func SubstRule(#env: {String:EnvEntry}, #cterm1: Core_cterm_sort, #cterm2: Core_cterm_sort) -> Core_cdecl_sort
 → cdecl⟦ rule ⟨cterm: SubstTerm(#env, #cterm1)⟩ → ⟨cterm: SubstTerm(#env, #cterm2)⟩ ⟧
 
-func SubstTerm(#env: {String:EnvEntry}, #cterm: Core_cterm_sort) -> Core_cterm_sort
-→ #cterm
+func SubstTerm({String:EnvEntry}, Core_cterm_sort) -> Core_cterm_sort
+rule SubstTerm(#env, cterm⟦ ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧) → cterm⟦ ##cqconstructor ⟨csortargs?: SubstMaybeSortArgs(#env, #csortargs?)⟩ ⟨cterms?: SubstMaybeTerms(#env, #cterms?)⟩ ⟨csortanno?: SubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
+rule SubstTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)          → cterm⟦ ##METAVAR ⟨cterms?: SubstMaybeTerms(#env, #cterms?)⟩ ⟨csubst?: SubstMaybeSubst(#env, #csubst?)⟩ ⟨csortanno?: SubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
+rule SubstTerm(#env, cterm⟦ [ x ##csortanno? ] ##cterm ⟧)                          → cterm⟦ [ x ##csortanno? ] ##cterm ⟧
+rule SubstTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧)                          → cterm⟦ ( f ##csortanno? ) ##cterm ⟧
+rule SubstTerm(#env, #cterm)                                                      → #cterm
+// TODO: map
+
+func SubstMaybeSortArgs({String:EnvEntry}, List<Core_csortargs_sort>) -> List<Core_csortargs_sort>
+rule SubstMaybeSortArgs(#env, csortargs?⟦              ⟧) → csortargs?⟦⟧
+rule SubstMaybeSortArgs(#env, csortargs?⟦ < ##csort* > ⟧) → csortargs?⟦ < ⟨csort*: SubstSorts(#env, #csort*)⟩ >⟧
+
+func SubstMaybeTerms({String:EnvEntry}, List<Core_cterms_sort>) -> List<Core_cterms_sort>
+rule SubstMaybeTerms(#env, cterms?⟦              ⟧) → cterms?⟦⟧
+rule SubstMaybeTerms(#env, cterms?⟦ ()           ⟧) → cterms?⟦⟧
+rule SubstMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧) → cterms?⟦ ( ⟨cterm*: SubstTerms(#env, #cterm*)⟩ ) ⟧
+
+func SubstMaybeSortAnno({String:EnvEntry}, List<Core_csortanno_sort>) -> List<Core_csortanno_sort>
+rule SubstMaybeSortAnno(#env, csortanno?⟦           ⟧) → csortanno?⟦⟧
+rule SubstMaybeSortAnno(#env, csortanno?⟦ : ##csort ⟧) → csortanno?⟦ : ⟨csort: SubstSort(#env, #csort)⟩ ⟧
+
+func SubstMaybeSubst({String:EnvEntry}, List<Core_csubst_sort>) -> List<Core_csubst_sort>
+rule SubstMaybeSubst(#env, csubst?⟦              ⟧) → csubst?⟦⟧
+rule SubstMaybeSubst(#env, csubst?⟦ [ ##cterm* ] ⟧) → csubst?⟦ [ ⟨cterm*: SubstTerms(#env, #cterm*)⟩ ] ⟧
+
+func SubstTerms({String:EnvEntry}, List<Core_cterm_sort>) -> List<Core_cterm_sort>
+rule SubstTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧) → cterm*⟦ ⟨cterm: SubstTerm(#env, #cterm)⟩ ⟨cterm*: SubstTerms(#env, #cterm*)⟩ ⟧
+rule SubstTerms(#env, cterm*⟦                  ⟧) → cterm*⟦⟧
+
+func SubstSorts({String:EnvEntry}, List<Core_csort_sort>) -> List<Core_csort_sort>
+rule SubstSorts(#env, csort*⟦ ##csort ##csort* ⟧) → csort*⟦ ⟨csort: SubstSort(#env, #csort)⟩ ⟨csort*: SubstSorts(#env, #csort*)⟩ ⟧
+rule SubstSorts(#env, csort*⟦                  ⟧) → csort*⟦⟧
+
+func SubstSort({String:EnvEntry}, Core_csort_sort) -> Core_csort_sort
+rule SubstSort(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → csort⟦ ##CONSTRUCTOR ⟨csorts?: SubstMaybeSorts(#env, #csorts?)⟩ ⟧                           /* Construction sort */
+rule SubstSort(#env, csort⟦ ##VARIABLE              ⟧) → SubstVar(#VARIABLE, GetSort(#env, #VARIABLE))
+rule SubstSort(#env, csort⟦ [ ##csort1 ] ##csort2   ⟧) → csort⟦ [ ⟨csort: SubstSort(#env, #csort1)⟩ ] ⟨csort: SubstSort(#env, #csort2)⟩ ⟧
+rule SubstSort(#env, csort⟦ ( ##csort1 ) ##csort2   ⟧) → csort⟦ ( ⟨csort: SubstSort(#env, #csort1)⟩ ) ⟨csort: SubstSort(#env, #csort2)⟩ ⟧
+//rule SubstSort(#env, csort⟦ { ##cmapsort*}        ⟧) →
+rule SubstSort(#env, csort⟦ thunk ##csort           ⟧) → csort⟦ thunk ⟨csort: SubstSort(#env, #csort)⟩ ⟧
+
+func SubstMaybeSorts({String:EnvEntry}, List<Core_csorts_sort>) -> List<Core_csorts_sort>
+rule SubstMaybeSorts(#env, csorts?⟦ ( ##csort* ) ⟧) → csorts?⟦ ( ⟨csort*: SubstSorts(#env, #csort*)⟩ ) ⟧
+rule SubstMaybeSorts(#env, csorts?⟦              ⟧) → csorts?⟦⟧
+
+// The insteresting bit is here. The rest is just boilerplate.
+func SubstVar(String, Option<Core_csort_sort>) -> Core_csort_sort
+rule SubstVar(#VARIABLE, NONE                        ) → csort⟦ ##VARIABLE ⟧  // generic variable
+rule SubstVar(#VARIABLE, SOME(#csort:Core_csort_sort)) → #csort              // variable is replaced.
+
 
 // --- Various utility functions
 
