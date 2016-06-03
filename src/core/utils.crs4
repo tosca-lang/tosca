@@ -27,3 +27,9 @@ rule EqualAnno(#anno, canno⟦ @ ##CONSTRUCTOR ⟧) → StringEqual(#CONSTRUCTOR
 /* Add annotation to list. Does not check if already there. */
 func AddAnnotation(#anno: String, #anno*: List<Core_canno_sort>) ->  List<Core_canno_sort>
 → Cons(canno⟦ @ ⟨CONSTRUCTOR: #anno⟩ ⟧, #anno*)
+
+/* @return sort declaration sort parameters, or `NONE` */
+func GetSortVars(Core_cdecl_sort) -> Option<Core_csortvars_sort>
+rule GetSortVars(cdecl⟦ data ##csortvars ##CONSTRUCTOR ##cforms ⟧)                                 → SOME(#csortvars)
+rule GetSortVars(cdecl⟦ ##canno* ##extern_TOK? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧) → SOME(#csortvars)
+rule GetSortVars(#)                                                                                → NONE
