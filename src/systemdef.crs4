@@ -15,7 +15,9 @@ import Std::Core
 import Std::String
 import Std::Mapdef
 import Std::Listdef
+import Std::Pairdef
 import Core::Core
+import Core::Utils
 
 // --- System representation.
 
@@ -85,9 +87,9 @@ func FindFuncSortS(#system: TSystem, #constructor: String) -> Option<Core_cdecl_
 → Head<Option<Core_cdecl_sort>>(Map<Module Option<Core_cdecl_sort>>((mod) -> FindFuncSortM(mod, #constructor), MapValues<String Module>(GetModulesS(#system))))
 
 /* Search for the form of the given `#formname` and of sort `#datasort` in the given `#sytem`
-   @return a form or `NONE`
+   @return a sort-form pair or `NONE` if no such form exist in the system
  */
-func FindFormS(#system: TSystem, #datasort: Core_csort_sort, #formname: String) -> Option<Core_cform_sort>
+func FindFormS(#system: TSystem, #datasort: Core_csort_sort, #formname: String) -> Option<Pair<Core_csort_sort Core_cform_sort>>
 → Head<Option<Core_cform_sort>>(Map<Module Option<Core_cform_sort>>((mod) -> FindFormM(mod, #datasort, #formname), MapValues<String Module>(GetModulesS(#system))))
 
 // --- System mutation functions. Convention: function name is suffixed by S
@@ -113,9 +115,9 @@ rule IsDataSortM(Module(#url, NOTLOADED       ), #sort) → FALSE // TODO: Shoul
 rule IsDataSortM(Module(#url, Loaded(#content)), #sort) → IsDataSortC(#content, #sort)
 
 /* Search for the form of the given `#formname` and of sort `#datasort` in the given `#module`
-   @return a form or `NONE`
+   @return a sort-form pair or `NONE` if no such form exist in the given module
  */
-func FindFormM(Module, Core_csort_sort, String) -> Option<Core_cform_sort>
+func FindFormM(Module, Core_csort_sort, String) -> Option<Pair<Core_csort_sort Core_cform_sort>>
 rule FindFormM(Module(#url, NOTLOADED       ), #datasort, #formname) → NONE
 rule FindFormM(Module(#url, Loaded(#content)), #datasort, #formname) → FindFormC(#content, #datasort, #formname)
 
@@ -150,9 +152,9 @@ func IsDataSortC(#content: LoadedContent, #sort: Core_csort_sort) -> Bool
 → HasOption<Core_cdecl_sort>(LookupDataSortDecl(GetDataSortsC(#content), #sort))
 
 /* Search for form of the given `#formname` and of sort `#datasort` in the given module `#content`
-   @return a form or `NONE`
+   @return a sort-form pair or `NONE` if no such form exist in the given content
  */
-func FindFormC(#content: LoadedContent, #datasort: Core_csort_sort, #formname: String) -> Option<Core_cform_sort>
+func FindFormC(#content: LoadedContent, #datasort: Core_csort_sort, #formname: String) -> Option<Pair<Core_csort_sort Core_cform_sort>>
 → FindFormI(GetDataSortsC(#content), #datasort, #formname)
 
 // --- Declaration querying functions. Convention: function name is suffixed by D
@@ -164,19 +166,18 @@ rule LookupDataSortDecl(#data, csort⟦ data ##csort            ⟧) → LookupD
 rule LookupDataSortDecl(#data, #csort                         ) → NONE
 
 /* Search for `#formname` in the indexed list of `#datasorts`. Limit the search to the given `#datasort` when known */
-func FindFormI(#datasorts: {String: Core_cdecl_sort}, #datasort: Core_csort_sort, #formname: String) -> Option<Core_cform_sort>
+func FindFormI(#datasorts: {String: Core_cdecl_sort}, #datasort: Core_csort_sort, #formname: String) -> Option<Pair<Core_csort_sort Core_cform_sort>>
 
   rule FindFormI(#datasorts, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #formname)
-  → MaybeO<Core_cdecl_sort Core_cform_sort>((cdecl)->FindFormD(cdecl, #formname), MapGet<String Core_cdecl_sort>(#datasorts, #CONSTRUCTOR))
+  → MaybeO<Core_cdecl_sort Pair>((cdecl)->FindFormD(cdecl, #formname), MapGet<String Core_cdecl_sort>(#datasorts, #CONSTRUCTOR))
 
   // Fallback to search accross all data sort declaration
   rule FindFormI(#datasorts, #csort, #formname)
-  → MaybeO<Core_cdecl_sort Core_cform_sort>((cdecl)->FindFormD(cdecl, #formname), PickFirst<Core_cdecl_sort>(MapValues<String Core_cdecl_sort>(#datasorts), (cdecl)->HasOption<Core_cform_sort>(FindFormD(cdecl, #formname))))
-
+  → MaybeO<Core_cdecl_sort Pair<Core_csort_sort Core_cform_sort>>((cdecl)->FindFormD(cdecl, #formname), PickFirst<Core_cdecl_sort>(MapValues<String Core_cdecl_sort>(#datasorts), (cdecl)->HasOption<Pair<Core_csort_sort Core_cform_sort>>(FindFormD(cdecl, #formname))))
 
 /* Find form of the given name in the data sort */
-func FindFormD(Core_cdecl_sort, String) -> Option<Core_cform_sort>
-rule FindFormD(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, #formname) → PickFirst<Core_cform_sort>(#cform*, (x) -> MatchConsForm(x, #formname))
+func FindFormD(Core_cdecl_sort, String) -> Option<Pair<Core_csort_sort Core_cform_sort>>
+rule FindFormD(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, #formname) → MaybeO<Core_cform_sort Pair<Core_csort_sort Core_cform_sort>>((cform)->SOME(PairCons(DataDeclToSort(#csortvars?, #CONSTRUCTOR), cform)), PickFirst<Core_cform_sort>(#cform*, (x) -> MatchConsForm(x, #formname)))
 rule FindFormD(#cdecl,                                               #formname) → NONE
 
 func MatchConsForm(Core_cform_sort, String) -> Bool

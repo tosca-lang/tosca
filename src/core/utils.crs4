@@ -33,3 +33,15 @@ func GetSortVars(Core_cdecl_sort) -> Option<Core_csortvars_sort>
 rule GetSortVars(cdecl⟦ data ##csortvars ##CONSTRUCTOR ##cforms ⟧)                                 → SOME(#csortvars)
 rule GetSortVars(cdecl⟦ ##canno* ##extern_TOK? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧) → SOME(#csortvars)
 rule GetSortVars(#)                                                                                → NONE
+
+/* @return a sort corresponding to the given sort declaration */
+func DeclToSort(Core_cdecl_sort) -> Core_csort_sort
+rule DeclToSort(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)               → DataDeclToSort(#csortvars?, #CONSTRUCTOR)
+
+// TODO: function
+//rule DeclToSort(cdecl⟦ ##canno* ##extern_TOK? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧) → SOME(#csortvars)
+rule DeclToSort(#cdecl) → Error<Core_csort_sort>("Unimplemented")
+
+func DataDeclToSort(List<Core_csortvars_sort>, String) -> Core_csort_sort
+rule DataDeclToSort(csortvars?⟦                    ⟧, #CONSTRUCTOR) → csort⟦ ##CONSTRUCTOR ⟧
+rule DataDeclToSort(csortvars?⟦ ∀ ##variable_TOK+ .⟧, #CONSTRUCTOR) → csort⟦ ##CONSTRUCTOR ( ⟨csort*: Map<String Core_csort_sort>((var)->csort⟦ ⟨VARIABLE: var⟩ ⟧, #variable_TOK+)⟩ ) ⟧

@@ -22,6 +22,7 @@
   - The second pass first starts by solving contraints stored in the sort environment and then apply sort variable instantiations.
     by traversing the term tree top-down.
 
+
  */
 import Std::Core
 import Std::Listdef
@@ -77,7 +78,7 @@ rule InferRuleUp(#cterm1, PairCons(#env:{String:EnvEntry}, #cterm2:Core_cterm_so
 // --- Terms
 
 /* Synthesize term sort.
-   @return a pair consisting of an updated environment and the sorted term (which might still contains sort arguments)
+   @return a pair consisting of an updated environment and the sorted term (which might contain sort variables)
 */
 func InferTerm({String:EnvEntry}, Core_cterm_sort, Core_csort_sort /* formal sort */) -> Pair<{String:EnvEntry} Core_cterm_sort>
 
@@ -136,7 +137,7 @@ rule InferTermsUp(PairCons(#env:{String:EnvEntry} , #cterm:Core_cterm_sort), #ct
 func InferCons({String:EnvEntry}, Bool, Bool, String, List<Core_csortargs_sort>, List<Core_cterms_sort>, List<Core_csortanno_sort>, Core_csort_sort) -> Pair<{String:EnvEntry} Core_cterm_sort>
 
   rule InferCons(#env, #inpattern, TRUE, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #csort)
-  → InferConsUp(#CONSTRUCTOR, InferDataSubs(InstantiateSortArgs(#env, (), ()), #cterms?, FindFormS(GetSystem(#env), #csort, #CONSTRUCTOR), #CONSTRUCTOR), SOME(#csort))
+  → InferConsUp(#CONSTRUCTOR, InferDataSubs(InstantiateSortArgs(#env, (), ()), #cterms?, FindFormS(GetSystem(#env), #csort, #CONSTRUCTOR), #CONSTRUCTOR, #csort), SOME(#csort))
 
   rule InferCons(#env, FALSE, FALSE, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #csort)
   → InferFunc(#env, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, SOME(#csort))
@@ -158,11 +159,11 @@ func InferFunc(#env: {String:EnvEntry}, #CONSTRUCTOR: String, #csortargs?: List<
 → InferConsUp(#CONSTRUCTOR, InferFuncSubs(#env, FindFuncSortS(GetSystem(#env), #CONSTRUCTOR), #csortargs?, #cterms?, #CONSTRUCTOR), #csort)
 
 /* Traverse data construction sub terms */
-func InferDataSubs({String:EnvEntry}, List<Core_cterms_sort>, Option<Core_cform_sort>, String) -> Pair<{String:EnvEntry} List<Core_cterms_sort>>
-rule InferDataSubs(#env, #cterms?, SOME(cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧), #formname) → InferMaybeTerms(#env, #cterms?, #csort*)
-rule InferDataSubs(#env, cterms?⟦⟧, SOME(cform⟦ ##CONSTRUCTOR              ⟧), #formname) → PairCons(#env, cterms?⟦⟧)
-rule InferDataSubs(#env, #cterms?, NONE                                    , #formname) → Error<Pair>(ConcatString("Error: undeclared enumeration value ", #formname))
-rule InferDataSubs(#env, #cterms?, SOME(#cform: Core_cform_sort)           , #formname) → Error<Pair>(ConcatString("Error: wrong arity for enumeration value ", #formname))
+func InferDataSubs({String:EnvEntry}, List<Core_cterms_sort>, Option<Pair<Core_csort_sort Core_cform_sort>>, String, Core_csort_sort) -> Pair<{String:EnvEntry} List<Core_cterms_sort>>
+rule InferDataSubs(#env, #cterms?, SOME(Pair<Core_csort_sort Core_cform_sort>::PairCons(#csort:Core_csort_sort, cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧)), #formname, #fsort) → InferMaybeTerms(InstantiateSort(#env, #fsort, #csort), #cterms?, #csort*)
+rule InferDataSubs(#env, cterms?⟦⟧, SOME(Pair<Core_csort_sort Core_cform_sort>::PairCons(#csort:Core_csort_sort, cform⟦ ##CONSTRUCTOR              ⟧)), #formname, #fsort) → PairCons(InstantiateSort(#env, #fsort, #csort), cterms?⟦⟧)
+rule InferDataSubs(#env, #cterms?, NONE                                    , #formname, #fsort) → Error<Pair>(ConcatString("Error: undeclared enumeration value ", #formname))
+rule InferDataSubs(#env, #cterms?, SOME(Pair<Core_csort_sort Core_cform_sort>::PairCons(#csort:Core_csort_sort, #cform: Core_cform_sort))           , #formname, #fsort) → Error<Pair>(ConcatString("Error: wrong arity for enumeration value ", #formname))
 
 /* Traverse function construction sub terms */
 func InferFuncSubs({String:EnvEntry}, Option<Core_cdecl_sort>, List<Core_csortargs_sort>, List<Core_cterms_sort>, String) -> Pair<{String:EnvEntry} List<Core_cterms_sort>>
@@ -297,6 +298,7 @@ rule OptimizeSort(#sorts, #keys, NONE                    )    → #sorts
 
 // ---- Apply sort instantiation
 
+// TODO: check for empty sort environment.
 func SubstRule(#env: {String:EnvEntry}, #cterm1: Core_cterm_sort, #cterm2: Core_cterm_sort) -> Core_cdecl_sort
 → cdecl⟦ rule ⟨cterm: SubstTerm(#env, #cterm1)⟩ → ⟨cterm: SubstTerm(#env, #cterm2)⟩ ⟧
 
@@ -334,7 +336,7 @@ rule SubstSorts(#env, csort*⟦ ##csort ##csort* ⟧) → csort*⟦ ⟨csort: Su
 rule SubstSorts(#env, csort*⟦                  ⟧) → csort*⟦⟧
 
 func SubstSort({String:EnvEntry}, Core_csort_sort) -> Core_csort_sort
-rule SubstSort(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → csort⟦ ##CONSTRUCTOR ⟨csorts?: SubstMaybeSorts(#env, #csorts?)⟩ ⟧                           /* Construction sort */
+rule SubstSort(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → csort⟦ ##CONSTRUCTOR ⟨csorts?: SubstMaybeSorts(#env, #csorts?)⟩ ⟧
 rule SubstSort(#env, csort⟦ ##VARIABLE              ⟧) → SubstVar(#VARIABLE, GetSort(#env, #VARIABLE))
 rule SubstSort(#env, csort⟦ [ ##csort1 ] ##csort2   ⟧) → csort⟦ [ ⟨csort: SubstSort(#env, #csort1)⟩ ] ⟨csort: SubstSort(#env, #csort2)⟩ ⟧
 rule SubstSort(#env, csort⟦ ( ##csort1 ) ##csort2   ⟧) → csort⟦ ( ⟨csort: SubstSort(#env, #csort1)⟩ ) ⟨csort: SubstSort(#env, #csort2)⟩ ⟧
