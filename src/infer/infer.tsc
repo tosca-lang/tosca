@@ -55,7 +55,7 @@ rule InferRule(#env, cdecl⟦ rule ##CONSTRUCTOR ##csortargs? ##cterms? ##csorta
 
 func InferPatternUp(Pair<{String:EnvEntry} Core_cterm_sort>, Core_cterm_sort, Option<Core_cdecl_sort>) -> Core_cdecl_sort
 rule InferPatternUp(PairCons(#env:{String:EnvEntry}, #pattern:Core_cterm_sort), #contractum, SOME(cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧))
-→ InferRuleUp(#pattern, InferTerm(ResetEnv(#env), #contractum, #csort))
+→ InferRuleUp(#pattern, InferTerm(SetInPattern(ResetEnv(#env), FALSE), #contractum, #csort))
 
 func InferRuleUp(Core_cterm_sort, Pair<{String:EnvEntry} Core_cterm_sort>) -> Core_cdecl_sort
 rule InferRuleUp(#cterm1, PairCons(#env:{String:EnvEntry}, #cterm2:Core_cterm_sort)) → cdecl⟦ rule ##cterm1 → ##cterm2 ⟧
@@ -243,7 +243,7 @@ func InstantiateSortVar2({String:EnvEntry}, Option<Core_csort_sort>, String, Cor
 // Sort arguments
 
 func InstantiateSortArgs({String:EnvEntry}, List<Core_csortvars_sort>, List<Core_csortargs_sort>) -> {String:EnvEntry}
-rule InstantiateSortArgs(#env, csortvars?⟦⟧, csortargs?⟦⟧) → #env
+rule InstantiateSortArgs(#env, csortvars?⟦⟧, csortargs?⟦⟧) → PushSortArgs(#env, ())
 rule InstantiateSortArgs(#env, csortvars?⟦ ∀ ##variable_TOK+ . ⟧, csortargs?⟦⟧) → InstantiateSortArgs2(#env, #variable_TOK+, csort*⟦⟧, ())
 rule InstantiateSortArgs(#env, csortvars?⟦ ∀ ##variable_TOK+ . ⟧, csortargs?⟦ < ##csort* >⟧) → InstantiateSortArgs2(#env, #variable_TOK+, #csort*, ())
 

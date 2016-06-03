@@ -848,10 +848,10 @@ func FallbackThunk({String : JavaEnvEntry}, Bool) -> Text4_text_sort
 // --- Start method body
 
 func JavaBodyRule(eager {String : JavaEnvEntry}, Core_cdecl_sort) -> Text4_text_sort
-  rule JavaBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR → ##cterm ⟧)
+  rule JavaBodyRule(#env, cdecl⟦ rule ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##csortanno? → ##cterm ⟧)
   → JavaContractum(#env, #cterm)
 
-  rule JavaBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR ( ##cterm* ) → ##cterm2 ⟧)
+  rule JavaBodyRule(#env, cdecl⟦ rule ##csortqualifier* ##CONSTRUCTOR ##csortargs? ( ##cterm* ) ##csortanno? → ##cterm2 ⟧)
   → JavaPattern(#env, #cterm*, #cterm2)
 
 // --- Pattern matching
