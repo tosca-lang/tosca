@@ -17,6 +17,11 @@
 
   TODO: describe differences.
 
+  The sort inference below is done in two passes:
+  - The first pass propagates sorts bottom-up. Unspecified sorts are retrieved from sort declarations. The sort environment is extended with sort instantiations.
+  - The second pass first starts by solving contraints stored in the sort environment and then apply sort variable instantiations.
+    by traversing the term tree top-down.
+
  */
 import Std::Core
 import Std::Listdef
@@ -28,8 +33,7 @@ import Core::Utils
 import Infer::Env
 import Systemdef
 
-// --- Top level System traversal
-
+// --- Top-level system traversal
 
 /* Infer sorts of given `#system`
    @param System The Tosca system */
@@ -37,8 +41,12 @@ func InferSystem(TSystem) -> TSystem
 rule InferSystem(TSystem(#url:String, #modules:{String : Module}))
 → TSystem(#url, MapIndex<String Module>(Map<Module Pair<String Module>>((mod) -> InferModule(mod, TSystem(#url, #modules)), MapValues<String Module>(#modules))))
 
+// -- Module
+
 func InferModule(Module, TSystem) -> Pair<String Module>
 rule InferModule(Module(#url:String, #content: Content), #system) → PairCons(#url, Module(#url, InferContent(#content, #system)))
+
+// -- Content
 
 func InferContent(Content, TSystem) -> Content
 rule InferContent(Loaded(#content:LoadedContent), #system)
@@ -46,8 +54,12 @@ rule InferContent(Loaded(#content:LoadedContent), #system)
                                #content,
                                MapKeys<String List>(GetRules(#content))))
 
+// -- Rules
+
 func InferRules(#key: String, #rules: List<Core_cdecl_sort>, #content: LoadedContent, #system: TSystem) -> LoadedContent
 → PutRulesC(#content, #key, Map<Core_cdecl_sort Core_cdecl_sort>((rul) -> InferRule(EnvNew(#content, #system), rul), #rules))
+
+// -- Rule
 
 func InferRule({String:EnvEntry}, Core_cdecl_sort) -> Core_cdecl_sort
 rule InferRule(#env, cdecl⟦ rule ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? → ##cterm ⟧)
@@ -58,10 +70,9 @@ rule InferPatternUp(PairCons(#env:{String:EnvEntry}, #pattern:Core_cterm_sort), 
 → InferRuleUp(#pattern, InferTerm(SetInPattern(ResetEnv(#env), FALSE), #contractum, #csort))
 
 func InferRuleUp(Core_cterm_sort, Pair<{String:EnvEntry} Core_cterm_sort>) -> Core_cdecl_sort
-rule InferRuleUp(#cterm1, PairCons(#env:{String:EnvEntry}, #cterm2:Core_cterm_sort)) → cdecl⟦ rule ##cterm1 → ##cterm2 ⟧
+rule InferRuleUp(#cterm1, PairCons(#env:{String:EnvEntry}, #cterm2:Core_cterm_sort)) → SubstRule(OptimizeSorts(#env), #cterm1, #cterm2)
 
-func ResetEnv(#env:{String:EnvEntry}) -> {String:EnvEntry}
-→ ResetCounter(ResetSortArgs(ResetSorts(#env)))
+// ---- Synthesize sorts
 
 // --- Terms
 
@@ -172,11 +183,12 @@ rule InferFormalUp([f] -> PairCons(#env:{String:EnvEntry}, #cterm[f]:Core_cterm_
 
 // --- Sort instantiation
 
-/* Attempt to instantiate `#sort1` to be `#sort2`.
+/* Instantiate `#sort1` such that under a set of substitutions it is equal to `#sort2`.
    @param `#env` the environment containing the sort environment and sort argument mappings
    @param `#sort1` formal sort
    @param `#sort2` actual sort
-   @return the sort variable instantiations. An error is thrown if the instantiation fails.
+   @return The environment containing an updated sort environment with substitutions instantiating `#sort1` to be equal to `#sort2`.
+          If no such substitution is found (`#sort2` is not an instance of `#sort2`), an error is raised.
  */
 func InstantiateSort({String:EnvEntry}, Core_csort_sort, Core_csort_sort) -> {String:EnvEntry}
   rule InstantiateSort(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, csort⟦ ##CONSTRUCTOR2 ##csorts?2 ⟧)
@@ -240,11 +252,18 @@ func InstantiateSortVar2({String:EnvEntry}, Option<Core_csort_sort>, String, Cor
   rule InstantiateSortVar2(#env, SOME(#csort1:Core_csort_sort), #csortarg, #csort2)
   → #env // TODO: could check csort1 = csort2
 
-// Sort arguments
+// --- Sort variable instantiation
 
+/* Instantiate sort variables.
+
+   Works as follows:
+   - a variable sort argument is created for each sort variables (if any) and the correspondence
+     between them is kept in the environment (see XXSortArgs functions).
+   - the sort environment is extended with user-specified sort arguments (if any).
+ */
 func InstantiateSortArgs({String:EnvEntry}, List<Core_csortvars_sort>, List<Core_csortargs_sort>) -> {String:EnvEntry}
-rule InstantiateSortArgs(#env, csortvars?⟦⟧, csortargs?⟦⟧) → PushSortArgs(#env, ())
-rule InstantiateSortArgs(#env, csortvars?⟦ ∀ ##variable_TOK+ . ⟧, csortargs?⟦⟧) → InstantiateSortArgs2(#env, #variable_TOK+, csort*⟦⟧, ())
+rule InstantiateSortArgs(#env, csortvars?⟦                     ⟧, csortargs?⟦             ⟧) → PushSortArgs(#env, ())
+rule InstantiateSortArgs(#env, csortvars?⟦ ∀ ##variable_TOK+ . ⟧, csortargs?⟦             ⟧) → InstantiateSortArgs2(#env, #variable_TOK+, csort*⟦⟧, ())
 rule InstantiateSortArgs(#env, csortvars?⟦ ∀ ##variable_TOK+ . ⟧, csortargs?⟦ < ##csort* >⟧) → InstantiateSortArgs2(#env, #variable_TOK+, #csort*, ())
 
 func InstantiateSortArgs2(#env: {String:EnvEntry}, #sortvars: List<String>, #csort*: List<Core_csort_sort>, #mapping: List<Pair<String String>>) -> {String:EnvEntry}
@@ -264,6 +283,25 @@ func InstantiateSortArgs4({String:EnvEntry}, String, List<String>, List<Core_cso
 
   rule InstantiateSortArgs4(#env, #sortvararg, #sortvars, csort*⟦ ##csort ##csort* ⟧, #mapping)
   → InstantiateSortArgs2(PutSort(#env, #sortvararg, #csort), #sortvars, #csort*, #mapping)
+
+// ---- Sort environment optimizer
+
+/* Optimize the sort environment by computing its transitive closure. */
+func OptimizeSorts(#env: {String : EnvEntry}) -> {String : EnvEntry}
+→ SetSorts(#env, FoldlP<String {String : Core_csort_sort}>((key sorts) -> OptimizeSort(sorts, (key,), MapGet<String Core_csort_sort>(sorts, key)), GetSorts(#env), MapKeys<String Core_csort_sort>(GetSorts(#env))))
+
+func OptimizeSort({String : Core_csort_sort}, List<String>, Option<Core_csort_sort>) -> {String : Core_csort_sort}
+rule OptimizeSort(#sorts, #keys, SOME(csort⟦ ##VARIABLE ⟧)) → OptimizeSort(#sorts, Cons(#VARIABLE, #keys), MapGet<String Core_csort_sort>(#sorts, #VARIABLE))
+rule OptimizeSort(#sorts, #keys, SOME(#sort:Core_csort_sort)) → FoldlP<String {String : Core_csort_sort}>((key sorts)->MapPut<String Core_csort_sort>(sorts, key, #sort), #sorts, #keys)
+rule OptimizeSort(#sorts, #keys, NONE                    ) → #sorts
+
+// ---- Apply sort instantiation
+
+func SubstRule(#env: {String:EnvEntry}, #cterm1: Core_cterm_sort, #cterm2: Core_cterm_sort) -> Core_cdecl_sort
+→ cdecl⟦ rule ⟨cterm: SubstTerm(#env, #cterm1)⟩ → ⟨cterm: SubstTerm(#env, #cterm2)⟩ ⟧
+
+func SubstTerm(#env: {String:EnvEntry}, #cterm: Core_cterm_sort) -> Core_cterm_sort
+→ #cterm
 
 // --- Various utility functions
 
