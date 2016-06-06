@@ -162,7 +162,7 @@ func InferFunc(#env: {String:EnvEntry}, #CONSTRUCTOR: String, #csortargs?: List<
 func InferDataSubs({String:EnvEntry}, List<Core_cterms_sort>, Option<Pair<Core_csort_sort Core_cform_sort>>, String, Core_csort_sort) -> Pair<{String:EnvEntry} List<Core_cterms_sort>>
 rule InferDataSubs(#env, #cterms?, SOME(Pair<Core_csort_sort Core_cform_sort>::PairCons(#csort:Core_csort_sort, cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧)), #formname, #fsort) → InferMaybeTerms(InstantiateSort(#env, #fsort, #csort), #cterms?, #csort*)
 rule InferDataSubs(#env, cterms?⟦⟧, SOME(Pair<Core_csort_sort Core_cform_sort>::PairCons(#csort:Core_csort_sort, cform⟦ ##CONSTRUCTOR              ⟧)), #formname, #fsort) → PairCons(InstantiateSort(#env, #fsort, #csort), cterms?⟦⟧)
-rule InferDataSubs(#env, #cterms?, NONE                                    , #formname, #fsort) → Error<Pair>(ConcatString("Error: undeclared enumeration value ", #formname))
+rule InferDataSubs(#env, #cterms?, NONE                                    , #formname, #fsort) → Error<Pair>(ConcatString("Error: undefined enumeration value ", #formname)) // TODO: in sort #fsort
 rule InferDataSubs(#env, #cterms?, SOME(Pair<Core_csort_sort Core_cform_sort>::PairCons(#csort:Core_csort_sort, #cform: Core_cform_sort))           , #formname, #fsort) → Error<Pair>(ConcatString("Error: wrong arity for enumeration value ", #formname))
 
 /* Traverse function construction sub terms */

@@ -22,7 +22,7 @@ dependencies {
 
 task smoketest(type: TransScriptTask) {
 	command = 'test'
-	sources = fileTree('.').include('basic/*.crs4').include('parser/core.crs4')
+	sources = fileTree('.').include('basic/*.crs4').include('parser/core.crs4').include('infer/*.tsc')
 	outputDir = file('results')
 	packageName = 'org.transscript.tests'
 	usecompiler = true
