@@ -1,12 +1,13 @@
 // Copyright (c) 2015 IBM Corporation.
 /*
- CRSX command line
+ Tosca command line
 */
 
 import Systemdef
 import Normalizer
 import Checker
 import Cc
+import Infer::Infer
 import Cg::Cgjava
 import Cg::Cgcpp
 import Std::Core
@@ -19,12 +20,11 @@ import Text::Text4
 
 //--- API
 
-/* Compile the TransScript program located to the given url
+/* Compile the Tosca program located to the given url
    @param `String` a url
    @return a compile TransScript program in Java (for now)
 */
-func Compile(String) -> Text4_text_sort
-rule Compile(#url)
+func Compile(#url: String) -> Text4_text_sort
 → IfDef<Text4_text_sort>("to-core",
     ()->CompileToCore(#url),
     ()->CompileSystem(InitSystem(#url)))
@@ -40,8 +40,8 @@ func MaybeLoadModule(TSystem, Option<Module>) -> Text4_text_sort
 // Done loading all modules. Generate code.
 rule MaybeLoadModule(#system, NONE)
 → IfDef<Text4_text_sort>("cpp",
-    ()->TransScriptToCpp(#system),
-    ()->TransScriptToJava(#system))
+    ()->TransScriptToCpp(IfDef<TSystem>("infer", ()->InferSystem(#system), ()->#system)),
+    ()->TransScriptToJava(IfDef<TSystem>("infer", ()->InferSystem(#system), ()->#system)))
 
 rule MaybeLoadModule(#system, SOME(Module::Module(#url:String, Content::NOTLOADED)))
 → CompileSystem(PutModule(#system, #url, Module(#url, LoadModule(#url))))

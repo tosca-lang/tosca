@@ -17,7 +17,7 @@ import Systemdef
 func CppSource(Module) -> Text4_text_sort
 rule CppSource(Module(#url:String, Content::Loaded(#content:LoadedContent)))
 → text⟦#include "⟨STRING: PathFileStem(#url)⟩.h"
-†⟨CppClassDefs(MapValues<String Core_cdecl_sort>(GetDataSorts(#content)))⟩
+†⟨CppClassDefs(MapValues<String Core_cdecl_sort>(GetDataSortsC(#content)))⟩
 †⟨CppFunctionDefs(SetContent(CppNewEnv, #content))⟩⟧
 
 // --------- Data sorts

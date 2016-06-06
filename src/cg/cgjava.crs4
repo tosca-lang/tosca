@@ -839,10 +839,10 @@ func FallbackThunk({String : JavaEnvEntry}, Bool) -> Text4_text_sort
 // --- Start method body
 
 func JavaBodyRule(eager {String : JavaEnvEntry}, Core_cdecl_sort) -> Text4_text_sort
-  rule JavaBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR → ##cterm ⟧)
+  rule JavaBodyRule(#env, cdecl⟦ rule ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##csortanno? → ##cterm ⟧)
   → JavaContractum(#env, #cterm)
 
-  rule JavaBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR ( ##cterm* ) → ##cterm2 ⟧)
+  rule JavaBodyRule(#env, cdecl⟦ rule ##csortqualifier* ##CONSTRUCTOR ##csortargs? ( ##cterm* ) ##csortanno? → ##cterm2 ⟧)
   → JavaPattern(#env, #cterm*, #cterm2)
 
 // --- Pattern matching
@@ -878,7 +878,7 @@ func JavaPatternTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, Text4_text_
       if (⟨STRING: value⟩ == null) {
         break †⟨GetLabel(#env)⟩;
       }†⟨
-      JavaPatternMaybeSubs(#env, #cterms?, text⟦⟨STRING: value⟩⟧, MaybeFindFormDataSorts(GetDataSorts(#env), #csort, #CONSTRUCTOR), #cont)⟩⟧
+      JavaPatternMaybeSubs(#env, #cterms?, text⟦⟨STRING: value⟩⟧, MaybeFindFormI(GetDataSorts(#env), #csort, #CONSTRUCTOR), #cont)⟩⟧
 //FindForm(Maybe<Core_csort_sort Option>((x) -> LookupDataSortDecl(GetDataSorts(#env), x), #csort), #CONSTRUCTOR)
 
   // TODO: check literal
@@ -908,7 +908,7 @@ func JavaPatternTerm(eager {String : JavaEnvEntry}, Core_cterm_sort, Text4_text_
   → JavaPatternTerm(#env, #cterm[var:String], #term, #csort, #storage, #cont)
 
 // Pattern matching on construction arguments.
-func JavaPatternMaybeSubs(eager {String : JavaEnvEntry}, List<Core_cterms_sort>, Text4_text_sort, Option<Core_cform_sort>, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+func JavaPatternMaybeSubs(eager {String : JavaEnvEntry}, List<Core_cterms_sort>, Text4_text_sort, Option<Pair<Core_csort_sort Core_cform_sort>>, ({String : JavaEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   rule JavaPatternMaybeSubs(#env, cterms?⟦⟧, #term, #cform, #cont)
   → #cont(#env)
@@ -916,7 +916,7 @@ func JavaPatternMaybeSubs(eager {String : JavaEnvEntry}, List<Core_cterms_sort>,
   rule JavaPatternMaybeSubs(#env, cterms?⟦()⟧, #term, #cform, #cont)
   → #cont(#env)
 
-  rule JavaPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, SOME(cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧), #cont)
+  rule JavaPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, SOME(Pair<Core_csort_sort Core_cform_sort>::PairCons(#csort:Core_csort_sort, cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧)), #cont)
   → JavaPatternSubs(#env, #cterm*, #term, 1, SOME(#csort*), #cont)
 
   rule JavaPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, NONE, #cont)
@@ -1301,40 +1301,32 @@ func RegisterDataForm(Core_cform_sort) -> Text4_text_sort
   rule RegisterDataForm(cform⟦ allows-variable ⟧)
   → text⟦⟧
 
-
 /* Print package declaration */
 func PackageDeclaration -> Text4_text_sort
-rule PackageDeclaration → PackageDeclaration2(GetEnv("javabasepackage", ""), GetEnv("javapackage", ""))
+→ PackageDeclaration2(GetEnv("javabasepackage", ""), GetEnv("javapackage", ""))
 
-func PackageDeclaration2(String, String) -> Text4_text_sort
-rule PackageDeclaration2(#base, #sub)
-→ text⟦
-package ⟨STRING:#base⟩†⟨PackageDeclaration3(If<String>(StringEqual(Trim(#base), ""), ()->"", ()->"."), #sub)⟩;⟧
+func PackageDeclaration2(#base: String, #sub: String) -> Text4_text_sort
+→ text⟦package ⟨STRING:#base⟩†⟨PackageDeclaration3(If<String>(StringEqual(Trim(#base), ""), ()->"", ()->"."), #sub)⟩;⟧
 
-func PackageDeclaration3(String, String) -> Text4_text_sort
-rule PackageDeclaration3(#sep, #sub)
+func PackageDeclaration3(#sep: String, #sub:String) -> Text4_text_sort
 → If<Text4_text_sort>(StringEqual(Trim(#sub), ""), ()->text⟦⟧, ()->text⟦⟨STRING:#sep⟩⟨STRING:#sub⟩⟧)
 
-// Print java import
-func PathToImport(String) -> Text4_text_sort
+// --- Print java import. Treat Std:: as special. All other prefixes are relative to javapackage
 
-rule PathToImport(#name)
-→ PathToImport2(If<String>(StartsWith(#name, "Std::"), ()->"org.transscript.compiler", ()->GetEnv("javabasepackage", "")), PathToDot(DownCaseFirst(#name)))
+func PathToImport(#name: String) -> Text4_text_sort
+→ PathToImport2(If<String>(StartsWith(#name, "Std::"), ()->"org.transscript.compiler", ()->GetEnv("javabasepackage", "")),
+                Map<String String>((s)->DownCaseFirst(s), Split(#name, "::")))
 
-func PathToImport2(String, String) -> Text4_text_sort
+func PathToImport2(#basepkg: String , #path: List<String>) -> Text4_text_sort
+→ If<Text4_text_sort>(StringEqual(#basepkg, ""),
+    ()->JoinPath(#path),
+    ()->text⟦†⟨StringToText(#basepkg)⟩.†⟨JoinPath(#path)⟩⟧)
 
-rule PathToImport2(#package, #name)
-→  text⟦†⟨StringToText(#package)⟩.†⟨StringToText(#name)⟩⟧
-
-func PathToDot(String) -> String
-rule PathToDot(#path) → PathToDot2(Replace(#path, "::", "."))
-
-func PathToDot2(String) -> String
-rule PathToDot2(#subpackage)
-→
-If<String>(Contains(#subpackage, "."),
-    () -> ConcatString(ConcatString(BeforeLast(#subpackage, "."), "."), UpCaseFirst(AfterLast(#subpackage, "."))),
-    () -> UpCaseFirst(#subpackage))
+/* Join path component together, making sure the last one starts with an upper case character */
+func JoinPath(List<String>) -> Text4_text_sort
+rule JoinPath((                               )) → text⟦⟧
+rule JoinPath(Cons(#:String, List<String>::Nil)) → text⟦⟨STRING: UpCaseFirst(#)⟩⟧
+rule JoinPath(Cons(#:String, #s: List<String> )) → text⟦⟨STRING: #⟩.†⟨JoinPath(#s)⟩⟧
 
 // Print class name
 func ClassName(String) -> String

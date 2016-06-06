@@ -13,7 +13,7 @@ import Systemdef
 /* Convert closures in the given module. */
 func CCCore(#content: LoadedContent) -> LoadedContent
 → IfDef<LoadedContent>("cpp",
-    () -> FoldlP<String LoadedContent>((key content) -> CCRules(key, UnSOME<List>(GetRulesForKey(key, content)), content),
+    () -> FoldlP<String LoadedContent>((key content) -> CCRules(key, UnSOME<List>(GetRulesForKeyC(content, key)), content),
                                       #content,
                                       MapKeys<String List>(GetRules(#content))),
     () -> #content)

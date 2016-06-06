@@ -4,6 +4,7 @@ import Std::Core
 import Std::String
 import Std::Num
 import Std::Listdef
+import Std::Pairdef
 import Std::Text
 import Text::Text4
 import Core::Core
@@ -207,7 +208,7 @@ func CppFunctionParam({String : EnvEntry}, List<Text4_text_sort>, Core_csort_sor
 /* Generate function body */
 func CppMaybeBody({String : EnvEntry}, String, Bool) -> Text4_text_sort
   rule CppMaybeBody(#env, #key, FALSE) → text⟦);⟧
-  rule CppMaybeBody(#env, #key, TRUE)  → text⟦) {†⟨CppBody(#env, GetRulesForKey(#key, GetContent(#env)))⟩}⟧
+  rule CppMaybeBody(#env, #key, TRUE)  → text⟦) {†⟨CppBody(#env, GetRulesForKeyC(GetContent(#env), #key))⟩}⟧
 
 
 func CppBody({String : EnvEntry}, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
@@ -260,7 +261,7 @@ func CppPatternTerm({String : EnvEntry}, Core_cterm_sort, Text4_text_sort /* Cur
       †⟨ForceParameter(#env, #term, #storage)⟩
       auto ⟨STRING: value:String⟩ = †⟨#term⟩.†⟨CppAsMethodName(#CONSTRUCTOR)⟩(†⟨GetContext(#env)⟩);
       if (⟨STRING: value⟩) {
-        †⟨CppPatternMaybeSubs(#env, #cterms?, text⟦⟨STRING: value⟩⟧, MaybeFindFormContent(GetContent(#env), #csort, #CONSTRUCTOR), #cont)⟩
+        †⟨CppPatternMaybeSubs(#env, #cterms?, text⟦⟨STRING: value⟩⟧, MaybeFindFormC(GetContent(#env), #csort, #CONSTRUCTOR), #cont)⟩
       }⟧
 
   // TODO: check literal
@@ -290,7 +291,7 @@ func CppPatternTerm({String : EnvEntry}, Core_cterm_sort, Text4_text_sort /* Cur
   → CppPatternTerm(#env, #cterm[var:String], #term, #csort, #storage, #cont)
 
 // Pattern matching on construction arguments.
-func CppPatternMaybeSubs( {String : EnvEntry}, List<Core_cterms_sort>, Text4_text_sort, Option<Core_cform_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+func CppPatternMaybeSubs( {String : EnvEntry}, List<Core_cterms_sort>, Text4_text_sort, Option<Pair<Core_csort_sort Core_cform_sort>>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   rule CppPatternMaybeSubs(#env, cterms?⟦⟧, #term, #cform, #cont)
   → #cont(#env)
@@ -298,7 +299,7 @@ func CppPatternMaybeSubs( {String : EnvEntry}, List<Core_cterms_sort>, Text4_tex
   rule CppPatternMaybeSubs(#env, cterms?⟦()⟧, #term, #cform, #cont)
   → #cont(#env)
 
-  rule CppPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, SOME(cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧), #cont)
+  rule CppPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, SOME(Pair<Core_csort_sort Core_cform_sort>::PairCons(#csort:Core_csort_sort, cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧)), #cont)
   → CppPatternSubs(#env, #cterm*, #term, 1, SOME(#csort*), #cont)
 
   rule CppPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, NONE, #cont)

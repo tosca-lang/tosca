@@ -9,6 +9,8 @@ import static org.transscript.runtime.StringTerm.stringTerm;
 import static org.transscript.runtime.Term.force;
 
 import org.transscript.compiler.std.Core.Bool;
+import org.transscript.compiler.std.Listdef.List;
+import org.transscript.runtime.ConstructionDescriptor;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.DoubleTerm;
 import org.transscript.runtime.Functions.ThunkMaker;
@@ -288,6 +290,41 @@ public class StringExtern
 		evnum.release();
 
 		return result;
+	}
+
+	/**
+	 * Splits the given string around the given separator
+	 * @param context
+	 * @param string
+	 * @param sep
+	 * @return
+	 */
+
+	@SuppressWarnings("unchecked")
+	public static List<StringTerm> Split(Context context, StringTerm string, StringTerm sep)
+	{
+		string = force(context, string);
+		sep = force(context, sep);
+
+		java.lang.String[] splits = string.unbox().split(sep.unbox());
+
+		final ConstructionDescriptor cons = context.lookupDescriptor("Cons");
+		final ConstructionDescriptor nil = context.lookupDescriptor("Nil");
+
+		int i = splits.length - 1;
+		Listdef.List<StringTerm> lst = (List<StringTerm>) cons.make();
+		lst.setSub(0, stringTerm(splits[i]));
+		lst.setSub(1, nil.make());
+
+		while (i > 0)
+		{
+			i--;
+			Listdef.List<StringTerm> c = (List<StringTerm>) cons.make();
+			c.setSub(0, stringTerm(splits[i]));
+			c.setSub(1, lst);
+			lst = c;
+		}
+		return lst;
 	}
 
 }

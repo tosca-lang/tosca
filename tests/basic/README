@@ -1,3 +1,6 @@
-Contains tiny tests for each individual TransScript features. 
-Keep each test really small so that debugging is easy.
-Keep each test standalone with no dependencies on the standard libary
+Contains a set of basic tests checking some of Tosca features.
+
+The purpose of these tests is to do a quick sanity check when modifying core Tosca components,
+such as the runtime, the syntax and the standard library.
+
+As such each test must be standalone.

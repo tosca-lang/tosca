@@ -1,0 +1,17 @@
+// Copyright (c) 2016 IBM Corporation.
+
+// Various monomorphic type inference tests.
+// This test is just about making sure this program compiles.
+
+enum Box | BoxStr(String)
+
+enum Expr
+    | Let(Expr, [Expr] -> Expr)
+    | Str(String)
+    | Boxed(Box)
+    | allows-variable
+
+func Eval(Expr) -> String
+rule Eval(Boxed(BoxStr(#))) → #
+
+func Tests -> Numeric → 0

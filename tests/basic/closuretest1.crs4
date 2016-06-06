@@ -5,7 +5,7 @@ enum ListStr | Cons(String, ListStr) | Nil
 
 func Map((String) -> String, ListStr) -> ListStr
 rule Map(#, ())           → ()
-rule Map(#, Cons(#1:String, #s:ListStr)) → Cons(#(#1), Map(#, #s))
+rule Map(#, Cons(#1, #s)) → Cons(#(#1), Map(#, #s))
 
 func Head(ListStr) -> String
 rule Head(()) → ""

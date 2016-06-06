@@ -6,8 +6,8 @@ enum Bool | True | False
 
 func And(Bool, Bool) -> Bool
 rule And(True, True) → True
-rule And(False, #2 : Bool)  → False
-rule And(#1 : Bool, False)  → False
+rule And(False, #2)  → False
+rule And(#1, False)  → False
 
 enum Stage |  Egg | Larva | Pupa | Adult
 
@@ -19,12 +19,12 @@ rule Metamorphosis(Adult) → Adult
 
 func TrueIfAdult(Stage) -> Bool
 rule TrueIfAdult(Adult)     → True
-rule TrueIfAdult(# : Stage) → False
+rule TrueIfAdult(#) → False
 
 enum Colony | Head(Stage, Colony) | Tail
 
 func TrueIfAllAdult(Colony) -> Bool
-rule TrueIfAllAdult(Head(#:Stage, #tail:Colony)) → And(TrueIfAdult(#), TrueIfAllAdult(#tail))
+rule TrueIfAllAdult(Head(#, #tail)) → And(TrueIfAdult(#), TrueIfAllAdult(#tail))
 rule TrueIfAllAdult(Tail)           → True
 
 func Tests -> Bool
