@@ -3,21 +3,19 @@
 /**
  * Main Gradle build. 
  * 
- * The default tasks is snapshot, which creates a candidate transscript distibution jar file is targets/java/dist.
+ * The default tasks is snapshot, which creates a candidate Tosca distibution jar file is targets/java/dist.
  * 
- * By default, the snapshot is created from transscript source files compiled using a previous transscript stable build.
+ * By default, the snapshot is created from Tosca source files compiled using a previous Tosca stable build.
  * 
- * There are various ways of overriding the default behavior by specifiying -P option on the gradle command line.
+ * There are various ways of overriding the default behavior by specifying -P option on the gradle command line.
  * These options are:
- * - dev : use latest transscript class files stored in targets/java/build
+ * - dev : use latest Tosca class files stored in targets/java/build
  * - crsx3: use crsx3 source files 
  */
 
 import org.transscript.gradle.*
 
 defaultTasks 'tarAll'
-
-def toolingApiVersion = gradle.gradleVersion
 
 apply plugin:'base'
 
@@ -51,7 +49,7 @@ dependencies {
     transscript project.hasProperty('dev') ? 'org.transscript:transscript:1.0.0-SNAPSHOT@jar' : 'org.transscript:transscript:1.0.0-ALPHA@jar' 
     transscript 'org.crsx:crsx3@jar'
     transscript 'org.antlr:antlr4:4.5' 
-	transscript "org.gradle:gradle-tooling-api:${toolingApiVersion}"
+//	transscript "org.gradle:gradle-tooling-api:${toolingApiVersion}"
 }
 
 // --- Generate all meta and term parsers
