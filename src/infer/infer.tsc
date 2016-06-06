@@ -12,16 +12,10 @@
 
   Also perform opportunistic sort checking. The full complete sort checking is done by the target language
 
-  The algorithm used below is inspired by Pierce's bidirectional local sort inference as described
-  in http://www.cis.upenn.edu/~bcpierce/papers/lti-toplas.pdf
-
-  TODO: describe differences.
-
   The sort inference below is done in two passes:
   - The first pass propagates sorts bottom-up. Unspecified sorts are retrieved from sort declarations. The sort environment is extended with sort instantiations.
-  - The second pass first starts by solving contraints stored in the sort environment and then apply sort variable instantiations.
+  - The second pass first starts by solving sort equations stored in the sort environment and then apply sort variable instantiations.
     by traversing the term tree top-down.
-
 
  */
 import Std::Core
