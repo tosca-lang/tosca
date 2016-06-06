@@ -14,4 +14,4 @@ rule HasOption(NONE)    → False
 rule HasOption(SOME(#)) → True
 
 func Tests -> Bool
-rule Tests → UnSOME(SOME(True)) // type argument is needed for function, but not for enumerations.
+rule Tests → UnSOME<Bool>(SOME(True)) // type argument is needed for function, but not for enumerations.
