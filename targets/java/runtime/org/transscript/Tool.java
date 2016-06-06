@@ -242,7 +242,7 @@ public class Tool
 
 		// First: Produce source file.
 
-		buildEnv.put("class", "org.transscript.compiler.Crsx");
+		buildEnv.put("class", "org.transscript.compiler.Tosca");
 		buildEnv.put("main", "Compile");
 		if (target.equals("cpp"))
 		{

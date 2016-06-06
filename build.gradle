@@ -27,7 +27,7 @@ nparsers = false
 
 }
 
-// -- Configure build script which requires transscript gradle plugin
+// -- Configure build script which requires Tosca gradle plugin
 buildscript {
     repositories {
         flatDir { dirs 'gradle' } // to find transscript-gradle-plugin.jar
@@ -40,7 +40,7 @@ buildscript {
 apply plugin:'org.transscript.gradle'
 
 repositories {
-    flatDir { dirs 'targets/java/dist' } // where to find TransScript jars
+    flatDir { dirs 'targets/java/dist' } // where to find Tosca jar
     flatDir { dirs 'targets/java/lib' }  // where to find crsx3.jar
     mavenCentral() // Where to find ANTLR  
 }
@@ -49,7 +49,6 @@ dependencies {
     transscript project.hasProperty('dev') ? 'org.transscript:transscript:1.0.0-SNAPSHOT@jar' : 'org.transscript:transscript:1.0.0-ALPHA@jar' 
     transscript 'org.crsx:crsx3@jar'
     transscript 'org.antlr:antlr4:4.5' 
-//	transscript "org.gradle:gradle-tooling-api:${toolingApiVersion}"
 }
 
 // --- Generate all meta and term parsers
@@ -62,8 +61,8 @@ task coreParsers(type: PG4Task) {
 	ncg = true
 }
 
-task transScriptParsers(type: PG4Task) {
-    description 'Generate TransScript term and meta parsers'
+task toscaParsers(type: PG4Task) {
+    description 'Generate Tosca term and meta parsers'
     source = file('src/parser/TransScript.g4')
     generatedFileDir = file('src/parser')
     metaPrefix = '##'

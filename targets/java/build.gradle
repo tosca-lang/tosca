@@ -25,12 +25,12 @@ dependencies {
 	transscript 'org.antlr:antlr4:4.5'
 }
 
-// -- Generate the TransScript compiler from .tsc source code.
-// -- Uses stable TransScript compiler, overriding builtin parsers. 
+// -- Generate the Tosca compiler from .tsc source code.
+// -- Uses stable Tosca compiler, overriding builtin parsers. 
 
 task compileTransScript(type: TransScriptTask, dependsOn:':targets:java:parsers:compileJava') { //, dependsOn:':targets:java:parsers:compileJava'
-	description = "Compile TransScript to Java source files."
-	sources     = fileTree(dir: transScriptSrc, include: ['*.crs4', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'std/**/*.tsc', 'cg/**/*.crs4', 'infer/*'])
+	description = "Compile Tosca to Java source files."
+	sources     = fileTree(dir: transScriptSrc, include: ['*.crs4', '*.tsc', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'std/**/*.tsc', 'cg/**/*.crs4', 'infer/*'])
 	outputDir   = project.hasProperty('dev') ? file('compilerdev') : file('compiler')
 	packageName = 'org.transscript.compiler'
 	usecompiler = !project.hasProperty('crsx3')
