@@ -1,30 +1,40 @@
-// Copyright (c) 2015 IBM Corporation.
+// Copyright (c) 2015-2016 IBM Corporation.
 import org.transscript.gradle.*
 
+/* Test driver */
 apply plugin:'org.transscript.gradle'
 	
+def buildDir = file('build')
+	
 repositories {
-	flatDir { dirs '../targets/java/dist' } // crsx4 
-	flatDir { dirs '../targets/java/lib' }  // where to find crsx3.jar
+	flatDir { dirs buildDir } // Tosca distribution 
+//	flatDir { dirs '../targets/java/lib' }  // where to find crsx3.jar
 	mavenCentral() // Where to find ANTLR
 }
 
 dependencies {
-	transscript 'org.transscript:transscript:1.0.0-SNAPSHOT@jar' // Test against the latest snapshot. 
-	//crsx4 'org.crsx:crsx3@jar'
-	//crsx4 'org.antlr:antlr4:4.5'
+	transscript 'org.tosca:tosca@jar'  
 }
 
 // -- Basic testing
 
-task smoketest(type: TransScriptTask) {
+task smoketest(type: TransScriptTask, dependsOn: 'untarDist') {
 	command = 'test'
 	sources = fileTree('.').include('basic/*.crs4').include('basic/*.tsc').include('parser/core.crs4').include('infer/*.tsc')
-	outputDir = file('results')
+	outputDir = file('build/results')
 	packageName = 'org.transscript.tests'
 	usecompiler = true
 	outputs.upToDateWhen { false }
 }	
 
+task untarDist(type: Copy) {
+    from tarTree(resources.gzip(tasks.getByPath(':tarAll').archivePath)) 
+    into buildDir
+}
 
-smoketest.dependsOn tasks.getByPath(':targets:java:snapshot')
+task cleanTests(overwrite:true) {
+    buildDir.deleteDir()
+}
+
+smoketest.dependsOn tasks.getByPath(':tarAll')
+

@@ -115,6 +115,10 @@ rule GetModuleURL(Module(#url, #content, #compiled)) → #url
 func GetModuleContent(Module) -> Content
 rule GetModuleContent(Module(#url, #content, #compiled)) → #content
 
+/* @return whether the given `#module` is compiled */
+func IsModuleCompiled(Module) -> Bool
+rule IsModuleCompiled(Module(#url, #content, #compiled)) → #compiled
+
 func GetImportsM(#module: Module) -> List<Core_cqconstructor_sort>
 → GetImports(GetModuleContent(#module))
 

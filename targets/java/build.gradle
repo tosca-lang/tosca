@@ -80,16 +80,16 @@ dependencies {
 jar {
 	baseName 'transscript'
 	manifest {
-		attributes("Main-Class" : "org.transscript.Tool", "Class-Path" : "../lib/crsx3.jar ../lib/antlr-runtime-4.5.jar")
+		attributes("Main-Class" : "org.transscript.Tool", "Class-Path" : "lib/crsx3.jar lib/antlr-runtime-4.5.jar")
 	}
 }
 
 // ---- Snapshot Distribution jar
 
 task snapshot(type: Copy, dependsOn: jar) {
-	description "Generate distribution jar."
+	description "Generate Tosca main jar."
 	from jar
 	into project.file('dist')
 }
 
-task cleanDist(overwrite:true) {}
+task cleanSnapshot(overwrite:true) {}

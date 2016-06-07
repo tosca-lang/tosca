@@ -29,7 +29,7 @@ import Text::Text4
    @return a result
  */
 func Compile(#url: String, #config: {String:String}) -> Result
-→ CompileS(LoadModuleS(InitSystem(#url, #config), #url))
+→ CompileS(LoadModuleS(InitSystem(#url, #config), #url, FALSE))
 
 // --- Compilation
 
@@ -39,7 +39,9 @@ func CompileS(#system: TSystem) -> Result
 
 /* Compile module (if not part of the standard library). */
 func CompileM(#system: TSystem, #module: Module) -> Result
-→ CodeGenerateM(#system, CheckCoreM(#system, InferM(#system, ClosureConvertM(#system, #module))))
+→ If<Result>(IsModuleCompiled(#module),
+    ()->Success(()),
+    ()->CodeGenerateM(#system, CheckCoreM(#system, InferM(#system, ClosureConvertM(#system, #module)))))
 
 func CodeGenerateM(#system: TSystem, #module: Module) -> Result
 → IfConfigDef<Result>(#system, "cpp", (v)->ToCppM(#system, #module), ()->ToJavaM(#system, #module))
@@ -60,21 +62,21 @@ func LoadImportedModules(#system: TSystem, #url:String, #imports: List<Core_cqco
 
 /* Load imported module into the system */
 func LoadImport(#system: TSystem, #url:String, #import: Core_cqconstructor_sort) -> TSystem
-→ LoadModuleS(#system, ResolveImport(#system, #url, #import))
+→ LoadModuleS(#system, ResolveImport(#system, #url, #import), IsStandardImport(#import))
 
 /* Load module content and update system */
-func LoadModuleS(#system: TSystem, #url: String) -> TSystem
-→ If<TSystem>(HasModule(#system, #url), ()->#system, ()->LoadModuleAux(#system, #url, LoadModuleM(#url)))
+func LoadModuleS(#system: TSystem, #url: String, #standard:Bool) -> TSystem
+→ If<TSystem>(HasModule(#system, #url), ()->#system, ()->LoadModuleAux(#system, #url, LoadModuleM(#url, #standard)))
 
 func LoadModuleAux(#system: TSystem, #url: String, #module: Module) -> TSystem
 → LoadImportedModules(PutModule(#system, #url, #module), #url, GetImportsM(#module))
 
 /* Load module content.
    @param `#url` the location of the module. Support loading core Tosca program (*.tscc file). */
-func LoadModuleM(#url: String) -> Module
+func LoadModuleM(#url: String, #standard:Bool) -> Module
 → Module(#url, LoadCore(If<Core_ccrsx_sort>(EndsWith(#url, ".tscc"),
     ()->ParseResource<Core_ccrsx_sort>("ccrsx", #url),
-    ()->ToCore(#url, ParseResource<TransScript_transscript_sort>("transscript", #url)))), FALSE)
+    ()->ToCore(#url, ParseResource<TransScript_transscript_sort>("transscript", #url)))), #standard)
 
 //--- Path manipulation functions
 
@@ -86,3 +88,10 @@ func ResolveImportAux(#system: TSystem, #url:String, #name: List<String>) -> Str
 → ConcatString(If<String>(StringEqual(Head<String>(#name), "Std"), ()->GetConfigDef(#system, "baseStd", ""), ()->PathJoin(PathParent(Path(#url)))),
   ConcatString("/",
   ConcatString(Join(Map<String String>((s)->DownCaseFirst(s), #name), "/"), ".tsc")))
+
+
+//--- Helpers
+
+/* @return `TRUE` if the given `#import` is a standard library module */
+func IsStandardImport(#import: Core_cqconstructor_sort) -> Bool
+→ StringEqual(Head<String>(QConsToStringList(#import)), "Std")

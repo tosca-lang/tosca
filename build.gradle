@@ -92,11 +92,26 @@ task tarAll(type: Tar, dependsOn: ':targets:java:snapshot') {
 	version '1.0'
 	compression Compression.GZIP
 	
+	// Tosca compiler.
 	into ('.') {
-		from 'targets/java/dist/transscript-1.0.0-ALPHA.jar'
+		from 'targets/java/dist/transscript-1.0.0-SNAPSHOT.jar'
 		rename { String fileName -> 'tosca.jar'	}
 	}
 	
+    // Java libraries
+    into ('lib') {
+        from 'targets/java/lib'
+        include '*.jar'
+    }
+    
+	
+	// Standard library
+	into ('lib/std') {
+        from 'src/std'
+        include '*.*'
+    }
+	
+	// C++ Target
 	into ('targets/cpp/runtime') {
 		from 'targets/cpp/runtime/'
 		include '*.*'
@@ -116,6 +131,7 @@ task tarAll(type: Tar, dependsOn: ':targets:java:snapshot') {
 		from '.'
 		include 'gradle/wrapper/**/*'
 		include 'gradlew.*'
+		include 'gradlew'
 		include 'VERSION'
 		include 'LICENSE.TXT'
 	}

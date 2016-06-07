@@ -493,7 +493,13 @@ public class Tool
 	 */
 	private static String baseStd()
 	{
-		return toscaPath();
+		String path = toscaPath();
+		if (path.endsWith(".jar"))
+		{
+			int idx = path.lastIndexOf(File.separator);
+			return path.substring(0, idx);
+		}
+		return path;
 	}
 
 //	
@@ -605,7 +611,7 @@ public class Tool
 	static String toscaPath;
 
 	/** 
-	 * @return the tosca installation absolute root directory. 
+	 * @return Tosca location. Either a JAR file or a build directory
 	 */
 	static String toscaPath()
 	{
