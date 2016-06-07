@@ -1,0 +1,9 @@
+// Copyright (c) 2016 IBM Corporation.
+
+/* Simple module test */
+import Modules::Imported
+
+func MyTrueToNumber(#: MyBool) -> Numeric
+→ 0
+
+func Tests -> Numeric → MyTrueToNumber(MyTrue)

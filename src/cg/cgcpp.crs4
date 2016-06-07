@@ -1,11 +1,8 @@
-
-
- // Copyright (c) 2016 IBM Corporation.
+// Copyright (c) 2016 IBM Corporation.
 
 /*
- * TransScript C++11-- backend code generator
+ * Tosca C++--11 code generator.
  */
-
 import Std::Core
 import Std::Listdef
 import Std::Mapdef
@@ -20,20 +17,18 @@ import Cg::Cppsource
 
 // ===== API
 
-/*
- * Generates C++ code from Core TransScript
- * @param System The TransScript system
- */
-func TransScriptToCpp(TSystem) -> Text4_text_sort
-rule TransScriptToCpp(TSystem(#url:String, #modules:{String : Module}))
-→ CppUnit(Head<Module>(MapValues<String Module>(#modules)))
+/* Generate C++ source and header file for given `#module` */
+func ToCppM(#system:TSystem, #module: Module) -> Result
+→ ToCppAux(#system, #module, TargetCppHeader(GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")),
+    TargetCppSource(GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")))
 
-// --- Generate code.
+func ToCppAux(#system:TSystem, #module: Module, #header:String, #source:String) -> Result
+→ SaveResource<Text4_text_sort Result>("text", #header, CppHeader(#module),
+  SaveResource<Text4_text_sort Result>("text", #source, CppSource(#module),
+  Success(Cons(#header, Cons(#source, Nil)))))
 
-/*
- Each TS module corresponds to two C++ files: the header containing enumerations
- and function signatures, and the source file containing function bodies.
-*/
-func CppUnit(#module: Module) -> Text4_text_sort
-→ SaveResource<Text4_text_sort Text4_text_sort>("text", GetEnv("headerfile", "header.h"),
-    CppHeader(#module), CppSource(#module))
+/* Get the absolute name of the target c++ header file */
+@Extern func TargetCppHeader(#input: String, #dest: String) -> String
+
+/* Get the absolute name of the target c++ source file */
+@Extern func TargetCppSource(#input: String, #dest: String) -> String

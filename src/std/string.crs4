@@ -109,7 +109,7 @@ rule BeforeLast2(#Before, #Sep, #After)
 /* Returns a new String joining the given list of strings together with the specified separator.*/
 func Join(List<String>, String) -> String
 rule Join((                                   ), #sep) → ""
-rule Join(Cons(#str:String, #strs:List<String>), #sep) → FoldlP<String String>((str r) -> ConcatString(str, ConcatString(#sep, r)), #str, #strs)
+rule Join(Cons(#str:String, #strs:List<String>), #sep) → FoldlP<String String>((str r) -> ConcatString(r, ConcatString(#sep, str)), #str, #strs)
 
 /* Splits the string around the given separator string */
 @Extern func Split(String, String) -> List<String>

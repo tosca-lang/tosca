@@ -10,20 +10,22 @@ import Core::Utils
 import Core::Subst
 import Systemdef
 
+// --- API
+
 /* Convert closures in the given module. */
-func CCCore(#content: LoadedContent) -> LoadedContent
-→ IfDef<LoadedContent>("cpp",
-    () -> FoldlP<String LoadedContent>((key content) -> CCRules(key, UnSOME<List>(GetRulesForKeyC(content, key)), content),
-                                      #content,
-                                      MapKeys<String List>(GetRules(#content))),
-    () -> #content)
+func ClosureConvertM(#system: TSystem, #module: Module) -> Module
+→ IfConfigDef<Module>(#system, "cpp",
+    (v) -> SetModuleContent(#module, FoldlP<String Content>((key content) -> CCRules(key, UnSOME<List>(GetRulesForKeyC(content, key)), content),
+                                        GetModuleContent(#module),
+                                        MapKeys<String List>(GetRulesM(#module)))),
+    ( ) -> #module)
 
 // --- Pre-traversal handlers
 
 /* Convert the given rules.
    Store each converted rule in an environment and update the module content on the way up.
  */
-func CCRules(#key: String, #rules: List<Core_cdecl_sort>, #content: LoadedContent) -> LoadedContent
+func CCRules(#key: String, #rules: List<Core_cdecl_sort>, #content: Content) -> Content
 → CCRulesUp(#key, FoldlP<Core_cdecl_sort Env>((rul env) -> CCRule(env, rul), EnvNew(#key, #content), #rules))
 
 func CCRule(Env, Core_cdecl_sort) -> Env
@@ -111,7 +113,8 @@ func CCMetaVar(#i: Numeric) -> String → ConcatString("#", FormatNumber(Plus(#i
 
 // --- Post traversal handlers
 
-func CCRulesUp(#key: String, #env: Env) -> LoadedContent → PutRulesL(EnvContent(#env), #key, EnvRules(#env))
+func CCRulesUp(#key: String, #env: Env) -> Content
+→ PutRulesL(EnvContent(#env), #key, EnvRules(#env))
 
 func CCRuleUp(Core_cterm_sort, Pair<Env Core_cterm_sort>) -> Env
 rule CCRuleUp(#cterm1, PairCons(#env:Env, #cterm2:Core_cterm_sort)) → EnvAddRule(#env, cdecl⟦ rule ##cterm1 → ##cterm2 ⟧)
@@ -146,19 +149,20 @@ rule MustConvert(#env, #cterm)                             → FALSE // TODO!
 
 enum Env | Env(
                  String,                 // Function constructor
-                 LoadedContent,          // The module content
+                 Content,          // The module content
                  List<Core_cdecl_sort>,  // List of converted rules
                  List<Pair<String Core_csort_sort>>,        // List of formal parameters with sorts
                  Numeric                 // A counter
               )
 
 
-func EnvNew(#name: String, #content: LoadedContent) -> Env → Env(#name, #content, (), (), 1)
+func EnvNew(#name: String, #content: Content) -> Env
+→ Env(#name, #content, (), (), 1)
 
 func EnvName(Env) -> String
 rule EnvName(Env(#name, #content, #rules, #params, #counter)) → #name
 
-func EnvContent(Env) -> LoadedContent
+func EnvContent(Env) -> Content
 rule EnvContent(Env(#name, #content, #rules, #params, #counter)) → #content
 
 func EnvRules(Env) -> List<Core_cdecl_sort>
@@ -170,7 +174,7 @@ rule EnvParams(Env(#name, #content, #rules, #params, #counter)) → #params
 func EnvCounter(Env) -> Numeric
 rule EnvCounter(Env(#name, #content, #rules, #params, #counter)) → #counter
 
-func EnvSetContent(Env, LoadedContent) -> Env
+func EnvSetContent(Env, Content) -> Env
 rule EnvSetContent(Env(#name, #content, #rules, #params, #counter), #newcontent) → Env(#name, #newcontent, #rules, #params, #counter)
 
 func EnvAddRule(Env, Core_cdecl_sort) -> Env

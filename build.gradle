@@ -86,7 +86,7 @@ task cleanTextParsers(overwrite : true) {}
 
 // --- The tarball full distribution
 
-task tarAll(type: Tar, dependsOn: 'snapshot') {
+task tarAll(type: Tar, dependsOn: ':targets:java:snapshot') {
 	baseName 'tosca'
 	classifier 'ALPHA'
 	version '1.0'

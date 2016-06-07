@@ -14,11 +14,10 @@ import Cg::Cppenv
 import Systemdef
 
 /* Generate C++ source file for module */
-func CppSource(Module) -> Text4_text_sort
-rule CppSource(Module(#url:String, Content::Loaded(#content:LoadedContent)))
-→ text⟦#include "⟨STRING: PathFileStem(#url)⟩.h"
-†⟨CppClassDefs(MapValues<String Core_cdecl_sort>(GetDataSortsC(#content)))⟩
-†⟨CppFunctionDefs(SetContent(CppNewEnv, #content))⟩⟧
+func CppSource(#module: Module) -> Text4_text_sort
+→ text⟦#include "⟨STRING: PathFileStem(GetModuleURL(#module))⟩.h"
+†⟨CppClassDefs(MapValues<String Core_cdecl_sort>(GetDataSortsC(GetModuleContent(#module))))⟩
+†⟨CppFunctionDefs(SetContent(CppNewEnv, GetModuleContent(#module)))⟩⟧
 
 // --------- Data sorts
 

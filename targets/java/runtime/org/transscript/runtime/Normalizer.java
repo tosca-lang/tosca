@@ -16,7 +16,6 @@ public class Normalizer
 	/**
 	 * Normalize term until top-level term is data
 	 * 
-	 * @param context
 	 * @param main returning an evaluated or partially evaluated term.
 	 * @param args 
 	 * @return a data term. Might contains non-evaluated sub functions.
@@ -25,16 +24,16 @@ public class Normalizer
 	 * @throws IllegalArgumentException 
 	 * @throws IllegalAccessException 
 	 */
-	public static Term force(Context context, Method main, StringTerm... args)
+	public static Term force(Method main, Object... args)
 			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException
 	{
-		Object[] objs = new Object[1 + (args == null ? 0 : args.length)];
-		objs[0] = context;
-		if (args != null)
-			System.arraycopy(args, 0, objs, 1, args.length);
-		
-		Term term = (Term) main.invoke(null, objs);
-		return force(context, term);
+//		Object[] objs = new Object[1 + (args == null ? 0 : args.length)];
+//		objs[0] = context;
+//		if (args != null)
+//			System.arraycopy(args, 0, objs, 1, args.length);
+//		
+		Term term = (Term) main.invoke(null, args);
+		return force((Context) args[0], term);
 	}
 
 	/**

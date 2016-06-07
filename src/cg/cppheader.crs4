@@ -17,15 +17,14 @@ import Cg::Cppenv
 import Systemdef
 
 /* Generate C++ header file for module */
-func CppHeader(Module) -> Text4_text_sort
-rule CppHeader(Module(#url:String, Content::Loaded(#content:LoadedContent)))
-→ text⟦#ifndef †⟨HeaderGuard(#url)⟩
-#define †⟨HeaderGuard(#url)⟩
+func CppHeader(#module: Module) -> Text4_text_sort
+→ text⟦#ifndef †⟨HeaderGuard(GetModuleURL(#module))⟩
+#define †⟨HeaderGuard(GetModuleURL(#module))⟩
 #include "ts.h"
-†⟨CppIncludes(GetImports(#content))⟩
-†⟨CppForwardDecls(MapValues<String Core_cdecl_sort>(GetDataSortsC(#content)))⟩
-†⟨CppClassDecls(MapValues<String Core_cdecl_sort>(GetDataSortsC(#content)))⟩
-†⟨CppFunctionDecls(SetContent(CppNewEnv, #content))⟩
+†⟨CppIncludes(GetImports(GetModuleContent(#module)))⟩
+†⟨CppForwardDecls(MapValues<String Core_cdecl_sort>(GetDataSortsC(GetModuleContent(#module))))⟩
+†⟨CppClassDecls(MapValues<String Core_cdecl_sort>(GetDataSortsC(GetModuleContent(#module))))⟩
+†⟨CppFunctionDecls(SetContent(CppNewEnv, GetModuleContent(#module)))⟩
 #endif⟧
 
 /* Generate C++ header guard */

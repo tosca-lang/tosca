@@ -28,30 +28,25 @@ import Core::Utils
 import Infer::Env
 import Systemdef
 
-// --- Top-level system traversal
+// --- API
 
-/* Infer sorts of given `#system`
+/* Infer sorts of given `#`
    @param System The Tosca system */
-func InferSystem(TSystem) -> TSystem
-rule InferSystem(TSystem(#url:String, #modules:{String : Module}))
-→ TSystem(#url, MapIndex<String Module>(Map<Module Pair<String Module>>((mod) -> InferModule(mod, TSystem(#url, #modules)), MapValues<String Module>(#modules))))
-
-// -- Module
-
-func InferModule(Module, TSystem) -> Pair<String Module>
-rule InferModule(Module(#url:String, #content: Content), #system) → PairCons(#url, Module(#url, InferContent(#content, #system)))
+func InferM(#system: TSystem, #module: Module) -> Module
+→ IfConfigDef<Module>(#system, "infer",
+    (v) -> SetModuleContent(#module, InferContent(GetModuleContent(#module), #system)),
+    ( ) -> #module)
 
 // -- Content
 
-func InferContent(Content, TSystem) -> Content
-rule InferContent(Loaded(#content:LoadedContent), #system)
-→ Loaded(FoldlP<String LoadedContent>((key content) -> InferRules(key, UnSOME<List>(GetRulesForKeyC(content, key)), content, #system),
-                               #content,
-                               MapKeys<String List>(GetRules(#content))))
+func InferContent(#content: Content, #system: TSystem) -> Content
+→ FoldlP<String Content>((key content) -> InferRules(key, UnSOME<List>(GetRulesForKeyC(content, key)), content, #system),
+                         #content,
+                         MapKeys<String List>(GetRules(#content)))
 
 // -- Rules
 
-func InferRules(#key: String, #rules: List<Core_cdecl_sort>, #content: LoadedContent, #system: TSystem) -> LoadedContent
+func InferRules(#key: String, #rules: List<Core_cdecl_sort>, #content: Content, #system: TSystem) -> Content
 → PutRulesC(#content, #key, Map<Core_cdecl_sort Core_cdecl_sort>((rul) -> InferRule(EnvNew(#content, #system), rul), #rules))
 
 // -- Rule

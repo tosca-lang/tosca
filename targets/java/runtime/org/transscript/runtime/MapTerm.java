@@ -189,7 +189,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 			if (isEmpty())
 				return (List<V>) nil.make();
 
-			// Use unchecked API to avoid deep recursive algo.
+			// TODO: right-to-left
 			Listdef.List<V> top = (List<V>) cons.make();
 			Listdef.List<V> c = top;
 			Listdef.List<V> nc = null;
@@ -220,7 +220,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 			if (isEmpty())
 				return (List<K>) nil.make();
 
-			// Use unchecked API to avoid deep recursive algo.
+			// TODO: right-to-left
 			Listdef.List<K> top = (List<K>) cons.make();
 			Listdef.List<K> c = top;
 			Listdef.List<K> nc = null;

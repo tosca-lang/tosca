@@ -1,0 +1,88 @@
+// Copyright (c) 2015-2016 IBM Corporation.
+/*
+  Tosca compiler.
+*/
+
+import Systemdef
+import Normalizer
+import Checker
+import Cc
+import Infer::Infer
+import Cg::Cgjava
+import Cg::Cgcpp
+import Std::Core
+import Std::Listdef
+import Std::Mapdef
+import Std::String
+import Std::Language
+import Std::Path
+import Core::Core
+import Core::Utils
+import Parser::TransScript
+import Text::Text4
+
+//--- API
+
+/* Compile the Tosca program located to the given url, as well as imported modules
+   @param `#url` a url pointing to the main program to compiler
+   @param `#config` a set of configuration properties
+   @return a result
+ */
+func Compile(#url: String, #config: {String:String}) -> Result
+→ CompileS(LoadModuleS(InitSystem(#url, #config), #url))
+
+// --- Compilation
+
+/* Compile system. */
+func CompileS(#system: TSystem) -> Result
+→ FoldResults(Map<Module Result>((mod)->CompileM(#system, mod), MapValues<String Module>(GetModules(#system))))
+
+/* Compile module (if not part of the standard library). */
+func CompileM(#system: TSystem, #module: Module) -> Result
+→ CodeGenerateM(#system, CheckCoreM(#system, InferM(#system, ClosureConvertM(#system, #module))))
+
+func CodeGenerateM(#system: TSystem, #module: Module) -> Result
+→ IfConfigDef<Result>(#system, "cpp", (v)->ToCppM(#system, #module), ()->ToJavaM(#system, #module))
+
+/* Merge all results */
+func FoldResults(#results: List<Result>) -> Result
+→ FoldlP<Result Result>((r rs)->FoldResult(r, rs), Success(()), #results)
+
+func FoldResult(Result, Result) -> Result
+rule FoldResult(Success(#1:List<String>), Success(#2:List<String>)) → Success(Concat<String>(#1, #2))
+rule FoldResult(#1, #2) → FAILURE
+
+// --- Module loading.
+
+/* Load imported modules into the system, recursively */
+func LoadImportedModules(#system: TSystem, #url:String, #imports: List<Core_cqconstructor_sort>) -> TSystem
+→ FoldlP<Core_cqconstructor_sort TSystem>((imp system)->LoadImport(system, #url, imp), #system, #imports)
+
+/* Load imported module into the system */
+func LoadImport(#system: TSystem, #url:String, #import: Core_cqconstructor_sort) -> TSystem
+→ LoadModuleS(#system, ResolveImport(#system, #url, #import))
+
+/* Load module content and update system */
+func LoadModuleS(#system: TSystem, #url: String) -> TSystem
+→ If<TSystem>(HasModule(#system, #url), ()->#system, ()->LoadModuleAux(#system, #url, LoadModuleM(#url)))
+
+func LoadModuleAux(#system: TSystem, #url: String, #module: Module) -> TSystem
+→ LoadImportedModules(PutModule(#system, #url, #module), #url, GetImportsM(#module))
+
+/* Load module content.
+   @param `#url` the location of the module. Support loading core Tosca program (*.tscc file). */
+func LoadModuleM(#url: String) -> Module
+→ Module(#url, LoadCore(If<Core_ccrsx_sort>(EndsWith(#url, ".tscc"),
+    ()->ParseResource<Core_ccrsx_sort>("ccrsx", #url),
+    ()->ToCore(#url, ParseResource<TransScript_transscript_sort>("transscript", #url)))), FALSE)
+
+//--- Path manipulation functions
+
+/* Convert Tosca module into an url */
+func ResolveImport(#system: TSystem, #url:String, #import: Core_cqconstructor_sort) -> String
+→ ResolveImportAux(#system, #url, QConsToStringList(#import))
+
+func ResolveImportAux(#system: TSystem, #url:String, #name: List<String>) -> String
+→ ConcatString(If<String>(StringEqual(Head<String>(#name), "Std"), ()->GetConfigDef(#system, "baseStd", ""), ()->PathJoin(PathParent(Path(#url)))),
+  ConcatString("/",
+  ConcatString(Join(Map<String String>((s)->DownCaseFirst(s), #name), "/"), ".tsc")))

@@ -58,12 +58,17 @@ func HeadO<a>(List<a>) -> Option<a>
 rule HeadO((                   )) → NONE
 rule HeadO(Cons(#:a, #s:List<a>)) → SOME(#)
 
+/* @return all element in the list, except the last one. If the list is empty, return the empty list. */
+func HeadAll<a>(List<a>) -> List<a>
+rule HeadAll((                     )) → ()
+rule HeadAll(Cons(#:a, List<a>::Nil)) → ()
+rule HeadAll(Cons(#:a, List<a>::Cons(#2:a, #s:List<a>))) → Cons(#, HeadAll<a>(Cons(#2:a, #s:List<a>)))
+
 /* @return last item of the list */
 func Last<a>(List<a>) -> a
 rule Last((                     )) → Error<a>("Last of empty list")
 rule Last(Cons(#:a, List<a>::Nil)) → #
 rule Last(Cons(#:a, #s:List<a>  )) → Last<a>(#s)
-
 
 /* @return Tail of the list */
 func Tail<a>(List<a>) -> List<a>

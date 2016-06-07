@@ -13,12 +13,16 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
+import org.transscript.compiler.std.Listdef;
 import org.transscript.compiler.text.Printer;
 import org.transscript.compiler.text.Text4.Text4_xtext_xsort;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.Normalizer;
+import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
 
 /**
@@ -234,4 +238,109 @@ public class Utils
 		}
 
 	}
+
+	/**
+	 * Get the absolute name of the target java file
+	 * The file name is of the form {dest}/{package}/{subpackage}/{input}.java
+	 *  
+	 * where {subpackage} is a function of {input} and {mainurl}
+	 *  
+	 * @param input Tosca file
+	 * @param dest target directory
+	 * @param pkg
+	 * @param makeDirs whether to make destination directories.
+	 */
+	public static String targetJavaFilename(String input, String dest, String mainurl, String pkg, boolean makeDirs)
+	{
+		Path inputPath = Paths.get(input);
+
+		// Offset destination considering package and subpackage
+		if (pkg != null)
+			dest += File.separator + pkg.replace('.', File.separatorChar);
+
+		String subdir = relativePath(input, mainurl);
+		dest = subdir.trim().equals("") ? dest : dest + File.separator + subdir;
+
+		if (makeDirs)
+		{
+			File destFile = new File(dest);
+			destFile.mkdirs();
+		}
+
+		// Compute output java filename
+		String output = inputPath.getFileName().toString().replace(".crsc", ".java").replace(".crs4", ".java").replace(
+				".tsc", ".java");
+		output = Character.toUpperCase(output.charAt(0)) + output.substring(1); // First character must be upper case.
+		output = dest + File.separator + output; // dest / output.java
+		return output;
+	}
+
+	/** 
+	 * Get the absolute name of the target cpp file
+	 * @param input Tosca file
+	 * @param dest target directory
+	 * @param makeDirs whether to make destination directories.
+	 * @param header whether to get the header target file name.
+	 */
+	public static String targetCppFilename(String input, String dest, boolean makeDirs, boolean header)
+	{
+		final File inputFile = new File(input);
+
+		dest += File.separator + "src";
+
+		if (makeDirs)
+		{
+			File destFile = new File(dest);
+			destFile.mkdirs();
+		}
+
+		String ext = header ? ".h" : ".cpp";
+
+		// Compute output java filename
+		String output = inputFile.getName().replace(".crs4", ext).replace(".tsc", ext);
+
+		output = dest + File.separator + output; // dest / src / output.cpp
+		return output;
+	}
+
+	/**
+	 * Compute sub directory of given input, relative to main module.
+	 * @param input
+	 * @param mainurl
+	 * @return a relative path
+	 */
+	public static String relativePath(String input, String mainurl)
+	{
+		Path inputPath = Paths.get(input);
+		Path rootPath = Paths.get(mainurl);
+		
+		Path relativize = rootPath.getParent().relativize(inputPath.getParent());
+		return relativize.toString();
+	}
+
+	/**
+	 * Gets internal typed property value.
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T getInternalProperty(Map<String, Object> internal, String name)
+	{
+		return internal == null ? null : (T) internal.get(name);
+	}
+
+	/** Converts list of StringTerm to Java list of string. */
+	public static List<String> toJava(Context context, Listdef.List<StringTerm> list)
+	{
+		ArrayList<String> result = new ArrayList<>();
+		list = Term.force(context, list);
+		Listdef._Cons<StringTerm> cons = Term.force(context, list).asCons(context);
+
+		while (cons != null)
+		{
+			result.add(cons.getField1(context, true).unbox());
+			cons = cons.getField2(context, true).asCons(context);
+
+		}
+		return result;
+	}
+
 }

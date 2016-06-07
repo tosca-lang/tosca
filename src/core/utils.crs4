@@ -27,10 +27,14 @@ rule EqualAnno(#anno, canno⟦ @ ##CONSTRUCTOR ⟧) → StringEqual(#CONSTRUCTOR
 func AddAnnotation(#anno: String, #anno*: List<Core_canno_sort>) ->  List<Core_canno_sort>
 → Cons(canno⟦ @ ⟨CONSTRUCTOR: #anno⟩ ⟧, #anno*)
 
+/* Get qualified constructor as a list of string. */
+func QConsToStringList(Core_cqconstructor_sort) -> List<String>
+rule QConsToStringList(cqconstructor⟦ ##csortqualifier* ##CONSTRUCTOR ⟧)
+→ Append<String>(#CONSTRUCTOR, Map<Core_csortqualifier_sort String>((sort) -> QSortToString(sort), #csortqualifier*))
+
 /* Convert qualified constructor to string, using given separator */
-func QConsToString(Core_cqconstructor_sort, String) -> String
-rule QConsToString(cqconstructor⟦ ##csortqualifier* ##CONSTRUCTOR ⟧, #sep)
-→ Join(Cons(#CONSTRUCTOR, Map<Core_csortqualifier_sort String>((sort) -> QSortToString(sort), #csortqualifier*)), #sep)
+func QConsToString(#cqcons: Core_cqconstructor_sort, #sep: String) -> String
+→ Join(QConsToStringList(#cqcons), #sep)
 
 func QSortToString(Core_csortqualifier_sort) -> String
 rule QSortToString(csortqualifier⟦ ##CONSTRUCTOR :: ⟧) → #CONSTRUCTOR

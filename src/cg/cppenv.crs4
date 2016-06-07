@@ -23,7 +23,7 @@ enum MetaEntry | MetaVar(Text4_text_sort,       /* variable associated with the 
                          List<Text4_text_sort>) /* variables associated to the meta variable bound variables */
 
 /* Environment entry sort */
-enum EnvEntry | EContent(LoadedContent)
+enum EnvEntry | EContent(Content)
               | EParams(List<Pair<Text4_text_sort Core_csort_sort>>)
               | EFnAnno(List<Core_canno_sort>)
               | ENum(Numeric)
@@ -34,7 +34,7 @@ enum EnvEntry | EContent(LoadedContent)
               | EText(Text4_text_sort)
 
 /* Corresponding unwrappers */
-func UnContent(EnvEntry) -> LoadedContent
+func UnContent(EnvEntry) -> Content
 rule UnContent(EContent(#)) → #
 
 func UnParams(EnvEntry) -> List<Pair<Text4_text_sort Core_csort_sort>>
@@ -88,10 +88,10 @@ func CppNewEnv -> {String : EnvEntry}
 
 // --- Module content
 
-func SetContent(#env: {String : EnvEntry}, #content: LoadedContent) -> {String : EnvEntry}
+func SetContent(#env: {String : EnvEntry}, #content: Content) -> {String : EnvEntry}
 → SetValue(#env, "content", EContent(#content))
 
-func GetContent(#env: {String : EnvEntry}) -> LoadedContent
+func GetContent(#env: {String : EnvEntry}) -> Content
 → UnContent(GetValue(#env, "content"))
 
 // --- Method arguments

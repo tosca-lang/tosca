@@ -10,6 +10,10 @@ import Std::Listdef
 func Path(#path: String) -> List<String>
 → Split(#path, "/") // TODO: windows
 
+/* Converts the given path to string */
+func PathJoin(#path: List<String>) -> String
+→ Join(#path, "/") // TODO: windows
+
 /* @return the last component of a path, the file name */
 func PathFileName(#path: String) -> String
 → If<String>(Contains(#path, "/"), ()->AfterLast(#path, "/"), ()->#path)
@@ -19,3 +23,7 @@ func PathFileStem(#path: String) -> String
 → If<String>(Contains(PathFileName(#path), "."),
     ()->BeforeLast(PathFileName(#path), "."),
     ()->PathFileName(#path))
+
+/* @return the given path's parent */
+func PathParent(#path: List<String>) -> List<String>
+→ HeadAll<String>(#path)

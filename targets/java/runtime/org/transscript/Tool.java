@@ -2,6 +2,8 @@
 
 package org.transscript;
 
+import static org.transscript.runtime.StringTerm.stringTerm;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,10 +29,14 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
+import org.transscript.compiler.Systemdef;
+import org.transscript.compiler.Systemdef.Result;
 import org.transscript.compiler.parser.TransScript;
+import org.transscript.compiler.std.Listdef;
 import org.transscript.parser.TransScriptMetaParser;
 import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.Context;
+import org.transscript.runtime.MapTerm;
 import org.transscript.runtime.Normalizer;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
@@ -39,7 +45,7 @@ import org.transscript.tool.ToolContext;
 import org.transscript.tool.Utils;
 
 /**
- * TransScript command line.
+ * Tosca command line.
  * 
  * @author Lionel Villard
  */
@@ -75,7 +81,7 @@ public class Tool
 		System.out.println("  test          Run the tests defined in the Tosca program");
 		System.out.println("  parse         Parse a Tosca program");
 		System.out.println("\nFor additional help, type java -jar tosca.jar command help.");
-		System.exit(0);
+		System.exit(1);
 	}
 
 	/**
@@ -87,8 +93,8 @@ public class Tool
 		System.out.println(
 				"  class=<classname>         the name of the compiled Tosca program to run. Cannot be used with option rules");
 		System.out.println("  build-dir=<directory>     where to store the intermediate files. Default is current directory");
-        System.out.println("  base=<name>               base source directory");
-	    System.out.println("  javabasepackage=<name>    Java base package name of generated Java files");
+		//		System.out.println("  base=<name>               base source directory");
+		System.out.println("  javabasepackage=<name>    Java base package name of generated Java files");
 		System.out.println("  parsers=<classnames>      comma separated list of parsers classname");
 		System.out.println("  cpp                       set target language to C++");
 		System.out.println("  java                      set target language to Java (default)");
@@ -142,14 +148,15 @@ public class Tool
 			buildEnv.put("rules", rules);
 			buildEnv.put("build-dir", buildir);
 			buildEnv.put("verbose", env.get("verbose"));
-			buildEnv.put("base", env.get("base"));
+			//buildEnv.put("base", env.get("base"));
+
 			if (javabasepackage != null)
 				buildEnv.put("javabasepackage", javabasepackage);
 			buildEnv.put("java", "1");
-			
+
 			result = build(buildEnv);
 
-			clazz = targetClassFilename(rules, javabasepackage, javaPackage(env.get("base"), rules));
+			clazz = targetClassname(rules, javabasepackage);
 			classLoader = classLoader(rules, buildir);
 		}
 
@@ -162,7 +169,44 @@ public class Tool
 				runEnv.put("classloader", classLoader);
 
 			env.put("class", clazz);
-			rewrite(env, runEnv);
+			Context context = new Context();
+			Term term = rewrite(context, env, runEnv);
+			output(context, env, term);
+		}
+	}
+
+	/** Sends produced term to output configured in {@link #env} */
+	private static void output(Context context, Map<String, String> env, Term term)
+	{
+		// initialize output
+		String outputEntry = env.get("output");
+		Appendable output = System.out;
+
+		if (outputEntry != null)
+		{
+			try
+			{
+				output = new FileWriter(outputEntry);
+			}
+			catch (IOException e)
+			{
+				Utils.fatal("error while opening the output " + outputEntry, e);
+			}
+		}
+
+		Utils.printTerm(context, null, term, outputEntry, output);
+
+		if (output instanceof Closeable && output != System.out)
+
+		{
+			try
+			{
+				((Closeable) output).close();
+			}
+			catch (IOException e)
+			{
+				Utils.fatal("error while closing the output", e);
+			}
 		}
 	}
 
@@ -220,7 +264,8 @@ public class Tool
 		final File rulesFile = new File(rules);
 		if (!rulesFile.exists())
 			Utils.fatal("Input file not found: " + rules, null);
-
+		
+		rules = rulesFile.getAbsolutePath();
 		String target = env.get("cpp") != null ? "cpp" : "java";
 
 		// For java target get base package and sub package name.
@@ -230,58 +275,72 @@ public class Tool
 			javapackage = javaPackage(env.get("base"), rules);
 
 		String dest = resolveBuildDir(rules, env.get("build-dir"));
-		String output = target.equals("java")
-				? targetJavaFilename(rules, dest, javabasepackage, javapackage, true)
-				: targetCppFilename(rules, dest, true);
 
 		String parsers = "org.transscript.core.CoreMetaParser,org.transscript.parser.TransScriptMetaParser,org.transscript.text.Text4MetaParser";
 		if (env.get("parsers") != null)
 			parsers += "," + env.get("parsers");
 
 		Map<String, String> buildEnv = new HashMap<>(env);
+		Map<String, Object> internalEnv = new HashMap<>();
+		MapTerm<StringTerm, StringTerm> config = MapTerm.mapTerm();
 
+		config.putValue(stringTerm("build-dir"), stringTerm(dest));
+		//config.putValue(stringTerm("baseSrc"), stringTerm(baseSrcDir(rules)));
+
+		// Compute the location of the standard library.
+		config.putValue(stringTerm("baseStd"), stringTerm(baseStd()));
+
+		
 		// First: Produce source file.
-
 		buildEnv.put("class", "org.transscript.compiler.Tosca");
 		buildEnv.put("main", "Compile");
-		if (target.equals("cpp"))
-		{
-			System.setProperty("cpp", "1");
-			System.setProperty("headerfile", output.replace(".cpp", ".h"));
-		}
 
-		// TODO: this shouldn't be needed.
-		buildEnv.put("grammar", parsers); // Temporary.
-		buildEnv.put("sink", "org.transscript.runtime.text.TextSink");
-		buildEnv.put("arg", rules);
-		buildEnv.put("output", output);
+		Context context = new Context();
+
+		internalEnv.put("args", new Object[]
+			{context, stringTerm(rules), config});
+		internalEnv.put("argTypes", new Class<?>[]
+			{Context.class, StringTerm.class, MapTerm.class});
+
+		if (target.equals("cpp"))
+			config.putValue(stringTerm("cpp"), stringTerm("1"));
+
+		buildEnv.put("grammar", parsers); // TODO: Temporary.
+		//buildEnv.put("output", output);
 
 		if (javabasepackage != null)
+		{
 			System.setProperty("javabasepackage", javabasepackage);
+			config.putValue(stringTerm("package"), stringTerm(javabasepackage));
+		}
 
 		if (javapackage != null)
+		{
 			System.setProperty("javapackage", javapackage);
-
-		if (env.get("tocore") != null)
-			System.setProperty("to-core", "1");
+			config.putValue(stringTerm("subpackage"), stringTerm(javapackage));
+		}
 
 		buildEnv.put("bootparserpath", env.get("bootparserpath"));
 		buildEnv.put("verbose", env.get("verbose"));
 
-		rewrite(buildEnv, null);
+		Systemdef.Result result = (Result) rewrite(context, buildEnv, internalEnv);
+		result = Term.force(context, result);
+		if (result.asFAILURE(context) == null)
+		{
+			Listdef.List<StringTerm> files = result.asSuccess(context).getField1(context, true);
+			// Second: Compile 
+			if (env.get("java") != null)
+				return compileJava(context, env, files);
+			else if (env.get("cpp") != null)
+				return compileCpp(env, rules, dest);
+		}
 
-		// Second: Compile 
-		if (env.get("java") != null)
-			return compileJava(env, output);
-		else if (env.get("cpp") != null)
-			return compileCpp(env, rules, dest);
-		return -1;
+		return 2;
 	}
 
 	/* Compile generated cpp files */
 	static int compileCpp(Map<String, String> env, String input, String buildir)
 	{
-
 		final String root = toscaPath();
 		final String cppRoot = root + File.separator + "targets" + File.separator + "cpp";
 		final String name = Utils.getBaseName(input);
@@ -395,8 +454,10 @@ public class Tool
 	}
 
 	/** 
-	 * Get the absolute name of the target java file
-	 * The file name is of the form {dest}/{javabasepackage}/{javapackage}/{input}.java
+	 * Compute Java package name
+	 *
+	 * @param base source directory
+	 * @param input Tosca file
 	 */
 	static String javaPackage(String base, String input)
 	{
@@ -409,42 +470,38 @@ public class Tool
 			String pkg = inputPath.replace(basePath, "").replace(File.separatorChar, '.');
 			return pkg.startsWith(".") ? pkg.substring(1) : pkg;
 		}
-		
+
 		return null;
 	}
-	
-	/**
-	 * Get the absolute name of the target java file
-	 * 
-	 * @param base source directory
-	 * @param input Tosca file
-	 * @param dest target directory
-	 * @param makeDirs whether to make destination directories.
+
+	/** 
+	 * Compute base source directory
+	 * @param input program
 	 */
-	static String targetJavaFilename(String input, String dest, String basepackage, String pkg, boolean makeDirs)
+//	private static String baseSrcDir(String input)
+//	{
+//		if (input != null)
+//		{
+//			final File inputFile = new File(input);
+//			return endWithSep(inputFile.getAbsoluteFile().getParentFile().getAbsolutePath());
+//		}
+//		return "";
+//	}
+
+	/** 
+	 * Compute location of standard library
+	 */
+	private static String baseStd()
 	{
-		final File inputFile = new File(input);
-
-		// Offset destination considering base package
-		if (basepackage != null)
-			dest += File.separator + basepackage.replace('.', File.separatorChar);
-		if (pkg != null)
-			dest += File.separator + pkg.replace('.', File.separatorChar);
-
-		if (makeDirs)
-		{
-			File destFile = new File(dest);
-			destFile.mkdirs();
-		}
-
-		// Compute output java filename
-		String output = inputFile.getName().replace(".crsc", ".java").replace(".crs4", ".java").replace(".tsc", ".java");
-		output = Character.toUpperCase(output.charAt(0)) + output.substring(1); // First character must be upper case.
-
-		output = dest + File.separator + output; // dest / output.java
-
-		return output;
+		return toscaPath();
 	}
+
+//	
+//	/** Make sure path terminates with separator */
+//	private static String endWithSep(String path)
+//	{
+//		return path.endsWith(File.separator) ? path : path + File.separator;
+//	}
 
 	/**
 	 * Get the relative name of the target class file
@@ -452,53 +509,15 @@ public class Tool
 	 * @param dest target directory
 	 * @param makeDirs whether to make destination directories.
 	 */
-	static String targetClassFilename(String input, String basepackage, String pkg)
+	static String targetClassname(String input, String pkg)
 	{
-		final File inputFile = new File(input);
-
-		String name = "";
-		// Offset destination considering package
-		if (basepackage != null)
-			name += basepackage;
-		if (pkg != null && !pkg.equals(""))
-		{
-			if (!name.equals(""))
-				name += ".";
-			name += pkg;
-		}
-
+		final Path inputPath = Paths.get(input);
+		String classname = pkg == null ? "" : pkg + ".";
+		
 		// Compute output java filename
-		String output = inputFile.getName().replace(".crsc", "").replace(".crs4", "").replace(".crs", "").replace(".tsc", "");
-		output = Character.toUpperCase(output.charAt(0)) + output.substring(1); // First character must be upper case.
-
-		name += "." + output; // dest / Output
-
-		return name;
-	}
-
-	/** 
-	 * Get the absolute name of the target cpp file
-	 * @param input Tosca file
-	 * @param dest target directory
-	 * @param makeDirs whether to make destination directories.
-	 */
-	static String targetCppFilename(String input, String dest, boolean makeDirs)
-	{
-		final File inputFile = new File(input);
-
-		dest += File.separator + "src";
-
-		if (makeDirs)
-		{
-			File destFile = new File(dest);
-			destFile.mkdirs();
-		}
-
-		// Compute output java filename
-		String output = inputFile.getName().replace(".crs4", ".cpp").replace(".tsc", ".cpp");
-
-		output = dest + File.separator + output; // dest / src / output.cpp
-		return output;
+		String name = inputPath.getFileName().toString().replace(".crsc", "").replace(".crs4", "").replace(".crs", "").replace(".tsc", "");
+		classname += Character.toUpperCase(name.charAt(0)) + name.substring(1); // First character must be upper case.
+		return classname;
 	}
 
 	/**
@@ -544,12 +563,16 @@ public class Tool
 	}
 
 	/** Compile the list of java files */
-	static int compileJava(Map<String, String> env, String output)
+	static int compileJava(Context context, Map<String, String> env, Listdef.List<StringTerm> files)
 	{
 		if (env.get("only-source") == null)
 		{
-			List<File> filesToCompile = Arrays.asList(new File(output));
 
+			List<File> filesToCompile = new ArrayList<>();
+			for (String filename : Utils.toJava(context, files))
+			{
+				filesToCompile.add(new File(filename));
+			}
 			List<String> optionList = new ArrayList<String>();
 
 			// Need the Tosca runtime and the generated parser on the classpath
@@ -616,46 +639,23 @@ public class Tool
 		return Utils.getMethod(clss, "init", Context.class);
 	}
 
-	/** 
-	 * Copy all properties starting with the given prefix over to
-	 * the given other property map, with the prefix trimmed off.
-	 */
-	static void copyPrefixedProps(String prefix, Map<String, String> from, Map<String, String> to)
-	{
-		from.forEach((key, value) -> {
-			if (key.startsWith(prefix))
-				to.put(key.substring(prefix.length()), value);
-		});
-	}
-
 	/**
-	 * Gets internal typed property value.
+	 * Generic rewriter extracting configuration from the given environments.
+	 * @return 
 	 */
-	@SuppressWarnings("unchecked")
-	static <T> T getInternalProperty(Map<String, Object> internal, String name)
+	static Term rewrite(Context context, Map<String, String> env, Map<String, Object> internal)
 	{
-		return internal == null ? null : (T) internal.get(name);
-	}
-
-	/**
-	 * Generic rewriter extracting configuration from the given environment.
-	 */
-	static void rewrite(Map<String, String> env, Map<String, Object> internal)
-	{
-		Context context = new Context();
-
 		context.verbose = Utils.GetIntProperty(env, "verbose", 0);
 		setBootParserPath(context, env.get("bootparserpath"));
 
 		String name = env.get("class");
-
 		if (name == null)
 		{
 			System.out.println("missing class option");
 			printUsage();
 		}
 
-		ClassLoader loader = getInternalProperty(internal, "classloader");
+		ClassLoader loader = Utils.getInternalProperty(internal, "classloader");
 		if (loader == null)
 			loader = Tool.class.getClassLoader();
 
@@ -676,30 +676,16 @@ public class Tool
 		String grammars = env.get("grammar");
 		addGrammars(context, grammars);
 
-		// Look at arguments
-		String arg = env.get("arg");
-		String[] args = arg == null ? null : arg.split(" ");
-		StringTerm[] argsTerm;
-		Class<?>[] argTypes;
-		if (args == null)
-		{
-			argTypes = new Class<?>[]
-				{Context.class};
-			argsTerm = null;
-		}
-		else
-		{
-			argTypes = new Class<?>[1 + args.length];
-			argsTerm = new StringTerm[args.length];
-			argTypes[0] = Context.class;
-			for (int i = 0; i < args.length; i++)
-			{
-				argTypes[i + 1] = StringTerm.class;
-				argsTerm[i] = StringTerm.stringTerm(args[i].trim());
-			}
-		}
+		// Get top-level method to invoke. A combination of "main" and "arg" property value
 
-		// Look top-level method to invoke
+		Object[] args = (Object[]) internal.get("args");
+		Class<?>[] argTypes = (Class<?>[]) internal.get("argTypes");
+
+		args = args == null ? new Object[]
+			{context} : args;
+		argTypes = argTypes == null ? new Class<?>[]
+			{Context.class} : argTypes;
+
 		String mainMethod = env.get("main");
 		mainMethod = mainMethod == null ? "Main" : mainMethod;
 		Method main = Utils.getMethod(clss, mainMethod, argTypes);
@@ -707,7 +693,7 @@ public class Tool
 		Term result;
 		try
 		{
-			result = Normalizer.force(context, main, argsTerm);
+			result = Normalizer.force(main, args);
 		}
 		catch (Exception e)
 		{
@@ -715,37 +701,7 @@ public class Tool
 			Utils.fatal("problem occurred while running the Tosca system", e);
 		}
 
-		// initialize output
-		String outputEntry = env.get("output");
-		Appendable output = System.out;
-
-		if (outputEntry != null)
-		{
-			try
-			{
-				output = new FileWriter(outputEntry);
-			}
-			catch (IOException e)
-			{
-				Utils.fatal("error while opening the output " + outputEntry, e);
-			}
-		}
-
-		Utils.printTerm(context, null, result, outputEntry, output);
-
-		if (output instanceof Closeable && output != System.out)
-
-		{
-			try
-			{
-				((Closeable) output).close();
-			}
-			catch (IOException e)
-			{
-				Utils.fatal("error while closing the output", e);
-			}
-		}
-
+		return result;
 	}
 
 	// Registers grammar(s) to context.

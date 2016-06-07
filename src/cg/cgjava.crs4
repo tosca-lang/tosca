@@ -20,29 +20,16 @@ import Systemdef
 
 // ===== API
 
+/* Generates Java code for the given `#module` */
+func ToJavaM(#system: TSystem, #module: Module) -> Result
+→ ToJavaAux(#system, #module, TargetJavaFilename(GetModuleURL(#module), GetConfigDef(#system, "build-dir", ""),
+    GetSystemURL(#system), GetConfigDef(#system, "package", "")))
 
-/*
- * Generates Java code from Core TransScript
- * @param System The TransScript system
- */
-
-func TransScriptToJava(TSystem) -> Text4_text_sort
-rule TransScriptToJava(TSystem(#url:String, #modules:{String : Module}))
-→ JavaUnits(#url, MapValues<String Module>(#modules))
-
-// --- Generate code.
-
-/*
- Each Crsx module corresponds to a single Java class.
-
- Each rule declaration corresponds to a single Java function.
-*/
-
-func JavaUnits(String, List<Module>) -> Text4_text_sort
-rule JavaUnits(#url, #modules)
-  → text⟦
+func ToJavaAux(#system: TSystem, #module: Module, #source: String) -> Result
+→
+SaveResource<Text4_text_sort Result>("text", #source, text⟦
 /** Generated File */
-†⟨PackageDeclaration⟩
+†⟨PackageDeclaration(GetModuleURL(#module), GetSystemURL(#system), GetConfigDef(#system, "package", ""))⟩
 
 import java.util.function.Function;
 
@@ -70,18 +57,19 @@ import static org.transscript.runtime.MapTerm.lazyMapTerm;
 import static org.transscript.runtime.MapTerm.lazyMapTermMaker;
 import static org.transscript.runtime.LazyTerm.thunk;
 
-†⟨TextFold(Map<Module Text4_text_sort>((x) -> JavaUnit(#url, x), #modules), text⟦⟧)⟩
-⟧
+†⟨JavaUnit(GetModuleURL(#module), GetImportsM(#module), GetRulesM(#module), GetDataSortsM(#module), GetFuncSortsM(#module))⟩
+⟧, Success((#source,)))
+
+// --- Translate module
 
 /* Generate class for the given module */
-func JavaUnit(String, eager Module) -> Text4_text_sort
-rule JavaUnit(#mainurl, Module(#url:String,
-        Content::Loaded(LoadedContent::LoadedContent(#imports:List<Core_cqconstructor_sort>, #rules:{String:List<Core_cdecl_sort>}, #datasorts:{String:Core_cdecl_sort}, #funcsorts:{String:Core_cdecl_sort}))))
+func JavaUnit(#url: String, #imports: List<Core_cqconstructor_sort>, #rules: {String:List<Core_cdecl_sort>},
+                #datasorts: {String:Core_cdecl_sort}, #funcsorts: {String: Core_cdecl_sort}) -> Text4_text_sort
 → text⟦
 †⟨TextFold(Map<Core_cqconstructor_sort Text4_text_sort>((x) -> JavaImport(x), #imports), text⟦⟧)⟩
 
 @SuppressWarnings("unused")
-†⟨JavaClassVisibility(#mainurl, #url)⟩ class ⟨STRING:ClassName(#url)⟩ {
+public class ⟨STRING:ClassName(#url)⟩ {
 
   /* Typed enumerations */
   †⟨TextFold( Map<Core_cdecl_sort Text4_text_sort>((x) ->EnumToClass(x, ClassName(#url)), MapValues<String Core_cdecl_sort>(#datasorts)), text⟦⟧)⟩
@@ -93,10 +81,6 @@ func JavaImport(Core_cqconstructor_sort) -> Text4_text_sort
 rule JavaImport(#name)
 → text⟦
 import static †⟨PathToImport(QConsToString(#name, "::"))⟩.*;⟧ // TODO: maybe use '.' separator
-
-func JavaClassVisibility(String, String) -> Text4_text_sort
-rule JavaClassVisibility(#mainurl, #url)
-→ If<Text4_text_sort>(StringEqual(#mainurl, #url),()->text⟦public⟧,()->text⟦static⟧)
 
 //-------------- Translate enumerations
 
@@ -1269,8 +1253,7 @@ func FindForm(Option<Option<Core_cdecl_sort>>, String) -> Option<Core_cform_sort
 */
 // ----- initModule
 
-/* Generate code initializing a module.
-*/
+/* Generate code initializing a module. */
 func InitModule({ String : Core_cdecl_sort }, { String : Core_cdecl_sort }, List<Core_cqconstructor_sort>) -> Text4_text_sort
 
 rule InitModule(#data, #func, #imports)
@@ -1302,8 +1285,8 @@ func RegisterDataForm(Core_cform_sort) -> Text4_text_sort
   → text⟦⟧
 
 /* Print package declaration */
-func PackageDeclaration -> Text4_text_sort
-→ PackageDeclaration2(GetEnv("javabasepackage", ""), GetEnv("javapackage", ""))
+func PackageDeclaration(#url: String, #mainurl: String, #package: String) -> Text4_text_sort
+→ PackageDeclaration2(#package, Replace(RelativePath(#url, #mainurl), "/", "."))
 
 func PackageDeclaration2(#base: String, #sub: String) -> Text4_text_sort
 → text⟦package ⟨STRING:#base⟩†⟨PackageDeclaration3(If<String>(StringEqual(Trim(#base), ""), ()->"", ()->"."), #sub)⟩;⟧
@@ -1331,6 +1314,12 @@ rule JoinPath(Cons(#:String, #s: List<String> )) → text⟦⟨STRING: #⟩.†�
 // Print class name
 func ClassName(String) -> String
 rule ClassName(#name) → UpCaseFirst(AfterLast(BeforeLast(#name, "."), "/"))
+
+/* Get the absolute name of the target java file */
+@Extern func TargetJavaFilename(#input: String, #dest: String, #mainurl:String, #package: String) -> String
+
+/* Get sub directory of `#module` relative to `#mainmodule` */
+@Extern func RelativePath(#input: String, #mainurl:String) -> String
 
 // ----------- Code generation environment
 

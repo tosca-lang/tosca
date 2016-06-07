@@ -8,17 +8,17 @@ import Systemdef
 import Core::Core
 import Core::Utils
 
-/* Perform various checks on the given module content */
-func CheckCore(#content: LoadedContent) -> LoadedContent
-→ CheckFallback(#content)
+/* Analysis module */
+func CheckCoreM(#system: TSystem, #module: Module) -> Module
+→ SetModuleContent(#module, CheckFallback(GetModuleContent(#module)))
 
 /*
  * Analysis module content and add missing @Fallback annotation
  */
-func CheckFallback(LoadedContent) -> LoadedContent
-  rule CheckFallback(LoadedContent(#imports:List<Core_cqconstructor_sort>, #rules:{String:List<Core_cdecl_sort>},
+func CheckFallback(Content) -> Content
+  rule CheckFallback(Content(#imports:List<Core_cqconstructor_sort>, #rules:{String:List<Core_cdecl_sort>},
                                  #datasorts:{String:Core_cdecl_sort}, #funcsorts:{String:Core_cdecl_sort}))
-  → LoadedContent(#imports, #rules, #datasorts,
+  → Content(#imports, #rules, #datasorts,
     FoldlP<String {String:Core_cdecl_sort}>(
       (name sorts) -> CheckFallbackFunc(sorts, UnSOME<Core_cdecl_sort>(MapGet<String Core_cdecl_sort>(#funcsorts, name)),
         HasFallback(MapGet<String List>(#rules, name))),

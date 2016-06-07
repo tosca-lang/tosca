@@ -28,7 +28,7 @@ dependencies {
 // -- Generate the Tosca compiler from .tsc source code.
 // -- Uses stable Tosca compiler, overriding builtin parsers. 
 
-task compileTransScript(type: TransScriptTask, dependsOn:':targets:java:parsers:compileJava') { //, dependsOn:':targets:java:parsers:compileJava'
+task compileTosca(type: TransScriptTask, dependsOn:':targets:java:parsers:compileJava') { //, dependsOn:':targets:java:parsers:compileJava'
 	description = "Compile Tosca to Java source files."
 	sources     = fileTree(dir: transScriptSrc, include: ['*.crs4', '*.tsc', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'std/**/*.tsc', 'cg/**/*.crs4', 'infer/*'])
 	outputDir   = project.hasProperty('dev') ? file('compilerdev') : file('compiler')
@@ -46,7 +46,7 @@ compileJava {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
-	dependsOn 'compileTransScript'
+	dependsOn 'compileTosca'
 	if (project.nparsers) dependsOn ':targets:java:nparsers:buildNewParsers'
 }
 
