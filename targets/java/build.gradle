@@ -31,11 +31,11 @@ dependencies {
 task compileTosca(type: TransScriptTask, dependsOn:':targets:java:parsers:compileJava') { //, dependsOn:':targets:java:parsers:compileJava'
 	description = "Compile Tosca to Java source files."
 	sources     = fileTree(dir: transScriptSrc, include: ['tosca.tsc'])
+	dependencies= fileTree(dir: transScriptSrc, include: ['tosca.tsc', '**/*.tsc'])
 	outputDir   = project.hasProperty('dev') ? file('compilerdev') : file('compiler')
 	pkg = 'org.transscript.compiler'
 	bootparserpath =  "file:parsers/build/classes/main/" // override Tosca parsers location. MUST END WITH /
 	bootstrap = true
-	outputs.upToDateWhen { false }
 }
 
 

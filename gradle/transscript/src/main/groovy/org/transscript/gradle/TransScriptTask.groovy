@@ -7,16 +7,19 @@ import javax.swing.text.InternationalFormatter.IncrementAction;
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.*
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+//import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 
 class TransScriptTask extends DefaultTask {
 
 	@InputFiles
-	def sources
+	def dependencies
 
 	@OutputDirectory
 	@Optional
 	File outputDir = project.buildDir
+
+    @Input
+    def sources
 
 	// Base package name.
 	@Input
@@ -46,20 +49,23 @@ class TransScriptTask extends DefaultTask {
     @Input
     @Optional
     boolean cpp = false
-       
+     /*  
     TransScriptTask()
     {
        outputs.upToDateWhen {
          return false
        }
-    }
+    } */
     
 	@TaskAction
-	def generate(IncrementalTaskInputs inputs) {
-		logger.info("Tosca classpath: ${project.configurations.transscript.files}")
+	//def generate(IncrementalTaskInputs inputs) {
+	def generate() {
+        logger.info("Tosca classpath: ${project.configurations.transscript.files}")
 		
-		inputs.outOfDate { change ->
-			def source = change.file
+		sources.each { source ->
+		//inputs.outOfDate { change ->
+			//def source = change.file
+			
 			logger.lifecycle "process ${source}"
 			
 			def jargs = []
@@ -90,12 +96,13 @@ class TransScriptTask extends DefaultTask {
 				args      = jargs
 				jvmArgs   = ['-ea', '-Xss8192K']
 			}
+		//}
 		}
 		
-		inputs.removed { change ->
+		/*inputs.removed { change ->
 			def source = change.file
 			logger.lifecycle "should removed generated file corresponding to ${source}"
-		}
+		}*/
 	}
 	
 }
