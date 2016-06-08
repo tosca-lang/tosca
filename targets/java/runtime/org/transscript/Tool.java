@@ -98,8 +98,9 @@ public class Tool
 		System.out.println("  parsers=<classnames>      comma separated list of parsers classname");
 		System.out.println("  cpp                       set target language to C++");
 		System.out.println("  java                      set target language to Java (default)");
-		System.out.println("  bootparserpath=<name>     where to look for builtin parsers. Only used for bootstrapping Tosca");
 		System.out.println("  stacktrace                print Java stack trace when an error occur");
+		System.out.println("  bootparserpath=<name>     where to look for builtin parsers (ADVANCED)");
+		System.out.println("  bootstrap                 turn bootstrapping mode on (ADVANCED)");
 	}
 
 	static void helpRun()
@@ -264,7 +265,7 @@ public class Tool
 		final File rulesFile = new File(rules);
 		if (!rulesFile.exists())
 			Utils.fatal("Input file not found: " + rules, null);
-		
+
 		rules = rulesFile.getAbsolutePath();
 		String target = env.get("cpp") != null ? "cpp" : "java";
 
@@ -285,12 +286,18 @@ public class Tool
 		MapTerm<StringTerm, StringTerm> config = MapTerm.mapTerm();
 
 		config.putValue(stringTerm("build-dir"), stringTerm(dest));
-		//config.putValue(stringTerm("baseSrc"), stringTerm(baseSrcDir(rules)));
 
 		// Compute the location of the standard library.
-		config.putValue(stringTerm("baseStd"), stringTerm(baseStd()));
+		if (env.containsKey("bootstrap"))
+		{
+			config.putValue(stringTerm("baseStd"), stringTerm(baseSrcDir(rules)));
+			config.putValue(stringTerm("bootstrap"), stringTerm("1"));
+		}
+		else
+		{
+			config.putValue(stringTerm("baseStd"), stringTerm(baseStd()));
+		}
 
-		
 		// First: Produce source file.
 		buildEnv.put("class", "org.transscript.compiler.Tosca");
 		buildEnv.put("main", "Compile");
@@ -478,15 +485,15 @@ public class Tool
 	 * Compute base source directory
 	 * @param input program
 	 */
-//	private static String baseSrcDir(String input)
-//	{
-//		if (input != null)
-//		{
-//			final File inputFile = new File(input);
-//			return endWithSep(inputFile.getAbsoluteFile().getParentFile().getAbsolutePath());
-//		}
-//		return "";
-//	}
+	private static String baseSrcDir(String input)
+	{
+		if (input != null)
+		{
+			final File inputFile = new File(input);
+			return inputFile.getAbsoluteFile().getParentFile().getAbsolutePath();
+		}
+		return "";
+	}
 
 	/** 
 	 * Compute location of standard library
@@ -502,12 +509,12 @@ public class Tool
 		return path;
 	}
 
-//	
-//	/** Make sure path terminates with separator */
-//	private static String endWithSep(String path)
-//	{
-//		return path.endsWith(File.separator) ? path : path + File.separator;
-//	}
+	//	
+	//	/** Make sure path terminates with separator */
+	//	private static String endWithSep(String path)
+	//	{
+	//		return path.endsWith(File.separator) ? path : path + File.separator;
+	//	}
 
 	/**
 	 * Get the relative name of the target class file
@@ -519,9 +526,10 @@ public class Tool
 	{
 		final Path inputPath = Paths.get(input);
 		String classname = pkg == null ? "" : pkg + ".";
-		
+
 		// Compute output java filename
-		String name = inputPath.getFileName().toString().replace(".crsc", "").replace(".crs4", "").replace(".crs", "").replace(".tsc", "");
+		String name = inputPath.getFileName().toString().replace(".crsc", "").replace(".crs4", "").replace(".crs", "").replace(
+				".tsc", "");
 		classname += Character.toUpperCase(name.charAt(0)) + name.substring(1); // First character must be upper case.
 		return classname;
 	}

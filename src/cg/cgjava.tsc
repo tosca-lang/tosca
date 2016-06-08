@@ -57,16 +57,16 @@ import static org.transscript.runtime.MapTerm.lazyMapTerm;
 import static org.transscript.runtime.MapTerm.lazyMapTermMaker;
 import static org.transscript.runtime.LazyTerm.thunk;
 
-†⟨JavaUnit(GetModuleURL(#module), GetImportsM(#module), GetRulesM(#module), GetDataSortsM(#module), GetFuncSortsM(#module))⟩
+†⟨JavaUnit(GetModuleURL(#module), GetImportsM(#module), GetRulesM(#module), GetDataSortsM(#module), GetFuncSortsM(#module), HasOption<String>(GetConfig(#system, "bootstrap")))⟩
 ⟧, Success((#source,)))
 
 // --- Translate module
 
 /* Generate class for the given module */
 func JavaUnit(#url: String, #imports: List<Core_cqconstructor_sort>, #rules: {String:List<Core_cdecl_sort>},
-                #datasorts: {String:Core_cdecl_sort}, #funcsorts: {String: Core_cdecl_sort}) -> Text4_text_sort
+                #datasorts: {String:Core_cdecl_sort}, #funcsorts: {String: Core_cdecl_sort}, #bootstrap: Bool) -> Text4_text_sort
 → text⟦
-†⟨TextFold(Map<Core_cqconstructor_sort Text4_text_sort>((x) -> JavaImport(x), #imports), text⟦⟧)⟩
+†⟨TextFold(Map<Core_cqconstructor_sort Text4_text_sort>((x) -> JavaImport(x, #bootstrap), #imports), text⟦⟧)⟩
 
 @SuppressWarnings("unused")
 public class ⟨STRING:ClassName(#url)⟩ {
@@ -74,13 +74,13 @@ public class ⟨STRING:ClassName(#url)⟩ {
   /* Typed enumerations */
   †⟨TextFold( Map<Core_cdecl_sort Text4_text_sort>((x) ->EnumToClass(x, ClassName(#url)), MapValues<String Core_cdecl_sort>(#datasorts)), text⟦⟧)⟩
   †⟨TextFold( Map<String Text4_text_sort>((x) ->JavaMethod(x, text⟦⟨STRING:ClassName(#url)⟩⟧, #rules, #datasorts, #funcsorts), MapKeys<String Core_cdecl_sort>(#funcsorts)), text⟦⟧)⟩
-  †⟨InitModule(#datasorts, #funcsorts, #imports)⟩
+  †⟨InitModule(#datasorts, #funcsorts, #imports, #bootstrap)⟩
 }⟧
 
-func JavaImport(Core_cqconstructor_sort) -> Text4_text_sort
-rule JavaImport(#name)
+func JavaImport(Core_cqconstructor_sort, Bool) -> Text4_text_sort
+rule JavaImport(#name, #bootstrap)
 → text⟦
-import static †⟨PathToImport(QConsToString(#name, "::"))⟩.*;⟧ // TODO: maybe use '.' separator
+import static †⟨PathToImport(QConsToString(#name, "::"), #bootstrap)⟩.*;⟧ // TODO: maybe use '.' separator
 
 //-------------- Translate enumerations
 
@@ -1254,23 +1254,22 @@ func FindForm(Option<Option<Core_cdecl_sort>>, String) -> Option<Core_cform_sort
 // ----- initModule
 
 /* Generate code initializing a module. */
-func InitModule({ String : Core_cdecl_sort }, { String : Core_cdecl_sort }, List<Core_cqconstructor_sort>) -> Text4_text_sort
+func InitModule({ String : Core_cdecl_sort }, { String : Core_cdecl_sort }, List<Core_cqconstructor_sort>, Bool) -> Text4_text_sort
 
-rule InitModule(#data, #func, #imports)
+rule InitModule(#data, #func, #imports, #bootstrap)
 → text⟦
     private static boolean initialized = false;
     public static void init(Context context) {
       if (!initialized) {
         initialized = true;
         †⟨TextFold(Map<Core_cdecl_sort Text4_text_sort>((sort)->RegisterDataSort(sort), MapValues<String Core_cdecl_sort>(#data)), text⟦⟧)⟩
-        †⟨TextFold(Map<Core_cqconstructor_sort Text4_text_sort>((qcons)->RegisterImport(qcons),  #imports), text⟦⟧)⟩
+        †⟨TextFold(Map<Core_cqconstructor_sort Text4_text_sort>((qcons)->RegisterImport(qcons, #bootstrap),  #imports), text⟦⟧)⟩
       }
 }⟧
 
-func RegisterImport(eager Core_cqconstructor_sort) -> Text4_text_sort
-rule RegisterImport(#name)
+func RegisterImport(#name: Core_cqconstructor_sort, #bootstrap: Bool) -> Text4_text_sort
 → text⟦
-    †⟨PathToImport(QConsToString(#name, "::"))⟩.init(context);⟧ // TODO: maybe use '.' sep
+    †⟨PathToImport(QConsToString(#name, "::"), #bootstrap)⟩.init(context);⟧ // TODO: maybe use '.' sep
 
 func RegisterDataSort(Core_cdecl_sort) -> Text4_text_sort
 rule RegisterDataSort(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
@@ -1294,10 +1293,10 @@ func PackageDeclaration2(#base: String, #sub: String) -> Text4_text_sort
 func PackageDeclaration3(#sep: String, #sub:String) -> Text4_text_sort
 → If<Text4_text_sort>(StringEqual(Trim(#sub), ""), ()->text⟦⟧, ()->text⟦⟨STRING:#sep⟩⟨STRING:#sub⟩⟧)
 
-// --- Print java import. Treat Std:: as special. All other prefixes are relative to javapackage
+// --- Print java import. Treat Std:: as special (unless bootstrapping) All other prefixes are relative to javapackage
 
-func PathToImport(#name: String) -> Text4_text_sort
-→ PathToImport2(If<String>(StartsWith(#name, "Std::"), ()->"org.transscript.compiler", ()->GetEnv("javabasepackage", "")),
+func PathToImport(#name: String, #bootstrap: Bool) -> Text4_text_sort
+→ PathToImport2(If<String>(And(Not(#bootstrap), StartsWith(#name, "Std::")), ()->"org.transscript.compiler", ()->GetEnv("javabasepackage", "")),
                 Map<String String>((s)->DownCaseFirst(s), Split(#name, "::")))
 
 func PathToImport2(#basepkg: String , #path: List<String>) -> Text4_text_sort

@@ -20,6 +20,7 @@ import Core::Core
 import Core::Utils
 import Parser::TransScript
 import Text::Text4
+import Text::Printer  // not used but keep it so it gets compiled.
 
 //--- API
 
@@ -62,7 +63,7 @@ func LoadImportedModules(#system: TSystem, #url:String, #imports: List<Core_cqco
 
 /* Load imported module into the system */
 func LoadImport(#system: TSystem, #url:String, #import: Core_cqconstructor_sort) -> TSystem
-→ LoadModuleS(#system, ResolveImport(#system, #url, #import), IsStandardImport(#import))
+→ LoadModuleS(#system, ResolveImport(#system, #url, #import), IsStandardImport(#system, #import))
 
 /* Load module content and update system */
 func LoadModuleS(#system: TSystem, #url: String, #standard:Bool) -> TSystem
@@ -85,13 +86,12 @@ func ResolveImport(#system: TSystem, #url:String, #import: Core_cqconstructor_so
 → ResolveImportAux(#system, #url, QConsToStringList(#import))
 
 func ResolveImportAux(#system: TSystem, #url:String, #name: List<String>) -> String
-→ ConcatString(If<String>(StringEqual(Head<String>(#name), "Std"), ()->GetConfigDef(#system, "baseStd", ""), ()->PathJoin(PathParent(Path(#url)))),
+→ ConcatString(If<String>(StringEqual(Head<String>(#name), "Std"), ()->GetConfigDef(#system, "baseStd", ""), ()->PathJoin(PathParent(Path(GetSystemURL(#system))))),
   ConcatString("/",
   ConcatString(Join(Map<String String>((s)->DownCaseFirst(s), #name), "/"), ".tsc")))
-
 
 //--- Helpers
 
 /* @return `TRUE` if the given `#import` is a standard library module */
-func IsStandardImport(#import: Core_cqconstructor_sort) -> Bool
-→ StringEqual(Head<String>(QConsToStringList(#import)), "Std")
+func IsStandardImport(#system: TSystem, #import: Core_cqconstructor_sort) -> Bool
+→ IfConfigDef<Bool>(#system, "bootstrap", (v)->FALSE, ()->StringEqual(Head<String>(QConsToStringList(#import)), "Std"))
