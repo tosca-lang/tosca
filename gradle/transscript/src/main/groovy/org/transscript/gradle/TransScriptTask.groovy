@@ -47,6 +47,12 @@ class TransScriptTask extends DefaultTask {
     @Optional
     boolean cpp = false
        
+    TransScriptTask()
+    {
+       outputs.upToDateWhen {
+         return false
+       }
+    }
     
 	@TaskAction
 	def generate(IncrementalTaskInputs inputs) {
@@ -91,4 +97,5 @@ class TransScriptTask extends DefaultTask {
 			logger.lifecycle "should removed generated file corresponding to ${source}"
 		}
 	}
+	
 }
