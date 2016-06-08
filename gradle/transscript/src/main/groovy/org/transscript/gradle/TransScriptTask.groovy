@@ -39,6 +39,10 @@ class TransScriptTask extends DefaultTask {
 	@Optional
 	String bootparserpath = null
 	
+	@Input
+    @Optional
+    boolean bootstrap = false
+	
 	@TaskAction
 	def generate(IncrementalTaskInputs inputs) {
 		logger.info("TransScript classpath: ${project.configurations.transscript.files}")
@@ -60,6 +64,8 @@ class TransScriptTask extends DefaultTask {
 				jargs << "rules=${source}"
 				if (sourceOnly)
 					jargs << "only-source"
+				if (bootstrap)
+                    jargs << "bootstrap"
 				jargs << "build-dir=${outputDir}" 
 				if (bootparserpath != null)
 					jargs << "bootparserpath=${bootparserpath}"
