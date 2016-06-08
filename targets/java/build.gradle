@@ -30,11 +30,11 @@ dependencies {
 
 task compileTosca(type: TransScriptTask, dependsOn:':targets:java:parsers:compileJava') { //, dependsOn:':targets:java:parsers:compileJava'
 	description = "Compile Tosca to Java source files."
-	sources     = fileTree(dir: transScriptSrc, include: ['*.crs4', '*.tsc', 'core/*.crs4', 'parser/*.crs4', 'text/*.crs4', 'std/*.crs4', 'std/**/*.tsc', 'cg/**/*.crs4', 'infer/*'])
+	sources     = fileTree(dir: transScriptSrc, include: ['*.tsc', 'core/*.tsc', 'parser/*.tsc', 'text/*.tsc', 'std/**/*.tsc', 'cg/**/*.tsc', 'infer/*'])
 	outputDir   = project.hasProperty('dev') ? file('compilerdev') : file('compiler')
 	packageName = 'org.transscript.compiler'
 	usecompiler = !project.hasProperty('crsx3')
-	bootparserpath =  "file:parsers/build/classes/main/" // override TransScript parsers location. MUST END WITH /
+	bootparserpath =  "file:parsers/build/classes/main/" // override Tosca parsers location. MUST END WITH /
 }
 
 
