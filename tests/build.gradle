@@ -23,7 +23,6 @@ task smoketest(type: TransScriptTask, dependsOn: 'untarDist') {
 	sources = fileTree('.').include('basic/*.crs4').include('basic/*.tsc').include('parser/core.crs4').include('infer/*.tsc')
 	outputDir = file('build/results')
 	pkg = 'org.transscript.tests'
-	outputs.upToDateWhen { false }
 }	
 
 task untarDist(type: Copy) {

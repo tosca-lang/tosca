@@ -298,6 +298,9 @@ public class Tool
 			config.putValue(stringTerm("baseStd"), stringTerm(baseStd()));
 		}
 
+		if (env.containsKey("infer"))
+			config.putValue(stringTerm("infer"), stringTerm("1"));
+		
 		// First: Produce source file.
 		buildEnv.put("class", "org.transscript.compiler.Tosca");
 		buildEnv.put("main", "Compile");

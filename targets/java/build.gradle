@@ -35,6 +35,7 @@ task compileTosca(type: TransScriptTask, dependsOn:':targets:java:parsers:compil
 	pkg = 'org.transscript.compiler'
 	bootparserpath =  "file:parsers/build/classes/main/" // override Tosca parsers location. MUST END WITH /
 	bootstrap = true
+	outputs.upToDateWhen { false }
 }
 
 

@@ -11,20 +11,17 @@ enum List<a> | Cons(a, List<a>) | Nil
  * Basic List Operations
  */
 
-/* @return `TRUE` if list is empty
- */
+/* @return `TRUE` if list is empty */
 func IsEmpty<a>(List<a>) -> Bool
 rule IsEmpty(()                   ) → TRUE
 rule IsEmpty(Cons(#:a, #s:List<a>)) → FALSE
 
-/* @return `TRUE` if list is not empty
- */
+/* @return `TRUE` if list is not empty */
 func IsNotEmpty<a>(List<a>) -> Bool
 rule IsNotEmpty(()                   ) → FALSE
 rule IsNotEmpty(Cons(#:a, #s:List<a>)) → TRUE
 
-/*
- */
+/* Evaluate `#true` if the specified `#list` is empty, otherwise `#false` */
 func IfEmpty<a b>(List<a>, b, b) -> b
 rule IfEmpty((                   ), #1, #2) → #1
 rule IfEmpty(Cons(#:a, #s:List<a>), #1, #2) → #2
@@ -38,22 +35,22 @@ func Null<a>(List<a>) -> Bool
 rule Null((                    )) → TRUE
 rule Null(Cons(#H:a, #T:List<a>)) → FALSE
 
-// TRUE is list is a singleton
+/* @return `TRUE` is list is a singleton, otherwise `FALSE` */
 func IsSingleton<a>(List<a>) -> Bool
 rule IsSingleton((                     )) → FALSE
 rule IsSingleton(Cons(#:a, #s : List<a>)) → IsEmpty<a>(#s)
 
-/* */
+/* Evaluate `#true` if the specified `#list` is a singleton, otherwise `#false` */
 func IfSingleton<a b>(List<a>, b, b) -> b
 rule IfSingleton((                   ), #1, #2) → #2
 rule IfSingleton(Cons(#:a, #s:List<a>), #1, #2) → IfEmpty<a b>(#s, #1, #2)
 
-/* @return head of the list */
+/* @return head of the given `#list` */
 func Head<a>(List<a>) -> a
 rule Head((                   )) → Error<a>("Head of empty list")
 rule Head(Cons(#:a, #s:List<a>)) → #
 
-/* @return head of the list, as an Option */
+/* @return head of the given `#list`, as an Option */
 func HeadO<a>(List<a>) -> Option<a>
 rule HeadO((                   )) → NONE
 rule HeadO(Cons(#:a, #s:List<a>)) → SOME(#)
@@ -149,6 +146,10 @@ func PickFirst1<a>(Bool, a, List<a>, (a) -> Bool) -> Option<a>
 rule PickFirst1(TRUE,  #1, #s, #) → SOME(#1)
 rule PickFirst1(FALSE, #1, #s, #) → PickFirst<a>(#s, #)
 
+/* Pick first option other than `NONE`.
+   @return a `SOME` option, or `NONE` */
+func PickFirstO<a>(#list: List<Option<a>>) -> Option<a>
+→ Maybe<Option<a> a>((option)->UnSOME<a>(option), PickFirst<Option<a>>(#list, (option2)->HasOption<a>(option2)))
 
 /* `ListEqual((x y) -> #C(x, y), #XS, #YS)`
    @param  `#C`  a condition to check for equality

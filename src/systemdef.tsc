@@ -67,18 +67,6 @@ func LookupModule(#system: TSystem, #url: String /* url */) -> Option<Module>
 func HasModule(#system: TSystem, #url: String /* url */) -> Bool
 → HasOption<Module>(LookupModule(#system, #url))
 
-/* Pick a module that hasn't been loaded yet.
-  @return A unloaded module or NONE
-
-func PickNotLoaded(#system: TSystem) -> Option<Module>
-→ PickFirst<Module>(MapValues<String Module>(GetModules(#system)), (x) -> IsNotLoaded(x))
-
-/* @return TRUE if module is not loaded */
-func IsNotLoaded(Module) -> Bool
-rule IsNotLoaded(Module(#url, NOTLOADED))  → TRUE
-rule IsNotLoaded(Module(#url, Loaded(#c))) → FALSE
-*/
-
 /* @return `TRUE` if `#sort` is a data sort in the given system */
 func IsDataSortS(#system: TSystem, #sort: Core_csort_sort) -> Bool
 → HasOption<Module>(PickFirst<Module>(MapValues<String Module>(GetModules(#system)), (mod) -> IsDataSortM(mod, #sort)))
@@ -90,13 +78,13 @@ func IsDataS(#system: TSystem, #constructor: String) -> Bool
 /* Search for the function sort for the given `#constructor` in the given `#system`
    @return A function declaration or `NONE` */
 func FindFuncSortS(#system: TSystem, #constructor: String) -> Option<Core_cdecl_sort>
-→ Head<Option<Core_cdecl_sort>>(Map<Module Option<Core_cdecl_sort>>((mod) -> FindFuncSortM(mod, #constructor), MapValues<String Module>(GetModules(#system))))
+→ PickFirstO<Core_cdecl_sort>(Map<Module Option<Core_cdecl_sort>>((mod) -> FindFuncSortM(mod, #constructor), MapValues<String Module>(GetModules(#system))))
 
 /* Search for the form of the given `#formname` and of sort `#datasort` in the given `#sytem`
    @return a sort-form pair or `NONE` if no such form exist in the system
  */
 func FindFormS(#system: TSystem, #datasort: Core_csort_sort, #formname: String) -> Option<Pair<Core_csort_sort Core_cform_sort>>
-→ Head<Option<Core_cform_sort>>(Map<Module Option<Core_cform_sort>>((mod) -> FindFormM(mod, #datasort, #formname), MapValues<String Module>(GetModules(#system))))
+→ PickFirstO<Pair<Core_csort_sort Core_cform_sort>>(Map<Module Option<Pair<Core_csort_sort Core_cform_sort>>>((mod) -> FindFormM(mod, #datasort, #formname), MapValues<String Module>(GetModules(#system))))
 
 // --- System mutation functions. Convention: function name is suffixed by S
 

@@ -38,6 +38,7 @@ public class LanguageExtern
 	{
 		StringTerm ecategory = force(context, category);
 		StringTerm efilename = force(context, filename);
+		System.out.println("load " + efilename);
 
 		Parser parser = context.getParser(ecategory.unbox(), false);
 		if (parser == null)

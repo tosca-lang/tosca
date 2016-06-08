@@ -22,6 +22,7 @@ extern func GetEnv(eager String /* Key */, String /* Default */) -> String
 
 enum Option<a> | SOME(a) | NONE
 
+/* @return the optional value. Raises an error when there is no such value */
 func UnSOME<a>(Option<a>) -> a
 rule UnSOME(SOME(#:a)) → #
 rule UnSOME(NONE)      → Error<a>("Error: no optional value.")
