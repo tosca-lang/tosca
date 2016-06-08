@@ -497,7 +497,7 @@ public class Tool
 		if (path.endsWith(".jar"))
 		{
 			int idx = path.lastIndexOf(File.separator);
-			return path.substring(0, idx);
+			return path.substring(0, idx) + File.separator + "lib";
 		}
 		return path;
 	}

@@ -106,9 +106,9 @@ task tarAll(type: Tar, dependsOn: ':targets:java:snapshot') {
     
 	
 	// Standard library
-	into ('lib/std') {
-        from 'src/std'
-        include '*.*'
+	into ('lib/std/') {
+        from 'src/std/'
+        include '**/*.tsc'
     }
 	
 	// C++ Target
