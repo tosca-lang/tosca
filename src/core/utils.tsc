@@ -5,7 +5,9 @@
 import Std::Core
 import Std::Listdef
 import Std::String
+import Std::Language
 import Core::Core
+import Text::Text4
 
 /* @return TRUE if the term is a meta-application. Ignore binders and formal parameters  */
 func IsMeta(Core_cterm_sort) -> Bool
@@ -84,3 +86,8 @@ rule DeclToSort(#cdecl) → Error<Core_csort_sort>("Unimplemented")
 func DataDeclToSort(List<Core_csortvars_sort>, String) -> Core_csort_sort
 rule DataDeclToSort(csortvars?⟦                    ⟧, #CONSTRUCTOR) → csort⟦ ##CONSTRUCTOR ⟧
 rule DataDeclToSort(csortvars?⟦ ∀ ##variable_TOK+ .⟧, #CONSTRUCTOR) → csort⟦ ##CONSTRUCTOR ( ⟨csort*: Map<String Core_csort_sort>((var)->csort⟦ ⟨VARIABLE: var⟩ ⟧, #variable_TOK+)⟩ ) ⟧
+
+// --- Print utilities
+
+func PrintSort(#sort: Core_csort_sort) -> String
+→ Trim(PrintTerm<Text4_text_sort>("text", Core_Print_csort(#sort)))

@@ -3,6 +3,7 @@
 package org.transscript.compiler.std;
 
 import static org.transscript.runtime.Term.force;
+import static org.transscript.runtime.StringTerm.stringTerm;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -38,7 +39,7 @@ public class LanguageExtern
 	{
 		StringTerm ecategory = force(context, category);
 		StringTerm efilename = force(context, filename);
-		System.out.println("load " + efilename);
+		//System.out.println("load " + efilename);
 
 		Parser parser = context.getParser(ecategory.unbox(), false);
 		if (parser == null)
@@ -91,6 +92,27 @@ public class LanguageExtern
 
 		return result;
 	}
+	
+/**
+ * Print term.
+ * @param context
+ * @param tma
+ * @param category
+ * @param term
+ * @return the string representation of the printed term.
+ */
+	public static <a extends Term> StringTerm PrintTerm(Context context, ThunkMaker<a> tma, StringTerm category, a term)
+	{
+		StringTerm ecategory = force(context, category);
+		
+		StringBuilder builder = new StringBuilder();
+		Utils.printTerm(context, ecategory.unbox(), term, "<stringbuffer>", builder);
+		
+		ecategory.release();
+		
+		return stringTerm(builder.toString());
+	}
+
 
 	/**
 	 * 

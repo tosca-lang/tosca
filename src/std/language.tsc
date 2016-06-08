@@ -26,6 +26,9 @@ extern func SaveResource<a b>(String /* category */, String /* filename */, a /*
 func SaveTerm<a b>(#filename: String, #term:a, #result:b) -> b
 → SaveResource<a b>("term", #filename, #term, #result)
 
+/* Convert term to `String` using serializer identified by the given category */
+extern func PrintTerm<a>(String /* category */, a /* term */) -> String
+
 // --- Java helper functions
 
  /*

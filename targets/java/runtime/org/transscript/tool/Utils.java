@@ -46,18 +46,21 @@ public class Utils
 		}
 	}
 
-	/** Print term to given output */
-	public static void printTerm(Context context, String category, Term result, String outputName, Appendable output)
+	/** 
+	 * Print term to given output 
+	 * @param term to print. Reference is consumed
+	 */
+	public static void printTerm(Context context, String category, Term term, String outputName, Appendable output)
 	{
 		try
 		{
-			if (result instanceof Text4_xtext_xsort && (category == null || category.equals("text")))
+			if (term instanceof Text4_xtext_xsort && (category == null || category.equals("text")))
 			{
-				result = Printer.PrintText(context, (Text4_xtext_xsort) result);
-				result = Normalizer.force(context, result);
+				term = Printer.PrintText(context, (Text4_xtext_xsort) term);
+				term = Normalizer.force(context, term);
 			}
 
-			new TermPrinter().print(result, output);
+			new TermPrinter().print(term, output);
 		}
 		catch (IOException e)
 		{
