@@ -291,7 +291,7 @@ func CppPatternTerm({String : EnvEntry}, Core_cterm_sort, Text4_text_sort /* Cur
   → CppPatternTerm(#env, #cterm[var:String], #term, #csort, #storage, #cont)
 
 // Pattern matching on construction arguments.
-func CppPatternMaybeSubs( {String : EnvEntry}, List<Core_cterms_sort>, Text4_text_sort, Option<Pair<Core_csort_sort Core_cform_sort>>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+func CppPatternMaybeSubs( {String : EnvEntry}, List<Core_cterms_sort>, Text4_text_sort, Option<Pair<Core_cdecl_sort Core_cform_sort>>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   rule CppPatternMaybeSubs(#env, cterms?⟦⟧, #term, #cform, #cont)
   → #cont(#env)
@@ -299,7 +299,7 @@ func CppPatternMaybeSubs( {String : EnvEntry}, List<Core_cterms_sort>, Text4_tex
   rule CppPatternMaybeSubs(#env, cterms?⟦()⟧, #term, #cform, #cont)
   → #cont(#env)
 
-  rule CppPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, SOME(Pair<Core_csort_sort Core_cform_sort>::PairCons(#csort:Core_csort_sort, cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧)), #cont)
+  rule CppPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, SOME(Pair<Core_cdecl_sort Core_cform_sort>::PairCons(#cdecl:Core_cdecl_sort, cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧)), #cont)
   → CppPatternSubs(#env, #cterm*, #term, 1, SOME(#csort*), #cont)
 
   rule CppPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, NONE, #cont)
@@ -332,7 +332,7 @@ func CppPatternVariable(Option<VarEntry>, {String : EnvEntry}, String, Text4_tex
   // Bound variable
   // TODO: update term's parent with evaluated term.
   // TODO: release acquired references.
-  rule CppPatternVariable(SOME(VarEntry::Bound(#Cppvar:Text4_text_sort)), #env, #variable, #term, #cont)
+  rule CppPatternVariable(SOME(VarEntry::Bound(#Cppvar:Text4_text_sort, #csort:Option<Core_csort_sort>)), #env, #variable, #term, #cont)
   → text⟦
       †⟨#term⟩ = force(context, †⟨#term⟩);
       if (isVariableUse(†⟨#term⟩) && †⟨#Cppvar⟩ != †⟨#term⟩.variable()) {

@@ -24,6 +24,7 @@ task smoketest(type: TransScriptTask, dependsOn: 'untarDist') {
 	dependencies= fileTree('.').include('**/*.tsc').include('**/*.crs4')
 	outputDir = file('build/results')
 	pkg = 'org.transscript.tests'
+	infer = true
 }	
 
 task untarDist(type: Copy) {

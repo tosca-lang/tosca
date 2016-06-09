@@ -81,10 +81,10 @@ func FindFuncSortS(#system: TSystem, #constructor: String) -> Option<Core_cdecl_
 → PickFirstO<Core_cdecl_sort>(Map<Module Option<Core_cdecl_sort>>((mod) -> FindFuncSortM(mod, #constructor), MapValues<String Module>(GetModules(#system))))
 
 /* Search for the form of the given `#formname` and of sort `#datasort` in the given `#sytem`
-   @return a sort-form pair or `NONE` if no such form exist in the system
+   @return a datasort-form pair or `NONE` if no such form exist in the system
  */
-func FindFormS(#system: TSystem, #datasort: Core_csort_sort, #formname: String) -> Option<Pair<Core_csort_sort Core_cform_sort>>
-→ PickFirstO<Pair<Core_csort_sort Core_cform_sort>>(Map<Module Option<Pair<Core_csort_sort Core_cform_sort>>>((mod) -> FindFormM(mod, #datasort, #formname), MapValues<String Module>(GetModules(#system))))
+func FindFormS(#system: TSystem, #datasort: Core_csort_sort, #formname: String) -> Option<Pair<Core_cdecl_sort Core_cform_sort>>
+→ PickFirstO<Pair<Core_cdecl_sort Core_cform_sort>>(Map<Module Option<Pair<Core_cdecl_sort Core_cform_sort>>>((mod) -> FindFormM(mod, #datasort, #formname), MapValues<String Module>(GetModules(#system))))
 
 // --- System mutation functions. Convention: function name is suffixed by S
 
@@ -132,7 +132,7 @@ func IsDataSortM(#module: Module, #sort: Core_csort_sort) -> Bool
 /* Search for the form of the given `#formname` and of sort `#datasort` in the given `#module`
    @return a sort-form pair or `NONE` if no such form exist in the given module
  */
-func FindFormM(#module: Module, #datasort: Core_csort_sort, #formname: String) -> Option<Pair<Core_csort_sort Core_cform_sort>>
+func FindFormM(#module: Module, #datasort: Core_csort_sort, #formname: String) -> Option<Pair<Core_cdecl_sort Core_cform_sort>>
 → FindFormC(GetModuleContent(#module), #datasort, #formname)
 
 // --- Module mutation functions.
@@ -163,13 +163,13 @@ func IsDataSortC(#content: Content, #sort: Core_csort_sort) -> Bool
 → HasOption<Core_cdecl_sort>(LookupDataSortDecl(GetDataSortsC(#content), #sort))
 
 /* */
-func MaybeFindFormC(#content: Content, #datasort: Option<Core_csort_sort>, #formname: String) -> Option<Pair<Core_csort_sort Core_cform_sort>>
+func MaybeFindFormC(#content: Content, #datasort: Option<Core_csort_sort>, #formname: String) -> Option<Pair<Core_cdecl_sort Core_cform_sort>>
 → MaybeO<Core_csort_sort Pair>((csort)->FindFormC(#content, csort, #formname), #datasort)
 
 /* Search for form of the given `#formname` and of sort `#datasort` in the given module `#content`
    @return a sort-form pair or `NONE` if no such form exist in the given content
  */
-func FindFormC(#content: Content, #datasort: Core_csort_sort, #formname: String) -> Option<Pair<Core_csort_sort Core_cform_sort>>
+func FindFormC(#content: Content, #datasort: Core_csort_sort, #formname: String) -> Option<Pair<Core_cdecl_sort Core_cform_sort>>
 → FindFormI(GetDataSortsC(#content), #datasort, #formname)
 
 func GetFuncSorts(Content) -> {String: Core_cdecl_sort}
@@ -252,23 +252,25 @@ rule LookupDataSortDecl(#data, csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → MapGet<
 rule LookupDataSortDecl(#data, csort⟦ data ##csort            ⟧) → LookupDataSortDecl(#data, #csort)
 rule LookupDataSortDecl(#data, #csort                         ) → NONE
 
-func MaybeFindFormI(#datasorts: {String: Core_cdecl_sort}, #datasort: Option<Core_csort_sort>, #formname: String) -> Option<Pair<Core_csort_sort Core_cform_sort>>
+func MaybeFindFormI(#datasorts: {String: Core_cdecl_sort}, #datasort: Option<Core_csort_sort>, #formname: String) -> Option<Pair<Core_cdecl_sort Core_cform_sort>>
 → MaybeO<Core_csort_sort Pair>((csort)->FindFormI(#datasorts, csort, #formname), #datasort)
 
 /* Search for `#formname` in the indexed list of `#datasorts`. Limit the search to the given `#datasort` when known */
-func FindFormI(#datasorts: {String: Core_cdecl_sort}, #datasort: Core_csort_sort, #formname: String) -> Option<Pair<Core_csort_sort Core_cform_sort>>
+func FindFormI(#datasorts: {String: Core_cdecl_sort}, #datasort: Core_csort_sort, #formname: String) -> Option<Pair<Core_cdecl_sort Core_cform_sort>>
 
   rule FindFormI(#datasorts, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #formname)
   → MaybeO<Core_cdecl_sort Pair>((cdecl)->FindFormD(cdecl, #formname), MapGet<String Core_cdecl_sort>(#datasorts, #CONSTRUCTOR))
 
   // Fallback to search accross all data sort declaration
   rule FindFormI(#datasorts, #csort, #formname)
-  → MaybeO<Core_cdecl_sort Pair<Core_csort_sort Core_cform_sort>>((cdecl)->FindFormD(cdecl, #formname), PickFirst<Core_cdecl_sort>(MapValues<String Core_cdecl_sort>(#datasorts), (cdecl)->HasOption<Pair<Core_csort_sort Core_cform_sort>>(FindFormD(cdecl, #formname))))
+  → MaybeO<Core_cdecl_sort Pair<Core_cdecl_sort Core_cform_sort>>((cdecl)->FindFormD(cdecl, #formname), PickFirst<Core_cdecl_sort>(MapValues<String Core_cdecl_sort>(#datasorts), (cdecl)->HasOption<Pair<Core_cdecl_sort Core_cform_sort>>(FindFormD(cdecl, #formname))))
 
 /* Find form of the given name in the data sort */
-func FindFormD(Core_cdecl_sort, String) -> Option<Pair<Core_csort_sort Core_cform_sort>>
-rule FindFormD(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, #formname) → MaybeO<Core_cform_sort Pair<Core_csort_sort Core_cform_sort>>((cform)->SOME(PairCons(DataDeclToSort(#csortvars?, #CONSTRUCTOR), cform)), PickFirst<Core_cform_sort>(#cform*, (x) -> MatchConsForm(x, #formname)))
-rule FindFormD(#cdecl,                                               #formname) → NONE
+func FindFormD(Core_cdecl_sort, String) -> Option<Pair<Core_cdecl_sort Core_cform_sort>>
+  rule FindFormD(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, #formname)
+  → MaybeO<Core_cform_sort Pair<Core_cdecl_sort Core_cform_sort>>((cform)->SOME(PairCons(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, cform)), PickFirst<Core_cform_sort>(#cform*, (x) -> MatchConsForm(x, #formname)))
+
+  rule FindFormD(#cdecl,                                               #formname) → NONE
 
 func MatchConsForm(Core_cform_sort, String) -> Bool
 rule MatchConsForm(cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #formname) → StringEqual(#CONSTRUCTOR, #formname)

@@ -60,7 +60,7 @@ public class Utils
 				term = Normalizer.force(context, term);
 			}
 
-			new TermPrinter().print(term, output);
+			TermPrinter.print(term, output);
 		}
 		catch (IOException e)
 		{
@@ -316,7 +316,7 @@ public class Utils
 	{
 		Path inputPath = Paths.get(input);
 		Path rootPath = Paths.get(mainurl);
-		
+
 		Path relativize = rootPath.getParent().relativize(inputPath.getParent());
 		return relativize.toString();
 	}

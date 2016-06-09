@@ -16,8 +16,24 @@ import org.transscript.runtime.Variable;
  */
 public class TermPrinter
 {
-	
+
 	// TODO: release term during traversal.
+
+	/**
+	 * Print term to console
+	 * @param term
+	 */
+	static public void print(Term term)
+	{
+		try
+		{
+			print(term, System.out);
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * Print term to output
@@ -25,19 +41,19 @@ public class TermPrinter
 	 * @param out
 	 * @throws IOException
 	 */
-	public void print(Term term, Appendable out) throws IOException
+	static public void print(Term term, Appendable out) throws IOException
 	{
 		print(term, out, 0);
 	}
 
 	// print indent
-	protected void indent(int count, Appendable out) throws IOException
+	static protected void indent(int count, Appendable out) throws IOException
 	{
 		for (int i = count; i >= 0; i--)
 			out.append(' ');
 	}
 
-	protected void print(Term term, Appendable out, int indent) throws IOException
+	static protected void print(Term term, Appendable out, int indent) throws IOException
 	{
 		out.append("\n");
 		indent(indent, out);
@@ -59,7 +75,7 @@ public class TermPrinter
 				out.append('[').append(binder.name()).append(']');
 				binder = term.binder(i, ++j);
 			}
-			
+
 			j = 0;
 			Variable param = term.param(i, j);
 			while (param != null)
@@ -67,7 +83,7 @@ public class TermPrinter
 				out.append('(').append(param.name()).append(')');
 				param = term.param(i, ++j);
 			}
-			
+
 			print(sub, out, indent + 2);
 			sub = term.sub(++i);
 		}
