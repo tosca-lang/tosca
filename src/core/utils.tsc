@@ -86,6 +86,14 @@ rule TermSort(cterm⟦ ( x ##csortanno? ) ##cterm ⟧)                       →
 rule TermSort(cterm⟦ thunk ##cterm ⟧)                                    → TermSort(#cterm)
 rule TermSort(#)                                                         → NONE
 
+func GetFormalParamSorts(Core_csort_sort) -> List<Core_csort_sort>
+rule GetFormalParamSorts(csort⟦ ( ##csort1 ) ##csort2 ⟧)  → Cons(#csort1, GetFormalParamSorts(#csort2))
+rule GetFormalParamSorts(#csort                       )  → ()
+
+func GetBoundVarSorts(Core_csort_sort) -> List<Core_csort_sort>
+rule GetBoundVarSorts(csort⟦ [ ##csort1 ] ##csort2 ⟧)  → Cons(#csort1, GetFormalParamSorts(#csort2))
+rule GetBoundVarSorts(#csort                       )  → ()
+
 /* @return a sort corresponding to the given sort declaration */
 func DeclToSort(Core_cdecl_sort) -> Core_csort_sort
 rule DeclToSort(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)               → DataDeclToSort(#csortvars?, #CONSTRUCTOR)
