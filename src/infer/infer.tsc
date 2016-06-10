@@ -210,43 +210,41 @@ rule InferMetaUse2(#METAVAR, #cterms?, PairCons(#env:{String:IEnvEntry}, #csubst
 /* Synthesize sort variables.
 
    Works as follows:
-   - a sort variable is created for each (formal) sort parameter and the correspondence
-     between them is kept in the environment (see XXSortArgs functions).
-   - the sort environment is extended with mapping between sort variables and user-specified sort arguments.
+   - a mapping between sort parameters and sort arguments kept in the environment (see XXSortArgs functions).
+   - a sort variable is created for each missing sort argument. (since it's missing, it's actually  never referenced.)
  */
 func InferSortArgs({String:IEnvEntry}, List<Core_csortvars_sort>, List<Core_csortargs_sort>) -> {String:IEnvEntry}
 rule InferSortArgs(#env, csortvars?⟦                     ⟧, csortargs?⟦              ⟧) → PushSortArgs(#env, ())
-rule InferSortArgs(#env, csortvars?⟦ ∀ ##variable_TOK+ . ⟧, csortargs?⟦              ⟧) → InferSortArgs2(#env, #variable_TOK+, csort*⟦⟧, ())
-rule InferSortArgs(#env, csortvars?⟦ ∀ ##variable_TOK+ . ⟧, csortargs?⟦ < ##csort* > ⟧) → InferSortArgs2(#env, #variable_TOK+, #csort*, ())
-rule InferSortArgs(#env, csortvars?⟦                     ⟧, csortargs?⟦ < ##csort* > ⟧) → PushSortArgs(#env, ()) // TODO: issue warning
+rule InferSortArgs(#env, csortvars?⟦ ∀ ##variable_TOK+ . ⟧, csortargs?⟦              ⟧) → InferSortArgsAux(#env, #variable_TOK+, csort*⟦⟧, ())
+rule InferSortArgs(#env, csortvars?⟦ ∀ ##variable_TOK+ . ⟧, csortargs?⟦ < ##csort* > ⟧) → InferSortArgsAux(#env, #variable_TOK+, #csort*, ())
+rule InferSortArgs(#env, csortvars?⟦                     ⟧, csortargs?⟦ < ##csort* > ⟧) → Error<{String:IEnvEntry}>("Error: extra type arguments") // TODO: better
 
-func InferSortArgs2(#env: {String:IEnvEntry}, #sortvars: List<String>, #csort*: List<Core_csort_sort>, #mapping: List<Pair<String String>>) -> {String:IEnvEntry}
-→ InferSortArgs3(IIncCounter(#env), INewSortVar(#env), #sortvars, #csort*, #mapping)
+func InferSortArgsAux({String:IEnvEntry}, List<String>, List<Core_csort_sort>, List<Pair<String Core_csort_sort>>) -> {String:IEnvEntry}
 
-func InferSortArgs3({String:IEnvEntry}, String, List<String>, List<Core_csort_sort>, List<Pair<String String>>) -> {String:IEnvEntry}
+  // Common case: no sort argument. Create one and update mapping.
+  rule InferSortArgsAux(#env, Cons(#sortvar:String, #sortvars:List<String>), csort*⟦⟧, #mapping)
+  → InferSortArgsAux(IIncCounter(#env), #sortvars, csort*⟦⟧,  Append<Pair>(PairCons(#sortvar, csort⟦ ⟨VARIABLE: INewSortVar(#env)⟩ ⟧), #mapping))
 
-  rule InferSortArgs3(#env, #sortvararg, Cons(#sortvar:String, #sortvars:List<String>), #csort*, #mapping)
-  → InferSortArgs4(#env, #sortvararg, #sortvars, #csort*, Append<Pair>(PairCons(#sortvar, #sortvararg), #mapping))
+  // Less comman case: there is a sort argument. Just reuse it.
+  rule InferSortArgsAux(#env, Cons(#sortvar:String, #sortvars:List<String>), csort*⟦ ##csort ##csort* ⟧, #mapping)
+  → InferSortArgsAux(#env, #sortvars, #csort*,  Append<Pair>(PairCons(#sortvar, #csort), #mapping))
 
-  rule InferSortArgs3(#env, #sortvararg, Nil, #csort*, #mapping) → PushSortArgs(#env, #mapping)
+  // Termination
+  rule InferSortArgsAux(#env, (), csort*⟦⟧, #mapping)  → PushSortArgs(#env, #mapping)
 
-func InferSortArgs4({String:IEnvEntry}, String, List<String>, List<Core_csort_sort>, List<Pair<String String>>) -> {String:IEnvEntry}
-
-  rule InferSortArgs4(#env, #sortvararg, #sortvars, csort*⟦⟧, #mapping)
-  → InferSortArgs2(#env, #sortvars, csort*⟦⟧, #mapping)
-
-  rule InferSortArgs4(#env, #sortvararg, #sortvars, csort*⟦ ##csort ##csort* ⟧, #mapping)
-  → InferSortArgs2(PutSort(#env, #sortvararg, #csort), #sortvars, #csort*, #mapping)
+  // Error: too many sort arguments
+  rule InferSortArgsAux(#env, (), csort*⟦ ##csort ##csort* ⟧, #mapping)  → Error<{String:IEnvEntry}>("Error: extra type arguments")
 
 // --- Sort unification
 
 /* Unify `#sort1` such that under a set of substitutions it is equal to `#sort2`.
-   @param `#env` the environment containing the sort environment and sort argument mappings
-   @param `#sort1` formal sort
-   @param `#sort2` actual sort
+
+   @param `#env` the environment containing the sort environment and the sort argument mappings (to resolve sort in the formal domain)
+   @param `#sort1` first sort
+   @param `#sort2` second sort
    @return The environment containing an updated sort environment with substitutions unifying `#sort1` and  `#sort2`.
           If no such substitution is found, an error is raised.
- */
+*/
 func UnifySort({String:IEnvEntry}, Core_csort_sort, Core_csort_sort) -> {String:IEnvEntry}
 
   rule UnifySort(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, csort⟦ ##CONSTRUCTOR2 ##csorts?2 ⟧)
@@ -257,7 +255,7 @@ func UnifySort({String:IEnvEntry}, Core_csort_sort, Core_csort_sort) -> {String:
   → UnifySortVar(#env, #VARIABLE, GetSortArg(#env, #VARIABLE), #csort)
 
   rule UnifySort(#env, #csort, csort⟦ ##VARIABLE ⟧)
-  → UnifySortVar2(#env, GetSort(#env, #VARIABLE), #VARIABLE, #csort)
+  → UnifySortVar(#env, #VARIABLE, GetSortArg(#env, #VARIABLE), #csort)
 
   rule UnifySort(#env, csort⟦ [ ##csort11 ] ##csort12 ⟧, csort⟦ [ ##csort21 ] ##csort22 ⟧)
   → UnifySort(UnifySort(#env, #csort11, #csort21), #csort12, #csort22)
@@ -288,47 +286,67 @@ rule UnifySorts(#env, #csort*1, #csort*2) → Error<{String:IEnvEntry}>("Error: 
 
 // -- Variable
 
-func UnifySortVar({String:IEnvEntry}, String, Option<String>, Core_csort_sort) -> {String:IEnvEntry}
-rule UnifySortVar(#env, #variable, NONE                 , #csort) → Error<{String:Core_csort_sort}>(ConcatString("Error: undeclared type variable ", #variable))
-rule UnifySortVar(#env, #variable, SOME(#sortarg:String), #csort) → UnifySortVar2(#env, GetSort(#env, #sortarg), #sortarg, #csort)
+func UnifySortVar({String:IEnvEntry}, String, Option<Core_csort_sort>, Core_csort_sort) -> {String:IEnvEntry}
 
-func UnifySortVar2({String:IEnvEntry}, Option<Core_csort_sort>, String, Core_csort_sort) -> {String:IEnvEntry}
+  // The variable is already in the actual sort domain. Keep unifying the variable.
+  rule UnifySortVar(#env, #variable, NONE                 , #sort) → UnifySortVar2(#env, #variable, GetSort(#env, #variable), #sort)
+
+  // Sort has been resolved. Check they are different.
+  rule UnifySortVar(#env, #variable, SOME(csort⟦ ##VARIABLE ⟧), #sort)
+  → If<{String:IEnvEntry}>(StringEqual(#variable, #VARIABLE),
+      // Same variable, keep unifying
+      ()->UnifySortVar2(#env, #variable, GetSort(#env, #variable), #sort),
+      // Not the same: restart with sort in actual domain
+      ()->UnifySort(#env, csort⟦ ##VARIABLE ⟧, #sort))
+
+  // Sort has been resolved and different. Restart with new sort.
+  rule UnifySortVar(#env, #variable, SOME(#sort1:Core_csort_sort), #sort2) → UnifySort(#env, #sort1, #sort2)
+
+// Check not the same sort variable
+func UnifySortVar1({String:IEnvEntry}, String, Core_csort_sort) -> {String:IEnvEntry}
+
+  rule UnifySortVar1(#env, #variable, csort⟦ ##VARIABLE ⟧)
+  → If<{String:IEnvEntry}>(StringEqual(#variable, #VARIABLE),
+      // Same variable, nothing to do
+      ()->#env,
+      // Not the same variable. Continue
+      ()->UnifySortVar2(#env, #variable, GetSort(#env, #variable), csort⟦ ##VARIABLE ⟧))
+
+  rule UnifySortVar1(#env, #variable, #csort) → UnifySortVar2(#env, #variable, GetSort(#env, #variable), #csort)
+
+// Check sort environment for existing entry.
+func UnifySortVar2({String:IEnvEntry}, String, Option<Core_csort_sort>, Core_csort_sort) -> {String:IEnvEntry}
 
   // Case 1: no existing mapping. Create it
-  rule UnifySortVar2(#env, NONE, #csortarg, #csort) → PutSort(#env, #csortarg, #csort)
+  rule UnifySortVar2(#env, #variable, NONE, #csort) → PutSort(#env, #variable, #csort)
 
   // Case 2: there is already a mapping to a sort variable and new sort is also a sort variable
-  rule UnifySortVar2(#env, SOME(csort⟦ ##VARIABLE1 ⟧), #csortarg, csort⟦ ##VARIABLE2 ⟧)
+  rule UnifySortVar2(#env, #variable, SOME(csort⟦ ##VARIABLE1 ⟧), csort⟦ ##VARIABLE2 ⟧)
   → If<{String:Core_csort_sort}>(StringEqual(#VARIABLE1, #VARIABLE2),
       // Same variable, nothing to do
       ()->#env,
-      // Not the same variable. Instantiate both directions
-      ()->PutSort(#env, #VARIABLE2, csort⟦ ##VARIABLE1 ⟧)) // TODO: check that's enough
-      //()->UnifySortVar(UnifySortVar(#env, #VARIABLE2, SOME(#VARIABLE2), csort⟦ ##VARIABLE1 ⟧), #VARIABLE1, SOME(#VARIABLE1), csort⟦ ##VARIABLE2 ⟧))
+      // Not the same variable and they should be equal. Dangerous place as this can create cycle.
+      ()->PutSort(#env, #VARIABLE2, csort⟦ ##VARIABLE1 ⟧))
 
   // Case 3, there is already a mapping to a sort variable.
-  rule UnifySortVar2(#env, SOME(csort⟦ ##VARIABLE1 ⟧), #csortarg, #csort)
-  → UnifySortVar(#env, #VARIABLE1, SOME(#VARIABLE1), #csort)
+  rule UnifySortVar2(#env, #variable, SOME(csort⟦ ##VARIABLE1 ⟧), #csort)
+  → UnifySort(#env, #csort, csort⟦ ##VARIABLE1 ⟧)
 
   // Case 4, there is already a mapping to a sort that is not a variable
-  rule UnifySortVar2(#env, SOME(#csort:Core_csort_sort), #csortarg, csort⟦ ##VARIABLE2 ⟧)
-  → UnifySortVar(#env, #VARIABLE2, SOME(#VARIABLE2), #csort)
+  rule UnifySortVar2(#env, #variable, SOME(#csort:Core_csort_sort), csort⟦ ##VARIABLE2 ⟧)
+  → UnifySortVar2(#env, #VARIABLE2, SOME(csort⟦ ##VARIABLE2 ⟧), #csort)
 
   // Case 5, there is already a mapping to non sort variables
-  rule UnifySortVar2(#env, SOME(#csort1:Core_csort_sort), #csortarg, #csort2)
+  rule UnifySortVar2(#env, #variable, SOME(#csort1:Core_csort_sort), #csort2)
   → #env // TODO: could check csort1 = csort2
 
 /* Same as above where actual sort is wrapped inside a sort annotation. */
-func UnifySortAnno<a>({String:IEnvEntry}, Core_csort_sort, List<Core_csortanno_sort>, ({String:IEnvEntry} Core_csort_sort)->a) -> a
+func UnifySortAnno<a>(#env: {String:IEnvEntry}, #fsort: Core_csort_sort, #csortanno?: List<Core_csortanno_sort>, #cont: ({String:IEnvEntry} Core_csort_sort)->a) -> a
+→ INewSort<a>(#env, #fsort, (env sort)->UnifySortAnnoAux<a>(env, sort, MaybeSortAnnoToSort(#csortanno?), #cont))
 
-  // No sort annotation: create a new sort variable and unify.
-  rule UnifySortAnno(#env, #fsort, csortanno?⟦           ⟧, #cont) → UnifySortAnnoAux<a>(IIncCounter(#env), #fsort, csort⟦ ⟨VARIABLE:INewSortVar(#env)⟩ ⟧, #cont)
-
- // With sort annotation: just unify. TODO: consider replacing sort variables in #csort with their actual ones.
-  rule UnifySortAnno(#env, #fsort, csortanno?⟦ : ##csort ⟧, #cont) → #cont(UnifySort(#env, #fsort, #csort), #fsort)
-
-func UnifySortAnnoAux<a>(#env: {String:IEnvEntry}, #fsort: Core_csort_sort, #csort: Core_csort_sort, #cont: ({String:IEnvEntry} Core_csort_sort)->a) -> a
-→ #cont(UnifySort(#env, #fsort, #csort), #fsort)
+func UnifySortAnnoAux<a>({String:IEnvEntry}, Core_csort_sort, Option<Core_csort_sort>, ({String:IEnvEntry} Core_csort_sort)->a) -> a
+rule UnifySortAnnoAux(#env, #nsort, NONE, #cont) → #cont(#env, #nsort)
+rule UnifySortAnnoAux(#env, #nsort, SOME(#asort:Core_csort_sort), #cont) → #cont(UnifySort(#env, #nsort, #asort), #nsort)
 
 // ---- Sort environment optimizer
 
@@ -403,6 +421,7 @@ func SubstMapSorts({String:IEnvEntry}, List<Core_cmapsort_sort>) -> List<Core_cm
 rule SubstMapSorts(#env, cmapsort*⟦                                 ⟧) → cmapsort*⟦⟧
 rule SubstMapSorts(#env, cmapsort*⟦ ##csort1 : ##csort2 ##cmapsort* ⟧) → cmapsort*⟦ ⟨csort: SubstSort(#env, #csort1)⟩ : ⟨csort: SubstSort(#env, #csort2)⟩  ⟨cmapsort*: SubstMapSorts(#env, #cmapsort*)⟩ ⟧
 
+
 // --- Various utility functions
 
 /* Check the given `#sortanno?` matches the given `#sort`. Output an error if not, otherwise apply `#result` */
@@ -410,9 +429,28 @@ func CheckSortAnnoE<a>(List<Core_csortanno_sort>, Core_csort_sort, ()->a) -> a
 rule CheckSortAnnoE(csortanno?⟦           ⟧, #csort, #result) → #result()
 rule CheckSortAnnoE(csortanno?⟦ : ##csort ⟧, #csort, #result) → #result()  // TODO: really check when Equal is fixed.
 
-/* Create a new sort variable */
+/* Create a new sort variable. */
 func INewSortVar(#env: {String:IEnvEntry}) -> String
 → ConcatString("a", FormatNumber(IGetCounter(#env)))
+
+
+/* Create a new generic sort from sort prototype. */
+func INewSort<a>({String:IEnvEntry}, Core_csort_sort, ({String:IEnvEntry} Core_csort_sort)->a) -> a
+rule INewSort(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #cont) → INewSortMaybeSorts<a>(#env, #csorts?, (env csorts)->#cont(env, csort⟦ ##CONSTRUCTOR ⟨csorts?: csorts⟩ ⟧))
+rule INewSort(#env, csort⟦ ##VARIABLE              ⟧, #cont) → #cont(IIncCounter(#env), csort⟦ ⟨VARIABLE: INewSortVar(#env)⟩ ⟧)
+rule INewSort(#env, csort⟦ [ ##csort1 ] ##csort2   ⟧, #cont) → INewSort<a>(#env, #csort1, (env sort1)->INewSort<a>(env, #csort2, (env sort2)->#cont(env,  csort⟦ [ ⟨csort: sort1⟩ ] ⟨csort: sort2⟩ ⟧)))
+rule INewSort(#env, csort⟦ ( ##csort1 ) ##csort2   ⟧, #cont) → INewSort<a>(#env, #csort1, (env sort1)->INewSort<a>(env, #csort2, (env sort2)->#cont(env,  csort⟦ ( ⟨csort: sort1⟩ ) ⟨csort: sort2⟩ ⟧)))
+rule INewSort(#env, csort⟦ { ##cmapsort* }         ⟧, #cont) → #cont(#env, csort⟦ { ##cmapsort* }         ⟧) // TODO
+rule INewSort(#env, csort⟦ thunk ##csort           ⟧, #cont) → INewSort<a>(#env, #csort, (env sort)->#cont(env, csort⟦ thunk ⟨csort: sort⟩ ⟧))
+rule INewSort(#env, csort⟦ data ##csort            ⟧, #cont) → INewSort<a>(#env, #csort, (env sort)->#cont(env, csort⟦ data ⟨csort: sort⟩ ⟧))
+
+func INewSortMaybeSorts<a>({String:IEnvEntry}, List<Core_csorts_sort>, ({String:IEnvEntry} List<Core_csorts_sort>)->a) -> a
+rule INewSortMaybeSorts(#env, csorts?⟦             ⟧, #cont) → #cont(#env, csorts?⟦⟧)
+rule INewSortMaybeSorts(#env, csorts?⟦ ( ##csort*) ⟧, #cont) → INewSortSorts<a>(#env, #csort*, (env sorts)->#cont(env, csorts?⟦ ( ⟨csort*: sorts⟩ ) ⟧))
+
+func INewSortSorts<a>({String:IEnvEntry}, List<Core_csort_sort>, ({String:IEnvEntry} List<Core_csort_sort>)->a) -> a
+rule INewSortSorts(#env, csort*⟦ ##csort ##csort*  ⟧, #cont) → INewSort<a>(#env, #csort, (env sort)->INewSortSorts<a>(env, #csort*, (env sorts)->#cont(env, csort*⟦ ⟨csort: sort⟩ ⟨csort*: sorts⟩ ⟧)))
+rule INewSortSorts(#env, csort*⟦                   ⟧, #cont) → #cont(#env, csort*⟦⟧)
 
 /* Create higher-order sort */
 func INewHOSort(List<Core_csort_sort>, List<Core_csort_sort>, Core_csort_sort) -> Core_csort_sort

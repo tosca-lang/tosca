@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.transscript.compiler.core.Core;
+import org.transscript.compiler.core.Core.Core_xcterm_xsort;
 import org.transscript.compiler.std.Listdef;
 import org.transscript.compiler.text.Printer;
 import org.transscript.compiler.text.Text4.Text4_xtext_xsort;
@@ -46,6 +48,12 @@ public class Utils
 		}
 	}
 
+	/** print term to console. Try using known serializer */
+	public static void printTerm(Term term)
+	{
+		printTerm(new Context(), null, term, "sysout", System.out);
+	}
+
 	/** 
 	 * Print term to given output 
 	 * @param term to print. Reference is consumed
@@ -58,9 +66,14 @@ public class Utils
 			{
 				term = Printer.PrintText(context, (Text4_xtext_xsort) term);
 				term = Normalizer.force(context, term);
+				TermPrinter.print(term, output);
 			}
-
-			TermPrinter.print(term, output);
+			else if (term instanceof Core_xcterm_xsort && (category == null || category.equals("cterm")))
+			{
+				printTerm(context, "text", Core.Core_xPrint_xcterm(context, (Core_xcterm_xsort) term), outputName, output);
+			}
+			else
+				TermPrinter.print(term, output);
 		}
 		catch (IOException e)
 		{
