@@ -86,6 +86,17 @@ rule TermSort(cterm⟦ ( x ##csortanno? ) ##cterm ⟧)                       →
 rule TermSort(cterm⟦ thunk ##cterm ⟧)                                    → TermSort(#cterm)
 rule TermSort(#)                                                         → NONE
 
+/* @return `cterm*` from `cterms?` */
+func MaybeTermsToTerms(List<Core_cterms_sort>) -> List<Core_cterm_sort>
+rule MaybeTermsToTerms(cterms?⟦              ⟧) → ()
+rule MaybeTermsToTerms(cterms?⟦ ()           ⟧) → ()
+rule MaybeTermsToTerms(cterms?⟦ ( ##cterm* ) ⟧) → #cterm*
+
+/* @return `cterm*` from `csubst?` */
+func MaybeSubstToTerms(List<Core_csubst_sort>) -> List<Core_cterm_sort>
+rule MaybeSubstToTerms(csubst?⟦              ⟧) → ()
+rule MaybeSubstToTerms(csubst?⟦ [ ##cterm* ] ⟧) → #cterm*
+
 func GetFormalParamSorts(Core_csort_sort) -> List<Core_csort_sort>
 rule GetFormalParamSorts(csort⟦ ( ##csort1 ) ##csort2 ⟧)  → Cons(#csort1, GetFormalParamSorts(#csort2))
 rule GetFormalParamSorts(#csort                       )  → ()
@@ -108,5 +119,6 @@ rule DataDeclToSort(csortvars?⟦ ∀ ##variable_TOK+ .⟧, #CONSTRUCTOR) → cs
 
 // --- Print utilities
 
+/* Print the given `#sort` */
 func PrintSort(#sort: Core_csort_sort) -> String
 → Trim(PrintTerm<Text4_text_sort>("text", Core_Print_csort(#sort)))
