@@ -419,7 +419,7 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void enterBinder(ParserRuleContext context, String name)
 	{
-		assert!tail : "Cannot declare a binder is a list tail";
+		assert !tail : "Cannot declare a binder is a list tail";
 		assert binderId == null : "Cannot nest binders";
 
 		state = State.NAME;
@@ -434,7 +434,7 @@ public class ToSinkListener implements ParseTreeListener
 	public void exitBinder(ParserRuleContext context)
 	{
 		assert state == State.NAME;
-		assert!tail : "Cannot declare a binder is a list tail";
+		assert !tail : "Cannot declare a binder is a list tail";
 		assert binderId != null : "Missing enterBinder notification";
 
 		binderNames.put(binderId, binderName);
@@ -449,7 +449,7 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void enterSymbol(ParserRuleContext context)
 	{
-		assert!tail : "Cannot declare a binder is a list tail";
+		assert !tail : "Cannot declare a binder is a list tail";
 		assert binderId == null : "Cannot nest binders";
 
 		binderName = "";
@@ -463,7 +463,7 @@ public class ToSinkListener implements ParseTreeListener
 	public void exitSymbol(ParserRuleContext context)
 	{
 		assert state == State.NAME;
-		assert!tail : "Cannot declare a name in a list tail";
+		assert !tail : "Cannot declare a name in a list tail";
 
 		if (kind == TokenKind.METAVAR)
 		{
@@ -545,7 +545,7 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void exitBinds(ParserRuleContext context)
 	{
-		assert!bounds.isEmpty() : "Unbalanced use of enterBinds/exitBinds";
+		assert !bounds.isEmpty() : "Unbalanced use of enterBinds/exitBinds";
 
 		while (bounds.pop() != MARKER);
 	}
@@ -627,18 +627,29 @@ public class ToSinkListener implements ParseTreeListener
 							break;
 						case METAVAR :
 							assert metasink() != null;
-
-							String metaname = fixupMetachar(context.getText());
+							String rawMeta = context.getText();
+							String metaname = fixupMetachar(rawMeta);
 
 							metasink().startMetaApplication(metaname);
 							metasink().startSubstitutes();
-							// Add all bound variables.
-							// REVISIT: should be user-specified.
+							
+							String[] metaargs = null;
+							
+							int si = rawMeta.indexOf('[');
+							if (si != -1)
+							{
+								metaargs = rawMeta.substring(si + 1, rawMeta.length() - 1).split(",");
+								for (int i = 0; i < metaargs.length; i++)
+									metaargs[i] = metaargs[i].trim();
+							}
+
+							// TODO: deprecate backward-compatible behavior (no []) = bind all
 							for (Pair<String, Variable> bound : bounds)
 							{
-								if (bound != MARKER)
+								if (bound != MARKER && (metaargs == null || containsArg(bound.fst, metaargs)))
 									sink.use(bound.snd);
 							}
+							
 							metasink().endSubstitutes();
 
 							if (termType != null)
@@ -704,6 +715,14 @@ public class ToSinkListener implements ParseTreeListener
 		}
 	}
 
+	private boolean containsArg(String var, String[] args)
+	{
+		for (int i = 0; i < args.length; i++)
+			if (args[i].equals(var))
+				return true;
+		return false;
+	}
+
 	// Parse concrete syntax
 	private void parseConcrete(String text, int line, int column)
 	{
@@ -749,7 +768,15 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	protected String fixupMetachar(String metavar)
 	{
-		return "#" + metavar.substring(metachar.length());
+		return "#" + trimMetaArgs(metavar.substring(metachar.length()));
+	}
+
+	private String trimMetaArgs(String metavar)
+	{
+		int si = metavar.indexOf("[");
+		if (si != -1)
+			return metavar.substring(0, si);
+		return metavar;
 	}
 
 	/**
