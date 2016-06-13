@@ -36,8 +36,8 @@ rule CCRule(#env, cdecl⟦ rule ##cterm1 → ##cterm2 ⟧) → CCRuleUp(#cterm1,
 func CCTerm(Env, Core_cterm_sort) -> Pair<Env Core_cterm_sort>
 rule CCTerm(#env, cterm⟦ ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧) → CCConsUp(#cqconstructor, #csortargs?, CCMaybeTerms(#env, #cterms?), #csortanno?)
 rule CCTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)          → CCMetaUp(#METAVAR, CCMaybeTerms(#env, #cterms?), #csubst?, #csortanno?)
-rule CCTerm(#env, cterm⟦ [ x ##csortanno? ] ##cterm ⟧)                          → CCBinderUp(#csortanno?, [x] -> CCTerm(#env, #cterm[x]))
-rule CCTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧)                          → CCFormal(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧, cterm⟦ ( f ##csortanno? ) ##cterm ⟧)
+rule CCTerm(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧)                     → CCBinderUp(#csortanno?, [x] -> CCTerm(#env, #cterm[x]))
+rule CCTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧)                     → CCFormal(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧)
 // TODO: thunk and map
 
 rule CCTerm(#env, #cterm)                                                       → PairCons(#env, #cterm)
@@ -60,8 +60,8 @@ rule CCTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧) → CCTermsUp(CCTerm(#env, #c
 // --- Process formal parameters. Setup environment for possible lifting.
 
 func CCFormal(Env, Core_cterm_sort, Core_cterm_sort /* original lambda term */) -> Pair<Env Core_cterm_sort>
-rule CCFormal(#env, cterm⟦ ( f : ##csort ) ##cterm ⟧, #lambda) → CCFormalUp(#csort, [f] -> CCFormal(EnvAddParam(#env, f, #csort), #cterm[f], #lambda))
-rule CCFormal(#env, cterm⟦ ( f           ) ##cterm ⟧, #lambda) → Error<Pair<Env Core_cterm_sort>>("Fatal error: missing formal parameter type in lambda (needed by closure converter)")
+rule CCFormal(#env, cterm⟦ ( f : ##csort[] ) ##cterm[f] ⟧, #lambda) → CCFormalUp(#csort, [f] -> CCFormal(EnvAddParam(#env, f, #csort), #cterm[f], #lambda))
+rule CCFormal(#env, cterm⟦ ( f           ) ##cterm[f] ⟧, #lambda) → Error<Pair<Env Core_cterm_sort>>("Fatal error: missing formal parameter type in lambda (needed by closure converter)")
 rule CCFormal(#env, #cterm, #lambda)                           → CCFormal2(#env, #cterm, #lambda)
 
 // Helper due to issue #15
@@ -106,7 +106,7 @@ func CCLiftedPattern(#i: Numeric, #until: Numeric) -> List<Core_cterm_sort>
 
 // TODO: don't use builtin substitution due to issue #24
 func CCLiftedContractum(Core_cterm_sort, Numeric, {String : Core_cterm_sort}) -> Core_cterm_sort
-rule CCLiftedContractum(cterm⟦ ( f ##csortanno? ) ##cterm ⟧, #i, #subst) → CCLiftedContractum(#cterm[f:String], Plus(#i, 1), MapPutVar<String Core_cterm_sort String>(#subst, f, cterm⟦⟨METAVAR: CCMetaVar(#i)⟩⟧))
+rule CCLiftedContractum(cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #i, #subst) → CCLiftedContractum(#cterm[f:String], Plus(#i, 1), MapPutVar<String Core_cterm_sort String>(#subst, f, cterm⟦⟨METAVAR: CCMetaVar(#i)⟩⟧))
 rule CCLiftedContractum(#cterm, #i, #subst) → Substitute(#cterm, #subst)
 
 func CCMetaVar(#i: Numeric) -> String → ConcatString("#", FormatNumber(Plus(#i, 1)))
@@ -126,10 +126,10 @@ func CCMetaUp(String, Pair<Env List<Core_cterms_sort>>, List<Core_csubst_sort>, 
 rule CCMetaUp(#METAVAR, PairCons(#env:Env, #cterms?:List), #csubst?, #csortanno?) → PairCons(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)
 
 func CCBinderUp(List<Core_csortanno_sort>, [String] -> Pair<Env Core_cterm_sort>) -> Pair<Env Core_cterm_sort>
-rule CCBinderUp(#csortanno?, [x] -> PairCons(#env:Env, #cterm[x] : Core_cterm_sort)) → PairCons(#env, cterm⟦ [ x ##csortanno? ] ##cterm ⟧ )
+rule CCBinderUp(#csortanno?, [x] -> PairCons(#env:Env, #cterm[x] : Core_cterm_sort)) → PairCons(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧ )
 
 func CCFormalUp(Core_csort_sort, [String] -> Pair<Env Core_cterm_sort>) -> Pair<Env Core_cterm_sort>
-rule CCFormalUp(#csort, [f] -> PairCons(#env:Env, #cterm[f]:Core_cterm_sort)) → PairCons(#env, cterm⟦ ( f : ##csort ) ##cterm ⟧)
+rule CCFormalUp(#csort, [f] -> PairCons(#env:Env, #cterm[f]:Core_cterm_sort)) → PairCons(#env, cterm⟦ ( f : ##csort[] ) ##cterm[f] ⟧)
 
 func CCMaybeTermsUp(Pair<Env List<Core_cterm_sort>>) -> Pair<Env List<Core_cterms_sort>>
 rule CCMaybeTermsUp(PairCons(#env:Env, #cterm*:List<Core_cterm_sort>)) → PairCons(#env, cterms?⟦ ( ##cterm* ) ⟧)

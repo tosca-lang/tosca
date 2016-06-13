@@ -233,17 +233,14 @@ func NScope(TransScript_scope_sort) -> Core_cterm_sort
 
 func NBinders(TransScript_binders_sort) -> Core_cterm_sort
 
-    // BUG: should be #binders[x]
-    rule NBinders(binders⟦ b ##sortAnno? ##binders ⟧)
+    rule NBinders(binders⟦ b ##sortAnno?[] ##binders[b] ⟧)
     → cterm⟦ [ x ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ] ⟨cterm: NBinders(#binders[x])⟩ ⟧
-    //rule NBinders(TransScript_binders_A1(#sortAnno?:List<TransScript_sortAnno_sort>, [x] -> #binders[x] : TransScript_binders_sort))
-    //→ Core_cterm_A6(NMaybeSortAnno(#sortAnno?), [x:String] -> NBinders(#binders[x]))
-
+    
     rule NBinders(binders⟦ ] -> ##term ⟧) → NTerm(#term)
 
 func NFormalParams(TransScript_formalParams_sort, Bool) -> Core_cterm_sort
 
-    rule NFormalParams(formalParams⟦ f ##sortAnno? ##formalParams ⟧, #empty)
+    rule NFormalParams(formalParams⟦ f ##sortAnno?[] ##formalParams[f] ⟧, #empty)
     → cterm⟦ (f ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ) ⟨cterm: NFormalParams(#formalParams[f], FALSE)⟩ ⟧
 
     //rule NFormalParams(TransScript_formalParams_A1(#sortAnno?:List<TransScript_sortAnno_sort>, [x] -> #formalParams[x]  : TransScript_formalParams_sort ), #empty)

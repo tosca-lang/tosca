@@ -85,16 +85,16 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
   rule InferTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #csort)
   → PairCons(#env, cterm⟦ ##VARIABLE : ##csort ⟧)
 
-  rule InferTerm(#env, cterm⟦ [ v ##csortanno? ] ##cterm ⟧, csort⟦ [ ##csort1 ] ##csort ⟧)
+  rule InferTerm(#env, cterm⟦ [ v ##csortanno?[] ] ##cterm[v] ⟧, csort⟦ [ ##csort1 ] ##csort ⟧)
   → InferBinderUp([v] -> InferTerm(IAddBoundVarSort<String>(#env, v, #csort1), #cterm[v], #csort), #csort1)
 
-  rule InferTerm(#env, cterm⟦ [ v ##csortanno? ] ##cterm ⟧, #esort)
+  rule InferTerm(#env, cterm⟦ [ v ##csortanno?[] ] ##cterm[v] ⟧, #esort)
   → Error<Pair<{String:IEnvEntry} Core_cterm_sort>>("Type error") // TODO:
 
-  rule InferTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧, csort⟦ ( ##csort1 ) ##csort ⟧)
+  rule InferTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, csort⟦ ( ##csort1 ) ##csort ⟧)
   → InferFormalUp([f] -> InferTerm(IAddFormalSort<String>(#env, f, #csort1), #cterm[f], #csort), #csort1)
 
-  rule InferTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧, #esort)
+  rule InferTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #esort)
   → Error<Pair<{String:IEnvEntry} Core_cterm_sort>>("Type error") // TODO:
 
   rule InferTerm(#env, cterm⟦ thunk ##cterm              ⟧, #esort)
@@ -199,12 +199,12 @@ rule InferSortArgsUp(#env, FALSE) → TopSortArgs(#env)
 /* Reconstruct binder */
 // Note: #env is weak.
 func InferBinderUp([String] -> Pair<{String:IEnvEntry} Core_cterm_sort>, Core_csort_sort) -> Pair<{String:IEnvEntry} Core_cterm_sort>
-rule InferBinderUp([b] -> PairCons(#env:{String:IEnvEntry}, #cterm[b]:Core_cterm_sort), #csort) → PairCons(#env, cterm⟦ [ b : ##csort ] ##cterm ⟧)
+rule InferBinderUp([b] -> PairCons(#env:{String:IEnvEntry}, #cterm[b]:Core_cterm_sort), #csort) → PairCons(#env, cterm⟦ [ b : ##csort[] ] ##cterm[b] ⟧)
 
 /* Reconstruct formal parameter */
 // Note: #env is weak.
 func InferFormalUp([String] -> Pair<{String:IEnvEntry} Core_cterm_sort>, Core_csort_sort) -> Pair<{String:IEnvEntry} Core_cterm_sort>
-rule InferFormalUp([f] -> PairCons(#env:{String:IEnvEntry}, #cterm[f]:Core_cterm_sort), #csort) → PairCons(#env, cterm⟦ ( f : ##csort ) ##cterm ⟧)
+rule InferFormalUp([f] -> PairCons(#env:{String:IEnvEntry}, #cterm[f]:Core_cterm_sort), #csort) → PairCons(#env, cterm⟦ ( f : ##csort[] ) ##cterm[f] ⟧)
 
 // --- Synthesize meta
 
@@ -446,8 +446,8 @@ func ISubstRule(#env: {String:IEnvEntry}, #cterm1: Core_cterm_sort, #cterm2: Cor
 func ISubstTerm({String:IEnvEntry}, Core_cterm_sort) -> Core_cterm_sort
 rule ISubstTerm(#env, cterm⟦ ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧) → cterm⟦ ⟨cqconstructor: ISubstQCons(#env, #cqconstructor)⟩ ⟨csortargs?: ISubstMaybeSortArgs(#env, #csortargs?)⟩ ⟨cterms?: ISubstMaybeTerms(#env, #cterms?)⟩ ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
 rule ISubstTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)          → cterm⟦ ##METAVAR ⟨cterms?: ISubstMaybeTerms(#env, #cterms?)⟩ ⟨csubst?: ISubstMaybeISubst(#env, #csubst?)⟩ ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
-rule ISubstTerm(#env, cterm⟦ [ x ##csortanno? ] ##cterm ⟧)                          → cterm⟦ [ x ##csortanno? ] ⟨cterm: ISubstTerm(#env, #cterm[x])⟩ ⟧
-rule ISubstTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm ⟧)                          → cterm⟦ ( f ##csortanno? ) ⟨cterm: ISubstTerm(#env, #cterm[f])⟩ ⟧
+rule ISubstTerm(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧)                     → cterm⟦ [ x ##csortanno?[] ] ⟨cterm: ISubstTerm(#env, #cterm[x])⟩ ⟧
+rule ISubstTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧)                     → cterm⟦ ( f ##csortanno?[] ) ⟨cterm: ISubstTerm(#env, #cterm[f])⟩ ⟧
 rule ISubstTerm(#env, cterm⟦ thunk ##cterm ⟧)                                       → cterm⟦ thunk ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟧
 rule ISubstTerm(#env, #cterm)                                                      → #cterm
 // TODO: map
