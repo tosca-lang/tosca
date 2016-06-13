@@ -1,0 +1,531 @@
+% \section{Background and Informal Presentation} \label{sec:bg}
+
+\emph{Combinatory Reduction Systems} (CRSs), introduced by
+Aczel~\cite{Aczel:78} and later refined by Klop~\cite{1980_klop}, form
+a generalization of first-order term rewriting to higher-order
+rewriting.  CRSs provide the theoretical basis of our compiler
+generator \Tosca. It has turned out that higher-order rewriting
+provides a good match for the various tasks (parsing, normalization,
+specificity, and code generation) required in a compiler, and thus in
+its construction.
+
+On one hand \Tosca is a compiler generator, that is, \emph{a tool} for
+constructing compilers, whose setup is depicted in
+Figure~\ref{fig:use} below and detailed in Section~\ref{sec:use}. On
+the other hand \Tosca is a \emph{programming language}, namely a
+self-hosted, lazy, higher-order functional language, with sometimes
+unique features, specific to compilers, like specificity-ordered
+pattern matching, and embedded programs,
+cf.~Section~\ref{sec:language}.
+
+CRSs form the essential core of \Tosca. While practical
+necessities for compiler construction naturally push certain demands
+on the design (cf.~Section~\ref{sec:surface}), we have been careful to
+protect this theoretical underpinning as a separate part (\Tosca
+Core) of our language.
+
+The overall setup of \Tosca strives for a light-weight
+architecture. For example a typical task of a compiler is to optimize
+the previously generated intermediate representation of the source
+language. Hence, it may be to be expected that a similar optimization
+stage is required in a compiler generator to trigger this
+behavior. However, an elegant possibility is to learn from
+transpilers. \Tosca merely \emph{transforms} the provided source
+language \PL into a dedicated target (intermediate) source
+representation.  Then an off-the-shelf compiler for this target
+language (for the moment Java) handles the optimization.
+
+The development of \Tosca has been greatly motivated by a preceding
+compiler generator project based on higher-order rewriting, namely
+\crsx, mainly developed by Rose~\cite{2010_rose,2011_rose}. \crsx has
+been successfully applied in practice by IBM DataPower Gateway%
+\footnote{cf. \href{http://www.ibm.com/datapower}{www.ibm.com/datapower}.}
+to implement an XQuery~\cite{Walmsley:07} and a JSONiq~\cite{FF:13}
+compiler and is also used as a back-end for the teaching interface
+HACS\footnote{cf.~\href{https://github.com/crsx/hacs}{github.com/crsx/hacs}.}.\cite{gentle_hacs}
+
+\subsection{Generating  a Compiler With \Tosca} \label{sec:use}
+
+\Tosca's main purpose is to ease the construction of
+compilers. Thus, we start by describing how to construct a compiler
+with \Tosca. Given some programming language~\PL, and some
+program written in \PL which we want to compile: How can we use
+\Tosca to create such a compiler? We depict the overall setup in
+Figure~\ref{fig:use}.
+%
+\input{pictures/use}
+%
+As can be seen on the top, to create a compiler for \PL, \Tosca
+needs as input:
+\begin{enumerate}
+\item the \emph{syntax} of \PL in the
+  \antlr~v4 format \cite{Parr:2013:DAR:2501720}, and
+\item the \emph{semantics} of \PL as \Tosca rules.
+\end{enumerate}
+%
+Based on this input \Tosca creates the source code of a compiler
+for \PL. In Figure~\ref{fig:use} this execution of \Tosca is
+indicated by cogwheels.
+%
+Currently, the generated
+source code is \java~8 source code. However, the architecture of
+\Tosca allows a simple integration of any suitable target
+language, cf.~Section~\ref{sec:architecture}.
+%
+Finally, the generated \java source code has to be compiled---%
+using an off-the-shelf \java compiler---to obtain
+an executable \PL compiler. Observe that the \PL compiler 
+itself targets a programming language and it is up to the compiler writers to 
+decide which language to use (in the semantics of \PL).
+
+We exemplify this setup with respect to a simple, strict, and
+pure functional language, namely \MiniML
+%
+\footnote{The syntax is adapted from~\href{http://andrej.com/plzoo/html/miniml.html}{\url{andrej.com/plzoo/html/miniml.html}}. 
+The full \antlr grammar is available at 
+\anolink{\ToscaPath/samples/miniml/MiniML.g4}{\cd{MiniML.g4}}{\cd{samples/miniml/MiniML.g4}}.}.
+%
+We describe the creation of an interpreter for \MiniML, 
+that is, \PL == \MiniML. First we need an \antlr grammar
+describing the syntax, which we will present next. For presenting
+\antlr grammars throughout this paper, we will employ the following
+conventions: Non-terminals, i.e., \antlr grammar rules, are written in
+lower case letters, e.g., \antlrIn{expr}. For terminal symbols it
+depends. If they have a verbatim match, such as keywords and
+delimiters, we inline and enclose them in \antlrIn{''}, e.g.,
+\antlrIn{'let'} or \antlrIn{'='}. If they cannot be described
+verbatim, as for example numbers or variables, then we write them in
+capital letters, e.g., \antlrIn{VAR}. 
+
+\begin{example} \label{ex:MiniML} %
+  %
+  An \antlr description of the \MiniML language:
+  %
+\begin{lstANTLR}
+toplevel : 'let' VAR '=' expr ';;' toplevel ';;'
+            | expr ';;'
+
+expr : timesExpr '+' expr | timesExpr '-' expr
+       | timesExpr
+
+timesExpr : comprExpr '*' timesExpr | comprExpr
+
+comprExpr : primaryExpr '<' comprExpr
+           | primaryExpr '=' comprExpr
+           | primaryExpr
+
+primaryExpr : app_expr | '-' INT |
+             | 'if' expr 'then' expr 'else' expr
+             | 'fun' VAR '(:' ty '):' ty 'is' expr
+
+app_expr : simple_expr | simple_expr app_expr      
+
+simple_expr : 'true' | 'false' | '(' expr ')' 
+             | INT |  VAR 
+
+tyPrimary : 'bool' | 'int' | '(' ty ')'
+
+ty : tyPrimary | tyPrimary '->' ty
+
+VAR : ['a'-'z' 'A'-'Z']+
+INT : ['0'-'9']+
+\end{lstANTLR}
+\end{example}
+%
+Given the syntax of \MiniML, we now need to describe the
+\emph{semantics} in the \Tosca language to generate a \MiniML
+interpreter. To give an idea and a glimpse of the \Tosca
+language, we look at how we can describe the \antlrIn{'+'}.
+%
+\begin{lstTosca}
+rule EvalExpr(expr⟦ #timesExpr + #expr ⟧) 
+  → Plus(EvalTimesExpr(#timesExpr), EvalExpr(#expr))
+\end{lstTosca}
+%
+To evaluate the expression \ToscaIn{#timesExpr + #expr}, we rely on
+\ToscaIn{Plus} provided by a standard library in \Tosca. Here also we
+already present the feature of \emph{embedded program} snippets:
+within \ToscaIn{expr⟦ ⟧} we can embed \MiniML syntax---a feature
+explained in detail in the next section.  Of course, we could as well
+define the functionality easily ourselves. Next we look at a different
+snippet: the \antlrIn{'if then else'}.
+%
+\begin{example} \label{ex:evalminiml} 
+The conditional \antlrIn{'if then else'} is implemented as follows:
+
+\begin{lstTosca}
+rule EvalExpr(expr⟦if #expr1 then #expr2 else #expr3⟧) 
+  → EvalIf(EvalBoolExpr(#expr1), #expr2, #expr3)
+
+rule EvalIf(TRUE, #expr2, #expr3) → EvalExpr(#expr2)
+rule EvalIf(FALSE, #expr2, #expr3) → EvalExpr(#expr3)
+
+rule EvalBoolExpr(simple_expr⟦ true ⟧) → TRUE
+rule EvalBoolExpr(simple_expr⟦ false ⟧) → FALSE
+...
+\end{lstTosca}
+\end{example}
+
+The above rules are, of course, incomplete, as indicated by the ellipses. More
+of \MiniML code snippets will return throughout the next section,
+where we introduce the \Tosca language. Also notice that the choice
+of showing the \MiniML interpreter as opposed as the compiler is purely
+driven by presentation considerations, and not technical ones.  
+
+Naturally, \MiniML is a toy language.  But we have used \Tosca already
+in a real-world application: In Section~\ref{sec:self-hosting} we
+describe how we successfully used \Tosca to create a compiler for the
+\Tosca language itself, that is, we can bootstrap (aka self-host)
+\Tosca. I.e., the setup depicted in Figure~\ref{fig:use} is
+applicable in its fullest generality, namely we have:
+%
+\begin{center}
+  \PL == \Tosca language.
+\end{center}
+%
+
+\subsection{\Tosca as a Functional Language} \label{sec:language}
+
+This section gives an overview of the \Tosca language through
+code snippets. A subset of the formal syntax is given in 
+Section~\ref{sec:coretotransscript} and the complete \Tosca syntax
+written as an \antlr v4 grammar can be found in 
+%
+\anolink{\ToscaPath/src/parser/TransScript.g4}
+        {\cd{Tosca.g4}}{\cd{src/parser/TransScript.g4}}.
+%
+\Tosca is a higher-order, lazy functional language with good support for efficient
+recursion which makes it easy to work with trees.
+In particular it is very suited to work on 
+one of the main data structures in compiler construction: 
+\emph{Abstract Syntax Trees} (\emph{ASTs} for short). 
+It naturally borrows many characteristics and features found in
+existing functional programming languages, such as referential
+transparency, first-class functions, and pattern matching.
+%
+Describing them in detail is out of scope.
+Instead the syntax of the  most commonly used features is illustrated
+in the example below.
+%
+\begin{example} \label{ex:map} %
+We give the \Tosca syntax for the implementation of
+\ToscaIn{Map} over a list of elements of type \ToscaIn{a}.
+%
+\begin{lstTosca}
+func Map<a b>([a] -> b, List<a>) -> List<b>
+ 
+rule Map([x] -> #F(x), ())          
+  → ()
+
+rule Map([x] -> #F(x), (#Yhd, #Ytl...)) 
+  → (#F(#Yhd), Map([x] -> #F(x), #Ytl))
+\end{lstTosca}
+\end{example}
+%
+A \emph{function} is declared using the keyword \ToscaIn{func}
+followed by its name, parameter types, and return type. In this
+example, \ToscaIn{Map} is a parameterized function with two type
+parameters \ToscaIn{a} and \ToscaIn{b},  
+and it takes two parameters, the first
+one is a function taking one argument of type \ToscaIn{a} and
+returning a value of type \ToscaIn{b}, the second one is a list
+of values of type \ToscaIn{b}. 
+In \Tosca, function names and types start with an upper case character. 
+Type parameters and variables start with a lower case character.
+
+A \emph{rule} starts with the keyword \ToscaIn{rule}.  As usual a rule
+provides a function definition for the function on the left hand by
+providing a directed defining equation.
+%
+Two rules are associated to the \ToscaIn{Map} function
+declaration.  For both rules, the first argument \ToscaIn{[x] -> #F(x)}
+matches any function taking one parameter.
+
+We emphasize that the expression \ToscaIn{[x] -> #F(x)} is used
+in \Tosca code differently based on context. 
+In the function declaration it plays its standard role as an arrow type. 
+However, perhaps unexpectedly in the first rule it reappears. In this
+latter context \ToscaIn{[x] -> #F(x)} denotes the lambda abstraction
+\ToscaIn{[x]#F(x)} presented in Section~\ref{sec:CRS}. 
+%
+We allow for this overloading, as the arrow notation is a common
+notation for closures in C-like languages. However, note that it is
+merely syntactic sugar which is represented as expected in
+\Tosca Core (cf.~Section~\ref{sec:coretotransscript}).
+
+Continuing with Example~\ref{ex:map}, matching values are bound to
+\emph{meta variables}.  Meta variables start in \Tosca with the
+character \ToscaIn{#}, as \ToscaIn{#F, #Yhd, #Ytl} in
+Example~\ref{ex:map}.  Meta variables which are bound in a pattern can
+either be discarded, like in the first rule, or used in the rule
+expression. The matching function in both rules is bound to the meta
+variable named \ToscaIn{#F} (cf.~Section~\ref{sec:CRS}).
+%
+The second argument of the first rule matches the empty list, i.e.,
+\ToscaIn{()}.  The second argument of the second rule matches a
+list with at least one element, bound to \ToscaIn{#Yhd} and the
+rest of the list, using the \ToscaIn{...} notation, is bound to
+\ToscaIn{#Ytl}.
+
+By default, rules are \emph{applied} in lexical order, from top to
+bottom, unless another evaluation strategy is specified.  In the
+example, the first rule matches when the second argument is the empty
+list, and produces the empty list as the result.  When the second rule
+matches, for non-empty list, it produces a list where the first item
+is the result of the function \ToscaIn{#F} applied to the
+argument \ToscaIn{#Yhd}.  The list tail is the result of
+\ToscaIn{Map} applied to the rest of the list
+\ToscaIn{#Ytl}. Section~\ref{sec:codegen} explains how the
+default evaluation order is implemented. Sections~\ref{sec:surface}
+and~\ref{sec:specification} describe howto enhance this functionality
+to make it more practical.
+
+Finally, we apply \ToscaIn{Map} on a real input. Therefore we  provide a third
+  rule, a \ToscaIn{Main} function.
+%
+\begin{example}[continued from Example~\ref{ex:map}]
+\label{ex:map:2}
+  We get:
+  \begin{lstTosca}
+func Main -> List<Int>
+rule Main 
+  → Map( [x] -> Plus(1, x), (1, 2, 3) )
+  \end{lstTosca}
+\end{example}
+%
+The function \ToscaIn{Main} shows how \ToscaIn{Map} is
+called with a the function \ToscaIn{Plus} and the list
+\ToscaIn{(1,2,3)}.  As expected the result of
+\ToscaIn{Main}, when evaluated, is \ToscaIn{(2,3,4)}
+
+\subsection{\Tosca Language Features For Compilers} \label{sec:surface}
+
+In addition to these general features, \Tosca adds features specific to compilers.
+Some are rarely found in other programming languages, namely embedded programs,
+syntactic variables, and specificity-ordered pattern matching, while the remaining
+one, enumeration, is ubiquitous.  
+
+\paragraph{Embedded programs.} One of the cornerstone \Tosca
+features is the ability to embed program fragments written in the source programming language \PL
+directly into \Tosca programs: inside rules.
+
+As described in Section \ref{sec:use}, \Tosca takes
+two inputs: the syntax and the semantics of a language \PL. The syntax is
+needed for two reasons: first, as mentioned before, to parse input program written in \PL, 
+but secondly also to parse program fragments embedded in the semantic description of \PL. 
+%
+\begin{example} \label{ex:embedinline} % 
+Consider this rule:   
+\begin{lstTosca}
+rule InlineLetSimpleExpr( 
+  toplevel⟦ let #VAR = #simple_expr ;; #toplevel ;; ⟧)
+  → ...
+\end{lstTosca}
+\end{example} 
+%
+The special construct \ToscaIn{toplevel⟦ ... ⟧} tells the
+\Tosca compiler to parse the embedded program using the grammar
+rule named \antlrIn{toplevel}. Section~\ref{sec:normalization} 
+gives an in-depth description on how this works.
+%
+\begin{example} \label{ex:expandinline} %
+  The rule after expanding the embedded syntax
+\begin{lstTosca}
+rule InlineLetSimpleExpr( Let( #VAR, TimeExpr(CompExpr(PrimaryExpr(#simple_expr))), 
+                               #toplevel) )
+  → ...
+\end{lstTosca}
+\end{example}
+%
+There are several advantages to this approach. First, it makes
+\Tosca programs more readable---as demonstrated in the examples
+above---by reducing the code size significantly. Also, the
+correspondence between language syntax and its semantics becomes more
+apparent. Furthermore, embedded program fragments are sometimes more
+resilient to some language syntax refactorings. For instance,
+augmenting the \MiniML language with a new kind of expressions, such
+as logical operators, has no effect on the rule shown in
+Example~\ref{ex:embedinline}, whereas it changes the rule shown in
+Example~\ref{ex:expandinline}.  On the other hand, changing
+\antlrIn{';;'} to \antlrIn{';'} has the opposite effect, since it
+impacts the concrete syntax of the language.  Nonetheless, we argue
+that improved readability prevails over minor language updates.
+%
+\paragraph{Enumeration.} 
+\emph{Enumeration} with associated values is the principal \Tosca data type.
+In the literature enumerations are also called sum type, tagged union, 
+variant type or recently just enumerations, like in Swift or Rust.%
+\footnote{cf.~\href{https://developer.apple.com/swift/}{developer.apple.com/swift} 
+and~\href{https://www.rust-lang.org/}{www.rust-lang.org}, respectively.}
+It is well-established that enumeration is very well-suited for
+ representing programming language syntax.
+ Following the current trend, \Tosca enumerations are declared
+ using the keyword \ToscaIn{enum}.  Value variants are separated
+ by the character \ToscaIn{|}. To show the correspondence between
+ language syntax and enumeration recall the \antlr grammar for 
+ the non-terminal \antlrIn{simple_expr} defined in Example~\ref{ex:MiniML}:
+%
+\begin{lstANTLR}
+simple_expr : VAR | 'true' | 'false' | INT
+            | '(' expr ')' 
+\end{lstANTLR}
+%
+I.e., a simple expression consists of either a variable represented by the
+lexical token \antlrIn{VAR}, the literals \antlrIn{'true'} or
+\antlrIn{'false'}, an integer or an \antlrIn{expr} surrounded by
+parenthesis. 
+
+\begin{example}
+
+This grammar naturally maps to the following enumeration:
+%  
+\begin{lstTosca}
+enum Simple_expr | VAR | TRUE | FALSE 
+                   | INT | Expr
+\end{lstTosca}
+
+\end{example}
+%
+Notice the enumeration value names are slightly changed in order to
+accommodate the \Tosca syntax. Grammar literals are mapped to 
+all upper case name, dropping the surrounding quotes. Section~\ref{sec:parsing}
+formalizes this mapping from \antlr grammar onto \Tosca.
+
+\paragraph{Syntactic Variables.} Programming languages commonly define ways to
+declare variables
+with strict scoping rules associated to
+them. Compiler writers rely on operations to determine when variables
+are not used, e.g., for dead code elimination, or used only once, e.g., for in-lining, 
+or for other purposes.
+\Tosca provides
+functionalities to deal with \emph{syntactic variables} and \emph{scoped
+  syntactic variables}. \Tosca represents either kind of variables 
+  the same way as variable (cf. Section~\ref{sec:language}): by an identifier starting 
+  with a lower case character. For instance
+\ToscaIn{var}, \ToscaIn{index}, or
+\ToscaIn{inScope} are all valid syntactic variables.
+
+Recall the \MiniML grammar in Example~\ref{ex:MiniML}:
+%
+\begin{lstANTLR}
+toplevel : 'let' VAR '=' expr ';;' toplevel ';;'
+          | expr ';;'
+\end{lstANTLR}
+%
+The \ToscaIn{let} top level production is the typical use case for
+using scoped syntactic variables, since there is a neat correspondence
+between the semantics of \MiniML \antlrIn{'let'} and \Tosca scoped
+variables.  By doing this, the incomplete inline \antlrIn{'let'} (cf.~
+Example~\ref{ex:expandinline} and \ref{ex:embedinline}) becomes easy
+to implement.
+%
+But first, in order to define scoped variables directly in the \antlr grammar
+of \PL, we extended the \antlr language
+with three new options: 
+\begin{enumerate*} [label=\itshape(\roman*)]
+\item \label{opt:one}   \antlrIn{<boundvar=x>},
+\item \label{opt:two}   \antlrIn{<bound=x>}, and
+\item \label{opt:three} \antlrIn{<symbol>}.
+\end{enumerate*}
+%
+Option~\ref{opt:one} can be attached to any terminal
+symbol, e.g., \antlrIn{VAR<boundvar=x>} to map 
+this terminal symbol onto a bound variable. It also gives an internal id (like
+\antlrIn{x}) so that it can be referenced in Option~\ref{opt:two}, \antlrIn{<bound=x>}, 
+to start a new lexical scope in which the bound variable can occur.  
+Option~\ref{opt:three} indicates which terminal needs to be mapped onto a syntactic variable
+by looking for a bound variable of the same name, in the list of in-scope variables maintained
+by the parser (cf. Section~\ref{sec:parsing}). If none is found, then the variable is considered free.
+
+\begin{example} Let us rewrite the inline \antlrIn{'let'} example
+using scoped variables. We start by rewriting the \MiniML \antlr grammar.
+\begin{lstANTLR}
+toplevel : 'let' VAR<boundvar=x> '=' expr ';;' 
+                   toplevel<bound=x> ';;' | ...
+
+simple_expr : VAR<symbol> | ...
+\end{lstANTLR}
+
+Next we change the corresponding \ToscaIn{enum Toplevel}:
+
+\begin{lstTosca}
+enum Toplevel | Let( Expr, [Simple_expr] -> Toplevel )
+                | Expr( Expr )
+\end{lstTosca}
+
+Finally we replace \ToscaIn{VAR} in \ToscaIn{enum Simple_expr} 
+by the keyword \ToscaIn{allows-variables}:
+
+\begin{lstTosca}
+enum Simple_expr | allows-variables | TRUE | FALSE 
+                   | INT | Expr
+\end{lstTosca}
+\end{example}
+
+Now the first \ToscaIn{TopLevel} enumeration value \ToscaIn{Let} 
+takes two associated values: the let expression bound to \antlrIn{VAR} and 
+the \antlrIn{toplevel} defining the scope of the \ToscaIn{let} variable.
+Notice that the type \ToscaIn{Simple_expr} has also been updated to accept 
+syntactic variable by adding \ToscaIn{allows-variables} keyword, which means
+variables are valid values for \ToscaIn{Simple_expr} .
+
+\begin{example} Finishing the implementation of \ToscaIn{InlineLetSimpleExpr} 
+is now trivial:
+
+\begin{lstTosca}
+rule InlineLetSimpleExpr( 
+  toplevel⟦ let #VAR = #simple_expr ;; #toplevel ;; ⟧)
+  → #toplevel(#simple_expr)
+\end{lstTosca}
+
+\end{example}
+
+This rule matches the \ToscaIn{let} construction binding simple expression,
+and when the rule is evaluated, it substitutes all occurrences of \ToscaIn{\#VAR} 
+in \ToscaIn{#toplevel} by \ToscaIn{#simple_expr}. 
+
+On a final note, syntactic variables are not solely limited to encode programming language
+variables. This mechanism can also be used everywhere there is a need
+to associate a name to an entity referenced within a context. It
+includes, but is not limited to, block labels, constants, functions,
+modules, or packages.
+
+\paragraph{Specificity-Ordered Pattern Matching.} Pattern matching is
+frequently used in compiler generator to accomplish essentially two
+main tasks: to dispatch on language construct to compile, and to
+recognize specific program fragments to optimize. Several simple
+dispatch example were given in Example~\ref{ex:evalminiml}. The
+next example shows the second case: identifying program fragments
+that can be optimized.
+%
+\begin{example} Compiling the \MiniML's \antlrIn{if then else}
+can be optimized by two more specific rules 
+and one fallback rule.
+   
+\begin{lstTosca}
+rule CompExpr(expr⟦if true then #expr2 else #expr3⟧) 
+  → CompExpr(#expr2)
+
+rule CompExpr(expr⟦if false then #expr2 else #expr3⟧) 
+  → CompExpr(#expr3)
+
+rule CompExpr(expr⟦if #expr1 then #expr2 else #expr3⟧) 
+  → ...
+\end{lstTosca}	
+\end{example}
+%
+Notice that the optimization is applied on the function \ToscaIn{CompExpr}
+\emph{compiling} \MiniML.   
+%
+It is fairly easy to see that for more complex languages than \MiniML, troubleshooting issues, 
+such as identifying missing or redundant cases, becomes harder. This is especially true when 
+pattern matching is used to single out very specific program fragments which can grow quite large. 
+It is also more difficult to identify when a pattern is more specific than another pattern. 
+The \emph{specificity} compilation phase described in Section~\ref{sec:specification} 
+is about providing a solution to these concerns.
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "techreport"
+%%% End:

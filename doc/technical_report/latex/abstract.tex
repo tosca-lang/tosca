@@ -1,0 +1,32 @@
+%
+\begin{abstract}
+%
+\textbf{Abstract.} 
+%
+We present \Tosca, a compiler generator \emph{and} 
+a programming language. 
+%
+\Tosca leaves only a small footprint and we have designed it striving
+for a light-weight architecture that reduces compiler construction to
+high-level code generation---%
+rather than relying on a full compilation stack.
+%
+Given as input the syntax of a source language \PL together with its
+semantics, the \Tosca compiler generator generates the source code for
+a compiler of \PL---currently in \java~8.  After employing an
+off-the-shelf \java compiler, one obtains an executable compiler for
+\PL.
+%
+The \Tosca language, the implementation language of
+\Tosca, is a rule-based, higher-order, lazy functional language
+that has its roots in higher-order rewriting, more precisely
+Combinatory Reduction Systems.
+%
+We successfully used the \Tosca compiler generator to generate a 
+compiler for the \Tosca language.
+\end{abstract}
+%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "techreport"
+%%% End:

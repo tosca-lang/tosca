@@ -1,0 +1,100 @@
+%
+\paragraph{\crsx.} %
+%
+As already detailed in Section~\ref{sec:bg}, \TransScript is greatly
+motivated by the \crsx \footnote{cf.~\href{http://crsx.org/}{crsx.org}.} project initiated by Kris Rose~\cite{2010_rose,2011_rose}.
+%
+Presently, \crsx has two fields of activity: compiler construction 
+and teaching compiler construction. %
+With respect to the former, \crsx has established a proof-of-concept for
+the efficiency of compiler construction based on higher-order rewriting,
+which motivated our work on \TransScript. The latter provides a 
+sophisticated, declarative language, the \emph{Higher-order Attribute Contraction Schemes} (\hacs) detailed below.
+%
+%, cf.~Section~\ref{sec:hacs}.
+% GM: keep for now
+% The later provides a sophisticated language, the
+% \emph{Higher-order Attribute Contraction Schemes}
+% (\emph{HACS} for short) for programming a state-of-the-art
+% compiler with the lowest possible strain on the programmer.
+%
+In contrast to \crsx, which provides a full compilation stack
+\TransScript provides a light-weight, source-to-source
+transformation reusing existing tools as much as possible.
+
+\paragraph{\hacs.} %
+%
+\hacs \cite{gentle_hacs} \footnote{cf.~\href{https://github.com/crsx/hacs}{github.com/crsx/hacs}.} is a language designed for compiler construction such as the
+\TransScript language. \hacs is also developed based on
+\crsx, and as such \hacs and \TransScript are very much related. It
+is based on the same idea: to extend rewriting by features specific to
+compiler construction. While \TransScript is designed to reuse many existing
+language constructs, \hacs takes a more decisive and holistic approach to 
+compiler construction. Another difference is the target audience 
+of \hacs which is currently used for teaching compiler construction.
+\TransScript is meant to be used for large industrial applications.
+For instance, a compiler written in \hacs consists of a single 
+specification file; it does not yet scale to large compilers.
+%
+
+\paragraph{\Spoofax/\Stratego.} %
+%
+\Spoofax \footnote{cf.
+  \href{www.metaborg.org/spoofax}{www.metaborg.org/spoofax}} is a
+full fledged language workbench to develop domain-specific languages 
+which then
+come with full Eclipse IDE support~\cite{2010_kats_et_al}. The
+underlying language---\Stratego \cite{2008_bravenboer_et_al}---has
+many similarities to \TransScript. \Stratego has been designed for
+program transformation and to program rewrite strategies. It is also
+based on term rewriting---however, in \Stratego terms are first-order
+terms. Similar to \TransScript, \Stratego comes with special notions
+for Strings, and numbers, but also includes lists and
+tuples. \Stratego is based on conditional rewriting, i.e., the rules
+may come with attached conditions. The \Spoofax learning curve is quite
+steep as it defines no less than five different languages. \TransScript 
+tries to reuse existing concepts as much as possible.
+
+\RB{You say \TransScript has a lot in common with \Stratego. \Stratego often involve a lot of backtracking, which is directly supported by \Stratego (which is often not a good thing for compiler performance or error reporting). Is there also backtracking involved in \TransScript?}
+
+
+\paragraph{\Rascal.} %
+%
+Another related language is \Rascal
+\footnote{cf.~\href{http://www.rascal-mpl.org/}{www.rascal-mpl.org}}. \Rascal
+\cite{2009_klint_et_al} has been developed as a language to combine
+source code analysis \emph{and} source code manipulation. As such the
+purpose of \Rascal is different to \TransScript's as \TransScript does
+not provide analysis features. Similar to \TransScript, \Rascal allows
+to embed program fragments as presented in
+Section~\ref{sec:surface}. 
+Furthermore, \Rascal is built from a software engineering perspective.
+% One difference to \TransScript is that
+% \Rascal is built from a software engineering perspective and as such
+% does not have a prominent theoretical background.
+One difference to \TransScript is the lack of support for higher-order
+functionality. 
+Another difference is \Rascal is an imperative language.
+Still many language features are similar to \TransScript, such as pattern matching and
+rewrite rules. 
+
+\paragraph{Simplification in \Isabelle.} %
+%
+A general application of higher-order rewriting are interactive proof
+assistants. They often use rewriting for equational reasoning. Thus we
+will briefly relate our implementation to the implementation of
+rewriting in the interactive theorem prover
+\Isabelle~\cite{2002_nipkow_et_al}. \Isabelle's rewriting formalism
+is based on (conditional) HRSs~\cite{1998_mayr-nipkow}, which are
+close to CRSs.
+%
+However, the difference in application results in quite different
+restrictions on rewrite rules.  Simplification rules in \Isabelle do
+not need to be left-linear and there is no restriction on
+ambiguity. They do not even need to be patterns, in which case
+applying the rule might just fail.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "techreport"
+%%% End:

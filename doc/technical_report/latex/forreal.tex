@@ -1,0 +1,111 @@
+
+\Tosca defines many standard libraries. Most of the functions in the standard
+libraries have been written in \Tosca itself. However in the spirit of \Tosca
+being light-weight, severals have been written directly in \java. At the \Tosca level, 
+only the function signature is specified along with the keyword \ToscaIn{extern} to indicate the
+actual implementation is done in \java.
+We describe the standard library here briefly:
+%
+\begin{itemize}
+% core
+\item \anolink{\ToscaPath/src/std/core.tsc} %
+              {Core}{\cd{src/std/Core}} %
+              %
+              defines basic functionally \ToscaIn{Eval} to force
+              evaluation, \ToscaIn{Error}, and
+              \ToscaIn{Trace} to trace computation, as well as
+              \ToscaIn{Option} and \ToscaIn{Boolean}.
+% num
+\item \anolink{\ToscaPath/src/std/num.tsc} %
+              {Num}{\cd{src/std/Num}} %
+              %  
+              defines functions on (and external interfaces to) on
+              numbers like \ToscaIn{Plus}, \ToscaIn{Minus}
+              \ldots
+% list
+\item \anolink{\ToscaPath/src/std/listdef.tsc} %
+              {List}{\cd{src/std/List}} %
+              %
+              gives list functionalities as expected:
+              \ToscaIn{Map} (as described in
+              Section~\ref{sec:language}), \ToscaIn{Foldl},
+              \ToscaIn{Foldr}, \ToscaIn{Filter}, \ldots
+              but also, of course, \ToscaIn{Head},
+              \ToscaIn{Tail}, \ToscaIn{Append} \ldots
+% map
+\item \anolink{\ToscaPath/src/std/mapdef.tsc} %
+              {Map}{\cd{src/std/Map}} %
+              %
+              defines the interfaces for manipulating hash map,
+              such as \ToscaIn{MapPut} to add a key-value pair,
+              or \ToscaIn{MapKeys} to get the list of keys in a map. 
+% pair
+\item \anolink{\ToscaPath/src/std/pairdef.tsc} %
+              {Pair}{\cd{src/std/Pair}} %
+              %
+              defines pairs and and functionality on them.
+% string
+\item \anolink{\ToscaPath/src/std/string.tsc} %
+              {String}{\cd{src/std/String}} %
+              % 
+              defines basic functionalities on Strings such as
+              \ToscaIn{UpCase}, \ToscaIn{ConcatString}, 
+              and interfaces for external string functions.
+\end{itemize}
+
+To ease development, we have developed a \Tosca package for the
+\Atom text editor \footnote{cf. \href{https://atom.io/}{atom.io}}.
+It provides the basis for syntax highlighting. 
+It is available here:
+%
+\anolink{https://atom.io/packages/language-tosca}
+        {\Tosca mode}{\Tosca mode}.
+
+\Tosca is a very young system. Still it has been used successfully
+to write a \Tosca compiler in \Tosca itself. Indeed since \Tosca 
+is designed to generate compilers, it is natural to use it for itself.
+While several existing programming languages are self-hosted (e.g., \Lisp or \Rust),
+self-hosting \Tosca adds some extra twists. Thus we want to take
+the remainder of this section to describe our experiences with using
+and bootstrapping \Tosca.
+
+The following steps describe the bootstrapping procedure.
+The first step has been to write a minimal \Tosca compiler using a subset of the \crsx language.
+It only makes use of few core features (simple pattern matching, no overlapping rules) available
+in both \crsx and \Tosca. This allowed us to have a first compiler $\CONE$ taking \Tosca program
+and generating \java code. This compiler still depends on \crsx. The second step was to port the \crsx code to \Tosca,
+which was very mechanical due to the high-overlap between the two languages. The third step was to generate a second
+stand alone compiler $\CTWO$ using $\CONE$ and \crsx. Finally, self-hosting is truly achieved by generating a third
+compiler $\CTHREE$ using $\CTWO$.
+
+One twist came from the use of embedded syntax---because in our case
+this was now \Tosca syntax. The main issue is to have multiple
+versions of the same language, \Tosca in our case, coexist in
+the same Java Virtual Machine (\jvm).
+%
+For instance, consider this actual source code snippet, which defines
+a \Tosca rule:
+%
+\begin{lstANTLR}
+rule NDecl(decl⟦ rule #constructor #args? → #term* ⟧) 
+  → ...
+\end{lstANTLR}
+
+The \Tosca source code is parsed by the stable 
+\Tosca parser, while the embedded program (in \ToscaIn{decl}) is parsed
+by the latest \Tosca parser which potentially contains
+non-backward compatible modifications, e.g., changing \ToscaIn{'→'} to \ToscaIn{'='}.
+The difference with existing approaches is \Tosca parses the
+source program and the embedded programs at the same time. Fortunately, since \Tosca
+compiles to \java, the typical solution consists of using multiple
+class loaders, allowing multiple version of the same classes---parser classes in our case--- to coexist in a single \jvm.
+
+On a final note, it was very rewarding to bootstrap \Tosca. 
+By actually using it, we got a very good
+feeling for its strengths and conveniences---like the embedded
+syntax.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "techreport"
+%%% End:

@@ -1,0 +1,61 @@
+
+We presented \Tosca, a compiler generator
+\emph{and} a higher-order, lazy functional programming language. 
+In both instances the quest for a light-weight construction has been our driving force. 
+%
+Our research has been motivated by earlier work in the \crsx project,
+This work emphasized the successful application of higher-order rewriting 
+as a description language in compiler construction as well as 
+a formal basis of a functional programming language. 
+
+The design of the 
+\Tosca compiler generator is motivated in the
+large by source-to-source compilers (aka transpilers). In particular 
+it acts as a preprocessor.
+The source language is transformed to \java source code and 
+an off-the-shelf \java compiler optimizes and generates executable code 
+for us.  This focus on high-level code generation allows us to obtain a
+sleek architecture, without having to pay the price 
+of lower expressibility. 
+%
+The presented language is rooted in higher-order rewriting and features
+a dedicated core, which is morally equivalent to Combinatory Reduction Systems. Our
+programming language \Tosca provides standard features of
+a higher-order, lazy functional language, but with a twist. 
+\Tosca features support for embedded programs, enumeration, 
+syntactic variables, and specificity-ordered pattern matching. 
+%
+In particular, the latter is a unique features which allows a purely
+declarative programming style in the context of lazy programming, where
+we employ the notion of \emph{specificity}~\cite{1990_kennaway}.
+
+Finally, we sketch ongoing and future work.
+The presentation of \Tosca bypassed the incorporation of
+types into the programming language as well as their use in the compiler
+generation. In fact the produced \java code currently relies on a 
+generic term representation, as \Tosca types are discarded 
+early during compilation.
+%
+However, types naturally underlie enumerations and are in general
+of paramount importance in compilers. Work in progress focuses on the
+incorporation of a type system to \Tosca so that the issued \java code
+actually also type-check \Tosca programs.
+%
+In future work we also want to incorporate automatic propagation of location information akin to 
+the use of \emph{string origins} in \Rascal~\cite{ISE:14}.
+
+On a more theoretical level, we will work on the incorporation
+of ongoing research on automated resource analysis to compiler generation in
+general and \Tosca in particular. 
+In recent years we have seen significant
+advances on automated resource analysis. (We only mention recent work on
+the analysis of a pure, monomorphic subset of \texttt{OCaml}, cf.~\cite{ADM:2015}
+as pointer to the literature). It is an open research question whether
+such static program analysis techniques can be successfully incorporated
+in compiler construction to guarantee efficiency of the finally emitted compiler. 
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "techreport"
+%%% End:

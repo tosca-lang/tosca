@@ -1,0 +1,542 @@
+In this section we describe the programming language \Tosca, starting
+from its basis in higher-order rewriting and leading to its actual features.
+%
+In Section~\ref{sec:CRS} we describe the theory behind \Tosca:
+higher-order term rewriting, in particular Combinatory Reduction
+Systems. 
+Section~\ref{sec:CRStocore} gives an overview over the
+\Tosca Core grammar and relates it to CRS. Then
+Section~\ref{sec:coretotransscript} shows how \Tosca Core 
+is sweetened for human consumption.
+
+\subsection{Combinatory Reduction Systems} \label{sec:CRS}
+
+Rewriting naturally underlies many, if not all tasks of a standard
+compiler. Hence it is naturally to encode a compiler 
+generator in a rewriting-based language, an idea which was
+taken up in \crsx~\cite{2010_rose, 2011_rose}.
+ In the case of \Tosca the foundational basis is given by \emph{Combinatory
+  Reduction Systems}~(\emph{CRSs} for short)
+\cite{Aczel:78,1980_klop}.  CRSs form a formalism for higher-order
+rewriting, that is, terms may contain $\lambda$-abstractions (aka
+closures) and bound variables, and we may rewrite such terms.
+
+In contrast to \emph{higher-order rewrite systems} (HRSs for short)~\cite{1998_mayr-nipkow} 
+which form the formal basis of the interactive theorem prover \Isabelle, CRSs are
+a \emph{second}-order formalism and are untyped.
+Intuitively that means that a variable can represent a
+first-order but not a higher-order function. For example, a variable
+can represent the function $\plus$ but not the $\map$ function in
+Example~\ref{ex:map}.
+This restriction, however, is not really crucial as HRSs and CRSs are simulation
+equivalent~\cite{2003_van_raamsdonk}.
+
+In the context of \Tosca, CRSs are a more natural formalism, as the 
+rewriting machinary feels less heavy. In particular CRSs can be conceived
+more naturally as a programming language. In passing we mention that
+\emph{optimality} has been studied in the context of \emph{Interaction Systems}~\cite{AG:98},
+which form a subclass of CRSs and thus forms a subclass of \Tosca Core.
+
+We follow van Raamsdonk~\cite{2003_van_raamsdonk} in our presentation 
+and restrict to the essentials required in context of this paper. The
+reader is kindly refered to~\cite{2003_van_raamsdonk} for further details.
+We start by introducing the main ingredient: meta terms. 
+%
+\begin{definition} \label{def:term} 
+  Let $\V$ be a set of \emph{variables}, $\M$ a set of \emph{meta
+    variables}, and $\F$ a set of \emph{function symbols}. Every
+  $X \in \M$ and every $f \in \F$ has a fixed arity.
+  %
+  Let $x \in \V$, $X \in \M$, and $f \in \F$. A \emph{meta term} $t$
+  is
+  %
+  \[ t := %
+         x 
+    \mid f( t_1, \ldots, t_n) 
+    \mid X(t_1, \ldots, t_l)
+  \mid [x] t
+ \]
+ %
+ The expression $[x] t$ provides CRS's notation for $\lambda$-abstraction, in
+ particular the variable $x$ is bound in $t$.
+ A meta term without meta variables is called a \emph{term}.
+\end{definition}
+%
+\newcommand*{\Yhd}{Y_{\text{hd}}}
+\newcommand*{\Ytl}{Y_{\text{tl}}}
+\newcommand*{\alphaeq}{=_\alpha}
+
+Recall the formulation of the map function from Example~\ref{ex:map}. To
+avoid confusion we make use of a new signature $\F \defsym \{ \map, \cons, \nil, \plus, \one \}$.
+Furthermore, we need the meta variables $\M \defsym \{F, \Yhd, \Ytl, \ldots \}$, and 
+the variables $\V \defsym \{ x, \ldots \}$. Then we can construct the meta term:
+$\map( [x] F(x), \cons( \Yhd, \Ytl))$.
+
+Meta terms are considered modulo $\alpha$-conversion, for example,
+the meta terms $[x]F(x)$ and $[y] F(y)$ are identified.
+One may think of bound variables as formal parameters, whose names do
+not matter too much either. Furthermore, we tacitly assume the
+variable convention~\cite{2003_van_raamsdonk}.
+
+We define the root $\rt(t)$ of a meta term $t$ according
+to the grammar given in Definition~\ref{def:term}. I.e., $\rt(x) \defsym x$,
+$\rt(f( t_1, \ldots, t_n)) \defsym f$; $\rt(X(t_1, \ldots, t_l)) \defsym X$,
+and finally $\rt([x] t) \defsym [x]$. 
+
+Similarly the set of \emph{positions} of $t$ is defined as a string
+of natural numbers to identify occurrences of meta terms in $t$.
+%
+\begin{equation*}
+  \Pos(t) \defsym
+  \begin{cases}
+    \{\varepsilon\} 
+          & \text{if $t = x$}\\
+    \{\varepsilon\} \cup \{ip \mid p \in \Pos(t_i)\} 
+          & \text{\parbox{20ex}{if $t = f(t_1, \ldots, t_n))$ or
+            $t = X(t_1, \ldots, t_n)$}}\\
+    \{\varepsilon\} \cup \{0p \mid p \in \Pos(t)\} 
+          & \text{if $t = [x]t$}
+          \tpkt    
+  \end{cases}
+\end{equation*}
+%
+For example with respect to $t \defsym \cons(F(\Yhd), \map([x]F(x), \Ytl))$,
+the meta term $F(x)$ occurs at position $210$. The meta term occurring
+at position $p$ in $t$ is denoted as $\atpos{t}{p}$.
+
+Based on the definition of meta terms, we want to define rewrite
+rules. Not every meta term is a good candidate to be the left hand
+side of a rewrite rule. Fortunately, there is a sensible restriction:
+\emph{patterns}.
+%
+\begin{definition}
+  A meta term~$t$ is a \emph{pattern}, if for every meta variable
+  $X(t_1, \ldots t_l)$ all arguments $t_i$ are distinct bound
+  variables.
+\end{definition}
+%
+This ``pattern restriction'' guarantees that unification with a term
+is decidable. Note that second-order unification in general is undecidable~\cite{Goldfarb:81}.
+Thus we can compute whether a ``rule matches with
+term'' and if we can ``apply a rule''. The specifics behind
+higher-order pattern unification will be given in
+Section~\ref{sec:specification}, where we will present its implementation
+in \Tosca.
+
+To define a rewrite step, we also need the notion of contexts. A
+context is just that: a context, which is not affected at all by a
+rewrite step. To formally define contexts, we need a fresh function
+symbol $\hole \not\in \F$. A term $C$ with exactly one occurrence of
+$\hole$ is called a \emph{context}. For replacing~$\hole$ by a
+term~$t$ in $C$ we write $C[t]$. It is important to note, that a
+context may trigger variables to be bound, i.e., they will be
+captured. Thus, $[x] f(\hole) \neq [y] f(\hole)$, as the variable $x$
+will be bound in one, but not the other.
+%
+\begin{definition} \label{def:rule} \label{def:rewritesystem} 
+  %
+  A \emph{rule} $\ell \to r$ consists of two meta terms $\ell$ and
+  $r$, where
+  %
+  \begin{enumerate*} [label=\itshape(\roman*)]
+  \item \label{It:Fun}   $\ell$ is a pattern with root $f \in \F$,
+  \item \label{It:Var}   all meta variables in $r$ occur in $\ell$, and 
+  \item \label{It:Bound} all variables are bound. 
+  \end{enumerate*}
+  %
+  A set of rewrite rules is a called a
+  \emph{Combinatory Rewrite System}. 
+\end{definition}
+%
+By Condition~\ref{It:Fun} the root of the left-hand side has to be a
+\emph{function symbol}.
+%
+Condition~\ref{It:Var} guarantees that the meta variables $r$ are
+defined in $\ell$, i.e., no new meta variable appears in
+$r$. By Condition~\ref{It:Bound} rules do not contain variables, that are not
+bound.
+%
+\begin{example}[continued from Examples~\ref{ex:map}] \label{ex:rules} %
+  The $\map$ function can be defined with the following two rewrite
+  rules.
+  \begin{align*}
+    & \map([x] F(x), \nil)  \to \nil \\
+    & \map([x] F(x), \cons(\Yhd,\Ytl)) 
+      \to \cons(F(\Yhd), \map([x]F(x), \Ytl))
+      \tpkt
+  \end{align*}
+  %
+  Assuming for example the unary representation of numbers via the symbols
+  $\plus$ and $\one$ 
+  and the encoding of lists via $\cons$ and $\nil$, 
+  we can extend this CRS as we did in
+  Example~\ref{ex:map:2} with a $\main$-function.
+  %
+  \begin{equation*}
+    \main \to \map ([x] \plus(1,x), (1,2,3))
+    \tpkt
+  \end{equation*}
+\end{example}
+
+Now we have defined a rewrite system, i.e., a program. But
+how to compute something, i.e., how to ``apply a rule to a term''?
+First we think about how we can replace the meta variable $F$ with
+$[x]\plus(1, x)$. For that we introduce the notion of \emph{substitutions},
+\emph{substitutes} and \emph{valuations}.
+
+The \emph{substitution} $s[\xs \defsym \ts]$ of a sequence of terms $\ts$ 
+for a sequence of variables $\xs$, is inductively defined as follows.
+%
+\[ 
+  %
+  s[ \xs \df \ts ] \defsym
+  %
+  \begin{cases}
+    t_i  
+      & \text{if } s = x_i  \in \xs \\
+    y    
+      & \text{if } s = y \not\in \xs \\
+    f( s_1[\xs \df \ts], \ldots, s_l[\xs \df \ts]) 
+      & \text{if } s = f(s_1, \ldots, s_l) \\
+    [y] s'[\xs \df \ts]
+      & \text{if } s = [y] s' \wedge y \not\in \xs \\
+  \end{cases}
+  \]
+%
+For the last case it is important, that no variable becomes bound,
+thus $ y \not\in \xs$. However, this is easily assumed making
+tacit use of $\alpha$-conversion.
+
+Let $s$ be a term, and $ x_1, \ldots, x_n$ be variables. 
+The \emph{$n$-ary substitute}, denoted as $\ULAM x_1 \ldots x_n. s$,
+is defined as follows:
+%
+\begin{equation*}
+  (\ULAM x_1 \ldots x_n. s) \ts \defsym s[ \xs \df \ts ] \tpkt
+\end{equation*}
+%
+Let $\sigma$ be a mapping that assign $n$-ary substitutes to $n$-ary meta variables
+and let $t$ be a meta term.
+A \emph{valuation} is the homomorphic extension of $\sigma$, inductively
+defined as follows. 
+% 
+\[
+t^\sigma \defsym
+% 
+\begin{cases}
+  x  
+    & \text{if } t = x \\
+  f( t_1^\sigma , \ldots t_l^\sigma) 
+    & \text{if } t = f(t_1, \ldots, t_l) \\
+   [x] t'^\sigma 
+    & \text{if } t = [x] t' \\
+   \sigma(X)(t_1^\sigma, \ldots, t_k^\sigma)
+     & \text{if } t = X(t_1^\sigma, \ldots, t_k^\sigma) \\
+\end{cases}
+\]
+%
+Applying the above definition is straight forward. In
+particular $\sigma(X)$ means replace $X$ by its image. 
+
+We illustrate the interplay of substitutions, substitutes and
+valuations by an example.
+%
+\begin{example} \label{ex:val}
+  For
+  $ \sigma = \{ {F \mapsto \ULAM x. \plus(1,x)}, {\Yhd \mapsto 1},
+  {\Ytl \mapsto \nil} \} $
+  we get
+  \begin{align*}
+    & (\map( [x] F(x), \cons{\Yhd}, \Ytl)))^\sigma \\ 
+    & =  \map( [x] (\ULAM x . \plus(1,x)) (x), \cons(1, \nil))\\
+    & = \map([x] \plus(1,x), \cons(1,\nil))
+      \tpkt
+  \end{align*}
+  Similarly, we get
+  \begin{align*}
+    & (\cons(F(\Yhd), \map( [u] F(u), \Ytl))^\sigma \\
+    & = \cons((\ULAM x . \plus(1,x))(1), 
+        \map( [x] (\ULAM x . \plus(1,x)) (x) , \nil))\\
+    & = \cons(\plus(1,1), \map([x] \plus(1,x),\nil))
+  \end{align*}
+\end{example}
+
+We emphasize that CRSs make use of $\lambda$-abstraction on two levels.
+One the one hand one employs binders on the object level, where abstractions
+are denoted as $[x]t$. On the other hand, binders are used on the meta level
+in the form of substitutes, denoted as $\ULAM x . s$. Furthermore we note that
+the interplay between substitutions, substitutes and valuations in CRSs amounts
+to performing a complete $\beta$-development.
+%
+Finally, we can give a declarative definition of a rewrite step.
+%
+\begin{definition}
+  A term $s$ \emph{rewrites} to a term $t$, denoted by $s \rw t$, if
+  $s = C[\ell^\sigma]$ and $t = C[r^\sigma]$ for a context~$C$, a
+  valuation~$\sigma$, and a rule $\ell \to r$.
+\end{definition}
+
+\begin{example} 
+  We have the rewrite step 
+  \begin{align*}
+    & \map( [u] \sq(u), \cons(1,\nil)) \rw  \\
+    &\ \ \cons(\sq(1), \map( [u] \sq(u), \nil)) 
+  \end{align*}
+  with $C= \hole$, $\sigma$ from Example~\ref{ex:val}, and the second
+  rewrite rule from Example~\ref{ex:rules}.
+\end{example}
+
+Revisiting Example~\ref{ex:rules} and taking stock of the structure
+of the rules, we see that the provided CRS is restricted
+in three crucial points:
+%
+\begin{enumerate}
+\item Each meta variable on the left-hand side occurs at most once.
+\item None of the arguments of the left-hand side contains symbols
+\emph{defined} by any of the other rules, that is, neither $\nil$
+nor $\cons$ occur as root of a left-hand side.
+\item The rules are not \emph{overlapping}, that is, the rules are non-ambigious.
+\end{enumerate}
+
+These observations motivate the next definitions. 
+%
+Let a CRS $\R$ over the signature $\F$ be given. Then $\R$ is called \emph{left-linear}, 
+if every meta variable on the left-hand side of a rule occurs at most once.
+Further, we can write the signature $\F$ as the disjoint set of
+symbols $\DefSymb$ and $\ConSymb$, where $\ConSymb$ collects all symbols which 
+do \emph{not} occur as root symbol of a left-hand side in $\R$. 
+If all arguments of left-hand
+side contain only symbols from $\ConSymb$, then $\R$ is called a \emph{constructor CRS}. 
+
+Let $s$ and $t$ be meta terms. We say that $s$ \emph{overlaps} with $t$, 
+if there exists a valuation $\sigma$ and a non-meta variable position 
+$p$ in $s$ such that $\atpos{s}{p}^\sigma = t^\sigma$.
+Two rules $l_1 \to r_1$ and $l_2 \to r_2$ are
+\emph{overlapping} if $l_1$ overlaps with $l_2$ or vice versa and the overlap
+does not occur at the root when two copies of the same rule are considered. Finally, if there
+are no overlapping rules, then $\R$ is called \emph{non-overlapping}. 
+%
+Left-linear and non-overlapping CRSs, are called \emph{orthogonal}. 
+
+If any successful evaluation yields the same result, i.e., 
+we do not have to worry about non-determinism, we call a rewrite system 
+\emph{confluent}, or \emph{Church-Rosser}. 
+%
+We will make use of the following result later on, cf.~Section~\ref{sec:specification}. 
+%
+\begin{theorem} \cite{1980_klop} 
+\label{t:1}
+  Orthogonal Combinatory Reduction Systems are \emph{confluent}.
+\end{theorem}
+
+As mentioned above, \emph{Interaction systems}, introduced by Asperti
+et al.~\cite{AL:94,AL:96} form a subset of CRSs. More precisely
+interaction systems form a subset of constructor, orthogonal CRSs and
+are morally equivalent.
+
+\subsection{\Tosca Core} \label{sec:CRStocore}
+
+In this section we describe the programming language \Tosca, focusing
+on its foundation in higher-order rewriting.
+The \Tosca Core is a subset of the \Tosca language. The
+idea behind \Tosca Core is to reduce the rich programming
+language \Tosca to its bare necessities, which is in direct
+correspondence to left-linear, constructor %based 
+CRSs defined in the last section. 
+
+Having a small core
+makes it easier to reason about it, easier to process, and easier to
+analyze automatically. So what is a necessity? We distinguish between
+semantic and technical necessities. Semantic relates to the
+expressibility of \Tosca, technical to the implementation.
+
+The \antlr grammar of the core is available at
+%
+\anolink{\ToscaPath/src/core/Core.g4}
+        {\cd{Core.g4}}{\cd{src/core/Core.g4}}.
+%
+As in Section~\ref{sec:CRS} we start with the definition of meta terms
+or, as in \Tosca Core: \antlrIn{cterms}. Here, the \antlrIn{c}
+stands for ``core''.%
+%
+\begin{lstANTLR}
+cterm :  VARIABLE
+       | CONSTRUCTOR cterms?
+       | METAVAR cterms?  
+       | '[' VARIABLE ']' cterm
+       | literal
+
+cterms : '(' cterm (COMMA cterm)* ')'
+\end{lstANTLR}
+%
+A \antlrIn{cterm} looks similar to a meta term in
+Definition~\ref{def:term}. The first four cases directly relate. A
+\antlrIn{VARIABLE} corresponds to an element in $\V$, and starts with a
+lower case letter, e.g., \ToscaIn{x}. Similarly, a
+\antlrIn{CONSTRUCTOR}
+corresponds to a function symbol in $\F$.%
+\footnote{We emphasize that the keyword \antlrIn{CONSTRUCTOR} means function symbol
+in the signature, rather than merely constructor as implicit in the above
+notion of \emph{constructor} CRSs.}
+%
+In \Tosca function symbols start with upper case letters,
+e.g., \ToscaIn{F}. Next, \antlrIn{METAVAR} indicates elements in
+$\M$, which start with \antlrIn{\#}, e.g. \ToscaIn{\#X}. Finally,
+the case in line~4 binds the \antlrIn{VARIABLE} in the
+\antlrIn{cterm}, e.g., \antlrIn{[x]F(x)} corresponds to $ [x] f(x)$. The next case is a \antlrIn{literal}:
+%
+\begin{lstANTLR}
+  literal : STRING
+           | NUMBER
+\end{lstANTLR}
+%
+Literals are built-in in \Tosca---purely for efficiency reasons,
+i.e., it is a technical necessity. They are conceptually not difficult
+and easily expressible in CRSs.
+
+The arguments of \antlrIn{CONSTRUCTOR} and \antlrIn{METAVAR}
+are \emph{optional} \antlrIn{cterms}. This is the implementation of
+``dropping the parenthesis'' for function symbols without
+arguments. That is, we usually write simply \ToscaIn{True} and
+not \ToscaIn{True()}---which we would need to write, strictly according to
+Definition~\ref{def:term}. 
+
+The main concepts of CRS in Section~\ref{sec:CRS}---patterns, meta terms,
+contexts---are directly transferable to \antlrIn{cterms}.
+
+The \antlrIn{cterm}s are the basic building block of a \Tosca
+program. Now we see, how to create a \Tosca Core program, that
+is, a rewrite system.
+%
+\begin{lstANTLR}
+  ctransscript : cdecl+
+
+  cdecl : 'rule' cterm '→' cterm
+          | 'enum' CONSTRUCTOR
+          | ...
+\end{lstANTLR}
+%
+
+Every \Tosca Core program consists of a sequence of declarations,
+namely \antlrIn{cdecl}. One case \antlrIn{cdecl} is a rule
+declaration, also indicated by the \ToscaIn{rule} keyword. Similarly
+to Section~\ref{sec:CRS} above, a rule consists of two terms,
+separated by \ToscaIn{'→'}. As in Definition~\ref{def:rule}
+restrictions need to be imposed. However, due to practical concerns
+some lesser constraints have been weakened. For example the following
+\Tosca rule \ToscaIn{F(x) → x} is valid in \Tosca Core, but not as
+CRS. The variable $x$ is free, while Definition~\ref{def:rule}(iii)
+demands that $x$ is bound. This is a practical necessity. We need free
+variables to be able to handle invalid embedded programs in which some
+variable are used without declaring them.
+
+But in \antlrIn{cdecl}, what is hidden behind \antlrIn{...} ? For one,
+we have import declarations. This technicality is needed to generate
+\java code, but not the focus of this section.  Also hidden behind
+\antlrIn{...} are type declarations, whose full incorporation is work in
+progress. We briefly report on this when we mention future work in
+Section~\ref{sec:conclusion}.
+%
+One subtle, but severe difference is that in a \Tosca program,
+the rules are given in a \emph{sequence} ie., in lexical order. In the CRS setting,
+Definition~\ref{def:rewritesystem}, a program corresponds to a
+\emph{rewrite system}, which is a \emph{set} of rules and does not
+enforce any order on the rules. We will investigate this difference,
+and the consequences, in more detail in
+Section~\ref{sec:specification}.
+
+\subsection{\Tosca Core To
+  \Tosca} \label{sec:coretotransscript} 
+
+{ 
+\renewcommand{\t}[1]{\ToscaIn{#1}}
+% production
+\newcommand{\p}[1]{\emph{#1}}
+
+\begin{figure*}[!t]
+      \begin{tabular}{p{6cm} c p{6.5cm}}
+      $\C$ ⟦ \p{decl}$_1$ ... \p{decl}$_n$ ⟧               & = & $\CD$⟦ \p{decl}$_1$ ⟧ ... $\CD$⟦ \p{decl}$_n$ ⟧                \\        % & (1) \\ 
+      $\CD$⟦ \t{rule CONSTRUCTOR} \p{args?} → \p{terms} ⟧ & = & \t{rule CONSTRUCTOR} $\CAS$⟦ \p{args?} ⟧ → $\CT$⟦ \p{terms}⟧  \\       % & (2) \\ 
+      $\CD$⟦ \t{enum CONSTRUCTOR} ⟧                        & = & \t{enum CONSTRUCTOR}   				        \\ [3pt] % & (3) \\ 
+      %
+      $\CT$⟦ \t{CONSTRUCTOR} \p{args?} ⟧                 & = & \t{CONSTRUCTOR} $\CAS$⟦ \p{args?} ⟧                            \\ % & (4) \\  
+      $\CT$⟦ \t{()} ⟧                                    & = & \t{Nil}				                              \\ % & (5) \\
+      $\CT$⟦ \t{(} \p{term} \t{)} ⟧                     & = & $\CT$⟦ \p{term}  ⟧                                            \\ % & (6)  \\   
+      $\CT$⟦ \t{(} \p{term}$_1$ \t{,} \p{term}$_2$ ... \t{,} \p{term}$_n$ \t{)} ⟧ & = %
+                                                         & \t{Cons(} $\CT$⟦ \p{term}$_1$ ⟧ \t{,} $\CT$⟦ \p{term}$_2$ ... \p{term}$_n$ ⟧ \t{)}  \\%  & (7) \\  
+      %
+      $\CT$⟦ \t{VARIABLE} ⟧          & = & \t{VARIABLE}                    \\       % & (8)  \\                       
+      $\CT$⟦ \t{STRING} ⟧            & = & \t{STRING}                      \\       % & (9)  \\                               
+      $\CT$⟦ \t{NUMBER} ⟧            & = & \t{NUMBER}                      \\       % & (10) \\                      
+      $\CT$⟦ \t{METAVAR} \p{margs?} ⟧ & = & \t{METAVAR} $\CMS$⟦ \p{margs?} ⟧  \\       % & (11) \\                       
+      $\CT$⟦ \p{concrete} ⟧          & = & $\CC$⟦ \p{concrete} ⟧           \\ [3pt] % & (12) \\
+      %
+      $\CAS$⟦ \t{()}⟧                                              & = & \t{()}                                                             \\       % & (13) \\
+      $\CAS$⟦ \t{(} \p{scope}$_1$ ...  \t{,} \p{scope}$_n$ \t{)}⟧   & = & \t{(} $\CS$⟦ \p{scope}$_1$⟧ ... \t{,} $\CS$⟦ \p{scope}$_n$⟧ \t{)}  \\ [3pt] % & (14) \\
+      %
+      $\CS$⟦ \t{[} \p{binders} ⟧ & = & $\CBS$⟦ \p{binders} ⟧  \\       % & (15) \\
+      $\CS$⟦ \p{term} ⟧         & = & $\CT$⟦ \p{term } ⟧    \\ [3pt] % & (16) \\
+      %
+      $\CBS$⟦ \t{VARIABLE}$<$boundvar=x$>$ \p{binders}$<$bound=x$>$ ⟧  & = & \t{[ VARIABLE}$<$boundvar=x$>$ \t{]} $\CBS$⟦ \p{binders} ⟧$<$bound=x$>$ \\% & (17) \\
+      $\CBS$⟦ \t{]} \p{term} ⟧  & = & $\CT$⟦ \p{term} ⟧ \\ % & (18)  
+      %
+      $\CMS$⟦ \t{()}⟧                                              & = & \t{()}                                                             \\       % & (13) \\
+      $\CMS$⟦ \t{(} \p{term}$_1$ ...  \t{,} \p{term}$_n$ \t{)}⟧   & = & \t{(} $\CT$⟦ \p{term}$_1$⟧ ... \t{,} $\CT$⟦ \p{term}$_n$⟧ \t{)}  \\ [3pt] % & (14) \\
+      \end{tabular}
+  \caption{Expanding \Tosca to \Tosca Core.}
+  \label{fig:normalization}
+\end{figure*}
+}
+
+The previous sections built enough of the necessary scaffolding in
+order to demonstrate \Tosca is based on solid CRS
+foundation. The last stage consists of removing the constraint on bare
+necessities to add \emph{syntactic sugar} to make\Tosca programs
+more consumable.
+
+To show how \Tosca Core is expanded to \Tosca, we first
+need to formalize the subset of the \Tosca syntax introduced in
+the Section~\ref{sec:language}. The syntax for defining types has been
+left out since the current implementation mostly ignores types. The complete
+grammar is available at
+%
+\anolink{\ToscaPath/src/parser/TransScript.g4}
+        {\cd{Tosca.g4}}{\cd{src/parser/TransScript.g4}}.
+%
+\begin{lstANTLR}
+transscript     : decl+										 
+
+decl            : 'rule' CONSTRUCTOR args? → terms
+                | 'enum' CONSTRUCTOR    
+		
+term           : CONSTRUCTOR args?							
+                | '(' (term (',' term)*)? ')'
+                | VARIABLE
+                | STRING 
+                | NUMBER  								                                      
+                | METAVAR margs?                          
+                | concrete												
+
+args            : '(' (scope (',' scope)*)? ')' 
+scope           : '[' binders       						
+                | term										
+binders         : VARIABLE<boundvar=x> binders<bound=x>    
+                | ']' term									               
+margs           : '(' (term (',' term)*)? ')'
+\end{lstANTLR}
+%
+The equations formalizing the correspondence between \Tosca and
+\Tosca Core are shown in Figure~\ref{fig:normalization}. Here,
+$\mathcal{C}$ stands for $\mathcal{C}\text{orify}$. The subscripts
+indicate the \antlr production in question. To improve readability,
+\Tosca constructs are presented on the equation left-hand
+side. It is easy to see that all cases from the above grammar are
+fully covered. Most of the equations are straightforward and self-explanatory. 
+The list syntax is expanded to nested \ToscaIn{Cons} and \ToscaIn{Nil} values.
+The main difficulty is normalizing embedded programs, done by $\CC$;  
+Section~\ref{sec:normalization} presents this process in details.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "techreport"
+%%% End:

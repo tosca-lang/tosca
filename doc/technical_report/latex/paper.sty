@@ -1,0 +1,295 @@
+% misc by GM
+\newcommand*{\tpkt}{\rlap{$\;$.}}
+\newcommand*{\tkom}{\rlap{$\;$,}}
+\newcommand{\defsym}{\mathrel{:=}}
+\newcommand*{\m}[1]{\mathsf{#1}}
+\DeclareMathOperator{\bigO}{\m{O}}
+\newcommand*{\DefSymb}{\mathcal{D}}
+\newcommand*{\ConSymb}{\mathcal{C}}
+\newcommand*{\atpos}[2]{{{#1}\!\!\mid_{#2}}}
+\DeclareMathOperator{\rt}{\m{rt}}
+\DeclareMathOperator{\Pos}{\m{Pos}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Basics
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% comment by Maria 
+%\newcommand*{\MS}[1]{\textcolor{Plum}{#1}}
+% comment by Lionel
+%\newcommand*{\LV}[1]{\textcolor{Emerald}{#1}}
+% comment by Georg
+%\newcommand*{\GM}[1]{\textcolor{OliveGreen}{#1}}
+
+% Path to \Tosca
+\newcommand*{\ToscaPath}{https://github.com/tosca-lang/tosca/blob/master}
+
+% anonymizable link
+% #1 : link, #2 : text in non-anonymized version, #3 text in anonymized version
+\newcommand*{\anolink}[3]{\href{#1}{#2}}
+% uncomment anonymize
+%\renewcommand*{\anolink}[3]{\textcolor{Gray}{#3}}
+
+%%%
+% proper names
+
+% Tosca
+\newcommand*{\Tosca}{\protect\scalebox{.95}{\textsf{Tosca}}\xspace}
+% crsx
+\newcommand*{\crsx}{\textsc{crsx}\xspace}
+% hacs
+\newcommand*{\hacs}{\textsc{hacs}\xspace}
+% ANTLR
+\newcommand*{\antlr}{\textsc{Antlr}\xspace}
+% Atom
+\newcommand*{\Atom}{\textsc{Atom}\xspace}
+% Lisp
+\newcommand*{\Lisp}{\textsc{Lisp}\xspace}
+% Rust
+\newcommand*{\Rust}{\textsc{Rust}\xspace}
+% Mini ML
+\newcommand*{\MiniML}{\textsc{Mini ML}\xspace}
+% Spoofax
+\newcommand*{\Spoofax}{\textsc{Spoofax}\xspace}
+% Stratego
+\newcommand*{\Stratego}{\textsc{Stratego}\xspace}
+% Rascal
+\newcommand*{\Rascal}{\textsc{Rascal}\xspace}
+% Java
+\newcommand*{\java}{\textsc{Java}\xspace}
+% JVM
+\newcommand*{\jvm}{\textsc{JVM}\xspace}
+% JavaScript
+\newcommand*{\javascript}{\textsc{JavaScript}\xspace}
+% Babel
+\newcommand*{\babel}{\textsc{Babel}\xspace}
+% TypeScript
+\newcommand*{\typescript}{\textsc{TypeScript}\xspace}
+% CoffeeScript
+\newcommand*{\coffeescript}{\textsc{CoffeeScript}\xspace}
+% Groovy
+\newcommand*{\groovy}{\textsc{Groovy}\xspace}
+% Clojure
+\newcommand*{\clojure}{\textsc{Clojure}\xspace}
+% LLVM
+\newcommand*{\llvm}{\textsc{LLVM}\xspace}
+% C++
+\newcommand*{\cpp}{\textsc{C++}\xspace}
+% Haskell
+\newcommand*{\haskell}{\textsc{Haskell}\xspace}
+% Clean
+\newcommand*{\Clean}{\textsc{Clean}\xspace}
+% Isabelle
+\newcommand*{\Isabelle}{\textsc{Isabelle}\xspace}
+
+
+% "command line"
+\newcommand*{\cd}[1]{\texttt{#1}}
+
+% example programming language
+\newcommand*{\PL}{\ensuremath{\mathcal{L}}\xspace}
+
+% :=
+\newcommand*{\df}{\mathrel{\mathrel{\mathop:}=}}
+
+% to inline code
+\newcommand*{\lax}{\lstinline!$Lax!\xspace} %$
+\newcommand*{\ToscaIn}[1]{\lstinline!#1!}
+
+\newcommand*{\antlrIn}[1]{\lstinline!#1!}
+
+% Transform antlr to transscript 
+% subscript for T
+\newcommand*{\subsT}[1]{\mathit{#1}}
+
+\newcommand*{\T}{\mathcal{T}} 
+\newcommand*{\TG}{\mathcal{T}_{\subsT{grammar}}}
+\newcommand*{\TR}{\mathcal{T}_{\subsT{rule}}}
+\newcommand*{\TA}{\mathcal{T}_{\subsT{alt}}}
+\newcommand*{\TE}{\mathcal{T}_{\subsT{elmt}}}
+\newcommand*{\TB}{\mathcal{T}_{\subsT{block}}}
+
+
+% Corerize transscript
+% subscript for C
+\newcommand*{\subsC}[1]{\mathit{#1}}
+
+\newcommand*{\C}{\mathcal{C}_{\subsC{transcript}}}
+\newcommand*{\CD}{\mathcal{C}_{\subsC{decl}}}
+\newcommand*{\CAS}{\mathcal{C}_{\subsC{args}}}
+\newcommand*{\CT}{\mathcal{C}_{\subsC{term}}}
+\newcommand*{\CMS}{\mathcal{C}_{\subsC{margs}}}
+\newcommand*{\CC}{\mathcal{C}_{\subsC{concrete}}}
+\newcommand*{\CSS}{\mathcal{C}_{\subsC{scopes}}}
+\newcommand*{\CS}{\mathcal{C}_{\subsC{scope}}}
+\newcommand*{\CBS}{\mathcal{C}_{\subsC{binders}}}
+
+
+
+\newcommand*{\CONE}{\mathcal{C}1}
+\newcommand*{\CTWO}{\mathcal{C}2}
+\newcommand*{\CTHREE}{\mathcal{C}3}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CRS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%
+% Sets
+
+%% set of function symbols
+\newcommand*{\F}{\mathcal{F}}
+
+%% set of function symbols
+\newcommand*{\D}{\mathcal{D}}
+
+%% set of variables
+\newcommand*{\V}{\mathcal{V}}
+
+%% set of meta variables
+\newcommand*{\M}{\mathcal{M}}
+
+%% set of free variables
+\newcommand*{\FV}{\textsf{FV}}
+
+%% set of bound variables
+\newcommand*{\BV}{\textsf{BV}}
+
+%% set of rewrite rules, i.e., rewrite system
+\newcommand*{\R}{\mathcal{R}}
+
+%% set of values
+\newcommand*{\VL}{\mathsf{\mathcal{V}als}}
+
+
+%%%
+% Rewrite 
+
+% arity
+\newcommand*{\ar}{\mathsf{ar}}
+
+% rewrite arrow
+\newcommand*{\rw}{\to}
+
+% abbreviation for arguments (vector notation)
+\newcommand*{\args}[1]{\vec{#1}}
+
+% abbreviation for arguments: t1 ... tn
+\newcommand{\ts}{\args{t}}
+
+% abbreviation for arguments: x1 ... xn
+\newcommand*{\xs}{\args{x}}   
+
+% context
+\newcommand*{\hole}{\square}
+
+% unifiable
+\newcommand*{\unfy}{\approx}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Examples: Function Symbols
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% map
+\newcommand*{\main} {\mathsf{main}}
+\newcommand*{\map} {\mathsf{map}}
+\newcommand*{\nil} {\mathsf{nil}}
+\newcommand*{\cons}{\mathsf{cons}}
+\newcommand*{\sq}  {\mathsf{square}}
+\newcommand*{\plus}{\mathsf{plus}}
+\newcommand*{\one} {\mathsf{1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Commands: Misc Mathematical
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% for all, ex, lambda with correct spacing
+\def\binder#1.{{%
+    \def\F##1 ##2{##1\ifx##2\nil{}\else\,\F##2\fi}%
+    \F#1 \nil.\,}}
+% for all e.g., $\ALL x y . x = y$
+\def\ALL#1.{\forall\binder#1.}
+% existential, e.g. $\EX x . x = 1$
+\def\EX#1.{\exists\binder#1.}
+% lambda, e.g. $\LAM x . x$
+\def\LAM#1.{\lambda\binder#1.}
+% underlined lambda, e.g. $\ULAM x . x$
+\def\ULAM#1.{\underline{\lambda}\binder#1.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tikz
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tikzstyle{block} = 
+    [   rectangle
+      , draw
+      , minimum width=2em
+      , text centered
+      , node distance=1em
+      , minimum height=2em
+      , fill = white
+      ]
+
+\tikzstyle{box}=[ rectangle
+                  , draw=black
+                  , text centered 
+                  , anchor = north west
+                  , align = center
+                ]
+
+\tikzstyle{split}=[rectangle split, rectangle split parts=2]
+
+\tikzstyle{line}=[-, thick]
+
+\tikzset{iNode/.style={rounded corners=false}}
+%
+
+
+\newcommand{\gear}[5]{%
+\foreach \i in {1,...,#1} {%
+  [rotate=(\i-1)*360/#1]  (0:#2)  arc (0:#4:#2) {[rounded corners=1.5pt]
+  -- (#4+#5:#3)  arc (#4+#5:360/#1-#5:#3)} --  (360/#1:#2)
+}
+}
+
+\newcommand{\bigcog}[1]{%
+\begin{tikzpicture}
+  \node[circle,minimum size=16mm,fill=gray!60] at (0,0){};
+  \draw [ultra thick,rotate=#1,fill=gray!60,color=gray!60,draw=black]
+    \gear{12}{0.8}{1}{12}{5}
+  ;
+  \fill[black] (0,0) circle (1.8mm);
+\end{tikzpicture}
+}
+
+\newcommand{\midcog}[1]{%
+\begin{tikzpicture}
+  \node[circle,minimum size=12mm,fill=gray!60] at (0,0){};
+  \draw [ultra thick,rotate=#1,fill=gray!60,color=gray!60,draw=black]
+    \gear{10}{0.6}{0.8}{12}{5}
+  ;
+  \fill[black] (0,0) circle (1.5mm);
+\end{tikzpicture}
+}
+
+% argument: scale
+\newcommand*{\cogs}[1]{
+  % rotate whole thing
+  \rotatebox{7}{
+    % scale whole thing with argument
+    \scalebox{#1}{
+      \begin{tikzpicture}
+        \node (A) [iNode] at (1,0) {\bigcog{16}};
+        \node (B) at (0.04,-1.4) [iNode] {\midcog{0}};
+        \node (C) at (1.94,-1.4) [iNode] {\midcog{6}};
+        \node (D) at (2.7,0.17)  [iNode] {\midcog{35}};  
+      \end{tikzpicture}
+    }
+  }
+} 
+
+%%% Local Variables:
+%%% mode: plain-tex
+%%% TeX-master: "paper"
+%%% End:

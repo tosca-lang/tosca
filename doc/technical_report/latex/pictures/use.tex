@@ -1,0 +1,45 @@
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+    \node at (0,0) [box, minimum width = 2.5cm
+                       , minimum height = 1cm]
+                   (Syntax) {syntax of \PL \\[-0.2cm] %
+                            \rule{2.3cm}{0.4pt} \\
+                            \antlr};
+    \node at (2.85,0) [box, minimum width = 2.65cm
+                          , minimum height = 1cm]
+                      (Semantic) {semantic of \PL \\[-0.2cm] %
+                                 \rule{2.3cm}{0.4pt} \\
+                                 \Tosca language};
+    \node at (0,-1.6) [box, minimum width=5.75cm
+                           , fill=gray!20]
+                       (TransScript) {\Tosca compiler generator};
+   \node at (5.7,-1.95) (Cogs1) {\cogs{0.15}};
+    %
+    \path[->, thick] (Syntax)   edge (TransScript.171)
+                     (Semantic) edge (TransScript.10);
+    % 
+    \node at (0,-2.5) [box, minimum width=5.75cm] %
+                    (Java) { \java source code for \PL compiler \\[-0.2cm] 
+                             \rule{4.6cm}{0.4pt} \\
+                             \java};
+    \path[->, thick] (TransScript) edge (Java);
+    %
+    \node (Comp) at (0,-4.25) [box, minimum width=5.75cm, fill=gray!20]
+                   { \PL compiler};
+    \path[->, dotted, thick] (Java) edge (Comp);
+    %
+    \node (pl) at (-2.5,-4.25) [box,draw] { \PL program };
+    \path[->] (pl) edge (Comp) 
+              ;
+    \node at (5.7,-4.6) (Cogs2) {\cogs{0.15}};
+  \end{tikzpicture}
+  \caption{Compiler Generation for Programming 
+    Language~\PL.}
+  \label{fig:use}
+\end{figure}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../techreport"
+%%% End:

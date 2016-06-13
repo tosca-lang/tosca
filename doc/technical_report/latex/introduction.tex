@@ -1,0 +1,119 @@
+%
+The use of transpilers, or source-to-source compilation, has recently
+became quite popular especially in the world of \javascript---with
+\coffeescript, \babel, and \typescript leading the way.  The reason is
+largely due to the fact that the \javascript language has been slow to
+evolve and most importantly when new features become available
+adoption is slow as older browsers do not support them. Transpilers
+solve both problems.
+%
+Based on this, and partly motivated by the success of transpiler, we
+present in this paper \Tosca, a generic compiler generator.
+
+\Tosca aims to combine two different trends in compiler
+technology, which have proven to be successful in the past.
+%
+On one hand, \Tosca follows the lead of transpiling and focuses
+on source-to-source transformation. Here we are attracted by the
+simplicity and elegance we see in the design of the above mentioned
+preprocessing languages for \javascript. In particular, we aspire a
+light-weight approach to compiler generation, which focuses on
+high-level code generation.
+%
+On the other hand, we recognize the fundamental role played by
+(higher-order) rewriting for various tasks in a compiler. We rewrite
+source code to its abstract syntax tree in parsing, we normalize
+(i.e., rewrite) the AST to an intermediate representation, we optimize
+(i.e., rewrite) the intermediate language in various forms, and
+finally we rewrite everything in code generation. It was the
+fundamental idea behind \crsx%
+\footnote{cf.~\href{http://crsx.org/}{crsx.org}.}  that this informal
+use of rewriting can be made precise and even formalized in the
+formalism of \emph{Combinatory Reduction Systems} (\emph{CRSs} for
+short).
+%
+We summarize the contributions of the paper.
+%
+\begin{enumerate}
+\item We present a compiler generator that lifts the concept of
+  transpilers to its full generality. Given a source language $\PL$,
+  whose syntax is represented as an \antlr v4 grammar, and whose
+  semantics is provided in a rule-based form, the \Tosca
+  executable emits source code in the target language. After employing
+  an off-the-shelf compiler for the target language, we obtain an
+  executable compiler for $\PL$. Our current setup uses \java 8 as
+  target language, but \cpp or \haskell could easily well be
+  integrated.
+
+\item For the implementation of \Tosca we have designed a rule-based,
+  higher-order, lazy functional language, also called \Tosca.  The
+  formal core of \Tosca are CRSs. The foundation in higher-order
+  rewriting allows for a good coupling of the tasks of
+  source-to-source compilation (parsing, normalizing, generation of
+  code) and their implementation. In particular the semantics of the
+  source language $\PL$ is provided in \Tosca itself.
+
+\item Finally, \Tosca bootstraps. The compiler for \Tosca
+  is generated via the \Tosca executable.
+\end{enumerate}
+
+The compiler generator \Tosca and the programming language that
+comes along are \emph{light-weight}. As a compiler generator it acts
+like a preprocessor and thus does not rely on a full compilation
+stack. This entails that code optimization is most of the time passed
+on to the target language compiler. Similarly, the \Tosca leaves
+a small footprint, as it relies on state-of-the-art features in the
+design of the target language.
+
+\Tosca adds features to general purpose functional programming,
+some unique and some not, specific to compilers. More precisely
+\Tosca features support for \emph{embedded programs},
+\emph{enumeration}, \emph{syntactic variables}, and
+\emph{specificity-ordered pattern matching}.
+%
+In particular, the last point is unique. In programming patterns are
+typically non-ambiguous as the patterns are not overlapping, or made
+non-ambiguous by fixing an order on the defining equations, e.g.,
+lexical order. Similarly, pattern matching is paramount in compiler,
+where they are used to accomplish dispatch and code optimization. The
+latter may even introduce overlapping definitions, as special cases
+are set aside against a fallback definition. In complex languages it
+becomes increasingly hard to identify missing or redundant cases,
+without hampering code optimization.
+
+\emph{Specificity-ordered pattern matching} overcomes this issue to
+some degree.  Instead of relying on an ad-hoc lexical order of the
+rule definitions to disambiguate, we incorporate Kennaway's
+\emph{specificity} rule~\cite{1990_kennaway} and lift it to
+higher-order programming, employing higher-order unification for
+patterns.  The specificity idea demands that any function definition
+can only be employed if there is no alternative rule which is more
+specific. The latter can be verified by the generation of a
+\emph{specificity tree} that allows to disambiguate between
+overlapping definitions. In particular this process allows to
+recognize the fallback option easily, as long as we do not have to
+disambiguate within equal levels of specificity. In the latter case,
+the specificity rule is not applicable and an exception is thrown.
+
+The remainder is structured as follows. In the next section we provide
+more background information and give an informal presentation of the
+bells and whistles of \Tosca. We also introduce \MiniML as a source
+language that will be used as a running example to demonstrate
+aforementioned bells and whistles.  In
+Section~\ref{sec:theory_practice}, we provides an informal
+introduction to CRSs and the translation of this foundation to \Tosca
+Core and eventually to the full \Tosca language.
+Section~\ref{sec:architecture} describes the architecture underlying
+\Tosca.  In Section~\ref{sec:forreal}, we explain how we can use and
+used \Tosca---for real. In particular we describe the bootstrapping
+process. Finally we conclude and present future work in
+Section~\ref{sec:conclusion}.
+
+The paper occasionally refers to the actual code of the implementation
+for reference. The reader may find the source (in anonymized form) in
+the supplementary material for this submission.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "techreport"
+%%% End:

@@ -1,0 +1,159 @@
+\documentclass[onesided]{scrartcl}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{color}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage[numbers]{natbib}
+
+\usepackage{microtype}
+\usepackage{booktabs}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+% for newcommand of "proper nouns"
+\usepackage{xspace}
+% for brackets: ⟦ ⟧
+\usepackage{stmaryrd}
+% for utf
+\usepackage[utf8x]{inputenc}
+% for crsx listing
+\usepackage{listings}
+% for enumerate*
+\usepackage[inline]{enumitem}
+\usepackage{amssymb} 
+
+% our created style file
+\usepackage{paper} 
+
+\usetikzlibrary{positioning, shapes, arrows}
+
+% define Tosca
+\lstdefinelanguage{Tosca}
+  { morekeywords  = {eager}, 
+    morecomment   = [l]{//}, 
+    morecomment   = [s]{/*}{*/},
+    morestring    = [s]{"}{"}
+    inputencoding = utf8x,
+    literate      = {∀}{{$\forall\ $}}1
+                    {↠}{{$\to^*\ $}}1
+                    {→}{{$\to\ $}}1
+                    {⟦}{{$\llbracket$}}1
+                    {⟧}{{$\rrbracket$}}1
+                    {⟨}{{$\langle$}}1
+                    {⟩}{{$\rangle$}}1
+                    {↦}{{$\mapsto\ $}}1
+ }
+
+\lstdefinelanguage{ANTLR}
+ {  morestring   = [s]{'}{'},  
+    morecomment  = [l]{//},
+    % define special charakcter
+    alsoletter   = {:,|,;,?,*},
+    morekeywords = {:,|,;}
+ }
+
+\lstset{
+  basicstyle        = {\small\ttfamily},
+  numbers           = left, % alternative: left, or right
+  numberstyle       = \tiny\color{gray},
+  %
+  keywordstyle      = \color{MidnightBlue},
+  commentstyle      = \color{Gray},
+  stringstyle       = \color{OliveGreen},   
+  %
+  columns           = flexible,
+  breaklines        = true,
+  breakatwhitespace = true,
+  tabsize=2
+  }
+
+\lstset{language = Tosca}
+\lstnewenvironment{lstTosca}{}{}
+\lstset{language = ANTLR}
+\lstnewenvironment{lstANTLR}{}{}
+
+\usepackage{scrlayer-scrpage}
+\pagestyle{scrheadings}
+\ihead{Georg Moser, Maria A Schett, and Lionel Villard}
+\ohead{\Tosca}
+
+\pagestyle{headings}
+ 
+\title{Technical Report: \Tosca  \\[0.5em]
+       \large{The preprOcesSing Compiler generAtor language} }
+
+\setkomafont{author}{\small}
+\newcommand*{\email}[2]{\href{mailto:#1@#2}{\texttt{#1@#2}}}
+
+\author{\small Georg Moser \\
+        Universit\"at Innsbruck, Austria \\
+        \email{georg.moser}{uibk.ac.at}
+\and
+       Maria A Schett \\
+       \small{Universit\"at Innsbruck, Austria} \\
+       \email{mail}{maria-a-schett.net}
+\and
+       Lionel Villard \\
+       \small{IBM Thomas J. Watson Research Center, USA} \\
+       \email{villard}{us.ibm.com}
+}
+
+\begin{document}
+
+\setkomafont{date}{\small\sf}
+
+\date{\bf\colorbox{yellow}{Disclaimer: Not complete, subject to change---State May, 2016}}
+
+\maketitle
+\input{abstract}
+
+\section{Introduction} \label{sec:introduction}
+\input{introduction}
+
+\section{Background and Informal Presentation} \label{sec:bg}
+\input{presentation}
+   
+\section{From Theory to Practice} \label{sec:theory_practice}
+\input{theory}
+
+\section{Compilation} \label{sec:architecture}
+\input{compilation}
+
+\section{Using \Tosca---For Real} 
+ \label{sec:self-hosting} \label{sec:forreal}
+\input{forreal}
+
+\section{Conclusion and Future Work}
+\label{sec:conclusion}
+\input{conclusion}
+
+\bibliographystyle{plain}
+\bibliography{bib}
+
+\end{document}
+
+
