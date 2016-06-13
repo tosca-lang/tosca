@@ -12,8 +12,8 @@ import Text::Text4
 /* @return TRUE if the term is a meta-application. Ignore binders and formal parameters  */
 func IsMeta(Core_cterm_sort) -> Bool
 rule IsMeta(cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧) → TRUE
-rule IsMeta(cterm⟦ [ v ##csortanno? ] ##cterm ⟧)                 → IsMeta(#cterm[var:String])
-rule IsMeta(cterm⟦ ( f ##csortanno? ) ##cterm ⟧)                 → IsMeta(#cterm[var:String])
+rule IsMeta(cterm⟦ [ v ##csortanno? ] ##cterm[v] ⟧)                 → IsMeta(#cterm[var:String])
+rule IsMeta(cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧)                 → IsMeta(#cterm[var:String])
 rule IsMeta(cterm⟦ thunk ##cterm ⟧)                              → IsMeta(#cterm)
 rule IsMeta(#term)                                              → FALSE
 
@@ -81,8 +81,8 @@ rule TermSort(cterm⟦ ##STRING ⟧)                                         →
 rule TermSort(cterm⟦ ##NUMBER ⟧)                                         → SOME(csort⟦ Numeric ⟧)
 rule TermSort(cterm⟦ ##VARIABLE : ##csort ⟧)                             → SOME(#csort)
 rule TermSort(cterm⟦ { ##cmapentries } ⟧)                                → NONE  // TODO:
-rule TermSort(cterm⟦ [ x ##csortanno? ] ##cterm ⟧)                       → TermSort(#cterm)
-rule TermSort(cterm⟦ ( x ##csortanno? ) ##cterm ⟧)                       → TermSort(#cterm)
+rule TermSort(cterm⟦ [ x ##csortanno? ] ##cterm[x] ⟧)                    → TermSort(#cterm[x])
+rule TermSort(cterm⟦ ( x ##csortanno? ) ##cterm[x] ⟧)                    → TermSort(#cterm[x])
 rule TermSort(cterm⟦ thunk ##cterm ⟧)                                    → TermSort(#cterm)
 rule TermSort(#)                                                         → NONE
 

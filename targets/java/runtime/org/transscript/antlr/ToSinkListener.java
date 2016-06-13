@@ -646,7 +646,7 @@ public class ToSinkListener implements ParseTreeListener
 							// TODO: deprecate backward-compatible behavior (no []) = bind all
 							for (Pair<String, Variable> bound : bounds)
 							{
-								if (bound != MARKER && (metaargs == null || containsArg(bound.fst, metaargs)))
+								if (bound != MARKER && (metaargs != null && containsArg(bound.fst, metaargs)))
 									sink.use(bound.snd);
 							}
 							

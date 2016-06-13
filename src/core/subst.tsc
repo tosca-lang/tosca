@@ -21,8 +21,8 @@ rule Substitute(cterm⟦ #cliteral                                           ⟧
 rule Substitute(cterm⟦ ##VARIABLE ##csortanno?                             ⟧, #subst) → SubstVariable(#VARIABLE, #csortanno?, #subst)
 
 rule Substitute(cterm⟦ { ##cmapentries? }                                  ⟧, #subst) → cterm⟦ { ⟨cmapentries?: SubstMaybeMapEntries(#cmapentries?, #subst)⟩ } ⟧
-rule Substitute(cterm⟦ [ x ##csortanno ] ##cterm                           ⟧, #subst) → cterm⟦ [ x ##csortanno ] ⟨cterm: Substitute(#cterm, #subst)⟩ ⟧
-rule Substitute(cterm⟦ ( f ##csortanno ) ##cterm                           ⟧, #subst) → cterm⟦ ( f ##csortanno ) ⟨cterm: Substitute(#cterm, #subst)⟩ ⟧
+rule Substitute(cterm⟦ [ x ##csortanno ] ##cterm[x]                        ⟧, #subst) → cterm⟦ [ x ##csortanno ] ⟨cterm: Substitute(#cterm, #subst)⟩ ⟧
+rule Substitute(cterm⟦ ( f ##csortanno ) ##cterm[f]                        ⟧, #subst) → cterm⟦ ( f ##csortanno ) ⟨cterm: Substitute(#cterm, #subst)⟩ ⟧
 rule Substitute(cterm⟦ thunk ##cterm                                       ⟧, #subst) → cterm⟦ thunk ⟨cterm: Substitute(#cterm, #subst)⟩ ⟧
 
 func SubstMaybeTerms(List<Core_cterms_sort>, {String : Core_cterm_sort}) -> List<Core_cterms_sort>
@@ -40,6 +40,7 @@ rule SubstTerms(cterm*⟦ ##cterm ##cterm* ⟧, #subst) → cterm*⟦ ⟨cterm: 
 
 func SubstMetaVar(#metavar: String, #subst: {String : Core_cterm_sort}) -> String
 → IfPresent<Core_cterm_sort String>(MapGet<String Core_cterm_sort>(#subst, #metavar), (substitute) -> SubstGetMetaVar(substitute), ()->#metavar)
+
 
 func SubstGetMetaVar(Core_cterm_sort) -> String
 rule SubstGetMetaVar(cterm⟦ ##METAVAR ⟧) → #METAVAR

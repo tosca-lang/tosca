@@ -199,12 +199,12 @@ rule InferSortArgsUp(#env, FALSE) → TopSortArgs(#env)
 /* Reconstruct binder */
 // Note: #env is weak.
 func InferBinderUp([String] -> Pair<{String:IEnvEntry} Core_cterm_sort>, Core_csort_sort) -> Pair<{String:IEnvEntry} Core_cterm_sort>
-rule InferBinderUp([b] -> PairCons(#env:{String:IEnvEntry}, #cterm[b]:Core_cterm_sort), #csort) → PairCons(#env, cterm⟦ [ b : ##csort[] ] ##cterm[b] ⟧)
+rule InferBinderUp([b] -> PairCons(#env:{String:IEnvEntry}, #cterm[b]:Core_cterm_sort), #csort) → PairCons(#env, cterm⟦ [ b : ##csort ] ##cterm[b] ⟧)
 
 /* Reconstruct formal parameter */
 // Note: #env is weak.
 func InferFormalUp([String] -> Pair<{String:IEnvEntry} Core_cterm_sort>, Core_csort_sort) -> Pair<{String:IEnvEntry} Core_cterm_sort>
-rule InferFormalUp([f] -> PairCons(#env:{String:IEnvEntry}, #cterm[f]:Core_cterm_sort), #csort) → PairCons(#env, cterm⟦ ( f : ##csort[] ) ##cterm[f] ⟧)
+rule InferFormalUp([f] -> PairCons(#env:{String:IEnvEntry}, #cterm[f]:Core_cterm_sort), #csort) → PairCons(#env, cterm⟦ ( f : ##csort ) ##cterm[f] ⟧)
 
 // --- Synthesize meta
 

@@ -874,6 +874,7 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
   rule JavaPatternTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #term, #csort, #storage, #cont)
   → text⟦†⟨JavaPatternMaybeMetaArgs(#env, #METAVAR, #csubst?, #term, #csort, #cont)⟩⟧
 
+
   rule JavaPatternTerm(#env, cterm⟦ ##VARIABLE ⟧, #term, #csort, #storage, #cont)
   → JavaPatternVariable(JMaybeGetVar(#env, #VARIABLE), #env, #VARIABLE, #term, #cont)
 
