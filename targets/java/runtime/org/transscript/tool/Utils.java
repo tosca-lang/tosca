@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.transscript.compiler.core.Core;
+import org.transscript.compiler.core.Core.Core_xcsort_xsort;
 import org.transscript.compiler.core.Core.Core_xcterm_xsort;
 import org.transscript.compiler.std.Listdef;
 import org.transscript.compiler.text.Printer;
@@ -71,6 +72,10 @@ public class Utils
 			else if (term instanceof Core_xcterm_xsort && (category == null || category.equals("cterm")))
 			{
 				printTerm(context, "text", Core.Core_xPrint_xcterm(context, (Core_xcterm_xsort) term), outputName, output);
+			}
+			else if (term instanceof Core_xcsort_xsort && (category == null || category.equals("csort")))
+			{
+				printTerm(context, "text", Core.Core_xPrint_xcsort(context, (Core_xcsort_xsort) term), outputName, output);
 			}
 			else
 				TermPrinter.print(term, output);

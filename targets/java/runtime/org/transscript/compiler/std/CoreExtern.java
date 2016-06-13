@@ -47,11 +47,6 @@ public class CoreExtern
 		throw new RuntimeException(emsg.toString());
 	}
 
-	public static <a extends Term> a Trace(Context ctx, ThunkMaker<a> tm, a x_432)
-	{
-		throw new RuntimeException();
-	}
-
 	public static StringTerm GetEnv(Context ctx, StringTerm key, StringTerm defaultValue)
 	{
 		java.lang.String value = System.getProperty(key.unbox());
@@ -89,6 +84,17 @@ public class CoreExtern
 
 		def.release();
 		return notdef.eval(ctx);
+	}
+
+	/** 
+	 * Print the given message to the console and return result
+	 */
+	public static <a extends Term> a Trace(Context context, ThunkMaker<a> tma, StringTerm msg, LazyTerm<a> result)
+	{
+		StringTerm emsg = Term.force(context, msg);
+		System.out.println(emsg);
+		emsg.release();
+		return result.eval(context);
 	}
 
 }

@@ -73,7 +73,7 @@ extern func SameVariable<a b>(a, b) -> Bool
 
 // --- Debugging
 
-extern func Trace<a>(eager a) -> a
+extern func Trace<a>(#msg : String, #result: ()->a) -> a
 
 extern func Show<a>(a) -> String
 
