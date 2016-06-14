@@ -36,30 +36,30 @@ func Compile(#url: String, #config: {String:String}) -> Result
 
 /* Compile system. */
 func CompileS(#system: TSystem) -> Result
-→ FoldResults(Map<Module Result>((mod)->CompileM(#system, mod), MapValues<String Module>(GetModules(#system))))
+→ FoldResults(Map( (mod)->CompileM(#system, mod), MapValues(GetModules(#system)) ))
 
 /* Compile module (if not part of the standard library). */
 func CompileM(#system: TSystem, #module: Module) -> Result
-→ If<Result>(IsModuleCompiled(#module),
+→ If(IsModuleCompiled(#module),
     ()->Success(()),
     ()->CodeGenerateM(#system, CheckCoreM(#system, InferM(#system, ClosureConvertM(#system, #module)))))
 
 func CodeGenerateM(#system: TSystem, #module: Module) -> Result
-→ IfConfigDef<Result>(#system, "cpp", (v)->ToCppM(#system, #module), ()->ToJavaM(#system, #module))
+→ IfConfigDef(#system, "cpp", (v)->ToCppM(#system, #module), ()->ToJavaM(#system, #module))
 
 /* Merge all results */
 func FoldResults(#results: List<Result>) -> Result
 → FoldlP<Result Result>((r rs)->FoldResult(r, rs), Success(()), #results)
 
 func FoldResult(Result, Result) -> Result
-rule FoldResult(Success(#1:List<String>), Success(#2:List<String>)) → Success(Concat<String>(#1, #2))
+rule FoldResult(Success(#1), Success(#2)) → Success(Concat(#1, #2))
 rule FoldResult(#1, #2) → FAILURE
 
 // --- Module loading.
 
 /* Load imported modules into the system, recursively */
 func LoadImportedModules(#system: TSystem, #url:String, #imports: List<Core_cqconstructor_sort>) -> TSystem
-→ FoldlP<Core_cqconstructor_sort TSystem>((imp system)->LoadImport(system, #url, imp), #system, #imports)
+→ FoldlP((imp system)->LoadImport(system, #url, imp), #system, #imports)
 
 /* Load imported module into the system */
 func LoadImport(#system: TSystem, #url:String, #import: Core_cqconstructor_sort) -> TSystem
@@ -67,7 +67,7 @@ func LoadImport(#system: TSystem, #url:String, #import: Core_cqconstructor_sort)
 
 /* Load module content and update system */
 func LoadModuleS(#system: TSystem, #url: String, #standard:Bool) -> TSystem
-→ If<TSystem>(HasModule(#system, #url), ()->#system, ()->LoadModuleAux(#system, #url, LoadModuleM(#url, #standard)))
+→ If(HasModule(#system, #url), ()->#system, ()->LoadModuleAux(#system, #url, LoadModuleM(#url, #standard)))
 
 func LoadModuleAux(#system: TSystem, #url: String, #module: Module) -> TSystem
 → LoadImportedModules(PutModule(#system, #url, #module), #url, GetImportsM(#module))
@@ -75,9 +75,9 @@ func LoadModuleAux(#system: TSystem, #url: String, #module: Module) -> TSystem
 /* Load module content.
    @param `#url` the location of the module. Support loading core Tosca program (*.tscc file). */
 func LoadModuleM(#url: String, #standard:Bool) -> Module
-→ Module(#url, LoadCore(If<Core_ccrsx_sort>(EndsWith(#url, ".tscc"),
-    ()->ParseResource<Core_ccrsx_sort>("ccrsx", #url),
-    ()->ToCore(#url, ParseResource<TransScript_transscript_sort>("transscript", #url)))), #standard)
+→ Module(#url, LoadCore(If(EndsWith(#url, ".tscc"),
+                             ()->ParseResource("ccrsx", #url),
+                             ()->ToCore(#url, ParseResource("transscript", #url)))), #standard)
 
 //--- Path manipulation functions
 
@@ -86,12 +86,12 @@ func ResolveImport(#system: TSystem, #url:String, #import: Core_cqconstructor_so
 → ResolveImportAux(#system, #url, QConsToStringList(#import))
 
 func ResolveImportAux(#system: TSystem, #url:String, #name: List<String>) -> String
-→ ConcatString(If<String>(StringEqual(Head<String>(#name), "Std"), ()->GetConfigDef(#system, "baseStd", ""), ()->PathJoin(PathParent(Path(GetSystemURL(#system))))),
+→ ConcatString(If(StringEqual(Head(#name), "Std"), ()->GetConfigDef(#system, "baseStd", ""), ()->PathJoin(PathParent(Path(GetSystemURL(#system))))),
   ConcatString("/",
-  ConcatString(Join(Map<String String>((s)->DownCaseFirst(s), #name), "/"), ".tsc")))
+  ConcatString(Join(Map((s)->DownCaseFirst(s), #name), "/"), ".tsc")))
 
 //--- Helpers
 
 /* @return `TRUE` if the given `#import` is a standard library module */
 func IsStandardImport(#system: TSystem, #import: Core_cqconstructor_sort) -> Bool
-→ IfConfigDef<Bool>(#system, "bootstrap", (v)->FALSE, ()->StringEqual(Head<String>(QConsToStringList(#import)), "Std"))
+→ IfConfigDef(#system, "bootstrap", (v)->FALSE, ()->StringEqual(Head(QConsToStringList(#import)), "Std"))

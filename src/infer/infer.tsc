@@ -47,7 +47,8 @@ func InferRules(#key: String, #rules: List<Core_cdecl_sort>, #content: Content, 
 
 func InferRule({String:IEnvEntry}, Core_cdecl_sort) -> Core_cdecl_sort
 rule InferRule(#env, cdecl⟦ rule ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? → ##cterm ⟧)
-→ Trace<Core_cdecl_sort>(ConcatString("Infer Rule: ", #CONSTRUCTOR), ()->InferRuleAux(#env, FindFuncSortS(GetSystem(#env), #CONSTRUCTOR), #CONSTRUCTOR, #cterms?, #cterm))
+→ InferRuleAux(#env, FindFuncSortS(GetSystem(#env), #CONSTRUCTOR), #CONSTRUCTOR, #cterms?, #cterm)
+
 
 func InferRuleAux({String:IEnvEntry}, Option<Core_cdecl_sort>, String, List<Core_cterms_sort>, Core_cterm_sort) -> Core_cdecl_sort
 
@@ -55,14 +56,15 @@ func InferRuleAux({String:IEnvEntry}, Option<Core_cdecl_sort>, String, List<Core
   → InferPatternUp(#CONSTRUCTOR, InferMaybeTerms(IAddDummySorts(#env, #csortvars?), #CONSTRUCTOR, #cterms?, MaybeSortsToSorts(#csorts?)), #csort, #contractum)
 
   rule InferRuleAux(#env, NONE,  #funcname, cterms?⟦⟧, #contractum)
-  → Error< Core_cdecl_sort>(ConcatString("Error: undeclared function named ", #funcname))
+  → Error(ConcatString("Error: undeclared function named ", #funcname))
 
 func InferPatternUp(String, Pair<{String:IEnvEntry} List<Core_cterms_sort>>, Core_csort_sort, Core_cterm_sort) -> Core_cdecl_sort
 rule InferPatternUp(#CONSTRUCTOR, PairCons(#env:{String:IEnvEntry}, #cterms?:List<Core_cterms_sort>), #esort, #contractum)
-→ InferRuleUp(Trace<Core_cterm_sort>(ConcatString("pattern: ", PrintTerm<Core_cterm_sort>("cterm", cterm⟦ ##CONSTRUCTOR ##cterms? ⟧)), ()->cterm⟦ ##CONSTRUCTOR ##cterms? ⟧), InferTerm(SetInPattern(#env, FALSE), #contractum, #esort))
+→ InferRuleUp(cterm⟦ ##CONSTRUCTOR ##cterms? ⟧, InferTerm(SetInPattern(#env, FALSE), #contractum, #esort))
+
 
 func InferRuleUp(Core_cterm_sort, Pair<{String:IEnvEntry} Core_cterm_sort>) -> Core_cdecl_sort
-rule InferRuleUp(#cterm1, PairCons(#env:{String:IEnvEntry}, #cterm2:Core_cterm_sort)) → Trace<Core_cdecl_sort>(ConcatString("contractum: ", PrintTerm<Core_cterm_sort>("cterm", #cterm2)), ()->ISubstRule(OptimizeSorts(#env), #cterm1, #cterm2))
+rule InferRuleUp(#cterm1, PairCons(#env:{String:IEnvEntry}, #cterm2:Core_cterm_sort)) → ISubstRule(OptimizeSorts(#env), #cterm1, #cterm2)
 
 // ---- Synthesize sorts
 
@@ -285,35 +287,32 @@ rule IAddDummySortsAux(#env, ())  → #env
    @return The environment containing an updated sort environment with substitutions unifying `#sort1` and  `#sort2`.
            If no such substitution is found, an error is raised.
 */
-func UnifySort(#env:{String:IEnvEntry}, #sort1: Core_csort_sort, #sort2: Core_csort_sort) -> {String:IEnvEntry}
-→ Trace<{String:IEnvEntry}>(ConcatString("Unify: ", ConcatString(PrintTerm<Core_csort_sort>("csort", #sort1), ConcatString(" with ", PrintTerm<Core_csort_sort>("csort", #sort2)))), ()->UnifySort1(#env, #sort1, #sort2))
+func UnifySort({String:IEnvEntry}, Core_csort_sort, Core_csort_sort) -> {String:IEnvEntry}
 
-func UnifySort1({String:IEnvEntry}, Core_csort_sort, Core_csort_sort) -> {String:IEnvEntry}
+  rule UnifySort(#env, csort⟦ thunk ##csort1 ⟧, #csort2) → UnifySort(#env, #csort1, #csort2)
+  rule UnifySort(#env, #csort1, csort⟦ thunk ##csort2 ⟧) → UnifySort(#env, #csort1, #csort2)
+  rule UnifySort(#env, csort⟦ data ##csort1 ⟧, #csort2)  → UnifySort(#env, #csort1, #csort2)
+  rule UnifySort(#env, #csort1, csort⟦ data ##csort2 ⟧)  → UnifySort(#env, #csort1, #csort2)
 
-  rule UnifySort1(#env, csort⟦ thunk ##csort1 ⟧, #csort2) → UnifySort(#env, #csort1, #csort2)
-  rule UnifySort1(#env, #csort1, csort⟦ thunk ##csort2 ⟧) → UnifySort(#env, #csort1, #csort2)
-  rule UnifySort1(#env, csort⟦ data ##csort1 ⟧, #csort2)  → UnifySort(#env, #csort1, #csort2)
-  rule UnifySort1(#env, #csort1, csort⟦ data ##csort2 ⟧)  → UnifySort(#env, #csort1, #csort2)
-
-  rule UnifySort1(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, csort⟦ ##CONSTRUCTOR2 ##csorts?2 ⟧)
+  rule UnifySort(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, csort⟦ ##CONSTRUCTOR2 ##csorts?2 ⟧)
   → UnifyMaybeSorts(#env, #csorts?, #csorts?2)
 
-  rule UnifySort1(#env, csort⟦ ##VARIABLE ⟧, #csort)
+  rule UnifySort(#env, csort⟦ ##VARIABLE ⟧, #csort)
   → UnifySortVar(#env, #VARIABLE, GetSort(#env, #VARIABLE), #csort)
 
-  rule UnifySort1(#env, #csort, csort⟦ ##VARIABLE ⟧)
+  rule UnifySort(#env, #csort, csort⟦ ##VARIABLE ⟧)
   → UnifySortVar(#env, #VARIABLE, GetSort(#env, #VARIABLE), #csort)
 
-  rule UnifySort1(#env, csort⟦ [ ##csort11 ] ##csort12 ⟧, csort⟦ [ ##csort21 ] ##csort22 ⟧)
-  → UnifySort1(UnifySort1(#env, #csort11, #csort21), #csort12, #csort22)
+  rule UnifySort(#env, csort⟦ [ ##csort11 ] ##csort12 ⟧, csort⟦ [ ##csort21 ] ##csort22 ⟧)
+  → UnifySort(UnifySort(#env, #csort11, #csort21), #csort12, #csort22)
 
-  rule UnifySort1(#env, csort⟦ ( ##csort11 ) ##csort12 ⟧, csort⟦ ( ##csort21 ) ##csort22 ⟧)
-  → UnifySort1(UnifySort1(#env, #csort11, #csort21), #csort12, #csort22)
+  rule UnifySort(#env, csort⟦ ( ##csort11 ) ##csort12 ⟧, csort⟦ ( ##csort21 ) ##csort22 ⟧)
+  → UnifySort(UnifySort(#env, #csort11, #csort21), #csort12, #csort22)
 
-  rule UnifySort1(#env, csort⟦ { ##csort11 : ##csort12 } ⟧, csort⟦ { ##csort21 : ##csort22 } ⟧)
-  → UnifySort1(UnifySort1(#env, #csort11, #csort21), #csort12, #csort22)
+  rule UnifySort(#env, csort⟦ { ##csort11 : ##csort12 } ⟧, csort⟦ { ##csort21 : ##csort22 } ⟧)
+  → UnifySort(UnifySort(#env, #csort11, #csort21), #csort12, #csort22)
 
-  rule UnifySort1(#env, #csort1, #csort2                ) → Error<{String:Core_csort_sort}>(ConcatString("Error: type ", ConcatString(PrintSort(#csort2), ConcatString(" is not an instance of type ", PrintSort(#csort1)))))
+  rule UnifySort(#env, #csort1, #csort2                ) → Error<{String:Core_csort_sort}>(ConcatString("Error: type ", ConcatString(PrintSort(#csort2), ConcatString(" is not an instance of type ", PrintSort(#csort1)))))
 
 // -- Sub sorts
 
@@ -326,7 +325,7 @@ rule UnifyMaybeSorts(#env, #csorts?1, #csorts?2) → #env
 
 func UnifySorts({String:IEnvEntry}, List<Core_csort_sort>, List<Core_csort_sort>) -> {String:IEnvEntry}
 rule UnifySorts(#env, csort*⟦                    ⟧, csort*⟦                    ⟧) → #env
-rule UnifySorts(#env, csort*⟦ ##csort1 ##csort*1 ⟧, csort*⟦ ##csort2 ##csort*2 ⟧) → UnifySorts(UnifySort1(#env, #csort1, #csort2), #csort*1, #csort*2)
+rule UnifySorts(#env, csort*⟦ ##csort1 ##csort*1 ⟧, csort*⟦ ##csort2 ##csort*2 ⟧) → UnifySorts(UnifySort(#env, #csort1, #csort2), #csort*1, #csort*2)
 rule UnifySorts(#env, #csort*1, #csort*2) → Error<{String:IEnvEntry}>("Error: mismatched type arity for type XX and YY") // TODO
 
 // -- Variable
