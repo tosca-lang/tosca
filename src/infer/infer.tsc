@@ -52,7 +52,7 @@ rule InferRule(#env, cdecl⟦ rule ##CONSTRUCTOR ##csortargs? ##cterms? ##csorta
 func InferRuleAux({String:IEnvEntry}, Option<Core_cdecl_sort>, String, List<Core_cterms_sort>, Core_cterm_sort) -> Core_cdecl_sort
 
   rule InferRuleAux(#env, SOME(cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧), #funcname, #cterms?, #contractum)
-  → InferPatternUp(#CONSTRUCTOR, InferMaybeTerms(#env, #CONSTRUCTOR, #cterms?, MaybeSortsToSorts(#csorts?)), #csort, #contractum)
+  → InferPatternUp(#CONSTRUCTOR, InferMaybeTerms(IAddDummySorts(#env, #csortvars?), #CONSTRUCTOR, #cterms?, MaybeSortsToSorts(#csorts?)), #csort, #contractum)
 
   rule InferRuleAux(#env, NONE,  #funcname, cterms?⟦⟧, #contractum)
   → Error< Core_cdecl_sort>(ConcatString("Error: undeclared function named ", #funcname))
@@ -62,7 +62,7 @@ rule InferPatternUp(#CONSTRUCTOR, PairCons(#env:{String:IEnvEntry}, #cterms?:Lis
 → InferRuleUp(Trace<Core_cterm_sort>(ConcatString("pattern: ", PrintTerm<Core_cterm_sort>("cterm", cterm⟦ ##CONSTRUCTOR ##cterms? ⟧)), ()->cterm⟦ ##CONSTRUCTOR ##cterms? ⟧), InferTerm(SetInPattern(#env, FALSE), #contractum, #esort))
 
 func InferRuleUp(Core_cterm_sort, Pair<{String:IEnvEntry} Core_cterm_sort>) -> Core_cdecl_sort
-rule InferRuleUp(#cterm1, PairCons(#env:{String:IEnvEntry}, #cterm2:Core_cterm_sort)) → ISubstRule(OptimizeSorts(#env), #cterm1, Trace<Core_cterm_sort>(ConcatString("contractum: ", PrintTerm<Core_cterm_sort>("cterm", #cterm2)), ()->#cterm2))
+rule InferRuleUp(#cterm1, PairCons(#env:{String:IEnvEntry}, #cterm2:Core_cterm_sort)) → Trace<Core_cdecl_sort>(ConcatString("contractum: ", PrintTerm<Core_cterm_sort>("cterm", #cterm2)), ()->ISubstRule(OptimizeSorts(#env), #cterm1, #cterm2))
 
 // ---- Synthesize sorts
 
@@ -235,7 +235,7 @@ rule InferMetaUse1(#METAVAR, PairCons(#env:{String:IEnvEntry}, #cterms?: List<Co
 
 func InferMetaUse2({String:IEnvEntry}, String, List<Core_cterms_sort>, List<Core_csubst_sort>, Core_csort_sort, Core_csort_sort) -> Pair<{String:IEnvEntry} Core_cterm_sort>
 rule InferMetaUse2(#env, #METAVAR, #cterms?, #csubst?, #dsort, #csort)
-→ PairCons(UnifySort(#env, #dsort, #csort), cterm⟦ ##METAVAR ##cterms? ##csubst? : ##csort ⟧)
+→ PairCons(UnifySort(#env, #csort, #dsort), cterm⟦ ##METAVAR ##cterms? ##csubst? : ##csort ⟧)
 
 /* Synthesize sort variables.
 
@@ -264,6 +264,15 @@ func InferSortArgsAux({String:IEnvEntry}, List<String>, List<Core_csort_sort>, L
 
   // Error: too many sort arguments
   rule InferSortArgsAux(#env, (), csort*⟦ ##csort ##csort* ⟧, #mapping)  → Error<{String:IEnvEntry}>("Error: extra type arguments")
+
+
+func IAddDummySorts({String:IEnvEntry}, List<Core_csortvars_sort>) -> {String:IEnvEntry}
+rule IAddDummySorts(#env, csortvars?⟦                     ⟧) → #env
+rule IAddDummySorts(#env, csortvars?⟦ ∀ ##variable_TOK+ . ⟧) → IAddDummySortsAux(#env, #variable_TOK+)
+
+func IAddDummySortsAux({String:IEnvEntry}, List<String>) -> {String:IEnvEntry}
+rule IAddDummySortsAux(#env, Cons(#sortvar:String, #sortvars:List<String>)) → IAddDummySortsAux(PutSort(#env, #sortvar, csort⟦ ⟨VARIABLE: "dummy"⟩ ⟧), #sortvars)
+rule IAddDummySortsAux(#env, ())  → #env
 
 // --- Sort unification
 
@@ -326,97 +335,44 @@ rule UnifySorts(#env, #csort*1, #csort*2) → Error<{String:IEnvEntry}>("Error: 
 
 func UnifySortVar({String:IEnvEntry}, String, Option<Core_csort_sort>, Core_csort_sort) -> {String:IEnvEntry}
 
-  // Case 1: no existing mapping.
-  rule UnifySortVar(#env, #VARIABLE1, NONE, csort⟦ ##VARIABLE2 ⟧)
-  → If<{String:Core_csort_sort}>(StringEqual(#VARIABLE1, #VARIABLE2),
-      // Same variable, nothing to do
-      ()->#env,
-      // Add sort if there is no mapping for VARIABLE2
-      ()->UnifySortVar2(#env, #VARIABLE1, csort⟦ ##VARIABLE2 ⟧, GetSort(#env, #VARIABLE2)))
+  // Case 1: unify two sort variables
+  rule UnifySortVar(#env, #VARIABLE1, #sort1, csort⟦ ##VARIABLE2 ⟧)
+  → UnifySortVar1(#env, #VARIABLE1, #sort1, #VARIABLE2, GetSort(#env, #VARIABLE2))
 
-  // Case 2: no existing mapping. Create it
-  rule UnifySortVar(#env, #VARIABLE1, NONE, #csort)
-  → PutSort(#env, #VARIABLE1, #csort)
+  // Case 2: unify with another non-variable sort, no existing entry
+  rule UnifySortVar(#env, #VARIABLE1, NONE, #sort2)
+  → PutSort(#env, #VARIABLE1, #sort2)
 
-  // Case 3: there is already a mapping to a sort variable and new sort is also a sort variable
-  rule UnifySortVar(#env, #variable, SOME(csort⟦ ##VARIABLE1 ⟧), csort⟦ ##VARIABLE2 ⟧)
-  → If<{String:Core_csort_sort}>(StringEqual(#VARIABLE1, #VARIABLE2),
-      // Same variable, nothing to do
-      ()->#env,
-      // Not the same variable and they should be equal. Try insert either VAR1 -> VAR2 or VAR2 -> VAR1
-      ()->UnifySortVar2(#env, #VARIABLE1, csort⟦ ##VARIABLE2 ⟧, GetSort(#env, #VARIABLE1)))
+  // Case 3: unify with another non-variable sort, existing entry
+  rule UnifySortVar(#env, #VARIABLE1, SOME(#sort1:Core_csort_sort), #sort2)
+  → UnifySort(#env, #sort1, #sort2)
 
-  // Case 4, there is already a mapping to a sort variable.
-  rule UnifySortVar(#env, #variable, SOME(csort⟦ ##VARIABLE1 ⟧), #csort)
-  → UnifySort1(#env, #csort, csort⟦ ##VARIABLE1 ⟧)
+// Helper due to issue #?? (final)
+func UnifySortVar1(#env:{String:IEnvEntry}, #VARIABLE1: String, #sort1: Option<Core_csort_sort>, #VARIABLE2: String, #sort2:Option<Core_csort_sort>) -> {String:IEnvEntry}
+→ If<{String:Core_csort_sort}>(StringEqual(#VARIABLE1, #VARIABLE2),
+    // Same variable, nothing to do
+    ()->#env,
+    // Continue...
+    ()->UnifySortVar2(#env, #VARIABLE1, #sort1, #VARIABLE2, #sort2))
 
-  // Case 5, there is already a mapping to a sort that is not a variable
-  rule UnifySortVar(#env, #variable, SOME(#csort:Core_csort_sort), csort⟦ ##VARIABLE2 ⟧)
-  → UnifySortVar(#env, #VARIABLE2, SOME(csort⟦ ##VARIABLE2 ⟧), #csort)
+// Unify 2 non identical variables.
+func UnifySortVar2({String:IEnvEntry}, String, Option<Core_csort_sort>, String, Option<Core_csort_sort>) -> {String:IEnvEntry}
 
-  // Case 6, there is already a mapping to non sort variables
-  rule UnifySortVar(#env, #variable, SOME(#csort1:Core_csort_sort), #csort2)
-  → UnifySort1(#env, #csort2, #csort1) // TODO: could check csort1 = csort2
+  rule UnifySortVar2(#env, #VARIABLE1, NONE, #VARIABLE2, NONE)
+  → PutSort(#env, #VARIABLE1, csort⟦ ##VARIABLE2 ⟧)
 
-func UnifySortVar2({String:IEnvEntry}, String, Core_csort_sort, Option<Core_csort_sort>) -> {String:IEnvEntry}
-rule UnifySortVar2(#env, #VARIABLE, #csort, NONE) →  PutSort(#env, #VARIABLE, #csort)
-rule UnifySortVar2(#env, #VARIABLE, #csort, SOME(#csort2:Core_csort_sort)) →  #env // TODO: could check
+  rule UnifySortVar2(#env, #VARIABLE1, SOME(#sort1: Core_csort_sort), #VARIABLE2, NONE)
+  → If<{String:IEnvEntry}>(IsDummy(#sort1), ()->PutSort(#env, #VARIABLE2, csort⟦ ##VARIABLE1 ⟧), ()->UnifySort(#env, #sort1, csort⟦ ##VARIABLE2 ⟧))
 
-/*
-func UnifySortVar({String:IEnvEntry}, String, Option<Core_csort_sort>, Core_csort_sort) -> {String:IEnvEntry}
+  rule UnifySortVar2(#env, #VARIABLE1, NONE, #VARIABLE2, SOME(#sort2: Core_csort_sort))
+  → If<{String:IEnvEntry}>(IsDummy(#sort2), ()->PutSort(#env, #VARIABLE1, csort⟦ ##VARIABLE2 ⟧), ()->UnifySort(#env, csort⟦ ##VARIABLE1 ⟧, #sort2))
 
-  // The variable is already in the actual sort domain. Keep unifying the variable.
-  rule UnifySortVar(#env, #variable, NONE                 , #sort) → UnifySortVar2(#env, #variable, GetSort(#env, #variable), #sort)
-
-  // Sort has been resolved. Check they are different.
-  rule UnifySortVar(#env, #variable, SOME(csort⟦ ##VARIABLE ⟧), #sort)
-  → If<{String:IEnvEntry}>(StringEqual(#variable, #VARIABLE),
-      // Same variable, done
-      ()->#env,
-      // Not the same: restart with sort in actual domain
-      ()->UnifySort(#env, csort⟦ ##VARIABLE ⟧, #sort))
-
-  // Sort has been resolved and different. Restart with new sort.
-  rule UnifySortVar(#env, #variable, SOME(#sort1:Core_csort_sort), #sort2) → UnifySort(#env, #sort1, #sort2)
-
-// Check not the same sort variable
-func UnifySortVar1({String:IEnvEntry}, String, Core_csort_sort) -> {String:IEnvEntry}
-
-  rule UnifySortVar1(#env, #variable, csort⟦ ##VARIABLE ⟧)
-  → If<{String:IEnvEntry}>(StringEqual(#variable, #VARIABLE),
-      // Same variable, nothing to do
-      ()->#env,
-      // Not the same variable. Continue
-      ()->UnifySortVar2(#env, #variable, GetSort(#env, #variable), csort⟦ ##VARIABLE ⟧))
-
-  rule UnifySortVar1(#env, #variable, #csort) → UnifySortVar2(#env, #variable, GetSort(#env, #variable), #csort)
-
-// Check sort environment for existing entry.
-func UnifySortVar2({String:IEnvEntry}, String, Option<Core_csort_sort>, Core_csort_sort) -> {String:IEnvEntry}
-
-  // Case 1: no existing mapping. Create it
-  rule UnifySortVar2(#env, #variable, NONE, #csort) → PutSort(#env, #variable, #csort)
-
-  // Case 2: there is already a mapping to a sort variable and new sort is also a sort variable
-  rule UnifySortVar2(#env, #variable, SOME(csort⟦ ##VARIABLE1 ⟧), csort⟦ ##VARIABLE2 ⟧)
-  → If<{String:Core_csort_sort}>(StringEqual(#VARIABLE1, #VARIABLE2),
-      // Same variable, nothing to do
-      ()->#env,
-      // Not the same variable and they should be equal. Dangerous place as this can create cycle.
-      ()->PutSort(#env, #VARIABLE2, csort⟦ ##VARIABLE1 ⟧))
-
-  // Case 3, there is already a mapping to a sort variable.
-  rule UnifySortVar2(#env, #variable, SOME(csort⟦ ##VARIABLE1 ⟧), #csort)
-  → UnifySort(#env, #csort, csort⟦ ##VARIABLE1 ⟧)
-
-  // Case 4, there is already a mapping to a sort that is not a variable
-  rule UnifySortVar2(#env, #variable, SOME(#csort:Core_csort_sort), csort⟦ ##VARIABLE2 ⟧)
-  → UnifySortVar2(#env, #VARIABLE2, SOME(csort⟦ ##VARIABLE2 ⟧), #csort)
-
-  // Case 5, there is already a mapping to non sort variables
-  rule UnifySortVar2(#env, #variable, SOME(#csort1:Core_csort_sort), #csort2)
-  → #env // TODO: could check csort1 = csort2
-*/
+  rule UnifySortVar2(#env, #VARIABLE1, SOME(#sort1: Core_csort_sort), #VARIABLE2, SOME(#sort2: Core_csort_sort))
+  →  If<{String:IEnvEntry}>(IsDummy(#sort1),
+       ()->UnifySort(#env, csort⟦ ##VARIABLE1 ⟧, #sort2),
+       ()->If<{String:IEnvEntry}>(IsDummy(#sort2),
+         ()->UnifySort(#env, csort⟦ ##VARIABLE2 ⟧, #sort1),
+         ()->UnifySort(#env, #sort1, #sort2)))
 
 /* Same as above where actual sort is wrapped inside a sort annotation. */
 func UnifySortAnno<a>(#env: {String:IEnvEntry}, #esort: Core_csort_sort, #csortanno?: List<Core_csortanno_sort>, #cont: ({String:IEnvEntry} Core_csort_sort)->a) -> a
@@ -500,13 +456,18 @@ rule ISubstMaybeSorts(#env, csorts?⟦              ⟧) → csorts?⟦⟧
 // The insteresting bit is here. The rest is just boilerplate.
 func ISubstVar(String, Option<Core_csort_sort>) -> Core_csort_sort
 rule ISubstVar(#VARIABLE, NONE                        ) → csort⟦ ##VARIABLE ⟧  // generic variable
-rule ISubstVar(#VARIABLE, SOME(#csort:Core_csort_sort)) → #csort              // variable is replaced.
+rule ISubstVar(#VARIABLE, SOME(#csort:Core_csort_sort)) → If<Core_csort_sort>(IsDummy(#csort), ()->csort⟦ ##VARIABLE ⟧, ()->#csort)
 
 func ISubstMapSorts({String:IEnvEntry}, List<Core_cmapsort_sort>) -> List<Core_cmapsort_sort>
 rule ISubstMapSorts(#env, cmapsort*⟦                                 ⟧) → cmapsort*⟦⟧
 rule ISubstMapSorts(#env, cmapsort*⟦ ##csort1 : ##csort2 ##cmapsort* ⟧) → cmapsort*⟦ ⟨csort: ISubstSort(#env, #csort1)⟩ : ⟨csort: ISubstSort(#env, #csort2)⟩  ⟨cmapsort*: ISubstMapSorts(#env, #cmapsort*)⟩ ⟧
 
 // --- Various utility functions
+
+/* @return `TRUE` is the given `#sort` is the dummy sort */
+func IsDummy(Core_csort_sort) -> Bool
+rule IsDummy(csort⟦ ##VARIABLE ⟧) → StringEqual(#VARIABLE, "dummy")
+rule IsDummy(#csort            ) → FALSE
 
 /* Check the given `#sortanno?` matches the given `#sort`. Output an error if not, otherwise apply `#result` */
 func CheckSortAnnoE<a>(List<Core_csortanno_sort>, Core_csort_sort, ()->a) -> a
@@ -547,8 +508,10 @@ rule INewHOSort((), (), #csort)                         → #csort
 
 /* Assemble the sort list corresponding to given formal or bound variable parameters list. */
 func IFindBinderSorts({String:IEnvEntry}, List<Core_cterm_sort>, Bool) -> List<Core_csort_sort>
+rule IFindBinderSorts(#env, cterm*⟦ ##cqconstructor ##csortargs? ##cterms? : ##csort  ##cterm* ⟧, #formal) → Cons(#csort, IFindBinderSorts(#env, #cterm*, #formal))
 rule IFindBinderSorts(#env, cterm*⟦ ##METAVAR ##cterms? ##csubst? : ##csort ##cterm* ⟧, #formal) → Cons(#csort, IFindBinderSorts(#env, #cterm*, #formal))
 rule IFindBinderSorts(#env, cterm*⟦ ##VARIABLE ##cterm* ⟧, #formal) → IFindBinderSortsTerm(#env, IGetBinderSort<String>(#env, #VARIABLE, #formal), #cterm*, #formal)
+rule IFindBinderSorts(#env, cterm*⟦ ##VARIABLE : ##csort ##cterm* ⟧, #formal) → Cons(#csort, IFindBinderSorts(#env, #cterm*, #formal))
 rule IFindBinderSorts(#env, cterm*⟦                     ⟧, #formal) → ()
 
 func IFindBinderSortsTerm({String:IEnvEntry}, Option<Core_csort_sort>, List<Core_cterm_sort>, Bool) -> List<Core_csort_sort>
