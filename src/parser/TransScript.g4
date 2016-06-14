@@ -306,7 +306,7 @@ concrete
     ;
 
 map
-    : LCURLY kvs? RCURLY
+    : LCURLY kvs? RCURLY sortAnno?
     ;
 
 kvs

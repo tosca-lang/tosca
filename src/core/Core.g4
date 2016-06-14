@@ -34,7 +34,7 @@ cterm
                                                   2. look for a bound variable that matches VARIABLE
                                                      in the current tracked bound variables (innermost scope first).
                                                     VARIABLE is free if not found in scope.  */
-    | LCURLY cmapentries? RCURLY                                     /* Association map */
+    | LCURLY cmapentries? RCURLY csortanno?                          /* Association map */
 
     // KEEP AT THE 6TH ALTERNATIVE UNTIL METAPARSER GENERATOR PROPERLY HANDLE BOUNDVAR
     | LSQUARE VARIABLE<boundvar=x> csortanno? RSQUARE cterm<bound=x>    /* Bound term.
