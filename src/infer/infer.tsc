@@ -371,14 +371,6 @@ func UnifySortVar2({String:IEnvEntry}, String, Option<Core_csort_sort>, String, 
          ()->UnifySort(#env, csort⟦ ##VARIABLE2 ⟧, #sort1),
          ()->UnifySort(#env, #sort1, #sort2)))
 
-/* Same as above where actual sort is wrapped inside a sort annotation. */
-func UnifySortAnno<a>(#env: {String:IEnvEntry}, #esort: Core_csort_sort, #csortanno?: List<Core_csortanno_sort>, #cont: ({String:IEnvEntry} Core_csort_sort)->a) -> a
-→ INewSort<a>(#env, #esort, (env sort)->UnifySortAnnoAux<a>(env, sort, MaybeSortAnnoToSort(#csortanno?), #cont))
-
-func UnifySortAnnoAux<a>({String:IEnvEntry}, Core_csort_sort, Option<Core_csort_sort>, ({String:IEnvEntry} Core_csort_sort)->a) -> a
-rule UnifySortAnnoAux(#env, #nsort, NONE, #cont) → #cont(#env, #nsort)
-rule UnifySortAnnoAux(#env, #nsort, SOME(#asort:Core_csort_sort), #cont) → #cont(UnifySort(#env, #nsort, #asort), #nsort)
-
 // ---- Sort environment optimizer
 
 /* Optimize the sort environment by computing its transitive closure. */
@@ -416,7 +408,6 @@ func OptimizeSortAux(Bool, {String : Core_csort_sort}, List<String>, String, Opt
 
 // ---- Apply sort instantiation
 
-// TODO: check for empty sort environment.
 func ISubstRule(#env: {String:IEnvEntry}, #cterm1: Core_cterm_sort, #cterm2: Core_cterm_sort) -> Core_cdecl_sort
 → cdecl⟦ rule ⟨cterm: ISubstTerm(#env, #cterm1)⟩ → ⟨cterm: ISubstTerm(#env, #cterm2)⟩ ⟧
 
@@ -490,11 +481,6 @@ rule ISubstMapSorts(#env, cmapsort*⟦ ##csort1 : ##csort2 ##cmapsort* ⟧) → 
 func IsDummy(Core_csort_sort) -> Bool
 rule IsDummy(csort⟦ ##VARIABLE ⟧) → StringEqual(#VARIABLE, "dummy")
 rule IsDummy(#csort            ) → FALSE
-
-/* Check the given `#sortanno?` matches the given `#sort`. Output an error if not, otherwise apply `#result` */
-func CheckSortAnnoE<a>(List<Core_csortanno_sort>, Core_csort_sort, ()->a) -> a
-rule CheckSortAnnoE(csortanno?⟦           ⟧, #csort, #result) → #result()
-rule CheckSortAnnoE(csortanno?⟦ : ##csort ⟧, #csort, #result) → #result()  // TODO: really check when Equal is fixed.
 
 /* Create a new sort variable. */
 func INewSortVar(#env: {String:IEnvEntry}) -> String
