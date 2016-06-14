@@ -1006,7 +1006,7 @@ func SubSortFromTerm({String : JEnvEntry}, Core_cterm_sort) -> Option<Core_csort
   → SOME(csort⟦ Numeric⟧)
 
   rule SubSortFromTerm(#env, cterm⟦ ##VARIABLE ⟧)
-  → SubSortFromVar(JMaybeGetVar(#env, #VARIABLE), #VARIABLE)
+  → JSubSortFromVar(JMaybeGetVar(#env, #VARIABLE), #VARIABLE)
 
   rule SubSortFromTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)
   → MaybeSortAnnoToSort(#csortanno?)
@@ -1021,12 +1021,12 @@ func SubSortFromTerm({String : JEnvEntry}, Core_cterm_sort) -> Option<Core_csort
   //rule SubSortFromTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x] : Core_cterm_sort))
   → SubSortFromTerm(#env, #cterm[var:String])
 
-func SubSortFromVar(Option<JVarEntry>, String) -> Option<Core_csort_sort>
+func JSubSortFromVar(Option<JVarEntry>, String) -> Option<Core_csort_sort>
 
-  rule SubSortFromVar(NONE, #var)
+  rule JSubSortFromVar(NONE, #var)
   → NONE
 
-  rule SubSortFromVar(SOME(#varEntry:JVarEntry), #var)
+  rule JSubSortFromVar(SOME(#varEntry:JVarEntry), #var)
   → UnJVarSort(#varEntry)
 
 // ----- Contraction
