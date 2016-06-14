@@ -863,7 +863,6 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
         break †⟨JGetLabel(#env)⟩;
       }†⟨
       JavaPatternMaybeSubs(#env, #cterms?, text⟦⟨STRING: value⟩⟧, MaybeFindFormI(JGetDataSorts(#env), #csort, #CONSTRUCTOR), #cont)⟩⟧
-//FindForm(Maybe<Core_csort_sort Option>((x) -> LookupDataSortDecl(JGetDataSorts(#env), x), #csort), #CONSTRUCTOR)
 
   // TODO: check literal
   rule JavaPatternTerm(#env, cterm⟦ ##cliteral ⟧, #term, #csort, #storage, #cont)
@@ -879,17 +878,13 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
   → JavaPatternVariable(JMaybeGetVar(#env, #VARIABLE), #env, #VARIABLE, #term, #cont)
 
   rule JavaPatternTerm(#env, cterm⟦ [ v ##csortanno?[] ] ##cterm[v] ⟧, #term, #csort, PARAMETER, #cont)
-  //rule JavaPatternTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]: Core_cterm_sort), #term, #csort, PARAMETER, #cont)
   → JavaPatternTerm(JNextParam(JAddVar(#env, var:String, JBound(#term, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], JCurrentParam(#env), SOME(JCurrentParamSort(#env)), PARAMETER, #cont)
 
   rule JavaPatternTerm(#env, cterm⟦ [ v ##csortanno?[v] ] ##cterm[v] ⟧, #term, #csort, ARGUMENT, #cont)
-  //rule JavaPatternTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]: Core_cterm_sort), #term,  #csort, ARGUMENT, #cont)
   → text⟦
       Variable ⟨STRING: boundvar:String⟩ = †⟨GetParent(#env)⟩.getVar†⟨NumberToText(GetSubIndex(#env))⟩_†⟨NumberToText(GetSubBinderIndex(#env))⟩();†⟨
       JavaPatternTerm(IncSubBinderIndex(JAddVar(#env, var:String, JBound(text⟦⟨STRING: boundvar⟩⟧, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], #term, #csort, ARGUMENT, #cont)⟩⟧
 
-  //rule JavaPatternTerm(#env, cterm⟦ ( ##VARIABLE ##csortanno? ) ##cterm ⟧, #term, #storage, #cont)
-  //rule JavaPatternTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]: Core_cterm_sort), #term, #csort, #storage, #cont)
   rule JavaPatternTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #term, #csort, #storage, #cont)
   → JavaPatternTerm(#env, #cterm[var:String], #term, #csort, #storage, #cont)
 
@@ -1061,17 +1056,11 @@ func JavaJFreshesTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntr
   rule JavaJFreshesTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
   → JavaJFreshesMaybeTerms(#env, #cterms?, (env) -> JavaJFreshesMaybeSubst(env, #csubst?, #cont))
 
-//  rule JavaJFreshesTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]:Core_cterm_sort), #cont)
   rule JavaJFreshesTerm(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧, #cont)
   → JavaJFreshesVariable(#env, NONE, var:String, #csortanno?, (env) -> JavaJFreshesTerm(env, #cterm[var], #cont))
 
-  //→ text⟦
-  //Variable fresh†⟨NumberToText(GetCounter(#env))⟩ = context.makeVariable("x");†⟨JavaJFreshesTerm(IncCounter(JAddVar(#env, var:Core_cterm_sort, JFresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], #cont)⟩⟧
-
-  // TODO: track var to avoid generating dummy fresh variables
-  //rule JavaJFreshesTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]:Core_cterm_sort), #cont)
   rule JavaJFreshesTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
-  → JavaJFreshesTerm(#env, #cterm[var:String], #cont)
+  → JavaJFreshesTerm(JAddVar(#env, var:String, JFormal(text⟦ dummy ⟧, NONE)), #cterm[var], #cont)
 
   rule JavaJFreshesTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)
   → JavaJFreshesTerm(#env, #cterm, #cont)
