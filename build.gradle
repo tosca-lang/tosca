@@ -100,7 +100,7 @@ task tarAll(type: Tar, dependsOn: ':targets:java:snapshot') {
 	
     // Java libraries
     into ('lib') {
-        from 'targets/java/lib'
+        from 'targets/java/dist/lib'
         include '*.jar'
     }
     
