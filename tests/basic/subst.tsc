@@ -4,13 +4,12 @@
 
 enum Expr
     | Let(Expr, [Expr] -> Expr)
-    | Str(String)
+    | Num(Numeric)
     | allows-variable
 
-func EvalExpr(Expr) -> String
+func EvalExpr(Expr) -> Numeric
 rule EvalExpr(Let(#expr1:Expr, [x] -> #expr2[x] : Expr)) → EvalExpr(#expr2[#expr1])
-rule EvalExpr(Str(#:String)) → #
+rule EvalExpr(Num(#:Numeric)) → #
 
-func Tests -> String
-rule Tests → EvalExpr(
-  Let(Str("val1"), [v:Expr] -> Let(Str("val2"), [v2:Expr] -> v2)))
+func Tests -> Numeric
+→ EvalExpr( Let(Num(1), [v:Expr] -> Let(Num(2), [v2:Expr] -> v2)) )

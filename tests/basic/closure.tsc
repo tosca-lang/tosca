@@ -1,0 +1,15 @@
+// Copyright (c) 2016 IBM Corporation.
+
+/* Simple closure test */
+enum ListNum | Cons(Numeric, ListNum) | Nil
+
+func Map((Numeric) -> Numeric, ListNum) -> ListNum
+rule Map(#, ())           → ()
+rule Map(#, Cons(#1, #s)) → Cons(#(#1), Map(#, #s))
+
+func Head(ListNum) -> Numeric
+rule Head(()                      ) → 99
+rule Head(Cons(#1:Numeric, #s:ListNum)) → #1
+
+func Tests -> Numeric
+→ Head(Map((x : Numeric) -> x : Numeric, Cons(0, Cons(2, Nil))))

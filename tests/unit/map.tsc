@@ -1,0 +1,7 @@
+// Copyright (c) 2016 IBM Corporation.
+
+func EmptyMap -> {String:Numeric}
+→ MapNew
+
+func Tests -> Numeric
+→ 0

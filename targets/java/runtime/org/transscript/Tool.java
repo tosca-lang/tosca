@@ -149,7 +149,7 @@ public class Tool
 			buildEnv.put("rules", rules);
 			buildEnv.put("build-dir", buildir);
 			buildEnv.put("verbose", env.get("verbose"));
-			//buildEnv.put("base", env.get("base"));
+			buildEnv.put("infer", env.get("infer"));
 
 			if (javabasepackage != null)
 				buildEnv.put("javabasepackage", javabasepackage);

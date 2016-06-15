@@ -21,7 +21,10 @@ import Std::Num
 // Convert TransScript to Core
 func ToCore(String, TransScript_transscript_sort) -> Core_ccrsx_sort
 rule ToCore(#filename, transscript⟦ ##decl+ ⟧)
-→ ccrsx⟦ ⟨cdecl+: NDecls(#decl+)⟩ ⟧
+→ ccrsx⟦
+  import module Std::Mapdef
+
+  ⟨cdecl+: NDecls(#decl+)⟩⟧
 
 // ----- Declarations
 

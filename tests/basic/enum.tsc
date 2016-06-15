@@ -9,6 +9,7 @@ enum Option | None | Some(Bool)
 /* Simple polymorphism */
 enum BTree<a> | Node(BTree<a>, BTree<a>) | Leaf(a)
 
+
 /* Complex polymorphism */
 //enum Sort1<a b>
 // Not working yet: generic b needs to map to Variable
@@ -19,13 +20,10 @@ enum BTree<a> | Node(BTree<a>, BTree<a>) | Leaf(a)
 //  | Enum3( [String b] (b String) -> BTree<Option> ) // Mixing generic syntactic variables and formal parameters
 //  | Enum4( [ (b String) -> BTree<Option> ] -> String ) // Higher-order generic syntactic variables
 
-
-
-
 // Not allowed (never):
 //  | Enum5( [ [b String] -> BTree<Option> ] -> String )
 
+func Left<a>(BTree<a>) -> BTree<a>
+rule Left(Node(#left, #right)) → #left
 
-@Complete
-func Tests -> Bool
-rule Tests → True
+func Tests -> Numeric → 0

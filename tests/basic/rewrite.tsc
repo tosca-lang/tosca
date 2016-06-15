@@ -21,11 +21,16 @@ func TrueIfAdult(Stage) -> Bool
 rule TrueIfAdult(Adult)     → True
 rule TrueIfAdult(#) → False
 
-enum Colony | Head(Stage, Colony) | Tail
+enum Colony | CHead(Stage, Colony) | CTail
 
 func TrueIfAllAdult(Colony) -> Bool
-rule TrueIfAllAdult(Head(#, #tail)) → And(TrueIfAdult(#), TrueIfAllAdult(#tail))
-rule TrueIfAllAdult(Tail)           → True
+rule TrueIfAllAdult(CHead(#, #tail)) → And(TrueIfAdult(#), TrueIfAllAdult(#tail))
+rule TrueIfAllAdult(CTail)           → True
 
-func Tests -> Bool
-rule Tests → TrueIfAllAdult( Head(Metamorphosis(Egg),  Head(Metamorphosis(Larva), Tail) ) )
+func ZeroIfTrue(Bool) -> Numeric
+rule ZeroIfTrue(True) → 0
+rule ZeroIfTrue(False) → 1
+
+
+func Tests -> Numeric
+rule Tests → ZeroIfTrue( TrueIfAllAdult( CHead(Metamorphosis(Egg),  CHead(Metamorphosis(Larva), CTail) ) ))

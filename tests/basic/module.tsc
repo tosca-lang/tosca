@@ -2,9 +2,8 @@
 
 /* Simple module test */
 import Modules::Imported
-import Std::Core
 
-func MyTrueToNumber(#: MyBool, #2: Bool) -> Numeric
+func MyTrueToNumber(#: MyBool) -> Numeric
 → 0
 
-func Tests -> Numeric → MyTrueToNumber(MyTrue, TRUE)
+func Tests -> Numeric → MyTrueToNumber(MyTrue)
