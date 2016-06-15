@@ -41,7 +41,7 @@ apply plugin:'org.transscript.gradle'
 
 repositories {
     flatDir { dirs 'targets/java/dist' } // where to find Tosca jar
-    flatDir { dirs 'targets/java/lib' }  // where to find crsx3.jar
+    flatDir { dirs 'targets/java/dist/lib' }  // where to find crsx3.jar
     mavenCentral() // Where to find ANTLR  
 }
 

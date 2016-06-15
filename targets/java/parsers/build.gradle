@@ -15,7 +15,7 @@ def transScriptSrc = '../../../src'
 
 repositories {
 	flatDir { dirs '../dist' } // where to find crsx4 jars
-	flatDir { dirs '../lib' }  // where to find crsx3.jar
+	flatDir { dirs '../dist/lib' }  // where to find crsx3.jar
 	mavenCentral() // Where to find ANTLR
 }
 
