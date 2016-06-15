@@ -6,22 +6,23 @@
  */
 
 import Std::Core
+import Std::String
 import Std::Listdef
 import Std::Language
 
 enum Test | TestCase(Bool)
-          | TestGroup( List<Test> )
-          | TestInclude(String)
+          | TestSuite( List<Test> )
 
 /* Assertion functions */
-func Assert<a>(eager String, eager a, eager a) -> Bool
-rule Assert(#msg, #expected, #actual) → If<Bool>(Equal<a a>(#expected, #actual), ()->TRUE, ()->Error<Bool>(#msg) )
+func Assert<a>(#msg: String, #expected: a, #actual: a) -> Bool
+→ If( Equal(#expected, #actual),
+      ()->TRUE,
+      ()->Error(ConcatString(#msg, ConcatString(": expected   ", ConcatString(PrintTerm("", #expected), ConcatString(" but got ", PrintTerm("", #actual)))))))
 
 /* Run test(s) */
 func RunTest(Test) -> Bool
 rule RunTest(TestCase(#test))    → Eval<Bool>(#test)
-rule RunTest(TestGroup(#tests))  → FoldlP<Test Bool>( (x y) -> And(y, RunTest(x)), TRUE, #tests )
-rule RunTest(TestInclude(#file)) → RunTest( ParseTerm<Test>(#file) )
+rule RunTest(TestSuite(#tests))  → FoldlP( (x y) -> And(y, RunTest(x)), TRUE, #tests )
 
 /* Main driver */
-func MainTest(#test: Test) -> Numeric → If<Numeric>(RunTest(#test), ()->0, ()->1)
+func MainTest(#test: Test) -> Numeric → If(RunTest(#test), ()->0, ()->1)

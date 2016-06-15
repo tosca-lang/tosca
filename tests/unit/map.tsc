@@ -1,7 +1,21 @@
 // Copyright (c) 2016 IBM Corporation.
+import Std::Test::Unit
 
 func EmptyMap -> {String:Numeric}
-→ MapNew
+→ {}
+
+func FillMap -> {String:Numeric}
+→ {"a":1, "b":2}
+
+func ExtendMap(#map: {String:Numeric}, #key:String, #othermap: {String:Numeric}) -> {String:Numeric}
+→ {#map, "a":1, "b":2, #key:3, #othermap}
 
 func Tests -> Numeric
-→ 0
+→ MainTest(TestSuite((
+
+    TestCase( Assert("Empty Map"  , EmptyMap                        , {}) ),
+    TestCase( Assert("Map Literal", UnSOME(MapGet(FillMap, "a"))    , 1) ),
+    TestCase( Assert("Map Extension1",  UnSOME(MapGet(ExtendMap({}, "g", {}), "g")), 3) ),
+    TestCase( Assert("Map Extension2",  UnSOME(MapGet(ExtendMap({}, "g", {"a":5}), "a")), 5) )
+
+  )))

@@ -34,15 +34,31 @@ public class MapdefExtern
 		MapTerm<a, b> emap = Term.force(context, map);
 		a ekey = Term.force(context, key);
 		b evalue = Term.force(context, value);
-		if (emap.data() && ekey.data() && evalue.data())
-		{
-			// TODO extends only when refcount > 1
-			MapTerm<a, b> xmap = emap.extend();
-			xmap.putValue(ekey, evalue);
-			return xmap;
-		}
 
-		return MapTerm.lazyMapTerm(c -> MapPut(c, tma, tmb, emap, ekey, evalue));
+		// TODO extends only when refcount > 1
+		MapTerm<a, b> xmap = emap.extend();
+		xmap.putValue(ekey, evalue);
+		
+		return xmap;
+	}
+
+	/**
+	 * Add all entried from map2 into map1. Entries in map1 existing in map2 are shadowed.
+	 * @param context
+	 * @param tma
+	 * @param tmb
+	 * @param map1
+	 * @param map2
+	 * @return
+	 */
+	public static <a extends Term, b extends Term> MapTerm<a, b> MapAddAll(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map1, MapTerm<a, b> map2)
+	{
+		MapTerm<a, b> emap1 = Term.force(context, map1);
+		MapTerm<a, b> emap2 = Term.force(context, map2);
+
+		MapTerm<a, b> xmap = emap1.extend();
+		xmap.putAll(emap2);
+		return xmap;
 	}
 
 	/**

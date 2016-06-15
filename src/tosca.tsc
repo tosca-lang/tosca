@@ -21,6 +21,7 @@ import Core::Utils
 import Parser::TransScript
 import Text::Text4
 import Text::Printer  // not used but keep it so it gets compiled.
+import Std::Test::Unit  // not used but keep it so it gets compiled.
 
 //--- API
 

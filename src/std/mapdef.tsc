@@ -12,18 +12,18 @@ import Std::Pairdef
    If a entry for the given key already exists in the map, it is shadowed.
    @return the extended map.
  */
-extern func MapPut<a b>({a : b}, eager a /* key */, eager b /* value */) -> {a : b}
+extern func MapPut<a b>({a : b}, a /* key */,  b /* value */) -> {a : b}
 
 /* Lookup entry for given key.
    @return the value of type b or NONE if not in the map
  */
-extern func MapGet<a b>({a : b} /* map */, eager a /* key */) -> Option<b>
+extern func MapGet<a b>({a : b} /* map */,  a /* key */) -> Option<b>
 
 /* Extend the given map with the given key-value pair, where key is a syntactic variable
    If a entry for the given key already exists in the map, it is shadowed.
    @return the extended map.
  */
-extern func MapPutVar<a b c>({a : b}, eager c /* variable key */, eager b /* value */) -> {a : b}
+extern func MapPutVar<a b c>({a : b},  c /* variable key */,  b /* value */) -> {a : b}
 
 /* Lookup entry for given variable key.
    @return the value of type b or NONE if not in the map
@@ -42,3 +42,9 @@ extern func MapNew<a b>() -> {a : b}
 /* @return a map containing the given list of key-value pairs*/
 func MapIndex<a b>(#entries: List<Pair<a b>>) -> {a:b}
 → FoldlP<Pair<a b> {a:b}>((pair map) -> MapPut<a b>(map, Fst<a b>(pair), Snd<a b>(pair)), MapNew<a b>, #entries)
+
+/* Add all entried from `#map2` into `#map1`.
+   Entries in `#map1` existing in `#map2` are shadowed.
+   @return the extended map.
+ */
+extern func MapAddAll<a b>(#map1: {a : b}, #map2: {a : b}) -> {a : b}

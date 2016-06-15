@@ -22,7 +22,9 @@ import Std::Num
 func ToCore(String, TransScript_transscript_sort) -> Core_ccrsx_sort
 rule ToCore(#filename, transscript⟦ ##decl+ ⟧)
 → ccrsx⟦
+  import module Std::Core
   import module Std::Mapdef
+  import module Std::Listdef
 
   ⟨cdecl+: NDecls(#decl+)⟩⟧
 
@@ -227,7 +229,7 @@ func NTerm(TransScript_term_sort, Bool) -> Core_cterm_sort
 
   rule NTerm(term⟦ { ##kvs? } ⟧, TRUE)  → cterm⟦ { ⟨cmapentries?: NMaybeKVS(#kvs?)⟩ } ⟧
   rule NTerm(term⟦ {        } ⟧, FALSE) → cterm⟦ MapNew ⟧
-  rule NTerm(term⟦ { ##kv*  } ⟧, FALSE) → FoldlP<TransScript_kv_sort Core_cterm_sort>((entry map)->NKVContract(entry, map), NInitMap(#kv*), #kv*)
+  rule NTerm(term⟦ { ##kv*  } ⟧, FALSE) → FoldlP((entry map)->NKVContract(entry, map), NInitMap(#kv*), NTrimInitMap(#kv*))
 
 func NMaybeArgs(List<TransScript_args_sort>, Bool) -> List<Core_cterms_sort>
   rule NMaybeArgs(args?⟦              ⟧, #inpattern) → cterms?⟦⟧
@@ -286,11 +288,17 @@ func NMaybeKVS(List<TransScript_kvs_sort>) -> List<Core_cmapentries_sort>
 rule NMaybeKVS(kvs?⟦       ⟧) → cmapentries?⟦⟧
 rule NMaybeKVS(kvs?⟦ ##kv* ⟧) → cmapentries?⟦ ⟨cmapentry*: Map<TransScript_kv_sort Core_cmapentry_sort>((kv)->NKVPattern(kv), #kv*)⟩ ⟧
 
-/* Retrieve map reference from list of map entries. Return MapNew if none */
+/* @return the first map reference from the given map entries list, or MapNew if none */
 func NInitMap(List<TransScript_kv_sort>) -> Core_cterm_sort
 rule NInitMap(kv*⟦                 ⟧) → cterm⟦ MapNew ⟧
 rule NInitMap(kv*⟦ ##METAVAR ##kv* ⟧) → cterm⟦ ##METAVAR ⟧
 rule NInitMap(kv*⟦ ##kv ##kv*      ⟧) → NInitMap(#kv*)
+
+/* @return the given map entries list without the first map reference, or the full list if none */
+func NTrimInitMap(List<TransScript_kv_sort>) -> List<TransScript_kv_sort>
+rule NTrimInitMap(kv*⟦                 ⟧) → kv*⟦ ⟧
+rule NTrimInitMap(kv*⟦ ##METAVAR ##kv* ⟧) → #kv*
+rule NTrimInitMap(kv*⟦ ##kv ##kv*      ⟧) → kv*⟦ ##kv ⟨kv*: NTrimInitMap(#kv*)⟩ ⟧
 
 func NKVPattern(TransScript_kv_sort) -> Core_cmapentry_sort
 rule NKVPattern(kv⟦ ##METAVAR           ⟧) → cmapentry⟦ : ##METAVAR ⟧
@@ -304,7 +312,7 @@ rule NKVPattern(kv⟦ ¬ ##STRING          ⟧) → cmapentry⟦ ¬ ##STRING ⟧
 rule NKVPattern(kv⟦ ##STRING : ##term   ⟧) → cmapentry⟦ ##STRING : ⟨cterm: NTerm(#term, TRUE)⟩ ⟧
 
 func NKVContract(TransScript_kv_sort, Core_cterm_sort) -> Core_cterm_sort
-rule NKVContract(kv⟦ ##METAVAR           ⟧, #map) → Error<Core_cterm_sort>("Fatal error: only one map reference allowed.")
+rule NKVContract(kv⟦ ##METAVAR           ⟧, #map) → cterm⟦ MapAddAll(⟨cterm: #map⟩, ##METAVAR) ⟧
 rule NKVContract(kv⟦ ¬ ##METAVAR         ⟧, #map) → Error<Core_cterm_sort>("Fatal error: testing for non-occurrence of a key in map not allowed in contraction.")
 rule NKVContract(kv⟦ ##METAVAR : ##term  ⟧, #map) → cterm⟦ MapPut(⟨cterm: #map⟩, ##METAVAR, ⟨cterm: NTerm(#term, FALSE)⟩) ⟧
 rule NKVContract(kv⟦ ##VARIABLE          ⟧, #map) → Error<Core_cterm_sort>("Fatal error: testing for variable occurrence in map not allowed in contraction.")

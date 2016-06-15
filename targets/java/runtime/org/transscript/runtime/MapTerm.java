@@ -12,6 +12,7 @@ import org.transscript.compiler.std.Core.Option;
 import org.transscript.compiler.std.Listdef;
 import org.transscript.compiler.std.Listdef.List;
 import org.transscript.runtime.Functions.ThunkMaker;
+import org.transscript.runtime.MapTerm._MapTerm;
 
 /**
  * Builtin homogeneous map associated with syntactic variable map.
@@ -96,6 +97,12 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	public Option<V> getValueVar(Context context, Variable key);
 
 	/**
+	 * Put all entries in the given map into this map
+	 * @param map
+	 */
+	public void putAll(MapTerm<K, V> map);
+
+	/**
 	 * Gets map values
 	 * @param context
 	 * @return
@@ -114,7 +121,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	 * @param <K>
 	 * @param <V>
 	 */
-	static class _MapTerm<K extends Term, V extends Term> extends HashMap<K, V>implements MapTerm<K, V>
+	static class _MapTerm<K extends Term, V extends Term> extends HashMap<K, V> implements MapTerm<K, V>
 	{
 		private static final long serialVersionUID = -9134352548915946315L;
 
@@ -135,12 +142,12 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 			for (Map.Entry<K, V> entry : entrySet())
 				copy.putValue(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
 
-			if (vars!=null)
+			if (vars != null)
 			{
 				for (Map.Entry<Variable, V> entry : vars.entrySet())
 					copy.putVar(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
 			}
-			 
+
 			return copy;
 		}
 
@@ -153,6 +160,21 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		}
 
 		@Override
+		public void putAll(MapTerm<K, V> map)
+		{
+			_MapTerm<K, V> _map = (_MapTerm<K, V>) map;
+
+			for (Map.Entry<K, V> entry : _map.entrySet())
+				putValue(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
+
+			if (_map.vars != null)
+			{
+				for (Map.Entry<Variable, V> entry : _map.vars.entrySet())
+					putVar(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
+			}
+		}
+
+		@Override
 		public void putVar(Variable key, V value)
 		{
 			if (vars == null)
@@ -160,7 +182,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 
 			vars.put(key, value);
 		}
-		
+
 		@SuppressWarnings("unchecked")
 		@Override
 		public Option<V> getValue(Context context, K key)
@@ -175,7 +197,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		public Option<V> getValueVar(Context context, Variable key)
 		{
 			if (vars == null)
-				return Core.NONE(context) ;
+				return Core.NONE(context);
 			Term value = vars.get(key);
 			return value == null ? Core.NONE(context) : (Option<V>) Core.SOME(context, value.ref());
 		}
@@ -247,14 +269,14 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	 * @param <K>
 	 * @param <V>
 	 */
-	static class LazyMapTerm<K extends Term, V extends Term> extends LazyTerm<MapTerm<K, V>>implements MapTerm<K, V>
+	static class LazyMapTerm<K extends Term, V extends Term> extends LazyTerm<MapTerm<K, V>> implements MapTerm<K, V>
 	{
 
 		public LazyMapTerm(Function<Context, MapTerm<K, V>> f)
 		{
 			super(f);
 		}
-		
+
 		@Override
 		public boolean data()
 		{
@@ -307,6 +329,12 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		public Option<V> getValueVar(Context context, Variable key)
 		{
 			throw new RuntimeException("Fatal error: cannot query unevaluated map.");
+		}
+
+		@Override
+		public void putAll(MapTerm<K, V> map)
+		{
+			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
 		}
 
 	}

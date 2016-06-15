@@ -7,7 +7,6 @@
 import Std::Core
 import Std::Num
 import Std::Listdef
-import Parser::TransScript
 
 // --- Querying
 
