@@ -260,7 +260,7 @@ rule InferMapEntriesNext(PairCons(#env, #cmapentry), #cmapentry*, #esort) → In
 func InferMapEntry({String:IEnvEntry}, Core_cmapentry_sort, Bool, Core_cmapsort_sort) -> Pair<{String:IEnvEntry} Core_cmapentry_sort>
 rule InferMapEntry(#env, cmapentry⟦ : ##METAVAR          ⟧, TRUE , #cmapsort) → PairCons(AddIMetaVarE(#env, #METAVAR, csort⟦ { ##cmapsort } ⟧), cmapentry⟦ : ##METAVAR ⟧)
 rule InferMapEntry(#env, cmapentry⟦ : ##METAVAR          ⟧, FALSE, #esort) → InferMapMetaUse(#env, #METAVAR, GetIMetaVarE(#env, #METAVAR), #esort)
-rule InferMapEntry(#env, cmapentry⟦ ¬ ##METAVAR          ⟧, TRUE , #esort) → PairCons(AddIMetaVarE(#env, #METAVAR, GetMapKeySort(#esort)), cmapentry⟦ ¬ ##METAVAR ⟧)
+rule InferMapEntry(#env, cmapentry⟦ ¬ ##METAVAR          ⟧, TRUE , #esort) → InferMapNoMeta(#env, #METAVAR, GetIMetaVar(#env, #METAVAR), #esort)
 rule InferMapEntry(#env, cmapentry⟦ ##METAVAR : ##cterm  ⟧, #inpa, #esort) → InferMapKV(#METAVAR, GetIMetaVar(#env, #METAVAR), InferTerm(#env, #cterm, GetMapValueSort(#esort)), #esort)
 rule InferMapEntry(#env, cmapentry⟦ ##VARIABLE           ⟧, TRUE , #esort) → InferMapVar(#env, #VARIABLE, IFindVarSort(#env, #VARIABLE), cmapentry⟦ ##VARIABLE ⟧)
 rule InferMapEntry(#env, cmapentry⟦ ¬ ##VARIABLE         ⟧, TRUE , #esort) → InferMapVar(#env, #VARIABLE, IFindVarSort(#env, #VARIABLE), cmapentry⟦ ¬ ##VARIABLE ⟧)
@@ -269,6 +269,14 @@ rule InferMapEntry(#env, cmapentry⟦ ##STRING             ⟧, TRUE , #esort) �
 rule InferMapEntry(#env, cmapentry⟦ ¬ ##STRING           ⟧, TRUE , #esort) → PairCons(UnifySort(#env, csort⟦ String ⟧, GetMapKeySort(#esort)), cmapentry⟦ ¬ ##STRING ⟧)
 rule InferMapEntry(#env, cmapentry⟦ ##STRING : ##cterm   ⟧, #inpa, #esort) → InferMapSV(#STRING, InferTerm(#env, #cterm, GetMapValueSort(#esort)))
 rule InferMapEntry(#env, #cmapentry                      , #inpa, #esort) → Error("Assertion Error")
+
+func InferMapNoMeta({String:IEnvEntry}, String, Option<Core_csort_sort>, Core_cmapsort_sort) -> Pair<{String:IEnvEntry} Core_cmapentry_sort>
+
+    // Case 1: the meta variable has not been declared yet
+    rule InferMapNoMeta(#env, #METAVAR, NONE, #esort) → PairCons(AddIMetaVar(#env, #METAVAR, GetMapKeySort(#esort)), cmapentry⟦ ¬ ##METAVAR ⟧)
+
+    // Case 2: the meta variable has been declared. Unify!
+    rule InferMapNoMeta(#env, #METAVAR, SOME(#dsort), #esort) → PairCons(UnifySort(#env, #dsort, GetMapKeySort(#esort)), cmapentry⟦ ¬ ##METAVAR ⟧)
 
 func InferMapKV(String, Option<Core_csort_sort>, Pair<{String:IEnvEntry} Core_cterm_sort>, Core_cmapsort_sort) -> Pair<{String:IEnvEntry} Core_cmapentry_sort>
 

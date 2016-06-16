@@ -885,8 +885,8 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
   rule JavaPatternTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #term, #csort, #storage, #cont)
   → JavaPatternTerm(#env, #cterm[var:String], #term, #csort, #storage, #cont)
 
-  rule JavaPatternTerm(#env, cterm⟦ { ##cmapentries? } ##csortanno? ⟧, #term, #csort, #storage, #cont)
-  → JavaPatternMap(#env, #cmapentries?, #term, #csort, #cont)
+  rule JavaPatternTerm(#env, cterm⟦ { ##cmapentries? } : { ##cmapsort } ⟧, #term, #csort, #storage, #cont)
+  → JavaPatternMap(#env, #cmapentries?, #term, #cmapsort, #cont)
 
 // Pattern matching on construction arguments.
 func JavaPatternMaybeSubs({String : JEnvEntry}, List<Core_cterms_sort>, Text4_text_sort, Option<Pair<Core_cdecl_sort Core_cform_sort>>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
@@ -942,8 +942,9 @@ func JavaPatternVariable(Option<JVarEntry>, {String : JEnvEntry}, String, Text4_
 // Iterate over meta arguments and find corresponding bound variables, and update environment
 func JavaPatternMaybeMetaArgs({String : JEnvEntry}, String, List<Core_csubst_sort>, Text4_text_sort /* Current term */, Option<Core_csort_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
+  // No arg meta-variable. This might unlock delayed properties
   rule JavaPatternMaybeMetaArgs(#env, #metavar, csubst?⟦⟧, #term, #csort, #cont)
-  → #cont(JAddMeta(#env, #metavar, #term, ()))
+  → JApplyDelayEntries(JAddMeta(#env, #metavar, #term, ()), #metavar, #cont)
 
   // meta substitution
   rule JavaPatternMaybeMetaArgs(#env, #metavar, csubst?⟦ [ ##cterm* ] ⟧, #term, #csort, #cont)
@@ -956,14 +957,76 @@ func JavaFindJBoundVar({String : JEnvEntry}, Core_cterm_sort) -> Text4_text_sort
 
 // --- Map pattern matching
 
-func JavaPatternMap({String : JEnvEntry}, List<Core_cmapentries_sort>, Text4_text_sort /* Current term */, Option<Core_csort_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
-
-  rule JavaPatternMap(#env, cmapentries?⟦⟧, #term, #csort, #cont)
+func JavaPatternMap({String : JEnvEntry}, List<Core_cmapentries_sort>, Text4_text_sort, Core_cmapsort_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+  rule JavaPatternMap(#env, cmapentries?⟦⟧, #term, #cmapsort, #cont)
   → text⟦
       †⟨#term⟩ = force(context, †⟨#term⟩);
       if (!†⟨#term⟩.isEmpty())
         break †⟨JGetLabel(#env)⟩;
       †⟨#cont(#env)⟩⟧
+
+  rule JavaPatternMap(#env, cmapentries?⟦ ##cmapentry* ⟧, #term, #cmapsort, #cont)
+  → JavaPatternMapEntries(#env, #cmapentry*, #term, #cmapsort, #cont)
+
+func JavaPatternMapEntries({String : JEnvEntry}, List<Core_cmapentry_sort>, Text4_text_sort, Core_cmapsort_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  rule JavaPatternMapEntries(#env, cmapentry*⟦ ##cmapentry ##cmapentry* ⟧, #term, #cmapsort, #cont)
+  → JavaPatternMapEntry(#env, #cmapentry, #term, #cmapsort, (env)->JavaPatternMapEntries(env, #cmapentry*, #term, #cmapsort, #cont))
+
+  rule JavaPatternMapEntries(#env, cmapentry*⟦  ⟧, #term, #cmapsort, #cont)
+  → #cont(#env)
+
+func JavaPatternMapEntry({String : JEnvEntry}, Core_cmapentry_sort, Text4_text_sort, Core_cmapsort_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  rule JavaPatternMapEntry(#env, cmapentry⟦ : ##METAVAR ⟧, #term, #cmapsort, #cont)
+  → #cont(JAddMeta(#env, #METAVAR, #term, ()))
+
+  rule JavaPatternMapEntry(#env, cmapentry⟦  ¬ ##METAVAR ⟧, #term, #cmapsort, #cont)
+  → IfPresent(JGetMetaVarO(#env, #METAVAR),
+      (key)->text⟦
+        †⟨key⟩ = force(context, †⟨key⟩);
+        if (†⟨#term⟩.contains(†⟨key⟩))
+          break †⟨JGetLabel(#env)⟩;
+        †⟨#cont(#env)⟩⟧,
+      ()->#cont(JDelayMapEntry(#env, #METAVAR, JMapEntry(cmapentry⟦  ¬ ##METAVAR ⟧, #term, #cmapsort))))
+
+  rule JavaPatternMapEntry(#env, cmapentry⟦ ##METAVAR : ##cterm ⟧, #term, #cmapsort, #cont)
+  → IfPresent(JGetMetaVarO(#env, #METAVAR),
+      (key)->text⟦
+        †⟨key⟩ = force(context, †⟨key⟩);
+        Option<†⟨SortToType(GetMapValueSort(#cmapsort))⟩> ⟨STRING: value⟩ = †⟨#term⟩.getValue(†⟨GetContext(#env)⟩, †⟨key⟩).asSOME(†⟨GetContext(#env)⟩);
+        if (⟨STRING: value⟩ == null)
+          break †⟨JGetLabel(#env)⟩;
+        †⟨JavaPatternTerm(#env, #cterm, text⟦⟨STRING: value⟩⟧, SOME(GetMapValueSort(#cmapsort)), ARGUMENT, #cont)⟩⟧,
+      ()->#cont(JDelayMapEntry(#env, #METAVAR, JMapEntry(cmapentry⟦  ¬ ##METAVAR ⟧, #term, #cmapsort))))
+
+/*
+  rule JavaPatternMapEntry(#env, cmapentry⟦ ##VARIABLE ⟧, #term, #cmapsort, #cont)
+  →
+
+  rule JavaPatternMapEntry(#env, cmapentry⟦ ¬ ##VARIABLE ⟧, #term, #cmapsort, #cont)
+  →
+
+  rule JavaPatternMapEntry(#env, cmapentry⟦ ##VARIABLE : ##cterm ⟧, #term, #cmapsort, #cont)
+  →
+
+  rule JavaPatternMapEntry(#env, cmapentry⟦ ##STRING  : ##cterm ⟧, #term, #cmapsort, #cont)
+  →
+
+  rule JavaPatternMapEntry(#env, cmapentry⟦ ¬ ##STRING ⟧, #term, #cmapsort, #cont)
+  →
+
+  rule JavaPatternMapEntry(#env, cmapentry⟦##STRING : ##cterm⟧, #term, #cmapsort, #cont)
+  →
+*/
+
+/* Apply delayed map entries waiting for the given `#metavar` to be initialized */
+func JApplyDelayEntries(#env: {String : JEnvEntry}, #metavar: String, #cont:({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+→ JApplyDelayEntriesAux(#env, JGetDelayEntriesForVar(#env, #metavar), #cont)
+
+func JApplyDelayEntriesAux({String : JEnvEntry}, List<JMapEntry>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+rule JApplyDelayEntriesAux(#env, Cons(JMapEntry(#cmapentry, #term, #cmapsort), #entries), #cont) → JavaPatternMapEntry(#env, #cmapentry, #term, #cmapsort, (env)->JApplyDelayEntriesAux(env, #entries, #cont))
+rule JApplyDelayEntriesAux(#env, Nil                                                    , #cont) → #cont(#env)
 
 //  --------- Helper function for pattern matching
 
@@ -1345,12 +1408,16 @@ enum JVarEntry
 enum JMetaEntry | JMetaVar(Text4_text_sort,       /* Java variable associated with the meta variable*/
                          List<Text4_text_sort>) /* Java variables associated to the meta variable bound variables */
 
+enum JMapEntry | JMapEntry(Core_cmapentry_sort, Text4_text_sort, Core_cmapsort_sort)
+
+
 enum JEnvEntry | JNum(Numeric) |  JText(Text4_text_sort) | JTexts(List<Text4_text_sort>) | JBool(Bool)
                   | JMapMeta({String : JMetaEntry})
                   | JMapVar({ String : JVarEntry }) | JMapDecl({ String : Core_cdecl_sort })
                   | JParams(List<Pair<Text4_text_sort Core_csort_sort>>)
                   | JContext(Text4_text_sort /* context java variable */, Numeric /* Counter */)
                   | JFnAnno(List<Core_canno_sort>)
+                  | JMapEntries({String /* metavar */: List<JMapEntry>}) /* Delayed map entries */
 
 func JNewEnv -> {String : JEnvEntry}
 rule JNewEnv →
@@ -1364,19 +1431,20 @@ rule JNewEnv →
     MapPut<String JEnvEntry>(
     MapPut<String JEnvEntry>(
     MapPut<String JEnvEntry>(
+    MapPut<String JEnvEntry>(
     MapPut<String JEnvEntry>(MapNew<String JEnvEntry>,
-      "params"      , JParams(())),     /* Java method arguments. */
-      "thunk"       , JTexts(())),     /* thunk arguments */
-      "label"       , JText(text⟦⟧)),    /* Current pattern block label. */
-      "tail"        , JBool(TRUE)),   /* Tail? */
+      "params"      , JParams(())),                /* Java method arguments. */
+      "thunk"       , JTexts(())),                 /* thunk arguments */
+      "label"       , JText(text⟦⟧)),              /* Current pattern block label. */
+      "tail"        , JBool(TRUE)),               /* Tail? */
       "meta"        , JMapMeta(MapNew<String JMetaEntry>)),  /* Map meta variable to java variables */
       "vars"        , JMapVar(MapNew<String JVarEntry>)),   /* Map variable to JVarEntry */
       "parent"      , JText(text⟦⟧)),    /* Sub parent (if any) */
       "subindex"    , JText(text⟦⟧)),    /* Sub index */
       "binderindex" , JNum(0)),         /* Current sub binder index */
       "binders"     , JTexts(())),    /* Binders list being constructed in contraction */
-      "data"        , JTexts(()))    /* List of parameters marked as data */
-
+      "data"        , JTexts(())),    /* List of parameters marked as data */
+      "delay"       , JMapEntries(MapNew))
 
 
 // --- Helpers.
@@ -1439,6 +1507,10 @@ rule UnJContextCount(JContext(#1, #2)) → #2
 
 func UnJFnAnno(JEnvEntry) -> List<Core_canno_sort>
 rule UnJFnAnno(JFnAnno(#1)) → #1
+
+func UnJMapEntries(JEnvEntry) -> {String /* metavar */: List<JMapEntry>}
+rule UnJMapEntries(JMapEntries(#1)) → #1
+
 
 // --- Data sorts
 
@@ -1547,11 +1619,14 @@ rule JGetMetas(#env) → JGetValue<{String:JMetaEntry}>(#env, "meta", (x) -> UnJ
 func JGetMetaVar({String : JEnvEntry}, String) -> Text4_text_sort
 rule JGetMetaVar(#env, #metavar) → UnJMetaVar(UnSOME<JMetaEntry>(MapGet<String JMetaEntry>(JGetMetas(#env), #metavar)))
 
+/* @return the Java variable associated to the given `#metavar`, or `NONE` when no such association exists */
+func JGetMetaVarO(#env: {String : JEnvEntry}, #metavar: String) -> Option<Text4_text_sort>
+→ Maybe((entry)->UnJMetaVar(entry), MapGet(JGetMetas(#env), #metavar))
+
 func JGetMetaArgs({String : JEnvEntry}, String) -> List<Text4_text_sort>
 rule JGetMetaArgs(#env, #metavar) → UnJMetaArgs(UnSOME<JMetaEntry>(MapGet<String JMetaEntry>(JGetMetas(#env), #metavar)))
 
-func JAddMeta({String : JEnvEntry}, String, Text4_text_sort, List<Text4_text_sort>) -> {String : JEnvEntry}
-rule JAddMeta(#env, #metavar, #term, #boundvars)
+func JAddMeta(#env: {String : JEnvEntry}, #metavar:String, #term: Text4_text_sort, #boundvars: List<Text4_text_sort>) -> {String : JEnvEntry}
 → JSetValue(#env,  "meta", JMapMeta(MapPut<String JMetaEntry>(JGetMetas(#env), #metavar, JMetaVar(#term, #boundvars))))
 
 // --- Variable
@@ -1657,3 +1732,17 @@ rule GetFnAnno(#env) → JGetValue<List>(#env, "fnanno", (x) -> UnJFnAnno(x))
 
 func SetFnAnno({String : JEnvEntry}, List<Core_canno_sort>) -> {String : JEnvEntry}
 rule SetFnAnno(#env, #anno*) → JSetValue(#env, "fnanno", JFnAnno(#anno*))
+
+// --- Delayed map entries
+
+func JGetDelayEntries(#env: {String : JEnvEntry}) -> {String:List<JMapEntry>}
+→ JGetValue(#env, "delay", (x) -> UnJMapEntries(x))
+
+func JSetDelayEntries(#env: {String : JEnvEntry}, #entries: {String:List<JMapEntry>}) -> {String : JEnvEntry}
+→ JSetValue(#env, "delay", JMapEntries(#entries))
+
+func JGetDelayEntriesForVar(#env: {String : JEnvEntry}, #metavar: String) -> List<JMapEntry>
+→ IfPresent(MapGet(JGetDelayEntries(#env), #metavar), (entries)->entries, ()->())
+
+func JDelayMapEntry(#env: {String : JEnvEntry}, #metavar: String, #entry: JMapEntry) -> {String : JEnvEntry}
+→ JSetDelayEntries(#env, MapPut(JGetDelayEntries(#env), #metavar, Cons(#entry, JGetDelayEntriesForVar(#env, #metavar))))

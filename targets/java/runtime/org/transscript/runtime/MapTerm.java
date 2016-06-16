@@ -122,6 +122,11 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	public boolean isEmpty();
 
 	/**
+	 * @return true when this map contains an entry for the given key
+	 */
+	public boolean contains(K key);
+
+	/**
 	 * The actual map value.
 	 * @param <K>
 	 * @param <V>
@@ -273,8 +278,13 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		{
 			return super.isEmpty() && (vars == null || vars.isEmpty());
 		}
-		
-		
+
+		@Override
+		public boolean contains(K key)
+		{
+			return containsKey(key);
+		}
+
 	}
 
 	/**
@@ -352,6 +362,12 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 
 		@Override
 		public boolean isEmpty()
+		{
+			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
+		}
+
+		@Override
+		public boolean contains(K key)
 		{
 			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
 		}

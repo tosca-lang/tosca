@@ -19,6 +19,10 @@ func Assert<a>(#msg: String, #expected: a, #actual: a) -> Bool
       ()->TRUE,
       ()->Error(ConcatString(#msg, ConcatString(": expected   ", ConcatString(PrintTerm("", #expected), ConcatString(" but got ", PrintTerm("", #actual)))))))
 
+func AssertTrue(#msg: String, #actual: Bool) -> Bool
+rule AssertTrue(#msg, TRUE) → TRUE
+rule AssertTrue(#msg, FALSE) → Error(ConcatString(#msg, ": expected TRUE but got FALSE"))
+
 /* Run test(s) */
 func RunTest(Test) -> Bool
 rule RunTest(TestCase(#test))    → Eval<Bool>(#test)

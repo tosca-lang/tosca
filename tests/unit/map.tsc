@@ -10,10 +10,19 @@ func FillMap -> {String:Numeric}
 func ExtendMap(#map: {String:Numeric}, #key:String, #othermap: {String:Numeric}) -> {String:Numeric}
 → {#map, "a":1, "b":2, #key:3, #othermap}
 
-
 func MatchEmptyMap({String:Numeric}) -> Bool
 rule MatchEmptyMap({})   → TRUE
 rule MatchEmptyMap(#env) → FALSE
+
+func MatchNoKey(String, {String:Numeric}) -> Bool
+rule MatchNoKey(#key, {¬#key})  → TRUE
+rule MatchNoKey(#key, #env)        → FALSE
+
+func MatchNoKeyUnordered({String:Numeric}, String) -> Bool
+rule MatchNoKeyUnordered({¬#key}, #key) → TRUE
+rule MatchNoKeyUnordered(#env, #key)    → FALSE
+
+
 
 func Tests -> Numeric
 → MainTest(TestSuite((
@@ -23,7 +32,9 @@ func Tests -> Numeric
     TestCase( Assert("Map Extension1",  UnSOME(MapGet(ExtendMap({}, "g", {}), "g")), 3) ),
     TestCase( Assert("Map Extension2",  UnSOME(MapGet(ExtendMap({}, "g", {"a":5}), "a")), 5) ),
 
+    TestCase( AssertTrue("Match empty map",            MatchEmptyMap({})) ),
+    TestCase( AssertTrue("Match no key",               MatchNoKey("nokey", FillMap)) ),
+    TestCase( AssertTrue("Match no key unordered",     MatchNoKeyUnordered(FillMap, "nokey")) )
 
-    TestCase( Assert("Match empty map",  MatchEmptyMap({}), TRUE) )
 
   )))
