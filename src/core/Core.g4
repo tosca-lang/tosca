@@ -124,6 +124,7 @@ csort
     | VARIABLE                                      /* Sort variable  */
     | LSQUARE csort RSQUARE csort                   /* Bound variable sort */
     | LPAR csort RPAR csort                         /* Formal parameter sort. */
+    // TODO: remove (COMMA mapsort)*
     | LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sorts */
     | DATA csort                                    /* Data sort annotation. Indicate value must normalized */
     | THUNK csort                                   /* Thunk sort annotation. Indicate value is not evaluated */

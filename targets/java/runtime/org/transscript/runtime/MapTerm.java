@@ -117,6 +117,11 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	public List<K> keys(Context context);
 
 	/**
+	 * @return true when this map is empty
+	 */
+	public boolean isEmpty();
+
+	/**
 	 * The actual map value.
 	 * @param <K>
 	 * @param <V>
@@ -262,6 +267,14 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 			pc.setSub(1, nil.make());
 			return top;
 		}
+
+		@Override
+		public boolean isEmpty()
+		{
+			return super.isEmpty() && (vars == null || vars.isEmpty());
+		}
+		
+		
 	}
 
 	/**
@@ -333,6 +346,12 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 
 		@Override
 		public void putAll(MapTerm<K, V> map)
+		{
+			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
+		}
+
+		@Override
+		public boolean isEmpty()
 		{
 			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
 		}

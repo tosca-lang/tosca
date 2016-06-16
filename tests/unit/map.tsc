@@ -10,12 +10,20 @@ func FillMap -> {String:Numeric}
 func ExtendMap(#map: {String:Numeric}, #key:String, #othermap: {String:Numeric}) -> {String:Numeric}
 → {#map, "a":1, "b":2, #key:3, #othermap}
 
+
+func MatchEmptyMap({String:Numeric}) -> Bool
+rule MatchEmptyMap({})   → TRUE
+rule MatchEmptyMap(#env) → FALSE
+
 func Tests -> Numeric
 → MainTest(TestSuite((
 
     TestCase( Assert("Empty Map"  , EmptyMap                        , {}) ),
     TestCase( Assert("Map Literal", UnSOME(MapGet(FillMap, "a"))    , 1) ),
     TestCase( Assert("Map Extension1",  UnSOME(MapGet(ExtendMap({}, "g", {}), "g")), 3) ),
-    TestCase( Assert("Map Extension2",  UnSOME(MapGet(ExtendMap({}, "g", {"a":5}), "a")), 5) )
+    TestCase( Assert("Map Extension2",  UnSOME(MapGet(ExtendMap({}, "g", {"a":5}), "a")), 5) ),
+
+
+    TestCase( Assert("Match empty map",  MatchEmptyMap({}), TRUE) )
 
   )))

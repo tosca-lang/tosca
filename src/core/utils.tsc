@@ -73,6 +73,13 @@ func MaybeSortAnnoToSort(List<Core_csortanno_sort>) -> Option<Core_csort_sort>
 rule MaybeSortAnnoToSort(csortanno?⟦ ⟧)           → NONE
 rule MaybeSortAnnoToSort(csortanno?⟦ : ##csort ⟧) → SOME(#csort)
 
+/* @return sort of the key for the given ``#mapsort` */
+func GetMapKeySort(Core_cmapsort_sort) -> Core_csort_sort
+rule GetMapKeySort(cmapsort⟦ ##csort1 : ##csort2 ⟧) → #csort1
+
+func GetMapValueSort(Core_cmapsort_sort) -> Core_csort_sort
+rule GetMapValueSort(cmapsort⟦ ##csort1 : ##csort2 ⟧) → #csort2
+
 /* @return sort from term, or NONE */
 func TermSort(Core_cterm_sort) -> Option<Core_csort_sort>
 rule TermSort(cterm⟦ ##cqconstructor ##csortargs? ##cterms? : ##csort ⟧) → SOME(#csort)
@@ -122,6 +129,7 @@ rule DeclToSort(#cdecl) → Error<Core_csort_sort>("Unimplemented")
 func DataDeclToSort(List<Core_csortvars_sort>, String) -> Core_csort_sort
 rule DataDeclToSort(csortvars?⟦                    ⟧, #CONSTRUCTOR) → csort⟦ ##CONSTRUCTOR ⟧
 rule DataDeclToSort(csortvars?⟦ ∀ ##variable_TOK+ .⟧, #CONSTRUCTOR) → csort⟦ ##CONSTRUCTOR ( ⟨csort*: Map<String Core_csort_sort>((var)->csort⟦ ⟨VARIABLE: var⟩ ⟧, #variable_TOK+)⟩ ) ⟧
+
 
 // --- Print utilities
 

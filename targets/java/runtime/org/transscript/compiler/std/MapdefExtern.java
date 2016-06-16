@@ -2,6 +2,7 @@
 
 package org.transscript.compiler.std;
 
+import org.transscript.compiler.std.Core.Bool;
 import org.transscript.compiler.std.Core.Option;
 import org.transscript.compiler.std.Listdef.List;
 import org.transscript.runtime.Context;
@@ -38,7 +39,7 @@ public class MapdefExtern
 		// TODO extends only when refcount > 1
 		MapTerm<a, b> xmap = emap.extend();
 		xmap.putValue(ekey, evalue);
-		
+
 		return xmap;
 	}
 
@@ -180,13 +181,26 @@ public class MapdefExtern
 	public static <a extends Term, b extends Term> List<b> MapValues(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map)
 	{
 		MapTerm<a, b> emap = Term.force(context, map);
-		if (emap.data())
-		{
-			List<b> values = emap.values(context);
-			emap.release();
-			return values;
-		}
-		return Listdef.lazyList(c -> MapValues(c, tma, tmb, emap));
+
+		List<b> values = emap.values(context);
+		emap.release();
+		return values;
+	}
+
+	/**
+	 * Return true if the given map is empty
+	 * @param context
+	 * @param tma
+	 * @param tmb
+	 * @param map
+	 * @return
+	 */
+	public static <a extends Term, b extends Term> Bool MapIsEmpty(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map)
+	{
+		MapTerm<a, b> emap = Term.force(context, map);
+		Bool result = emap.isEmpty() ? Core.TRUE(context) : Core.FALSE(context);
+		emap.release();
+		return result;
 	}
 
 }

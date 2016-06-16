@@ -1,9 +1,7 @@
 // Copyright (c) 2016 IBM Corporation.
 /*
- * TransScript Java 8 backend code generator
+ * Tosca Java 8 backend code generator
  */
-
-
 import Std::Core
 import Std::String
 import Std::Num
@@ -27,7 +25,7 @@ func ToJavaM(#system: TSystem, #module: Module) -> Result
 
 func ToJavaAux(#system: TSystem, #module: Module, #source: String) -> Result
 →
-SaveResource<Text4_text_sort Result>("text", #source, text⟦
+SaveResource("text", #source, text⟦
 /** Generated File */
 †⟨PackageDeclaration(GetModuleURL(#module), GetSystemURL(#system), GetConfigDef(#system, "package", ""))⟩
 
@@ -873,7 +871,6 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
   rule JavaPatternTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #term, #csort, #storage, #cont)
   → text⟦†⟨JavaPatternMaybeMetaArgs(#env, #METAVAR, #csubst?, #term, #csort, #cont)⟩⟧
 
-
   rule JavaPatternTerm(#env, cterm⟦ ##VARIABLE ⟧, #term, #csort, #storage, #cont)
   → JavaPatternVariable(JMaybeGetVar(#env, #VARIABLE), #env, #VARIABLE, #term, #cont)
 
@@ -887,6 +884,9 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
 
   rule JavaPatternTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #term, #csort, #storage, #cont)
   → JavaPatternTerm(#env, #cterm[var:String], #term, #csort, #storage, #cont)
+
+  rule JavaPatternTerm(#env, cterm⟦ { ##cmapentries? } ##csortanno? ⟧, #term, #csort, #storage, #cont)
+  → JavaPatternMap(#env, #cmapentries?, #term, #csort, #cont)
 
 // Pattern matching on construction arguments.
 func JavaPatternMaybeSubs({String : JEnvEntry}, List<Core_cterms_sort>, Text4_text_sort, Option<Pair<Core_cdecl_sort Core_cform_sort>>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
@@ -954,10 +954,16 @@ func JavaFindJBoundVar({String : JEnvEntry}, Core_cterm_sort) -> Text4_text_sort
   rule JavaFindJBoundVar(#env, cterm⟦ ##VARIABLE ⟧)
   → JGetVar(#env, #VARIABLE)
 
-// Interpreter does not handle Fallback
-//-(Fallback):
-//JavaFindJBoundVar(#env, #cterm)
-//→ $(Error, $(:, "Invalid argument in metavariable: ", $(Show, #cterm)))
+// --- Map pattern matching
+
+func JavaPatternMap({String : JEnvEntry}, List<Core_cmapentries_sort>, Text4_text_sort /* Current term */, Option<Core_csort_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  rule JavaPatternMap(#env, cmapentries?⟦⟧, #term, #csort, #cont)
+  → text⟦
+      †⟨#term⟩ = force(context, †⟨#term⟩);
+      if (!†⟨#term⟩.isEmpty())
+        break †⟨JGetLabel(#env)⟩;
+      †⟨#cont(#env)⟩⟧
 
 //  --------- Helper function for pattern matching
 
