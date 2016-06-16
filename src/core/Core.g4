@@ -70,9 +70,9 @@ cmapentry
     : COLON METAVAR                                      /* property reference (match/construct)      */
     | NOT METAVAR                                        /* no property references (match only)       */
     | METAVAR COLON cterm                                /* match property value / construct          */
-    | VARIABLE                                           /* match / construct variable property       */
-    | NOT VARIABLE                                       /* no variable (match only)                  */
-    | VARIABLE COLON cterm                               /* match variable property value / construct */
+    | VARIABLE<variable>                                 /* match / construct variable property       */
+    | NOT VARIABLE<variable>                             /* no variable (match only)                  */
+    | VARIABLE<variable> COLON cterm                     /* match variable property value / construct */
     | STRING                                             /* match / construct named property          */
     | NOT STRING                                         /* no named property (match only)            */
     | STRING COLON cterm                                 /* match named property value / construct    */

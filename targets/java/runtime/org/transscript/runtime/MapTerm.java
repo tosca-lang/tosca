@@ -12,7 +12,6 @@ import org.transscript.compiler.std.Core.Option;
 import org.transscript.compiler.std.Listdef;
 import org.transscript.compiler.std.Listdef.List;
 import org.transscript.runtime.Functions.ThunkMaker;
-import org.transscript.runtime.MapTerm._MapTerm;
 
 /**
  * Builtin homogeneous map associated with syntactic variable map.
@@ -124,8 +123,20 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	/**
 	 * @return true when this map contains an entry for the given key
 	 */
-	public boolean contains(K key);
+	public boolean containsKey(K key);
 
+	/**
+	 * @return true when this map contains an entry for the given variable
+	 */
+	boolean containsVar(Variable var);
+
+
+	/**
+	 * @return true when this map contains an entry for the given key, including variables.
+	 */
+	public boolean contains(Term key);
+
+	
 	/**
 	 * The actual map value.
 	 * @param <K>
@@ -278,11 +289,26 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		{
 			return super.isEmpty() && (vars == null || vars.isEmpty());
 		}
+		
+		@Override
+		public boolean containsKey(K key)
+		{
+			return super.containsKey(key);
+		}
 
 		@Override
-		public boolean contains(K key)
+		public boolean containsVar(Variable var)
 		{
-			return containsKey(key);
+			return vars != null && vars.containsKey(var);
+		}
+  
+		@SuppressWarnings("unchecked")
+		@Override
+		public boolean contains(Term key)
+		{
+			if (key instanceof VariableUse)
+				return containsVar(((VariableUse) key).variable);
+			return containsKey((K) key);
 		}
 
 	}
@@ -367,7 +393,19 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		}
 
 		@Override
-		public boolean contains(K key)
+		public boolean containsKey(K key)
+		{
+			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
+		}
+
+		@Override
+		public boolean contains(Term key)
+		{
+			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
+		}
+
+		@Override
+		public boolean containsVar(Variable var)
 		{
 			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
 		}

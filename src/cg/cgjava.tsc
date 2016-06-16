@@ -872,7 +872,7 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
   → text⟦†⟨JavaPatternMaybeMetaArgs(#env, #METAVAR, #csubst?, #term, #csort, #cont)⟩⟧
 
   rule JavaPatternTerm(#env, cterm⟦ ##VARIABLE ⟧, #term, #csort, #storage, #cont)
-  → JavaPatternVariable(JMaybeGetVar(#env, #VARIABLE), #env, #VARIABLE, #term, #cont)
+  → JavaPatternVariable(JGetVarO(#env, #VARIABLE), #env, #VARIABLE, #term, #cont)
 
   rule JavaPatternTerm(#env, cterm⟦ [ v ##csortanno?[] ] ##cterm[v] ⟧, #term, #csort, PARAMETER, #cont)
   → JavaPatternTerm(JNextParam(JAddVar(#env, var:String, JBound(#term, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], JCurrentParam(#env), SOME(JCurrentParamSort(#env)), PARAMETER, #cont)
@@ -925,7 +925,7 @@ func JavaPatternVariable(Option<JVarEntry>, {String : JEnvEntry}, String, Text4_
   // First variable occurrence: the term is a variable use.
   rule JavaPatternVariable(NONE, #env, #variable, #term, #cont)
   → text⟦
-      Variable ⟨STRING: var:String⟩ = †⟨#term⟩.variable();†⟨#cont(JAddVar(#env, #variable, JFree(text⟦⟨STRING: var⟩⟧, NONE)))⟩⟧
+      Variable ⟨STRING: var:String⟩ = †⟨#term⟩.variable();†⟨JApplyDelayEntries(JAddVar(#env, #variable, JFree(text⟦⟨STRING: var⟩⟧, NONE)), #variable, #cont)⟩⟧
 
   // JBound variable
   // TODO: update term's parent with evaluated term.
@@ -1001,29 +1001,56 @@ func JavaPatternMapEntry({String : JEnvEntry}, Core_cmapentry_sort, Text4_text_s
         †⟨JavaPatternTerm(#env, #cterm, text⟦⟨STRING: value⟩⟧, SOME(GetMapValueSort(#cmapsort)), ARGUMENT, #cont)⟩⟧,
       ()->#cont(JDelayMapEntry(#env, #METAVAR, JMapEntry(cmapentry⟦ ##METAVAR : ##cterm ⟧, #term, #cmapsort))))
 
-/*
   rule JavaPatternMapEntry(#env, cmapentry⟦ ##VARIABLE ⟧, #term, #cmapsort, #cont)
-  →
+  → IfPresent(JGetVarO(#env, #VARIABLE),
+      (key)->text⟦
+        if (!†⟨#term⟩.containsVar(†⟨UnJVarVar(key)⟩.variable()))
+          break †⟨JGetLabel(#env)⟩;
+        †⟨#cont(#env)⟩⟧,
+      ()->#cont(JDelayMapEntry(#env, #VARIABLE, JMapEntry(cmapentry⟦ ##VARIABLE ⟧, #term, #cmapsort))))
 
   rule JavaPatternMapEntry(#env, cmapentry⟦ ¬ ##VARIABLE ⟧, #term, #cmapsort, #cont)
-  →
+  → IfPresent(JGetVarO(#env, #VARIABLE),
+      (key)->text⟦
+        if (†⟨#term⟩.containsVar(†⟨UnJVarVar(key)⟩.variable()))
+          break †⟨JGetLabel(#env)⟩;
+        †⟨#cont(#env)⟩⟧,
+      ()->#cont(JDelayMapEntry(#env, #VARIABLE, JMapEntry(cmapentry⟦ ¬ ##VARIABLE ⟧, #term, #cmapsort))))
 
   rule JavaPatternMapEntry(#env, cmapentry⟦ ##VARIABLE : ##cterm ⟧, #term, #cmapsort, #cont)
-  →
+  → IfPresent(JGetVarO(#env, #VARIABLE),
+      (key)->text⟦
+        Option<†⟨SortToType(GetMapValueSort(#cmapsort))⟩> ⟨STRING: mval⟩ = †⟨#term⟩.getValueVar(†⟨GetContext(#env)⟩, †⟨UnJVarVar(key)⟩.variable()).asSOME(†⟨GetContext(#env)⟩);
+        if (⟨STRING: mval⟩ == null)
+          break †⟨JGetLabel(#env)⟩;
+        †⟨SortToType(GetMapValueSort(#cmapsort))⟩ ⟨STRING: value⟩ = ⟨STRING: mval⟩.asSOME(†⟨GetContext(#env)⟩).getField1(†⟨GetContext(#env)⟩, false);
+        †⟨JavaPatternTerm(#env, #cterm, text⟦⟨STRING: value⟩⟧, SOME(GetMapValueSort(#cmapsort)), ARGUMENT, #cont)⟩⟧,
+      ()->#cont(JDelayMapEntry(#env, #VARIABLE, JMapEntry(cmapentry⟦ ##VARIABLE : ##cterm ⟧, #term, #cmapsort))))
 
-  rule JavaPatternMapEntry(#env, cmapentry⟦ ##STRING  : ##cterm ⟧, #term, #cmapsort, #cont)
-  →
+  rule JavaPatternMapEntry(#env, cmapentry⟦ ##STRING ⟧, #term, #cmapsort, #cont)
+  → text⟦
+      if (!†⟨#term⟩.contains(†⟨Literal(cliteral⟦ ##STRING ⟧)⟩))
+        break †⟨JGetLabel(#env)⟩;
+      †⟨#cont(#env)⟩⟧
 
   rule JavaPatternMapEntry(#env, cmapentry⟦ ¬ ##STRING ⟧, #term, #cmapsort, #cont)
-  →
+  → text⟦
+      if (†⟨#term⟩.contains(†⟨Literal(cliteral⟦ ##STRING ⟧)⟩))
+        break †⟨JGetLabel(#env)⟩;
+      †⟨#cont(#env)⟩⟧
 
-  rule JavaPatternMapEntry(#env, cmapentry⟦##STRING : ##cterm⟧, #term, #cmapsort, #cont)
-  →
-*/
+  rule JavaPatternMapEntry(#env, cmapentry⟦ ##STRING  : ##cterm ⟧, #term, #cmapsort, #cont)
+ → text⟦
+      Option<†⟨SortToType(GetMapValueSort(#cmapsort))⟩> ⟨STRING: mval⟩ = †⟨#term⟩.getValue(†⟨GetContext(#env)⟩, †⟨Literal(cliteral⟦ ##STRING ⟧)⟩).asSOME(†⟨GetContext(#env)⟩);
+      if (⟨STRING: mval⟩ == null)
+        break †⟨JGetLabel(#env)⟩;
+      †⟨SortToType(GetMapValueSort(#cmapsort))⟩ ⟨STRING: value⟩ = ⟨STRING: mval⟩.asSOME(†⟨GetContext(#env)⟩).getField1(†⟨GetContext(#env)⟩, false);
+      †⟨JavaPatternTerm(#env, #cterm, text⟦⟨STRING: value⟩⟧, SOME(GetMapValueSort(#cmapsort)), ARGUMENT, #cont)⟩⟧
 
-/* Apply delayed map entries waiting for the given `#metavar` to be initialized */
-func JApplyDelayEntries(#env: {String : JEnvEntry}, #metavar: String, #cont:({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
-→ JApplyDelayEntriesAux(#env, JGetDelayEntriesForVar(#env, #metavar), #cont)
+
+/* Apply delayed map entries waiting for the given `#var` (meta or not) to be initialized */
+func JApplyDelayEntries(#env: {String : JEnvEntry}, #var: String, #cont:({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+→ JApplyDelayEntriesAux(#env, JGetDelayEntriesForVar(#env, #var), #cont)
 
 func JApplyDelayEntriesAux({String : JEnvEntry}, List<JMapEntry>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 rule JApplyDelayEntriesAux(#env, Cons(JMapEntry(#cmapentry, #term, #cmapsort), #entries), #cont) → JavaPatternMapEntry(#env, #cmapentry, #term, #cmapsort, (env)->JApplyDelayEntriesAux(env, #entries, #cont))
@@ -1076,7 +1103,7 @@ func SubSortFromTerm({String : JEnvEntry}, Core_cterm_sort) -> Option<Core_csort
   → SOME(csort⟦ Numeric⟧)
 
   rule SubSortFromTerm(#env, cterm⟦ ##VARIABLE ⟧)
-  → JSubSortFromVar(JMaybeGetVar(#env, #VARIABLE), #VARIABLE)
+  → JSubSortFromVar(JGetVarO(#env, #VARIABLE), #VARIABLE)
 
   rule SubSortFromTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)
   → MaybeSortAnnoToSort(#csortanno?)
@@ -1121,7 +1148,7 @@ func JavaJFreshesTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntr
   → #cont(#env)
 
   rule JavaJFreshesTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #cont)
-  → JavaJFreshesVariable(#env, JMaybeGetVar(#env, #VARIABLE), #VARIABLE, #csortanno?, #cont)
+  → JavaJFreshesVariable(#env, JGetVarO(#env, #VARIABLE), #VARIABLE, #csortanno?, #cont)
 
   rule JavaJFreshesTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
   → JavaJFreshesMaybeTerms(#env, #cterms?, (env) -> JavaJFreshesMaybeSubst(env, #csubst?, #cont))
@@ -1190,7 +1217,7 @@ func JavaExprTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) 
       †⟨Literal(#cliteral)⟩†⟨#cont(#env)⟩⟧
 
   rule JavaExprTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #cont)
-  → JavaExprMaybeVar(#env, JMaybeGetVar(#env, #VARIABLE), #VARIABLE, #cont)
+  → JavaExprMaybeVar(#env, JGetVarO(#env, #VARIABLE), #VARIABLE, #cont)
 
   rule JavaExprTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
   → JavaExprMeta(#env, #METAVAR, #cterms?, #csubst?, #cont)
@@ -1418,7 +1445,7 @@ enum JEnvEntry | JNum(Numeric) |  JText(Text4_text_sort) | JTexts(List<Text4_tex
                   | JParams(List<Pair<Text4_text_sort Core_csort_sort>>)
                   | JContext(Text4_text_sort /* context java variable */, Numeric /* Counter */)
                   | JFnAnno(List<Core_canno_sort>)
-                  | JMapEntries({String /* metavar */: List<JMapEntry>}) /* Delayed map entries */
+                  | JMapEntries({String /* (meta)var */: List<JMapEntry>}) /* Delayed map entries */
 
 func JNewEnv -> {String : JEnvEntry}
 rule JNewEnv →
@@ -1638,8 +1665,8 @@ rule JGetVars(#env) → JGetValue<{String:JVarEntry}>(#env, "vars", (x) -> UnJMa
 func JGetVar({String : JEnvEntry}, String) -> Text4_text_sort
 rule JGetVar(#env, #var) → UnJVarVar(UnSOME<JVarEntry>(MapGetVar<String JVarEntry String>(JGetVars(#env), #var)))
 
-func JMaybeGetVar({String : JEnvEntry}, String) -> Option<JVarEntry>
-rule JMaybeGetVar(#env, #var) → MapGetVar<String JVarEntry String>(JGetVars(#env), #var)
+func JGetVarO({String : JEnvEntry}, String) -> Option<JVarEntry>
+rule JGetVarO(#env, #var) → MapGetVar<String JVarEntry String>(JGetVars(#env), #var)
 
 func JAddVar({String : JEnvEntry}, String /* TODO: Core_cterm_sort */, JVarEntry) -> {String : JEnvEntry}
 rule JAddVar(#env, #var, #entry)
@@ -1742,8 +1769,8 @@ func JGetDelayEntries(#env: {String : JEnvEntry}) -> {String:List<JMapEntry>}
 func JSetDelayEntries(#env: {String : JEnvEntry}, #entries: {String:List<JMapEntry>}) -> {String : JEnvEntry}
 → JSetValue(#env, "delay", JMapEntries(#entries))
 
-func JGetDelayEntriesForVar(#env: {String : JEnvEntry}, #metavar: String) -> List<JMapEntry>
-→ IfPresent(MapGet(JGetDelayEntries(#env), #metavar), (entries)->entries, ()->())
+func JGetDelayEntriesForVar(#env: {String : JEnvEntry}, #var: String) -> List<JMapEntry>
+→ IfPresent(MapGet(JGetDelayEntries(#env), #var), (entries)->entries, ()->())
 
-func JDelayMapEntry(#env: {String : JEnvEntry}, #metavar: String, #entry: JMapEntry) -> {String : JEnvEntry}
-→ JSetDelayEntries(#env, MapPut(JGetDelayEntries(#env), #metavar, Cons(#entry, JGetDelayEntriesForVar(#env, #metavar))))
+func JDelayMapEntry(#env: {String : JEnvEntry}, #var: String, #entry: JMapEntry) -> {String : JEnvEntry}
+→ JSetDelayEntries(#env, MapPut(JGetDelayEntries(#env), #var, Cons(#entry, JGetDelayEntriesForVar(#env, #var))))

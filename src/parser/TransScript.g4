@@ -317,9 +317,9 @@ kv
     : METAVAR                                               /* [CORE]  property reference (match/construct)      */
     | NOT  METAVAR                                          /* [CORE]  no property references (match only)       */
     | METAVAR COLON term[0]                                 /* [CORE]  match property value / construct          */
-    | VARIABLE                                              /* [CORE]  match / construct variable property       */
-    | NOT VARIABLE                                          /* [CORE]  no variable (match only)                  */
-    | VARIABLE COLON term[0]                                /* [CORE]  match variable property value / construct */
+    | VARIABLE<variable>                                    /* [CORE]  match / construct variable property       */
+    | NOT VARIABLE<variable>                                /* [CORE]  no variable (match only)                  */
+    | VARIABLE<variable> COLON term[0]                      /* [CORE]  match variable property value / construct */
     | STRING                                                /* [CORE]  match / construct named property          */
     | NOT STRING                                            /* [CORE]  no named property (match only)            */
     | STRING COLON term[0]                                  /* [CORE]  match named property value / construct    */
