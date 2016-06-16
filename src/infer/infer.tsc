@@ -496,9 +496,9 @@ rule ISubstTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)  
 rule ISubstTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧)                             → cterm⟦ ##VARIABLE ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
 rule ISubstTerm(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧)                     → cterm⟦ [ x ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ] ⟨cterm: ISubstTerm(#env, #cterm[x])⟩ ⟧
 rule ISubstTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧)                     → cterm⟦ ( f ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ) ⟨cterm: ISubstTerm(#env, #cterm[f])⟩ ⟧
+rule ISubstTerm(#env, cterm⟦ { ##cmapentries? } ##csortanno? ⟧)                     → cterm⟦ { ⟨cmapentries?: ISubstMaybeMapEntries(#env, #cmapentries?)⟩ } ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
 rule ISubstTerm(#env, cterm⟦ thunk ##cterm ⟧)                                       → cterm⟦ thunk ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟧
 rule ISubstTerm(#env, #cterm)                                                      → #cterm
-// TODO: map
 
 func ISubstQCons({String:IEnvEntry}, Core_cqconstructor_sort) -> Core_cqconstructor_sort
 rule ISubstQCons(#env, cqconstructor⟦ ##csortqualifier* ##CONSTRUCTOR ⟧) → cqconstructor⟦ ⟨csortqualifier*: ISubstSortQuals(#env, #csortqualifier*)⟩ ##CONSTRUCTOR ⟧
@@ -527,6 +527,20 @@ rule ISubstMaybeISubst(#env, csubst?⟦ [ ##cterm* ] ⟧) → csubst?⟦ [ ⟨ct
 func ISubstTerms({String:IEnvEntry}, List<Core_cterm_sort>) -> List<Core_cterm_sort>
 rule ISubstTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧) → cterm*⟦ ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟨cterm*: ISubstTerms(#env, #cterm*)⟩ ⟧
 rule ISubstTerms(#env, cterm*⟦                  ⟧) → cterm*⟦⟧
+
+func ISubstMaybeMapEntries({String:IEnvEntry}, List<Core_cmapentries_sort>) -> List<Core_cmapentries_sort>
+rule ISubstMaybeMapEntries(#env, cmapentries?⟦ ##cmapentry* ⟧) → cmapentries?⟦ ⟨cmapentry*: ISubstMapEntries(#env, #cmapentry*)⟩ ⟧
+rule ISubstMaybeMapEntries(#env, cmapentries?⟦              ⟧) → cmapentries?⟦ ⟧
+
+func ISubstMapEntries({String:IEnvEntry}, List<Core_cmapentry_sort>) -> List<Core_cmapentry_sort>
+rule ISubstMapEntries(#env, cmapentry*⟦ ##cmapentry ##cmapentry* ⟧) → cmapentry*⟦ ⟨cmapentry: ISubstMapEntry(#env, #cmapentry)⟩ ⟨cmapentry*: ISubstMapEntries(#env, #cmapentry*)⟩ ⟧
+rule ISubstMapEntries(#env, cmapentry*⟦                          ⟧) → cmapentry*⟦ ⟧
+
+func ISubstMapEntry({String:IEnvEntry}, Core_cmapentry_sort) -> Core_cmapentry_sort
+rule ISubstMapEntry(#env, cmapentry⟦ ##METAVAR : ##cterm  ⟧) → cmapentry⟦ ##METAVAR : ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟧
+rule ISubstMapEntry(#env, cmapentry⟦ ##VARIABLE : ##cterm ⟧) → cmapentry⟦ ##VARIABLE : ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟧
+rule ISubstMapEntry(#env, cmapentry⟦ ##STRING : ##cterm   ⟧) → cmapentry⟦ ##STRING : ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟧
+rule ISubstMapEntry(#env, #cmapentry) → #cmapentry
 
 func ISubstSorts({String:IEnvEntry}, List<Core_csort_sort>) -> List<Core_csort_sort>
 rule ISubstSorts(#env, csort*⟦ ##csort ##csort* ⟧) → csort*⟦ ⟨csort: ISubstSort(#env, #csort)⟩ ⟨csort*: ISubstSorts(#env, #csort*)⟩ ⟧

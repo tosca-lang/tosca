@@ -988,17 +988,18 @@ func JavaPatternMapEntry({String : JEnvEntry}, Core_cmapentry_sort, Text4_text_s
         if (†⟨#term⟩.contains(†⟨key⟩))
           break †⟨JGetLabel(#env)⟩;
         †⟨#cont(#env)⟩⟧,
-      ()->#cont(JDelayMapEntry(#env, #METAVAR, JMapEntry(cmapentry⟦  ¬ ##METAVAR ⟧, #term, #cmapsort))))
+      ()->#cont(JDelayMapEntry(#env, #METAVAR, JMapEntry(cmapentry⟦ ¬ ##METAVAR ⟧, #term, #cmapsort))))
 
   rule JavaPatternMapEntry(#env, cmapentry⟦ ##METAVAR : ##cterm ⟧, #term, #cmapsort, #cont)
   → IfPresent(JGetMetaVarO(#env, #METAVAR),
       (key)->text⟦
         †⟨key⟩ = force(context, †⟨key⟩);
-        Option<†⟨SortToType(GetMapValueSort(#cmapsort))⟩> ⟨STRING: value⟩ = †⟨#term⟩.getValue(†⟨GetContext(#env)⟩, †⟨key⟩).asSOME(†⟨GetContext(#env)⟩);
-        if (⟨STRING: value⟩ == null)
+        Option<†⟨SortToType(GetMapValueSort(#cmapsort))⟩> ⟨STRING: mval⟩ = †⟨#term⟩.getValue(†⟨GetContext(#env)⟩, †⟨key⟩).asSOME(†⟨GetContext(#env)⟩);
+        if (⟨STRING: mval⟩ == null)
           break †⟨JGetLabel(#env)⟩;
+        †⟨SortToType(GetMapValueSort(#cmapsort))⟩ ⟨STRING: value⟩ = ⟨STRING: mval⟩.asSOME(†⟨GetContext(#env)⟩).getField1(†⟨GetContext(#env)⟩, false);
         †⟨JavaPatternTerm(#env, #cterm, text⟦⟨STRING: value⟩⟧, SOME(GetMapValueSort(#cmapsort)), ARGUMENT, #cont)⟩⟧,
-      ()->#cont(JDelayMapEntry(#env, #METAVAR, JMapEntry(cmapentry⟦  ¬ ##METAVAR ⟧, #term, #cmapsort))))
+      ()->#cont(JDelayMapEntry(#env, #METAVAR, JMapEntry(cmapentry⟦ ##METAVAR : ##cterm ⟧, #term, #cmapsort))))
 
 /*
   rule JavaPatternMapEntry(#env, cmapentry⟦ ##VARIABLE ⟧, #term, #cmapsort, #cont)

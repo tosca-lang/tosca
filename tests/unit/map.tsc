@@ -23,6 +23,21 @@ rule MatchNoKeyUnordered({¬#key}, #key) → TRUE
 rule MatchNoKeyUnordered(#env, #key)    → FALSE
 
 
+func FillEnumMap -> {String:Option<List<Numeric>>}
+→ {"a":NONE, "b":SOME(()), "c":SOME((1,)), "d":SOME((3,4,5))}
+
+func MatchKeyNone(String, {String:Option<List<Numeric>>}) -> Bool
+rule MatchKeyNone(#key, {#key: NONE})  → TRUE
+rule MatchKeyNone(#key, #env)          → FALSE
+
+func MatchKeySingletonList(String, {String:Option<List<Numeric>>}) -> Bool
+rule MatchKeySingletonList(#key, {#key: SOME(Cons(#1, Nil))})  → TRUE
+rule MatchKeySingletonList(#key, #env)                  → FALSE
+
+func MatchKeySingletonListUnordered({String:Option<List<Numeric>>}, String) -> Bool
+rule MatchKeySingletonListUnordered({#key: SOME(Cons(#1, Nil))}, #key)  → TRUE
+rule MatchKeySingletonListUnordered(#env, #key)                         → FALSE
+
 
 func Tests -> Numeric
 → MainTest(TestSuite((
@@ -34,7 +49,10 @@ func Tests -> Numeric
 
     TestCase( AssertTrue("Match empty map",            MatchEmptyMap({})) ),
     TestCase( AssertTrue("Match no key",               MatchNoKey("nokey", FillMap)) ),
-    TestCase( AssertTrue("Match no key unordered",     MatchNoKeyUnordered(FillMap, "nokey")) )
+    TestCase( AssertTrue("Match no key unordered",     MatchNoKeyUnordered(FillMap, "nokey")) ),
+    TestCase( AssertTrue("Match key-NONE",             MatchKeyNone("a", FillEnumMap)) ),
+    TestCase( AssertTrue("Match key-SList",            MatchKeySingletonList("c", FillEnumMap)) ),
+    TestCase( AssertTrue("Match key-SList unordered",  MatchKeySingletonListUnordered(FillEnumMap, "c")) )
 
 
   )))
