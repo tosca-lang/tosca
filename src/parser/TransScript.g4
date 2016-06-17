@@ -81,6 +81,9 @@ importDecl
     : IMPORT qconstructor                              /* Import module - short syntax */
     | IMPORT MODULE qconstructor                       /* Import module */
     | IMPORT GRAMMAR qconstructor                      /* Import grammar */
+    | IMPORT qualifiedIdentifier                       /* Import module - short syntax */
+    | IMPORT MODULE qualifiedIdentifier                /* Import module */
+    | IMPORT GRAMMAR qualifiedIdentifier               /* Import grammar */
     ;
 
 sortDecl
@@ -168,6 +171,11 @@ ruleDecl
 fnDecl
     : anno* EXTERN? FUNC fnFixity sortParams? fnParamDecls?
             FNTYPE sort fnBody?                                    /* Function declaration  */
+    ;
+
+
+anno
+    : AT CONSTRUCTOR                                                 /* General purpose annotation */
     ;
 
 fnFixity
@@ -294,11 +302,11 @@ literal
     ;
 
 dispatch
-    : DISPATCH LPAR terms RPAR dispatchCases                     /* [CORE]  */
+    : DISPATCH LPAR terms RPAR dispatchCases                     /*   */
     ;
 
 dispatchCases
-    : OR term[0] ARROW term[0] (COMMA dispatchCases)*            /* [CORE] */
+    : OR term[0] ARROW term[0] (COMMA dispatchCases)*            /*  */
     ;
 
 concrete
@@ -314,20 +322,29 @@ kvs
     ;
 
 kv
-    : METAVAR                                               /* [CORE]  property reference (match/construct)      */
-    | NOT  METAVAR                                          /* [CORE]  no property references (match only)       */
-    | METAVAR COLON term[0]                                 /* [CORE]  match property value / construct          */
-    | VARIABLE<variable>                                    /* [CORE]  match / construct variable property       */
-    | NOT VARIABLE<variable>                                /* [CORE]  no variable (match only)                  */
-    | VARIABLE<variable> COLON term[0]                      /* [CORE]  match variable property value / construct */
-    | STRING                                                /* [CORE]  match / construct named property          */
-    | NOT STRING                                            /* [CORE]  no named property (match only)            */
-    | STRING COLON term[0]                                  /* [CORE]  match named property value / construct    */
+    : METAVAR                                               /* property reference (match/construct)      */
+    | NOT  METAVAR                                          /* no property references (match only)       */
+    | METAVAR COLON term[0]                                 /* match property value / construct          */
+    | VARIABLE<variable>                                    /* match / construct variable property       */
+    | NOT VARIABLE<variable>                                /* no variable (match only)                  */
+    | VARIABLE<variable> COLON term[0]                      /* match variable property value / construct */
+    | STRING                                                /* match / construct named property          */
+    | NOT STRING                                            /* no named property (match only)            */
+    | STRING COLON term[0]                                  /* match named property value / construct    */
     ;
 
+qualifiedIdentifier
+    : identifier COLONCOLON qualifiedIdentifier
+    | identifier
+    ;
+
+identifier
+    : CONSTRUCTOR
+    | VARIABLE
+    ;
 
 qconstructor
-    : sortQualifier* constructor
+    : sortQualifier* constructor                            /* Qualified constructor */
     ;
 
 constructor
@@ -339,10 +356,6 @@ operator
     | OR
     | AND
     | NOT
-    ;
-
-anno
-    : AT CONSTRUCTOR                                                 /* General purpose annotation */
     ;
 
 // Lexer rules
@@ -383,6 +396,9 @@ AT              : '@';
 
 FIXITY          : 'infix' | 'infixr' | 'infixl' | 'postfix' | 'prefix';
 
+BLOCK_COMMENT    : '/*' (BLOCK_COMMENT|.)*? ('*/' | EOF)    -> channel(HIDDEN);
+LINE_COMMENT     : '//' ~[\r\n]*            -> channel(HIDDEN);
+
 // Make sure // and /* are not operators
 OPERATOR          : OpHead Operator*
                   | '/'
@@ -397,7 +413,7 @@ VARIABLE          : Lower (Alpha | Digit | '-' | '_')*;
 
 METAVAR           : '#' (Alpha | Digit | '-' | '_' | Unicode)* Ebnf? Digit*; // '$' is for internal use only
 
-STRING            :  '"' ('\\"'|~'"')* '"';
+STRING            :  '"' ('\\"'|'""'|~'"')*? '"';
 
 NUMBER            : Decimal;
 
@@ -420,6 +436,3 @@ fragment UnicodeS : ~[\u0000-\u00FF\uD800-\uDBFF\u27e6\u27e7\u27e8\u27e9] | [\uD
 fragment Ebnf     : '*' | '?' | '+';
 
 WS               : [ \t\r\n\f]+ -> channel(HIDDEN) ;
-
-BLOCK_COMMENT    : '/*' (BLOCK_COMMENT|.)*? ('*/' | EOF)    -> channel(HIDDEN);
-LINE_COMMENT     : '//' ~[\r\n]*            -> channel(HIDDEN);

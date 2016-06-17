@@ -757,12 +757,12 @@ func JavaSigArg({String : JEnvEntry}, Core_csort_sort, Bool /* data? */,
  // Monomorphic sort
    rule JavaSigArg(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #data, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #csort*, #rules)
    → text⟦, †⟨#type⟩ ⟨STRING: value:String⟩†⟨
-       JavaSigArgs(JAddThunk(JAddParam(AddMaybeData(#env, #data, text⟦⟨STRING: value⟩⟧), text⟦⟨STRING: value⟩⟧, Core_csort_A1(#CONSTRUCTOR, #csorts?)), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
+       JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: value⟩⟧, Core_csort_A1(#CONSTRUCTOR, #csorts?)), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
 
    // Sort variable
    rule JavaSigArg(#env, csort⟦ ##VARIABLE ⟧, #data, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #csort*, #rules)
    → text⟦, †⟨#type⟩ ⟨STRING: value:String⟩†⟨
-       JavaSigArgs(JAddThunk(JAddParam(AddMaybeData(#env, #data, text⟦⟨STRING: value⟩⟧), text⟦⟨STRING: value⟩⟧, Core_csort_A2(#VARIABLE)), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
+       JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: value⟩⟧, Core_csort_A2(#VARIABLE)), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
 
    // Syntactic variable sort
    //rule JavaSigArgs(#env, csort⟦ [ ##csort ] ##csort2 ⟧, #data, Cons(#type, #types), #rules)
@@ -777,7 +777,7 @@ func JavaSigArg({String : JEnvEntry}, Core_csort_sort, Bool /* data? */,
 
    rule JavaSigArg(#env, csort⟦ { ##cmapsort* } ⟧, #data, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #csort*, #rules)
    → text⟦, †⟨#type⟩ ⟨STRING: map:String⟩†⟨
-       JavaSigArgs(JAddThunk(JAddParam(AddMaybeData(#env, #data, text⟦⟨STRING: map⟩⟧), text⟦⟨STRING: map⟩⟧, Core_csort_A5(#cmapsort*)), text⟦⟨STRING: map⟩⟧), #csort*, #rules)⟩⟧
+       JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: map⟩⟧, Core_csort_A5(#cmapsort*)), text⟦⟨STRING: map⟩⟧), #csort*, #rules)⟩⟧
 
    rule JavaSigArg(#env, csort⟦ data ##csort ⟧, #data, #types, #csort*, #rules)
    → JavaSigArg(#env, #csort, TRUE, #types, #csort*, #rules)
@@ -1135,7 +1135,7 @@ rule JavaContractum(#env, #term)
 func JavaStatementTerm({String : JEnvEntry}, Core_cterm_sort) -> Text4_text_sort
 rule JavaStatementTerm(#env, #cterm)
 → text⟦†⟨JavaJFreshesTerm(SetCounter(#env, 0), #cterm, (env) ->
-     text⟦†⟨If<Text4_text_sort>(JGetTail(env), ()->text⟦return ⟧, ()->text⟦⟧)⟩†⟨JavaExprTerm(SetCounter(env, 0), #cterm, (env) -> text⟦⟧)⟩;⟧)⟩⟧
+     text⟦return †⟨JavaExprTerm(SetCounter(env, 0), #cterm, (env) -> text⟦⟧)⟩;⟧)⟩⟧
 
 // ---- Generate fresh variable - Only in Java statement mode
 
@@ -1447,15 +1447,9 @@ enum JEnvEntry | JNum(Numeric) |  JText(Text4_text_sort) | JTexts(List<Text4_tex
                   | JFnAnno(List<Core_canno_sort>)
                   | JMapEntries({String /* (meta)var */: List<JMapEntry>}) /* Delayed map entries */
 
+// Nested MapPut increases Java compilation exponentially.
 func JNewEnv -> {String : JEnvEntry}
-rule JNewEnv →
-    MapPut<String JEnvEntry>(
-    MapPut<String JEnvEntry>(
-    MapPut<String JEnvEntry>(
-    MapPut<String JEnvEntry>(
-    MapPut<String JEnvEntry>(
-    MapPut<String JEnvEntry>(
-    MapPut<String JEnvEntry>(
+→   MapPut<String JEnvEntry>(
     MapPut<String JEnvEntry>(
     MapPut<String JEnvEntry>(
     MapPut<String JEnvEntry>(
@@ -1463,19 +1457,13 @@ rule JNewEnv →
     MapPut<String JEnvEntry>(MapNew<String JEnvEntry>,
       "params"      , JParams(())),                /* Java method arguments. */
       "thunk"       , JTexts(())),                 /* thunk arguments */
-      "label"       , JText(text⟦⟧)),              /* Current pattern block label. */
-      "tail"        , JBool(TRUE)),               /* Tail? */
       "meta"        , JMapMeta(MapNew<String JMetaEntry>)),  /* Map meta variable to java variables */
       "vars"        , JMapVar(MapNew<String JVarEntry>)),   /* Map variable to JVarEntry */
       "parent"      , JText(text⟦⟧)),    /* Sub parent (if any) */
-      "subindex"    , JText(text⟦⟧)),    /* Sub index */
-      "binderindex" , JNum(0)),         /* Current sub binder index */
-      "binders"     , JTexts(())),    /* Binders list being constructed in contraction */
-      "data"        , JTexts(())),    /* List of parameters marked as data */
       "delay"       , JMapEntries(MapNew))
 
-
 // --- Helpers.
+
 
 func JGetValue<a>({String : JEnvEntry}, String, (JEnvEntry) -> a) -> a
 rule JGetValue(#env, #key, #unwrap)
@@ -1628,17 +1616,6 @@ rule JGetLabel(#env) → JGetValue<Text4_text_sort>(#env, "label", (x) -> UnJTex
 func JSetLabel({String : JEnvEntry}, Text4_text_sort) -> {String : JEnvEntry}
 rule JSetLabel(#env, #label) → JSetValue(#env, "label", JText(#label))
 
-// --- Tail mode.
-
-func JGetTail({String : JEnvEntry}) -> Bool
-rule JGetTail(#env) → JGetValue<Bool>(#env, "tail", (x) -> UnJBool(x))
-
-func JSetTail({String : JEnvEntry}) -> {String : JEnvEntry}
-rule JSetTail(#env) → JSetValue(#env, "tail", JBool(TRUE))
-
-func JUnsetTail({String : JEnvEntry}) -> {String : JEnvEntry}
-rule JUnsetTail(#env) → JSetValue(#env, "tail", JBool(FALSE))
-
 // --- Meta
 
 func JGetMetas({String : JEnvEntry}) -> {String : JMetaEntry}
@@ -1703,17 +1680,6 @@ func IncSubBinderIndex({String : JEnvEntry}) -> {String : JEnvEntry}
 rule IncSubBinderIndex(#env)
 → JSetValue(#env, "binderindex", JNum(Plus(GetSubBinderIndex(#env), 1)))
 
-// --- Binders
-
-func GetBinders({String : JEnvEntry}) -> List<Text4_text_sort>
-rule GetBinders(#env) → JGetValue<List>(#env, "binders", (x) -> UnJTexts(x))
-
-func SetBinders({String : JEnvEntry}, List<Text4_text_sort>) -> {String : JEnvEntry}
-rule SetBinders(#env, #binders) → JSetValue(#env, "binders", JTexts(#binders))
-
-func AddBinder({String : JEnvEntry}, Text4_text_sort) -> {String : JEnvEntry}
-rule AddBinder(#env, #binders) → JSetValue(#env, "binders", JTexts(Append<Text4_text_sort>(#binders, GetBinders(#env))))
-
 // --- General purpose counter
 
 func GetCounter({String : JEnvEntry}) -> Numeric
@@ -1726,17 +1692,6 @@ rule SetCounter(#env, #index)
 func IncCounter({String : JEnvEntry}) -> {String : JEnvEntry}
 rule IncCounter(#env)
 → JSetValue(#env, "counter", JNum(Plus(GetCounter(#env), 1)))
-
-// --- Parameters marked as data
-
-func GetData({String : JEnvEntry}) -> List<Text4_text_sort>
-rule GetData(#env) → JGetValue<List>(#env, "data", (x) -> UnJTexts(x))
-
-func AddMaybeData({String : JEnvEntry}, Bool, Text4_text_sort) -> {String : JEnvEntry}
-rule AddMaybeData(#env, FALSE, #term) → #env
-
-rule AddMaybeData(#env, TRUE, #term)
-→ JSetValue(#env, "data", JTexts(Append<Text4_text_sort>(#term, GetData(#env))))
 
 // --- Context
 
