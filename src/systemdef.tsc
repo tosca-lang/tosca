@@ -11,13 +11,13 @@
    - functions raising an error are suffixed by E
  */
 
-import Std::Core
-import Std::String
-import Std::Mapdef
-import Std::Listdef
-import Std::Pairdef
-import Core::Core
-import Core::Utils
+import std::core
+import std::string
+import std::mapdef
+import std::listdef
+import std::pairdef
+import core::Core
+import core::utils
 
 // --- System representation.
 
@@ -36,7 +36,7 @@ enum Module | Module(String /* filename */, Content /* of module */, Bool /* Com
 /* Module content. Sorts and rules are indexed for fast lookup. */
 enum Content
     | Content(
-           List<Core_cqconstructor_sort /* Constructor */>,     /* Imports */
+           List<Core_cqidentifier_sort>,                        /* Imports */
            {String /* Constructor */ : List<Core_cdecl_sort>},  /* Rules */
            {String /* Constructor */ : Core_cdecl_sort},        /* Data sorts */
            {String /* Constructor */ : Core_cdecl_sort})        /* Function sorts */
@@ -107,7 +107,7 @@ rule GetModuleContent(Module(#url, #content, #compiled)) → #content
 func IsModuleCompiled(Module) -> Bool
 rule IsModuleCompiled(Module(#url, #content, #compiled)) → #compiled
 
-func GetImportsM(#module: Module) -> List<Core_cqconstructor_sort>
+func GetImportsM(#module: Module) -> List<Core_cqidentifier_sort>
 → GetImports(GetModuleContent(#module))
 
 func GetRulesM(#module: Module) -> {String: List<Core_cdecl_sort>}
@@ -143,7 +143,7 @@ rule SetModuleContent(Module(#url, #oldcontent, #compiled), #content) → Module
 
 // --- Content lookup functions. Convention: function name is suffixed by C
 
-func GetImports(Content) -> List<Core_cqconstructor_sort>
+func GetImports(Content) -> List<Core_cqidentifier_sort>
 rule GetImports(Content(#imports, #rules, #datasorts, #funcsorts)) → #imports
 
 func GetRules(Content) -> {String: List<Core_cdecl_sort>}
@@ -298,17 +298,16 @@ func IfConfigDef<a>(#system: TSystem, #key: String, #true: (String)->a, #false: 
    @return loaded core program into internal representation
  */
 func LoadCore(Core_ccrsx_sort) -> Content
-rule LoadCore(ccrsx⟦ ##cdecl+ ⟧)
-→ LoadDecls(#cdecl+, (), MapNew<String List>, MapNew<String Core_cdecl_sort>, MapNew<String Core_cdecl_sort>)
+rule LoadCore(ccrsx⟦ ##cdecl+ ⟧) → LoadDecls(#cdecl+, (), MapNew, MapNew, MapNew)
 
-func LoadDecls(List<Core_cdecl_sort>, List<Core_cqconstructor_sort>, { String : List<Core_cdecl_sort>},
-           { String : Core_cdecl_sort }, { String : Core_cdecl_sort}) -> Content
+func LoadDecls(List<Core_cdecl_sort>, List<Core_cqidentifier_sort>, {String : List<Core_cdecl_sort>},
+               {String : Core_cdecl_sort }, { String : Core_cdecl_sort}) -> Content
 
 rule LoadDecls(cdecl+⟦⟧, #imports, #rules, #data, #func)
 → Content(#imports, #rules, #data, #func)
 
-rule LoadDecls(cdecl+⟦ import module ##cqconstructor ##cdecl+ ⟧, #imports, #rules, #data, #func)
-→ LoadDecls(#cdecl+, Cons(#cqconstructor, #imports), #rules, #data, #func)
+rule LoadDecls(cdecl+⟦ import module ##cqidentifier ##cdecl+ ⟧, #imports, #rules, #data, #func)
+→ LoadDecls(#cdecl+, Cons(#cqidentifier, #imports), #rules, #data, #func)
 
 rule LoadDecls(cdecl+⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ##cdecl+ ⟧, #imports, #rules, #data, #func)
 → LoadDecls(#cdecl+, #imports, #rules, PutDataSort(#data, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧), #func)

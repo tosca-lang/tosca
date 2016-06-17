@@ -1,8 +1,8 @@
 /* Copyright (c) 2015 IBM Corporation. */
 
-import Std::Core
-import Std::Pairdef
-import Std::Num
+import std::core
+import std::pairdef
+import std::num
 
 // Sort list definition.
 enum List<a> | Cons(a, List<a>) | Nil

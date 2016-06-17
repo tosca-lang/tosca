@@ -1,12 +1,12 @@
 // Copyright (c) 2016 IBM Corporation.
 
-import Std::Core
-import Std::Listdef
-import Std::Mapdef
+import std::core
+import std::listdef
+import std::mapdef
 
-import Systemdef
-import Core::Core
-import Core::Utils
+import systemdef
+import core::Core
+import core::utils
 
 /* Analysis module */
 func CheckCoreM(#system: TSystem, #module: Module) -> Module

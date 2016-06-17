@@ -34,10 +34,10 @@ MakeGrammarSpec[ANTLR_grammarSpec_sort] :: Text;
 MakeModuleId[ANTLR_grammarSpec_sort] :: Text;
 {#E}MakeModuleId[#id, ok.#[ok]]
 → $[IfDef, "ncg", %n⟦/* Generated File. */
-import Text::Text4
-import Std::Core
-import Std::Listdef
-import Std::Text
+import text::Text4
+import std::core
+import std::listdef
+import std::text
 
 «{#E; "@id": STRING[#id]}#[OK]»⟧,
 %n⟦/* Generated File. */

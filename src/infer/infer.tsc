@@ -11,17 +11,17 @@
     by traversing the term tree top-down.
 
  */
-import Std::Core
-import Std::Listdef
-import Std::Pairdef
-import Std::Mapdef
-import Std::String
-import Std::Language
-import Core::Core
-import Core::Utils
-import Core::Subst
-import Infer::Env
-import Systemdef
+import std::core
+import std::listdef
+import std::pairdef
+import std::mapdef
+import std::string
+import std::language
+import core::Core
+import core::utils
+import core::subst
+import infer::env
+import systemdef
 
 // --- API
 

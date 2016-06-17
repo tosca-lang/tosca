@@ -19,8 +19,6 @@ cdecl
     : RULE cterm ARROW cterm                                         /* Rule declaration */
     | DATA  csortvars? CONSTRUCTOR cforms                            /* Data sort declaration */
     | canno* EXTERN? FN csortvars? csort CONSTRUCTOR csorts?         /* Function sort declaration */
-    | IMPORT MODULE cqconstructor                                    /* Import module declaration */
-    | IMPORT GRAMMAR  cqconstructor                                  /* Import grammar declaration */
     | IMPORT MODULE cqidentifier                                     /* Import module declaration */
     | IMPORT GRAMMAR  cqidentifier                                   /* Import grammar declaration */
     ;
@@ -156,7 +154,6 @@ cidentifier
 cqidentifier
     : (cidentifier COLONCOLON)* cidentifier
     ;
-
 
 csortqualifier
     : csort COLONCOLON                             /* Sort qualifier */

@@ -2,16 +2,16 @@
 /*
  * Generate C++ source file
  */
-import Std::Core
-import Std::Path
-import Std::Listdef
-import Std::Text
-import Std::Mapdef
-import Core::Core
-import Text::Text4
-import Cg::Cppcommon
-import Cg::Cppenv
-import Systemdef
+import std::core
+import std::path
+import std::listdef
+import std::text
+import std::mapdef
+import core::Core
+import text::Text4
+import cg::cppcommon
+import cg::cppenv
+import systemdef
 
 /* Generate C++ source file for module */
 func CppSource(#module: Module) -> Text4_text_sort

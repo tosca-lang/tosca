@@ -2,9 +2,9 @@
 /**
  Standard library for path
  */
-import Std::Core
-import Std::String
-import Std::Listdef
+import std::core
+import std::string
+import std::listdef
 
 /* Converts a path string to a path */
 func Path(#path: String) -> List<String>

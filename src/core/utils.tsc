@@ -2,12 +2,12 @@
 /*
  *  Various utility function related to the Core language
  */
-import Std::Core
-import Std::Listdef
-import Std::String
-import Std::Language
-import Core::Core
-import Text::Text4
+import std::core
+import std::listdef
+import std::string
+import std::language
+import core::Core
+import text::Text4
 
 /* @return TRUE if the term is a meta-application. Ignore binders and formal parameters  */
 func IsMeta(Core_cterm_sort) -> Bool
@@ -29,17 +29,41 @@ rule EqualAnno(#anno, canno⟦ @ ##CONSTRUCTOR ⟧) → StringEqual(#CONSTRUCTOR
 func AddAnnotation(#anno: String, #anno*: List<Core_canno_sort>) ->  List<Core_canno_sort>
 → Cons(canno⟦ @ ⟨CONSTRUCTOR: #anno⟩ ⟧, #anno*)
 
-/* Get qualified constructor as a list of string. */
-func QConsToStringList(Core_cqconstructor_sort) -> List<String>
-rule QConsToStringList(cqconstructor⟦ ##csortqualifier* ##CONSTRUCTOR ⟧)
-→ Append<String>(#CONSTRUCTOR, Map<Core_csortqualifier_sort String>((sort) -> QSortToString(sort), #csortqualifier*))
+/* @return the string concatenation represeting the given `#qualifiedIdentifier` */
+func JoinQIdentifier(#cqiden: Core_cqidentifier_sort, #sep: String) -> String
+→ Join(QIdentifierList(#cqiden), #sep)
+
+/* @return string list of qualified identifier s*/
+func QIdentifierList(Core_cqidentifier_sort) -> List<String>
+rule QIdentifierList(cqidentifier⟦ ##cidentifier* ##cidentifier ⟧) → Append(IdentifierToString(#cidentifier), Map((ident) -> IdentifierToString(ident), #cidentifier*))
+rule QIdentifierList(cqidentifier⟦ ##CONSTRUCTOR ⟧) → (#CONSTRUCTOR,)
+
+/* @return the qualified constructor converted to the equivalent qualified identifier */
+func QConsToQIden(Core_cqconstructor_sort) -> Core_cqidentifier_sort
+rule QConsToQIden(cqconstructor⟦ ##csortqualifier* ##CONSTRUCTOR ⟧) → cqidentifier⟦ ⟨cidentifier*: QConsToQIdens(#csortqualifier*)⟩ ##CONSTRUCTOR ⟧
+rule QConsToQIden(cqconstructor⟦ ##CONSTRUCTOR  ⟧) → cqidentifier⟦ ##CONSTRUCTOR ⟧
+
+func QConsToQIdens(List<Core_csortqualifier_sort>) -> List<Core_cidentifier_sort>
+rule QConsToQIdens(csortqualifier*⟦ ##CONSTRUCTOR :: ##csortqualifier* ⟧) → cidentifier*⟦ ##CONSTRUCTOR :: ⟨cidentifier*: QConsToQIdens(#csortqualifier*)⟩ ⟧
+rule QConsToQIdens(csortqualifier*⟦ ⟧) → cidentifier*⟦ ⟧
 
 /* Convert qualified constructor to string, using given separator */
 func QConsToString(#cqcons: Core_cqconstructor_sort, #sep: String) -> String
 → Join(QConsToStringList(#cqcons), #sep)
 
+/* Get qualified constructor as a list of string. */
+func QConsToStringList(Core_cqconstructor_sort) -> List<String>
+rule QConsToStringList(cqconstructor⟦ ##csortqualifier* ##CONSTRUCTOR ⟧)
+→ Append<String>(#CONSTRUCTOR, Map<Core_csortqualifier_sort String>((sort) -> QSortToString(sort), #csortqualifier*))
+
 func QSortToString(Core_csortqualifier_sort) -> String
 rule QSortToString(csortqualifier⟦ ##CONSTRUCTOR :: ⟧) → #CONSTRUCTOR
+
+/* @return the string corresponding to the given `#identifier` */
+func IdentifierToString(Core_cidentifier_sort) -> String
+rule IdentifierToString(cidentifier⟦ ##CONSTRUCTOR ⟧) → #CONSTRUCTOR
+rule IdentifierToString(cidentifier⟦ ##VARIABLE    ⟧) → #VARIABLE
+
 
 /* @return true if there is at least one sort in the given list */
 func HasSorts(#csorts? :List<Core_csorts_sort>) -> Bool

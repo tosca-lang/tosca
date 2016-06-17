@@ -2,19 +2,19 @@
 /*
  * Tosca Java 8 backend code generator
  */
-import Std::Core
-import Std::String
-import Std::Num
-import Std::Text
-import Std::Listdef
-import Std::Pairdef
-import Std::Mapdef
-import Std::Language
+import std::core
+import std::string
+import std::num
+import std::text
+import std::listdef
+import std::pairdef
+import std::mapdef
+import std::language
 
-import Core::Core
-import Core::Utils
-import Text::Text4
-import Systemdef
+import core::Core
+import core::utils
+import text::Text4
+import systemdef
 
 // ===== API
 
@@ -61,10 +61,10 @@ import static org.transscript.runtime.LazyTerm.thunk;
 // --- Translate module
 
 /* Generate class for the given module */
-func JavaUnit(#url: String, #imports: List<Core_cqconstructor_sort>, #rules: {String:List<Core_cdecl_sort>},
+func JavaUnit(#url: String, #imports: List<Core_cqidentifier_sort>, #rules: {String:List<Core_cdecl_sort>},
                 #datasorts: {String:Core_cdecl_sort}, #funcsorts: {String: Core_cdecl_sort}, #bootstrap: Bool) -> Text4_text_sort
 → text⟦
-†⟨TextFold(Map<Core_cqconstructor_sort Text4_text_sort>((x) -> JavaImport(x, #bootstrap), #imports), text⟦⟧)⟩
+†⟨TextFold(Map((x) -> JavaImport(x, #bootstrap), #imports), text⟦⟧)⟩
 
 @SuppressWarnings("unused")
 public class ⟨STRING:ClassName(#url)⟩ {
@@ -75,10 +75,10 @@ public class ⟨STRING:ClassName(#url)⟩ {
   †⟨InitModule(#datasorts, #funcsorts, #imports, #bootstrap)⟩
 }⟧
 
-func JavaImport(Core_cqconstructor_sort, Bool) -> Text4_text_sort
+func JavaImport(Core_cqidentifier_sort, Bool) -> Text4_text_sort
 rule JavaImport(#name, #bootstrap)
 → text⟦
-import static †⟨PathToImport(QConsToString(#name, "::"), #bootstrap)⟩.*;⟧ // TODO: maybe use '.' separator
+import static †⟨PathToImport(JoinQIdentifier(#name, "::"), #bootstrap)⟩.*;⟧ // TODO: maybe use '.' separator
 
 //-------------- Translate enumerations
 
@@ -1342,7 +1342,7 @@ func FindForm(Option<Option<Core_cdecl_sort>>, String) -> Option<Core_cform_sort
 // ----- initModule
 
 /* Generate code initializing a module. */
-func InitModule({ String : Core_cdecl_sort }, { String : Core_cdecl_sort }, List<Core_cqconstructor_sort>, Bool) -> Text4_text_sort
+func InitModule({ String : Core_cdecl_sort }, { String : Core_cdecl_sort }, List<Core_cqidentifier_sort>, Bool) -> Text4_text_sort
 
 rule InitModule(#data, #func, #imports, #bootstrap)
 → text⟦
@@ -1350,14 +1350,14 @@ rule InitModule(#data, #func, #imports, #bootstrap)
     public static void init(Context context) {
       if (!initialized) {
         initialized = true;
-        †⟨TextFold(Map<Core_cdecl_sort Text4_text_sort>((sort)->RegisterDataSort(sort), MapValues<String Core_cdecl_sort>(#data)), text⟦⟧)⟩
-        †⟨TextFold(Map<Core_cqconstructor_sort Text4_text_sort>((qcons)->RegisterImport(qcons, #bootstrap),  #imports), text⟦⟧)⟩
+        †⟨TextFold(Map((sort )->RegisterDataSort(sort), MapValues(#data)), text⟦⟧)⟩
+        †⟨TextFold(Map((qcons)->RegisterImport(qcons, #bootstrap),  #imports), text⟦⟧)⟩
       }
 }⟧
 
-func RegisterImport(#name: Core_cqconstructor_sort, #bootstrap: Bool) -> Text4_text_sort
+func RegisterImport(#name: Core_cqidentifier_sort, #bootstrap: Bool) -> Text4_text_sort
 → text⟦
-    †⟨PathToImport(QConsToString(#name, "::"), #bootstrap)⟩.init(context);⟧ // TODO: maybe use '.' sep
+    †⟨PathToImport(JoinQIdentifier(#name, "::"), #bootstrap)⟩.init(context);⟧ // TODO: maybe use '.' sep
 
 func RegisterDataSort(Core_cdecl_sort) -> Text4_text_sort
 rule RegisterDataSort(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
@@ -1367,6 +1367,7 @@ func RegisterDataForm(Core_cform_sort) -> Text4_text_sort
   rule RegisterDataForm(cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
   context.register(†⟨Text-QuoteEscape(#CONSTRUCTOR)⟩, †⟨EValueClassName(#CONSTRUCTOR)⟩::new);⟧
+
 
   rule RegisterDataForm(cform⟦ allows-variable ⟧)
   → text⟦⟧
@@ -1384,8 +1385,8 @@ func PackageDeclaration3(#sep: String, #sub:String) -> Text4_text_sort
 // --- Print java import. Treat Std:: as special (unless bootstrapping) All other prefixes are relative to javapackage
 
 func PathToImport(#name: String, #bootstrap: Bool) -> Text4_text_sort
-→ PathToImport2(If<String>(And(Not(#bootstrap), StartsWith(#name, "Std::")), ()->"org.transscript.compiler", ()->GetEnv("javabasepackage", "")),
-                Map<String String>((s)->DownCaseFirst(s), Split(#name, "::")))
+→ PathToImport2(If(And(Not(#bootstrap), Or(StartsWith(#name, "Std::"), StartsWith(#name, "std::"))), ()->"org.transscript.compiler", ()->GetEnv("javabasepackage", "")),
+                Map((s)->DownCaseFirst(s), Split(#name, "::")))
 
 func PathToImport2(#basepkg: String , #path: List<String>) -> Text4_text_sort
 → If<Text4_text_sort>(StringEqual(#basepkg, ""),

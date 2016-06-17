@@ -8,13 +8,13 @@
  * - Expand sorted concrete syntax
  */
 
-import Parser::TransScript
-import Core::Core
-import Core::Utils
-import Std::Core
-import Std::String
-import Std::Listdef
-import Std::Num
+import parser::TransScript
+import core::Core
+import core::utils
+import std::core
+import std::string
+import std::listdef
+import std::num
 
 // ----- API
 
@@ -22,9 +22,9 @@ import Std::Num
 func ToCore(String, TransScript_transscript_sort) -> Core_ccrsx_sort
 rule ToCore(#filename, transscript⟦ ##decl+ ⟧)
 → ccrsx⟦
-  import module Std::Core
-  import module Std::Mapdef
-  import module Std::Listdef
+  import module std::core
+  import module std::mapdef
+  import module std::listdef
 
   ⟨cdecl+: NDecls(#decl+)⟩⟧
 
@@ -36,31 +36,31 @@ rule NDecls(#cdecl+)
 
 func NDecl(TransScript_decl_sort) -> List<Core_cdecl_sort>
 
-/* Convert import module */
-rule NDecl(decl⟦ import ##qconstructor ⟧)
-→ cdecl+⟦ import module ⟨cqconstructor: NQconstructor(#qconstructor)⟩ ⟧
+  /* Convert import module */
+  rule NDecl(decl⟦ import ##qidentifier ⟧)
+  → cdecl+⟦ import module ⟨cqidentifier: NQIdentifier(#qidentifier)⟩ ⟧
 
-/* Convert import module */
-rule NDecl(decl⟦ import module ##qconstructor ⟧)
-→ cdecl+⟦ import module ⟨cqconstructor: NQconstructor(#qconstructor)⟩ ⟧
+  /* Convert import module */
+  rule NDecl(decl⟦ import module ##qidentifier ⟧)
+  → cdecl+⟦ import module ⟨cqidentifier: NQIdentifier(#qidentifier)⟩ ⟧
 
-/* Convert enum to data sort */
-rule NDecl(decl⟦ enum ##constructor ##sortParams? ##variant+ ⟧)
-→ cdecl+⟦ data ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ( ⟨cform*: NVariants(#variant+)⟩ ) ⟧
+  /* Convert enum to data sort */
+  rule NDecl(decl⟦ enum ##constructor ##sortParams? ##variant+ ⟧)
+  → cdecl+⟦ data ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ( ⟨cform*: NVariants(#variant+)⟩ ) ⟧
 
-/* Convert function.
-   Fixity is only used by the parser and can be eliminated. Still need to access the constructor
-*/
+  /* Convert function.
+     Fixity is only used by the parser and can be eliminated. Still need to access the constructor
+  */
 
-rule NDecl(decl⟦ ##anno* ##extern_TOK? func ##fnFixity ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
-→ cdecl+⟦
-  ⟨canno*: Map<TransScript_anno_sort Core_canno_sort>((anno)->NAnno(anno), #anno*)⟩ ##extern_TOK? func ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨csort: NSort(#sort)⟩ ⟨CONSTRUCTOR: NConstructor(GetConstructor(#fnFixity))⟩  ⟨csorts?: NMaybeParamDecls(#fnParamDecls?)⟩
-  ⟨cdecl+: NMaybeBody(#fnBody?, GetConstructor(#fnFixity), #fnParamDecls?)⟩
-⟧
+  rule NDecl(decl⟦ ##anno* ##extern_TOK? func ##fnFixity ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
+  → cdecl+⟦
+    ⟨canno*: Map<TransScript_anno_sort Core_canno_sort>((anno)->NAnno(anno), #anno*)⟩ ##extern_TOK? func ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨csort: NSort(#sort)⟩ ⟨CONSTRUCTOR: NConstructor(GetConstructor(#fnFixity))⟩  ⟨csorts?: NMaybeParamDecls(#fnParamDecls?)⟩
+    ⟨cdecl+: NMaybeBody(#fnBody?, GetConstructor(#fnFixity), #fnParamDecls?)⟩
+  ⟧
 
-/* Convert rule */
-rule NDecl(decl⟦ rule ##constructor ##args? → ##term* ⟧)
-→ cdecl+⟦ rule ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨cterms?: NMaybeArgs(#args?, TRUE)⟩ → ⟨cterm: NContractum(#term*)⟩ ⟧
+  /* Convert rule */
+  rule NDecl(decl⟦ rule ##constructor ##args? → ##term* ⟧)
+  → cdecl+⟦ rule ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨cterms?: NMaybeArgs(#args?, TRUE)⟩ → ⟨cterm: NContractum(#term*)⟩ ⟧
 
 // ---- Enum
 
@@ -277,6 +277,14 @@ func NList(List<TransScript_term_sort>, Bool) -> Core_cterm_sort
   // TODO: robustness
 rule NList(term*⟦                 ⟧, #inpattern) → cterm⟦ Nil ⟧
 rule NList(term*⟦ ##term ##term*  ⟧, #inpattern) → cterm⟦ Cons( ⟨cterm: NTerm(#term, #inpattern)⟩, ⟨cterm: NList(#term*, #inpattern)⟩ ) ⟧
+
+func NQIdentifier(TransScript_qidentifier_sort) -> Core_cqidentifier_sort
+rule NQIdentifier(qidentifier⟦ ##identifier* ##identifier ⟧) → cqidentifier⟦ ⟨cidentifier*: Map((ident)->NIdentifier(ident), #identifier*)⟩ ⟨cidentifier: NIdentifier(#identifier)⟩ ⟧
+rule NQIdentifier(qidentifier⟦ ##identifier               ⟧) → cqidentifier⟦ ⟨cidentifier: NIdentifier(#identifier)⟩ ⟧
+
+func NIdentifier(TransScript_identifier_sort) -> Core_cidentifier_sort
+rule NIdentifier(identifier⟦ ##CONSTRUCTOR ⟧) → cidentifier⟦ ##CONSTRUCTOR ⟧
+rule NIdentifier(identifier⟦ ##VARIABLE ⟧)    → cidentifier⟦ ##VARIABLE ⟧
 
 func NQconstructor(TransScript_qconstructor_sort) -> Core_cqconstructor_sort
 rule NQconstructor(qconstructor⟦ ##sortQualifier* ##constructor ⟧) → cqconstructor⟦ ⟨csortqualifier*: NSortQualifiers(#sortQualifier*)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟧

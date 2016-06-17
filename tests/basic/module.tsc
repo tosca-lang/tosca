@@ -1,7 +1,7 @@
 // Copyright (c) 2016 IBM Corporation.
 
 /* Simple module test */
-import Modules::Imported
+import modules::imported
 
 func MyTrueToNumber(#: MyBool) -> Numeric
 → 0

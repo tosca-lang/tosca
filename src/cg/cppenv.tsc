@@ -2,15 +2,15 @@
 /*
  * Environment for C++ code generation
  */
-import Std::Core
-import Std::Mapdef
-import Std::Pairdef
-import Std::Listdef
-import Std::Num
-import Std::Text
-import Text::Text4
-import Core::Core
-import Systemdef
+import std::core
+import std::mapdef
+import std::pairdef
+import std::listdef
+import std::num
+import std::text
+import text::Text4
+import core::Core
+import systemdef
 
 /* Variable entry */
 enum VarEntry

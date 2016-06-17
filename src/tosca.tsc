@@ -3,25 +3,25 @@
   Tosca compiler.
 */
 
-import Systemdef
-import Normalizer
-import Checker
-import Cc
-import Infer::Infer
-import Cg::Cgjava
-import Cg::Cgcpp
-import Std::Core
-import Std::Listdef
-import Std::Mapdef
-import Std::String
-import Std::Language
-import Std::Path
-import Core::Core
-import Core::Utils
-import Parser::TransScript
-import Text::Text4
-import Text::Printer  // not used but keep it so it gets compiled.
-import Std::Test::Unit  // not used but keep it so it gets compiled.
+import systemdef
+import normalizer
+import checker
+import cc
+import infer::infer
+import cg::cgjava
+import cg::cgcpp
+import std::core
+import std::listdef
+import std::mapdef
+import std::string
+import std::language
+import std::path
+import core::Core
+import core::utils
+import parser::TransScript
+import text::Text4
+import text::printer  // not used but keep it so it gets compiled.
+import std::test::unit  // not used but keep it so it gets compiled.
 
 //--- API
 
@@ -59,11 +59,11 @@ rule FoldResult(#1, #2) → FAILURE
 // --- Module loading.
 
 /* Load imported modules into the system, recursively */
-func LoadImportedModules(#system: TSystem, #url:String, #imports: List<Core_cqconstructor_sort>) -> TSystem
+func LoadImportedModules(#system: TSystem, #url:String, #imports: List<Core_cqidentifier_sort>) -> TSystem
 → FoldlP((imp system)->LoadImport(system, #url, imp), #system, #imports)
 
 /* Load imported module into the system */
-func LoadImport(#system: TSystem, #url:String, #import: Core_cqconstructor_sort) -> TSystem
+func LoadImport(#system: TSystem, #url:String, #import: Core_cqidentifier_sort) -> TSystem
 → LoadModuleS(#system, ResolveImport(#system, #url, #import), IsStandardImport(#system, #import))
 
 /* Load module content and update system */
@@ -83,16 +83,20 @@ func LoadModuleM(#url: String, #standard:Bool) -> Module
 //--- Path manipulation functions
 
 /* Convert Tosca module into an url */
-func ResolveImport(#system: TSystem, #url:String, #import: Core_cqconstructor_sort) -> String
-→ ResolveImportAux(#system, #url, QConsToStringList(#import))
+func ResolveImport(#system: TSystem, #url:String, #import: Core_cqidentifier_sort) -> String
+→ ResolveImportAux(#system, #url, QIdentifierList(#import))
 
 func ResolveImportAux(#system: TSystem, #url:String, #name: List<String>) -> String
-→ ConcatString(If(StringEqual(Head(#name), "Std"), ()->GetConfigDef(#system, "baseStd", ""), ()->PathJoin(PathParent(Path(GetSystemURL(#system))))),
+→ ConcatString(If(IsStandardPrefix(Head(#name)), ()->GetConfigDef(#system, "baseStd", ""), ()->PathJoin(PathParent(Path(GetSystemURL(#system))))),
   ConcatString("/",
-  ConcatString(Join(Map((s)->DownCaseFirst(s), #name), "/"), ".tsc")))
+  ConcatString(Join(#name, "/"), ".tsc")))
 
 //--- Helpers
 
 /* @return `TRUE` if the given `#import` is a standard library module */
-func IsStandardImport(#system: TSystem, #import: Core_cqconstructor_sort) -> Bool
-→ IfConfigDef(#system, "bootstrap", (v)->FALSE, ()->StringEqual(Head(QConsToStringList(#import)), "Std"))
+func IsStandardImport(#system: TSystem, #import: Core_cqidentifier_sort) -> Bool
+→ IfConfigDef(#system, "bootstrap", (v)->FALSE, ()->IsStandardPrefix(Head(QIdentifierList(#import))))
+
+/* @return `TRUE` if the given `#prefix` denotes a standard library module */
+func IsStandardPrefix(#prefix: String) -> Bool
+→ Or(StringEqual(#prefix, "std"), StringEqual(#prefix, "Std"))

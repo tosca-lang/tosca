@@ -1,10 +1,10 @@
 // Copyright (c) 2016 IBM Corporation.
 
-import Std::Core
-import Std::Mapdef
-import Std::Listdef
-import Std::Pairdef
-import Core::Core
+import std::core
+import std::mapdef
+import std::listdef
+import std::pairdef
+import core::Core
 
 /*
   Substitute with extensions. The following substitutions are supported:

@@ -2,17 +2,17 @@
 /*
  * Generate C++ header file
  */
-import Std::Core
-import Std::Path
-import Std::String
-import Std::Mapdef
-import Std::Listdef
-import Core::Core
-import Core::Utils
-import Std::Text
-import Text::Text4
-import Cg::Cppcommon
-import Cg::Cppenv
+import std::core
+import std::path
+import std::string
+import std::mapdef
+import std::listdef
+import core::Core
+import core::utils
+import std::text
+import text::Text4
+import cg::cppcommon
+import cg::cppenv
 
 import Systemdef
 
@@ -32,9 +32,9 @@ func HeaderGuard(#url: String) -> Text4_text_sort
 → text⟦_⟨STRING: UpCase(PathFileStem(#url))⟩⟧
 
 /* Generate C++ header inclusion declarations */
-func CppIncludes(#imports: List<Core_cqconstructor_sort>) -> Text4_text_sort
-→ TextFold(Map<Core_cqconstructor_sort Text4_text_sort>((imp) -> text⟦
-#include "⟨STRING: QConsToString(imp, "/")⟩"⟧, #imports), text⟦⟧)
+func CppIncludes(#imports: List<Core_cqidentifier_sort>) -> Text4_text_sort
+→ TextFold(Map((imp) -> text⟦
+#include "⟨STRING: JoinQIdentifier(imp, "/")⟩"⟧, #imports), text⟦⟧)
 
 // --------- Data sorts
 

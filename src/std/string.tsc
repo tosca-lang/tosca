@@ -4,9 +4,9 @@
  * Standard String library
  */
 
-import Std::Core
-import Std::Num
-import Std::Listdef
+import std::core
+import std::num
+import std::listdef
 
 // --- Querying
 

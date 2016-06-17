@@ -1,16 +1,16 @@
 // Copyright (c) 2016 IBM Corporation.
 
-import Std::Core
-import Std::String
-import Std::Num
-import Std::Listdef
-import Std::Pairdef
-import Std::Text
-import Text::Text4
-import Core::Core
-import Core::Utils
-import Cg::Cppenv
-import Systemdef
+import std::core
+import std::string
+import std::num
+import std::listdef
+import std::pairdef
+import std::text
+import text::text4
+import core::Core
+import core::utils
+import cg::cppenv
+import systemdef
 
 // --- Data translation functions
 

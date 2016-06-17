@@ -4,9 +4,9 @@
     Standard library for homogeneous (hash) map,
     associated with syntactic variable map
  */
-import Std::Core
-import Std::Listdef
-import Std::Pairdef
+import std::core
+import std::listdef
+import std::pairdef
 
 /* Extend the given map with the given key-value pair.
    If a entry for the given key already exists in the map, it is shadowed.

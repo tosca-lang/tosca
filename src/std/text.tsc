@@ -1,9 +1,9 @@
-/* Copyright (c) 2016 IBM Corporation. */
-import Std::Core
-import Std::Listdef
-import Std::Pairdef
-import Std::String
-import Text::Text4
+/* Copyright (c) 2016 ibm corporation. */
+import std::core
+import std::listdef
+import std::pairdef
+import std::string
+import text::Text4
 
 // Fragment denoting term embedded in user language text.
 

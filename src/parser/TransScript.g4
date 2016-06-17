@@ -78,12 +78,9 @@ decl
     ;
 
 importDecl
-    : IMPORT qconstructor                              /* Import module - short syntax */
-    | IMPORT MODULE qconstructor                       /* Import module */
-    | IMPORT GRAMMAR qconstructor                      /* Import grammar */
-    | IMPORT qualifiedIdentifier                       /* Import module - short syntax */
-    | IMPORT MODULE qualifiedIdentifier                /* Import module */
-    | IMPORT GRAMMAR qualifiedIdentifier               /* Import grammar */
+    : IMPORT qidentifier                               /* Import module - short syntax */
+    | IMPORT MODULE qidentifier                       /* Import module */
+    | IMPORT GRAMMAR qidentifier                      /* Import grammar */
     ;
 
 sortDecl
@@ -336,6 +333,11 @@ kv
 qualifiedIdentifier
     : identifier COLONCOLON qualifiedIdentifier
     | identifier
+    ;
+
+
+qidentifier
+    : (identifier COLONCOLON)* identifier
     ;
 
 identifier
