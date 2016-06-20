@@ -1,76 +1,19 @@
 /*
  * Copyright (c) 2015-2016 IBM Corporation.
  *
- * This is the complete TransScript 4 grammar specification.
+ * This is the complete Tosca 4 grammar specification.
  *
  * WARNING: do not change this file lightly. Several Java classes depends on it.
  *
  */
 grammar TransScript;
 
-// The code below is Java. It's simple enough to be ported to other languages.
-@header {
-import java.util.*;
-}
-
-// Operator precedence climbing.
-
-@members {
-/** Fixity for each operator operator */
-Map<String, String> fixities = new HashMap<>();
-
-/** Precedence for each operator operator */
-Map<String, Integer> precedences = new HashMap<>();
-
-/** Get the next precedence for the give operator */
-public int nextp (String op) {
-    String fixity = fixities.get(op);
-    int p = precedences.get(op);
-
-    if (fixity.equals("infixr"))  return p;
-    if (fixity.equals("infixl"))  return p+1;
-    if (fixity.equals("prefix"))  return p;
-    if (fixity.equals("postfix")) return p+1;
-    if (fixity.equals("infix"))   return p+1;
-    return 0;
-}
-
-/** Add new symbol with given fixity and precedence */
-private void addOp(String op, String fixity, Integer precedence) {
-		if (fixity != null)	{
-			fixities.put(op,  fixity);
-			precedences.put(op, precedence);
-		}
-}
-
-private boolean isPrefix(String op) {
-  return "prefix".equals(fixities.get(op));
-}
-
-private boolean isAnyInfix(String op, int currentp) {
-  String fixity = fixities.get(op);
-  return fixity != null && fixity.startsWith("infix") && precedences.get(op) >= currentp;
-}
-
-private boolean isPostfix(String op, int currentp) {
-  return "postfix".equals(fixities.get(op)) && precedences.get(op) >= currentp;
-}
-
-{
-  // Builtin operator for matching list tail.
-  fixities.put("...", "postfix");
-  precedences.put("...", 2);
-}
-
-}
-
-// A TransScript program is a module declaration and a list of declarations
+// A Tosca program is a module declaration and a list of declarations
 transscript
     : decl+
     ;
 
 decl
-    //: moduleDecl
     : importDecl
     | sortDecl
     | ruleDecl
@@ -78,21 +21,21 @@ decl
     ;
 
 importDecl
-    : IMPORT qidentifier                               /* Import module - short syntax */
-    | IMPORT MODULE qidentifier                       /* Import module */
-    | IMPORT GRAMMAR qidentifier                      /* Import grammar */
+    : IMPORT qidentifier                                     /* Import module - short syntax */
+    | IMPORT MODULE qidentifier                              /* Import module */
+    | IMPORT GRAMMAR qidentifier                             /* Import grammar */
     ;
 
 sortDecl
-     : ENUM constructor sortParams? (OR variant)+                    /* Variant sort declaration */
-     | STRUCT constructor sortParams? (AND sortMap)+                 /* Map sort declaration */
+     : ENUM constructor sortParams? (OR variant)+            /* Enumeration type declaration */
+     | STRUCT constructor sortParams? (AND sortMap)+         /* Map type declaration */
      ;
 
 sortParams
     : LT VARIABLE+ GT                                               /* Sort parameter declarations. */
     ;
 
-// Variant type
+// Enumeration type
 
 variant
     : constructor variantArgs?
@@ -166,18 +109,13 @@ ruleDecl
 
 // TODO: deprecate EXTERN
 fnDecl
-    : anno* EXTERN? FUNC fnFixity sortParams? fnParamDecls?
+    : anno* EXTERN? FUNC constructor sortParams? fnParamDecls?
             FNTYPE sort fnBody?                                    /* Function declaration  */
     ;
 
 
 anno
     : AT CONSTRUCTOR                                                 /* General purpose annotation */
-    ;
-
-fnFixity
-    : f=FIXITY p=NUMBER c=constructor { addOp($c.text, $f.text, $p.int); }
-    | constructor
     ;
 
 fnParamDecls
@@ -207,26 +145,11 @@ fnBody
 // Term
 
 terms
-    : term[0] (COMMA term[0])*
+    : term (COMMA term)*
     ;
 
-term[int p]
-    : aterm nterm[p]*
-    ;
-
-// Next term
-nterm[int p]
-    : // infixl infixr infix case
-      {isAnyInfix(_input.LT(1).getText(), $p)}?
-      op=operator
-      term[nextp($op.text)]
-
-      // infix case, no assoc, stop trying to match more infix operator
-      {!"infix".equals(fixities.get($op.text))}?
-    |
-      // postfix case
-      {isPostfix(_input.LT(1).getText(), $p)}?
-      operator
+term
+    : aterm nterm
     ;
 
 // Atom term
@@ -239,8 +162,12 @@ aterm
     | metapp                                                         /* Meta variable/Function call/Substitution */
     | dispatch                                                       /* Dispatch expression */
     | concrete                                                       /* Concrete syntax */
-    | { isPrefix(_input.LT(1).getText())}?
-      op=operator term[nextp($op.text)]                              /* Prefixed term */
+    ;
+
+// Next term
+nterm
+    : TAIL                                                           /* match/construct list tail */
+    |
     ;
 
 cons
@@ -262,18 +189,18 @@ scopes
 scope
     : LSQUARE binders                                                /* Scoped term  */
     | LPAR formalParams                                              /* Formal parameters */
-    | term[0]                                                        /* Term */
+    | term                                                           /* Term */
     ;
 
 binders
     : VARIABLE<boundvar=x> sortAnno? binders<bound=x>
-    | RSQUARE FNTYPE term[0]
+    | RSQUARE FNTYPE term
     | RSQUARE LPAR formalParams
     ;
 
 formalParams
     : VARIABLE<boundvar=x> sortAnno? formalParams<bound=x>
-    | RPAR FNTYPE term[0]
+    | RPAR FNTYPE term
     ;
 
 subst
@@ -286,11 +213,8 @@ apply
 
 groupOrList
     : LPAR RPAR                                                      /* Empty list */
-    | LPAR term[0] COMMA RPAR                                        /* Single term list */
+    | LPAR term COMMA RPAR                                           /* Single term list */
     | LPAR terms RPAR                                                /* Grouped term/Multiple terms list */
- // TODO: enable below when meta parser handle + properly.
- //   | LPAR term[0] RPAR                                            /* Grouped term */
-//    | LPAR term[0] (COMMA term[0])+ RPAR                           /* Multiple terms list */
     ;
 
 literal
@@ -303,7 +227,7 @@ dispatch
     ;
 
 dispatchCases
-    : OR term[0] ARROW term[0] (COMMA dispatchCases)*            /*  */
+    : OR term ARROW term (COMMA dispatchCases)*            /*  */
     ;
 
 concrete
@@ -321,13 +245,13 @@ kvs
 kv
     : METAVAR                                               /* property reference (match/construct)      */
     | NOT  METAVAR                                          /* no property references (match only)       */
-    | METAVAR COLON term[0]                                 /* match property value / construct          */
+    | METAVAR COLON term                                    /* match property value / construct          */
     | VARIABLE<variable>                                    /* match / construct variable property       */
     | NOT VARIABLE<variable>                                /* no variable (match only)                  */
-    | VARIABLE<variable> COLON term[0]                      /* match variable property value / construct */
+    | VARIABLE<variable> COLON term                         /* match variable property value / construct */
     | STRING                                                /* match / construct named property          */
     | NOT STRING                                            /* no named property (match only)            */
-    | STRING COLON term[0]                                  /* match named property value / construct    */
+    | STRING COLON term                                     /* match named property value / construct    */
     ;
 
 qualifiedIdentifier
@@ -395,6 +319,7 @@ RSQUARE         : ']';
 FNTYPE          : '->';
 NOT             : '¬';
 AT              : '@';
+TAIL            : '...';
 
 FIXITY          : 'infix' | 'infixr' | 'infixl' | 'postfix' | 'prefix';
 

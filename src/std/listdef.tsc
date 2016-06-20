@@ -13,8 +13,8 @@ enum List<a> | Cons(a, List<a>) | Nil
 
 /* @return `TRUE` if list is empty */
 func IsEmpty<a>(List<a>) -> Bool
-rule IsEmpty(()                   ) → TRUE
-rule IsEmpty(Cons(#:a, #s:List<a>)) → FALSE
+rule IsEmpty(()        ) → TRUE
+rule IsEmpty((#, #s...)) → FALSE
 
 /* @return `TRUE` if list is not empty */
 func IsNotEmpty<a>(List<a>) -> Bool

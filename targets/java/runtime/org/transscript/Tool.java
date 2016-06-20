@@ -305,7 +305,7 @@ public class Tool
 		buildEnv.put("class", "org.transscript.compiler.Tosca");
 		buildEnv.put("main", "Compile");
 
-		Context context = new Context();
+		Context context = new ToolContext();
 
 		internalEnv.put("args", new Object[]
 			{context, stringTerm(rules), config});

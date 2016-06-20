@@ -1,4 +1,5 @@
 // Copyright (c) 2016 IBM Corporation.
+
 package org.transscript.tool;
 
 import static org.transscript.compiler.parser.TransScript.*;
@@ -148,7 +149,7 @@ public class MetaBufferSink extends MetaSink
 
 		TransScript_xterm_xsort term = TransScript_xterm(
 				context, TransScript_xaterm_xA1(context, TransScript_xcons(context, cparams.fst, Nil(context), args, Nil(context))),
-				Nil(context));
+				TransScript_xnterm_xA2(context));
 
 		addSub(term);
 		return this;
@@ -158,7 +159,8 @@ public class MetaBufferSink extends MetaSink
 	public Sink literal(String literal)
 	{
 		TransScript_xterm_xsort term = TransScript_xterm(
-				context, TransScript_xaterm_xA2(context, TransScript_xliteral_xA1(context, stringTerm(literal))), Nil(context));
+				context, TransScript_xaterm_xA2(context, TransScript_xliteral_xA1(context, stringTerm(literal))),
+				TransScript_xnterm_xA2(context));
 
 		addSub(term);
 		return this;
@@ -169,7 +171,7 @@ public class MetaBufferSink extends MetaSink
 	{
 		TransScript_xterm_xsort term = TransScript_xterm(
 				context, TransScript_xaterm_xA2(context, TransScript_xliteral_xA2(context, stringTerm(Double.toString(literal)))),
-				Nil(context));
+				TransScript_xnterm_xA2(context));
 
 		addSub(term);
 		return this;
@@ -180,7 +182,7 @@ public class MetaBufferSink extends MetaSink
 	{
 		TransScript_xterm_xsort term = TransScript_xterm(
 				context, TransScript_xaterm_xA4(context, (StringTerm) variable.use(), Nil(context)),
-				Nil(context));
+				TransScript_xnterm_xA2(context));
 
 		addSub(term);
 		return this;
@@ -234,9 +236,9 @@ public class MetaBufferSink extends MetaSink
 
 		TransScript_xterm_xsort term = TransScript_xterm(
 				context,
-				TransScript_xaterm_xA6(context,
-						TransScript_xmetapp(context, stringTerm(mparams.fst), apply, subst, toTSSortAnno(mparams.type))),
-				Nil(context));
+				TransScript_xaterm_xA6(
+						context, TransScript_xmetapp(context, stringTerm(mparams.fst), apply, subst, toTSSortAnno(mparams.type))),
+				TransScript_xnterm_xA2(context));
 
 		addSub(term);
 		return this;
@@ -310,19 +312,19 @@ public class MetaBufferSink extends MetaSink
 		{
 			String listArg = type.substring(type.indexOf('<') + 1, type.indexOf('>'));
 			type = type.substring(0, type.indexOf('<'));
-			args = Cons(
+			args = Cons(context, TransScript_xsortArgs(context, Cons(
 					context,
-					TransScript_xsortArgs(context, Cons(context,
-							TransScript_xsort(context,
-									Nil(context), TransScript_xparamSort_xA1(context,
-											TransScript_xconstructor(context, stringTerm(listArg)), Nil(context))),
-							Nil(context))),
-					Nil(context));
+					TransScript_xsort(
+							context, Nil(context),
+							TransScript_xparamSort_xA1(
+									context, TransScript_xconstructor(context, stringTerm(listArg)), Nil(context))),
+					Nil(context))), Nil(context));
 		}
 		else
 			args = Nil(context);
 
-		return TransScript_xsort(context, Nil(context),
+		return TransScript_xsort(
+				context, Nil(context),
 				TransScript_xparamSort_xA1(context, TransScript_xconstructor(context, stringTerm(type)), args));
 	}
 
@@ -403,7 +405,7 @@ public class MetaBufferSink extends MetaSink
 	{}
 
 	/** Construction argument type alias */
-	static class ConsParam extends Pair<TransScript_xqconstructor_xsort, ArrayList<SubCons>>implements SubParam
+	static class ConsParam extends Pair<TransScript_xqconstructor_xsort, ArrayList<SubCons>> implements SubParam
 	{
 		public ConsParam(TransScript_xqconstructor_xsort constructor, ArrayList<SubCons> subs)
 		{
