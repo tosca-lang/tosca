@@ -126,7 +126,7 @@ public class LanguageExtern
 
 		if (estr.data())
 		{
-			StringTerm result = StringTerm.stringTerm(StringUtils.mangle2(estr.unbox()));
+			StringTerm result = StringTerm.stringTerm(StringUtils.mangle(estr.unbox()));
 			estr.release();
 			return result;
 		}

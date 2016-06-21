@@ -28,16 +28,3 @@ func SaveTerm<a b>(#filename: String, #term:a, #result:b) -> b
 
 /* Convert term to `String` using serializer identified by the given category */
 extern func PrintTerm<a>(String /* category */, a /* term */) -> String
-
-// --- Java helper functions
-
- /*
-  */
-extern func ToJavaMethodName(eager String) -> String
-
-extern func ToJavaClassName(eager String) -> String
-
-/*
- * Convert string to a valid Java type parameter.
- */
-extern func ToJavaTypeParameter(eager String) -> String

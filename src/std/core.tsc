@@ -71,6 +71,14 @@ extern func Equal<a b>(eager a, eager b) -> Bool
 
 extern func SameVariable<a b>(a, b) -> Bool
 
+// --- Bit manipulation
+
+@Extern func BitAnd(Numeric, Numeric) -> Numeric
+@Extern func BitOr(Numeric, Numeric) -> Numeric
+@Extern func BitMinus(Numeric, Numeric) -> Numeric
+@Extern func BitSubSetEq(Numeric, Numeric) -> Bool
+
+
 // --- Debugging
 
 extern func Trace<a>(#msg : String, #result: ()->a) -> a

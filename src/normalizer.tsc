@@ -22,12 +22,14 @@ import std::language
 // Convert TransScript to Core
 func ToCore(String, TransScript_transscript_sort) -> Core_ccrsx_sort
 rule ToCore(#filename, transscript⟦ ##decl+ ⟧)
-→ ccrsx⟦
+→ IfDef("nostd",
+    ()->ccrsx⟦ ⟨cdecl+: NDecls(#decl+)⟩ ⟧,
+    ()->ccrsx⟦
   import module std::core
   import module std::mapdef
   import module std::listdef
 
-  ⟨cdecl+: NDecls(#decl+)⟩⟧
+  ⟨cdecl+: NDecls(#decl+)⟩⟧)
 
 
 // ----- Declarations

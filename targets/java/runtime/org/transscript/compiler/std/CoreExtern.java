@@ -6,6 +6,7 @@ import static org.transscript.runtime.StringTerm.stringTerm;
 
 import org.transscript.compiler.std.Core.Bool;
 import org.transscript.runtime.Context;
+import org.transscript.runtime.DoubleTerm;
 import org.transscript.runtime.Functions.ThunkMaker;
 import org.transscript.runtime.LazyTerm;
 import org.transscript.runtime.StringTerm;
@@ -95,6 +96,30 @@ public class CoreExtern
 		System.out.println(emsg);
 		emsg.release();
 		return result.eval(context);
+	}
+
+	public static DoubleTerm BitOr(Context context, DoubleTerm value_1825, DoubleTerm value_1826)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static Bool BitSubSetEq(Context context, DoubleTerm value_1862, DoubleTerm value_1863)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static DoubleTerm BitAnd(Context context, DoubleTerm value_1870, DoubleTerm value_1871)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static DoubleTerm BitMinus(Context context, DoubleTerm value_1890, DoubleTerm value_1891)
+	{
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

@@ -139,7 +139,7 @@ public class StringUtils
 	/** 
 	 * Convert string to Java/C identifier form   
 	 */
-	public static String mangle2(String s)
+	public static String mangle(String s)
 	{
 		StringBuilder b = new StringBuilder();
 		final int n = s.length();

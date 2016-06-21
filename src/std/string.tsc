@@ -78,7 +78,8 @@ extern func AfterFirst(eager String, eager String) -> String
 extern func BeforeFirst(eager String, eager String) -> String
 
 extern func Escape(String) -> String
-extern func FormatNumber(Numeric) -> String
+
+/* @return the string converted to a valid Java/C/C++ identifier */
 extern func Mangle(String) -> String
 
 func AfterLast(eager String, eager String) -> String

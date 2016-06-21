@@ -1,5 +1,5 @@
 // Copyright (c) 2016 IBM Corporation.
-import Std::Test::Unit
+import std::test::unit
 
 func EmptyMap -> {String:Numeric}
 → {}
@@ -53,5 +53,5 @@ func Tests -> Numeric
     TestCase( AssertTrue("Match key-NONE",             MatchKeyNone("a", FillEnumMap)) ),
     TestCase( AssertTrue("Match key-SList",            MatchKeySingletonList("c", FillEnumMap)) ),
     TestCase( AssertTrue("Match key-SList unordered",  MatchKeySingletonListUnordered(FillEnumMap, "c")) )
-    
+
   )))

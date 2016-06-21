@@ -138,9 +138,18 @@ public class StringExtern
 		throw new RuntimeException();
 	}
 
-	public static StringTerm Mangle(Context context, StringTerm x_661)
+	/**
+	 * Converts string to valid Java and C/C++ identifier
+	 * @param context
+	 * @param string
+	 * @return
+	 */
+	public static StringTerm Mangle(Context context, StringTerm str)
 	{
-		throw new RuntimeException();
+		StringTerm estr = str.eval(context);
+		StringTerm result = StringTerm.stringTerm(StringUtils.mangle(estr.unbox()));
+		estr.release();
+		return result;
 	}
 
 	public static <a extends Term> a ParseText(Context context, ThunkMaker<a> tma, StringTerm x_695, StringTerm x_700)
@@ -272,23 +281,6 @@ public class StringExtern
 		StringTerm result = stringTerm(estr1.unbox() + estr2.unbox());
 		estr1.release();
 		estr2.release();
-		return result;
-	}
-
-	/**
-	 * 
-	 * @param context
-	 * @param num
-	 * @return
-	 */
-	public static StringTerm FormatNumber(Context context, DoubleTerm num)
-	{
-		DoubleTerm evnum = force(context, num);
-
-		// FIXME
-		StringTerm result = stringTerm(Integer.toString((int) evnum.unbox()));
-		evnum.release();
-
 		return result;
 	}
 

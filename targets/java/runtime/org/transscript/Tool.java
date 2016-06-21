@@ -98,7 +98,8 @@ public class Tool
 		System.out.println("  parsers=<classnames>      comma separated list of parsers classname");
 		System.out.println("  cpp                       set target language to C++");
 		System.out.println("  java                      set target language to Java (default)");
-		System.out.println("  stacktrace                print Java stack trace when an error occur");
+		System.out.println("  nostd                     does not include the standard library by default");
+		System.out.println("  stacktrace                print stack trace when an error occur");
 		System.out.println("  bootparserpath=<name>     where to look for builtin parsers (ADVANCED)");
 		System.out.println("  bootstrap                 turn bootstrapping mode on (ADVANCED)");
 	}
@@ -149,7 +150,10 @@ public class Tool
 			buildEnv.put("rules", rules);
 			buildEnv.put("build-dir", buildir);
 			buildEnv.put("verbose", env.get("verbose"));
-			buildEnv.put("infer", env.get("infer"));
+			if (env.get("infer") != null)
+				buildEnv.put("infer", env.get("infer"));
+			if (env.get("nostd") != null)
+				buildEnv.put("nostd", env.get("nostd"));
 
 			if (javabasepackage != null)
 				buildEnv.put("javabasepackage", javabasepackage);
@@ -300,7 +304,9 @@ public class Tool
 
 		if (env.containsKey("infer"))
 			config.putValue(stringTerm("infer"), stringTerm("1"));
-		
+		if (env.containsKey("nostd"))
+			System.setProperty("nostd", "1");
+
 		// First: Produce source file.
 		buildEnv.put("class", "org.transscript.compiler.Tosca");
 		buildEnv.put("main", "Compile");

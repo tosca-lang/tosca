@@ -1,7 +1,12 @@
+/* Copyright (c) 2015-2016 IBM Corporation. */
+
+/*
+ * Standard numeric library
+ */
 import std::core
 
-extern func Plus(Numeric, Numeric) -> Numeric
-extern func Minus(Numeric, Numeric) -> Numeric
+@Extern func Plus(Numeric, Numeric) -> Numeric
+@Extern func Minus(Numeric, Numeric) -> Numeric
 
 // Compare the 2 numeric values
 func NumberEqual(Numeric, Numeric) -> Bool
@@ -16,5 +21,9 @@ func NumberMinus(#1: Numeric, #2: Numeric) -> Numeric
 → Minus(#1, #2)
 
 // LessThan
-extern func NumberLessThan(Numeric, Numeric) -> Bool
-extern func NumberGreaterThan(Numeric, Numeric) -> Bool
+@Extern func NumberLessThan(Numeric, Numeric) -> Bool
+@Extern func NumberGreaterThan(Numeric, Numeric) -> Bool
+
+@Extern func FormatNumber(Numeric) -> String
+@Extern func FormatInteger(Numeric) -> String
+@Extern func FormatDecimal(Numeric) -> String
