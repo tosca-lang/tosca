@@ -18,17 +18,18 @@ import java.util.List;
 import java.util.Map;
 
 import org.transscript.compiler.core.Core;
-import org.transscript.compiler.core.Core.Core_xcsort_xsort;
-import org.transscript.compiler.core.Core.Core_xcterm_xsort;
+import org.transscript.compiler.core.Core.Core_csort_sort;
+import org.transscript.compiler.core.Core.Core_cterm_sort;
 import org.transscript.compiler.parser.TransScript;
-import org.transscript.compiler.parser.TransScript.TransScript_xterm_xsort;
+import org.transscript.compiler.parser.TransScript.TransScript_term_sort;
 import org.transscript.compiler.std.Listdef;
 import org.transscript.compiler.text.Printer;
-import org.transscript.compiler.text.Text4.Text4_xtext_xsort;
+import org.transscript.compiler.text.Text4.Text4_text_sort;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.Normalizer;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
+import org.transscript.runtime.utils.StringUtils;
 
 /**
  * Collection of utility methods 
@@ -66,23 +67,23 @@ public class Utils
 		try
 		{
 			category = category == null ? "" : category;
-			if (term instanceof Text4_xtext_xsort && (category.equals("") || category.equals("text")))
+			if (term instanceof Text4_text_sort && (category.equals("") || category.equals("text")))
 			{
-				term = Printer.PrintText(context, (Text4_xtext_xsort) term);
+				term = Printer.PrintText(context, (Text4_text_sort) term);
 				term = Normalizer.force(context, term);
 				TermPrinter.print(term, output);
 			}
-			else if (term instanceof Core_xcterm_xsort && (category.equals("") || category.equals("cterm")))
+			else if (term instanceof Core_cterm_sort && (category.equals("") || category.equals("cterm")))
 			{
-				printTerm(context, "text", Core.Core_xPrint_xcterm(context, (Core_xcterm_xsort) term), outputName, output);
+				printTerm(context, "text", Core.Core_Print_cterm(context, (Core_cterm_sort) term), outputName, output);
 			}
-			else if (term instanceof Core_xcsort_xsort && (category.equals("") || category.equals("csort")))
+			else if (term instanceof Core_csort_sort && (category.equals("") || category.equals("csort")))
 			{
-				printTerm(context, "text", Core.Core_xPrint_xcsort(context, (Core_xcsort_xsort) term), outputName, output);
+				printTerm(context, "text", Core.Core_Print_csort(context, (Core_csort_sort) term), outputName, output);
 			}
-			else if (term instanceof TransScript_xterm_xsort && (category.equals("") || category.equals("term")))
+			else if (term instanceof TransScript_term_sort && (category.equals("") || category.equals("term")))
 			{
-				printTerm(context, "text", TransScript.TransScript_xPrint_xterm(context, (TransScript_xterm_xsort) term), outputName, output);
+				printTerm(context, "text", TransScript.TransScript_Print_term(context, (TransScript_term_sort) term), outputName, output);
 			}
 			else
 				TermPrinter.print(term, output);
@@ -296,10 +297,11 @@ public class Utils
 		}
 
 		// Compute output java filename
-		String output = inputPath.getFileName().toString().replace(".crsc", ".java").replace(".crs4", ".java").replace(
-				".tsc", ".java");
-		output = Character.toUpperCase(output.charAt(0)) + output.substring(1); // First character must be upper case.
-		output = dest + File.separator + output; // dest / output.java
+		String output = inputPath.getFileName().toString().replace(".crsc", "").replace(".crs4", "").replace(
+				".tsc", "");
+		
+		output = StringUtils.mangle(Character.toUpperCase(output.charAt(0)) + output.substring(1)); // First character must be upper case.
+		output = dest + File.separator + output + ".java"; // dest / output.java
 		return output;
 	}
 
@@ -325,9 +327,9 @@ public class Utils
 		String ext = header ? ".h" : ".cpp";
 
 		// Compute output java filename
-		String output = inputFile.getName().replace(".crs4", ext).replace(".tsc", ext);
+		String output = StringUtils.mangle(inputFile.getName().replace(".crs4", "").replace(".tsc", ""));
 
-		output = dest + File.separator + output; // dest / src / output.cpp
+		output = dest + File.separator + output + ext; // dest / src / output.cpp
 		return output;
 	}
 

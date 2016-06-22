@@ -155,9 +155,9 @@ public class StringUtils
 						b.append("__");
 					break;
 				}
-				case '_' :
-					b.append("_x");
-					break;
+//				case '_' :
+//					b.append("_x");
+//					break;
 				case '~' :
 					b.append("_w");
 					break;

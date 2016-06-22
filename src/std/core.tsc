@@ -1,7 +1,4 @@
 /* Copyright (c) 2016 IBM Corporation. */
-enum OK_SORT | OK
-
-
 // --- Evaluation
 
 /**
@@ -86,4 +83,7 @@ extern func Trace<a>(#msg : String, #result: ()->a) -> a
 extern func Show<a>(a) -> String
 
 // -- Error
-extern func Error<a>(String) -> a
+
+@Extern func Error<a>(String) -> a
+@Extern func EventualError<a>(String) -> a
+@Extern func ForgivableError<a>(String) -> a

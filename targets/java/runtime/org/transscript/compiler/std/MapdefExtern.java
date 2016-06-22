@@ -203,4 +203,10 @@ public class MapdefExtern
 		return result;
 	}
 
+	public static <a extends Term, b extends Term, c extends Term> MapTerm<a, b> MapFind(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, ThunkMaker<c> tmc, c value)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

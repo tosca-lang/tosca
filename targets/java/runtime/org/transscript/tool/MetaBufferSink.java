@@ -11,17 +11,17 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.function.Function;
 
-import org.transscript.compiler.parser.TransScript.TransScript_xapply_xsort;
-import org.transscript.compiler.parser.TransScript.TransScript_xargs_xsort;
-import org.transscript.compiler.parser.TransScript.TransScript_xbinders_xsort;
-import org.transscript.compiler.parser.TransScript.TransScript_xformalParams_xsort;
-import org.transscript.compiler.parser.TransScript.TransScript_xqconstructor_xsort;
-import org.transscript.compiler.parser.TransScript.TransScript_xscope_xsort;
-import org.transscript.compiler.parser.TransScript.TransScript_xsortAnno_xsort;
-import org.transscript.compiler.parser.TransScript.TransScript_xsortArgs_xsort;
-import org.transscript.compiler.parser.TransScript.TransScript_xsortQualifier_xsort;
-import org.transscript.compiler.parser.TransScript.TransScript_xsubst_xsort;
-import org.transscript.compiler.parser.TransScript.TransScript_xterm_xsort;
+import org.transscript.compiler.parser.TransScript.TransScript_apply_sort;
+import org.transscript.compiler.parser.TransScript.TransScript_args_sort;
+import org.transscript.compiler.parser.TransScript.TransScript_binders_sort;
+import org.transscript.compiler.parser.TransScript.TransScript_formalParams_sort;
+import org.transscript.compiler.parser.TransScript.TransScript_qconstructor_sort;
+import org.transscript.compiler.parser.TransScript.TransScript_scope_sort;
+import org.transscript.compiler.parser.TransScript.TransScript_sortAnno_sort;
+import org.transscript.compiler.parser.TransScript.TransScript_sortArgs_sort;
+import org.transscript.compiler.parser.TransScript.TransScript_sortQualifier_sort;
+import org.transscript.compiler.parser.TransScript.TransScript_subst_sort;
+import org.transscript.compiler.parser.TransScript.TransScript_term_sort;
 import org.transscript.compiler.std.Listdef.List;
 import org.transscript.runtime.ConstructionDescriptor;
 import org.transscript.runtime.Context;
@@ -77,7 +77,7 @@ public class MetaBufferSink extends MetaSink
 	}
 
 	// Add sub to current construction
-	protected void addSub(TransScript_xterm_xsort term)
+	protected void addSub(TransScript_term_sort term)
 	{
 		if (subParams.peek() instanceof ConsParam)
 		{
@@ -115,17 +115,17 @@ public class MetaBufferSink extends MetaSink
 	@Override
 	public Sink start(ConstructionDescriptor descriptor)
 	{
-		List<TransScript_xsortQualifier_xsort> qualifier;
+		List<TransScript_sortQualifier_sort> qualifier;
 		if (type == null)
 			qualifier = Nil(context);
 		else
 		{
-			qualifier = Cons(context, TransScript_xsortQualifier(context, toTSSort(type)), Nil(context));
+			qualifier = Cons(context, TransScript_sortQualifier(context, toTSSort(type)), Nil(context));
 			type = null;
 		}
 
-		TransScript_xqconstructor_xsort qc = TransScript_xqconstructor(
-				context, qualifier, TransScript_xconstructor(context, stringTerm(descriptor.symbol())));
+		TransScript_qconstructor_sort qc = TransScript_qconstructor(
+				context, qualifier, TransScript_constructor(context, stringTerm(descriptor.symbol())));
 
 		subParams.push(new ConsParam(qc, new ArrayList<>()));
 		subIndex.push(new MutableInt(0)); // position to first sub.
@@ -138,18 +138,18 @@ public class MetaBufferSink extends MetaSink
 		ConsParam cparams = (ConsParam) subParams.pop();
 		subIndex.pop();
 
-		List<TransScript_xargs_xsort> args;
+		List<TransScript_args_sort> args;
 		if (cparams.snd.isEmpty())
 			args = Nil(context);
 		else
 			args = Cons(
 					context,
-					TransScript_xargs(context, Cons(context, TransScript_xscopes(context, toScopes(cparams.snd)), Nil(context))),
+					TransScript_args(context, Cons(context, TransScript_scopes(context, toScopes(cparams.snd)), Nil(context))),
 					Nil(context));
 
-		TransScript_xterm_xsort term = TransScript_xterm(
-				context, TransScript_xaterm_xA1(context, TransScript_xcons(context, cparams.fst, Nil(context), args, Nil(context))),
-				TransScript_xnterm_xA2(context));
+		TransScript_term_sort term = TransScript_term(
+				context, TransScript_aterm_A1(context, TransScript_cons(context, cparams.fst, Nil(context), args, Nil(context))),
+				TransScript_nterm_A2(context));
 
 		addSub(term);
 		return this;
@@ -158,9 +158,9 @@ public class MetaBufferSink extends MetaSink
 	@Override
 	public Sink literal(String literal)
 	{
-		TransScript_xterm_xsort term = TransScript_xterm(
-				context, TransScript_xaterm_xA2(context, TransScript_xliteral_xA1(context, stringTerm(literal))),
-				TransScript_xnterm_xA2(context));
+		TransScript_term_sort term = TransScript_term(
+				context, TransScript_aterm_A2(context, TransScript_literal_A1(context, stringTerm(literal))),
+				TransScript_nterm_A2(context));
 
 		addSub(term);
 		return this;
@@ -169,9 +169,9 @@ public class MetaBufferSink extends MetaSink
 	@Override
 	public Sink literal(double literal)
 	{
-		TransScript_xterm_xsort term = TransScript_xterm(
-				context, TransScript_xaterm_xA2(context, TransScript_xliteral_xA2(context, stringTerm(Double.toString(literal)))),
-				TransScript_xnterm_xA2(context));
+		TransScript_term_sort term = TransScript_term(
+				context, TransScript_aterm_A2(context, TransScript_literal_A2(context, stringTerm(Double.toString(literal)))),
+				TransScript_nterm_A2(context));
 
 		addSub(term);
 		return this;
@@ -180,9 +180,9 @@ public class MetaBufferSink extends MetaSink
 	@Override
 	public Sink use(Variable variable)
 	{
-		TransScript_xterm_xsort term = TransScript_xterm(
-				context, TransScript_xaterm_xA4(context, (StringTerm) variable.use(), Nil(context)),
-				TransScript_xnterm_xA2(context));
+		TransScript_term_sort term = TransScript_term(
+				context, TransScript_aterm_A4(context, (StringTerm) variable.use(), Nil(context)),
+				TransScript_nterm_A2(context));
 
 		addSub(term);
 		return this;
@@ -216,29 +216,29 @@ public class MetaBufferSink extends MetaSink
 		MetaParam mparams = (MetaParam) subParams.pop();
 		subIndex.pop();
 
-		List<TransScript_xapply_xsort> apply;
+		List<TransScript_apply_sort> apply;
 		if (mparams.snd.isEmpty())
 			apply = Nil(context);
 		else
 			apply = Cons(
 					context,
-					TransScript_xapply(context, Cons(context, TransScript_xterms(context, toTerms(mparams.snd)), Nil(context))),
+					TransScript_apply(context, Cons(context, TransScript_terms(context, toTerms(mparams.snd)), Nil(context))),
 					Nil(context));
 
-		List<TransScript_xsubst_xsort> subst;
+		List<TransScript_subst_sort> subst;
 		if (mparams.thd.isEmpty())
 			subst = Nil(context);
 		else
 			subst = Cons(
 					context,
-					TransScript_xsubst(context, Cons(context, TransScript_xterms(context, toTerms(mparams.thd)), Nil(context))),
+					TransScript_subst(context, Cons(context, TransScript_terms(context, toTerms(mparams.thd)), Nil(context))),
 					Nil(context));
 
-		TransScript_xterm_xsort term = TransScript_xterm(
+		TransScript_term_sort term = TransScript_term(
 				context,
-				TransScript_xaterm_xA6(
-						context, TransScript_xmetapp(context, stringTerm(mparams.fst), apply, subst, toTSSortAnno(mparams.type))),
-				TransScript_xnterm_xA2(context));
+				TransScript_aterm_A6(
+						context, TransScript_metapp(context, stringTerm(mparams.fst), apply, subst, toTSSortAnno(mparams.type))),
+				TransScript_nterm_A2(context));
 
 		addSub(term);
 		return this;
@@ -271,7 +271,7 @@ public class MetaBufferSink extends MetaSink
 	@Override
 	public Sink copy(Term term)
 	{
-		addSub((TransScript_xterm_xsort) term);
+		addSub((TransScript_term_sort) term);
 		return this;
 	}
 
@@ -284,7 +284,7 @@ public class MetaBufferSink extends MetaSink
 	/**
 	 * @return The resulting meta term.
 	 */
-	public TransScript_xterm_xsort metaterm()
+	public TransScript_term_sort metaterm()
 	{
 		ConsParam sub = (ConsParam) subParams.pop();
 		subIndex.pop();
@@ -295,81 +295,81 @@ public class MetaBufferSink extends MetaSink
 	}
 
 	// Convert simple type string to TS type annotation
-	private List<TransScript_xsortAnno_xsort> toTSSortAnno(String type)
+	private List<TransScript_sortAnno_sort> toTSSortAnno(String type)
 	{
 		if (type == null)
 			return Nil(context);
 
-		return Cons(context, TransScript_xsortAnno(context, toTSSort(type)), Nil(context));
+		return Cons(context, TransScript_sortAnno(context, toTSSort(type)), Nil(context));
 	}
 
 	// Convert simple type string to TS sort
-	private TransScript_xsort_xsort toTSSort(String type)
+	private TransScript_sort_sort toTSSort(String type)
 	{
 		// Type is always a constructor, optionally with type variable.
-		List<TransScript_xsortArgs_xsort> args;
+		List<TransScript_sortArgs_sort> args;
 		if (type.contains("<")) // it's a List of something
 		{
 			String listArg = type.substring(type.indexOf('<') + 1, type.indexOf('>'));
 			type = type.substring(0, type.indexOf('<'));
-			args = Cons(context, TransScript_xsortArgs(context, Cons(
+			args = Cons(context, TransScript_sortArgs(context, Cons(
 					context,
-					TransScript_xsort(
+					TransScript_sort(
 							context, Nil(context),
-							TransScript_xparamSort_xA1(
-									context, TransScript_xconstructor(context, stringTerm(listArg)), Nil(context))),
+							TransScript_paramSort_A1(
+									context, TransScript_constructor(context, stringTerm(listArg)), Nil(context))),
 					Nil(context))), Nil(context));
 		}
 		else
 			args = Nil(context);
 
-		return TransScript_xsort(
+		return TransScript_sort(
 				context, Nil(context),
-				TransScript_xparamSort_xA1(context, TransScript_xconstructor(context, stringTerm(type)), args));
+				TransScript_paramSort_A1(context, TransScript_constructor(context, stringTerm(type)), args));
 	}
 
 	// Convert internal rep sub to list of terms
-	private List<TransScript_xterm_xsort> toTerms(ArrayList<TransScript_xterm_xsort> terms)
+	private List<TransScript_term_sort> toTerms(ArrayList<TransScript_term_sort> terms)
 	{
 		return toTSList(terms, t -> t);
 	}
 
 	// Convert internal rep sub to list of scopes
-	private List<TransScript_xscope_xsort> toScopes(ArrayList<SubCons> subs)
+	private List<TransScript_scope_sort> toScopes(ArrayList<SubCons> subs)
 	{
 		return toTSList(subs, sub -> {
 			ArrayList<Variable> sparams = sub.snd;
-			TransScript_xformalParams_xsort params = null;
+			TransScript_formalParams_sort params = null;
 			if (!sparams.isEmpty())
 			{
-				params = TransScript_xformalParams_xA2(context, sub.thd);
+				params = TransScript_formalParams_A2(context, sub.thd);
 
 				for (int i = sparams.size() - 1; i >= 0; i--)
 				{
-					params = TransScript_xformalParams_xA1(
+					params = TransScript_formalParams_A1(
 							context, Nil(context), (VarStringTerm) sparams.get(sparams.size() - 1), params);
 				}
 			}
 
 			ArrayList<Variable> sbinders = sub.fst;
-			TransScript_xbinders_xsort binders = null;
+			TransScript_binders_sort binders = null;
 			if (!sbinders.isEmpty())
 			{
-				binders = params == null ? TransScript_xbinders_xA2(context, sub.thd) : TransScript_xbinders_xA3(context, params);
+				binders = params == null ? TransScript_binders_A2(context, sub.thd) : TransScript_binders_A3(context, params);
 
 				for (int i = sbinders.size() - 1; i >= 0; i--)
 				{
-					binders = TransScript_xbinders_xA1(
+					binders = TransScript_binders_A1(
 							context, Nil(context), (VarStringTerm) sbinders.get(sbinders.size() - 1), binders);
 				}
 			}
 
 			if (binders != null)
-				return TransScript_xscope_xA1(context, binders);
+				return TransScript_scope_A1(context, binders);
 			if (params != null)
-				return TransScript_xscope_xA2(context, params);
+				return TransScript_scope_A2(context, params);
 
-			return TransScript_xscope_xA3(context, sub.thd);
+			return TransScript_scope_A3(context, sub.thd);
 		});
 	}
 
@@ -390,10 +390,10 @@ public class MetaBufferSink extends MetaSink
 	}
 
 	/** Construction sub term argument type alias. A triple of binders/formal params/term */
-	static class SubCons extends Triple<ArrayList<Variable>, ArrayList<Variable>, TransScript_xterm_xsort>
+	static class SubCons extends Triple<ArrayList<Variable>, ArrayList<Variable>, TransScript_term_sort>
 	{
 
-		public SubCons(ArrayList<Variable> fst, ArrayList<Variable> snd, TransScript_xterm_xsort thd)
+		public SubCons(ArrayList<Variable> fst, ArrayList<Variable> snd, TransScript_term_sort thd)
 		{
 			super(fst, snd, thd);
 		}
@@ -405,23 +405,23 @@ public class MetaBufferSink extends MetaSink
 	{}
 
 	/** Construction argument type alias */
-	static class ConsParam extends Pair<TransScript_xqconstructor_xsort, ArrayList<SubCons>> implements SubParam
+	static class ConsParam extends Pair<TransScript_qconstructor_sort, ArrayList<SubCons>> implements SubParam
 	{
-		public ConsParam(TransScript_xqconstructor_xsort constructor, ArrayList<SubCons> subs)
+		public ConsParam(TransScript_qconstructor_sort constructor, ArrayList<SubCons> subs)
 		{
 			super(constructor, subs);
 		}
 	}
 
 	/** Meta argument type alias */
-	static class MetaParam extends Triple<String, ArrayList<TransScript_xterm_xsort>, ArrayList<TransScript_xterm_xsort>>
+	static class MetaParam extends Triple<String, ArrayList<TransScript_term_sort>, ArrayList<TransScript_term_sort>>
 			implements
 				SubParam
 	{
 		public boolean apply = true;
 		public String type;
 
-		public MetaParam(String name, ArrayList<TransScript_xterm_xsort> apply, ArrayList<TransScript_xterm_xsort> subst)
+		public MetaParam(String name, ArrayList<TransScript_term_sort> apply, ArrayList<TransScript_term_sort> subst)
 		{
 			super(name, apply, subst);
 		}

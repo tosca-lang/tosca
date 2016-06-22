@@ -78,7 +78,7 @@ rule Tail(Cons(#:a, #s:List<a>)) → #s
  */
 func At<a>(List<a>, eager Numeric) -> Option<a>
 rule At((                   ), #i) → NONE
-rule At(Cons(#:a, #s:List<a>), #i) → If<Option>(NumberEqual(#i, 0), ()->SOME(#), ()->At<a>(#s, Minus(#i, 1)))
+rule At(Cons(#:a, #s:List<a>), #i) → If<Option>(Equal(#i, 0), ()->SOME(#), ()->At<a>(#s, Minus(#i, 1)))
 
 /*
   Concat the two list
@@ -119,7 +119,7 @@ rule Insert(#X, #XS) → Cons(#X, #XS)
 */
 func Range(Numeric, Numeric) -> List<Numeric>
 rule Range(#from, #to)
-→ If<List>( NumberLessThan(#from, #to),
+→ If<List>(LessThan(#from, #to),
     ()->Cons(#from, Range(Plus(#from, 1), #to)),
     ()->Cons(#to, Nil))
 
@@ -197,7 +197,7 @@ rule RemoveDuplicates(Cons(#X:a, #XS:List<a>)) → Cons(#X, RemoveDuplicates<a>(
    @return length of `#XS`
 */
 func ListLength<a>(List<a>) -> Numeric
-rule ListLength(#XS) → IWrapFoldlP<a Numeric>((x y) -> NumberPlus(1, y), 0, #XS)
+rule ListLength(#XS) → IWrapFoldlP<a Numeric>((x y) -> Plus(1, y), 0, #XS)
 
 /* `Intersect(#XS, #YS)`
    @param  `#XS` list

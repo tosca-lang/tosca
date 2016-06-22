@@ -19,6 +19,12 @@ import std::pairdef
  */
 @Extern func MapGet<a b>({a : b} /* map */,  a /* key */) -> Option<b>
 
+/* Lookup entry for given key.
+ @return the value of type b or the default value if not in the map
+*/
+func MapGetD<a b>(#map: {a : b}, #key: a, #default: b) -> b
+→ IfPresent(MapGet(#map, #key), (v)->v, ()->#default)
+
 /* Extend the given map with the given key-value pair, where key is a syntactic variable
    If a entry for the given key already exists in the map, it is shadowed.
    @return the extended map.
@@ -59,3 +65,6 @@ func MapContains<a b>(#map: {a : b}, #key: a) -> Bool
 /* @return `TRUE` when the given `#map` contains an entry for the given variable `#key`, `FALSE` otherwise */
 func MapContainsVar<a b c>(#map: {a : b}, #key: c) -> Bool
 → HasOption(MapGetVar(#map, #key))
+
+/* Look for a map in the given value, starting from the end. */
+@Extern func MapFind<a b c>(c) -> {a:b}

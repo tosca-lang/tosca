@@ -24,7 +24,7 @@ public class NumExtern
 		return r;
 	}
 
-	public static Bool NumberGreaterThan(Context context, DoubleTerm left, DoubleTerm right)
+	public static Bool GreaterThan(Context context, DoubleTerm left, DoubleTerm right)
 	{
 		DoubleTerm eleft = left.eval(context);
 		DoubleTerm eright = right.eval(context);
@@ -47,7 +47,7 @@ public class NumExtern
 		return r;
 	}
 
-	public static Bool NumberLessThan(Context context, DoubleTerm left, DoubleTerm right)
+	public static Bool LessThan(Context context, DoubleTerm left, DoubleTerm right)
 	{
 		DoubleTerm eleft = left.eval(context);
 		DoubleTerm eright = right.eval(context);

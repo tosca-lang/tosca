@@ -17,7 +17,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.transscript.compiler.parser.TransScript.TransScript_xterm_xsort;
+import org.transscript.compiler.parser.TransScript.TransScript_term_sort;
 import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.ConstructionDescriptor;
 import org.transscript.runtime.Sink;
@@ -738,7 +738,7 @@ public class ToSinkListener implements ParseTreeListener
 		{
 			MetaBufferSink innersink = new MetaBufferSink(sink.context());
 			parser.parse(innersink, category, reader, null, line, column, bounds, freshes);
-			sink.copy(innersink.metaterm().asTransScript_xterm(sink.context()).getField1(sink.context(), false));
+			sink.copy(innersink.metaterm().asTransScript_term(sink.context()).getField1(sink.context(), false));
 		}
 		catch (RuntimeException e)
 		{
@@ -757,7 +757,7 @@ public class ToSinkListener implements ParseTreeListener
 			org.transscript.runtime.Parser innerParser = sink.context().getParser("term", false);
 			BufferSink buffer = sink.context().makeBuffer();
 			innerParser.parser().parse(buffer, "term", reader, null, line, column, bounds, freshes);
-			metasink().copy((TransScript_xterm_xsort) buffer.term());
+			metasink().copy((TransScript_term_sort) buffer.term());
 		}
 		catch (IOException e)
 		{} // can't happen.

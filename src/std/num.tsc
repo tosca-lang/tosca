@@ -9,21 +9,23 @@ import std::core
 @Extern func Minus(Numeric, Numeric) -> Numeric
 
 // Compare the 2 numeric values
-func NumberEqual(Numeric, Numeric) -> Bool
-rule NumberEqual(#1, #2) → If<Bool>(Equal<Numeric Numeric>(#1, #2), ()->TRUE, ()->FALSE)
+func NumberEqual(#left: Numeric, #right: Numeric) -> Bool
+rule NumberEqual(#1, #2) → Equal(#1, #2)
 
 // Addition
 func NumberPlus(#1: Numeric, #2: Numeric) -> Numeric
 → Plus(#1, #2)
-
+ 
 // Subtraction
 func NumberMinus(#1: Numeric, #2: Numeric) -> Numeric
 → Minus(#1, #2)
 
-// LessThan
-@Extern func NumberLessThan(Numeric, Numeric) -> Bool
-@Extern func NumberGreaterThan(Numeric, Numeric) -> Bool
+func GreaterThanOrEqual(#left: Numeric, #right:Numeric) -> Bool
+→ Or(GreaterThan(#left, #right), Equal(#left, #right))
 
+// LessThan
+@Extern func LessThan(Numeric, Numeric) -> Bool
+@Extern func GreaterThan(Numeric, Numeric) -> Bool
 @Extern func FormatNumber(Numeric) -> String
 @Extern func FormatInteger(Numeric) -> String
 @Extern func FormatDecimal(Numeric) -> String

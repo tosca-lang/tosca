@@ -611,10 +611,15 @@ rule INewHOSort((), (), #csort)                         → #csort
 /* Assemble the sort list corresponding to given formal or bound variable parameters list. */
 func IFindBinderSorts({String:IEnvEntry}, List<Core_cterm_sort>, Bool) -> List<Core_csort_sort>
 rule IFindBinderSorts(#env, cterm*⟦ ##cqconstructor ##csortargs? ##cterms? : ##csort  ##cterm* ⟧, #formal) → Cons(#csort, IFindBinderSorts(#env, #cterm*, #formal))
-rule IFindBinderSorts(#env, cterm*⟦ ##METAVAR ##cterms? ##csubst? : ##csort ##cterm* ⟧, #formal) → Cons(#csort, IFindBinderSorts(#env, #cterm*, #formal))
-rule IFindBinderSorts(#env, cterm*⟦ ##VARIABLE ##cterm* ⟧, #formal) → IFindBinderSortsTerm(#env, IGetBinderSort<String>(#env, #VARIABLE, #formal), #cterm*, #formal)
-rule IFindBinderSorts(#env, cterm*⟦ ##VARIABLE : ##csort ##cterm* ⟧, #formal) → Cons(#csort, IFindBinderSorts(#env, #cterm*, #formal))
-rule IFindBinderSorts(#env, cterm*⟦                     ⟧, #formal) → ()
+rule IFindBinderSorts(#env, cterm*⟦ ##METAVAR ##cterms? ##csubst? : ##csort           ##cterm* ⟧, #formal) → Cons(#csort, IFindBinderSorts(#env, #cterm*, #formal))
+rule IFindBinderSorts(#env, cterm*⟦ ##VARIABLE                                        ##cterm* ⟧, #formal) → IFindBinderSortsTerm(#env, IGetBinderSort(#env, #VARIABLE, #formal), #cterm*, #formal)
+rule IFindBinderSorts(#env, cterm*⟦ ##VARIABLE : ##csort                              ##cterm* ⟧, #formal) → Cons(#csort, IFindBinderSorts(#env, #cterm*, #formal))
+rule IFindBinderSorts(#env, cterm*⟦ ##STRING                                          ##cterm* ⟧, #formal) → Cons(csort⟦ String ⟧, IFindBinderSorts(#env, #cterm*, #formal))
+rule IFindBinderSorts(#env, cterm*⟦ ##NUMBER                                          ##cterm* ⟧, #formal) → Cons(csort⟦ Numeric ⟧, IFindBinderSorts(#env, #cterm*, #formal))
+rule IFindBinderSorts(#env, cterm*⟦ { ##cmapentries? } : ##csort                      ##cterm* ⟧, #formal) → Cons(#csort, IFindBinderSorts(#env, #cterm*, #formal))
+rule IFindBinderSorts(#env, cterm*⟦ thunk ##cterm                                     ##cterm* ⟧, #formal) → IFindBinderSorts(#env, cterm*⟦ ##cterm ##cterm*⟧, #formal)
+rule IFindBinderSorts(#env, cterm*⟦ ##cterm                                           ##cterm* ⟧, #formal) → Error("Type error: formal parameter or bound variable cannot be of a higher-order type")
+rule IFindBinderSorts(#env, cterm*⟦                                                            ⟧, #formal) → ()
 
 func IFindBinderSortsTerm({String:IEnvEntry}, Option<Core_csort_sort>, List<Core_cterm_sort>, Bool) -> List<Core_csort_sort>
 rule IFindBinderSortsTerm(#env, SOME(#sort:Core_csort_sort), #cterm*, #formal) → Cons(#sort, IFindBinderSorts(#env, #cterm*, #formal))

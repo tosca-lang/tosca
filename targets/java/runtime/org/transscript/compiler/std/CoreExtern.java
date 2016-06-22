@@ -122,4 +122,16 @@ public class CoreExtern
 		return null;
 	}
 
+	public static  <a extends Term> a ForgivableError(Context context, ThunkMaker<a> tma, StringTerm value_1838)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static <a extends Term>  a EventualError(Context context, ThunkMaker<a> tma, StringTerm value_1872)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

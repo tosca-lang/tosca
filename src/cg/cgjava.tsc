@@ -1111,6 +1111,9 @@ func SubSortFromTerm({String : JEnvEntry}, Core_cterm_sort) -> Option<Core_csort
   rule SubSortFromTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)
   → MaybeSortAnnoToSort(#csortanno?)
 
+  rule SubSortFromTerm(#env, cterm⟦ { ##cmapentries? } ##csortanno? ⟧)
+  → MaybeSortAnnoToSort(#csortanno?)
+
   // TODO: maybe error?
   rule SubSortFromTerm(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧)
   //rule SubSortFromTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x] : Core_cterm_sort))
@@ -1392,19 +1395,19 @@ func PathToImport(#name: String, #bootstrap: Bool) -> Text4_text_sort
                 Split(#name, "::"))
 
 func PathToImport2(#basepkg: String , #path: List<String>) -> Text4_text_sort
-→ If<Text4_text_sort>(StringEqual(#basepkg, ""),
+→ If(StringEqual(#basepkg, ""),
     ()->JoinPath(#path),
     ()->text⟦†⟨StringToText(#basepkg)⟩.†⟨JoinPath(#path)⟩⟧)
 
 /* Join path component together, making sure the last one starts with an upper case character */
 func JoinPath(List<String>) -> Text4_text_sort
 rule JoinPath((                               )) → text⟦⟧
-rule JoinPath(Cons(#:String, List<String>::Nil)) → text⟦⟨STRING: UpCaseFirst(#)⟩⟧
-rule JoinPath(Cons(#:String, #s: List<String> )) → text⟦⟨STRING: #⟩.†⟨JoinPath(#s)⟩⟧
+rule JoinPath(Cons(#, Nil)) → text⟦⟨STRING: UpCaseFirst(Mangle(#))⟩⟧
+rule JoinPath(Cons(#, #s))  → text⟦⟨STRING: Mangle(#)⟩.†⟨JoinPath(#s)⟩⟧
 
 // Print class name
-func ClassName(String) -> String
-rule ClassName(#name) → UpCaseFirst(AfterLast(BeforeLast(#name, "."), "/"))
+func ClassName(#name: String) -> String
+→ Mangle(UpCaseFirst(AfterLast(BeforeLast(#name, "."), "/")))
 
 /* Get the absolute name of the target java file */
 @Extern func TargetJavaFilename(#input: String, #dest: String, #mainurl:String, #package: String) -> String

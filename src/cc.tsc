@@ -100,7 +100,7 @@ func CCLiftedRule(#env: Env, #name: String, #lambda: Core_cterm_sort) -> Core_cd
 →  cdecl⟦ rule ⟨CONSTRUCTOR: #name⟩ ( ⟨cterm*: CCLiftedPattern(0, ListLength<Pair>(EnvParams(#env)))⟩ ) → ⟨cterm: CCLiftedContractum(#lambda, 0, MapNew<String Core_cterm_sort>)⟩ ⟧
 
 func CCLiftedPattern(#i: Numeric, #until: Numeric) -> List<Core_cterm_sort>
-→ If<List<Core_cterm_sort>>(NumberLessThan(#i, #until),
+→ If<List<Core_cterm_sort>>(LessThan(#i, #until),
     ()->cterm*⟦ ⟨METAVAR: CCMetaVar(#i)⟩ ⟨cterm*: CCLiftedPattern(Plus(#i, 1), #until)⟩ ⟧,
     ()->cterm*⟦⟧)
 
