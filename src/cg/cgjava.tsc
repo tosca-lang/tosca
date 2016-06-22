@@ -41,6 +41,7 @@ import org.transscript.runtime.StringTerm.VarStringTerm;
 import org.transscript.runtime.DoubleTerm;
 import org.transscript.runtime.DoubleTerm.VarDoubleTerm;
 import org.transscript.runtime.MapTerm;
+import static org.transscript.runtime.Term.unbox;
 import static org.transscript.runtime.Term.force;
 import static org.transscript.runtime.Term.subst;
 import static org.transscript.runtime.Functions.*;
@@ -1229,12 +1230,10 @@ func JavaExprTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) 
   → JavaExprMeta(#env, #METAVAR, #cterms?, #csubst?, #cont)
 
   rule JavaExprTerm(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧, #cont)
-  //rule JavaExprTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x] : Core_cterm_sort), #cont)
   → text⟦
       fresh†⟨NumberToText(GetCounter(#env))⟩, †⟨JavaExprTerm(JAddVar(IncCounter(#env), var:String, JFresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
 
   rule JavaExprTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
-  //rule JavaExprTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x] : Core_cterm_sort), #cont)
   → text⟦newClosure((†⟨GetContext(NewContext(#env))⟩†⟨JavaExprLambda(NewContext(#env), Core_cterm_A7(#csortanno?, [y:String] -> #cterm[y]), #cont)⟩⟧
 
   rule JavaExprTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)
@@ -1246,7 +1245,9 @@ func JavaExprTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) 
 func JavaExprConstruction({String : JEnvEntry}, String,  List<Core_csortargs_sort>, List<Core_cterms_sort>, List<Core_csortanno_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   rule JavaExprConstruction(#env, #constructor, #csortargs?, #cterms?, #csortanno?, #cont)
-  → text⟦⟨STRING: Mangle(#constructor)⟩(context†⟨JavaExprThunkArgs(#csortargs?)⟩†⟨JavaExprMaybeTerms(#env, #cterms?, #cont)⟩⟧
+  → If(Equal(#constructor, "If"),
+      ()->JavaIfExpr(#env, #cterms?, #cont),
+      ()->text⟦⟨STRING: Mangle(#constructor)⟩(context†⟨JavaExprThunkArgs(#csortargs?)⟩†⟨JavaExprMaybeTerms(#env, #cterms?, #cont)⟩⟧)
 
 func JavaExprMaybeTerms({String : JEnvEntry}, List<Core_cterms_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
@@ -1274,6 +1275,18 @@ func JavaExprThunkArgs(List<Core_csortargs_sort>) -> Text4_text_sort
 func JavaExprThunkArg(Core_csort_sort) -> Text4_text_sort
   rule JavaExprThunkArg(csort⟦ ##VARIABLE ⟧) → text⟦, tm⟨STRING: #VARIABLE⟩⟧
   rule JavaExprThunkArg(csort⟦ ##csort    ⟧) → text⟦, †⟨ThunkMaker(#csort)⟩Maker()⟧
+
+// --- If
+
+func JavaIfExpr({String : JEnvEntry}, List<Core_cterms_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+rule JavaIfExpr(#env, cterms?⟦ ( ##cterm1, ##cterm2, ##cterm3 ) ⟧, #cont)
+→ text⟦ (unbox(context, †⟨JavaExprTerm(#env, #cterm1, (env)->text⟦)) ?
+          (†⟨JavaExprTerm(env, JavaIfBranch(#cterm2), (env)->text⟦)
+        : (†⟨JavaExprTerm(env, JavaIfBranch(#cterm3), (env)->text⟦)†⟨#cont(env)⟩⟧)⟩⟧)⟩⟧)⟩⟧
+
+func JavaIfBranch(Core_cterm_sort) -> Core_cterm_sort
+rule JavaIfBranch(cterm⟦ ##METAVAR ##csortanno? ⟧) → cterm⟦ ##METAVAR () ⟧ // metavariable must be a closure (checked by infer)
+rule JavaIfBranch(#cterm                ) → StripThunk(#cterm)
 
 // --- Variable
 

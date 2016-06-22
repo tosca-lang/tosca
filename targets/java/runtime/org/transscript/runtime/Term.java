@@ -5,6 +5,8 @@ package org.transscript.runtime;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
+import org.transscript.compiler.std.Core.Bool;
+
 /**
  * Base class for all terms, typed or not.
  * 
@@ -251,5 +253,10 @@ public interface Term extends Ref
 		return copy;
 	}
 	
-	
+
+	/** Convert term boolean to native Java boolean */
+	public static boolean unbox(Context context, Bool bool)
+	{
+		return bool.asFALSE(context) == null;
+	}
 }

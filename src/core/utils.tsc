@@ -17,6 +17,11 @@ rule IsMeta(cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧)                 → IsMe
 rule IsMeta(cterm⟦ thunk ##cterm ⟧)                              → IsMeta(#cterm)
 rule IsMeta(#term)                                              → FALSE
 
+/* @return the given term without 'thunk' */
+func StripThunk(Core_cterm_sort) -> Core_cterm_sort
+rule StripThunk(cterm⟦ thunk ##cterm ⟧)  → #cterm
+rule StripThunk(#cterm                )  → #cterm
+
 /* Check whether the given annotation is in the given list */
 func HasAnnotation(#anno: String, #anno*: List<Core_canno_sort>) -> Bool
 → HasOption<Core_canno_sort>(PickFirst<Core_canno_sort>(#anno*, (anno) -> EqualAnno(#anno, anno)))
@@ -63,7 +68,6 @@ rule QSortToString(csortqualifier⟦ ##CONSTRUCTOR :: ⟧) → #CONSTRUCTOR
 func IdentifierToString(Core_cidentifier_sort) -> String
 rule IdentifierToString(cidentifier⟦ ##CONSTRUCTOR ⟧) → #CONSTRUCTOR
 rule IdentifierToString(cidentifier⟦ ##VARIABLE    ⟧) → #VARIABLE
-
 
 /* @return true if there is at least one sort in the given list */
 func HasSorts(#csorts? :List<Core_csorts_sort>) -> Bool
