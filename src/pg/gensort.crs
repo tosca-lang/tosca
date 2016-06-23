@@ -143,7 +143,6 @@ MaybeMakeArguments[$List[ANTLR_element_sort], ok::OK_SORT.Text] :: Text;
     "@sep"        : TEXT[%n⟦⟧];         // Current separator between data forms
     "@block-count": NUM[0];             // Count the number of subrules for generating unique names
     "@sublist"    : WRAPPER[t x.x];       // Use to unfused elements
-    "@binders"    : TEXTS[()];          // Collect <binds> variables
   }MakeArguments[OK, 1, %element*⟨ #element #element* ⟩, ok¹.MakeCloseArguments[ok¹, o2¹.#[o2¹]]];
 
 /* Done iterating over alternative elements. Close sort bracket
@@ -161,7 +160,9 @@ MakeArguments[OK_SORT, $Numeric, $List[ANTLR_element_sort], ok¹::OK_SORT.Text] 
 
 {#E; "@index": INDEX[{#I}RULEINDEX]}
 MakeArguments[OK, #count, %element*⟨ #element #element* ⟩, ok¹.#[ok¹]]
-→ {#E}MaybeMakeArgument[IsFused[#element, #element*, {#I}RULEINDEX], {#I}IsSugarElement[#element],  #element, #count, ok¹ count.
+→ {#E; 
+     "@binders"    : TEXTS[()];          // Collect <binds> variables
+  }MaybeMakeArgument[IsFused[#element, #element*, {#I}RULEINDEX], {#I}IsSugarElement[#element],  #element, #count, ok¹ count.
       MakeArguments[ok¹, count, #element*, o2¹.#[o2¹]]];
 
 //
