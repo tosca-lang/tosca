@@ -343,6 +343,9 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void enterAlt(ParserRuleContext context, String name)
 	{
+		if (state == State.CONCRETE)
+			return;
+		
 		ParserRuleContext parentCtx = ruleContext.peek();
 		String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
 		if (isConcrete(ruleName, name))
@@ -815,7 +818,7 @@ public class ToSinkListener implements ParseTreeListener
 	private boolean isConcrete(String rulename, String altname)
 	{
 		// TODO: this is quite brittle. Should change PG.
-		return parsets && altname.equals("8") && rulename.equals("aterm");
+		return parsets && altname.equals("aterm_A8");
 	}
 
 }
