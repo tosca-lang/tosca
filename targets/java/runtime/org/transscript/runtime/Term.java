@@ -31,7 +31,7 @@ public interface Term extends Ref
 	{
 		return true;
 	}
-
+	
 	/**
 	 * Peek at the ith subterm.
 	 * 
@@ -42,7 +42,7 @@ public interface Term extends Ref
 	{
 		return null;
 	}
-
+	
 	/**
 	 * Replace the ith sub term
 	 * 
@@ -122,7 +122,7 @@ public interface Term extends Ref
 	{
 		throw new UnsupportedOperationException();
 	}
-
+	
 	/**
 	 * Set term type
 	 * 
@@ -259,4 +259,5 @@ public interface Term extends Ref
 	{
 		return bool.asFALSE(context) == null;
 	}
+
 }

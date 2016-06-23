@@ -84,7 +84,7 @@ MakeSortTail[OK, #cont]
 //
 MakeForms[ANTLR_ruleBlock_sort, ok::OK_SORT.Text] :: Text;
 {#E}MakeForms[{#L}%ruleBlock⟦ #alternative #labeledAlt_S1?  #ruleAltList_S1* ⟧, ok¹.#[ok¹]]
-→ {#E}MakeForm[#alternative, #labeledAlt_S1?, 1, IsEmpty[#ruleAltList_S1*], ok¹ count¹.
+→ {#E}MakeForm[$[IfDef, "truevar", GetElementOptionAlternative[#alternative, "variable"], ()], #alternative, #labeledAlt_S1?, 1, IsEmpty[#ruleAltList_S1*], ok¹ count¹.
       MakeRuleAltList_S1s[ok¹, count¹, #ruleAltList_S1*, o2¹.#[o2¹]]];
 
 //
@@ -94,13 +94,22 @@ MakeRuleAltList_S1s[OK_SORT, $Numeric, $List[ANTLR_ruleAltList_S1_sort], ok::OK_
 → {#E}#[OK];
 
 {#E}MakeRuleAltList_S1s[OK, #count, {#L}%ruleAltList_S1*⟦ | #alternative #labeledAlt_S1? #ruleAltList_S1* ⟧, ok¹.#[ok¹]]
-→ {#E}MakeForm[#alternative, #labeledAlt_S1?, #count, FALSE, ok¹ count¹.
+→ {#E}MakeForm[$[IfDef, "truevar", GetElementOptionAlternative[#alternative, "variable"], ()], #alternative, #labeledAlt_S1?, #count, FALSE, ok¹ count¹.
       MakeRuleAltList_S1s[ok¹, count¹, #ruleAltList_S1*, o2¹.#[o2¹]]];
 
 //
-MakeForm[ANTLR_alternative_sort, $List[ANTLR_labeledAlt_S1_sort] $Numeric, Boolean, ok::OK_SORT.Text] :: Text;
+MakeForm[$List[ElementOption], ANTLR_alternative_sort, $List[ANTLR_labeledAlt_S1_sort] $Numeric, Boolean, ok::OK_SORT.Text] :: Text;
 
-{#E; "@sort":TEXT[#sort]}MakeForm[{#L}%alternative⟦ #element* ⟧, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]]
+{#E; "@sort":TEXT[#sort];
+     "@pt-rules" : TEXT[#printerRules];
+     "@pt-name"  : TEXT[#printerName]}
+MakeForm[(SYMBOL;), #alternative, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]]
+→ {#E; "@sort"    : TEXT[%n⟦«#sort» | allows-variable⟧];
+       "@pt-rules" : TEXT[%n⟦«#printerRules»¶rule «#printerName»(x) → «Text-Text[Text-String2[%n⟦Show(x)⟧]]»⟧];
+  }#[OK, #count];
+
+{#E; "@sort":TEXT[#sort]}
+MakeForm[(), {#L}%alternative⟦ #element* ⟧, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]]
 → {#E;
     "@sort"    : TEXT[%n⟦«#sort» | «{#E}MakeAlternativeName[#labeledAlt_S1?, #count, #unique]»⟧];
     "@freshes" : TEXTS[()]; // Printer rule fresh variable

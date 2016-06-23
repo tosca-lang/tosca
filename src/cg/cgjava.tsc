@@ -153,13 +153,17 @@ func FormToMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
 func FormToMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
   rule FormToMethodAs(#enumname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
-    default †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ †⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
-    {
-      return null;
-    }⟧
+      default †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ †⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
+      {
+        return null;
+      }⟧
 
   rule FormToMethodAs(#enumname, #csortvars?, cform⟦ allows-variable ⟧)
-  → text⟦⟧
+  → text⟦
+      default Var⟨STRING: Mangle(#enumname)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ variable()
+      {
+        return null;
+      }⟧
 
 func FormToMethodMemoAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
   rule FormToMethodMemoAs(#enumname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
@@ -220,6 +224,12 @@ func FormToImplValue(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
         {
           super(var);
         }
+
+        public Var⟨STRING: Mangle(#typename)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ variable()
+        {
+          return (Var⟨STRING: Mangle(#typename)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩) super.variable();
+        }
+
     }
 
     public static class Var⟨STRING: Mangle(#typename)⟩†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends Variable
@@ -658,6 +668,11 @@ func MaybeSortToType(Option<Core_csort_sort>) -> Text4_text_sort
 rule MaybeSortToType(NONE)         → text⟦⟧
 rule MaybeSortToType(SOME(#csort:Core_csort_sort)) → Last<Text4_text_sort>(SortToTypes(#csort)) // TODO: could optimize
 
+/* Same as above, expect with default value */
+func MaybeSortToTypeD(Option<Core_csort_sort>, Text4_text_sort) -> Text4_text_sort
+rule MaybeSortToTypeD(NONE        , #default) → #default
+rule MaybeSortToTypeD(SOME(#csort), #default) → Last(SortToTypes(#csort)) // TODO: could optimize
+
 /* Sort qualifier to type */
 func SortQualifierToType(Core_csortqualifier_sort) -> Text4_text_sort
 rule SortQualifierToType(csortqualifier⟦ ##csort ::⟧)
@@ -872,8 +887,8 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
   rule JavaPatternTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #term, #csort, #storage, #cont)
   → text⟦†⟨JavaPatternMaybeMetaArgs(#env, #METAVAR, #csubst?, #term, #csort, #cont)⟩⟧
 
-  rule JavaPatternTerm(#env, cterm⟦ ##VARIABLE ⟧, #term, #csort, #storage, #cont)
-  → JavaPatternVariable(JGetVarO(#env, #VARIABLE), #env, #VARIABLE, #term, #cont)
+  rule JavaPatternTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #term, #csort, #storage, #cont)
+  → JavaPatternVariable(JGetVarO(#env, #VARIABLE), #env, #VARIABLE, MaybeSortAnnoToSort(#csortanno?), #term, #cont)
 
   rule JavaPatternTerm(#env, cterm⟦ [ v ##csortanno?[] ] ##cterm[v] ⟧, #term, #csort, PARAMETER, #cont)
   → JavaPatternTerm(JNextParam(JAddVar(#env, var:String, JBound(#term, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], JCurrentParam(#env), SOME(JCurrentParamSort(#env)), PARAMETER, #cont)
@@ -924,17 +939,20 @@ func JavaPatternSubs({String : JEnvEntry}, List<Core_cterm_sort>,
 
 // --- Variable pattern matching outside of meta
 
-func JavaPatternVariable(Option<JVarEntry>, {String : JEnvEntry}, String, Text4_text_sort /* Current term */, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+func JavaPatternVariable(Option<JVarEntry>, {String : JEnvEntry}, String, Option<Core_csort_sort>, Text4_text_sort /* Current term */, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  // First variable occurrence: the term is a variable use.
-  rule JavaPatternVariable(NONE, #env, #variable, #term, #cont)
+  // First variable occurrence: free variable.
+  rule JavaPatternVariable(NONE, #env, #variable, #csort, #term, #cont)
   → text⟦
-      Variable ⟨STRING: var:String⟩ = †⟨#term⟩.variable();†⟨JApplyDelayEntries(JAddVar(#env, #variable, JFree(text⟦⟨STRING: var⟩⟧, NONE)), #variable, #cont)⟩⟧
+      Var†⟨MaybeSortToTypeD(#csort, text⟦iable⟧)⟩ ⟨STRING: var:String⟩ = †⟨#term⟩.variable();
+      if (⟨STRING: var⟩ == null)
+        break †⟨JGetLabel(#env)⟩;
+      †⟨JApplyDelayEntries(JAddVar(#env, #variable, JFree(text⟦⟨STRING: var⟩⟧, #csort)), #variable, #cont)⟩⟧
 
   // JBound variable
   // TODO: update term's parent with evaluated term.
   // TODO: release acquired references.
-  rule JavaPatternVariable(SOME(JVarEntry::JBound(#javavar:Text4_text_sort, #sort:Option<Core_csort_sort>)), #env, #variable, #term, #cont)
+  rule JavaPatternVariable(SOME(JBound(#javavar, #sort)), #env, #variable, #csort, #term, #cont)
   → text⟦
       †⟨#term⟩ = force(context, †⟨#term⟩);
       if (!isVariableUse(†⟨#term⟩) || †⟨#javavar⟩ != †⟨#term⟩.variable()) {

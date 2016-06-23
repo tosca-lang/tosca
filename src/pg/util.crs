@@ -443,6 +443,12 @@ ConcatSome[{#I}GetConstantLexerElement[#lexerElement], {#I}GetConstantLexerEleme
 
 ElementOption ::= ( SUGAR; SYMBOL; BINDER[$String]; BINDS[$String]; UNKOWN; );
 
+// Extract the given element option from alternative. Must contain only one element to succeed.
+GetElementOptionAlternative[ANTLR_alternative_sort, $String] :: $list[ElementOption];
+GetElementOptionAlternative[%alternative⟦                              ⟧, #optionId] → ();
+GetElementOptionAlternative[%alternative⟦ #element                     ⟧, #optionId] → GetElementOptionElement[#element, #optionId];
+GetElementOptionAlternative[%alternative⟦ #element #element2 #element* ⟧, #optionId] → ();
+
 // Extract the given element option from element
 GetElementOptionElement[ANTLR_element_sort, $String] :: $list[ElementOption];
 
