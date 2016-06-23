@@ -112,7 +112,7 @@ NormRuleAltList_S1s[{#L}%ruleAltList_S1*⟨ | #labeledAlt #ruleAltList_S1* ⟩]
 
 // Normalize a labeled alternative. Ignore the label for now (TODO: could be used for better ADT value name)
 {#E}NormLabeledAlt[{#L}%labeledAlt⟨ #alternative #labeledAlt_S1? ⟩] 
-→ {#L}%labeledAlt⟨ ⟨alternative: {#E}NormAlternative[#alternative]⟩ ⟩;
+→ {#L}%labeledAlt⟨ ⟨alternative: {#E}NormAlternative[#alternative]⟩ #labeledAlt_S1? ⟩;
 
 // Normalize an alternative. 
 // Keep element options intact as they specify either associativity or failed semantic predicate

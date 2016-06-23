@@ -314,6 +314,7 @@ public class ToSinkListener implements ParseTreeListener
 	 * Generate a constructor of the form <prefix><rulename>
 	 *
 	 * @param context
+	 * @deprecated
 	 */
 	public void enterAlt(ParserRuleContext context)
 	{
@@ -335,7 +336,7 @@ public class ToSinkListener implements ParseTreeListener
 	/**
 	 * Start a rule alternative of a given name
 	 *
-	 * Generate a constructor of the form <prefix><rulename>_A<name>
+	 * Generate a constructor of the form <prefix><name>
 	 * 
 	 * @param context
 	 * @param name
@@ -352,7 +353,17 @@ public class ToSinkListener implements ParseTreeListener
 
 			if (metasink() != null)
 				metasink().type(fixupType(ruleName));
-			sink.start(sink.context().lookupDescriptor(prefix + ruleName + "_A" + name));
+	
+			// TEMPORARY BC BEHAVIOR
+			if (name.length() > 0 && Character.isDigit(name.charAt(0)))
+			{
+				// Old behavior
+				sink.start(sink.context().lookupDescriptor(prefix + ruleName + "_A" + name));
+			}
+			else
+			{
+				sink.start(sink.context().lookupDescriptor(prefix + name));
+			}
 		}
 	}
 

@@ -21,7 +21,7 @@
  * 
  *     rule : R1 | ... | RN 
  *     →
- *     rule : {_enterAlt("1");} R1 {_exitAlt();} | ... | {_enterAlt("N");} RN {_exitAlt();} 
+ *     rule : {_enterAlt("rulename_A1");} R1 {_exitAlt();} | ... | {_enterAlt("rulename_AN");} RN {_exitAlt();} 
  * 
  * Quantifiers
  * -----------
@@ -283,8 +283,8 @@ MakeParserRuleSpec[ANTLR_parserRuleSpec_sort, Mode] :: $List[ANTLR_ruleSpec_sort
 
 //
 MakeRuleAltList[ANTLR_ruleAltList_sort, $String, Mode] :: ANTLR_ruleAltList_sort;
-{#E}MakeRuleAltList[{#L}%ruleAltList⟨ #alternative #ruleAltList_S1* ⟩, #RULE_REF, #mode] 
-→ {#L}%ruleAltList⟨ ⟨alternative: {#E}MakeAlternative[#alternative, IsEmpty[#ruleAltList_S1*], 1, #RULE_REF, IsMeta[#mode]]⟩ 
+{#E}MakeRuleAltList[{#L}%ruleAltList⟨ #alternative #labeledAlt_S1? #ruleAltList_S1* ⟩, #RULE_REF, #mode] 
+→ {#L}%ruleAltList⟨ ⟨alternative: {#E}MakeAlternative[#alternative, #labeledAlt_S1?, IsEmpty[#ruleAltList_S1*], 1, #RULE_REF, IsMeta[#mode]]⟩ 
                  ⟨ruleAltList_S1*: Concat[{#E}MakeRuleAltList_S1s[#ruleAltList_S1*, 2, #RULE_REF, IsMeta[#mode]], {#E}MakeMetaAltList[#RULE_REF, #mode]]⟩ ⟩; ;
 
 //
@@ -292,15 +292,15 @@ MakeRuleAltList_S1s[$List[ANTLR_ruleAltList_S1_sort], $Numeric, $String, $Boolea
 
 {#E}MakeRuleAltList_S1s[{#L}%ruleAltList_S1*⟨⟩, #count, #RULE_REF, #meta] → {#L}%ruleAltList_S1*⟨⟩;
 
-{#E}MakeRuleAltList_S1s[{#L}%ruleAltList_S1*⟨ | #alternative #ruleAltList_S1* ⟩, #count, #RULE_REF, #meta] 
-→ {#L}%ruleAltList_S1*⟨ | ⟨alternative: {#E}MakeAlternative[#alternative, FALSE, #count, #RULE_REF, #meta]⟩ 
+{#E}MakeRuleAltList_S1s[{#L}%ruleAltList_S1*⟨ | #alternative #labeledAlt_S1? #ruleAltList_S1* ⟩, #count, #RULE_REF, #meta] 
+→ {#L}%ruleAltList_S1*⟨ | ⟨alternative: {#E}MakeAlternative[#alternative, #labeledAlt_S1?, FALSE, #count, #RULE_REF, #meta]⟩ 
                         ⟨ruleAltList_S1*: {#E}MakeRuleAltList_S1s[#ruleAltList_S1*, $[Plus, #count, 1], #RULE_REF, #meta]⟩ ⟩;
 
 //
-MakeAlternative[ANTLR_alternative_sort, $Boolean, $Numeric, $String, $Boolean /* Meta parser? */] :: ANTLR_alternative_sort;
+MakeAlternative[ANTLR_alternative_sort, $List[ANTLR_labeledAlt_S1], $Boolean, $Numeric, $String, $Boolean /* Meta parser? */] :: ANTLR_alternative_sort;
 
-{#E}MakeAlternative[{#L}%alternative⟨ #element* ⟩, #unique, #count, #RULE_REF, #meta]
-→ {#L}%alternative⟨ ⟨element: {#E}MakeEnterAltAction[#unique, #count, IsInternalRule[#RULE_REF]]⟩ ⟨element*: {#E}MakeElements[#element*, (), #RULE_REF, #meta]⟩ ⟩;
+{#E}MakeAlternative[{#L}%alternative⟨ #element* ⟩, #labeledAlt_S1?, #unique, #count, #RULE_REF, #meta]
+→ {#L}%alternative⟨ ⟨element: {#E}MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, IsInternalRule[#RULE_REF], #RULE_REF]⟩ ⟨element*: {#E}MakeElements[#element*, (), #RULE_REF, #meta]⟩ ⟩;
 
 // 
 MakeElements[$List[ANTLR_element_sort], $List[ANTLR_element_sort], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
@@ -434,9 +434,14 @@ HideConstElement[ANTLR_element_sort] :: $List[ANTLR_element_sort];
 // Some utilities
 
 // Make the "enterAlt" action. If only 1 alternative, command takes no alternative number.
-MakeEnterAltAction[#unique, #count, $True]                    → %element⟨ {} ⟩;
-MakeEnterAltAction[TRUE /* Unique */, #count, $False]         → %element⟨ {_enterAlt();} ⟩;
-MakeEnterAltAction[FALSE /* Not Unique */, #count, $False]    → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", $[FormatNumber, #count], "\");}"]⟩ ⟩;
+// If a name is specified, use it.
+
+MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, $True, #rulename]                    → %element⟨ {} ⟩;
+MakeEnterAltAction[(ANTLR_labeledAlt_S1[#POUND, #altid];), #unique, #count, $False, #rulename]     → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", UnwrapId[#altid], "\");}"]⟩ ⟩;
+//MakeEnterAltAction[(), TRUE /* Unique */, #count, $False, #rulename] → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", #rulename, "\");}"]⟩ ⟩;
+MakeEnterAltAction[(), TRUE /* Unique */, #count, $False, #rulename] → %element⟨ {_enterAlt();} ⟩;
+//MakeEnterAltAction[(), FALSE /* Not Unique */, #count, $False, #rulename]    → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", #rulename, "_A", $[FormatNumber, #count], "\");}"]⟩ ⟩;
+MakeEnterAltAction[(), FALSE /* Not Unique */, #count, $False, #rulename]    → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", $[FormatNumber, #count], "\");}"]⟩ ⟩;
 
 // Make the "exitAlt" action
 MakeExitAltAction[$False] → %element⟨ {_exitAlt();} ⟩;
@@ -528,9 +533,9 @@ LiftEbnfRuleSpec[ANTLR_ruleSpec_sort] :: $List[ANTLR_ruleSpec_sort];
 
 LiftEbnfRuleAltList[ANTLR_ruleAltList_sort] :: ANTLR_ruleAltList_sort;
 
-{#E}LiftEbnfRuleAltList[{#L}%ruleAltList⟨ #element* #ruleAltList_S1* ⟩] 
+{#E}LiftEbnfRuleAltList[{#L}%ruleAltList⟨ #element* #labeledAlt_S1? #ruleAltList_S1* ⟩] 
 → {#L}%ruleAltList⟨ 
-    ⟨element*:        {#E}LiftEbnfElements[#element*]⟩
+    ⟨element*:        {#E}LiftEbnfElements[#element*]⟩ #labeledAlt_S1?
     ⟨ruleAltList_S1*: {#E}LiftEbnfRuleAltList_S1s[#ruleAltList_S1*] ⟩⟩;
 
 LiftEbnfRuleAltList_S1s[$List[ANTLR_ruleAltList_S1_sort]] :: $List[ANTLR_ruleAltList_S1_sort];
@@ -538,9 +543,9 @@ LiftEbnfRuleAltList_S1s[$List[ANTLR_ruleAltList_S1_sort]] :: $List[ANTLR_ruleAlt
 {#E}LiftEbnfRuleAltList_S1s[{#L}%ruleAltList_S1*⟨⟩] 
 → {#L}%ruleAltList_S1*⟨⟩;
 
-{#E}LiftEbnfRuleAltList_S1s[{#L}%ruleAltList_S1*⟨ | #element* #ruleAltList_S1* ⟩] 
+{#E}LiftEbnfRuleAltList_S1s[{#L}%ruleAltList_S1*⟨ | #element* #labeledAlt_S1? #ruleAltList_S1* ⟩] 
 → {#L}%ruleAltList_S1*⟨ 
-    | ⟨element*: {#E}LiftEbnfElements[#element*]⟩ 
+    | ⟨element*: {#E}LiftEbnfElements[#element*]⟩ #labeledAlt_S1?
     ⟨ruleAltList_S1*: {#E}LiftEbnfRuleAltList_S1s[#ruleAltList_S1*] ⟩ ⟩;
 
 LiftEbnfElements[$List[ANTLR_element_sort]] :: $List[ANTLR_element_sort];
@@ -623,14 +628,14 @@ LiftEbnfAtom2[Boolean, ANTLR_atom_sort] :: ANTLR_atom_sort;
 
 MakeEbnfRuleAltList[ANTLR_ruleAltList_sort, ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
 
-{#E}MakeEbnfRuleAltList[{#L}%ruleAltList⟨ #element* #ruleAltList_S1* ⟩, ok.#[ok]] 
+{#E}MakeEbnfRuleAltList[{#L}%ruleAltList⟨ #element* #labeledAlt_S1? #ruleAltList_S1* ⟩, ok.#[ok]] 
 → {#E}MakeEbnfElements[#element*, (), ok.MakeEbnfRuleAltList_S1s[ok, #ruleAltList_S1*, ok.#[ok]]];
 
-MakeEbnfRuleAltList[ANTLR_ruleAltList_sort, ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
+MakeEbnfRuleAltList_S1s[ANTLR_ruleAltList_sort, ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
 {#E}MakeEbnfRuleAltList_S1s[OK, {#L}%ruleAltList_S1*⟨⟩, ok.#[ok]] 
 → {#E}#[OK];
 
-{#E}MakeEbnfRuleAltList_S1s[OK, {#L}%ruleAltList_S1*⟨ | #element* #ruleAltList_S1* ⟩, ok.#[ok]] 
+{#E}MakeEbnfRuleAltList_S1s[OK, {#L}%ruleAltList_S1*⟨ | #element* #labeledAlt_S1? #ruleAltList_S1* ⟩, ok.#[ok]] 
 → {#E}MakeEbnfElements[#element*, (), ok.MakeEbnfRuleAltList_S1s[ok, #ruleAltList_S1*, ok.#[ok]]];
     
 MakeEbnfElements[$List[ANTLR_element_sort], $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
