@@ -795,13 +795,14 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	private String fixupType(String type)
 	{
-		final boolean islist = type.endsWith("_OOM") || type.endsWith("_ZOM") || type.endsWith("_OPT");
-		type = islist ? type.substring(0, type.length() - "_ZOM".length()) : type;
-
-		if (type.endsWith("_TOK"))
-			return (islist ? "List<" : "") + "StringTerm" + (islist ? ">" : "");
-
-		return (islist ? "List<" : "") + prefix + type + "_sort" + (islist ? ">" : "");
+		return type;
+//		final boolean islist = type.endsWith("_OOM") || type.endsWith("_ZOM") || type.endsWith("_OPT");
+//		type = islist ? type.substring(0, type.length() - "_ZOM".length()) : type;
+//
+//		if (type.endsWith("_TOK"))
+//			return (islist ? "List<" : "") + "StringTerm" + (islist ? ">" : "");
+//
+//		return (islist ? "List<" : "") + prefix + type + "_sort" + (islist ? ">" : "");
 	}
 
 	/** Cast sink to metasink */

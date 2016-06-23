@@ -287,6 +287,10 @@ If[{#I}IsConstantLexerElement[#lexerElement], {#I}IsConstantLexerElements[#lexer
 // most commonly not rivial
 {#I}IsConstantLexerAtom[%lexerAtom⟦ #LEXER_CHAR_SET ⟧] → FALSE;
 
+{$String: ANTLR_ruleSpec_sort}IsConstantLexerBlock[ANTLR_lexerBlock_sort] :: Boolean;
+{#I}IsConstantLexerBlock[ANTLR_lexerBlock[#1, #lexerAltList, #3]] → {#I}IsConstantLexerAltList[#lexerAltList];
+
+
 // --- Extract constant token as string value
 
 {$String: ANTLR_ruleSpec_sort}GetConstantMaybeRuleSpec[Option[$String]] :: Option[$String];

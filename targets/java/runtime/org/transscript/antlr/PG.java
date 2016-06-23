@@ -40,7 +40,7 @@ public class PG
 	public static void usage(String explanation)
 	{
 		System.out.println(explanation);
-		System.out.println("java org.crsx.antlr.PG input.g4 output.g4");
+		System.out.println("java org.crsx.antlr.PG input.g4 output.term");
 		System.exit(-1);
 	}
 

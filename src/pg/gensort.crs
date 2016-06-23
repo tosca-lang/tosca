@@ -181,7 +181,7 @@ MaybeMakeArgument[TRUE, FALSE, #element, #count, ok¹ count.#[ok¹, count]]
   }#[OK, #count];
 
 // The argument is sugar. Continue: it won't be added to sort but to printer.
-{#E}MaybeMakeArgument[FALSE, TRUE, #element, #count, ok¹ count.#[ok¹, count]]
+{#E}MaybeMakeArgument[#fused, TRUE, #element, #count, ok¹ count.#[ok¹, count]]
 → {#E}MakeArgument[#element, #count, ok¹.#[ok¹, #count]];
 
 // Check element option is <bound=variable>
@@ -324,9 +324,10 @@ MakeArgFromAtom[{#L}%atom⟦ #STRING_LITERAL #elementOptions? ⟧, TRUE, #count,
 // String literal are constants. Print it
 {#E; "@plhs": TEXTS[#printerLHS]; "@prhs": TEXTS[#printerRHS]}
 MakeArgFromAtom[{#L}%atom⟦ #STRING_LITERAL #elementOptions? ⟧, FALSE, #count, ok¹.#[ok¹]]
-→ {#E; "@plhs": TEXTS[(MakeMetaVar[#count, (), FALSE]; #printerLHS)];
-       "@prhs": TEXTS[(StringToText[#STRING_LITERAL]; #printerRHS)]
-  }#[OK];
+→ {#E; "@prhs": TEXTS[(StringToText[#STRING_LITERAL]; #printerRHS)]}#[OK];
+//→ {#E; "@plhs": TEXTS[(MakeMetaVar[#count, (), FALSE]; #printerLHS)];
+//       "@prhs": TEXTS[(StringToText[#STRING_LITERAL]; #printerRHS)]
+//  }#[OK];
 
 // List of token ref.
 {#E; "@sort": TEXT[#sort]; "@plhs": TEXTS[#printerLHS]; "@prhs": TEXTS[#printerRHS]}
@@ -446,7 +447,7 @@ MakeAlternativeName[$List[ANTLR_labeledAlt_S1_sort], $Numeric, Boolean] :: Text;
 
 -[Data[#ruleRef, #id]]:
 {#E; "@id": STRING[#id]}
-MakeAlternativeName[(ANTLR_labeledAlt_S1[#POUND, #altid];), #count, FALSE]
+MakeAlternativeName[(ANTLR_labeledAlt_S1[#POUND, #altid];), #count, #unique]
 → StringToText[$[:, GetPrefix[#id], UnwrapId[#altid]]];
 
 -[Data[#ruleRef, #id]]:
