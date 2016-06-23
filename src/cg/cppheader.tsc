@@ -7,10 +7,11 @@ import std::path
 import std::string
 import std::mapdef
 import std::listdef
+import std::text
+import std::text::Text4
+
 import core::Core
 import core::utils
-import std::text
-import text::Text4
 import cg::cppcommon
 import cg::cppenv
 

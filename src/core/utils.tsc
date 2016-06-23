@@ -6,8 +6,8 @@ import std::core
 import std::listdef
 import std::string
 import std::language
+import std::text::Text4
 import core::Core
-import text::Text4
 
 /* @return TRUE if the term is a meta-application. Ignore binders and formal parameters  */
 func IsMeta(Core_cterm_sort) -> Bool

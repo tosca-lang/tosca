@@ -4,7 +4,7 @@ import std::listdef
 import std::pairdef
 import std::string
 import std::num
-import text::Text4
+import std::text::Text4
 
 // Fragment denoting term embedded in user language text.
 

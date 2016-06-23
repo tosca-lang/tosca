@@ -8,7 +8,8 @@ import std::pairdef
 import std::listdef
 import std::num
 import std::text
-import text::Text4
+import std::text::Text4
+
 import core::Core
 import systemdef
 

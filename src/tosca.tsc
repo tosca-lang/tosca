@@ -3,6 +3,16 @@
   Tosca compiler.
 */
 
+import std::core
+import std::listdef
+import std::mapdef
+import std::string
+import std::language
+import std::path
+import std::text::Text4
+import std::test::unit  // not used but keep it so it gets compiled.
+import std::text::printer  // not used but keep it so it gets compiled.
+
 import systemdef
 import normalizer
 import checker
@@ -10,18 +20,9 @@ import cc
 import infer::infer
 import cg::cgjava
 import cg::cgcpp
-import std::core
-import std::listdef
-import std::mapdef
-import std::string
-import std::language
-import std::path
 import core::Core
 import core::utils
 import parser::TransScript
-import text::Text4
-import text::printer  // not used but keep it so it gets compiled.
-import std::test::unit  // not used but keep it so it gets compiled.
 
 //--- API
 

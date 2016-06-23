@@ -6,7 +6,8 @@ import std::num
 import std::listdef
 import std::pairdef
 import std::text
-import text::text4
+import std::text::Text4
+
 import core::Core
 import core::utils
 import cg::cppenv

@@ -71,8 +71,8 @@ task toscaParsers(type: PG4Task) {
 
 task textParsers(type: PG4Task) {
     description 'Generate Text term and meta parsers'
-    source = file('src/text/Text4.g4')
-    generatedFileDir = file('src/text')
+    source = file('src/std/text/Text4.g4')
+    generatedFileDir = file('src/std/text')
     defaultRule = 'text'
 	ncg = true 
 }

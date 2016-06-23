@@ -34,10 +34,10 @@ MakeGrammarSpec[ANTLR_grammarSpec_sort] :: Text;
 MakeModuleId[ANTLR_grammarSpec_sort] :: Text;
 {#E}MakeModuleId[#id, ok.#[ok]]
 → %n⟦/* Generated File. */
-import text::Text4
 import std::core
 import std::listdef
 import std::text
+import std::text::Text4
 
 «{#E; "@id": STRING[#id]}#[OK]»⟧; // TODO: must match CRSX syntax
 

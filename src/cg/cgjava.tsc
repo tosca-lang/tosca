@@ -10,10 +10,10 @@ import std::listdef
 import std::pairdef
 import std::mapdef
 import std::language
+import std::text::Text4
 
 import core::Core
 import core::utils
-import text::Text4
 import systemdef
 
 // ===== API

@@ -9,7 +9,7 @@ import std::mapdef
 import std::text
 import std::path
 import std::language
-import text::text4
+import std::text::text4
 
 import systemdef
 import cg::cppheader

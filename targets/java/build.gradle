@@ -30,7 +30,7 @@ dependencies {
 
 task compileTosca(type: TransScriptTask, dependsOn:':targets:java:parsers:compileJava') { //, dependsOn:':targets:java:parsers:compileJava'
 	description = "Compile Tosca to Java source files."
-	sources     = fileTree(dir: transScriptSrc, include: ['tosca.tsc'])
+	sources     = fileTree(dir: transScriptSrc, include: ['tosca.tsc'], exclude:['text/*.*'])
 	dependencies= fileTree(dir: transScriptSrc, include: ['tosca.tsc', '**/*.tsc'])
 	outputDir   = project.hasProperty('dev') ? file('compilerdev') : file('compiler')
 	pkg = 'org.transscript.compiler'

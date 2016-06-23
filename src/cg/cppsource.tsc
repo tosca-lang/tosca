@@ -7,8 +7,9 @@ import std::path
 import std::listdef
 import std::text
 import std::mapdef
+import std::text::Text4
+
 import core::Core
-import text::Text4
 import cg::cppcommon
 import cg::cppenv
 import systemdef
