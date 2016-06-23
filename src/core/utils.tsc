@@ -137,7 +137,7 @@ rule GetFormalParamSorts(csort⟦ ( ##csort1 ) ##csort2 ⟧)  → Cons(#csort1, 
 rule GetFormalParamSorts(#csort                       )  → ()
 
 func GetBoundVarSorts(Core_csort_sort) -> List<Core_csort_sort>
-rule GetBoundVarSorts(csort⟦ [ ##csort1 ] ##csort2 ⟧)  → Cons(#csort1, GetFormalParamSorts(#csort2))
+rule GetBoundVarSorts(csort⟦ [ ##csort1 ] ##csort2 ⟧)  → Cons(#csort1, GetBoundVarSorts(#csort2))
 rule GetBoundVarSorts(#csort                       )  → ()
 
 /* @return the sort without binder sorts */
