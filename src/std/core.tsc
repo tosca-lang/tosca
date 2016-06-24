@@ -86,4 +86,4 @@ extern func Show<a>(a) -> String
 
 @Extern func Error<a>(String) -> a
 @Extern func EventualError<a>(String) -> a
-@Extern func ForgivableError<a>(String) -> a
+@Extern func ForgivableError<a>(String, String, String, String, String, String, ()->a) -> a

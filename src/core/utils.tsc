@@ -12,10 +12,11 @@ import core::Core
 /* @return TRUE if the term is a meta-application. Ignore binders and formal parameters  */
 func IsMeta(Core_cterm_sort) -> Bool
 rule IsMeta(cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧) → TRUE
-rule IsMeta(cterm⟦ [ v ##csortanno? ] ##cterm[v] ⟧)                 → IsMeta(#cterm[var:String])
-rule IsMeta(cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧)                 → IsMeta(#cterm[var:String])
+rule IsMeta(cterm⟦ { : ##METAVAR  } ##csortanno? ⟧)              → TRUE  // Equivalent to just #METAVAR. 
+rule IsMeta(cterm⟦ [ v ##csortanno? ] ##cterm[v] ⟧)              → IsMeta(#cterm[var:String])
+rule IsMeta(cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧)              → IsMeta(#cterm[var:String])
 rule IsMeta(cterm⟦ thunk ##cterm ⟧)                              → IsMeta(#cterm)
-rule IsMeta(#term)                                              → FALSE
+rule IsMeta(#term)                                               → FALSE
 
 /* @return the given term without 'thunk' */
 func StripThunk(Core_cterm_sort) -> Core_cterm_sort

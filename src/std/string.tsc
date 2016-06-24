@@ -25,17 +25,25 @@ extern func EndsWith(String /* string */, String /* suffix */) -> Bool
 /* @return TRUE if and only if the given strings are equals. */
 extern func StringEqual(String /* string */, String /* other string */) -> Bool
 
+@Extern func MatchRegex(String, String) -> Bool
+
+/* If string empty, then apply `#true`, otherwise apply `#false` */
+func IfEmptyString<a>(#string: String, #true: ()->a, #false: ()->a) -> a
+→ If(NumberEqual(Length(#string), 0), #true, #false)
+
+
 // --- Mutation
 
 extern func ConcatString(String, String) -> String
 
-extern func Rescape(eager String) -> String
-extern func DownCase(eager String) -> String
+extern func Rescape(String) -> String
+extern func DownCase(String) -> String
 
-extern func Substring(eager String, eager Numeric, eager Numeric) -> String
+extern func Substring(String, Numeric, Numeric) -> String
+extern func Substring2(String, Numeric) -> String
 
 /* Converts all of the characters of the given string to upper case */
-extern func UpCase(eager String) -> String
+extern func UpCase(String) -> String
 
 /* @return the given string for which he first character is upper case
  */
@@ -56,33 +64,33 @@ rule DownCaseFirst(#string)
 /*
  * Returns given string without its first character
  */
-func RemoveFirstChar(eager String) -> String
+func RemoveFirstChar(String) -> String
 rule RemoveFirstChar(#string) → Substring(#string, 1, Length(#string))
 
 /*
  * Returns given string without its last character
  */
-func RemoveLastChar(eager String) -> String
+func RemoveLastChar(String) -> String
 rule RemoveLastChar(#string) → Substring(#string, 0, Minus(Length(#string), 1))
 
 /* Trim leading and trailing spaces */
-extern func Trim(eager String) -> String
+extern func Trim(String) -> String
 
-extern func Replace(eager String, eager String, eager String) -> String
+extern func Replace(String, String, String) -> String
 
 /* @return the string after the first occurrence of the given first string, or
           the empty string if there is no such occurrences
 */
-extern func AfterFirst(eager String, eager String) -> String
+extern func AfterFirst(String, String) -> String
 
-extern func BeforeFirst(eager String, eager String) -> String
+extern func BeforeFirst(String, String) -> String
 
 extern func Escape(String) -> String
 
 /* @return the string converted to a valid Java/C/C++ identifier */
 extern func Mangle(String) -> String
 
-func AfterLast(eager String, eager String) -> String
+func AfterLast(String, String) -> String
 
   rule AfterLast(#string, #sep)
   → If<String>(Contains(#string, #sep),
@@ -90,17 +98,17 @@ func AfterLast(eager String, eager String) -> String
       ()->#string)
 
 // Internal helper.
-func AfterLast2(eager String, String) -> String
+func AfterLast2(String, String) -> String
 rule AfterLast2(#string, #sep) → AfterLast(#string, #sep)
 
-func BeforeLast(eager String, eager String) -> String
+func BeforeLast(String, String) -> String
 
 rule BeforeLast(#String, #Sep)
 → If<String>(Contains(#String, #Sep),
     ()->BeforeLast2(BeforeFirst(#String, #Sep), #Sep, BeforeLast(AfterFirst(#String, #Sep), #Sep)),
     ()->"")
 
-func BeforeLast2(eager String, String, eager String) -> String
+func BeforeLast2(String, String, String) -> String
 rule BeforeLast2(#Before, #Sep, #After)
 → If<String>(StringEqual(#After, ""),
     ()->#Before,

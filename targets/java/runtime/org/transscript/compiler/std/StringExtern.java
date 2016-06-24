@@ -319,4 +319,16 @@ public class StringExtern
 		return lst;
 	}
 
+	public static StringTerm Substring2(Context context, StringTerm value_2050, DoubleTerm value_2051)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static Bool MatchRegex(Context context, StringTerm value_2073, StringTerm value_2074)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
