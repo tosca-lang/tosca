@@ -17,7 +17,8 @@
  *   are not promoted. Such subrules are called "trivial". For instance:
  *
  *      A : B (',' B)*  is not rewritten.
- * 
+ *
+ * - string literals are converted to token 
  */
 Normalizer[(
 
@@ -76,17 +77,19 @@ NormRules[ANTLR_rules_sort] :: ANTLR_rules_sort;
 /*
  * Normalize parser rule.  
  *
- * Two passes are performed:
+ * Three passes are performed:
  * - the first pass replaces subrules by a reference to the new rule describing the subrule  
  * - the second pass creates new parser rules corresponding to the subrules.
+ * - the third pass creates token for string literals. (could be inlined but easier this way).
  */ 
 {#E}NormRuleSpec[{#L}%ruleSpec⟨ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec? 
                                   #rulePrequel* : #ruleAltList ; #exceptionHandler* #finallyClause? ⟩] 
 → (
     {#L}%ruleSpec⟨ #ruleModifiers? #RULE_REF  #ARG_ACTION?  #ruleReturns? #throwsSpec? #localsSpec? 
                        #rulePrequel* : ⟨ruleAltList: {#E; "@rule":STRING[#RULE_REF]}NormRuleAltList[#ruleAltList]⟩ ; #exceptionHandler* #finallyClause? ⟩; // First pass
-    {#E; "@rule":STRING[#RULE_REF]}NSR-RuleAltList[#ruleAltList]                                             // Second pass
-  );
+   // Concat[{#E; "@rule":STRING[#RULE_REF]}NSR-RuleAltList[#ruleAltList],                                            // Second pass
+           NST-RuleAltList[#ruleAltList]  // third pass 
+);
 
 {#E}NormRuleSpec[{#L}%ruleSpec⟨ #lexerRule ⟩] 
 → ( {#L}%ruleSpec⟨ #lexerRule ⟩; );
@@ -129,6 +132,10 @@ NormElements[$List[ANTLR_element_sort]] :: $List[ANTLR_element_sort];
 {#E}NormElements[{#L}%element*⟨ #labeledElement #element_A1_S1 #element* ⟩] 
 → {#E}NormLabeledElement[#labeledElement, #element_A1_S1, #element*];
 
+// A string literal optionally followed by an ebnfSuffix. Replace by token.
+{#E}NormElements[{#L}%element*⟨ #STRING_LITERAL #elementOptions? #element_A2_S1 #element* ⟩] 
+→ {#L}%element*⟨ ⟨atom: NormMakeToken[#STRING_LITERAL, #elementOptions?]⟩ #element_A2_S1 ⟨element*: {#E}NormElements[#element*]⟩ ⟩;
+
 // Element is an atom optionally followed by an ebnfSuffix. Leave it this way.
 {#E}NormElements[{#L}%element*⟨ #atom #element_A2_S1 #element* ⟩] 
 → {#L}%element*⟨ #atom #element_A2_S1 ⟨element*: {#E}NormElements[#element*]⟩ ⟩;
@@ -169,7 +176,8 @@ NormLabeledElement[{#L}%labeledElement⟨ #id #labeledElement_S1 #block ⟩, #el
 
 //--------- Second Pass: Generate subrules
 
-//
+// TODO: THIS IS WRONG!! must return ruleSpec*
+
 {#E}NSR-RuleAltList[{#L}%ruleAltList⟨ #labeledAlt #ruleAltList_S1* ⟩] 
 → {#L}%ruleAltList⟨ ⟨ruleAltList: Concat[
     {#E; "@alt":NUM[1]; "@unique": BOOL[IsEmpty[#ruleAltList_S1*]]}NSR-LabeledAlt[#labeledAlt],
@@ -231,6 +239,69 @@ NSR-Block[FALSE, {#L}LOC, #block, #blockSuffix?, #element*]
     {#E}NormRuleSpec[{#L}%ruleSpec⟨ ⟨RULE_REF: {#E}SubruleRuleref⟩ : ⟨ruleBlock: Block2RuleBlock[#block]⟩ ; ⟩],
     {#E;"@sub": NUM[$[Plus, #count, 1]]}NSR-Elements[#element*]] ⟩ ⟩;
 
+//--------- Third Pass: Generate tokens
+
+//
+{#E}NST-RuleAltList[{#L}%ruleAltList⟦ #labeledAlt #ruleAltList_S1* ⟧] 
+→ {#E}NST-LabeledAlt[OK, #labeledAlt, ok.NST-RuleAltList_S1s[ok, #ruleAltList_S1*, ok.%ruleSpec*⟦⟧]]; 
+
+//
+{#E}NST-RuleAltList_S1s[OK, {#L}%ruleAltList_S1*⟨⟩, ok.#[ok]] 
+→ {#E}#[OK];
+
+{#E}NST-RuleAltList_S1s[OK, {#L}%ruleAltList_S1*⟨ | #labeledAlt #ruleAltList_S1* ⟩, ok.#[ok]] 
+→ {#E}NST-LabeledAlt[OK, #labeledAlt, ok.NST-RuleAltList_S1s[ok, #ruleAltList_S1*, ok.#[ok]]];
+
+//
+{#E}NST-AltList[OK, {#L}%altList⟦ #alternative #altList_S1* ⟧, ok.#[ok]] 
+→ {#E}NST-Alternative[OK, #alternative, ok.NST-AltList_S1s[ok, #altList_S1*, ok.#[ok]]]; 
+
+//
+{#E}NST-AltList_S1s[OK, {#L}%altList_S1*⟦ | #alternative #altList_S1* ⟧, ok.#[ok]] 
+→ {#E}NST-Alternative[OK, #alternative, ok.NST-AltList_S1s[ok, #altList_S1*, ok.#[ok]]]; 
+
+{#E}NST-AltList_S1s[OK, {#L}%altList_S1*⟦ ⟧, ok.#[ok]] 
+→ {#E}#[OK];
+
+//
+{#E}NST-LabeledAlt[OK, {#L}%labeledAlt⟨ #alternative #labeledAlt_S1? ⟩, ok.#[ok]] 
+→ {#E}NST-Alternative[OK, #alternative, ok.#[ok]];
+
+//
+{#E}NST-Alternative[OK, %alternative⟨ #elementOptions? #element* ⟩, ok.#[ok]] 
+→ {#E}NST-Elements[OK, #element*, ok.#[ok]];
+
+//
+{#E}NST-Elements[OK, {#L}%element*⟨⟩, ok.#[ok]]
+→ {#E}#[OK];  
+
+{#E}NST-Elements[OK, {#L}%element*⟨ #labeledElement #element_A1_S1 #element* ⟩, ok.#[ok]] 
+→ {#E}NST-LabeledElement[OK, #labeledElement, #element*, ok.#[ok]];
+
+{#E}NST-Elements[OK, {#L}%element*⟨ #STRING_LITERAL #elementOptions? #element_A2_S1 #element* ⟩, ok.#[ok]] 
+→ $[{#E}IfDef, #STRING_LITERAL, {#E}NST-Elements[OK, #element*, ok.#[ok]],
+     (%ruleSpec⟨ ⟨TOKEN_REF: NormMakeTokenRef[#STRING_LITERAL]⟩ : #STRING_LITERAL ; ⟩;
+            {#E; #STRING_LITERAL:1}NST-Elements[OK, #element*, ok.#[ok]])];
+
+    
+{#E}NST-Elements[OK, {#L}%element*⟨ #atom #element_A2_S1 #element* ⟩, ok.#[ok]] 
+→ {#E}NST-Elements[OK, #element*, ok.#[ok]];
+
+{#E}
+NST-Elements[OK, {#L}%element*⟨ ( #block_S1? #altList ) #blockSuffix? #element* ⟩, ok.#[ok]] 
+→ {#E}NST-AltList[OK, #altList, ok.NST-Elements[ok, #element*, ok.#[ok]]];
+
+{#E}NST-Elements[OK, {#L}%element*⟨ #ACTION #QUESTION? #element*⟩, ok.#[ok]] 
+→ {#E}NST-Elements[OK, #element*, ok.#[ok]];
+
+// Labeled Element
+
+{#E}NST-LabeledElement[OK, {#L}%labeledElement⟦ #id #labeledElement_S1 #atom ⟧, #element*, ok.#[ok]] 
+→ {#E}NST-Elements[OK, %element*⟦ #atom #element* ⟧, ok.#[ok]];
+
+{#E}NST-LabeledElement[OK, {#L}%labeledElement⟨ #id #labeledElement_S1 #block ⟩, #element*, ok.#[ok]] 
+→ {#E}NST-Elements[{#L}%element*⟨ #block #element* ⟩, ok.#[ok]];
+
 // Helpers
 
 {#E}SubruleAtom →  %atom⟨ ⟨RULE_REF: {#E}SubruleRuleref⟩ ⟩;
@@ -277,5 +348,34 @@ AltList2RuleAltList[()]
 AltList2RuleAltList[({#L}ANTLR_altList_S1[#OR, #alternative]; #altList_S1*)] 
 →
 ({#L}ANTLR_ruleAltList_S1[#OR, {#L}ANTLR_labeledAlt[#alternative, ()]]; AltList2RuleAltList[#altList_S1*]);
+
+NormMakeToken[$String, $List[ANTLR_elementOptions_sort]] :: ANTLR_atom_sort;
+NormMakeToken[#string, #elementOptions?] → %atom⟦ ⟨TOKEN_REF: NormMakeTokenRef[#string]⟩ #elementOptions? ⟧;
+
+// TODO: generic algo for operators
+NormMakeTokenRef[#string] 
+→ 
+$[If, $[Equal, #string, "'('"], "LPAR",
+$[If, $[Equal, #string, "')'"], "RPAR",
+$[If, $[Equal, #string, "':'"], "COLON",
+$[If, $[Equal, #string, "'.'"], "DOT",
+$[If, $[Equal, #string, "'..'"], "DOTDOT",
+$[If, $[Equal, #string, "'--'"], "DASHDASH",
+$[If, $[Equal, #string, "'::'"], "COLONCOLON",
+$[If, $[Equal, #string, "'#'"], "HASH",
+$[If, $[Equal, #string, "'##'"], "HASHHASH",
+$[If, $[Equal, #string, "'++'"], "PLUSPLUS",
+$[If, $[Equal, #string, "'*'"], "STAR",
+$[If, $[Equal, #string, "'+'"], "PLUS",
+$[If, $[Equal, #string, "'?'"], "QUEST",
+$[If, $[Equal, #string, "','"], "COMMA",
+$[If, $[Equal, #string, "'|'"], "OR",
+$[If, $[Equal, #string, "'&'"], "AND",
+$[If, $[Equal, #string, "'->'"], "ARROW",
+$[If, $[Equal, #string, "'λ'"], "LAMBDA",
+
+$[:, "SL", $[UpCase, $[Replace, $[Rescape, #string], "-", "_"]]]]]]]]]]]]]]]]]]]]];
+
+
 
 )]
