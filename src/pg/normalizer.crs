@@ -43,7 +43,7 @@ NormalizePP[#] → ANTLR_Print_grammarSpec[NormGrammarSpec[#]];
 NormGrammarSpec[{#L}%grammarSpec⟦ #DOC_COMMENT? #grammarType #id ; #prequelConstruct* #ruleSpec* #modeSpec* ⟧] 
 → 
 {#L}%grammarSpec⟦ #grammarType #id ; #prequelConstruct* 
-                  ⟨ruleSpec*: {"@id": STRING[UnwrapId[#id]]; "@index": IndexRules[#ruleSpec*]}NormRules[#ruleSpec*] ⟩ #modeSpec* ⟧;
+                  ⟨ruleSpec*: Concat[{}NST-Rules[#ruleSpec*], {"@id": STRING[UnwrapId[#id]]; "@index": IndexRules[#ruleSpec*]}NormRules[#ruleSpec*]] ⟩ #modeSpec* ⟧;
 
 /* Normalize prequel constructs */
 // TODO: first need to update the meta antlr parser.
@@ -70,7 +70,6 @@ NormGrammarSpec[{#L}%grammarSpec⟦ #DOC_COMMENT? #grammarType #id ; #prequelCon
 //NormPrequelConstructs[#prequelConstruct*];
 
 // Normalize rules specification
-NormRules[ANTLR_rules_sort] :: ANTLR_rules_sort;
 {#E}NormRules[()]                       → ();
 {#E}NormRules[(#ruleSpec; #ruleSpec*)]  → Concat[{#E}NormRuleSpec[#ruleSpec], {#E}NormRules[#ruleSpec*]];
 
@@ -88,7 +87,7 @@ NormRules[ANTLR_rules_sort] :: ANTLR_rules_sort;
     {#L}%ruleSpec⟨ #ruleModifiers? #RULE_REF  #ARG_ACTION?  #ruleReturns? #throwsSpec? #localsSpec? 
                        #rulePrequel* : ⟨ruleAltList: {#E; "@rule":STRING[#RULE_REF]}NormRuleAltList[#ruleAltList]⟩ ; #exceptionHandler* #finallyClause? ⟩; // First pass
    // Concat[{#E; "@rule":STRING[#RULE_REF]}NSR-RuleAltList[#ruleAltList],                                            // Second pass
-           NST-RuleAltList[#ruleAltList]  // third pass 
+          
 );
 
 {#E}NormRuleSpec[{#L}%ruleSpec⟨ #lexerRule ⟩] 
@@ -241,9 +240,24 @@ NSR-Block[FALSE, {#L}LOC, #block, #blockSuffix?, #element*]
 
 //--------- Third Pass: Generate tokens
 
+// 
+{#E}NST-Rules[#ruleSpec*] → {#E}NST-RuleSpecs[OK, #ruleSpec*, ok.%ruleSpec*⟦⟧];
+
+{#E}NST-RuleSpecs[OK, (), ok.#[ok]]                      → {#E}#[OK];
+{#E}NST-RuleSpecs[OK, (#ruleSpec; #ruleSpec*), ok.#[ok]] → {#E}NST-RuleSpec[#ruleSpec, ok.NST-RuleSpecs[ok, #ruleSpec*, ok.#[ok]]];
+
+
+{#E}NST-RuleSpec[%ruleSpec⟨ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec? 
+                            #rulePrequel* : #ruleAltList ; #exceptionHandler* #finallyClause? ⟩, ok.#[ok]] 
+→ {#E}NST-RuleAltList[#ruleAltList, ok.#[ok]];
+
+{#E}NST-RuleSpec[#lexerSpec, ok.#[ok]] 
+→ {#E}#[OK];
+
+
 //
-{#E}NST-RuleAltList[{#L}%ruleAltList⟦ #labeledAlt #ruleAltList_S1* ⟧] 
-→ {#E}NST-LabeledAlt[OK, #labeledAlt, ok.NST-RuleAltList_S1s[ok, #ruleAltList_S1*, ok.%ruleSpec*⟦⟧]]; 
+{#E}NST-RuleAltList[{#L}%ruleAltList⟦ #labeledAlt #ruleAltList_S1* ⟧, ok.#[ok]] 
+→ {#E}NST-LabeledAlt[OK, #labeledAlt, ok.NST-RuleAltList_S1s[ok, #ruleAltList_S1*, ok.#[ok]]]; 
 
 //
 {#E}NST-RuleAltList_S1s[OK, {#L}%ruleAltList_S1*⟨⟩, ok.#[ok]] 
@@ -281,14 +295,13 @@ NSR-Block[FALSE, {#L}LOC, #block, #blockSuffix?, #element*]
 {#E}NST-Elements[OK, {#L}%element*⟨ #STRING_LITERAL #elementOptions? #element_A2_S1 #element* ⟩, ok.#[ok]] 
 → $[{#E}IfDef, #STRING_LITERAL, {#E}NST-Elements[OK, #element*, ok.#[ok]],
      (%ruleSpec⟨ ⟨TOKEN_REF: NormMakeTokenRef[#STRING_LITERAL]⟩ : #STRING_LITERAL ; ⟩;
-            {#E; #STRING_LITERAL:1}NST-Elements[OK, #element*, ok.#[ok]])];
+            {#E; #STRING_LITERAL:$True}NST-Elements[OK, #element*, ok.#[ok]])];
 
     
 {#E}NST-Elements[OK, {#L}%element*⟨ #atom #element_A2_S1 #element* ⟩, ok.#[ok]] 
 → {#E}NST-Elements[OK, #element*, ok.#[ok]];
 
-{#E}
-NST-Elements[OK, {#L}%element*⟨ ( #block_S1? #altList ) #blockSuffix? #element* ⟩, ok.#[ok]] 
+{#E}NST-Elements[OK, {#L}%element*⟨ ( #block_S1? #altList ) #blockSuffix? #element* ⟩, ok.#[ok]] 
 → {#E}NST-AltList[OK, #altList, ok.NST-Elements[ok, #element*, ok.#[ok]]];
 
 {#E}NST-Elements[OK, {#L}%element*⟨ #ACTION #QUESTION? #element*⟩, ok.#[ok]] 
@@ -373,8 +386,9 @@ $[If, $[Equal, #string, "'|'"], "OR",
 $[If, $[Equal, #string, "'&'"], "AND",
 $[If, $[Equal, #string, "'->'"], "ARROW",
 $[If, $[Equal, #string, "'λ'"], "LAMBDA",
+$[If, $[Equal, #string, "'@'"], "AT",
 
-$[:, "SL", $[UpCase, $[Replace, $[Rescape, #string], "-", "_"]]]]]]]]]]]]]]]]]]]]];
+$[:, "SL", $[UpCase, $[Replace, $[Rescape, #string], "-", "_"]]]]]]]]]]]]]]]]]]]]]];
 
 
 

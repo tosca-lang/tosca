@@ -96,10 +96,10 @@ public class PG
 			parser.grammarSpec();
 
 			GenericTerm term = (GenericTerm) buffer.term(true);
-			
-			 
+
 			File outfile = new File(params.outputname);
-			outfile.getParentFile().mkdirs();
+			if (outfile.getParentFile() != null)
+				outfile.getParentFile().mkdirs();
 
 			FileWriter w = new FileWriter(params.outputname);
 			FormattingAppendable f = FormattingAppendable.format(w, 120, 0, Integer.MAX_VALUE);
@@ -111,14 +111,14 @@ public class PG
 			w.close();
 
 			// Normalize term
-//			Map<String, String> options = new HashMap<>();
-//			options.put("grammar", "('net.sf.crsx.text.Text';'org.crsx.pg.ANTLRMeta';)");
-//			options.put("rules", "src/pg/normalizer.crs");
-//			options.put("input", "src/parser/Crsx.term");
-//			options.put("wrapper", "Normalize");
-//			options.put("output", "src/parser/Crsx.nterm");
-//
-//			new Crsx().realMain(options);
+			//			Map<String, String> options = new HashMap<>();
+			//			options.put("grammar", "('net.sf.crsx.text.Text';'org.crsx.pg.ANTLRMeta';)");
+			//			options.put("rules", "src/pg/normalizer.crs");
+			//			options.put("input", "src/parser/Crsx.term");
+			//			options.put("wrapper", "Normalize");
+			//			options.put("output", "src/parser/Crsx.nterm");
+			//
+			//			new Crsx().realMain(options);
 
 		}
 		catch (FileNotFoundException e)
@@ -129,10 +129,10 @@ public class PG
 		{
 			e.printStackTrace();
 		}
-//		catch (CRSException e)
-//		{
-//			e.printStackTrace();
-//		}
+		//		catch (CRSException e)
+		//		{
+		//			e.printStackTrace();
+		//		}
 	}
 
 	/** Represent parsed command line arguments */

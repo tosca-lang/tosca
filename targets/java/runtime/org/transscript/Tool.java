@@ -439,7 +439,7 @@ public class Tool
 			helpParse();
 
 		ToolContext context = new ToolContext();
-		addGrammars(context, env.get("grammars"));
+		addGrammars(context, env.get("parsers"));
 		addGrammars(context, TransScriptMetaParser.class.getName());
 
 		setBootParserPath(context, env.get("bootparserpath"));

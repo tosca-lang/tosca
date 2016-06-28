@@ -58,6 +58,12 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 	{
 		throw new UnsupportedOperationException();
 	}
+	
+	/** Generated parser can override */
+	protected String _catprefix()
+	{
+		return "";
+	}
 
 	/** Generated parser must override if not '#' */
 	protected String _metachar()
@@ -98,7 +104,8 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 				category = category.substring(0, len - 1) + "_OOM";
 				break;
 		}
-
+		category = category.substring(_catprefix().length());
+		
 		// Can it handle the category?
 		return getRuleIndex(category) >= 0 ? category : null;
 	}
@@ -164,7 +171,8 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 						break;
 				}
 			}
-			return result;
+			
+			return _catprefix() + result;
 		});
 		return s::iterator;
 	}

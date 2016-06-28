@@ -167,6 +167,7 @@ ParserConstructs[#id, $True, #meta, #header, #members]
             $[If, #meta, "}\n\n", ""],
             $[If, #meta, "protected void initATN()\n{    _interp = new ParserATNSimulator(this, _ATN, _decisionToDFA, _sharedContextCache);\n}", ""],
             "protected String _prefix() { return \"", #id, "_\"; }\n",
+            $[IfDef, "catprefix", $[:, "protected String _catprefix() { return \"", $[Get, "catprefix"], "\"; }\n"], ""],
             "protected void _enterZOM() { fireEnterZOM(_parseListeners, _ctx); }\n",
             "protected void _exitZOM()  { fireExitZOM(_parseListeners, _ctx); }\n",
             "protected void _enterOOM() { _enterZOM(); }\n",
@@ -284,7 +285,7 @@ MakeParserRuleSpec[ANTLR_parserRuleSpec_sort, Mode] :: $List[ANTLR_ruleSpec_sort
 //
 MakeRuleAltList[ANTLR_ruleAltList_sort, $String, Mode] :: ANTLR_ruleAltList_sort;
 {#E}MakeRuleAltList[{#L}%ruleAltList⟨ #alternative #labeledAlt_S1? #ruleAltList_S1* ⟩, #RULE_REF, #mode] 
-→ {#L}%ruleAltList⟨ ⟨alternative: {#E}MakeAlternative[#alternative, #labeledAlt_S1?, IsEmpty[#ruleAltList_S1*], 1, #RULE_REF, IsMeta[#mode]]⟩ 
+→ {#L}%ruleAltList⟨ ⟨alternative: {#E}MakeAlternative[#alternative, #labeledAlt_S1?, IsEmpty[#ruleAltList_S1*], 1, GetElementOptionAlternative[#alternative, "variable"], #RULE_REF, IsMeta[#mode]]⟩ 
                  ⟨ruleAltList_S1*: Concat[{#E}MakeRuleAltList_S1s[#ruleAltList_S1*, 2, #RULE_REF, IsMeta[#mode]], {#E}MakeMetaAltList[#RULE_REF, #mode]]⟩ ⟩; ;
 
 //
@@ -293,33 +294,33 @@ MakeRuleAltList_S1s[$List[ANTLR_ruleAltList_S1_sort], $Numeric, $String, $Boolea
 {#E}MakeRuleAltList_S1s[{#L}%ruleAltList_S1*⟨⟩, #count, #RULE_REF, #meta] → {#L}%ruleAltList_S1*⟨⟩;
 
 {#E}MakeRuleAltList_S1s[{#L}%ruleAltList_S1*⟨ | #alternative #labeledAlt_S1? #ruleAltList_S1* ⟩, #count, #RULE_REF, #meta] 
-→ {#L}%ruleAltList_S1*⟨ | ⟨alternative: {#E}MakeAlternative[#alternative, #labeledAlt_S1?, FALSE, #count, #RULE_REF, #meta]⟩ 
+→ {#L}%ruleAltList_S1*⟨ | ⟨alternative: {#E}MakeAlternative[#alternative, #labeledAlt_S1?, FALSE, #count, GetElementOptionAlternative[#alternative, "variable"], #RULE_REF, #meta]⟩ 
                         ⟨ruleAltList_S1*: {#E}MakeRuleAltList_S1s[#ruleAltList_S1*, $[Plus, #count, 1], #RULE_REF, #meta]⟩ ⟩;
 
 //
-MakeAlternative[ANTLR_alternative_sort, $List[ANTLR_labeledAlt_S1], $Boolean, $Numeric, $String, $Boolean /* Meta parser? */] :: ANTLR_alternative_sort;
+MakeAlternative[ANTLR_alternative_sort, $List[ANTLR_labeledAlt_S1], $Boolean, $Numeric, $List[ElementOption], $String, $Boolean /* Meta parser? */] :: ANTLR_alternative_sort;
 
-{#E}MakeAlternative[{#L}%alternative⟨ #element* ⟩, #labeledAlt_S1?, #unique, #count, #RULE_REF, #meta]
-→ {#L}%alternative⟨ ⟨element: {#E}MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, IsInternalRule[#RULE_REF], #RULE_REF]⟩ ⟨element*: {#E}MakeElements[#element*, (), #RULE_REF, #meta]⟩ ⟩;
-
-// 
-MakeElements[$List[ANTLR_element_sort], $List[ANTLR_element_sort], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
-
-{#E}MakeElements[{#L}%element*⟨⟩, #fused, #RULE_REF, #meta]                     
-→ {#L}%element*⟨ ⟨element:  {#E}MakeExitAltAction[IsInternalRule[#RULE_REF]]⟩ ⟩;
-
-{#E; "$index": INDEX[#index]}MakeElements[{#L}%element*⟨ #element #element* ⟩, #fused, #RULE_REF, #meta] 
-→ {#E}MakeMaybeFusedElements[IsFused[#element, #element*, #index], $[If, #meta, StripArgActionElement[#element], #element], #element*, #fused, #RULE_REF, #meta];
+{#E; "$index": INDEX[{#I}RULEINDEX]}MakeAlternative[{#L}%alternative⟨ #element* ⟩, #labeledAlt_S1?, #unique, #count, #elementOptions, #RULE_REF, #meta]
+→ {#L}%alternative⟨ ⟨element: {#E}MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, IsInternalRule[#RULE_REF], {#I}IsStringRuleRuleRef[#RULE_REF], $[IfDef, "truevar", #elementOptions, ()], #RULE_REF]⟩ ⟨element*: {#E}MakeElements[#element*, (), #elementOptions, #RULE_REF, #meta]⟩ ⟩;
 
 // 
-MakeMaybeFusedElements[Boolean, ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANTLR_element_sort], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
+MakeElements[$List[ANTLR_element_sort], $List[ANTLR_element_sort], $List[ElementOption], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
+
+{#E; "$index": INDEX[{#I}RULEINDEX]}MakeElements[{#L}%element*⟨⟩, #fused, #elementOptions, #RULE_REF, #meta]                     
+→ {#L}%element*⟨ ⟨element:  {#E}MakeExitAltAction[IsInternalRule[#RULE_REF], {#I}IsStringRuleRuleRef[#RULE_REF], $[IfDef, "truevar", #elementOptions, ()]]⟩ ⟩;
+
+{#E; "$index": INDEX[#index]}MakeElements[{#L}%element*⟨ #element #element* ⟩, #fused, #elementOptions, #RULE_REF, #meta] 
+→ {#E}MakeMaybeFusedElements[IsFused[#element, #element*, #index], $[If, #meta, StripArgActionElement[#element], #element], #element*, #fused, #elementOptions, #RULE_REF, #meta];
+
+// 
+MakeMaybeFusedElements[Boolean, ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANTLR_element_sort], $List[ElementOption], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
 
 // The element is fused: record and continue processing the remaining elements
-{#E}MakeMaybeFusedElements[TRUE, #element, #element*, #fused, #RULE_REF, #meta] → {#E}MakeElements[#element*, Concat[#fused, (#element;)], #RULE_REF, #meta];
+{#E}MakeMaybeFusedElements[TRUE, #element, #element*, #fused, #elementOptions, #RULE_REF, #meta] → {#E}MakeElements[#element*, Concat[#fused, (#element;)], #elementOptions, #RULE_REF, #meta];
 
 // The element is not fused: proceed
-{#E}MakeMaybeFusedElements[FALSE, {#L}#element, #element*, #fused, #RULE_REF, #meta] 
-→ {#L}%element*⟨ ⟨element*: Concat[{#E}MakeElement[#element, #fused, #RULE_REF, #meta], {#E}MakeElements[#element*, (), #RULE_REF, #meta]] ⟩ ⟩; 
+{#E}MakeMaybeFusedElements[FALSE, {#L}#element, #element*, #fused, #elementOptions, #RULE_REF, #meta] 
+→ {#L}%element*⟨ ⟨element*: Concat[{#E}MakeElement[#element, #fused, #RULE_REF, #meta], {#E}MakeElements[#element*, (), #elementOptions, #RULE_REF, #meta]] ⟩ ⟩; 
 
 //
 MakeElement[ANTLR_element_sort, $List[ANTLR_element_sort], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
@@ -436,17 +437,21 @@ HideConstElement[ANTLR_element_sort] :: $List[ANTLR_element_sort];
 // Make the "enterAlt" action. If only 1 alternative, command takes no alternative number.
 // If a name is specified, use it.
 
-MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, $True, #rulename]                    → %element⟨ {} ⟩;
-MakeEnterAltAction[(ANTLR_labeledAlt_S1[#POUND, #altid];), #unique, #count, $False, #rulename]     → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", UnwrapId[#altid], "\");}"]⟩ ⟩;
-MakeEnterAltAction[(), TRUE /* Unique */, #count, $False, #rulename] → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", #rulename, "\");}"]⟩ ⟩;
+MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, $True, #istring, #elementOptions, #rulename]                  → %element⟨ {} ⟩;
+MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, $False, $True, #elementOptions, #rulename]                    → %element⟨ {} ⟩;
+MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, $False, $False, (SYMBOL;), #rulename]                    → %element⟨ {} ⟩;
+MakeEnterAltAction[(ANTLR_labeledAlt_S1[#POUND, #altid];), #unique, #count, $False, $False, #elementOptions, #rulename]     → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", UnwrapId[#altid], "\");}"]⟩ ⟩;
+MakeEnterAltAction[(), TRUE /* Unique */, #count, $False, $False, #elementOptions, #rulename] → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", #rulename, "\");}"]⟩ ⟩;
 //MakeEnterAltAction[(), TRUE /* Unique */, #count, $False, #rulename] → %element⟨ {_enterAlt();} ⟩;
-MakeEnterAltAction[(), FALSE /* Not Unique */, #count, $False, #rulename]    → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", #rulename, "_A", $[FormatNumber, #count], "\");}"]⟩ ⟩;
+MakeEnterAltAction[(), FALSE /* Not Unique */, #count, $False, $False, #elementOptions, #rulename]    → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", #rulename, "_A", $[FormatNumber, #count], "\");}"]⟩ ⟩;
 //MakeEnterAltAction[(), FALSE /* Not Unique */, #count, $False, #rulename]    → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", $[FormatNumber, #count], "\");}"]⟩ ⟩;
 
 // Make the "exitAlt" action
-MakeExitAltAction[$False] → %element⟨ {_exitAlt();} ⟩;
-MakeExitAltAction[$True]  → %element⟨ {} ⟩;
-   
+MakeExitAltAction[$True, #isstring, #elementOptions] → %element⟨ {} ⟩;
+MakeExitAltAction[$False, $True, #elementOptions]  → %element⟨ {} ⟩;
+MakeExitAltAction[$False, $False, (SYMBOL;)]  → %element⟨ {} ⟩;
+MakeExitAltAction[$False, $False, #elementOptions] → %element⟨ {_exitAlt();} ⟩;   
+
 //----- Generate the _EOF rules.
 
 MakeMetaRules[Mode, $String /* RULE_REF */, $String /* Resolved rule ref */] :: $List[ANTLR_ruleSpec_sort];

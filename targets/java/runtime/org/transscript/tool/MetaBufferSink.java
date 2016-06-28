@@ -158,6 +158,8 @@ public class MetaBufferSink extends MetaSink
 	@Override
 	public Sink literal(String literal)
 	{
+		if (literal.equals("JSV-U-KindToString"))
+			System.out.println("got it");
 		TransScript_term_sort term = TransScript_term(
 				context, TransScript_aterm_A2(context, TransScript_literal_A1(context, stringTerm(literal))),
 				TransScript_nterm_A2(context));

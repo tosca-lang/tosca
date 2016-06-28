@@ -293,7 +293,7 @@ If[{#I}IsConstantLexerElement[#lexerElement], {#I}IsConstantLexerElements[#lexer
 
 // --- Extract constant token as string value
 
-{$String: ANTLR_ruleSpec_sort}GetConstantMaybeRuleSpec[Option[$String]] :: Option[$String];
+{$String: ANTLR_ruleSpec_sort}GetConstantMaybeRuleSpec[Option[ANTLR_ruleSpec_sort]] :: Option[$String];
 
 // Rule is missing. Shouldn't occur. 
 {#I}GetConstantMaybeRuleSpec[NONE]            → NONE; 
@@ -505,6 +505,39 @@ ToElementOption[#id, #value]
   $[If, $[Equal, #id, "boundvar"], BINDER[UnwrapOptionValue[UnSOME[#value]]], 
   $[If, $[Equal, #id, "bound"], BINDS[UnwrapOptionValue[UnSOME[#value]]], 
   UNKOWN]]]];
+
+// --- Test whether the rule/rule ref is a string rule
+
+IsStringRuleRuleRef[$String] :: $Boolean;
+{#I}IsStringRuleRuleRef[#RULE_REF] → IsStringRuleMaybeRule[{#I}GetSome[#RULE_REF], #RULE_REF];
+
+IsStringRuleMaybeRule[Option[ANTLR_ruleSpec_sort], $String] :: $Boolean;
+
+IsStringRuleMaybeRule[NONE, #RULE_REF]            → $False; //$[Error, $[:, "Error: undefined rule ", #RULE_REF]];
+IsStringRuleMaybeRule[SOME[#ruleSpec], #RULE_REF] → IsStringRuleRuleSpec[#ruleSpec];
+
+IsStringRuleRuleSpec[ANTLR_ruleSpec_sort] :: $Boolean;
+IsStringRuleRuleSpec[%ruleSpec⟦ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec? 
+                           #rulePrequel* : #ruleAltList ; #exceptionHandler* #finallyClause? ⟧]
+→ IsStringRulePrequels[#rulePrequel*];
+
+IsStringRuleRuleSpec[%ruleSpec⟦ #DOC_COMMENT? #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ;⟧]
+→ $True;
+
+IsStringRulePrequels[$List[ANTLR_rulePrequel_sort]] :: $Boolean;
+IsStringRulePrequels[()]                            → $False;
+IsStringRulePrequels[(#rulePrequel; #rulePrequels)] → IsStringRulePrequel[#rulePrequel, #rulePrequels];
+
+// TODO: for some reason the rulePrequel warpper is missing.
+
+IsStringRulePrequel[ANTLR_rulePrequel_sort, $List[ANTLR_rulePrequel_sort]] :: $Boolean;
+IsStringRulePrequel[ANTLR_optionsSpec[#OPTIONS, #optionsSpec_S1*, #SEMI], #rulePrequels] → IsStringRuleOptionSpecs[#optionsSpec_S1*, #rulePrequels];
+//IsStringRulePrequel[ANTLR_rulePrequel_A2[#ruleAction], #rulePrequels] → IsStringRulePrequels[#rulePrequels];
+
+IsStringRuleOptionSpecs[$List[ANTLR_optionsSpec_S1_sort], $List[ANTLR_rulePrequel_sort]] :: $Boolean;
+IsStringRuleOptionSpecs[(ANTLR_optionsSpec_S1[ANTLR_option[ANTLR_id_A1[#id], #ASSIGN, ANTLR_optionValue_A1[ANTLR_id_A1[#value]]], #SEMI];), #rulePrequels]
+→ $[If, $[If, $[Equal, #id, "type"], $[Equal, #value, "string"], $False], $True, $False];
+        
 
 // --- Sugar: a constant or as the option <sugar>
 
