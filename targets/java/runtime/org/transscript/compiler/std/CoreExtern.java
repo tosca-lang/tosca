@@ -11,6 +11,7 @@ import org.transscript.runtime.Functions.ThunkMaker;
 import org.transscript.runtime.LazyTerm;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
+import org.transscript.runtime.VariableUse;
 
 /**
  * Standard library core functions.
@@ -20,9 +21,17 @@ import org.transscript.runtime.Term;
 public class CoreExtern
 {
 
-	public static <a extends Term, b extends Term> Bool SameVariable(Context ctx, ThunkMaker<a> tma, ThunkMaker<b> tmb, a x_343, b x_347)
+	public static <a extends Term, b extends Term> Bool SameVariable(Context ctx, ThunkMaker<a> tma, ThunkMaker<b> tmb, a var1, b var2)
 	{
-		throw new RuntimeException();
+		a evar1 = Term.force(ctx, var1);
+		b evar2 = Term.force(ctx, var2);
+		Bool result;
+		if (evar1 instanceof VariableUse && evar2 instanceof VariableUse)
+			result = ((VariableUse) evar1).variable().equals(((VariableUse) evar2).variable()) ? Core.TRUE(ctx) : Core.FALSE(ctx);
+		else
+			result = Core.FALSE(ctx);
+
+		return result;
 	}
 
 	/**

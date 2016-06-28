@@ -265,6 +265,15 @@ rule UnZipS(Cons(Pair<a b>::PairCons(#F: a, #S: b), #XS:List<Pair<a b>>)) → Co
 func LookUp<a b>(a, eager List<Pair<a b>>) -> List<b>
 rule LookUp(#Key, #KeyValueList) → Map<Pair b>((x) -> Snd<a b>(x), Filter<Pair>((pair) -> Equal<a a>(#Key, Fst<a b>(pair)), #KeyValueList))
 
+/* `LookUpVar( #Key, #KeyValueList)`
+    @param `#Key`          a variable
+    @param `#KeyValueList` a list of key-value pairs
+    @return a list of values associated to the `#Key` in `#KeyValueList` and returns the empty list, if `#Key` was not found
+*/
+func LookUpVar<a b>(a, List<Pair<a b>>) -> List<b>
+rule LookUpVar(#Key, #KeyValueList) → Map((x) -> Snd(x), Filter((pair) -> SameVariable(#Key, Fst(pair)), #KeyValueList))
+
+
 /* DelEntry
    @param  `#Key`          of the key-value pairs to delete
    @param  #KeyValueist` the key-value pairs

@@ -1,11 +1,9 @@
 // Copyright (c) 2016 IBM Corporation.
 /*
- * Normalize CRSX programs to Core CRSX.
+ * Normalize Tosca programs to Core Tosca.
  *
  * Eliminate syntactic sugars and perform various checks.
  *
- * In particular:
- * - Expand sorted concrete syntax
  */
 
 import parser::TransScript

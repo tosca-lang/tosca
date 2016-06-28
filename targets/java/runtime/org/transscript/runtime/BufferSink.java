@@ -160,8 +160,6 @@ public class BufferSink extends Sink
 	@Override
 	public BufferSink literal(String literal)
 	{
-		if (literal.equals("JSV-U-KindToString"))
-			System.out.println("got it");
 		Term term = StringTerm.stringTerm(literal);
 		addSub(term);
 		return this;

@@ -8,8 +8,7 @@ rule MapNum(#, ())           → ()
 rule MapNum(#, Cons(#1, #s)) → Cons(#(#1), MapNum(#, #s))
 
 func HeadNum(ListNum) -> Numeric
-rule HeadNum(()                      ) → 99
-rule HeadNum(Cons(#1:Numeric, #s:ListNum)) → #1
+rule HeadNum(()          ) → 99
+rule HeadNum(Cons(#1, #s)) → #1
 
-func Tests -> Numeric
-→ HeadNum(MapNum((x : Numeric) -> x : Numeric, Cons(0, Cons(2, Nil))))
+func Tests -> Numeric → HeadNum(MapNum((x) -> x, Cons(0, Cons(2, Nil))))
