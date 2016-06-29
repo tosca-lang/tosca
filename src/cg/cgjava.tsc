@@ -864,6 +864,7 @@ rule JavaCasePattern(#env, cterm*⟦ ⟧, #contractum)
 rule JavaCasePattern(#env, cterm*⟦ ##cterm ##cterm* ⟧, #contractum)
 → JavaPatternTerm(JNextParam(#env), #cterm, JCurrentParam(#env), SOME(JCurrentParamSort(#env)), PARAMETER, (env) -> JavaCasePattern(env, #cterm*, #contractum))
 
+
 // --- Term pattern matching
 
 func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* Current term */,
@@ -1124,7 +1125,10 @@ func SubSortFromTerm({String : JEnvEntry}, Core_cterm_sort) -> Option<Core_csort
   rule SubSortFromTerm(#env, cterm⟦ ##NUMBER ⟧)
   → SOME(csort⟦ Numeric⟧)
 
-  rule SubSortFromTerm(#env, cterm⟦ ##VARIABLE ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##VARIABLE : ##csort ⟧)
+  → SOME(#csort)
+
+  rule SubSortFromTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧)
   → JSubSortFromVar(JGetVarO(#env, #VARIABLE), #VARIABLE)
 
   rule SubSortFromTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)

@@ -252,33 +252,35 @@ MakeRuleSpec[ANTLR_ruleSpec_sort, Mode] :: $List[ANTLR_ruleSpec_sort];
 
 // Parser rule
 // RuleRef : RuleBlock ;
-{#E}MakeRuleSpec[{#L}%ruleSpec⟨ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? 
+{#E; "$index": INDEX[{#I}RULEINDEX]}
+MakeRuleSpec[{#L}%ruleSpec⟨ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? 
                  #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ; 
                  #exceptionHandler* #finallyClause? ⟩, #mode] 
 → Concat[{#E}MakeParserRuleSpec[%parserRuleSpec⟨ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? 
                  #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ; 
-                 #exceptionHandler* #finallyClause?⟩, #mode], {#E}MakeMetaRules[#mode, #RULE_REF, ToMeta[#RULE_REF]]];
+                 #exceptionHandler* #finallyClause?⟩, #mode, {#I}IsStringRuleRuleRef[#RULE_REF]], {#E}MakeMetaRules[#mode, #RULE_REF, ToMeta[#RULE_REF]]];
 
 // Lexer rule
 MakeRuleSpec[{#L}%ruleSpec⟨ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟩, #mode] 
 → $[If, $[Equal, #mode, METAPARSER], (), ({#L}%ruleSpec⟨ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟩;)];
 
 // Decide to annotate or filter rule based on mode
-MakeParserRuleSpec[ANTLR_parserRuleSpec_sort, Mode] :: $List[ANTLR_ruleSpec_sort];
+MakeParserRuleSpec[ANTLR_parserRuleSpec_sort, Mode, $Boolean] :: $List[ANTLR_ruleSpec_sort];
 
-{#E}MakeParserRuleSpec[#parserRuleSpec, METALEXER]  → ();
+{#E}MakeParserRuleSpec[#parserRuleSpec, METALEXER, #isstring]  → ();
 
 {#E}MakeParserRuleSpec[{#L}%parserRuleSpec⟨ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? 
                  #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ; 
-                 #exceptionHandler* #finallyClause? ⟩, PARSER]   
+                 #exceptionHandler* #finallyClause? ⟩, PARSER, #isstring]   
 → ( {#L}%ruleSpec⟨ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns?  #throwsSpec? #localsSpec? #rulePrequel* 
-                        : ⟨ruleAltList: {#E}MakeRuleAltList[#ruleAltList, #RULE_REF, PARSER]⟩ ; 
+                        : ⟨ruleAltList: {#E; "$strule": #isstring}MakeRuleAltList[#ruleAltList, #RULE_REF, PARSER]⟩ ; 
                         #exceptionHandler* #finallyClause?⟩; );
 
+-[Data[#isstring]]:
 {#E}MakeParserRuleSpec[{#L}%parserRuleSpec⟨ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? 
                  #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ; 
-                 #exceptionHandler* #finallyClause? ⟩, METAPARSER]   
-→ ( {#L}%ruleSpec⟨ #RULE_REF : ⟨ruleAltList: {#E}MakeRuleAltList[#ruleAltList, #RULE_REF, METAPARSER]⟩ ; ⟩; );
+                 #exceptionHandler* #finallyClause? ⟩, METAPARSER, #isstring]   
+→ ( {#L}%ruleSpec⟨ #RULE_REF : ⟨ruleAltList: {#E; "$strule": #isstring}MakeRuleAltList[#ruleAltList, #RULE_REF, METAPARSER]⟩ ; ⟩; );
 
 //----- Parser Rule Block
 
@@ -300,14 +302,16 @@ MakeRuleAltList_S1s[$List[ANTLR_ruleAltList_S1_sort], $Numeric, $String, $Boolea
 //
 MakeAlternative[ANTLR_alternative_sort, $List[ANTLR_labeledAlt_S1], $Boolean, $Numeric, $List[ElementOption], $String, $Boolean /* Meta parser? */] :: ANTLR_alternative_sort;
 
-{#E; "$index": INDEX[{#I}RULEINDEX]}MakeAlternative[{#L}%alternative⟨ #element* ⟩, #labeledAlt_S1?, #unique, #count, #elementOptions, #RULE_REF, #meta]
-→ {#L}%alternative⟨ ⟨element: {#E}MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, IsInternalRule[#RULE_REF], {#I}IsStringRuleRuleRef[#RULE_REF], $[IfDef, "truevar", #elementOptions, ()], #RULE_REF]⟩ ⟨element*: {#E}MakeElements[#element*, (), #elementOptions, #RULE_REF, #meta]⟩ ⟩;
+{#E; "$strule": #strule}
+MakeAlternative[{#L}%alternative⟨ #element* ⟩, #labeledAlt_S1?, #unique, #count, #elementOptions, #RULE_REF, #meta]
+→ {#L}%alternative⟨ ⟨element: {#E}MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, IsInternalRule[#RULE_REF], #strule, $[IfDef, "truevar", #elementOptions, ()], #RULE_REF]⟩ ⟨element*: {#E}MakeElements[#element*, (), #elementOptions, #RULE_REF, #meta]⟩ ⟩;
 
 // 
 MakeElements[$List[ANTLR_element_sort], $List[ANTLR_element_sort], $List[ElementOption], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
 
-{#E; "$index": INDEX[{#I}RULEINDEX]}MakeElements[{#L}%element*⟨⟩, #fused, #elementOptions, #RULE_REF, #meta]                     
-→ {#L}%element*⟨ ⟨element:  {#E}MakeExitAltAction[IsInternalRule[#RULE_REF], {#I}IsStringRuleRuleRef[#RULE_REF], $[IfDef, "truevar", #elementOptions, ()]]⟩ ⟩;
+{#E; "$strule": #strule}
+MakeElements[{#L}%element*⟨⟩, #fused, #elementOptions, #RULE_REF, #meta]                     
+→ {#L}%element*⟨ ⟨element:  {#E}MakeExitAltAction[IsInternalRule[#RULE_REF], #strule, $[IfDef, "truevar", #elementOptions, ()]]⟩ ⟩;
 
 {#E; "$index": INDEX[#index]}MakeElements[{#L}%element*⟨ #element #element* ⟩, #fused, #elementOptions, #RULE_REF, #meta] 
 → {#E}MakeMaybeFusedElements[IsFused[#element, #element*, #index], $[If, #meta, StripArgActionElement[#element], #element], #element*, #fused, #elementOptions, #RULE_REF, #meta];
@@ -331,9 +335,9 @@ MakeElement[ANTLR_element_sort, $List[ANTLR_element_sort], $String, $Boolean /* 
 {#E}MakeElement[{#L}%element⟨ #atom #ebnfSuffix ⟩, #fused, #RULE_REF, #meta]  
 → WrapElement[{#L}%element⟨ #atom #ebnfSuffix ⟩, #ebnfSuffix, #fused, #RULE_REF, #meta];
 
-{#E; "$index": INDEX[{#I}RULEINDEX]}
+{#E; "$index": INDEX[{#I}RULEINDEX]; "$strule":#strule}
 MakeElement[{#L}%element⟨ #atom ⟩, (), #RULE_REF, #meta]             
-→ {#E}MaybeHideAtom[{#I}IsSugarAtom[#atom], #atom, {#L}%element⟨ #atom ⟩];
+→ {#E}MaybeHideAtom[{#I}IsSugarAtom[#atom], #strule, #atom, {#L}%element⟨ #atom ⟩];
 
 {#E}MakeElement[{#L}%element⟨ #block #ebnfSuffix ⟩, #fused, #RULE_REF, #meta]  
 → WrapElement[{#L}%element⟨ ⟨block: {#E}HideConstBlock[#block]⟩ #ebnfSuffix ⟩, #ebnfSuffix, #fused, #RULE_REF, #meta];
@@ -341,20 +345,16 @@ MakeElement[{#L}%element⟨ #atom ⟩, (), #RULE_REF, #meta]
 {#E}MakeElement[{#L}%element⟨ #block ⟩, (), #RULE_REF, #meta]             
 → {#L}%element*⟨ ⟨block: {#E}HideConstBlock[#block] ⟩ ⟩;
 
-// Preserve action/semantic predicate only if not meta
-{#E}MakeElement[{#L}%element⟦ #ACTION #QUESTION? ⟧, (), #RULE_REF, $False]             
+// Preserve action/semantic predicate  
+{#E}MakeElement[{#L}%element⟦ #ACTION #QUESTION? ⟧, (), #RULE_REF, #meta]             
 → {#L}%element*⟨ #ACTION #QUESTION? ⟩;
-
-// Discard action/semantic predicate
-{#E}MakeElement[{#L}%element⟦ #ACTION #QUESTION? ⟧, (), #RULE_REF, $True]             
-→ {#L}%element*⟨⟩;
 
 //
 MakeLabeledElement[ANTLR_labeledElement_sort, ANTLR_element_A1_S1, $List[ANTLR_element_sort], $String, $Boolean /* Meta parser? */] :: $List[ANTLR_element_sort];
 
-{#E; "$index": INDEX[{#I}RULEINDEX]}
+{#E; "$index": INDEX[{#I}RULEINDEX]; "$strule":#strule}
 MakeLabeledElement[{#L}%labeledElement⟨ #id #labeledElement_S1 #atom ⟩, #element_A1_S1, #fused, #RULE_REF, #meta]  
-→ MaybeHideAtom[{#I}IsSugarAtom[#atom], #atom, {#L}%element⟨ #id #labeledElement_S1 #atom #element_A1_S1 ⟩];
+→ MaybeHideAtom[{#I}IsSugarAtom[#atom], #strule, #atom, {#L}%element⟨ #id #labeledElement_S1 #atom #element_A1_S1 ⟩];
 
 {#E; "$index": INDEX[{#I}RULEINDEX]}
 MakeLabeledElement[{#L}%labeledElement⟨ #id #labeledElement_S1 #block ⟩, #element_A1_S1, #fused, #RULE_REF, #meta]  
@@ -372,10 +372,11 @@ MakeTail[$String, $Boolean /* meta? */] :: $List[ANTLR_element_sort];
 MakeTail[#RULE_REF, $False]    → %element*⟨ ⟩;
 MakeTail[#RULE_REF, $True]     → %element*⟨ ({_tail();} (⟨ACTION: $[:, "{_term(\"", #RULE_REF, "\");}"]⟩ ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩ | {_embed();} ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩ CRSX_EMBED_END))? ⟩;
 
-// Produce grammar to hide constant production.
-MaybeHideAtom[Boolean, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
-MaybeHideAtom[TRUE, #atom, #element]  → %element*⟨ {_hide();} #element ⟩;
-MaybeHideAtom[FALSE, #atom, #element] → MaybeBinderAtom[GetElementOptionAtom[#atom, "boundvar"], #atom, #element];
+// Produce grammar to hide constant production (unless part of a string rule).
+MaybeHideAtom[Boolean, $Boolean, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
+MaybeHideAtom[TRUE, $False, #atom, #element]  → %element*⟨ {_hide();} #element ⟩;
+MaybeHideAtom[TRUE, $True, #atom, #element]  → %element*⟨ #element ⟩;
+MaybeHideAtom[FALSE, #strule,#atom, #element] → MaybeBinderAtom[GetElementOptionAtom[#atom, "boundvar"], #atom, #element];
 
 // Produce grammar for binder
 MaybeBinderAtom[$List[ElementOption], ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
@@ -424,8 +425,9 @@ HideConstElements[$List[ANTLR_element_sort]] :: $List[ANTLR_element_sort];
 
 HideConstElement[ANTLR_element_sort] :: $List[ANTLR_element_sort];
 
-{#E; "$index": INDEX[{#I}RULEINDEX]}HideConstElement[{#L}%element⟨ #atom ⟩]                     
-→ MaybeHideAtom[{#I}IsConstantAtom[#atom], #atom, {#L}%element⟨ #atom ⟩];
+{#E; "$index": INDEX[{#I}RULEINDEX];  "$strule": #strule}
+HideConstElement[{#L}%element⟨ #atom ⟩]                     
+→ MaybeHideAtom[{#I}IsConstantAtom[#atom], #strule, #atom, {#L}%element⟨ #atom ⟩];
 
 -[Fallback]:
 {#E}HideConstElement[%element⟨ #element ⟩]  → %element*⟨ #element ⟩;
@@ -496,9 +498,9 @@ MakeMetaAltList[#RULE_REF, METAPARSER]
  *
  * - Elements with ebnf suffix are promoted to top-level rules, for instance:
  * 
- *      A     : B C*
+ *      A     : B C<options>*
  *      →
- *      A     : B C_ZOM
+ *      A     : B C_ZOM<options>
  *      C_ZOM : C*
  *
  * - Tokens are replaced by a grammar rule producing the token, to allow META and EMBED on tokens.
@@ -581,7 +583,7 @@ LiftEbnfElement[ANTLR_element_sort, $List[ANTLR_element_sort]] :: $List[ANTLR_el
 
 // labeled suffixed atom: lift
 {#E}LiftEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #atom #ebnfSuffix ⟩, #element*]
-→ {#L}%element*⟨ ⟨RULE_REF: LiftedRuleNameAtom[#atom, SOME[#ebnfSuffix]]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+→ {#L}%element*⟨ ⟨atom: LiftedRuleNameAtom[#atom, SOME[#ebnfSuffix]]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
 
 // labeled single trivial (after normalization) block: keep it unchanged
 {#E}LiftEbnfElement[{#L}%element⟨ #id #labeledElement_S1 #block ⟩, #element*]   
@@ -597,7 +599,7 @@ LiftEbnfElement[ANTLR_element_sort, $List[ANTLR_element_sort]] :: $List[ANTLR_el
 
 // Suffixed atom element
 {#E}LiftEbnfElement[{#L}%element⟨ #atom #ebnfSuffix ⟩, #element*]                        
-→ {#L}%element*⟨ ⟨RULE_REF: LiftedRuleNameAtom[#atom, SOME[#ebnfSuffix]]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
+→ {#L}%element*⟨ ⟨atom: LiftedRuleNameAtom[#atom, SOME[#ebnfSuffix]]⟩ ⟨element*: {#E}LiftEbnfElements[#element*]⟩ ⟩;
 
 // Single trivial block
 {#E}LiftEbnfElement[{#L}%element⟨ #block  ⟩, #element*]                        
@@ -624,10 +626,10 @@ LiftEbnfAtom2[Boolean, ANTLR_atom_sort] :: ANTLR_atom_sort;
 
 // Not constant: lift 
 {#E}LiftEbnfAtom2[FALSE, {#L}%atom⟨ #TOKEN_REF #elementOptions? ⟩] 
-→ %atom⟦ ⟨RULE_REF: LiftedRuleNameTokenRef[#TOKEN_REF, NONE]⟩ ⟨elementOptions?: #elementOptions?⟩ ⟧;    
+→ %atom⟦ ⟨RULE_REF: LiftedRuleNameTokenRef[#TOKEN_REF, NONE]⟩ #elementOptions? ⟧;    
 
 {#E}LiftEbnfAtom2[FALSE, {#L}%atom⟨ #RULE_REF #ARG_ACTION? #elementOptions? ⟩] 
-→ %atom⟦ ⟨RULE_REF: LiftedRuleNameRuleRef[#RULE_REF, NONE]⟩ ⟨elementOptions?: #elementOptions?⟩ ⟧;                  
+→ %atom⟦ ⟨RULE_REF: LiftedRuleNameRuleRef[#RULE_REF, NONE]⟩ #elementOptions? ⟧;                  
 
 // --- Second  Pass: Generate new rules
 
@@ -751,17 +753,17 @@ LiftedRuleNameBlock[ANTLR_block_sort, Option[ANTLR_ebnfSuffix_sort]] :: $String;
 → LiftedRuleNameRuleRef[UnSOME[GetRefBlock[#block, (), #index]], #ebnfSuffix];
 
 // Generate lifted rule name from atom
-LiftedRuleNameAtom[ANTLR_atom_sort, Option[ANTLR_ebnfSuffix_sort]] :: $String;
+LiftedRuleNameAtom[ANTLR_atom_sort, Option[ANTLR_ebnfSuffix_sort]] :: ANTLR_atom_sort;
 
 //LiftedRuleNameAtom[{#L}%atom⟨ #range ⟩, #ebnfSuffix] → $[Error, $[:, "Invalid range ", #range, " in parser rule. It must be defined as a lexer rule (a token)."]];
 LiftedRuleNameAtom[{#L}%atom⟨ #STRING_LITERAL #elementOptions? ⟩, #ebnfSuffix] 
 → $[Error, $[:, "Invalid non-constant string literal ", #STRING_LITERAL, " in parser rule. It must be defined as a lexer rule (a token)."]];
 
 LiftedRuleNameAtom[{#L}%atom⟨ #TOKEN_REF #elementOptions? ⟩, #ebnfSuffix]             
-→ LiftedRuleNameRuleRef[TokenToRuleName[#TOKEN_REF], #ebnfSuffix];
+→ %atom⟦ ⟨RULE_REF: LiftedRuleNameRuleRef[TokenToRuleName[#TOKEN_REF], #ebnfSuffix]⟩ #elementOptions? ⟧;
 
 LiftedRuleNameAtom[{#L}%atom⟨ #RULE_REF #ARG_ACTION? #elementOptions? ⟩, #ebnfSuffix] 
-→ LiftedRuleNameRuleRef[#RULE_REF, #ebnfSuffix];
+→ %atom⟦ ⟨RULE_REF: LiftedRuleNameRuleRef[#RULE_REF, #ebnfSuffix]⟩ #elementOptions? ⟧;
 
 //
 //// TODO: other cases...

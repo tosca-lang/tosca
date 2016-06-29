@@ -345,7 +345,7 @@ public class ToSinkListener implements ParseTreeListener
 	{
 		if (state == State.CONCRETE)
 			return;
-		
+
 		ParserRuleContext parentCtx = ruleContext.peek();
 		String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
 		if (isConcrete(ruleName, name))
@@ -356,7 +356,7 @@ public class ToSinkListener implements ParseTreeListener
 
 			if (metasink() != null)
 				metasink().type(fixupType(ruleName));
-	
+
 			// TEMPORARY BC BEHAVIOR
 			if (name.length() > 0 && Character.isDigit(name.charAt(0)))
 			{
@@ -365,7 +365,10 @@ public class ToSinkListener implements ParseTreeListener
 			}
 			else
 			{
-				sink.start(sink.context().lookupDescriptor(prefix + name));
+				if (name.equals("tsc_nil"))
+					sink.start(nilDesc);
+				else
+					sink.start(sink.context().lookupDescriptor(prefix + name));
 			}
 		}
 	}
@@ -447,6 +450,8 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void exitBinder(ParserRuleContext context)
 	{
+		if (state != State.NAME)
+			System.out.println();
 		assert state == State.NAME;
 		assert !tail : "Cannot declare a binder is a list tail";
 		assert binderId != null : "Missing enterBinder notification";
@@ -478,6 +483,7 @@ public class ToSinkListener implements ParseTreeListener
 	{
 		assert state == State.NAME;
 		assert !tail : "Cannot declare a name in a list tail";
+		assert !"".equals(binderName) : "Expected a symbol but got nothing";
 
 		if (kind == TokenKind.METAVAR)
 		{
@@ -646,9 +652,9 @@ public class ToSinkListener implements ParseTreeListener
 
 							metasink().startMetaApplication(metaname);
 							metasink().startSubstitutes();
-							
+
 							String[] metaargs = null;
-							
+
 							int si = rawMeta.indexOf('[');
 							if (si != -1)
 							{
@@ -663,7 +669,7 @@ public class ToSinkListener implements ParseTreeListener
 								if (bound != MARKER && (metaargs != null && containsArg(bound.fst, metaargs)))
 									sink.use(bound.snd);
 							}
-							
+
 							metasink().endSubstitutes();
 
 							if (termType != null)
@@ -799,13 +805,13 @@ public class ToSinkListener implements ParseTreeListener
 	private String fixupType(String type)
 	{
 		return type;
-//		final boolean islist = type.endsWith("_OOM") || type.endsWith("_ZOM") || type.endsWith("_OPT");
-//		type = islist ? type.substring(0, type.length() - "_ZOM".length()) : type;
-//
-//		if (type.endsWith("_TOK"))
-//			return (islist ? "List<" : "") + "StringTerm" + (islist ? ">" : "");
-//
-//		return (islist ? "List<" : "") + prefix + type + "_sort" + (islist ? ">" : "");
+		//		final boolean islist = type.endsWith("_OOM") || type.endsWith("_ZOM") || type.endsWith("_OPT");
+		//		type = islist ? type.substring(0, type.length() - "_ZOM".length()) : type;
+		//
+		//		if (type.endsWith("_TOK"))
+		//			return (islist ? "List<" : "") + "StringTerm" + (islist ? ">" : "");
+		//
+		//		return (islist ? "List<" : "") + prefix + type + "_sort" + (islist ? ">" : "");
 	}
 
 	/** Cast sink to metasink */

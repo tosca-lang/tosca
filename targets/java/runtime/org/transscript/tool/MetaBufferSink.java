@@ -158,8 +158,6 @@ public class MetaBufferSink extends MetaSink
 	@Override
 	public Sink literal(String literal)
 	{
-		if (literal.equals("JSV-U-KindToString"))
-			System.out.println("got it");
 		TransScript_term_sort term = TransScript_term(
 				context, TransScript_aterm_A2(context, TransScript_literal_A1(context, stringTerm(literal))),
 				TransScript_nterm_A2(context));
@@ -182,9 +180,10 @@ public class MetaBufferSink extends MetaSink
 	@Override
 	public Sink use(Variable variable)
 	{
+		if (variable.name().equals("_2"))
+		System.out.println(variable.name());
 		TransScript_term_sort term = TransScript_term(
-				context, TransScript_aterm_A4(context, (StringTerm) variable.use(), Nil(context)),
-				TransScript_nterm_A2(context));
+				context, TransScript_aterm_A4(context, (StringTerm) variable.use(), Nil(context)), TransScript_nterm_A2(context));
 
 		addSub(term);
 		return this;
@@ -318,16 +317,14 @@ public class MetaBufferSink extends MetaSink
 					context,
 					TransScript_sort(
 							context, Nil(context),
-							TransScript_paramSort_A1(
-									context, TransScript_constructor(context, stringTerm(listArg)), Nil(context))),
+							TransScript_paramSort_A1(context, TransScript_constructor(context, stringTerm(listArg)), Nil(context))),
 					Nil(context))), Nil(context));
 		}
 		else
 			args = Nil(context);
 
 		return TransScript_sort(
-				context, Nil(context),
-				TransScript_paramSort_A1(context, TransScript_constructor(context, stringTerm(type)), args));
+				context, Nil(context), TransScript_paramSort_A1(context, TransScript_constructor(context, stringTerm(type)), args));
 	}
 
 	// Convert internal rep sub to list of terms
