@@ -1418,10 +1418,13 @@ func PackageDeclaration(#url: String, #mainurl: String, #package: String) -> Tex
 → PackageDeclaration2(#package, Replace(RelativePath(#url, #mainurl), "/", "."))
 
 func PackageDeclaration2(#base: String, #sub: String) -> Text4_text_sort
-→ text⟦package ⟨STRING:#base⟩†⟨PackageDeclaration3(If<String>(StringEqual(Trim(#base), ""), ()->"", ()->"."), #sub)⟩;⟧
+→ PackageDeclaration3(#base, If(StringEqual(Trim(#base), ""), ()->"", ()->"."), #sub)
 
-func PackageDeclaration3(#sep: String, #sub:String) -> Text4_text_sort
-→ If<Text4_text_sort>(StringEqual(Trim(#sub), ""), ()->text⟦⟧, ()->text⟦⟨STRING:#sep⟩⟨STRING:#sub⟩⟧)
+func PackageDeclaration3(#base:String, #sep: String, #sub:String) -> Text4_text_sort
+→ PackageDeclaration4(ConcatString(#base, If(StringEqual(Trim(#sub), ""), ()->"", ()->ConcatString(#sep, #sub))))
+
+func PackageDeclaration4(#pkg:String) -> Text4_text_sort
+→ If(StringEqual(#pkg, ""), ()->text⟦⟧, ()->text⟦package ⟨STRING:#pkg⟩;⟧)
 
 // --- Print java import. Treat Std:: as special (unless bootstrapping) All other prefixes are relative to javapackage
 

@@ -140,15 +140,14 @@ public class Tool
 
 		int result = 0;
 		if (rules != null)
-		{
-			String buildir = env.get("build-dir");
+		{	
 			String javabasepackage = env.get("javabasepackage");
 
 			// Configure builder
 			Map<String, String> buildEnv = new HashMap<>();
 
 			buildEnv.put("rules", rules);
-			buildEnv.put("build-dir", buildir);
+			buildEnv.put("build-dir", env.get("build-dir"));
 			buildEnv.put("verbose", env.get("verbose"));
 			if (env.get("infer") != null)
 				buildEnv.put("infer", env.get("infer"));
@@ -162,7 +161,7 @@ public class Tool
 			result = build(buildEnv);
 
 			clazz = targetClassname(rules, javabasepackage);
-			classLoader = classLoader(rules, buildir);
+			classLoader = classLoader(rules, resolveBuildDir(rules, env.get("build-dir")));
 		}
 
 		if (result != -1)
@@ -175,8 +174,8 @@ public class Tool
 
 			env.put("class", clazz);
 			Context context = new Context();
-			Term term = rewrite(context, env, runEnv);
-			output(context, env, term);
+			rewrite(context, env, runEnv);
+			//output(context, env, term);
 		}
 	}
 
@@ -223,13 +222,12 @@ public class Tool
 		if (rules == null)
 			helpRun();
 
-		String buildir = env.get("build-dir");
-
+		
 		// Configure builder
 		Map<String, String> buildEnv = new HashMap<>();
 
 		buildEnv.put("rules", rules);
-		buildEnv.put("build-dir", buildir);
+		buildEnv.put("build-dir", env.get("build-dir"));
 		buildEnv.put("verbose", env.get("verbose"));
 		buildEnv.put("cpp", "1");
 
@@ -237,7 +235,7 @@ public class Tool
 
 		if (result != -1)
 		{
-			String dest = resolveBuildDir(rules, buildir);
+			String dest = resolveBuildDir(rules, env.get("build-dir"));
 			String name = Utils.getBaseName(rules);
 
 			String execdir = Paths.get(dest, "build", "exe", name).toString();
@@ -279,7 +277,7 @@ public class Tool
 		if (javapackage == null)
 			javapackage = javaPackage(env.get("base"), rules);
 
-		String dest = resolveBuildDir(rules, env.get("build-dir"));
+		String dest = env.get("build-dir");
 
 		String parsers = "org.transscript.core.CoreMetaParser,org.transscript.parser.TransScriptMetaParser,org.transscript.text.Text4MetaParser";
 		if (env.get("parsers") != null)
@@ -806,6 +804,9 @@ public class Tool
 			if (environment.get("cpp") == null)
 				environment.put("java", "1");
 
+			if (environment.get("infer") == null)
+				environment.put("infer", "1");
+			
 			if (environment.get("stacktrace") != null)
 				System.setProperty("stacktrace", "1");
 
