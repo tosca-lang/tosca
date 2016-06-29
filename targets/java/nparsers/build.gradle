@@ -48,8 +48,8 @@ task newTransScriptParsers(type: PG4Task) {
 
 task newTextParsers(type: PG4Task) {
 	description 'Generate Text term and meta parsers'
-	source = file(transScriptSrc + '/text/Text4.g4')
-	generatedFileDir = file('src/text')
+	source = file(transScriptSrc + '/std/text/Text4.g4')
+	generatedFileDir = file('src/std/text')
 	defaultRule = 'text'
 	ncg = true
 	np = true
@@ -111,8 +111,8 @@ task newAntlrAntlrTermParser(type: Antlr4Task) {
 
 task newTextMetaParser(type: Antlr4Task, dependsOn: 'newTextParsers') {
 	description = 'Generate Java Text meta parser'
-	lexer = file('src/text/Text4MetaLexer.g4')
-	grammar = file('src/text/Text4MetaParser.g4')
+	lexer = file('src/std/text/Text4MetaLexer.g4')
+	grammar = file('src/std/text/Text4MetaParser.g4')
 	generatedFileDir = file('src/org/transscript/text')
 	packageName = 'org.transscript.text'
 	superClass = 'org.transscript.antlr.TSParser'
@@ -120,7 +120,7 @@ task newTextMetaParser(type: Antlr4Task, dependsOn: 'newTextParsers') {
 
 task newTextTermParser(type: Antlr4Task, dependsOn: 'newTextParsers') {
 	description = 'Generate Java Text term parser'
-	grammar = file('src/text/Text4Term.g4')
+	grammar = file('src/std/text/Text4Term.g4')
 	generatedFileDir = file('src/org/transscript/text')
 	packageName = 'org.transscript.text'
 }
