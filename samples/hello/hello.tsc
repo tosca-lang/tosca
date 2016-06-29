@@ -1,0 +1,2 @@
+func Main -> Numeric
+→ Trace("Hello World!", ()->0)

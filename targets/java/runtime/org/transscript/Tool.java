@@ -277,7 +277,7 @@ public class Tool
 		if (javapackage == null)
 			javapackage = javaPackage(env.get("base"), rules);
 
-		String dest = env.get("build-dir");
+		String dest = resolveBuildDir(rules, env.get("build-dir"));
 
 		String parsers = "org.transscript.core.CoreMetaParser,org.transscript.parser.TransScriptMetaParser,org.transscript.text.Text4MetaParser";
 		if (env.get("parsers") != null)
