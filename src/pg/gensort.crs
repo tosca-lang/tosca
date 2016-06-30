@@ -110,11 +110,13 @@ MakeForm[$List[ElementOption], ANTLR_alternative_sort, $List[ANTLR_labeledAlt_S1
 {#E; "@sort":TEXT[#sort];
      "@pt-rules" : TEXT[#printerRules];
      "@pt-name"  : TEXT[#printerName]}
-MakeForm[(SYMBOL;), #alternative, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]]
+MakeForm[(SYMBOL[NONE];), #alternative, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]]
 → {#E; "@sort"    : TEXT[%n⟦«#sort» | allows-variable⟧];
        "@pt-rules" : TEXT[%n⟦«#printerRules»¶rule «#printerName»(x) → «Text-Text[Text-String2[%n⟦Show(x)⟧]]»⟧];
   }#[OK, #count];
 
+{#E}MakeForm[(SYMBOL[#ref];), {#L}%alternative⟦ #element* ⟧, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]]
+→ {#E}MakeFormNoDup0[{#E}MakeAlternativeName[#labeledAlt_S1?, #count, #unique], #element*, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]];
 
 {#E}MakeForm[(), {#L}%alternative⟦ #element* ⟧, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]]
 → {#E}MakeFormNoDup0[{#E}MakeAlternativeName[#labeledAlt_S1?, #count, #unique], #element*, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]];
@@ -273,7 +275,7 @@ MaybeMakeBindsArgument[$List[ElementOption], ANTLR_element_sort, $Numeric, ok¹:
 
 // No <bound> option. Check for variable
 {#E}MaybeMakeBindsArgument[(), #element, #count, ok¹ count.#[ok¹, count]]
-→ {#E}MakeRawArgument[OK, #element, #count, ok¹ count.#[ok¹, count]];
+→ {#E}MaybeMakeSymbolArgument[GetElementOptionElement[#element, "variable"], #element, #count, ok¹ count.#[ok¹, count]];
 
 {#E; "@sort":TEXT[#sort]; "@sep":TEXT[#sep]}
 MaybeMakeBindsArgument[(#binds; #bindss), #element, #count, ok¹ count.#[ok¹, count]]
@@ -301,6 +303,21 @@ MakeBindsArgument[$String, ok¹::OK_SORT.Text] :: Text;
     "@sort"    : TEXT[%n⟦«#sort» String⟧];
     "@binders" : TEXTS[(%n⟦†«#binder»⟧; #binders)];
   }#[OK];
+
+MaybeMakeSymbolArgument[$List[ElementOption], ANTLR_element_sort, $Numeric, ok¹::OK_SORT count::$Numeric.Text] :: Text;
+
+// No <variable=sort> option. done.
+{#E}MaybeMakeSymbolArgument[(), #element, #count, ok¹ count.#[ok¹, count]]
+→ {#E}MakeRawArgument[OK, #element, #count, ok¹ count.#[ok¹, count]];
+
+// No <variable=sort> option. done.
+{#E}MaybeMakeSymbolArgument[(SYMBOL[NONE];), #element, #count, ok¹ count.#[ok¹, count]]
+→ {#E}MakeRawArgument[OK, #element, #count, ok¹ count.#[ok¹, count]];
+
+// Got a variable referring to a rule.
+{#E}MaybeMakeSymbolArgument[(SYMBOL[#RULE_REF];), #element, #count, ok¹ count.#[ok¹, count]]
+→ {#E}MakeRawArgument[OK, %element⟦ #RULE_REF ⟧, #count, ok¹ count.#[ok¹, count]];
+
 
 // Common case: element has no options, and not fused. Make regular argument
 MakeRawArgument[OK_SORT, ANTLR_element_sort, $Numeric, ok¹::OK_SORT count::$Numeric.Text] :: Text;

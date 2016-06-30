@@ -401,7 +401,7 @@ MaybeSymbolAtom[$List[ElementOption], ANTLR_atom_sort /* extracted atom */, ANTL
 MaybeSymbolAtom[(), #atom, #element]        
 → %element*⟨ ⟨element: #element⟩ ⟩;
 
-MaybeSymbolAtom[(SYMBOL;), #atom, #element] 
+MaybeSymbolAtom[(SYMBOL[#ruleref];), #atom, #element] 
 → %element*⟨ {_enterSymbol();} ⟨element: #element⟩ {_exitSymbol();} ⟩;
 
 // Produce grammar to hide constant productions inside a block.
@@ -439,20 +439,18 @@ HideConstElement[{#L}%element⟨ #atom ⟩]
 // Make the "enterAlt" action. If only 1 alternative, command takes no alternative number.
 // If a name is specified, use it.
 
-MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, $True, #istring, #elementOptions, #rulename]                  → %element⟨ {} ⟩;
-MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, $False, $True, #elementOptions, #rulename]                    → %element⟨ {} ⟩;
-MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, $False, $False, (SYMBOL;), #rulename]                    → %element⟨ {} ⟩;
-MakeEnterAltAction[(ANTLR_labeledAlt_S1[#POUND, #altid];), #unique, #count, $False, $False, #elementOptions, #rulename]     → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", UnwrapId[#altid], "\");}"]⟩ ⟩;
-MakeEnterAltAction[(), TRUE /* Unique */, #count, $False, $False, #elementOptions, #rulename] → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", #rulename, "\");}"]⟩ ⟩;
-//MakeEnterAltAction[(), TRUE /* Unique */, #count, $False, #rulename] → %element⟨ {_enterAlt();} ⟩;
-MakeEnterAltAction[(), FALSE /* Not Unique */, #count, $False, $False, #elementOptions, #rulename]    → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", #rulename, "_A", $[FormatNumber, #count], "\");}"]⟩ ⟩;
-//MakeEnterAltAction[(), FALSE /* Not Unique */, #count, $False, #rulename]    → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", $[FormatNumber, #count], "\");}"]⟩ ⟩;
+MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, $True, #istring, #elementOptions, #rulename]                       → %element⟨ {} ⟩;
+MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, $False, $True, #elementOptions, #rulename]                         → %element⟨ {} ⟩;
+MakeEnterAltAction[#labeledAlt_S1?, #unique, #count, $False, $False, (SYMBOL[NONE];), #rulename]                        → %element⟨ {} ⟩;
+MakeEnterAltAction[(ANTLR_labeledAlt_S1[#POUND, #altid];), #unique, #count, $False, $False, #elementOptions, #rulename] → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", UnwrapId[#altid], "\");}"]⟩ ⟩;
+MakeEnterAltAction[(), TRUE /* Unique */, #count, $False, $False, #elementOptions, #rulename]                           → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", #rulename, "\");}"]⟩ ⟩;
+MakeEnterAltAction[(), FALSE /* Not Unique */, #count, $False, $False, #elementOptions, #rulename]                      → %element⟨ ⟨ACTION: $[:, "{_enterAlt(\"", #rulename, "_A", $[FormatNumber, #count], "\");}"]⟩ ⟩;
 
 // Make the "exitAlt" action
-MakeExitAltAction[$True, #isstring, #elementOptions] → %element⟨ {} ⟩;
-MakeExitAltAction[$False, $True, #elementOptions]  → %element⟨ {} ⟩;
-MakeExitAltAction[$False, $False, (SYMBOL;)]  → %element⟨ {} ⟩;
-MakeExitAltAction[$False, $False, #elementOptions] → %element⟨ {_exitAlt();} ⟩;   
+MakeExitAltAction[$True, #isstring, #elementOptions]   → %element⟨ {} ⟩;
+MakeExitAltAction[$False, $True, #elementOptions]      → %element⟨ {} ⟩;
+MakeExitAltAction[$False, $False, (SYMBOL[NONE];)]     → %element⟨ {} ⟩;
+MakeExitAltAction[$False, $False, #elementOptions]     → %element⟨ {_exitAlt();} ⟩;   
 
 //----- Generate the _EOF rules.
 
@@ -465,7 +463,7 @@ MakeMetaRules[METAPARSER, #RULE_REF, #resolved]    → MakeMetaRulesMetaParser[I
 -[Data[#resolved]]:
 MakeMetaRules[METALEXER, #RULE_REF, #resolved]     
 → ( 
-      %ruleSpec⟨ ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩  : CRSX_META_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, "'"]⟩[0-9]*('['[a-z,]*']')? ; ⟩;
+      %ruleSpec⟨ ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩  : CRSX_META_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, "'"]⟩([0-9][0-9a-zA-Z_]*)?('['[a-z,]*']')? ; ⟩;
       %ruleSpec⟨ ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩  : CRSX_START_EMBED_CHAR ⟨STRING_LITERAL: $[If, $[Equal, #resolved, $[Get, "defaultRule", ""]], "", $[:, "'", #resolved, ":'"]]⟩  -> pushMode(CrsxEmbed); ⟩;
   );
 

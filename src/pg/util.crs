@@ -51,16 +51,19 @@ IndexRules2[{#L}%ruleSpec*⟦ #DOC_COMMENT? #FRAGMENT? #TOKEN_REF : #lexerRuleBl
  */
 IsFused[ANTLR_element_sort, $List[ANTLR_element_sort], RuleIndex] :: Boolean;
 
-IsFused[#elmt, %element*⟨⟩                    , #index] → FALSE;
-IsFused[#elmt, %element*⟨ #element #element* ⟩, #index] → IsFused2[GetRefElement[#elmt, #element*, #index], GetEbnfSuffixElement[#elmt], GetRefElement[#element, #element*, #index], GetEbnfSuffixElement[#element]];
+IsFused[#elmt, %element*⟨⟩                    , #index       ] → FALSE;
+IsFused[#elmt, %element*⟨ #element #element* ⟩, {#I}RULEINDEX] → IsFused2[{#I}IsConstantElement[#elmt], GetRefElement[#elmt, #element*, {#I}RULEINDEX], GetEbnfSuffixElement[#elmt], GetRefElement[#element, #element*, {#I}RULEINDEX], GetEbnfSuffixElement[#element]];
 
-IsFused2[Option[$String], Option[ANTLR_ebnfSuffix_sort], Option[$String], Option[ANTLR_ebnfSuffix_sort]] :: Boolean;
+IsFused2[Boolean, Option[$String], Option[ANTLR_ebnfSuffix_sort], Option[$String], Option[ANTLR_ebnfSuffix_sort]] :: Boolean;
 
-IsFused2[SOME[#ref1], #ebnfSuffix1, SOME[#ref2], #ebnfSuffix2] 
+IsFused2[TRUE, #ref1, #ebnfSuffix1, #ref2, #ebnfSuffix2] → FALSE; 
+
+IsFused2[FALSE, SOME[#ref1], #ebnfSuffix1, SOME[#ref2], #ebnfSuffix2] 
 → 
 $[If, $[Equal, #ref1, #ref2], IsFuseSuffix[#ebnfSuffix1, #ebnfSuffix2], FALSE];
 
--[Fallback]: IsFused2[#ref1, #ebnfSuffix1, #ref2, #ebnfSuffix2] → FALSE; 
+-[Fallback]: 
+IsFused2[FALSE, #ref1, #ebnfSuffix1, #ref2, #ebnfSuffix2] → FALSE; 
 
 IsFuseSuffix[Option[ANTLR_ebnfSuffix_sort], Option[ANTLR_ebnfSuffix_sort]] :: Boolean;
 
@@ -441,7 +444,7 @@ ConcatSome[{#I}GetConstantLexerElement[#lexerElement], {#I}GetConstantLexerEleme
 
 // --- Element option extraction
 
-ElementOption ::= ( SUGAR; SYMBOL; BINDER[$String]; BINDS[$String]; UNKOWN; );
+ElementOption ::= ( SUGAR; SYMBOL[Option[$String]]; BINDER[$String]; BINDS[$String]; UNKOWN; );
 
 // Extract the given element option from alternative. Must contain only one element to succeed.
 GetElementOptionAlternative[ANTLR_alternative_sort, $String] :: $list[ElementOption];
@@ -499,12 +502,17 @@ GetElementOptionOptions_S1_ZOM[%elementOptions_S1*⟦, #elementOption #elementOp
 
 // Convert option $String to ElementOption
 ∀ a .ToElementOption[$String, Option[a]] :: ElementOption;
-ToElementOption[#id, #value] 
+ToElementOption[#id, NONE] 
 → $[If, $[Equal, #id, "sugar"], SUGAR, 
-  $[If, $[Equal, #id, "variable"], SYMBOL, 
-  $[If, $[Equal, #id, "boundvar"], BINDER[UnwrapOptionValue[UnSOME[#value]]], 
-  $[If, $[Equal, #id, "bound"], BINDS[UnwrapOptionValue[UnSOME[#value]]], 
-  UNKOWN]]]];
+  $[If, $[Equal, #id, "variable"], SYMBOL[NONE], 
+  UNKOWN]];
+
+ToElementOption[#id, SOME[#value]] 
+→ $[If, $[Equal, #id, "variable"], SYMBOL[UnwrapOptionValue[#value]], 
+  $[If, $[Equal, #id, "boundvar"], BINDER[UnwrapOptionValue[#value]], 
+  $[If, $[Equal, #id, "bound"], BINDS[UnwrapOptionValue[#value]], 
+  UNKOWN]]];
+
 
 // --- Test whether the rule/rule ref is a string rule
 

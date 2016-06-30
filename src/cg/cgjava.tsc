@@ -143,7 +143,7 @@ func FormToMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
 
   rule FormToMethodNew(#constructor, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦
-    static †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ Var⟨STRING: Mangle(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨STRING: Mangle(ConcatString("var", #constructor))⟩ (Context ctx, String hint)
+    static public †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ Var⟨STRING: Mangle(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨STRING: Mangle(ConcatString("var", #constructor))⟩ (Context ctx, String hint)
     {
       return new Var⟨STRING: Mangle(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(ctx.makeGlobalName(hint));
     }⟧
