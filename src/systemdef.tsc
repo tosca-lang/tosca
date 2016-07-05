@@ -231,8 +231,8 @@ rule PutFuncSortL(Content(#imports, #rules, #datasorts, #funcsorts), #funcsort, 
 → Content(#imports, #rules, #datasorts, PutFuncSort(#funcsorts, #funcsort, #overwrite))
 
 func PutFuncSort({String : Core_cdecl_sort}, Core_cdecl_sort, Bool) -> {String : Core_cdecl_sort}
-  rule PutFuncSort(#func, cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #overwrite)
-  → PutFuncSort1(MapGet<String Core_cdecl_sort>(#func, #CONSTRUCTOR), #func, #CONSTRUCTOR,  cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #overwrite)
+  rule PutFuncSort(#func, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #overwrite)
+  → PutFuncSort1(MapGet<String Core_cdecl_sort>(#func, #CONSTRUCTOR), #func, #CONSTRUCTOR,  cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #overwrite)
 
 func PutFuncSort1(Option<Core_cdecl_sort>, { String : Core_cdecl_sort }, String, Core_cdecl_sort, Bool) -> { String : Core_cdecl_sort}
   rule PutFuncSort1(#olddecl, #func, #constructor, #decl, TRUE)
@@ -312,8 +312,8 @@ rule LoadDecls(cdecl+⟦ import module ##cqidentifier ##cdecl+ ⟧, #imports, #r
 rule LoadDecls(cdecl+⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ##cdecl+ ⟧, #imports, #rules, #data, #func)
 → LoadDecls(#cdecl+, #imports, #rules, PutDataSort(#data, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧), #func)
 
-rule LoadDecls(cdecl+⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ##cdecl+ ⟧, #imports, #rules, #data, #func)
-→ LoadDecls(#cdecl+, #imports, #rules, #data, PutFuncSort(#func, cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, FALSE))
+rule LoadDecls(cdecl+⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ##cdecl+ ⟧, #imports, #rules, #data, #func)
+→ LoadDecls(#cdecl+, #imports, #rules, #data, PutFuncSort(#func, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, FALSE))
 
 rule LoadDecls(cdecl+⟦ rule ##cterm → ##cterm2 ##cdecl+  ⟧, #imports, #rules, #data, #func)
 → LoadDecls(#cdecl+, #imports, PutRule(#rules, cdecl⟦ rule  ##cterm → ##cterm2 ⟧), #data, #func)

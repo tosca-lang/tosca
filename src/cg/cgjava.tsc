@@ -599,8 +599,8 @@ func SortParamToTypeParam(List<Core_csortvars_sort>, Bool /* parameterize or par
   rule SortParamToTypeParam(csortvars?⟦ ⟧, #parameterize)
   → text⟦⟧
 
-  rule SortParamToTypeParam(csortvars?⟦ ∀ ##variable_TOK+ . ⟧, #parameterize)
-  → text⟦<†⟨TextFold(Map<String Text4_text_sort>((x) -> text⟦⟨STRING: Mangle(x)⟩†⟨If<Text4_text_sort>(#parameterize, ()->text⟦ extends Term⟧, ()->text⟦⟧)⟩⟧, #variable_TOK+), text⟦, ⟧)⟩>⟧
+  rule SortParamToTypeParam(csortvars?⟦ ∀ ##VARIABLE+ . ⟧, #parameterize)
+  → text⟦<†⟨TextFold(Map<String Text4_text_sort>((x) -> text⟦⟨STRING: Mangle(x)⟩†⟨If<Text4_text_sort>(#parameterize, ()->text⟦ extends Term⟧, ()->text⟦⟧)⟩⟧, #VARIABLE+), text⟦, ⟧)⟩>⟧
 
 func MaybeSortsToTypeParams(List<Core_csorts_sort>) -> Text4_text_sort
   rule MaybeSortsToTypeParams(csorts?⟦ ⟧)
@@ -690,7 +690,7 @@ rule JavaMethod(#constructor, #classname, #rules, #datasorts, #funcsorts)
                         MapGet<String List>(#rules, #constructor))⟩⟧
 
 func JavaMethodSig({String : JEnvEntry}, Core_cdecl_sort, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
-rule JavaMethodSig(#env, cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #rules)
+rule JavaMethodSig(#env, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #rules)
 → text⟦†⟨ReturnType(#csortvars?, #csort)⟩⟨STRING:Mangle(#CONSTRUCTOR)⟩(Context context†⟨ThunkMakerSig(#csortvars?)⟩†⟨
       JavaSigMaybeArgs(
          JSetMethodName(
@@ -710,7 +710,7 @@ rule ReturnType(#csortvars?, #csort)
 /* Since Java erases sort parameters at runtime, need to pass them along */
 func ThunkMakerSig(List<Core_csortvars_sort>) -> Text4_text_sort
 rule ThunkMakerSig(csortvars?⟦             ⟧) → text⟦⟧
-rule ThunkMakerSig(csortvars?⟦ ∀ ##variable_TOK+ . ⟧) → TextFold(Map<String Text4_text_sort>((x)->ThunkMakerSigHelper(x), #variable_TOK+), text⟦⟧)
+rule ThunkMakerSig(csortvars?⟦ ∀ ##VARIABLE+ . ⟧) → TextFold(Map<String Text4_text_sort>((x)->ThunkMakerSigHelper(x), #VARIABLE+), text⟦⟧)
 
 func ThunkMakerSigHelper(String) -> Text4_text_sort
 rule ThunkMakerSigHelper(#) → text⟦, ThunkMaker<⟨STRING: #⟩> tm⟨STRING: #⟩⟧
@@ -718,7 +718,7 @@ rule ThunkMakerSigHelper(#) → text⟦, ThunkMaker<⟨STRING: #⟩> tm⟨STRING
 /* Associated function generating thunk maker argument */
 func ThunkMakerArg(List<Core_csortvars_sort>) -> Text4_text_sort
 rule ThunkMakerArg(csortvars?⟦             ⟧) → text⟦⟧
-rule ThunkMakerArg(csortvars?⟦ ∀ ##variable_TOK+ . ⟧) → TextFold(Map<String Text4_text_sort>((x)->ThunkMakerArgHelper(x), #variable_TOK+), text⟦⟧)
+rule ThunkMakerArg(csortvars?⟦ ∀ ##VARIABLE+ . ⟧) → TextFold(Map<String Text4_text_sort>((x)->ThunkMakerArgHelper(x), #VARIABLE+), text⟦⟧)
 
 func ThunkMakerArgHelper(String) -> Text4_text_sort
 rule ThunkMakerArgHelper(#) → text⟦, tm⟨STRING: #⟩⟧

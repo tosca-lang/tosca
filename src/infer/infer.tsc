@@ -52,7 +52,7 @@ rule InferRule(#env, cdecl⟦ rule ##CONSTRUCTOR ##csortargs? ##cterms? ##csorta
 
 func InferRuleAux({String:IEnvEntry}, Option<Core_cdecl_sort>, String, List<Core_cterms_sort>, Core_cterm_sort) -> Core_cdecl_sort
 
-  rule InferRuleAux(#env, SOME(cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧), #funcname, #cterms?, #contractum)
+  rule InferRuleAux(#env, SOME(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧), #funcname, #cterms?, #contractum)
   → InferPatternUp(#CONSTRUCTOR, InferMaybeTerms(IAddDummySorts(#env, #csortvars?), #CONSTRUCTOR, #cterms?, MaybeSortsToSorts(#csorts?)), #csort, #contractum)
 
   rule InferRuleAux(#env, NONE,  #funcname, cterms?⟦⟧, #contractum)
@@ -149,7 +149,7 @@ func InferFunc(#env: {String:IEnvEntry}, #CONSTRUCTOR: String, #csortargs?: List
 
 func InferFuncAux({String:IEnvEntry}, Option<Core_cdecl_sort>, List<Core_csortargs_sort>, List<Core_cterms_sort>, String, Option<Core_csort_sort>) -> Pair<{String:IEnvEntry} Core_cterm_sort>
 
-  rule InferFuncAux(#env, SOME(cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧), #csortargs?, #cterms?, #funcname, #esort)
+  rule InferFuncAux(#env, SOME(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧), #csortargs?, #cterms?, #funcname, #esort)
   → InferSubs(#env, #CONSTRUCTOR, FALSE, #csortvars?, #csortargs?, #cterms?, MaybeSortsToSorts(#csorts?), #csort, #esort)
 
   rule InferFuncAux(#env, NONE, #csortargs?, cterms?⟦⟧, #funcname, #esort)
@@ -327,8 +327,8 @@ rule InferMapUp(PairCons(#env, #cmapentries?), #cmapsort) → PairCons(#env, cte
  */
 func InferSortArgs({String:IEnvEntry}, List<Core_csortvars_sort>, List<Core_csortargs_sort>) -> {String:IEnvEntry}
 rule InferSortArgs(#env, csortvars?⟦                     ⟧, csortargs?⟦              ⟧) → SetSortArgsMap(#env, ())
-rule InferSortArgs(#env, csortvars?⟦ ∀ ##variable_TOK+ . ⟧, csortargs?⟦              ⟧) → InferSortArgsAux(#env, #variable_TOK+, csort*⟦⟧, ())
-rule InferSortArgs(#env, csortvars?⟦ ∀ ##variable_TOK+ . ⟧, csortargs?⟦ < ##csort* > ⟧) → InferSortArgsAux(#env, #variable_TOK+, csort*⟦⟧, ())
+rule InferSortArgs(#env, csortvars?⟦ ∀ ##VARIABLE+ . ⟧, csortargs?⟦              ⟧) → InferSortArgsAux(#env, #VARIABLE+, csort*⟦⟧, ())
+rule InferSortArgs(#env, csortvars?⟦ ∀ ##VARIABLE+ . ⟧, csortargs?⟦ < ##csort* > ⟧) → InferSortArgsAux(#env, #VARIABLE+, csort*⟦⟧, ())
 rule InferSortArgs(#env, csortvars?⟦                     ⟧, csortargs?⟦ < ##csort* > ⟧) → Error<{String:IEnvEntry}>("Error: extra type arguments") // TODO: better
 
 func InferSortArgsAux({String:IEnvEntry}, List<String>, List<Core_csort_sort>, List<Pair<String Core_csort_sort>>) -> {String:IEnvEntry}
@@ -349,7 +349,7 @@ func InferSortArgsAux({String:IEnvEntry}, List<String>, List<Core_csort_sort>, L
 
 func IAddDummySorts({String:IEnvEntry}, List<Core_csortvars_sort>) -> {String:IEnvEntry}
 rule IAddDummySorts(#env, csortvars?⟦                     ⟧) → #env
-rule IAddDummySorts(#env, csortvars?⟦ ∀ ##variable_TOK+ . ⟧) → IAddDummySortsAux(#env, #variable_TOK+)
+rule IAddDummySorts(#env, csortvars?⟦ ∀ ##VARIABLE+ . ⟧) → IAddDummySortsAux(#env, #VARIABLE+)
 
 func IAddDummySortsAux({String:IEnvEntry}, List<String>) -> {String:IEnvEntry}
 rule IAddDummySortsAux(#env, Cons(#sortvar:String, #sortvars:List<String>)) → IAddDummySortsAux(PutSort(#env, #sortvar, csort⟦ ⟨VARIABLE: "dummy"⟩ ⟧), #sortvars)

@@ -26,8 +26,8 @@ func CheckFallback(Content) -> Content
 
 func CheckFallbackFunc(#funcsorts: {String:Core_cdecl_sort},  #sort: Core_cdecl_sort, #fallback: Bool) -> {String:Core_cdecl_sort}
   rule CheckFallbackFunc(#funcsorts,
-    cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #fallback)
-  → PutFuncSort(#funcsorts, cdecl⟦ ⟨canno*: CheckFallbackAnno(#canno*, #fallback, HasAnnotation("Fallback", #canno*))⟩ ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, TRUE)
+    cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #fallback)
+  → PutFuncSort(#funcsorts, cdecl⟦ ⟨canno*: CheckFallbackAnno(#canno*, #fallback, HasAnnotation("Fallback", #canno*))⟩ ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, TRUE)
 
 func CheckFallbackAnno(List<Core_canno_sort>, Bool /* Fallback */, Bool /* Has Fallback */) -> List<Core_canno_sort>
   rule CheckFallbackAnno(#anno*, TRUE, TRUE)   → #anno*

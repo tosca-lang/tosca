@@ -29,7 +29,6 @@ rule ToCore(#filename, transscript⟦ ##decl+ ⟧)
 
   ⟨cdecl+: NDecls(#decl+)⟩⟧)
 
-
 // ----- Declarations
 
 func NDecls(List<TransScript_decl_sort>) -> List<Core_cdecl_sort>
@@ -52,9 +51,9 @@ func NDecl(TransScript_decl_sort) -> List<Core_cdecl_sort>
 
 
   /* Convert function. */
-  rule NDecl(decl⟦ ##anno* ##extern_TOK? func ##constructor ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
+  rule NDecl(decl⟦ ##anno* ##EXTERN? func ##constructor ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
   → cdecl+⟦
-    ⟨canno*: Map<TransScript_anno_sort Core_canno_sort>((anno)->NAnno(anno), #anno*)⟩ ##extern_TOK? func ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨csort: NSort(#sort)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩  ⟨csorts?: NMaybeParamDecls(#fnParamDecls?)⟩
+    ⟨canno*: Map<TransScript_anno_sort Core_canno_sort>((anno)->NAnno(anno), #anno*)⟩ ##EXTERN? func ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨csort: NSort(#sort)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩  ⟨csorts?: NMaybeParamDecls(#fnParamDecls?)⟩
     ⟨cdecl+: NMaybeBody(#fnBody?, #constructor, #fnParamDecls?)⟩
   ⟧
 
@@ -139,7 +138,7 @@ func NMaybeSorts(List<TransScript_sortArgs_sort>) -> List<Core_csorts_sort>
 
 func NMaybeSortParams(List<TransScript_sortParams_sort>) -> List<Core_csortvars_sort>
   rule NMaybeSortParams(sortParams?⟦                     ⟧) → csortvars?⟦ ⟧
-  rule NMaybeSortParams(sortParams?⟦ < ##variable_TOK+ > ⟧) → csortvars?⟦ ∀ ##variable_TOK+ . ⟧  // TODO: fix metaparser ugly _TOK
+  rule NMaybeSortParams(sortParams?⟦ < ##VARIABLE+ > ⟧) → csortvars?⟦ ∀ ##VARIABLE+ . ⟧  // TODO: fix metaparser ugly _TOK
 
 func NMaybeSortAnno(List<TransScript_sortAnno_sort>) -> List<Core_csortanno_sort>
   rule NMaybeSortAnno(sortAnno?⟦          ⟧) → csortanno?⟦⟧

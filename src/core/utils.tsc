@@ -12,7 +12,7 @@ import core::Core
 /* @return TRUE if the term is a meta-application. Ignore binders and formal parameters  */
 func IsMeta(Core_cterm_sort) -> Bool
 rule IsMeta(cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧) → TRUE
-rule IsMeta(cterm⟦ { : ##METAVAR  } ##csortanno? ⟧)              → TRUE  // Equivalent to just #METAVAR. 
+rule IsMeta(cterm⟦ { : ##METAVAR  } ##csortanno? ⟧)              → TRUE  // Equivalent to just #METAVAR.
 rule IsMeta(cterm⟦ [ v ##csortanno? ] ##cterm[v] ⟧)              → IsMeta(#cterm[var:String])
 rule IsMeta(cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧)              → IsMeta(#cterm[var:String])
 rule IsMeta(cterm⟦ thunk ##cterm ⟧)                              → IsMeta(#cterm)
@@ -77,19 +77,19 @@ func HasSorts(#csorts? :List<Core_csorts_sort>) -> Bool
 /* @return true if the sort declaration is parameterized */
 func HasSortVars(Core_cdecl_sort) -> Bool
 rule HasSortVars(cdecl⟦ data ##csortvars ##CONSTRUCTOR ##cforms ⟧)                                 → TRUE
-rule HasSortVars(cdecl⟦ ##canno* ##extern_TOK? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧) → TRUE
+rule HasSortVars(cdecl⟦ ##canno* ##EXTERN? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧) → TRUE
 rule HasSortVars(#)                                                                                → FALSE
 
 /* @return sort declaration sort parameters, or `NONE` */
 func GetSortVars(Core_cdecl_sort) -> Option<Core_csortvars_sort>
 rule GetSortVars(cdecl⟦ data ##csortvars ##CONSTRUCTOR ##cforms ⟧)                                 → SOME(#csortvars)
-rule GetSortVars(cdecl⟦ ##canno* ##extern_TOK? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧) → SOME(#csortvars)
+rule GetSortVars(cdecl⟦ ##canno* ##EXTERN? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧) → SOME(#csortvars)
 rule GetSortVars(#)                                                                                → NONE
 
 /* @return extract `csortvars?` from sort  */
 func GetMaybeSortVars(Core_cdecl_sort) -> List<Core_csortvars_sort>
 rule GetMaybeSortVars(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)                                 → #csortvars?
-rule GetMaybeSortVars(cdecl⟦ ##canno* ##extern_TOK? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧) → #csortvars?
+rule GetMaybeSortVars(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧) → #csortvars?
 rule GetMaybeSortVars(#cdecl                                                                          ) → ()
 
 /* @return extract `csort*` from `csorts?` */
@@ -152,12 +152,12 @@ func DeclToSort(Core_cdecl_sort) -> Core_csort_sort
 rule DeclToSort(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)               → DataDeclToSort(#csortvars?, #CONSTRUCTOR)
 
 // TODO: function
-//rule DeclToSort(cdecl⟦ ##canno* ##extern_TOK? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧) → SOME(#csortvars)
+//rule DeclToSort(cdecl⟦ ##canno* ##EXTERN? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧) → SOME(#csortvars)
 rule DeclToSort(#cdecl) → Error<Core_csort_sort>("Unimplemented")
 
 func DataDeclToSort(List<Core_csortvars_sort>, String) -> Core_csort_sort
 rule DataDeclToSort(csortvars?⟦                    ⟧, #CONSTRUCTOR) → csort⟦ ##CONSTRUCTOR ⟧
-rule DataDeclToSort(csortvars?⟦ ∀ ##variable_TOK+ .⟧, #CONSTRUCTOR) → csort⟦ ##CONSTRUCTOR ( ⟨csort*: Map<String Core_csort_sort>((var)->csort⟦ ⟨VARIABLE: var⟩ ⟧, #variable_TOK+)⟩ ) ⟧
+rule DataDeclToSort(csortvars?⟦ ∀ ##VARIABLE+ .⟧, #CONSTRUCTOR) → csort⟦ ##CONSTRUCTOR ( ⟨csort*: Map<String Core_csort_sort>((var)->csort⟦ ⟨VARIABLE: var⟩ ⟧, #VARIABLE+)⟩ ) ⟧
 
 
 // --- Print utilities

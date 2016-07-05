@@ -463,7 +463,7 @@ MakeMetaRules[METAPARSER, #RULE_REF, #resolved]    → MakeMetaRulesMetaParser[I
 -[Data[#resolved]]:
 MakeMetaRules[METALEXER, #RULE_REF, #resolved]     
 → ( 
-      %ruleSpec⟨ ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩  : CRSX_META_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, "'"]⟩([0-9][0-9a-zA-Z_]*)?('['[a-z,]*']')? ; ⟩;
+      %ruleSpec⟨ ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩  : CRSX_META_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, "'"]⟩([0-9_][0-9a-zA-Z_]*)?('['[a-z,]*']')? ; ⟩;
       %ruleSpec⟨ ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩  : CRSX_START_EMBED_CHAR ⟨STRING_LITERAL: $[If, $[Equal, #resolved, $[Get, "defaultRule", ""]], "", $[:, "'", #resolved, ":'"]]⟩  -> pushMode(CrsxEmbed); ⟩;
   );
 
@@ -787,11 +787,14 @@ TokenToRuleName[#token] → $[:, $[DownCase, #token], "_TOK"];
 ToMeta[$String] :: $String;
 
 ToMeta[#RuleRef] →
+    $[If, $[EndsWith, #RuleRef, "_TOK_OPT"], $[:, $[UpCase, $[BeforeFirst, #RuleRef, "_TOK_OPT"]], "?"],
+    $[If, $[EndsWith, #RuleRef, "_TOK_ZOM"], $[:, $[UpCase, $[BeforeFirst, #RuleRef, "_TOK_ZOM"]], "*"],
+    $[If, $[EndsWith, #RuleRef, "_TOK_OOM"], $[:, $[UpCase, $[BeforeFirst, #RuleRef, "_TOK_OOM"]], "+"],
     $[If, $[EndsWith, #RuleRef, "_OPT"], $[:, $[BeforeFirst, #RuleRef, "_OPT"], "?"],
     $[If, $[EndsWith, #RuleRef, "_ZOM"], $[:, $[BeforeFirst, #RuleRef, "_ZOM"], "*"],
     $[If, $[EndsWith, #RuleRef, "_OOM"], $[:, $[BeforeFirst, #RuleRef, "_OOM"], "+"],
     $[If, $[EndsWith, #RuleRef, "_TOK"], $[UpCase, $[BeforeFirst, #RuleRef, "_TOK"]],
-    #RuleRef]]]];
+    #RuleRef]]]]]]];
 
 // Whether mode is meta
 IsMeta[Mode] :: $Boolean;
