@@ -180,8 +180,6 @@ public class MetaBufferSink extends MetaSink
 	@Override
 	public Sink use(Variable variable)
 	{
-		if (variable.name().equals("_2"))
-		System.out.println(variable.name());
 		TransScript_term_sort term = TransScript_term(
 				context, TransScript_aterm_A4(context, (StringTerm) variable.use(), Nil(context)), TransScript_nterm_A2(context));
 
@@ -346,7 +344,7 @@ public class MetaBufferSink extends MetaSink
 				for (int i = sparams.size() - 1; i >= 0; i--)
 				{
 					params = TransScript_formalParams_A1(
-							context, Nil(context), (VarStringTerm) sparams.get(sparams.size() - 1), params);
+							context, Nil(context), (VarStringTerm) sparams.get(i), params);
 				}
 			}
 
@@ -359,7 +357,7 @@ public class MetaBufferSink extends MetaSink
 				for (int i = sbinders.size() - 1; i >= 0; i--)
 				{
 					binders = TransScript_binders_A1(
-							context, Nil(context), (VarStringTerm) sbinders.get(sbinders.size() - 1), binders);
+							context, Nil(context), (VarStringTerm) sbinders.get(i), binders);
 				}
 			}
 
