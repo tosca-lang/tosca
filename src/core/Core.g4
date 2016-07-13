@@ -26,10 +26,10 @@ cdecl
 // -- Term
 
 cterm
-    : cqconstructor csortargs? cterms? csortanno?                    /* Constant/Construction */
-    | METAVAR cterms? csubst? csortanno?                             /* Meta variable/call/substitution */
+    : canno* cqconstructor csortargs? cterms? csortanno?                    /* Constant/Construction */
+    | canno* METAVAR cterms? csubst? csortanno?                             /* Meta variable/call/substitution */
     | cliteral                                                       /* Literal construction */
-    | VARIABLE<variable> csortanno?                                  /* Variable */
+    | canno* VARIABLE<variable> csortanno?                                  /* Variable */
                               /* <variable> means 1. maps VARIABLE to a syntactic variable
                                                   2. look for a bound variable that matches VARIABLE
                                                      in the current tracked bound variables (innermost scope first).

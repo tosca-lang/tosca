@@ -49,6 +49,11 @@ class TransScriptTask extends DefaultTask {
     @Input
     @Optional
     boolean cpp = false
+    
+    @Input
+    @Optional
+    boolean nostd = false
+    
      /*  
     TransScriptTask()
     {
@@ -80,6 +85,8 @@ class TransScriptTask extends DefaultTask {
                 jargs << "cpp"
             if (infer)
                 jargs << "infer"
+            if (nostd)
+                jargs << "nostd"
 			jargs << "build-dir=${outputDir}" 
 			if (bootparserpath != null)
 				jargs << "bootparserpath=${bootparserpath}"

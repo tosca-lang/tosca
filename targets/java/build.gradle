@@ -1,13 +1,11 @@
 // Copyright (c) 2015-2016 IBM Corporation.
 /*
- *  CRSX Java target build file.
+ * Tosca Java target build file.
  */
 import org.transscript.gradle.*
 
 defaultTasks 'dist'
 
-
-// --- Generate Java parsers based on Antlr specifications
 
 apply plugin:'org.transscript.gradle'
 

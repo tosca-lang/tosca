@@ -1,8 +1,40 @@
 // Copyright (c) 2016 IBM Corporation.
 
 /**
- * Build C++ tosca library.  
+ * Build C++ tosca library, including runtime and standard library  
  */
+
+// --- First: generate C++ files corresponding to the standard library
+import org.transscript.gradle.*
+
+apply plugin:'org.transscript.gradle'
+
+def toscaSrc = '../../src'
+
+repositories {
+    flatDir { dirs '../../build/install' } // where to find the installed tosca distribution
+    flatDir { dirs '../java/dist/lib' }  // where to find crsx3.jar
+    mavenCentral() // Where to find ANTLR
+}
+
+dependencies {
+    transscript 'org.tosca:tosca@jar'
+    transscript 'org.crsx:crsx3@jar'
+    transscript 'org.antlr:antlr4:4.5'
+}
+
+task compileStd(type: TransScriptTask) {  //, dependsOn:':install'
+    description = "Compile Tosca standard library to C++"
+    sources     = fileTree(dir: toscaSrc, include: ['std.tsc'])
+    dependencies= fileTree(dir: toscaSrc, include: ['std.tsc', 'std/*.tsc'])
+    bootstrap = true
+    infer = true
+    nostd = true
+    cpp = true
+    outputDir= file('std')
+}
+
+
 apply plugin: 'cpp'
 
 model {
@@ -19,8 +51,17 @@ model {
 						srcDir "runtime"
 						include "**/*.cpp"
 					}
+					source {
+                        srcDir "std/src"
+                        include "**/*.cpp"
+                    }
+                    exportedHeaders {
+                      srcDirs 'runtime', 'std/src'
+                      include '*.h'
+                    }
 				}
 			}
+			
 		}
 	}
 	
@@ -33,3 +74,5 @@ model {
 		}
 	}
 }
+
+assemble.dependsOn tasks.getByPath('compileStd')

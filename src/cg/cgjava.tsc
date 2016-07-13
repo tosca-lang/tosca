@@ -71,8 +71,8 @@ func JavaUnit(#url: String, #imports: List<Core_cqidentifier_sort>, #rules: {Str
 public class ⟨STRING:ClassName(#url)⟩ {
 
   /* Typed enumerations */
-  †⟨TextFold( Map<Core_cdecl_sort Text4_text_sort>((x) ->EnumToClass(x, ClassName(#url)), MapValues<String Core_cdecl_sort>(#datasorts)), text⟦⟧)⟩
-  †⟨TextFold( Map<String Text4_text_sort>((x) ->JavaMethod(x, text⟦⟨STRING:ClassName(#url)⟩⟧, #rules, #datasorts, #funcsorts), MapKeys<String Core_cdecl_sort>(#funcsorts)), text⟦⟧)⟩
+  †⟨TextFold(Map((x) ->EnumToClass(x, ClassName(#url)), MapValues(#datasorts)), text⟦⟧)⟩
+  †⟨TextFold(Map((x) ->JavaMethod(x, text⟦⟨STRING:ClassName(#url)⟩⟧, #rules, #datasorts, #funcsorts), MapKeys(#funcsorts)), text⟦⟧)⟩
   †⟨InitModule(#datasorts, #funcsorts, #imports, #bootstrap)⟩
 }⟧
 
@@ -1289,14 +1289,13 @@ func JavaExprTerms({String : JEnvEntry}, List<Core_cterm_sort>, ({String : JEnvE
   rule JavaExprTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, #cont)
   → text⟦, †⟨JavaExprTerm(#env, #cterm, (env) -> JavaExprTerms(env, #cterm*, #cont))⟩⟧
 
-
 func JavaExprThunkArgs(List<Core_csortargs_sort>) -> Text4_text_sort
-  rule JavaExprThunkArgs(csortargs?⟦              ⟧) → text⟦⟧
-  rule JavaExprThunkArgs(csortargs?⟦ < ##csort* > ⟧) → TextFold(Map<Core_csort_sort Text4_text_sort>((x)->JavaExprThunkArg(x), #csort*), text⟦⟧)
+rule JavaExprThunkArgs(csortargs?⟦              ⟧) → text⟦⟧
+rule JavaExprThunkArgs(csortargs?⟦ < ##csort* > ⟧) → TextFoldES(Map((csort)->JavaExprThunkArg(csort), #csort*))
 
 func JavaExprThunkArg(Core_csort_sort) -> Text4_text_sort
-  rule JavaExprThunkArg(csort⟦ ##VARIABLE ⟧) → text⟦, tm⟨STRING: #VARIABLE⟩⟧
-  rule JavaExprThunkArg(csort⟦ ##csort    ⟧) → text⟦, †⟨ThunkMaker(#csort)⟩Maker()⟧
+rule JavaExprThunkArg(csort⟦ ##VARIABLE ⟧) → text⟦, tm⟨STRING: #VARIABLE⟩⟧
+rule JavaExprThunkArg(csort⟦ ##csort    ⟧) → text⟦, †⟨ThunkMaker(#csort)⟩Maker()⟧
 
 // --- If
 

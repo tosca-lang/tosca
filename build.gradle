@@ -3,9 +3,9 @@
 /**
  * Main Gradle build. 
  * 
- * The default tasks is snapshot, which creates a candidate Tosca distibution jar file is targets/java/dist.
+ * The default tasks is install, which creates a candidate Tosca distibution file in build.
  * 
- * By default, the snapshot is created from Tosca source files compiled using a previous Tosca stable build.
+ * By default, the distribution is created from Tosca source files compiled using a previous Tosca stable build.
  * 
  * There are various ways of overriding the default behavior by specifying -P option on the gradle command line.
  * These options are:
@@ -15,7 +15,7 @@
 
 import org.transscript.gradle.*
 
-defaultTasks 'tarAll'
+defaultTasks 'install'
 
 apply plugin:'base'
 
@@ -120,8 +120,16 @@ task tarAll(type: Tar, dependsOn: ':targets:java:snapshot') {
 	into ('targets/cpp') {
 		from 'targets/cpp'
 		include 'build.gradle'
+		
 	}
 	
+	into ('targets/cpp/resources') {
+        from '.'
+        include 'gradle/wrapper/**/*'
+        include 'gradlew.*'
+        include 'gradlew'
+    }
+    
 	into ('targets/cpp/resources') {
 		from 'targets/cpp/resources/'
 		include '*.*'
@@ -129,12 +137,17 @@ task tarAll(type: Tar, dependsOn: ':targets:java:snapshot') {
 	
 	into ('.') {
 		from '.'
-		include 'gradle/wrapper/**/*'
-		include 'gradlew.*'
-		include 'gradlew'
 		include 'VERSION'
 		include 'LICENSE.TXT'
 	}
+}
+
+
+// --- Local install
+
+task install(type: Copy, dependsOn:'tarAll') {
+    from tarTree(resources.gzip(tasks.getByPath(':tarAll').archivePath)) 
+    into "${buildDir}/install"
 }
 
 // --- The Gradle wrapper.

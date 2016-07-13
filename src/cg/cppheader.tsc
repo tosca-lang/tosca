@@ -19,13 +19,16 @@ import Systemdef
 
 /* Generate C++ header file for module */
 func CppHeader(#module: Module) -> Text4_text_sort
-→ text⟦#ifndef †⟨HeaderGuard(GetModuleURL(#module))⟩
+→ text⟦
+#ifndef †⟨HeaderGuard(GetModuleURL(#module))⟩
 #define †⟨HeaderGuard(GetModuleURL(#module))⟩
 #include "ts.h"
-†⟨CppIncludes(GetImports(GetModuleContent(#module)))⟩
-†⟨CppForwardDecls(MapValues<String Core_cdecl_sort>(GetDataSortsC(GetModuleContent(#module))))⟩
-†⟨CppClassDecls(MapValues<String Core_cdecl_sort>(GetDataSortsC(GetModuleContent(#module))))⟩
+
+†⟨CppIncludes     (GetImports(GetModuleContent(#module)))⟩
+†⟨CppForwardDecls (MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
+†⟨CppClassDecls   (MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
 †⟨CppFunctionDecls(SetContent(CppNewEnv, GetModuleContent(#module)))⟩
+
 #endif⟧
 
 /* Generate C++ header guard */

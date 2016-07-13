@@ -28,16 +28,18 @@ func CppClassDefs(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
 
 func CppClassDef(Core_cdecl_sort) -> Text4_text_sort
 rule CppClassDef(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
-→ text⟦†⟨TextMapFold<Core_cform_sort>((cform) -> WhenNoParams(#csortvars?, ()->CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, FALSE)), #cform*)⟩
-†⟨TextMapFold<Core_cform_sort>((cform) -> WhenNoParams(#csortvars?, ()->CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, FALSE)), #cform*)⟩
-†⟨TextMapFold<Core_cform_sort>((cform) -> CppFormDefs(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩⟧
+→ text⟦
+†⟨TextMapFold((cform) -> WhenNoParams(#csortvars?, ()->CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, FALSE)), #cform*)⟩
+†⟨TextMapFold((cform) -> WhenNoParams(#csortvars?, ()->CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, FALSE)), #cform*)⟩
+†⟨TextMapFold((cform) -> CppFormDefs(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩⟧
 
 
 /* Generate class and method definitions for the given data form */
 func CppFormDefs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
 
   rule CppFormDefs(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
-  → text⟦†⟨WhenNoParams(#csortvars?, ()->CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE))⟩
+  → text⟦
+  †⟨WhenNoParams(#csortvars?, ()->CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE))⟩
   †⟨WhenNoParams(#csortvars?, ()->CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, FALSE))⟩
   †⟨WhenNoParams(#csortvars?, ()->CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE))⟩⟧
 //†⟨WhenNoParams(#csortvars?, ()->CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, FALSE))⟩
@@ -45,11 +47,12 @@ func CppFormDefs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_te
   rule CppFormDefs(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦/*TODO: allows-variable*/⟧
 
+
 // --------- Function sorts and associated rules
 
 /* Generate function definitions corresponding to function sorts. */
 func CppFunctionDefs(#env: {String : EnvEntry}) -> Text4_text_sort
-→ TextMapFold<String>((key) -> CppFunctionDecl(#env, key, FALSE), MapKeys<String Core_cdecl_sort>(GetFuncSorts(GetContent(#env))))
+→ TextMapFold((key) -> CppFunctionDecl(#env, key, FALSE), MapKeys(GetFuncSorts(GetContent(#env))))
 
 
 /* Apply function when the list of template parameters is empty */

@@ -17,25 +17,27 @@ import systemdef
 
 /* Generate a constructor method for the given form. */
 func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Text4_text_sort
+
   rule CppMethodNew(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #header)
   → text⟦
     †⟨CppTemplatePrefix(#csortvars?)⟩
     †⟨CppTypeName(#csortvars?, #sortname)⟩ †⟨CppConsMethodName(#CONSTRUCTOR)⟩ (Context context†⟨MaybeCppFormalParams(#csorts?, text⟦, ⟧, FALSE)⟩)†⟨
-    If<Text4_text_sort>(GenBody(#csortvars?, #header), ()->text⟦{
+    If(GenBody(#csortvars?, #header), ()->text⟦{
        return (*new †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩(†⟨MaybeCppFormalParams(#csorts?, text⟦⟧, TRUE)⟩));
     }⟧, ()->text⟦;⟧)⟩
   ⟧
-/*
+  /*
   rule FormToCppMethodNew(#constructor, #csortvars?, cform⟦ allows-variable ⟧, #body)
   → text⟦
     static †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ Var⟨STRING: ToCppClassName(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ †⟨CppFnName(ConcatString("var", #constructor))⟩ (Context ctx, String hint)
     {
       return new Var⟨STRING: ToCppClassName(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(ctx.makeGlobalName(hint));
     }⟧
-*/
+  */
 
 /* Generate base lookup method (the 'as' method) for the given form. */
 func CppMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Text4_text_sort
+
   rule CppMethodAs(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #header)
   → text⟦
     †⟨TextIf(#header, ()->text⟦virtual⟧)⟩ Optional<†⟨FormCppClassName(#CONSTRUCTOR)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩> †⟨CppFormQualifier(#sortname, #csortvars?, #header)⟩†⟨CppAsMethodName(#CONSTRUCTOR)⟩(Context context)†⟨
@@ -43,8 +45,8 @@ func CppMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Te
        return Optional<†⟨FormCppClassName(#CONSTRUCTOR)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩>::nullopt;
     }⟧, ()->text⟦;⟧)⟩⟧
 
-/*
-func FormToMethodMemoAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
+  /*
+  func FormToMethodMemoAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
   rule FormToMethodMemoAs(#enumname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
    @Override
@@ -53,9 +55,9 @@ func FormToMethodMemoAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> T
      return eval(context).†⟨MethodNameAs(#CONSTRUCTOR)⟩(context);
    }⟧
 
- rule FormToMethodMemoAs(#enumname, #csortvars?, cform⟦ allows-variable ⟧)
- → text⟦⟧
-*/
+  rule FormToMethodMemoAs(#enumname, #csortvars?, cform⟦ allows-variable ⟧)
+  → text⟦⟧
+  */
 
 
 /* Generate constructor. */
@@ -89,11 +91,13 @@ func CppFormMethodCopy(String, List<Core_csortvars_sort>, String, Bool) -> Text4
 
 /* Generate getValue method for the given form. Generate body only if asked for. */
 func CppFormGetValue(String, List<Core_csortvars_sort>, String,  List<Core_csorts_sort>, Bool) -> Text4_text_sort
+
   rule CppFormGetValue(#sortname, #csortvars?, #formname, #csorts?, #header)
   → MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppGetValue(isvar, type, index, subindex, GenBody(#csortvars?, #header), CppFormQualifier(#formname, #csortvars?, #header)))
 
 /* GetValue generator */
 func CppGetValue(Bool, Text4_text_sort, Numeric, Numeric, Bool, Text4_text_sort) -> Text4_text_sort
+
   rule CppGetValue(FALSE, #type, #index, #subindex, #genbody, #qualifier)
   → text⟦†⟨#type⟩& †⟨#qualifier⟩getValue†⟨NumberToText(#index)⟩(Context ctx, bool mustforce)†⟨
       If<Text4_text_sort>(#genbody, ()->text⟦{
@@ -112,6 +116,7 @@ func CppGetValue(Bool, Text4_text_sort, Numeric, Numeric, Bool, Text4_text_sort)
 
 /* Generic form sorts traversal */
 func MaybeCppClassFields(List<Core_csorts_sort>, (Bool Text4_text_sort Numeric Numeric)->Text4_text_sort) -> Text4_text_sort
+
   rule MaybeCppClassFields(csorts?⟦⟧, #print)
   → text⟦⟧
 
@@ -150,14 +155,15 @@ rule CppInitField(TRUE, #type, #index, #subindex)  → text⟦†⟨FieldSep(tex
 // --- Function translation functions
 
 func CppFunctionDecl(#env: {String : EnvEntry}, #key: String, #header :Bool) -> Text4_text_sort
-→ CppFunctionDecl2(#env, UnSOME<Core_cdecl_sort>(GetFuncSort(GetContent(#env), #key)), #header)
+→ CppFunctionDecl2(#env, UnSOME(GetFuncSort(GetContent(#env), #key)), #header)
 
 func CppFunctionDecl2({String : EnvEntry}, Core_cdecl_sort, Bool) -> Text4_text_sort
 rule CppFunctionDecl2(#env, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #header)
-→ text⟦
+→ TextIf(And(Not(HasAnnotation("Extern", #canno*)), Or(#header, IsEmpty(#csortvars?))), ()->
+  text⟦
    †⟨CppTemplatePrefix(#csortvars?)⟩
    †⟨CppTypeRef(#csort)⟩ †⟨CppFnName(#CONSTRUCTOR)⟩(Context ctx†⟨CppMaybeFunctionParams(SetContext(SetFnAnno(#env, #canno*), text⟦ctx⟧, 1), #csorts?, (env) ->
-      CppMaybeBody(env, #CONSTRUCTOR, GenBody(#csortvars?, #header)))⟩⟧ // missing )
+      CppMaybeBody(env, #CONSTRUCTOR, GenBody(#csortvars?, #header)))⟩⟧) // missing )
 
 func CppMaybeFunctionParams({String : EnvEntry}, List<Core_csorts_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
    rule CppMaybeFunctionParams(#env, csorts?⟦⟧, #cont)
@@ -204,23 +210,22 @@ func CppFunctionParam({String : EnvEntry}, List<Text4_text_sort>, Core_csort_sor
  rule CppFunctionParam(#env, #types, csort⟦ thunk ##csort ⟧, #cont)
  → CppFunctionParam(#env, #types, #csort, #cont)
 
-/* Generate function body */
-func CppMaybeBody({String : EnvEntry}, String, Bool) -> Text4_text_sort
-  rule CppMaybeBody(#env, #key, FALSE) → text⟦);⟧
-  rule CppMaybeBody(#env, #key, TRUE)  → text⟦) {†⟨CppBody(#env, GetRulesForKeyC(GetContent(#env), #key))⟩}⟧
-
+/* Generate function body. See GenBody for the exact condition. */
+func CppMaybeBody({String : EnvEntry}, String, Bool /* generate body? */) -> Text4_text_sort
+rule CppMaybeBody(#env, #key, FALSE) → text⟦);⟧
+rule CppMaybeBody(#env, #key, TRUE)  → text⟦) †⟨CppBody(#env, GetRulesForKeyC(GetContent(#env), #key))⟩⟧
 
 func CppBody({String : EnvEntry}, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
 
 // No rules: it must be an external function (not yet checked but should)
   rule CppBody(#env, NONE)
-  → text⟦TODO EXTERN⟧
+  → text⟦;⟧
 
   // At least one rule: not external
   rule CppBody(#env, SOME(#rules:List<Core_cdecl_sort>))
-  → text⟦
+  → text⟦{
       †⟨TextMapFold<Core_cdecl_sort>((r) -> CppBodyRule(NewMetas(NewVars(#env)), r), #rules)⟩
-      †⟨TextIf(Not(HasAnnotation("Fallback", GetFnAnno(#env))), ()->text⟦throw std::runtime_error("Missing case");⟧ )⟩⟧
+      †⟨TextIf(Not(HasAnnotation("Fallback", GetFnAnno(#env))), ()->text⟦throw std::runtime_error("Missing case");⟧)⟩}⟧
 
 // --- Start method body
 
@@ -506,7 +511,7 @@ func CppExprTerm({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) -> 
 func CppExprConstruction({String : EnvEntry}, String,  List<Core_csortargs_sort>, List<Core_cterms_sort>, List<Core_csortanno_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
  rule CppExprConstruction(#env, #constructor, #csortargs?, #cterms?, #csortanno?, #cont)
- → text⟦†⟨CppFnName(#constructor)⟩(†⟨GetContext(#env)⟩†⟨CppExprMaybeTerms(#env, #cterms?, #cont)⟩⟧
+ → text⟦†⟨CppFnName(#constructor)⟩†⟨CppMaybeTypeArgs(#csortargs?)⟩(†⟨GetContext(#env)⟩†⟨CppExprMaybeTerms(#env, #cterms?, #cont)⟩⟧
 
 func CppExprMaybeTerms({String : EnvEntry}, List<Core_cterms_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
@@ -674,7 +679,7 @@ func CppTypes2(Core_csort_sort, List<Text4_text_sort> /* formal params */) -> Li
 
   rule CppTypes2(csort⟦ ##CONSTRUCTOR ##csorts? ⟧, Cons(#formal:Text4_text_sort, #formals:List<Text4_text_sort>))
   → Cons(text⟦_Closure†⟨NumberToText(Plus(ListLength<Text4_text_sort>(#formals), 1))⟩<†⟨
-       SortNameToCppClassName(CppFixupPrimitiveType(#CONSTRUCTOR))⟩&†⟨MaybeCppTemplateArgs(#csorts?) /* Return type */⟩, †⟨
+       SortNameToCppClassName(CppFixupPrimitiveType(#CONSTRUCTOR))⟩†⟨MaybeCppTemplateArgs(#csorts?) /* Return type */⟩&, †⟨
        TextFold(Cons(#formal, #formals), text⟦, ⟧) /* Formal params */⟩>⟧, Nil)
 
   rule CppTypes2(csort⟦ ##VARIABLE ⟧, ())
@@ -722,6 +727,10 @@ func CppFixupPrimitiveType(#typename: String) -> String
     ()->If<String>(StringEqual(#typename, "Numeric"), ()->"DoubleTerm",
          ()->#typename))
 
+func CppMaybeTypeArgs(List<Core_csortargs_sort>) -> Text4_text_sort
+rule CppMaybeTypeArgs(csortargs?⟦              ⟧) → text⟦⟧
+rule CppMaybeTypeArgs(csortargs?⟦ < ##csort* > ⟧) → text⟦<†⟨TextFold(Map((csort)->CppType(csort), #csort*), text⟦, ⟧)⟩>⟧
+
 // --- Basic conversion functions
 
 /* Convert data sort name to corresponding C++ class name */
@@ -757,8 +766,8 @@ func CppFnName(#name: String) -> Text4_text_sort
 /* Whether to generate function body */
 func GenBody(#csortvars? : List<Core_csortvars_sort>, #header : Bool) -> Bool
 → Or(
-    And(IsEmpty<Core_csortvars_sort>(#csortvars?), Not(#header)),
-    And(IsNotEmpty<Core_csortvars_sort>(#csortvars?), #header))
+    And(IsEmpty   (#csortvars?), Not(#header)),
+    And(IsNotEmpty(#csortvars?), #header))
 
 /* Generate method qualifier, only for non-templated method in source file */
 func CppQualifier(#sortname: String, #csortvars? : List<Core_csortvars_sort>, #header : Bool) -> Text4_text_sort

@@ -176,7 +176,7 @@ func InferSubsAux(#env: {String:IEnvEntry}, #CONSTRUCTOR: String, #data: Bool,
                   #edsort: Core_csort_sort, #esort: Option<Core_csort_sort>) -> Pair<{String:IEnvEntry} Core_cterm_sort>
 → InferConsUp(#CONSTRUCTOR, #data, GetSortArgs(#env), InferMaybeTerms(UnifySort(#env, SubstSort(#edsort, GetSortArgsMap(#env)), UnSOME<Core_csort_sort>(#esort)), #CONSTRUCTOR, #cterms?, SubstSortSorts(#dsort*, GetSortArgsMap(#env))), SubstSort(#edsort, GetSortArgsMap(#env)))
 
-/* Reconstruct construction. For data, erase sort arguments.*/
+/* Reconstruct construction.*/
 func InferConsUp(String, Bool, List<Core_csortargs_sort>, Pair<{String:IEnvEntry} List<Core_cterms_sort>>, Core_csort_sort) -> Pair<{String:IEnvEntry} Core_cterm_sort>
 
   rule InferConsUp(#CONSTRUCTOR, TRUE, #csortargs?, PairCons(#env:{String:IEnvEntry}, #cterms?:List<Core_cterms_sort>), #csort)

@@ -53,7 +53,8 @@ public:
 
 /* Just a convenient function for the user code to look nicer */
 template<typename T>
-inline T& NewRef(T& ref) {
+inline T& NewRef(T& ref)
+{
     ref.Ref();
     return static_cast<T&>(ref);
 }
@@ -67,8 +68,7 @@ public:
     /**
      * @return shallow copy of this term.
      */
-  //  virtual Term Copy(Context c) = 0;
-
+    //  virtual Term Copy(Context c) = 0;
     /** @return true when this term is data */
     virtual bool Data() const
     {
@@ -123,8 +123,20 @@ public:
     template<typename T>
     static T Subst(Context c, T term, std::initializer_list<Term> from, std::initializer_list<Term> to);
 
-}; // _Term
+};
+// _Term
 
+/* Unevaluated function (thunk) */
+template<typename T>
+class _LazyTerm: public _Term
+{
+public:
+    /** @return true when this term is data */
+    bool Data() const
+    {
+        return false;
+    }
+};
 
 /*
  * Base class for variable
@@ -141,7 +153,6 @@ protected:
     unsigned long uses;
 };
 
-
 /**
  * String term type
  */
@@ -155,12 +166,15 @@ StringTerm stringTerm(std::string&& str);
 class _StringTerm: public _Term
 {
 public:
-    virtual ~_StringTerm() { };
+    virtual ~_StringTerm()
+    {
+    }
+    ;
 
     /** Peek at native string value */
-    virtual Optional<std::string> Unbox() const
+    virtual std::string& Unbox() const
     {
-        return Optional<std::string>::nullopt;
+        throw std::runtime_error("Fatal error: cannot access unevaluated string value.");
     }
 };
 // _StringTerm
@@ -179,7 +193,7 @@ public:
     ~_ValStringTerm();
 
     Term Copy(Context c);
-    Optional<std::string> Unbox() const;
+    std::string& Unbox() const;
 
 };
 
@@ -195,6 +209,60 @@ typedef _VarStringTerm& VarStringTerm;
 
 VarStringTerm varStringTerm(std::string&& str);
 
+// --- Numeric type (double)
+
+class _DoubleTerm;
+//using DoubleTerm = _DoubleTerm&;
+typedef _DoubleTerm& DoubleTerm;
+
+// Construction
+DoubleTerm doubleTerm(double value);
+
+class _DoubleTerm: public _Term
+{
+public:
+    virtual ~_DoubleTerm()
+    {
+    }
+    ;
+
+    /** Peek at native double value */
+    virtual double Unbox() const
+    {
+        throw std::runtime_error("Fatal error: cannot access unevaluated numeric value.");
+    }
+};
+// _DoubleTerm
+
+/**
+ * String term value
+ */
+class _ValDoubleTerm: public _DoubleTerm
+{
+protected:
+    /** The double value. */
+    double value;
+
+public:
+    _ValDoubleTerm(double value);
+    ~_ValDoubleTerm();
+
+    Term Copy(Context c);
+    double Unbox() const;
+
+};
+
+/*
+ * Variable of type Numeric
+ */
+class _VarDoubleTerm: public _DoubleTerm, _Variable
+{
+public:
+    _VarDoubleTerm(std::string& name);
+};
+typedef _VarDoubleTerm& VarDoubleTerm;
+
+VarDoubleTerm varDoubleTerm(double value);
 
 //}// runtime
 //} // ts

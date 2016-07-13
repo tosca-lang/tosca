@@ -140,7 +140,7 @@ public class Tool
 
 		int result = 0;
 		if (rules != null)
-		{	
+		{
 			String javabasepackage = env.get("javabasepackage");
 
 			// Configure builder
@@ -222,7 +222,6 @@ public class Tool
 		if (rules == null)
 			helpRun();
 
-		
 		// Configure builder
 		Map<String, String> buildEnv = new HashMap<>();
 
@@ -297,7 +296,7 @@ public class Tool
 		}
 		else
 		{
-			config.putValue(stringTerm("baseStd"), stringTerm(baseStd()));
+			config.putValue(stringTerm("baseStd"), stringTerm(baseStd() + "lib"));
 		}
 
 		if (env.containsKey("infer"))
@@ -355,52 +354,56 @@ public class Tool
 	/* Compile generated cpp files */
 	static int compileCpp(Map<String, String> env, String input, String buildir)
 	{
-		final String root = toscaPath();
-		final String cppRoot = root + File.separator + "targets" + File.separator + "cpp";
-		final String name = Utils.getBaseName(input);
-
-		// Instantiate templates
-		String gradleBuild = Utils.getCppGradleTemplate(root);
-		gradleBuild = gradleBuild.replace("%NAME%", name);
-		gradleBuild = gradleBuild.replace("%CPPROOT%", cppRoot);
-
-		try (FileWriter writer = new FileWriter(buildir + File.separator + "build.gradle"))
+		if (env.get("only-source") == null)
 		{
-			writer.write(gradleBuild);
+			final String root = baseStd();
+			final String cppRoot = root + File.separator + "targets" + File.separator + "cpp";
+			final String name = Utils.getBaseName(input);
+
+			// Instantiate templates
+			String gradleBuild = Utils.getCppGradleTemplate(root);
+			gradleBuild = gradleBuild.replace("%NAME%", name);
+			gradleBuild = gradleBuild.replace("%CPPROOT%", cppRoot);
+
+			try (FileWriter writer = new FileWriter(buildir + File.separator + "build.gradle"))
+			{
+				writer.write(gradleBuild);
+			}
+			catch (IOException e)
+			{
+				Utils.fatal("An error occured while writing build.gradle", e);
+				return -1;
+			}
+
+			String gradleSettings = Utils.getCppSettingsGradleTemplate(root);
+			gradleSettings = gradleSettings.replace("%NAME%", name);
+			gradleSettings = gradleSettings.replace("%CPPROOT%", cppRoot);
+
+			try (FileWriter writer = new FileWriter(buildir + File.separator + "settings.gradle"))
+			{
+				writer.write(gradleSettings);
+			}
+			catch (IOException e)
+			{
+				Utils.fatal("An error occured while writing build.gradle", e);
+				return -1;
+			}
+
+			// Copy gradle wrapper
+			Utils.copyFile(Paths.get(root, "targets", "cpp", "resources", "gradlew"), Paths.get(buildir, "gradlew"));
+
+			Path wrapperPath = Paths.get(buildir, "gradle", "wrapper");
+			Utils.copyFile(
+					Paths.get(root, "targets", "cpp", "resources", "gradle", "wrapper", "gradle-wrapper.jar"),
+					wrapperPath.resolve(Paths.get("gradle-wrapper.jar")));
+			Utils.copyFile(
+					Paths.get(root, "targets", "cpp", "resources", "gradle", "wrapper", "gradle-wrapper.properties"),
+					wrapperPath.resolve(Paths.get("gradle-wrapper.properties")));
+
+			// Can now invoke gradlew to compile the code
+			return Utils.exec(buildir, env.containsKey("quiet"), "./gradlew");
 		}
-		catch (IOException e)
-		{
-			Utils.fatal("An error occured while writing build.gradle", e);
-			return -1;
-		}
-
-		String gradleSettings = Utils.getCppSettingsGradleTemplate(root);
-		gradleSettings = gradleSettings.replace("%NAME%", name);
-		gradleSettings = gradleSettings.replace("%CPPROOT%", cppRoot);
-
-		try (FileWriter writer = new FileWriter(buildir + File.separator + "settings.gradle"))
-		{
-			writer.write(gradleSettings);
-		}
-		catch (IOException e)
-		{
-			Utils.fatal("An error occured while writing build.gradle", e);
-			return -1;
-		}
-
-		// Copy gradle wrapper
-		Utils.copyFile(Paths.get(root, "targets", "cpp", "resources", "gradlew"), Paths.get(buildir, "gradlew"));
-
-		Path wrapperPath = Paths.get(buildir, "gradle", "wrapper");
-		Utils.copyFile(
-				Paths.get(root, "targets", "cpp", "resources", "gradle", "wrapper", "gradle-wrapper.jar"),
-				wrapperPath.resolve(Paths.get("gradle-wrapper.jar")));
-		Utils.copyFile(
-				Paths.get(root, "targets", "cpp", "resources", "gradle", "wrapper", "gradle-wrapper.properties"),
-				wrapperPath.resolve(Paths.get("gradle-wrapper.properties")));
-
-		// Can now invoke gradlew to compile the code
-		return Utils.exec(buildir, env.containsKey("quiet"), "./gradlew");
+		return 0;
 	}
 
 	public static void helpTest()
@@ -503,7 +506,7 @@ public class Tool
 	}
 
 	/** 
-	 * Compute location of standard library
+	 * Compute base location of supporting files, such as the standard library and C++ build files.
 	 */
 	private static String baseStd()
 	{
@@ -511,7 +514,7 @@ public class Tool
 		if (path.endsWith(".jar"))
 		{
 			int idx = path.lastIndexOf(File.separator);
-			return path.substring(0, idx) + File.separator + "lib";
+			return path.substring(0, idx) + File.separator;
 		}
 		return path;
 	}
@@ -806,7 +809,7 @@ public class Tool
 
 			if (environment.get("infer") == null)
 				environment.put("infer", "1");
-			
+
 			if (environment.get("stacktrace") != null)
 				System.setProperty("stacktrace", "1");
 

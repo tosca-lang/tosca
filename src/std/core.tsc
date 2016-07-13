@@ -9,8 +9,8 @@ rule Eval(#) → #
 
 // --- External Environment
 
-extern func IfDef<a>(String /* Key */, ()->a, ()->a) -> a
-extern func GetEnv(String /* Key */, String /* Default */) -> String
+@Extern func IfDef<a>(String /* Key */, ()->a, ()->a) -> a
+@Extern func GetEnv(String /* Key */, String /* Default */) -> String
 
 // --- Optional value
 
@@ -87,9 +87,9 @@ func NotEqual<a>(#1: a, #2: a) -> Bool
 
 // --- Debugging
 
-extern func Debug<a>(#msg : String, #result: ()->a) -> a
+@Extern func Debug<a>(#msg : String, #result: ()->a) -> a
 
-extern func Show<a>(a) -> String
+@Extern func Show<a>(a) -> String
 
 // -- Error
 

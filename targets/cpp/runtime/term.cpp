@@ -51,9 +51,9 @@ _StringTerm& stringTerm(std::string&& val)
     return *(new _ValStringTerm(*(new std::string(val))));
 }
 
-VarStringTerm varStringTerm(std::string&& val)
+VarStringTerm varStringTerm(std::string&& name)
 {
-    return *(new _VarStringTerm(*(new std::string(val))));
+    return *(new _VarStringTerm(*(new std::string(name))));
 }
 
 _ValStringTerm::_ValStringTerm(std::string& val) :
@@ -71,12 +71,42 @@ Term _ValStringTerm::Copy(Context c)
     return *this;
 }
 
-Optional<std::string> _ValStringTerm::Unbox() const
+std::string& _ValStringTerm::Unbox() const
 {
-    return make_optional<std::string>(value);
+    return value;
 }
 
 _VarStringTerm::_VarStringTerm(std::string& name) : _Variable(name) {}
+
+// --- Numeric
+//
+_DoubleTerm& doubleTerm(double val)
+{
+    return *(new _ValDoubleTerm(val));
+}
+
+VarDoubleTerm varDoubleTerm(std::string&& name)
+{
+    return *(new _VarDoubleTerm(*(new std::string(name))));
+}
+
+_ValDoubleTerm::_ValDoubleTerm(double val) :
+        value(val)
+{}
+
+Term _ValDoubleTerm::Copy(Context c)
+{
+    Ref();
+    return *this;
+}
+
+double _ValDoubleTerm::Unbox() const
+{
+    return value;
+}
+
+_VarDoubleTerm::_VarDoubleTerm(std::string& name) : _Variable(name) {}
+
 
 //
 //} // runtime

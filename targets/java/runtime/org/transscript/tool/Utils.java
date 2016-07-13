@@ -211,7 +211,7 @@ public class Utils
 		}
 		catch (IOException e)
 		{
-			fatal("Internal error: error while reading " + filename, e);
+			fatal("Internal error: error while reading " + filePath, e);
 			return null;
 		}
 	}
