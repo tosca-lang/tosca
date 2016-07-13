@@ -75,7 +75,7 @@ rule InferRuleUp(#cterm1, PairCons(#env, #cterm2)) → ISubstRule(OptimizeSorts(
 */
 func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected sort */) -> Pair<{String:IEnvEntry} Core_cterm_sort>
 
-  rule InferTerm(#env, cterm⟦ ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #esort)
+  rule InferTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #esort)
   → InferCons(#env, GetInPattern(#env), IsDataS(GetSystem(#env), #CONSTRUCTOR), #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #esort)
 
   rule InferTerm(#env, cterm⟦ ##STRING ⟧, #esort) → PairCons(UnifySort(#env, #esort, csort⟦ String  ⟧), cterm⟦ ##STRING ⟧)
@@ -158,7 +158,7 @@ func InferFuncAux({String:IEnvEntry}, Option<Core_cdecl_sort>, List<Core_csortar
 /* Synthesize data: if no data decl found, raise an error. Otherwise compute sort from declaration and move on */
 func InferData({String:IEnvEntry}, String,  List<Core_csortargs_sort>, List<Core_cterms_sort>, Option<Pair<Core_cdecl_sort Core_cform_sort>>, Core_csort_sort) -> Pair<{String:IEnvEntry} Core_cterm_sort>
 
-  rule InferData(#env, #formname, #csortargs?, #cterms?, SOME(Pair<Core_cdecl_sort Core_cform_sort>::PairCons(#cdecl:Core_cdecl_sort, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)), #esort)
+  rule InferData(#env, #formname, #csortargs?, #cterms?, SOME(PairCons(#cdecl, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)), #esort)
   → InferSubs(#env, #CONSTRUCTOR, TRUE, GetMaybeSortVars(#cdecl), #csortargs?, #cterms?, MaybeSortsToSorts(#csorts?), DeclToSort(#cdecl), SOME(#esort))
 
   rule InferData(#env, #formname, #csortargs?, #cterms?, NONE, #esort)
@@ -174,15 +174,15 @@ func InferSubs(#env: {String:IEnvEntry}, #CONSTRUCTOR: String, #data: Bool,
 func InferSubsAux(#env: {String:IEnvEntry}, #CONSTRUCTOR: String, #data: Bool,
                   #cterms?: List<Core_cterms_sort>, #dsort*: List<Core_csort_sort> /* in decl domain */,
                   #edsort: Core_csort_sort, #esort: Option<Core_csort_sort>) -> Pair<{String:IEnvEntry} Core_cterm_sort>
-→ InferConsUp(#CONSTRUCTOR, #data, GetSortArgs(#env), InferMaybeTerms(UnifySort(#env, SubstSort(#edsort, GetSortArgsMap(#env)), UnSOME<Core_csort_sort>(#esort)), #CONSTRUCTOR, #cterms?, SubstSortSorts(#dsort*, GetSortArgsMap(#env))), SubstSort(#edsort, GetSortArgsMap(#env)))
+→ InferConsUp(#CONSTRUCTOR, #data, GetSortArgs(#env), InferMaybeTerms(UnifySort(#env, SubstSort(#edsort, GetSortArgsMap(#env)), UnSOME(#esort)), #CONSTRUCTOR, #cterms?, SubstSortSorts(#dsort*, GetSortArgsMap(#env))), SubstSort(#edsort, GetSortArgsMap(#env)))
 
-/* Reconstruct construction.*/
+/* Reconstruct construction. Add @Data annotation if constructor is a data symbol */
 func InferConsUp(String, Bool, List<Core_csortargs_sort>, Pair<{String:IEnvEntry} List<Core_cterms_sort>>, Core_csort_sort) -> Pair<{String:IEnvEntry} Core_cterm_sort>
 
-  rule InferConsUp(#CONSTRUCTOR, TRUE, #csortargs?, PairCons(#env:{String:IEnvEntry}, #cterms?:List<Core_cterms_sort>), #csort)
-  → PairCons(#env, cterm⟦ ##csort :: ##CONSTRUCTOR ##cterms? : ##csort ⟧)
+  rule InferConsUp(#CONSTRUCTOR, TRUE, #csortargs?, PairCons(#env, #cterms?), #csort)
+  → PairCons(#env, cterm⟦ @Data ##csort :: ##CONSTRUCTOR ##csortargs? ##cterms? : ##csort ⟧)
 
-  rule InferConsUp(#CONSTRUCTOR, FALSE, #csortargs?, PairCons(#env:{String:IEnvEntry}, #cterms?:List<Core_cterms_sort>), #csort)
+  rule InferConsUp(#CONSTRUCTOR, FALSE, #csortargs?, PairCons(#env, #cterms?), #csort)
   → PairCons(#env, cterm⟦ ##csort :: ##CONSTRUCTOR ##csortargs? ##cterms? : ##csort ⟧)
 
 /* Reconstruct binder */
@@ -193,7 +193,7 @@ rule InferBinderUp([b] -> PairCons(#env, #cterm[b]), #csort) → PairCons(#env, 
 /* Reconstruct formal parameter */
 // Note: #env is weak.
 func InferFormalUp([String] -> Pair<{String:IEnvEntry} Core_cterm_sort>, Core_csort_sort) -> Pair<{String:IEnvEntry} Core_cterm_sort>
-rule InferFormalUp([f] -> PairCons(#env:{String:IEnvEntry}, #cterm[f]:Core_cterm_sort), #csort) → PairCons(#env, cterm⟦ ( f : ##csort ) ##cterm[f] ⟧)
+rule InferFormalUp([f] -> PairCons(#env, #cterm[f]), #csort) → PairCons(#env, cterm⟦ ( f : ##csort ) ##cterm[f] ⟧)
 
 // --- Synthesize variable
 
@@ -326,34 +326,34 @@ rule InferMapUp(PairCons(#env, #cmapentries?), #cmapsort) → PairCons(#env, cte
    - a sort variable is created for each missing sort argument. (since it's missing, it's actually  never referenced.)
  */
 func InferSortArgs({String:IEnvEntry}, List<Core_csortvars_sort>, List<Core_csortargs_sort>) -> {String:IEnvEntry}
-rule InferSortArgs(#env, csortvars?⟦                     ⟧, csortargs?⟦              ⟧) → SetSortArgsMap(#env, ())
+rule InferSortArgs(#env, csortvars?⟦                 ⟧, csortargs?⟦              ⟧) → SetSortArgsMap(#env, ())
 rule InferSortArgs(#env, csortvars?⟦ ∀ ##VARIABLE+ . ⟧, csortargs?⟦              ⟧) → InferSortArgsAux(#env, #VARIABLE+, csort*⟦⟧, ())
 rule InferSortArgs(#env, csortvars?⟦ ∀ ##VARIABLE+ . ⟧, csortargs?⟦ < ##csort* > ⟧) → InferSortArgsAux(#env, #VARIABLE+, csort*⟦⟧, ())
-rule InferSortArgs(#env, csortvars?⟦                     ⟧, csortargs?⟦ < ##csort* > ⟧) → Error<{String:IEnvEntry}>("Error: extra type arguments") // TODO: better
+rule InferSortArgs(#env, csortvars?⟦                 ⟧, csortargs?⟦ < ##csort* > ⟧) → Error("Error: extra type arguments") // TODO: better
 
 func InferSortArgsAux({String:IEnvEntry}, List<String>, List<Core_csort_sort>, List<Pair<String Core_csort_sort>>) -> {String:IEnvEntry}
 
   // Common case: no sort argument. Create one and update mapping.
-  rule InferSortArgsAux(#env, Cons(#sortvar:String, #sortvars:List<String>), csort*⟦⟧, #mapping)
-  → InferSortArgsAux(IIncCounter(#env), #sortvars, csort*⟦⟧,  Append<Pair>(PairCons(#sortvar, csort⟦ ⟨VARIABLE: INewSortVar(#env)⟩ ⟧), #mapping))
+  rule InferSortArgsAux(#env, (#sortvar, #sortvars...), csort*⟦⟧, #mapping)
+  → InferSortArgsAux(IIncCounter(#env), #sortvars, csort*⟦⟧, Append(PairCons(#sortvar, csort⟦ ⟨VARIABLE: INewSortVar(#env)⟩ ⟧), #mapping))
 
   // Less comman case: there is a sort argument. Just reuse it.
-  rule InferSortArgsAux(#env, Cons(#sortvar:String, #sortvars:List<String>), csort*⟦ ##csort ##csort* ⟧, #mapping)
-  → InferSortArgsAux(#env, #sortvars, #csort*,  Append<Pair>(PairCons(#sortvar, #csort), #mapping))
+  rule InferSortArgsAux(#env, (#sortvar, #sortvars...), csort*⟦ ##csort ##csort* ⟧, #mapping)
+  → InferSortArgsAux(#env, #sortvars, #csort*, Append(PairCons(#sortvar, #csort), #mapping))
 
   // Termination
   rule InferSortArgsAux(#env, (), csort*⟦⟧, #mapping)  → SetSortArgsMap(#env, #mapping)
 
   // Error: too many sort arguments
-  rule InferSortArgsAux(#env, (), csort*⟦ ##csort ##csort* ⟧, #mapping)  → Error<{String:IEnvEntry}>("Error: extra type arguments")
+  rule InferSortArgsAux(#env, (), csort*⟦ ##csort ##csort* ⟧, #mapping)  → Error("Error: extra type arguments")
 
 func IAddDummySorts({String:IEnvEntry}, List<Core_csortvars_sort>) -> {String:IEnvEntry}
-rule IAddDummySorts(#env, csortvars?⟦                     ⟧) → #env
+rule IAddDummySorts(#env, csortvars?⟦                 ⟧) → #env
 rule IAddDummySorts(#env, csortvars?⟦ ∀ ##VARIABLE+ . ⟧) → IAddDummySortsAux(#env, #VARIABLE+)
 
 func IAddDummySortsAux({String:IEnvEntry}, List<String>) -> {String:IEnvEntry}
-rule IAddDummySortsAux(#env, Cons(#sortvar:String, #sortvars:List<String>)) → IAddDummySortsAux(PutSort(#env, #sortvar, csort⟦ ⟨VARIABLE: "dummy"⟩ ⟧), #sortvars)
-rule IAddDummySortsAux(#env, ())  → #env
+rule IAddDummySortsAux(#env, (#sortvar, #sortvars...)) → IAddDummySortsAux(PutSort(#env, #sortvar, csort⟦ ⟨VARIABLE: "dummy"⟩ ⟧), #sortvars)
+rule IAddDummySortsAux(#env, (                      ))  → #env
 
 // --- Sort unification
 
@@ -492,14 +492,14 @@ func ISubstRule(#env: {String:IEnvEntry}, #cterm1: Core_cterm_sort, #cterm2: Cor
 → cdecl⟦ rule ⟨cterm: ISubstTerm(#env, #cterm1)⟩ → ⟨cterm: ISubstTerm(#env, #cterm2)⟩ ⟧
 
 func ISubstTerm({String:IEnvEntry}, Core_cterm_sort) -> Core_cterm_sort
-rule ISubstTerm(#env, cterm⟦ ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧) → cterm⟦ ⟨cqconstructor: ISubstQCons(#env, #cqconstructor)⟩ ⟨csortargs?: ISubstMaybeSortArgs(#env, #csortargs?)⟩ ⟨cterms?: ISubstMaybeTerms(#env, #cterms?)⟩ ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
-rule ISubstTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)          → cterm⟦ ##METAVAR ⟨cterms?: ISubstMaybeTerms(#env, #cterms?)⟩ ⟨csubst?: ISubstMaybeISubst(#env, #csubst?)⟩ ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
-rule ISubstTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧)                             → cterm⟦ ##VARIABLE ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
-rule ISubstTerm(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧)                     → cterm⟦ [ x ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ] ⟨cterm: ISubstTerm(#env, #cterm[x])⟩ ⟧
-rule ISubstTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧)                     → cterm⟦ ( f ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ) ⟨cterm: ISubstTerm(#env, #cterm[f])⟩ ⟧
-rule ISubstTerm(#env, cterm⟦ { ##cmapentries? } ##csortanno? ⟧)                     → cterm⟦ { ⟨cmapentries?: ISubstMaybeMapEntries(#env, #cmapentries?)⟩ } ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
-rule ISubstTerm(#env, cterm⟦ thunk ##cterm ⟧)                                       → cterm⟦ thunk ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟧
-rule ISubstTerm(#env, #cterm)                                                      → #cterm
+rule ISubstTerm(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧) → cterm⟦ ##canno* ⟨cqconstructor: ISubstQCons(#env, #cqconstructor)⟩ ⟨csortargs?: ISubstMaybeSortArgs(#env, #csortargs?)⟩ ⟨cterms?: ISubstMaybeTerms(#env, #cterms?)⟩ ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
+rule ISubstTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)          → cterm⟦ ##canno* ##METAVAR ⟨cterms?: ISubstMaybeTerms(#env, #cterms?)⟩ ⟨csubst?: ISubstMaybeISubst(#env, #csubst?)⟩ ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
+rule ISubstTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧)                             → cterm⟦ ##canno* ##VARIABLE ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
+rule ISubstTerm(#env, cterm⟦          [ x ##csortanno?[] ] ##cterm[x] ⟧)                     → cterm⟦ [ x ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ] ⟨cterm: ISubstTerm(#env, #cterm[x])⟩ ⟧
+rule ISubstTerm(#env, cterm⟦          ( f ##csortanno?[] ) ##cterm[f] ⟧)                     → cterm⟦ ( f ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ) ⟨cterm: ISubstTerm(#env, #cterm[f])⟩ ⟧
+rule ISubstTerm(#env, cterm⟦          { ##cmapentries? } ##csortanno? ⟧)                     → cterm⟦ { ⟨cmapentries?: ISubstMaybeMapEntries(#env, #cmapentries?)⟩ } ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
+rule ISubstTerm(#env, cterm⟦          thunk ##cterm ⟧)                                       → cterm⟦ thunk ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟧
+rule ISubstTerm(#env, #cterm)                                                               → #cterm
 
 func ISubstQCons({String:IEnvEntry}, Core_cqconstructor_sort) -> Core_cqconstructor_sort
 rule ISubstQCons(#env, cqconstructor⟦ ##csortqualifier* ##CONSTRUCTOR ⟧) → cqconstructor⟦ ⟨csortqualifier*: ISubstSortQuals(#env, #csortqualifier*)⟩ ##CONSTRUCTOR ⟧

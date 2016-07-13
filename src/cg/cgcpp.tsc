@@ -19,16 +19,17 @@ import cg::cppsource
 
 /* Generate C++ source and header file for given `#module` */
 func ToCppM(#system:TSystem, #module: Module) -> Result
-→ ToCppAux(#system, #module, TargetCppHeader(GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")),
-    TargetCppSource(GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")))
+→ ToCppAux(#system, #module,
+    TargetCppHeader(GetSystemURL(#system), GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")),
+    TargetCppSource(GetSystemURL(#system), GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")))
 
 func ToCppAux(#system:TSystem, #module: Module, #header:String, #source:String) -> Result
-→ SaveResource<Text4_text_sort Result>("text", #header, CppHeader(#module),
-  SaveResource<Text4_text_sort Result>("text", #source, CppSource(#module),
-  Success(Cons(#header, Cons(#source, Nil)))))
+→ SaveResource("text", #header, CppHeader(#module),
+  SaveResource("text", #source, CppSource(#module),
+  Success((#header, #source))))
 
 /* Get the absolute name of the target c++ header file */
-@Extern func TargetCppHeader(#input: String, #dest: String) -> String
+@Extern func TargetCppHeader(#mainurl: String, #input: String, #dest: String) -> String
 
 /* Get the absolute name of the target c++ source file */
-@Extern func TargetCppSource(#input: String, #dest: String) -> String
+@Extern func TargetCppSource(#mainurl: String, #input: String, #dest: String) -> String

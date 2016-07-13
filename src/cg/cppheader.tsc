@@ -24,6 +24,10 @@ func CppHeader(#module: Module) -> Text4_text_sort
 #define †⟨HeaderGuard(GetModuleURL(#module))⟩
 #include "ts.h"
 
+#if __has_include("⟨STRING: PathFileStem(GetModuleURL(#module))⟩-extern.h")
+#include "⟨STRING: PathFileStem(GetModuleURL(#module))⟩-extern.h"
+#endif
+
 †⟨CppIncludes     (GetImports(GetModuleContent(#module)))⟩
 †⟨CppForwardDecls (MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
 †⟨CppClassDecls   (MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
@@ -37,21 +41,21 @@ func HeaderGuard(#url: String) -> Text4_text_sort
 
 /* Generate C++ header inclusion declarations */
 func CppIncludes(#imports: List<Core_cqidentifier_sort>) -> Text4_text_sort
-→ TextFold(Map((imp) -> text⟦
-#include "⟨STRING: JoinQIdentifier(imp, "/")⟩"⟧, #imports), text⟦⟧)
+→ TextFoldES(Map((imp) -> text⟦
+#include "⟨STRING: JoinQIdentifier(imp, "/")⟩.h"⟧, #imports))
 
 // --------- Data sorts
 
 /* Generate data sort and data form forward declarations */
 func CppForwardDecls(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
-→ TextFold(Map<Core_cdecl_sort Text4_text_sort>((decl) -> CppForwardDecl(decl), #datasorts), text⟦⟧)
+→ TextFoldES(Map((decl) -> CppForwardDecl(decl), #datasorts))
 
 func CppForwardDecl(Core_cdecl_sort) -> Text4_text_sort
 rule CppForwardDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 → text⟦
 †⟨CppTemplatePrefix(#csortvars?)⟩
 class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩;
-†⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppForwardForm(#CONSTRUCTOR, #csortvars?, cform), #cform*), text⟦⟧)⟩⟧
+†⟨TextFoldES(Map((cform) -> CppForwardForm(#CONSTRUCTOR, #csortvars?, cform), #cform*))⟩⟧
 
 func CppForwardForm(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
   rule CppForwardForm(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
@@ -66,19 +70,19 @@ func CppForwardForm(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4
 
 /* Generate class and method signatures for data sorts */
 func CppClassDecls(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
-→ TextFold(Map<Core_cdecl_sort Text4_text_sort>((decl) -> CppClassDecl(decl), #datasorts), text⟦⟧)
+→ TextFoldES(Map((decl) -> CppClassDecl(decl), #datasorts))
 
 func CppClassDecl(Core_cdecl_sort) -> Text4_text_sort
 rule CppClassDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 → text⟦
-†⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*), text⟦⟧)⟩
+†⟨TextMapFold((cform) -> CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*)⟩
 †⟨CppTemplatePrefix(#csortvars?)⟩
 class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩ : public _Term
 {
 public:
-  †⟨TextMapFold<Core_cform_sort>((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*)⟩
+  †⟨TextMapFold((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*)⟩
 };
-†⟨TextFold(Map<Core_cform_sort Text4_text_sort>((cform) -> CppFormClass(#CONSTRUCTOR, #csortvars?, cform), #cform*), text⟦⟧)⟩
+†⟨TextMapFold((cform) -> CppFormClass(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩
 ⟧
 
 /* Generate class and method signatures for the given data form */
@@ -111,4 +115,4 @@ rule CppDeclField(TRUE, #type, #index, #subindex)  → text⟦†⟨#type⟩& �
 
 /* Generate function declarations corresponding to function sorts. */
 func CppFunctionDecls(#env: {String : EnvEntry}) -> Text4_text_sort
-→ TextMapFold<String>((key) ->CppFunctionDecl(#env, key, TRUE), MapKeys<String Core_cdecl_sort>(GetFuncSorts(GetContent(#env))))
+→ TextMapFold<String>((key) ->CppFunctionDecl(#env, key, TRUE), MapKeys(GetFuncSorts(GetContent(#env))))

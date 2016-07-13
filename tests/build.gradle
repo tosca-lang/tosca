@@ -36,4 +36,4 @@ task cleanTests(overwrite:true) {
     buildDir.deleteDir()
 }
 
-smoketest.dependsOn tasks.getByPath(':tarAll')
+smoketest.dependsOn tasks.getByPath(':install')

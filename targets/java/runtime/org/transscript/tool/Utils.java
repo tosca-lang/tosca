@@ -294,8 +294,6 @@ public class Utils
 	 */
 	public static String targetJavaFilename(String input, String dest, String mainurl, String pkg, boolean makeDirs)
 	{
-		Path inputPath = Paths.get(input);
-
 		// Offset destination considering package and subpackage
 		if (pkg != null)
 			dest += File.separator + pkg.replace('.', File.separatorChar);
@@ -310,7 +308,7 @@ public class Utils
 		}
 
 		// Compute output java filename
-		String output = inputPath.getFileName().toString().replace(".crsc", "").replace(".crs4", "").replace(".tsc", "");
+		String output = Paths.get(input).getFileName().toString().replace(".crsc", "").replace(".crs4", "").replace(".tsc", "");
 
 		output = StringUtils.mangle(Character.toUpperCase(output.charAt(0)) + output.substring(1)); // First character must be upper case.
 		output = dest + File.separator + output + ".java"; // dest / output.java
@@ -321,15 +319,18 @@ public class Utils
 	 * Get the absolute name of the target cpp file
 	 * @param input Tosca file
 	 * @param dest target directory
+	 * @param mainurl TODO
 	 * @param makeDirs whether to make destination directories.
 	 * @param header whether to get the header target file name.
 	 */
-	public static String targetCppFilename(String input, String dest, boolean makeDirs, boolean header)
+	public static String targetCppFilename(String input, String dest, String mainurl, boolean makeDirs, boolean header)
 	{
-		final File inputFile = new File(input);
-
 		dest += File.separator + "src";
 
+
+		String subdir = relativePath(input, mainurl);
+		dest = subdir.trim().equals("") ? dest : dest + File.separator + subdir;
+		
 		if (makeDirs)
 		{
 			File destFile = new File(dest);
@@ -338,8 +339,8 @@ public class Utils
 
 		String ext = header ? ".h" : ".cpp";
 
-		// Compute output java filename
-		String output = StringUtils.mangle(inputFile.getName().replace(".crs4", "").replace(".tsc", ""));
+		// Compute output C++ filename
+		String output = StringUtils.mangle(Paths.get(input).getFileName().toString().replace(".crs4", "").replace(".tsc", ""));
 
 		output = dest + File.separator + output + ext; // dest / src / output.cpp
 		return output;

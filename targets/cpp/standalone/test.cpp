@@ -11,7 +11,7 @@ int main(int argc, char **argv)
 
     StringTerm result = Tests(ctx);
 
-    std::cout << result.Unbox().value();
+    std::cout << result.Unbox();
 
     delete &result;
 }
