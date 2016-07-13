@@ -18,10 +18,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.transscript.compiler.core.Core;
+import org.transscript.compiler.core.Core.Core_cdecl_sort;
 import org.transscript.compiler.core.Core.Core_csort_sort;
 import org.transscript.compiler.core.Core.Core_cterm_sort;
 import org.transscript.compiler.parser.TransScript;
 import org.transscript.compiler.parser.TransScript.TransScript_term_sort;
+import org.transscript.compiler.parser.TransScript.TransScript_transscript_sort;
 import org.transscript.compiler.std.Listdef;
 import org.transscript.compiler.std.text.Printer;
 import org.transscript.compiler.std.text.Text4.Text4_text_sort;
@@ -81,9 +83,20 @@ public class Utils
 			{
 				printTerm(context, "text", Core.Core_Print_csort(context, (Core_csort_sort) term), outputName, output);
 			}
+			else if (term instanceof Core_cdecl_sort && (category.equals("") || category.equals("cdecl")))
+			{
+				printTerm(context, "text", Core.Core_Print_cdecl(context, (Core_cdecl_sort) term), outputName, output);
+			}
 			else if (term instanceof TransScript_term_sort && (category.equals("") || category.equals("term")))
 			{
-				printTerm(context, "text", TransScript.TransScript_Print_term(context, (TransScript_term_sort) term), outputName, output);
+				printTerm(
+						context, "text", TransScript.TransScript_Print_term(context, (TransScript_term_sort) term), outputName,
+						output);
+			} else if (term instanceof TransScript_transscript_sort && (category.equals("") || category.equals("transscript")))
+			{
+				printTerm(
+						context, "text", TransScript.TransScript_Print_transscript(context, (TransScript_transscript_sort) term), outputName,
+						output);
 			}
 			else
 				TermPrinter.print(term, output);
@@ -297,9 +310,8 @@ public class Utils
 		}
 
 		// Compute output java filename
-		String output = inputPath.getFileName().toString().replace(".crsc", "").replace(".crs4", "").replace(
-				".tsc", "");
-		
+		String output = inputPath.getFileName().toString().replace(".crsc", "").replace(".crs4", "").replace(".tsc", "");
+
 		output = StringUtils.mangle(Character.toUpperCase(output.charAt(0)) + output.substring(1)); // First character must be upper case.
 		output = dest + File.separator + output + ".java"; // dest / output.java
 		return output;

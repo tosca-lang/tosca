@@ -6,12 +6,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayDeque;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ErrorNode;
@@ -163,7 +161,7 @@ public class ToSinkListener implements ParseTreeListener
 	private ArrayDeque<ParserRuleContext> ruleContext;
 
 	/** The ANTLR4 parser */
-	private Parser parser;
+	private TSParser parser;
 
 	/** Parsing transscript? */
 	final private boolean parsets;
@@ -183,8 +181,8 @@ public class ToSinkListener implements ParseTreeListener
 	/** Name being constructed. Whitespace are ignored. */
 	private String binderName;
 
-	/** Map binder id to binder name */
-	private HashMap<String, String> binderNames;
+	/** Pending bound variable. See enterBinder/enterBounds */
+	private ArrayDeque<Pair<String, String>> pendingBounds;
 
 	/** In scope bound variables. */
 	private Scoping bounds;
@@ -210,7 +208,7 @@ public class ToSinkListener implements ParseTreeListener
 	 * @param bounds    bound variables. Modifiable.      
 	 * @param freshes   global fresh variables. Modifiable.
 	 */
-	public ToSinkListener(Sink sink, String prefix, String metachar, Parser parser, Scoping bounds, Scoping freshes)
+	public ToSinkListener(Sink sink, String prefix, String metachar, TSParser parser, Scoping bounds, Scoping freshes)
 	{
 		this.sink = sink;
 		this.consCount = new ArrayDeque<>();
@@ -222,7 +220,7 @@ public class ToSinkListener implements ParseTreeListener
 		this.state = State.PARSE;
 		this.kind = TokenKind.STRING;
 
-		this.binderNames = new HashMap<>();
+		this.pendingBounds = new ArrayDeque<>();
 		this.bounds = bounds;
 		this.freshes = freshes;
 
@@ -276,7 +274,8 @@ public class ToSinkListener implements ParseTreeListener
 				String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
 				String type = fixupType(ruleName);
 
-				metasink().type(type);
+//				if (parser.sendTypes())
+//					metasink().type(type);
 			}
 
 			sink.start(nilDesc).end();
@@ -327,8 +326,8 @@ public class ToSinkListener implements ParseTreeListener
 				String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
 
 				sendLocation(parentCtx.getStart());
-				if (metasink() != null)
-					metasink().type(fixupType(ruleName));
+//				if (metasink() != null && parser.sendTypes())
+//					metasink().type(fixupType(ruleName));
 				sink = sink.start(sink.context().lookupDescriptor(prefix + ruleName));
 		}
 	}
@@ -354,8 +353,8 @@ public class ToSinkListener implements ParseTreeListener
 		{
 			sendLocation(parentCtx.getStart());
 
-			if (metasink() != null)
-				metasink().type(fixupType(ruleName));
+//			if (metasink() != null && parser.sendTypes())
+//				metasink().type(fixupType(ruleName));
 
 			// TEMPORARY BC BEHAVIOR
 			if (name.length() > 0 && Character.isDigit(name.charAt(0)))
@@ -407,7 +406,7 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void term(ParserRuleContext _ctx, String type)
 	{
-		termType = fixupType(type);
+	//	termType = fixupType(type);
 		kind = TokenKind.METAVAR;
 	}
 
@@ -450,13 +449,11 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void exitBinder(ParserRuleContext context)
 	{
-		if (state != State.NAME)
-			System.out.println();
 		assert state == State.NAME;
 		assert !tail : "Cannot declare a binder is a list tail";
 		assert binderId != null : "Missing enterBinder notification";
 
-		binderNames.put(binderId, binderName);
+		pendingBounds.push(new Pair<>(binderId, binderName));
 		binderId = null;
 		binderName = null;
 		state = State.PARSE;
@@ -492,7 +489,7 @@ public class ToSinkListener implements ParseTreeListener
 			String metaname = fixupMetachar(binderName);
 			metasink().startMetaApplication(metaname);
 
-			if (termType != null)
+			if (termType != null && parser.sendTypes())
 				metasink().type(termType);
 			metasink().endMetaApplication();
 
@@ -547,12 +544,26 @@ public class ToSinkListener implements ParseTreeListener
 		for (int i = 0; i < snames.length; i++)
 		{
 			String id = snames[i];
-			String name = binderNames.remove(id); // consume binder name 
-			assert name != null : "Invalid grammar: binds used without binder/name";
+
+			// Search for a variable in the pending list, fifo.
+			// Only support consuming pending bound variable *once*.
+			Optional<Pair<String, String>> pairo = pendingBounds.stream().filter(pair -> {
+				return pair.fst.equals(id);
+			}).findFirst();
+
+			if (!pairo.isPresent())
+				throw new RuntimeException("Invalid grammar: undeclared bound variable " + id);
+
+			Pair<String, String> pair = pairo.get();
+			String name = pair.snd;
+
+			// bind.
 
 			binders[i] = StringTerm.varStringTerm(sink.context(), name);
-
 			bounds.push(new Pair<>(name, binders[i]));
+
+			// and consume.
+			pendingBounds.remove(pair);
 		}
 
 		for (int i = 0; i < binders.length; i++)
@@ -580,7 +591,7 @@ public class ToSinkListener implements ParseTreeListener
 		{
 			if (!tail)
 			{
-				if (metasink() != null)
+				if (metasink() != null && parser.sendTypes())
 					metasink().type(consCount.peek().snd);
 				sink.start(consDesc);
 
@@ -623,7 +634,7 @@ public class ToSinkListener implements ParseTreeListener
 					{
 						if (!tail)
 						{
-							if (metasink() != null)
+							if (metasink() != null && parser.sendTypes())
 								metasink().type(consCount.peek().snd);
 
 							sink.start(consDesc);
@@ -672,7 +683,7 @@ public class ToSinkListener implements ParseTreeListener
 
 							metasink().endSubstitutes();
 
-							if (termType != null)
+							if (termType != null && parser.sendTypes())
 								metasink().type(termType);
 							metasink().endMetaApplication();
 							break;
@@ -709,13 +720,15 @@ public class ToSinkListener implements ParseTreeListener
 				if (kind == TokenKind.METAVAR)
 				{
 					// Cancel parsing concrete. Produce skipped start events and resume normal parsing.
-					metasink().type("TransScript_aterm_sort");
+					if (parser.sendTypes())
+						metasink().type("TransScript_aterm_sort");
 					sink.start(sink.context().lookupDescriptor("TransScript_aterm_A8"));
-					metasink().type("TransScript_concrete_sort");
+					if (parser.sendTypes())
+						metasink().type("TransScript_concrete_sort");
 					sink.start(sink.context().lookupDescriptor("TransScript_concrete"));
 					String metaname = fixupMetachar(context.getText());
 					metasink().startMetaApplication(metaname);
-					if (termType != null)
+					if (termType != null && parser.sendTypes())
 						metasink().type(termType);
 					metasink().endMetaApplication();
 					state = State.PARSE;

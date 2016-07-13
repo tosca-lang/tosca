@@ -154,12 +154,10 @@ func CppFunctionDecl(#env: {String : EnvEntry}, #key: String, #header :Bool) -> 
 
 func CppFunctionDecl2({String : EnvEntry}, Core_cdecl_sort, Bool) -> Text4_text_sort
 rule CppFunctionDecl2(#env, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #header)
-→ Then<{String : EnvEntry} Text4_text_sort>(SetFnAnno(#env, #canno*), (env)->
-  Then<{String : EnvEntry} Text4_text_sort>(SetContext(env, text⟦ctx⟧, 1), (env)->text⟦
+→ text⟦
    †⟨CppTemplatePrefix(#csortvars?)⟩
-   †⟨CppTypeRef(#csort)⟩ †⟨CppFnName(#CONSTRUCTOR)⟩(Context ctx†⟨CppMaybeFunctionParams(env, #csorts?, (env) ->
+   †⟨CppTypeRef(#csort)⟩ †⟨CppFnName(#CONSTRUCTOR)⟩(Context ctx†⟨CppMaybeFunctionParams(SetContext(SetFnAnno(#env, #canno*), text⟦ctx⟧, 1), #csorts?, (env) ->
       CppMaybeBody(env, #CONSTRUCTOR, GenBody(#csortvars?, #header)))⟩⟧ // missing )
-  ))
 
 func CppMaybeFunctionParams({String : EnvEntry}, List<Core_csorts_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
    rule CppMaybeFunctionParams(#env, csorts?⟦⟧, #cont)

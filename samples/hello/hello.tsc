@@ -1,2 +1,2 @@
 func Main -> Numeric
-→ Trace("Hello World!", ()->0)
+→ Debug("Hello World!", ()->0)

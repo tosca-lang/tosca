@@ -209,4 +209,10 @@ public class MapdefExtern
 		return null;
 	}
 
+	public static <a extends Term, b extends Term, c extends Term> c MapReplace(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, ThunkMaker<c> tmc, c value_1377, MapTerm<a, b> map_1378)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

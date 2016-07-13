@@ -39,7 +39,7 @@ public class LanguageExtern
 	{
 		StringTerm ecategory = force(context, category);
 		StringTerm efilename = force(context, filename);
-		
+		System.out.println(efilename);
 		Parser parser = context.getParser(ecategory.unbox(), false);
 		if (parser == null)
 			throw new RuntimeException("Fatal error: no parser found for category " + category);
@@ -91,27 +91,26 @@ public class LanguageExtern
 
 		return result;
 	}
-	
-/**
- * Print term.
- * @param context
- * @param tma
- * @param category
- * @param term
- * @return the string representation of the printed term.
- */
+
+	/**
+	 * Print term.
+	 * @param context
+	 * @param tma
+	 * @param category
+	 * @param term
+	 * @return the string representation of the printed term.
+	 */
 	public static <a extends Term> StringTerm PrintTerm(Context context, ThunkMaker<a> tma, StringTerm category, a term)
 	{
 		StringTerm ecategory = force(context, category);
-		
+
 		StringBuilder builder = new StringBuilder();
 		Utils.printTerm(context, ecategory.unbox(), term, "<stringbuffer>", builder);
-		
+
 		ecategory.release();
-		
+
 		return stringTerm(builder.toString());
 	}
-
 
 	/**
 	 * 

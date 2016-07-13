@@ -88,4 +88,10 @@ public class NumExtern
 		return null;
 	}
 
+	public static DoubleTerm Hex(Context context, StringTerm value_1242)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

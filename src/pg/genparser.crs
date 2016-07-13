@@ -463,7 +463,7 @@ MakeMetaRules[METAPARSER, #RULE_REF, #resolved]    → MakeMetaRulesMetaParser[I
 -[Data[#resolved]]:
 MakeMetaRules[METALEXER, #RULE_REF, #resolved]     
 → ( 
-      %ruleSpec⟨ ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩  : CRSX_META_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, "'"]⟩([0-9_][0-9a-zA-Z_]*)?('['[a-z,]*']')? ; ⟩;
+      %ruleSpec⟨ ⟨TOKEN_REF: $[:, "MT_", #RULE_REF]⟩  : CRSX_META_CHAR ⟨STRING_LITERAL: $[:, "'", #resolved, "'"]⟩([0-9_][0-9a-zA-Z_]*)?('['[0-9a-z,]*']')? ; ⟩;
       %ruleSpec⟨ ⟨TOKEN_REF: $[:, "ET_", #RULE_REF]⟩  : CRSX_START_EMBED_CHAR ⟨STRING_LITERAL: $[If, $[Equal, #resolved, $[Get, "defaultRule", ""]], "", $[:, "'", #resolved, ":'"]]⟩  -> pushMode(CrsxEmbed); ⟩;
   );
 

@@ -4,16 +4,13 @@
 /**
  * Evaluate the input
  */
-func Eval<a>(eager a) -> a
+func Eval<a>(a) -> a
 rule Eval(#) → #
-
-func Then<a b>(eager a, (a) -> b) -> b
-rule Then(#, #cont) → #cont(#)
 
 // --- External Environment
 
-extern func IfDef<a>(eager String /* Key */, ()->a, ()->a) -> a
-extern func GetEnv(eager String /* Key */, String /* Default */) -> String
+extern func IfDef<a>(String /* Key */, ()->a, ()->a) -> a
+extern func GetEnv(String /* Key */, String /* Default */) -> String
 
 // --- Optional value
 
@@ -64,9 +61,13 @@ func Not(Bool) -> Bool
 rule Not(TRUE)  → FALSE
 rule Not(FALSE) → TRUE
 
-extern func Equal<a b>(eager a, eager b) -> Bool
+/* String comparison of the two given values */
+@Extern func Equal<a b>(a, b) -> Bool
 
-extern func SameVariable<a b>(a, b) -> Bool
+func NotEqual<a>(#1: a, #2: a) -> Bool
+→ Not(Equal(#1, #2))
+
+@Extern func DeepEqual<a>(a, a) -> Bool
 
 // --- Bit manipulation
 
@@ -76,9 +77,17 @@ extern func SameVariable<a b>(a, b) -> Bool
 @Extern func BitSubSetEq(Numeric, Numeric) -> Bool
 
 
+// --- Syntactic Variable
+
+@Extern func FreeVariables<a>(a) -> List<a>
+@Extern func IntersectVariables<a>(a, a) -> List<a>
+@Extern func ExceptVariables<a>(a, a) -> List<a>
+@Extern func SameVariable<a b>(a, b) -> Bool
+@Extern func VariableNameIs<a b>(a, String, b) -> b
+
 // --- Debugging
 
-extern func Trace<a>(#msg : String, #result: ()->a) -> a
+extern func Debug<a>(#msg : String, #result: ()->a) -> a
 
 extern func Show<a>(a) -> String
 

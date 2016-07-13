@@ -5,6 +5,7 @@ package org.transscript.compiler.std;
 import static org.transscript.runtime.StringTerm.stringTerm;
 
 import org.transscript.compiler.std.Core.Bool;
+import org.transscript.compiler.std.Listdef.List;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.DoubleTerm;
 import org.transscript.runtime.Functions.ThunkMaker;
@@ -138,6 +139,42 @@ public class CoreExtern
 	}
 
 	public static <a extends Term> a ForgivableError(Context context, ThunkMaker<a> tma, StringTerm value_1675, StringTerm value_1676, StringTerm value_1677, StringTerm value_1678, StringTerm value_1679, StringTerm value_1680, LazyTerm<a> value_1681)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static <a extends Term> List<a> FreeVariables(Context context, ThunkMaker<a> tma, a value_1721)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static <a extends Term, b extends Term> b VariableNameIs(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, a value_1733, StringTerm value_1734, b value_1735)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static <a extends Term> List<a> IntersectVariables(Context context, ThunkMaker<a> tma, a value_1730, a value_1731)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static  <a extends Term> a Debug(Context context, ThunkMaker<a> tma, StringTerm value_1738, LazyTerm<a> value_1739)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static <a extends Term> List<a> ExceptVariables(Context context, ThunkMaker<a> tma, a value_1726, a value_1727)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static  <a extends Term> Bool DeepEqual(Context context, ThunkMaker<a> tma, a value_1780, a value_1781)
 	{
 		// TODO Auto-generated method stub
 		return null;

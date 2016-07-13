@@ -15,7 +15,7 @@ rule NumberEqual(#1, #2) → Equal(#1, #2)
 // Addition
 func NumberPlus(#1: Numeric, #2: Numeric) -> Numeric
 → Plus(#1, #2)
- 
+
 // Subtraction
 func NumberMinus(#1: Numeric, #2: Numeric) -> Numeric
 → Minus(#1, #2)
@@ -29,3 +29,8 @@ func GreaterThanOrEqual(#left: Numeric, #right:Numeric) -> Bool
 @Extern func FormatNumber(Numeric) -> String
 @Extern func FormatInteger(Numeric) -> String
 @Extern func FormatDecimal(Numeric) -> String
+@Extern func Hex(String) -> Numeric
+
+/* Apply `#true` if number is zero, otherwise `#false` */
+func IfZero<a>(#value: Numeric, #true: ()->a, #false: ()->a) -> a
+→ If(NumberEqual(#value, 0), #true, #false)

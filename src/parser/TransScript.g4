@@ -359,7 +359,7 @@ fragment Operator : OpCommon | '$' | '_' | '/' | ':';
 fragment OpCommon : '-' | [+/|`~!@^&*=?.<]; // TODO: allow > but for now conflict with sort params. One solution is to allow >>> as infix operator only with mandatory space
 
 fragment Unicode  : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
-fragment UnicodeS : ~[\u0000-\u00FF\uD800-\uDBFF\u27e6\u27e7\u27e8\u27e9] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
+fragment UnicodeS : ~[\u0000-\u00FF\uD800-\uDBFF\u27e6\u27e7\u27e8\u27e9\u2192] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
 fragment Ebnf     : '*' | '?' | '+';
 
 WS               : [ \t\r\n\f]+ -> channel(HIDDEN) ;

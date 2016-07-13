@@ -260,10 +260,10 @@ public class MetaBufferSink extends MetaSink
 	@Override
 	public Sink type(String type)
 	{
-		if (subParams.peek() instanceof MetaParam)
-			((MetaParam) subParams.peek()).type = type;
-		else
-			this.type = type;
+//		if (subParams.peek() instanceof MetaParam)
+//			((MetaParam) subParams.peek()).type = type;
+//		else
+//			this.type = type;
 		return this;
 	}
 
