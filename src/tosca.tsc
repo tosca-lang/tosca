@@ -44,7 +44,7 @@ func CompileS(#system: TSystem) -> Result
 func CompileM(#system: TSystem, #module: Module) -> Result
 → If(IsModuleCompiled(#module),
     ()->Success(()),
-    ()->CodeGenerateM(#system, CheckCoreM(#system, InferM(#system, ClosureConvertM(#system, #module)))))
+    ()->CodeGenerateM(#system, CheckCoreM(#system, ClosureConvertM(#system, InferM(#system, #module)))))
 
 func CodeGenerateM(#system: TSystem, #module: Module) -> Result
 → IfConfigDef(#system, "cpp", (v)->ToCppM(#system, #module), ()->ToJavaM(#system, #module))

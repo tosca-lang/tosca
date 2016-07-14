@@ -8,6 +8,7 @@ import org.transscript.compiler.std.Core.Bool;
 import org.transscript.compiler.std.Listdef.List;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.DoubleTerm;
+import org.transscript.runtime.Functions.Closure0;
 import org.transscript.runtime.Functions.ThunkMaker;
 import org.transscript.runtime.LazyTerm;
 import org.transscript.runtime.StringTerm;
@@ -83,6 +84,20 @@ public class CoreExtern
 		return stringTerm(term.toString());
 	}
 
+
+	public static <a extends Term> a IfDef(Context ctx, ThunkMaker<a> tm, StringTerm key, Closure0<a> def, Closure0<a> notdef)
+	{
+		java.lang.String value = System.getProperty(key.unbox());
+		key.release();
+		if (value != null)
+		{
+			return def.eval(ctx);
+		}
+
+		return notdef.eval(ctx);
+	}
+
+	
 	public static <a extends Term> a IfDef(Context ctx, ThunkMaker<a> tm, StringTerm key, LazyTerm<a> def, LazyTerm<a> notdef)
 	{
 		java.lang.String value = System.getProperty(key.unbox());
@@ -138,6 +153,13 @@ public class CoreExtern
 		return null;
 	}
 
+
+	public static <a extends Term> a ForgivableError(Context context, ThunkMaker<a> tma, StringTerm value_1675, StringTerm value_1676, StringTerm value_1677, StringTerm value_1678, StringTerm value_1679, StringTerm value_1680, Closure0<a> value_1681)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	public static <a extends Term> a ForgivableError(Context context, ThunkMaker<a> tma, StringTerm value_1675, StringTerm value_1676, StringTerm value_1677, StringTerm value_1678, StringTerm value_1679, StringTerm value_1680, LazyTerm<a> value_1681)
 	{
 		// TODO Auto-generated method stub
@@ -157,6 +179,13 @@ public class CoreExtern
 	}
 
 	public static <a extends Term> List<a> IntersectVariables(Context context, ThunkMaker<a> tma, a value_1730, a value_1731)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public static  <a extends Term> a Debug(Context context, ThunkMaker<a> tma, StringTerm value_1738, Closure0<a> value_1739)
 	{
 		// TODO Auto-generated method stub
 		return null;

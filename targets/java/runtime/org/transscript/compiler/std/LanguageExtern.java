@@ -39,7 +39,7 @@ public class LanguageExtern
 	{
 		StringTerm ecategory = force(context, category);
 		StringTerm efilename = force(context, filename);
-		System.out.println(efilename);
+		//System.out.println(efilename);
 		Parser parser = context.getParser(ecategory.unbox(), false);
 		if (parser == null)
 			throw new RuntimeException("Fatal error: no parser found for category " + category);

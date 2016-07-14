@@ -11,12 +11,10 @@
 //
 // No need to do more, as C++11 renders this code obsolete.
 
-typedef Ref (*Function)();
-typedef Ref (*Fun0)(Context ctx);
-typedef Ref (*Fun1)(Context ctx, Ref);
-typedef Ref (*Fun2)(Context ctx, Ref, Ref);
-typedef Ref (*Fun3)(Context ctx, Ref, Ref, Ref);
-typedef Ref (*Fun4)(Context ctx, Ref, Ref, Ref, Ref);
+
+
+// --- One free variable
+
 
 /* Closure with one free variable, no capture. Arity must be one. */
 template<typename R, typename P1>
@@ -91,9 +89,7 @@ _Closure1<R, P1>& closure(R (*function)(Context ctx, P1))
     return *(new _Closure1<R, P1>(reinterpret_cast<Function>(function)));
 }
 
-
 // Don't use typename _Closure1<R, P1>::Function1 here because it's a non-deduced context.
-// Somehow:
 template<typename R, typename P1, typename P2>
 _Closure1<R, P1>& closure(R (*function)(Context ctx, P1, P2&), P2& c1)
 {
@@ -105,5 +101,29 @@ _Closure1<R, P1>& closure(R (*function)(Context ctx, P1, P2&, P3&), P2& c1, P3& 
 {
     return *(new _Closure1C<R, P1, 3>(reinterpret_cast<Function>(function), c1, c2));
 }
+
+/* Closure with two free variable, no capture. Arity must be 2. */
+template<typename R, typename P1, typename P2>
+class _Closure2: public _Ref
+{
+public:
+    _Closure2(Function f) : function(f) {}
+    virtual ~_Closure2() {}
+
+    virtual R eval(Context context, P1 p1, P2 p2)
+    {
+        return dynamic_cast<R>(reinterpret_cast<Fun2>(function)(context, p1, p2));
+    }
+
+protected:
+    Function function;
+};
+
+template<typename R, typename P1, typename P2>
+_Closure2<R, P1, P2>& closure(R (*function)(Context ctx, P1, P2))
+{
+    return *(new _Closure2<R, P1, P2>(reinterpret_cast<Function>(function)));
+}
+
 
 #endif

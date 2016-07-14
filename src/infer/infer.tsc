@@ -91,7 +91,7 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
   → InferBinderUp([v] -> InferTerm(IAddBoundVarSort(#env, v, #csort1), #cterm[v], #csort), #csort1)
 
   rule InferTerm(#env, cterm⟦ [ v ##csortanno?[] ] ##cterm[v] ⟧, #esort)
-  → Error<Pair<{String:IEnvEntry} Core_cterm_sort>>("Type error") // TODO:
+  → Error("Type error") // TODO:
 
   rule InferTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, csort⟦ ( ##csort1 ) ##csort ⟧)
   → InferFormalUp([f] -> InferTerm(IAddFormalSort(#env, f, #csort1), #cterm[f], #csort), #csort1)
@@ -103,7 +103,7 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
   → InferMapUp(InferMap(#env, #cmapentries?, #cmapsort), #cmapsort)
 
   rule InferTerm(#env, cterm⟦ thunk ##cterm              ⟧, #esort)
-  → UnPair<{String:IEnvEntry} Core_cterm_sort Pair>(InferTerm(#env, #cterm, #esort), (env term)->PairCons(env, cterm⟦ thunk ⟨cterm: term⟩ ⟧))
+  → UnPair(InferTerm(#env, #cterm, #esort), (env term)->PairCons(env, cterm⟦ thunk ⟨cterm: term⟩ ⟧))
 
 /* Traverse terms */
 func InferMaybeTerms({String:IEnvEntry}, String, List<Core_cterms_sort>, List<Core_csort_sort>) -> Pair<{String:IEnvEntry} List<Core_cterms_sort>>
@@ -445,9 +445,9 @@ func UnifySortVar2({String:IEnvEntry}, String, Option<Core_csort_sort>, String, 
   → If<{String:IEnvEntry}>(IsDummy(#sort2), ()->PutSort(#env, #VARIABLE1, csort⟦ ##VARIABLE2 ⟧), ()->UnifySort(#env, csort⟦ ##VARIABLE1 ⟧, #sort2))
 
   rule UnifySortVar2(#env, #VARIABLE1, SOME(#sort1: Core_csort_sort), #VARIABLE2, SOME(#sort2: Core_csort_sort))
-  →  If<{String:IEnvEntry}>(IsDummy(#sort1),
+  →  If(IsDummy(#sort1),
        ()->UnifySort(#env, csort⟦ ##VARIABLE1 ⟧, #sort2),
-       ()->If<{String:IEnvEntry}>(IsDummy(#sort2),
+       ()->If(IsDummy(#sort2),
          ()->UnifySort(#env, csort⟦ ##VARIABLE2 ⟧, #sort1),
          ()->UnifySort(#env, #sort1, #sort2)))
 
@@ -455,10 +455,10 @@ func UnifySortVar2({String:IEnvEntry}, String, Option<Core_csort_sort>, String, 
 
 /* Optimize the sort environment by computing its transitive closure. */
 func OptimizeSorts(#env: {String : IEnvEntry}) -> {String : IEnvEntry}
-→ SetSorts(#env, FoldlP<String {String : Core_csort_sort}>(
-                     (key sorts) -> OptimizeSort(sorts, (key,), MapGet<String Core_csort_sort>(sorts, key), NONE),
+→ SetSorts(#env, FoldlP(
+                     (key sorts) -> OptimizeSort(sorts, (key,), MapGet(sorts, key), NONE),
                      GetSorts(#env),
-                     MapKeys<String Core_csort_sort>(GetSorts(#env))))
+                     MapKeys(GetSorts(#env))))
 
 func OptimizeSort({String : Core_csort_sort}, List<String>, Option<Core_csort_sort>, Option<Core_csort_sort> /* previous sort */) -> {String : Core_csort_sort}
 
@@ -467,15 +467,15 @@ func OptimizeSort({String : Core_csort_sort}, List<String>, Option<Core_csort_so
    → OptimizeSortAux(IsDummy(csort⟦ ##VARIABLE ⟧), #sorts, #keys, #VARIABLE, #previous)
 
    // Not a variable -> substitute
-   rule OptimizeSort(#sorts, #keys, SOME(#sort:Core_csort_sort), #previous)
+   rule OptimizeSort(#sorts, #keys, SOME(#sort), #previous)
    → OptimizeSort(#sorts, #keys, NONE, SOME(#sort))
 
    // No mapping and no previous, nothing to do
    rule OptimizeSort(#sorts, #keys, NONE, NONE)  → #sorts
 
    // No more mapping and got a sort -> replace all
-   rule OptimizeSort(#sorts, #keys, NONE, SOME(#sort:Core_csort_sort))
-   → FoldlP<String {String : Core_csort_sort}>((key sorts)->MapPut<String Core_csort_sort>(sorts, key, #sort), #sorts, #keys)
+   rule OptimizeSort(#sorts, #keys, NONE, SOME(#sort))
+   → FoldlP((key sorts)->MapPut(sorts, key, #sort), #sorts, #keys)
 
 func OptimizeSortAux(Bool, {String : Core_csort_sort}, List<String>, String, Option<Core_csort_sort>) -> {String : Core_csort_sort}
 
@@ -484,7 +484,7 @@ func OptimizeSortAux(Bool, {String : Core_csort_sort}, List<String>, String, Opt
    → OptimizeSort(#sorts, #keys, NONE, #previous)
 
    rule OptimizeSortAux(FALSE, #sorts, #keys, #VARIABLE, #previous)
-   → OptimizeSort(#sorts, #keys, MapGet<String Core_csort_sort>(#sorts, #VARIABLE), SOME(csort⟦ ##VARIABLE ⟧))
+   → OptimizeSort(#sorts, #keys, MapGet(#sorts, #VARIABLE), SOME(csort⟦ ##VARIABLE ⟧))
 
 // ---- Apply sort instantiation
 
@@ -549,7 +549,7 @@ rule ISubstSorts(#env, csort*⟦                  ⟧) → csort*⟦⟧
 
 func ISubstSort({String:IEnvEntry}, Core_csort_sort) -> Core_csort_sort
 rule ISubstSort(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → csort⟦ ##CONSTRUCTOR ⟨csorts?: ISubstMaybeSorts(#env, #csorts?)⟩ ⟧
-rule ISubstSort(#env, csort⟦ ##VARIABLE              ⟧) → ISubstVar(#VARIABLE, GetSort(#env, #VARIABLE))
+rule ISubstSort(#env, csort⟦ ##VARIABLE              ⟧) → ISubstVar(#env, #VARIABLE, GetSort(#env, #VARIABLE))
 rule ISubstSort(#env, csort⟦ [ ##csort1 ] ##csort2   ⟧) → csort⟦ [ ⟨csort: ISubstSort(#env, #csort1)⟩ ] ⟨csort: ISubstSort(#env, #csort2)⟩ ⟧
 rule ISubstSort(#env, csort⟦ ( ##csort1 ) ##csort2   ⟧) → csort⟦ ( ⟨csort: ISubstSort(#env, #csort1)⟩ ) ⟨csort: ISubstSort(#env, #csort2)⟩ ⟧
 rule ISubstSort(#env, csort⟦ { ##cmapsort* }         ⟧) → csort⟦ { ⟨cmapsort*: ISubstMapSorts(#env, #cmapsort*)⟩ } ⟧
@@ -561,9 +561,9 @@ rule ISubstMaybeSorts(#env, csorts?⟦ ( ##csort* ) ⟧) → csorts?⟦ ( ⟨cso
 rule ISubstMaybeSorts(#env, csorts?⟦              ⟧) → csorts?⟦⟧
 
 // The insteresting bit is here. The rest is just boilerplate.
-func ISubstVar(String, Option<Core_csort_sort>) -> Core_csort_sort
-rule ISubstVar(#VARIABLE, NONE                        ) → csort⟦ ##VARIABLE ⟧  // generic variable
-rule ISubstVar(#VARIABLE, SOME(#csort:Core_csort_sort)) → If<Core_csort_sort>(IsDummy(#csort), ()->csort⟦ ##VARIABLE ⟧, ()->#csort)
+func ISubstVar({String:IEnvEntry}, String, Option<Core_csort_sort>) -> Core_csort_sort
+rule ISubstVar(#env, #VARIABLE, NONE        ) → csort⟦ ##VARIABLE ⟧  // generic variable
+rule ISubstVar(#env, #VARIABLE, SOME(#csort)) → If(IsDummy(#csort), ()->csort⟦ ##VARIABLE ⟧, ()->ISubstSort(#env, #csort))
 
 func ISubstMapSorts({String:IEnvEntry}, List<Core_cmapsort_sort>) -> List<Core_cmapsort_sort>
 rule ISubstMapSorts(#env, cmapsort*⟦                                 ⟧) → cmapsort*⟦⟧

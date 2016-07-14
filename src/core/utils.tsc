@@ -116,7 +116,7 @@ rule TermSort(cterm⟦ ##METAVAR ##cterms? ##csubst? : ##csort ⟧)          →
 rule TermSort(cterm⟦ ##STRING ⟧)                                         → SOME(csort⟦ String ⟧)
 rule TermSort(cterm⟦ ##NUMBER ⟧)                                         → SOME(csort⟦ Numeric ⟧)
 rule TermSort(cterm⟦ ##VARIABLE : ##csort ⟧)                             → SOME(#csort)
-rule TermSort(cterm⟦ { ##cmapentries } ⟧)                                → NONE  // TODO:
+rule TermSort(cterm⟦ { ##cmapentries } : ##csort ⟧)                      → SOME(#csort)
 rule TermSort(cterm⟦ [ x ##csortanno? ] ##cterm[x] ⟧)                    → TermSort(#cterm[x])
 rule TermSort(cterm⟦ ( x ##csortanno? ) ##cterm[x] ⟧)                    → TermSort(#cterm[x])
 rule TermSort(cterm⟦ thunk ##cterm ⟧)                                    → TermSort(#cterm)
@@ -124,9 +124,8 @@ rule TermSort(#)                                                         → NON
 
 /* @return `cterm*` from `cterms?` */
 func MaybeTermsToTerms(List<Core_cterms_sort>) -> List<Core_cterm_sort>
-rule MaybeTermsToTerms(cterms?⟦              ⟧) → ()
-rule MaybeTermsToTerms(cterms?⟦ ()           ⟧) → ()
 rule MaybeTermsToTerms(cterms?⟦ ( ##cterm* ) ⟧) → #cterm*
+rule MaybeTermsToTerms(#cterms?               ) → ()
 
 /* @return `cterm*` from `csubst?` */
 func MaybeSubstToTerms(List<Core_csubst_sort>) -> List<Core_cterm_sort>

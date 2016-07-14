@@ -11,6 +11,19 @@
 class _Context;
 typedef _Context& Context;
 
+class _Ref;
+typedef _Ref& Ref;
+
+
+typedef Ref (*Function)();
+typedef Ref (*Fun0)(Context ctx);
+typedef Ref (*Fun1)(Context ctx, Ref);
+typedef Ref (*Fun2)(Context ctx, Ref, Ref);
+typedef Ref (*Fun3)(Context ctx, Ref, Ref, Ref);
+typedef Ref (*Fun4)(Context ctx, Ref, Ref, Ref, Ref);
+
+
+
 //
 //
 //namespace ts
@@ -28,8 +41,6 @@ class _Term;
 //using Term = _Term&;
 typedef _Term& Term;
 
-class _Ref;
-typedef _Ref& Ref;
 
 class _Ref
 {
@@ -119,6 +130,19 @@ public:
         assert(false);
     }
 
+    /**
+     * Evaluates thunk (if needed).
+     *
+     * The reference to this term is consumed.
+     *
+     * @param context
+     * @return A new reference to the evaluated term. It might still be a thunk if the evaluation has been interrupted
+     */
+    virtual Term eval(Context c)
+    {
+        return *this;
+    }
+
     // TODO: use C++11 concepts to restrict T to extends Term
     template<typename T>
     static T Subst(Context c, T term, std::initializer_list<Term> from, std::initializer_list<Term> to);
@@ -131,12 +155,48 @@ template<typename T>
 class _LazyTerm: public _Term
 {
 public:
+    _LazyTerm(Function f) :
+            function(f), value(Optional<T>::nullopt)
+    {
+    }
+
     /** @return true when this term is data */
     bool Data() const
     {
-        return false;
+        return function == 0 ? reinterpret_cast<_Term&>(value.value()).Data() : false;
     }
+
+    T eval(Context c)
+    {
+        if (!value)
+        {
+            value = function(c); // Acquire ref.
+            function = 0;
+        }
+        value.value().Ref();
+        return value.value();
+    }
+
+protected:
+    // the unevaluated value.
+    Function function;
+
+    // the evaluated value.
+    Optional<T> value;
+
+    _LazyTerm(T value) :
+            function(0)
+    {
+        value = make_optional(value);
+    }
+
 };
+
+template<typename T>
+_LazyTerm<T> thunk(Function f)
+{
+    return new _LazyTerm<T>(f);
+}
 
 /*
  * Base class for variable
@@ -200,14 +260,14 @@ public:
 /**
  * Variable of type String
  */
-class _VarStringTerm: public _StringTerm, _Variable
+class Var_StringTerm: public _StringTerm, _Variable
 {
 public:
-    _VarStringTerm(std::string& name);
+    Var_StringTerm(std::string& name);
 };
-typedef _VarStringTerm& VarStringTerm;
+typedef Var_StringTerm& VarStringTerm;
 
-VarStringTerm varStringTerm(std::string&& str);
+VarStringTerm var_StringTerm(std::string&& str);
 
 // --- Numeric type (double)
 
@@ -255,14 +315,14 @@ public:
 /*
  * Variable of type Numeric
  */
-class _VarDoubleTerm: public _DoubleTerm, _Variable
+class Var_DoubleTerm: public _DoubleTerm, _Variable
 {
 public:
-    _VarDoubleTerm(std::string& name);
+    Var_DoubleTerm(std::string& name);
 };
-typedef _VarDoubleTerm& VarDoubleTerm;
+typedef Var_DoubleTerm& VarDoubleTerm;
 
-VarDoubleTerm varDoubleTerm(double value);
+VarDoubleTerm var_DoubleTerm(double value);
 
 //}// runtime
 //} // ts

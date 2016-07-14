@@ -657,7 +657,7 @@ func SortToTypes2(Core_csort_sort, List<Text4_text_sort> /* formal params */) ->
   → SortToTypes2(#csort, #formals)
 
   rule SortToTypes2(csort⟦ thunk ##csort ⟧, #formals)
-  → Cons(text⟦LazyTerm<†⟨SortToType(#csort)⟩>⟧, Nil)
+  → Cons(text⟦Closure0<†⟨SortToType(#csort)⟩>⟧, Nil)
 
 /* Same as above, expect ignore syntactic variables */
 func SortToType(Core_csort_sort) -> Text4_text_sort
@@ -781,14 +781,12 @@ func JavaSigArg({String : JEnvEntry}, Core_csort_sort, Bool /* data? */,
        JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: value⟩⟧, Core_csort_A2(#VARIABLE)), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
 
    // Syntactic variable sort
-   //rule JavaSigArgs(#env, csort⟦ [ ##csort ] ##csort2 ⟧, #data, Cons(#type, #types), #rules)
-   rule JavaSigArg(#env, Core_csort_A3(#csort:Core_csort_sort, #csort2:Core_csort_sort), #data, Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ [ ##csort ] ##csort2 ⟧, #data, Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #csort*, #rules)
    → text⟦, †⟨#type⟩ ⟨STRING: var:String⟩†⟨
        JavaSigArg(JAddThunk(JAddParam(#env, text⟦⟨STRING: var⟩⟧, #csort), text⟦⟨STRING: var⟩⟧), #csort2, #data, #types, #csort*, #rules)⟩⟧
 
-   // JFormal parameter sort
-   //rule JavaSigArgs(#env, csort⟦ ( ##csort ) ##csort2 ⟧, #data, #rules)
-   rule JavaSigArg(#env, Core_csort_A4(#csort:Core_csort_sort, #csort2:Core_csort_sort), #data, #types, #csort*, #rules)
+   // Formal parameter sort
+   rule JavaSigArg(#env, csort⟦ ( ##csort ) ##csort2 ⟧, #data, #types, #csort*, #rules)
    → JavaSigArg(#env, #csort2, #data, #types, #csort*, #rules)
 
    rule JavaSigArg(#env, csort⟦ { ##cmapsort* } ⟧, #data, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #csort*, #rules)
@@ -1259,7 +1257,7 @@ func JavaExprTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) 
   → text⟦newClosure((†⟨GetContext(NewContext(#env))⟩†⟨JavaExprLambda(NewContext(#env), Core_cterm_A7(#csortanno?, [y:String] -> #cterm[y]), #cont)⟩⟧
 
   rule JavaExprTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)
-  → text⟦thunk(†⟨GetContext(NewContext(#env))⟩ -> ⟨JavaExprTerm(NewContext(#env), #cterm, (env) -> text⟦)⟨#cont(env)⟩⟧)⟩⟧
+  → text⟦newClosure(†⟨GetContext(NewContext(#env))⟩ -> ⟨JavaExprTerm(NewContext(#env), #cterm, (env) -> text⟦)⟨#cont(env)⟩⟧)⟩⟧
 
 
 // ---- construction expression

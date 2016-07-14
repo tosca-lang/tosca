@@ -151,6 +151,13 @@ rule PickFirst1(FALSE, #1, #s, #) → PickFirst<a>(#s, #)
 func PickFirstO<a>(#list: List<Option<a>>) -> Option<a>
 → Maybe<Option<a> a>((option)->UnSOME<a>(option), PickFirst<Option<a>>(#list, (option2)->HasOption<a>(option2)))
 
+/*
+rule PickFirstO(#list:List(Option(a)))
+→ Maybe<Option(a3),a>( (x_1 : Option(a3)) UnSOME<a> (x_1 : Option(a)):a ,
+       PickFirst<Option(a3)>(#list : List(Option(a3)),
+                  (x_2 : Option(a3)) HasOption< a > (x_2 : Option(a))  : Bool) : Option(Option(a3)))  : Option(a) */
+
+
 /* `ListEqual((x y) -> #C(x, y), #XS, #YS)`
    @param  `#C`  a condition to check for equality
    @param  `#XS` list

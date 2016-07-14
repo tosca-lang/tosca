@@ -51,9 +51,9 @@ _StringTerm& stringTerm(std::string&& val)
     return *(new _ValStringTerm(*(new std::string(val))));
 }
 
-VarStringTerm varStringTerm(std::string&& name)
+VarStringTerm var_StringTerm(std::string&& name)
 {
-    return *(new _VarStringTerm(*(new std::string(name))));
+    return *(new Var_StringTerm(*(new std::string(name))));
 }
 
 _ValStringTerm::_ValStringTerm(std::string& val) :
@@ -76,7 +76,7 @@ std::string& _ValStringTerm::Unbox() const
     return value;
 }
 
-_VarStringTerm::_VarStringTerm(std::string& name) : _Variable(name) {}
+Var_StringTerm::Var_StringTerm(std::string& name) : _Variable(name) {}
 
 // --- Numeric
 //
@@ -87,7 +87,7 @@ _DoubleTerm& doubleTerm(double val)
 
 VarDoubleTerm varDoubleTerm(std::string&& name)
 {
-    return *(new _VarDoubleTerm(*(new std::string(name))));
+    return *(new Var_DoubleTerm(*(new std::string(name))));
 }
 
 _ValDoubleTerm::_ValDoubleTerm(double val) :
@@ -105,7 +105,7 @@ double _ValDoubleTerm::Unbox() const
     return value;
 }
 
-_VarDoubleTerm::_VarDoubleTerm(std::string& name) : _Variable(name) {}
+Var_DoubleTerm::Var_DoubleTerm(std::string& name) : _Variable(name) {}
 
 
 //

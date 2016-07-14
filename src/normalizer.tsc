@@ -49,7 +49,6 @@ func NDecl(TransScript_decl_sort) -> List<Core_cdecl_sort>
   rule NDecl(decl⟦ enum ##constructor ##sortParams? ##variant+ ⟧)
   → cdecl+⟦ data ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ( ⟨cform*: NVariants(#variant+)⟩ ) ⟧
 
-
   /* Convert function. */
   rule NDecl(decl⟦ ##anno* ##EXTERN? func ##constructor ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
   → cdecl+⟦
@@ -244,8 +243,8 @@ func NMaybeArgs(List<TransScript_args_sort>, Bool) -> List<Core_cterms_sort>
   rule NMaybeArgs(args?⟦ ( ##scope* ) ⟧, #inpattern) → cterms?⟦ ( ⟨cterm*: Map<TransScript_scope_sort Core_cterm_sort>((x)->NScope(x, #inpattern), #scope*)⟩ ) ⟧
 
 func NScope(TransScript_scope_sort, Bool) -> Core_cterm_sort
-  rule NScope(scope⟦ ##term      ⟧, #inpattern) → NTerm(#term, #inpattern)
-  rule NScope(scope⟦ [ ##binders ⟧, #inpattern) → NBinders(#binders, #inpattern)
+  rule NScope(scope⟦ ##term           ⟧, #inpattern) → NTerm(#term, #inpattern)
+  rule NScope(scope⟦ [ ##binders      ⟧, #inpattern) → NBinders(#binders, #inpattern)
   rule NScope(scope⟦ ( ##formalParams ⟧, #inpattern) → NFormalParams(#formalParams, TRUE, #inpattern)
 
 func NBinders(TransScript_binders_sort, Bool) -> Core_cterm_sort
@@ -253,15 +252,19 @@ func NBinders(TransScript_binders_sort, Bool) -> Core_cterm_sort
   rule NBinders(binders⟦ b ##sortAnno?[] ##binders[b] ⟧, #inpattern)
   → cterm⟦ [ x ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ] ⟨cterm: NBinders(#binders[x], #inpattern)⟩ ⟧
 
-  rule NBinders(binders⟦ ] -> ##term ⟧, #inpattern) → NTerm(#term, #inpattern)
+  rule NBinders(binders⟦ ] -> ##term ⟧, #inpattern)
+  → NTerm(#term, #inpattern)
 
 func NFormalParams(TransScript_formalParams_sort, Bool, Bool) -> Core_cterm_sort
 
   rule NFormalParams(formalParams⟦ f ##sortAnno?[] ##formalParams[f] ⟧, #empty, #inpattern)
   → cterm⟦ (f ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ) ⟨cterm: NFormalParams(#formalParams[f], FALSE, #inpattern)⟩ ⟧
 
-  rule NFormalParams(formalParams⟦ ) -> ##term          ⟧, FALSE, #inpattern) → NTerm(#term, #inpattern)
-  rule NFormalParams(formalParams⟦ ) -> ##term          ⟧, TRUE, #inpattern) → cterm⟦ thunk ⟨cterm: NTerm(#term, #inpattern)⟩ ⟧
+  rule NFormalParams(formalParams⟦ ) -> ##term ⟧, FALSE, #inpattern)
+  → NTerm(#term, #inpattern)
+
+  rule NFormalParams(formalParams⟦ ) -> ##term ⟧, TRUE, #inpattern)
+  → cterm⟦ thunk ⟨cterm: NTerm(#term, #inpattern)⟩ ⟧
 
 func NMaybeApply(List<TransScript_apply_sort>, Bool) -> List<Core_cterms_sort>
   rule NMaybeApply(apply?⟦             ⟧, #inpattern) → cterms?⟦⟧
