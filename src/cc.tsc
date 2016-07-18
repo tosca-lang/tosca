@@ -301,6 +301,8 @@ func CCMustConvertMaybeTerms(List<Pair<String Core_csort_sort>>, List<Core_cterm
 
   rule CCMustConvertMaybeTerms(()     , cterms?⟦              ⟧) → FALSE
   rule CCMustConvertMaybeTerms(()     , cterms?⟦ (          ) ⟧) → FALSE
+  rule CCMustConvertMaybeTerms(#params, cterms?⟦              ⟧) → TRUE
+  rule CCMustConvertMaybeTerms(#params, cterms?⟦ (          ) ⟧) → TRUE
   rule CCMustConvertMaybeTerms(#params, cterms?⟦ ( ##cterm* ) ⟧) → CCMustConvertTerms(#params, #cterm*)
 
 func CCMustConvertTerms(List<Pair<String Core_csort_sort>>, List<Core_cterm_sort>) -> Bool

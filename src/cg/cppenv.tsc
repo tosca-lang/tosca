@@ -23,6 +23,9 @@ enum VarEntry
 enum MetaEntry | MetaVar(Text4_text_sort,       /* variable associated with the meta variable*/
                          List<Text4_text_sort>) /* variables associated to the meta variable bound variables */
 
+
+enum MapEntry | MapEntry(Core_cmapentry_sort, Text4_text_sort, Core_cmapsort_sort)
+
 /* Environment entry sort */
 enum EnvEntry | EContent(Content)
               | EParams(List<Pair<Text4_text_sort Core_csort_sort>>)
@@ -33,6 +36,7 @@ enum EnvEntry | EContent(Content)
               | EContext(Text4_text_sort /* context variable */, Numeric /* Counter */)
               | EMapMeta({String : MetaEntry})
               | EText(Text4_text_sort)
+              | EMapEntries({String /* (meta)var */: List<MapEntry>}) /* Delayed map entries */
 
 /* Corresponding unwrappers */
 func UnContent(EnvEntry) -> Content
@@ -83,6 +87,9 @@ rule UnMetaArgs(MetaVar(#1, #2)) → #2
 func UnText(EnvEntry) -> Text4_text_sort
 rule UnText(EText(#)) → #
 
+func UnMapEntries(EnvEntry) -> {String /* metavar */: List<MapEntry>}
+rule UnMapEntries(EMapEntries(#1)) → #1
+
 /* Create a new empty environment */
 func CppNewEnv -> {String : EnvEntry}
 → MapNew<String EnvEntry>
@@ -132,6 +139,9 @@ func GetVars(#env: {String : EnvEntry}) -> { String : VarEntry }
 func GetVar(#env: {String : EnvEntry}, #var: String) -> Text4_text_sort
 → UnVarVar(UnSOME<VarEntry>(MapGetVar<String VarEntry String>(GetVars(#env), #var)))
 
+func GetVarO(#env: {String : EnvEntry}, #var: String) -> Option<VarEntry>
+→ MapGetVar(GetVars(#env), #var)
+
 func MaybeGetVar(#env: {String : EnvEntry}, #var: String) -> Option<VarEntry>
 → MapGetVar<String VarEntry String>(GetVars(#env), #var)
 
@@ -174,13 +184,17 @@ func GetMetas(#env: {String : EnvEntry}) -> {String : MetaEntry}
 → UnMapMeta(GetValue(#env, "meta"))
 
 func GetMetaVar(#env: {String : EnvEntry}, #metavar: String) -> Text4_text_sort
-→ UnMetaVar(UnSOME<MetaEntry>(MapGet<String MetaEntry>(GetMetas(#env), #metavar)))
+→ UnMetaVar(UnSOME(MapGet(GetMetas(#env), #metavar)))
+
+/* @return the C++ variable associated to the given `#metavar`, or `NONE` when no such association exists */
+func GetMetaVarO(#env: {String : EnvEntry}, #metavar: String) -> Option<Text4_text_sort>
+→ Maybe((entry)->UnMetaVar(entry), MapGet(GetMetas(#env), #metavar))
 
 func GetMetaArgs(#env: {String : EnvEntry}, #metavar: String) -> List<Text4_text_sort>
-→ UnMetaArgs(UnSOME<MetaEntry>(MapGet<String MetaEntry>(GetMetas(#env), #metavar)))
+→ UnMetaArgs(UnSOME(MapGet(GetMetas(#env), #metavar)))
 
 func AddMeta(#env: {String : EnvEntry}, #metavar: String, #term: Text4_text_sort, #boundvars: List<Text4_text_sort>) -> {String : EnvEntry}
-→ SetValue(#env,  "meta", EMapMeta(MapPut<String MetaEntry>(GetMetas(#env), #metavar, MetaVar(#term, #boundvars))))
+→ SetValue(#env,  "meta", EMapMeta(MapPut(GetMetas(#env), #metavar, MetaVar(#term, #boundvars))))
 
 // --- Context
 
@@ -231,10 +245,24 @@ func SetSubBinderIndex(#env: {String : EnvEntry}, #index: Numeric) -> {String : 
 func IncSubBinderIndex(#env: {String : EnvEntry}) -> {String : EnvEntry}
 → SetValue(#env, "binderindex", ENum(Plus(GetSubBinderIndex(#env), 1)))
 
+// --- Delayed map entries
+
+func GetDelayEntries(#env: {String : EnvEntry}) -> {String:List<MapEntry>}
+→ UnMapEntries(GetValue(#env, "delay"))
+
+func SetDelayEntries(#env: {String : EnvEntry}, #entries: {String:List<MapEntry>}) -> {String : EnvEntry}
+→ SetValue(#env, "delay", EMapEntries(#entries))
+
+func GetDelayEntriesForVar(#env: {String : EnvEntry}, #var: String) -> List<MapEntry>
+→ IfPresent(MapGet(GetDelayEntries(#env), #var), (entries)->entries, ()->())
+
+func DelayMapEntry(#env: {String : EnvEntry}, #var: String, #entry: MapEntry) -> {String : EnvEntry}
+→ SetDelayEntries(#env, MapPut(GetDelayEntries(#env), #var, Cons(#entry, GetDelayEntriesForVar(#env, #var))))
+
 // --- Some generic helper functions
 
 func GetValue(#env: {String : EnvEntry}, #key: String) -> EnvEntry
-→ UnSOME<EnvEntry>(MapGet<String EnvEntry>(#env, #key))
+→ UnSOME(MapGet(#env, #key))
 
 func SetValue(#env: {String : EnvEntry}, #key: String, #value: EnvEntry) -> {String : EnvEntry}
-→ MapPut<String EnvEntry>(#env, #key, #value)
+→ MapPut(#env, #key, #value)

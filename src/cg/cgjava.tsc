@@ -666,7 +666,7 @@ rule SortToType(#csort) → Last<Text4_text_sort>(SortToTypes(#csort)) // TODO: 
 /* Same as above, expect maybe get a sort */
 func MaybeSortToType(Option<Core_csort_sort>) -> Text4_text_sort
 rule MaybeSortToType(NONE)         → text⟦⟧
-rule MaybeSortToType(SOME(#csort:Core_csort_sort)) → Last<Text4_text_sort>(SortToTypes(#csort)) // TODO: could optimize
+rule MaybeSortToType(SOME(#csort)) → Last(SortToTypes(#csort)) // TODO: could optimize
 
 /* Same as above, expect with default value */
 func MaybeSortToTypeD(Option<Core_csort_sort>, Text4_text_sort) -> Text4_text_sort
@@ -969,7 +969,7 @@ func JavaPatternMaybeMetaArgs({String : JEnvEntry}, String, List<Core_csubst_sor
 
   // meta substitution
   rule JavaPatternMaybeMetaArgs(#env, #metavar, csubst?⟦ [ ##cterm* ] ⟧, #term, #csort, #cont)
-  → #cont(JAddMeta(#env, #metavar, #term, Map<Core_cterm_sort Text4_text_sort>((x) -> JavaFindJBoundVar(#env, x), #cterm*)))
+  → #cont(JAddMeta(#env, #metavar, #term, Map((x) -> JavaFindJBoundVar(#env, x), #cterm*)))
 
 func JavaFindJBoundVar({String : JEnvEntry}, Core_cterm_sort) -> Text4_text_sort
 
