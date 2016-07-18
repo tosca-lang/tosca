@@ -107,12 +107,18 @@ public interface DoubleTerm extends Term
 
 	}
 
-	class VarDoubleTermUse extends VariableUse implements StringTerm
+	class VarDoubleTermUse extends VariableUse implements DoubleTerm
 	{
 
 		protected VarDoubleTermUse(Variable variable)
 		{
 			super(variable);
+		}
+
+		@Override
+		public double unbox()
+		{
+			throw new RuntimeException("Variable of type double does not have a value");
 		}
 
 	}

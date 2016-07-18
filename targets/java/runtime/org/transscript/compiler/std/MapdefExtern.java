@@ -149,14 +149,20 @@ public class MapdefExtern
 	public static <a extends Term, b extends Term> List<a> MapKeys(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map)
 	{
 		MapTerm<a, b> emap = Term.force(context, map);
-		if (emap.data())
-		{
-			List<a> keys = emap.keys(context);
-			emap.release();
-			return keys;
-		}
-		return Listdef.lazyList(c -> MapKeys(c, tma, tmb, emap));
+		List<a> keys = emap.keys(context);
+		emap.release();
+		return keys;
 	}
+	
+
+	public static <a extends Term, b extends Term, c extends Term> List<c> MapVarKeys(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, ThunkMaker<c> tmc, MapTerm<a, b> map)
+	{
+		MapTerm<a, b> emap = Term.force(context, map);
+		List<c> keys = emap.varKeys(context);
+		emap.release();
+		return keys;
+	}
+
 
 	/**
 	 * Create new empty map
@@ -183,6 +189,23 @@ public class MapdefExtern
 		MapTerm<a, b> emap = Term.force(context, map);
 
 		List<b> values = emap.values(context);
+		emap.release();
+		return values;
+	}
+	
+	/**
+	 * Gets list of variable values
+	 * @param context
+	 * @param tma
+	 * @param tmb
+	 * @param map
+	 * @return
+	 */
+	public static <a extends Term, b extends Term> List<b> MapVarValues(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map)
+	{
+		MapTerm<a, b> emap = Term.force(context, map);
+
+		List<b> values = emap.varValues(context);
 		emap.release();
 		return values;
 	}
@@ -214,5 +237,6 @@ public class MapdefExtern
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 
 }

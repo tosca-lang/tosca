@@ -23,7 +23,6 @@ typedef Ref (*Fun3)(Context ctx, Ref, Ref, Ref);
 typedef Ref (*Fun4)(Context ctx, Ref, Ref, Ref, Ref);
 
 
-
 //
 //
 //namespace ts
@@ -191,12 +190,6 @@ protected:
     }
 
 };
-
-template<typename T>
-_LazyTerm<T> thunk(Function f)
-{
-    return new _LazyTerm<T>(f);
-}
 
 /*
  * Base class for variable

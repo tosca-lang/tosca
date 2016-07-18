@@ -67,6 +67,12 @@ public interface StringTerm extends Term
 		return (StringTerm) Term.super.eval(c);
 	}
 
+	/** @return the variable if this term is a variable use, othewise null */
+	default VarStringTerm variable()
+	{
+		return null;
+	}
+	
 	/**
 	 * The actual string term.
 	 */
@@ -168,7 +174,12 @@ public interface StringTerm extends Term
 		{
 			return variable.toString();
 		}
-
+		
+		@Override
+		public VarStringTerm variable()
+		{
+			return (VarStringTerm) super.variable();
+		}			
 	}
 
 	/**

@@ -72,13 +72,23 @@ func Tail<a>(List<a>) -> List<a>
 rule Tail((                   )) → Error<List>("Tail of empty list")
 rule Tail(Cons(#:a, #s:List<a>)) → #s
 
+/* `SubList(#XS, #from)`
+   @param  `#XS` list
+   @param  `#from` zero-based starting index
+   @return a sublist
+*/
+func SubList<a>(List<a>, Numeric) -> List<a>
+rule SubList((), #index)           → ()
+rule SubList((#X, #XS...), #index) → If(NumberEqual(#index, 0), (#X, #XS...), SubList(#XS, Minus(#index, 1)))
+
+
 /* Get element at given index (zero-based), or NONE
    @param `List<a>` the list
    @param `Numeric` the index
  */
 func At<a>(List<a>, eager Numeric) -> Option<a>
-rule At((                   ), #i) → NONE
-rule At(Cons(#:a, #s:List<a>), #i) → If<Option>(Equal(#i, 0), ()->SOME(#), ()->At<a>(#s, Minus(#i, 1)))
+rule At((        ), #i) → NONE
+rule At((#, #s...), #i) → If(Equal(#i, 0), ()->SOME(#), ()->At(#s, Minus(#i, 1)))
 
 /*
   Concat the two list
@@ -149,14 +159,7 @@ rule PickFirst1(FALSE, #1, #s, #) → PickFirst<a>(#s, #)
 /* Pick first option other than `NONE`.
    @return a `SOME` option, or `NONE` */
 func PickFirstO<a>(#list: List<Option<a>>) -> Option<a>
-→ Maybe<Option<a> a>((option)->UnSOME<a>(option), PickFirst<Option<a>>(#list, (option2)->HasOption<a>(option2)))
-
-/*
-rule PickFirstO(#list:List(Option(a)))
-→ Maybe<Option(a3),a>( (x_1 : Option(a3)) UnSOME<a> (x_1 : Option(a)):a ,
-       PickFirst<Option(a3)>(#list : List(Option(a3)),
-                  (x_2 : Option(a3)) HasOption< a > (x_2 : Option(a))  : Bool) : Option(Option(a3)))  : Option(a) */
-
+→ Maybe((option)->UnSOME(option), PickFirst(#list, (option2)->HasOption(option2)))
 
 /* `ListEqual((x y) -> #C(x, y), #XS, #YS)`
    @param  `#C`  a condition to check for equality

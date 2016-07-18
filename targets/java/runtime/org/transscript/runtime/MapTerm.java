@@ -116,6 +116,20 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	public List<K> keys(Context context);
 
 	/**
+	 * Gets map variable values
+	 * @param context
+	 * @return
+	 */
+	public List<V> varValues(Context context);
+
+	/**
+	 * Gets map variable keys
+	 * @param context
+	 * @return
+	 */
+	public <VK extends Term> List<VK> varKeys(Context context);
+
+	/**
 	 * @return true when this map is empty
 	 */
 	public boolean isEmpty();
@@ -130,13 +144,11 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	 */
 	boolean containsVar(Variable var);
 
-
 	/**
 	 * @return true when this map contains an entry for the given key, including variables.
 	 */
 	public boolean contains(Term key);
 
-	
 	/**
 	 * The actual map value.
 	 * @param <K>
@@ -284,12 +296,53 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 			return top;
 		}
 
+		/**
+		 * Gets map variable values
+		 * @param context
+		 * @return
+		 */
+		public List<V> varValues(Context context)
+		{
+			Listdef.List<V> c = Listdef.Nil(context);
+
+			if (vars != null)
+			{
+				for (V val : vars.values())
+				{
+					Listdef.List<V> nc = Listdef.Cons(context, val, c);
+					c = nc;
+				}
+			}
+			return c;
+		}
+
+		/**
+		 * Gets map variable keys
+		 * @param context
+		 * @return
+		 */
+		@SuppressWarnings("unchecked")
+		public <VK extends Term> List<VK> varKeys(Context context)
+		{
+			Listdef.List<VariableUse> c = Listdef.Nil(context);
+
+			if (vars != null)
+			{
+				for (Variable var : vars.keySet())
+				{
+					Listdef.List<VariableUse> nc = Listdef.Cons(context, var.use(), c);
+					c = nc;
+				}
+			}
+			return (List<VK>) c;
+		}
+
 		@Override
 		public boolean isEmpty()
 		{
 			return super.isEmpty() && (vars == null || vars.isEmpty());
 		}
-		
+
 		@Override
 		public boolean containsKey(K key)
 		{
@@ -301,7 +354,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		{
 			return vars != null && vars.containsKey(var);
 		}
-  
+
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean contains(Term key)
@@ -408,6 +461,18 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		public boolean containsVar(Variable var)
 		{
 			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
+		}
+
+		@Override
+		public List<V> varValues(Context context)
+		{
+			throw new RuntimeException("Fatal error: cannot query unevaluated map.");
+		}
+
+		@Override
+		public <VK extends Term> List<VK> varKeys(Context context)
+		{
+			throw new RuntimeException("Fatal error: cannot query unevaluated map.");
 		}
 
 	}

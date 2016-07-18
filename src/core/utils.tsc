@@ -111,16 +111,21 @@ rule GetMapValueSort(cmapsort⟦ ##csort1 : ##csort2 ⟧) → #csort2
 
 /* @return sort from term, or NONE */
 func TermSort(Core_cterm_sort) -> Option<Core_csort_sort>
-rule TermSort(cterm⟦ ##cqconstructor ##csortargs? ##cterms? : ##csort ⟧) → SOME(#csort)
-rule TermSort(cterm⟦ ##METAVAR ##cterms? ##csubst? : ##csort ⟧)          → SOME(#csort)
-rule TermSort(cterm⟦ ##STRING ⟧)                                         → SOME(csort⟦ String ⟧)
-rule TermSort(cterm⟦ ##NUMBER ⟧)                                         → SOME(csort⟦ Numeric ⟧)
-rule TermSort(cterm⟦ ##VARIABLE : ##csort ⟧)                             → SOME(#csort)
-rule TermSort(cterm⟦ { ##cmapentries } : ##csort ⟧)                      → SOME(#csort)
-rule TermSort(cterm⟦ [ x ##csortanno? ] ##cterm[x] ⟧)                    → TermSort(#cterm[x])
-rule TermSort(cterm⟦ ( x ##csortanno? ) ##cterm[x] ⟧)                    → TermSort(#cterm[x])
-rule TermSort(cterm⟦ thunk ##cterm ⟧)                                    → TermSort(#cterm)
-rule TermSort(#)                                                         → NONE
+rule TermSort(cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? : ##csort ⟧) → SOME(#csort)
+rule TermSort(cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? : ##csort ⟧)          → SOME(#csort)
+rule TermSort(cterm⟦ ##STRING ⟧)                                                  → SOME(csort⟦ String ⟧)
+rule TermSort(cterm⟦ ##NUMBER ⟧)                                                  → SOME(csort⟦ Numeric ⟧)
+rule TermSort(cterm⟦ ##canno* ##VARIABLE : ##csort ⟧)                             → SOME(#csort)
+rule TermSort(cterm⟦ { ##cmapentries } : ##csort ⟧)                               → SOME(#csort)
+rule TermSort(cterm⟦ [ x ##csortanno? ] ##cterm[x] ⟧)                             → TermSort(#cterm[x])
+rule TermSort(cterm⟦ ( x ##csortanno? ) ##cterm[x] ⟧)                             → TermSort(#cterm[x])
+rule TermSort(cterm⟦ thunk ##cterm ⟧)                                             → TermSort(#cterm)
+rule TermSort(#)                                                                  → NONE
+
+/* @return the convertion of the given optional sort to an optional sort annotation */
+func MaybeSortToMaybeSortAnno(Option<Core_csort_sort>) -> List<Core_csortanno_sort>
+rule MaybeSortToMaybeSortAnno(SOME(#csort)) → csortanno?⟦ : ##csort ⟧
+rule MaybeSortToMaybeSortAnno(NONE        ) → csortanno?⟦⟧
 
 /* @return `cterm*` from `cterms?` */
 func MaybeTermsToTerms(List<Core_cterms_sort>) -> List<Core_cterm_sort>
@@ -155,9 +160,12 @@ rule DeclToSort(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)          
 rule DeclToSort(#cdecl) → Error<Core_csort_sort>("Unimplemented")
 
 func DataDeclToSort(List<Core_csortvars_sort>, String) -> Core_csort_sort
-rule DataDeclToSort(csortvars?⟦                    ⟧, #CONSTRUCTOR) → csort⟦ ##CONSTRUCTOR ⟧
-rule DataDeclToSort(csortvars?⟦ ∀ ##VARIABLE+ .⟧, #CONSTRUCTOR) → csort⟦ ##CONSTRUCTOR ( ⟨csort*: Map<String Core_csort_sort>((var)->csort⟦ ⟨VARIABLE: var⟩ ⟧, #VARIABLE+)⟩ ) ⟧
+rule DataDeclToSort(csortvars?⟦⟧, #CONSTRUCTOR) → csort⟦ ##CONSTRUCTOR ⟧
+rule DataDeclToSort(#csortvars?, #CONSTRUCTOR) → csort⟦ ##CONSTRUCTOR ( ⟨csort*:MaybeSortVarsToSorts(#csortvars?)⟩ ) ⟧
 
+func MaybeSortVarsToSorts(List<Core_csortvars_sort>) -> List<Core_csort_sort>
+rule MaybeSortVarsToSorts(csortvars?⟦                 ⟧) → csort*⟦⟧
+rule MaybeSortVarsToSorts(csortvars?⟦ ∀ ##VARIABLE+ . ⟧) → Map((var)->csort⟦ ⟨VARIABLE: var⟩ ⟧, #VARIABLE+)
 
 // --- Print utilities
 

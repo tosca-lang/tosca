@@ -48,6 +48,12 @@ func MapGetVarD<a b c>(#map: {a : b}, #var: c, #default: b) -> b
 /* Gets list of values, excluding variable values */
 @Extern func MapValues<a b>({a : b}) -> List<b>
 
+/* Gets list of variable keys */
+@Extern func MapVarKeys<a b c>({a : b}) -> List<c>
+
+/* Gets list of variable values */
+@Extern func MapVarValues<a b>({a : b}) -> List<b>
+
 /* Create new empty map */
 @Extern func MapNew<a b>() -> {a : b}
 

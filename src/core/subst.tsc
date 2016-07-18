@@ -12,18 +12,18 @@ import core::Core
   - meta-variables are substituted by their associated meta-variable (like renaming)
 */
 func Substitute(Core_cterm_sort, {String : Core_cterm_sort}) -> Core_cterm_sort
-rule Substitute(cterm⟦ ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧, #subst) → cterm⟦ ##cqconstructor ##csortargs? ⟨cterms?: SubstMaybeTerms(#cterms?, #subst)⟩ ##csortanno? ⟧
-rule Substitute(cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno?          ⟧, #subst) → cterm⟦ ⟨METAVAR: SubstMetaVar(#METAVAR, #subst)⟩ ⟨cterms?: SubstMaybeTerms(#cterms?, #subst)⟩ ⟨csubst?: SubstMaybeSubst(#csubst?, #subst)⟩ ##csortanno? ⟧
-rule Substitute(cterm⟦ #cliteral                                           ⟧, #subst) → cterm⟦ #cliteral ⟧
+rule Substitute(cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧, #subst) → cterm⟦ ##canno* ##cqconstructor ##csortargs? ⟨cterms?: SubstMaybeTerms(#cterms?, #subst)⟩ ##csortanno? ⟧
+rule Substitute(cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno?          ⟧, #subst) → cterm⟦ ##canno* ⟨METAVAR: SubstMetaVar(#METAVAR, #subst)⟩ ⟨cterms?: SubstMaybeTerms(#cterms?, #subst)⟩ ⟨csubst?: SubstMaybeSubst(#csubst?, #subst)⟩ ##csortanno? ⟧
+rule Substitute(cterm⟦ ##cliteral                                                   ⟧, #subst) → cterm⟦ ##cliteral ⟧
 
 // TODO: replace when issue #20 is fixed
 //rule Substitute(cterm⟦ ##VARIABLE ##csortanno?                             ⟧, #subst) → cterm⟦ ⟨VARIABLE: SubstVariable(#VARIABLE, #subst)⟩ ##csortanno? ⟧
-rule Substitute(cterm⟦ ##VARIABLE ##csortanno?                             ⟧, #subst) → SubstVariable(#VARIABLE, #csortanno?, #subst)
+rule Substitute(cterm⟦ ##canno* ##VARIABLE ##csortanno?                             ⟧, #subst) → SubstVariable(#VARIABLE, #csortanno?, #subst)
 
-rule Substitute(cterm⟦ { ##cmapentries? }                                  ⟧, #subst) → cterm⟦ { ⟨cmapentries?: SubstMaybeMapEntries(#cmapentries?, #subst)⟩ } ⟧
-rule Substitute(cterm⟦ [ x ##csortanno ] ##cterm[x]                        ⟧, #subst) → cterm⟦ [ x ##csortanno ] ⟨cterm: Substitute(#cterm[x], #subst)⟩ ⟧
-rule Substitute(cterm⟦ ( f ##csortanno ) ##cterm[f]                        ⟧, #subst) → cterm⟦ ( f ##csortanno ) ⟨cterm: Substitute(#cterm[f], #subst)⟩ ⟧
-rule Substitute(cterm⟦ thunk ##cterm                                       ⟧, #subst) → cterm⟦ thunk ⟨cterm: Substitute(#cterm, #subst)⟩ ⟧
+rule Substitute(cterm⟦ { ##cmapentries? } ##csortanno?                              ⟧, #subst) → cterm⟦ { ⟨cmapentries?: SubstMaybeMapEntries(#cmapentries?, #subst)⟩ } ##csortanno? ⟧
+rule Substitute(cterm⟦ [ x ##csortanno? ] ##cterm[x]                                ⟧, #subst) → cterm⟦ [ x ##csortanno? ] ⟨cterm: Substitute(#cterm[x], #subst)⟩ ⟧
+rule Substitute(cterm⟦ ( f ##csortanno? ) ##cterm[f]                                ⟧, #subst) → cterm⟦ ( f ##csortanno? ) ⟨cterm: Substitute(#cterm[f], #subst)⟩ ⟧
+rule Substitute(cterm⟦ thunk ##cterm                                                ⟧, #subst) → cterm⟦ thunk ⟨cterm: Substitute(#cterm, #subst)⟩ ⟧
 
 func SubstMaybeTerms(List<Core_cterms_sort>, {String : Core_cterm_sort}) -> List<Core_cterms_sort>
 rule SubstMaybeTerms(cterms?⟦              ⟧, #subst) → cterms?⟦ ⟧
