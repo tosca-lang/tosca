@@ -185,10 +185,12 @@ public class CoreExtern
 	}
 
 
-	public static  <a extends Term> a Debug(Context context, ThunkMaker<a> tma, StringTerm value_1738, Closure0<a> value_1739)
+	public static  <a extends Term> a Debug(Context context, ThunkMaker<a> tma, StringTerm msg, Closure0<a> result)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		StringTerm emsg = Term.force(context, msg);
+		System.out.println(emsg);
+		emsg.release();
+		return result.eval(context);
 	}
 
 	public static  <a extends Term> a Debug(Context context, ThunkMaker<a> tma, StringTerm value_1738, LazyTerm<a> value_1739)

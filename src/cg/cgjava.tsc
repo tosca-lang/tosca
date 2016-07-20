@@ -79,7 +79,7 @@ public class ⟨STRING:ClassName(#url)⟩ {
 func JavaImport(Core_cqidentifier_sort, Bool) -> Text4_text_sort
 rule JavaImport(#name, #bootstrap)
 → text⟦
-import static †⟨PathToImport(JoinQIdentifier(#name, "::"), #bootstrap)⟩.*;⟧ // TODO: maybe use '.' separator
+import static †⟨PathToImport(JoinQIdentifier(#name, "::", TRUE), #bootstrap)⟩.*;⟧ // TODO: maybe use '.' separator
 
 //-------------- Translate enumerations
 
@@ -1365,18 +1365,6 @@ func JavaExprLambda({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}
   rule JavaExprLambda(#env, #cterm, #cont)
   → text⟦) -> †⟨JavaExprTerm(#env, #cterm, (env) -> text⟦)†⟨#cont(env)⟩⟧)⟩⟧
 
-//--- Find form in sort.
-/*
-func FindForm(Option<Option<Core_cdecl_sort>>, String) -> Option<Core_cform_sort>
-  rule FindForm(NONE, #formname)
-  → NONE
-
-  rule FindForm(SOME(Option<Core_cdecl_sort>::NONE), #formname)
-  → NONE
-
-  rule FindForm(SOME(Option<Core_cdecl_sort>::SOME(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)), #formname)
-  → PickFirst<Core_cform_sort>(#cform*, (x) -> MatchConsForm(x, #formname))
-*/
 // ----- initModule
 
 /* Generate code initializing a module. */
@@ -1395,7 +1383,7 @@ rule InitModule(#data, #func, #imports, #bootstrap)
 
 func RegisterImport(#name: Core_cqidentifier_sort, #bootstrap: Bool) -> Text4_text_sort
 → text⟦
-    †⟨PathToImport(JoinQIdentifier(#name, "::"), #bootstrap)⟩.init(context);⟧ // TODO: maybe use '.' sep
+    †⟨PathToImport(JoinQIdentifier(#name, "::", TRUE), #bootstrap)⟩.init(context);⟧ // TODO: maybe use '.' sep
 
 func RegisterDataSort(Core_cdecl_sort) -> Text4_text_sort
 rule RegisterDataSort(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)

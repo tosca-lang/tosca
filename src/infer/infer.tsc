@@ -102,19 +102,19 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
   rule InferTerm(#env, cterm⟦ { ##cmapentries? } ⟧, csort⟦ { ##cmapsort } ⟧)
   → InferMapUp(InferMap(#env, #cmapentries?, #cmapsort), #cmapsort)
 
-  rule InferTerm(#env, cterm⟦ thunk ##cterm              ⟧, #esort)
-  → UnPair(InferTerm(#env, #cterm, #esort), (env term)->PairCons(env, cterm⟦ thunk ⟨cterm: term⟩ ⟧))
+  rule InferTerm(#env, cterm⟦ thunk ##cterm              ⟧, csort⟦ thunk ##csort ⟧)
+  → UnPair(InferTerm(#env, #cterm, #csort), (env term)->PairCons(env, cterm⟦ thunk ⟨cterm: term⟩ ⟧))
 
 /* Traverse terms */
 func InferMaybeTerms({String:IEnvEntry}, String, List<Core_cterms_sort>, List<Core_csort_sort>) -> Pair<{String:IEnvEntry} List<Core_cterms_sort>>
 rule InferMaybeTerms(#env, #constructor, cterms?⟦              ⟧, #esort*) → PairCons(#env, cterms?⟦    ⟧) // TODO: check sort arity
 rule InferMaybeTerms(#env, #constructor, cterms?⟦ (          ) ⟧, #esort*) → PairCons(#env, cterms?⟦ () ⟧)  // TODO: check sort arity
-rule InferMaybeTerms(#env, #constructor, cterms?⟦ ( ##cterm* ) ⟧, #esort*) → UnPair<{String:IEnvEntry} List Pair>(InferTerms(#env, #constructor, #cterm*, #esort*), (env terms)->PairCons(env, cterms?⟦ ( ⟨cterm*: terms⟩ ) ⟧))
+rule InferMaybeTerms(#env, #constructor, cterms?⟦ ( ##cterm* ) ⟧, #esort*) → UnPair(InferTerms(#env, #constructor, #cterm*, #esort*), (env terms)->PairCons(env, cterms?⟦ ( ⟨cterm*: terms⟩ ) ⟧))
 
 /* Traverse subst */
 func InferMaybeSubst({String:IEnvEntry}, String, List<Core_csubst_sort>, List<Core_csort_sort>) -> Pair<{String:IEnvEntry} List<Core_csubst_sort>>
 rule InferMaybeSubst(#env, #constructor, csubst?⟦              ⟧, #esort*) → PairCons(#env, csubst?⟦    ⟧) // TODO: check sort arity
-rule InferMaybeSubst(#env, #constructor, csubst?⟦ [ ##cterm* ] ⟧, #esort*) → UnPair<{String:IEnvEntry} List Pair>(InferTerms(#env, #constructor, #cterm*, #esort*), (env terms)->PairCons(env, csubst?⟦ [ ⟨cterm*: terms⟩ ] ⟧))
+rule InferMaybeSubst(#env, #constructor, csubst?⟦ [ ##cterm* ] ⟧, #esort*) → UnPair(InferTerms(#env, #constructor, #cterm*, #esort*), (env terms)->PairCons(env, csubst?⟦ [ ⟨cterm*: terms⟩ ] ⟧))
 
 /* Traverse terms */
 func InferTerms({String:IEnvEntry}, String, List<Core_cterm_sort>, List<Core_csort_sort>) -> Pair<{String:IEnvEntry} List<Core_cterm_sort>>
@@ -369,8 +369,8 @@ rule IAddDummySortsAux(#env, (                      ))  → #env
 */
 func UnifySort({String:IEnvEntry}, Core_csort_sort, Core_csort_sort) -> {String:IEnvEntry}
 
-  rule UnifySort(#env, csort⟦ thunk ##csort1 ⟧, #csort2) → UnifySort(#env, #csort1, #csort2)
-  rule UnifySort(#env, #csort1, csort⟦ thunk ##csort2 ⟧) → UnifySort(#env, #csort1, #csort2)
+  rule UnifySort(#env, csort⟦ thunk ##csort1 ⟧, csort⟦ thunk ##csort2 ⟧) → UnifySort(#env, #csort1, #csort2)
+  //rule UnifySort(#env, #csort1, csort⟦ thunk ##csort2 ⟧) → UnifySort(#env, #csort1, #csort2)
   rule UnifySort(#env, csort⟦ data ##csort1 ⟧, #csort2)  → UnifySort(#env, #csort1, #csort2)
   rule UnifySort(#env, #csort1, csort⟦ data ##csort2 ⟧)  → UnifySort(#env, #csort1, #csort2)
 

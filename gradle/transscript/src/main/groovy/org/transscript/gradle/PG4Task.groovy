@@ -50,7 +50,11 @@ class PG4Task extends DefaultTask {
     @Optional
     String prefixsep = "_"
     
-	@TaskAction
+    @Input
+    @Optional
+    boolean notext = false
+    
+    @TaskAction
 	def generate() {
 		if (sort || parsers)
 		{
@@ -79,7 +83,7 @@ class PG4Task extends DefaultTask {
 				// .nterm -> sort
 				
 				String sortt4 = basename + '.tsc' // generate sort for transscript
-                crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.transscript.antlr.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakeSorts', 'crsx4', ncg ? 'ncg' : '', 'sortsuffix=' + sortsuffix, 'prefixsep=' + prefixsep, 'output=' + sortt4 ])
+                crsx3runner.run([ 'sink=net.sf.crsx.text.TextSink', 'grammar=(\'net.sf.crsx.text.Text\';\'org.transscript.antlr.ANTLRMeta\';)', 'rules=pg/gensort.crs', 'input=' + nterm, 'wrapper=MakeSorts', 'crsx4', ncg ? 'ncg' : '', notext ? 'notext' : '', 'sortsuffix=' + sortsuffix, 'prefixsep=' + prefixsep, 'output=' + sortt4 ])
 			
 		        // Copy file for bc
 		        Path source = Paths.get(sortt4)

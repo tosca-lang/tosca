@@ -36,8 +36,10 @@ MakeModuleId[ANTLR_grammarSpec_sort] :: Text;
 → %n⟦/* Generated File. */
 import std::core
 import std::listdef
-import std::text
+«$[IfDef, "notext", %n⟨⟩, 
+  %n⟨
 import std::text::Text4
+import std::text⟩]»
 
 «{#E; "@id": STRING[#id]}#[OK]»⟧; // TODO: must match CRSX syntax
 

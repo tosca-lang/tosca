@@ -5,6 +5,7 @@
 
 #include <cassert>
 #include <string>
+#include <functional>
 
 #include "compat.h"
 
@@ -14,14 +15,19 @@ typedef _Context& Context;
 class _Ref;
 typedef _Ref& Ref;
 
-
 typedef Ref (*Function)();
 typedef Ref (*Fun0)(Context ctx);
 typedef Ref (*Fun1)(Context ctx, Ref);
 typedef Ref (*Fun2)(Context ctx, Ref, Ref);
 typedef Ref (*Fun3)(Context ctx, Ref, Ref, Ref);
 typedef Ref (*Fun4)(Context ctx, Ref, Ref, Ref, Ref);
-
+typedef Ref (*Fun5)(Context ctx, Ref, Ref, Ref, Ref, Ref);
+typedef Ref (*Fun6)(Context ctx, Ref, Ref, Ref, Ref, Ref, Ref);
+typedef Ref (*Fun7)(Context ctx, Ref, Ref, Ref, Ref, Ref, Ref, Ref);
+typedef Ref (*Fun8)(Context ctx, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref);
+typedef Ref (*Fun9)(Context ctx, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref);
+typedef Ref (*Fun10)(Context ctx, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref);
+typedef Ref (*Fun11)(Context ctx, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref);
 
 //
 //
@@ -32,14 +38,10 @@ typedef Ref (*Fun4)(Context ctx, Ref, Ref, Ref, Ref);
 //{
 
 class _Variable;
-
-//using Variable = _Variable&;
 typedef _Variable& Variable;
 
 class _Term;
-//using Term = _Term&;
 typedef _Term& Term;
-
 
 class _Ref
 {
@@ -137,7 +139,7 @@ public:
      * @param context
      * @return A new reference to the evaluated term. It might still be a thunk if the evaluation has been interrupted
      */
-    virtual Term eval(Context c)
+    virtual Term Eval(Context c)
     {
         return *this;
     }
@@ -146,6 +148,13 @@ public:
     template<typename T>
     static T Subst(Context c, T term, std::initializer_list<Term> from, std::initializer_list<Term> to);
 
+    /**
+     * Get this term variable, or nullopt when this term is not a variable use.
+     */
+    virtual Optional<_Variable> variable()
+    {
+        return Optional<_Variable>::nullopt;
+    }
 };
 // _Term
 
@@ -165,7 +174,7 @@ public:
         return function == 0 ? reinterpret_cast<_Term&>(value.value()).Data() : false;
     }
 
-    T eval(Context c)
+    T Eval(Context c)
     {
         if (!value)
         {
@@ -262,6 +271,34 @@ typedef Var_StringTerm& VarStringTerm;
 
 VarStringTerm var_StringTerm(std::string&& str);
 
+// specialize std::hash and std::equal_to
+namespace std
+{
+
+template<>
+struct hash<_StringTerm>
+{
+public:
+    size_t operator()(const _StringTerm &str) const
+    {
+        std::hash<std::string> str_hash;
+        return str_hash(str.Unbox());
+    }
+};
+
+template<>
+struct equal_to<_StringTerm>
+{
+public:
+    bool operator()( const _StringTerm& lhs, const _StringTerm& rhs ) const
+    {
+        return lhs.Unbox() == rhs.Unbox();
+    }
+};
+
+}
+;
+
 // --- Numeric type (double)
 
 class _DoubleTerm;
@@ -317,6 +354,9 @@ typedef Var_DoubleTerm& VarDoubleTerm;
 
 VarDoubleTerm var_DoubleTerm(double value);
 
+#include "mapterm.h"
+
 //}// runtime
 //} // ts
+
 #endif

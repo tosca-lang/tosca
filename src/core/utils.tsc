@@ -36,13 +36,13 @@ func AddAnnotation(#anno: String, #anno*: List<Core_canno_sort>) ->  List<Core_c
 → Cons(canno⟦ @ ⟨CONSTRUCTOR: #anno⟩ ⟧, #anno*)
 
 /* @return the string concatenation represeting the given `#qualifiedIdentifier` */
-func JoinQIdentifier(#cqiden: Core_cqidentifier_sort, #sep: String) -> String
-→ Join(QIdentifierList(#cqiden), #sep)
+func JoinQIdentifier(#cqiden: Core_cqidentifier_sort, #sep: String, #mangle:Bool) -> String
+→ Join(QIdentifierList(#cqiden, #mangle), #sep)
 
-/* @return string list of qualified identifier s*/
-func QIdentifierList(Core_cqidentifier_sort) -> List<String>
-rule QIdentifierList(cqidentifier⟦ ##cidentifier* ##cidentifier ⟧) → Append(IdentifierToString(#cidentifier), Map((ident) -> IdentifierToString(ident), #cidentifier*))
-rule QIdentifierList(cqidentifier⟦ ##CONSTRUCTOR ⟧) → (#CONSTRUCTOR,)
+/* @return string list of qualified identifiers */
+func QIdentifierList(Core_cqidentifier_sort, Bool) -> List<String>
+rule QIdentifierList(cqidentifier⟦ ##cidentifier* ##cidentifier ⟧, #mangle) → Append(IdentifierToString(#cidentifier, #mangle), Map((ident) -> IdentifierToString(ident, #mangle), #cidentifier*))
+rule QIdentifierList(cqidentifier⟦ ##CONSTRUCTOR ⟧, #mangle) → (If(#mangle, ()->Mangle(#CONSTRUCTOR), ()->#CONSTRUCTOR),)
 
 /* @return the qualified constructor converted to the equivalent qualified identifier */
 func QConsToQIden(Core_cqconstructor_sort) -> Core_cqidentifier_sort
@@ -66,9 +66,11 @@ func QSortToString(Core_csortqualifier_sort) -> String
 rule QSortToString(csortqualifier⟦ ##CONSTRUCTOR :: ⟧) → #CONSTRUCTOR
 
 /* @return the string corresponding to the given `#identifier` */
-func IdentifierToString(Core_cidentifier_sort) -> String
-rule IdentifierToString(cidentifier⟦ ##CONSTRUCTOR ⟧) → #CONSTRUCTOR
-rule IdentifierToString(cidentifier⟦ ##VARIABLE    ⟧) → #VARIABLE
+func IdentifierToString(Core_cidentifier_sort, Bool) -> String
+rule IdentifierToString(cidentifier⟦ ##CONSTRUCTOR ⟧, FALSE) → #CONSTRUCTOR
+rule IdentifierToString(cidentifier⟦ ##VARIABLE    ⟧, FALSE) → #VARIABLE
+rule IdentifierToString(cidentifier⟦ ##CONSTRUCTOR ⟧, TRUE ) → Mangle(#CONSTRUCTOR)
+rule IdentifierToString(cidentifier⟦ ##VARIABLE    ⟧, TRUE ) → Mangle(#VARIABLE)
 
 /* @return true if there is at least one sort in the given list */
 func HasSorts(#csorts? :List<Core_csorts_sort>) -> Bool
@@ -92,10 +94,15 @@ rule GetMaybeSortVars(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)    
 rule GetMaybeSortVars(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧) → #csortvars?
 rule GetMaybeSortVars(#cdecl                                                                          ) → ()
 
-/* @return extract `csort*` from `csorts?` */
+/* @return the conversion to `csort*` from `csorts?` */
 func MaybeSortsToSorts(List<Core_csorts_sort>) -> List<Core_csort_sort>
 rule MaybeSortsToSorts(csorts?⟦              ⟧)           → ()
 rule MaybeSortsToSorts(csorts?⟦ ( ##csort* ) ⟧)           → #csort*
+
+/* @return the conversion of `csort*` to `csorts?` */
+func SortsToMaybeSorts(List<Core_csort_sort>) -> List<Core_csorts_sort>
+rule SortsToMaybeSorts(csort*⟦⟧) → csorts?⟦⟧
+rule SortsToMaybeSorts(#csort* ) → csorts?⟦ ( ##csort* ) ⟧
 
 /* @return sort from sort annotation, or NONE */
 func MaybeSortAnnoToSort(List<Core_csortanno_sort>) -> Option<Core_csort_sort>
@@ -119,7 +126,7 @@ rule TermSort(cterm⟦ ##canno* ##VARIABLE : ##csort ⟧)                       
 rule TermSort(cterm⟦ { ##cmapentries } : ##csort ⟧)                               → SOME(#csort)
 rule TermSort(cterm⟦ [ x ##csortanno? ] ##cterm[x] ⟧)                             → TermSort(#cterm[x])
 rule TermSort(cterm⟦ ( x ##csortanno? ) ##cterm[x] ⟧)                             → TermSort(#cterm[x])
-rule TermSort(cterm⟦ thunk ##cterm ⟧)                                             → TermSort(#cterm)
+rule TermSort(cterm⟦ thunk ##cterm ⟧)                                             → TermSort(#cterm) // FIXME
 rule TermSort(#)                                                                  → NONE
 
 /* @return the convertion of the given optional sort to an optional sort annotation */
@@ -131,6 +138,11 @@ rule MaybeSortToMaybeSortAnno(NONE        ) → csortanno?⟦⟧
 func MaybeTermsToTerms(List<Core_cterms_sort>) -> List<Core_cterm_sort>
 rule MaybeTermsToTerms(cterms?⟦ ( ##cterm* ) ⟧) → #cterm*
 rule MaybeTermsToTerms(#cterms?               ) → ()
+
+/* @return `cterms?` from `cterms*` */
+func TermsToMaybeTerms(List<Core_cterm_sort>) -> List<Core_cterms_sort>
+rule TermsToMaybeTerms(()     ) → cterms?⟦⟧
+rule TermsToMaybeTerms(#cterm*) → cterms?⟦ ( ##cterm* ) ⟧
 
 /* @return `cterm*` from `csubst?` */
 func MaybeSubstToTerms(List<Core_csubst_sort>) -> List<Core_cterm_sort>
@@ -149,6 +161,7 @@ rule GetBoundVarSorts(#csort                       )  → ()
 func GetFOSort(Core_csort_sort) -> Core_csort_sort
 rule GetFOSort(csort⟦ [ ##csort1 ] ##csort2 ⟧) → GetFOSort(#csort2)
 rule GetFOSort(csort⟦ ( ##csort1 ) ##csort2 ⟧) → GetFOSort(#csort2)
+rule GetFOSort(csort⟦ thunk ##csort ⟧) → GetFOSort(#csort)
 rule GetFOSort(#sort) → #sort
 
 /* @return a sort corresponding to the given sort declaration */

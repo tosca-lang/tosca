@@ -75,6 +75,7 @@ task textParsers(type: PG4Task) {
     generatedFileDir = file('src/std/text')
     defaultRule = 'text'
 	ncg = true 
+	notext = true
 }
 
 // --- dependencies

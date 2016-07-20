@@ -4,6 +4,7 @@
  */
 import std::core
 import std::path
+import std::string
 import std::listdef
 import std::text
 import std::mapdef
@@ -16,9 +17,10 @@ import systemdef
 
 /* Generate C++ source file for module */
 func CppSource(#module: Module) -> Text4_text_sort
-→ text⟦#include "⟨STRING: PathFileStem(GetModuleURL(#module))⟩.h"
-†⟨CppClassDefs(MapValues<String Core_cdecl_sort>(GetDataSortsC(GetModuleContent(#module))))⟩
+→ text⟦#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩.h"
+†⟨CppClassDefs(MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
 †⟨CppFunctionDefs(SetContent(CppNewEnv, GetModuleContent(#module)))⟩⟧
+
 
 // --------- Data sorts
 

@@ -24,8 +24,8 @@ func CppHeader(#module: Module) -> Text4_text_sort
 #define †⟨HeaderGuard(GetModuleURL(#module))⟩
 #include "ts.h"
 
-#if __has_include("⟨STRING: PathFileStem(GetModuleURL(#module))⟩-extern.h")
-#include "⟨STRING: PathFileStem(GetModuleURL(#module))⟩-extern.h"
+#if __has_include("⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩-extern.h")
+#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩-extern.h"
 #endif
 
 // Imports
@@ -52,12 +52,12 @@ func CppHeader(#module: Module) -> Text4_text_sort
 
 /* Generate C++ header guard */
 func HeaderGuard(#url: String) -> Text4_text_sort
-→ text⟦_⟨STRING: UpCase(PathFileStem(#url))⟩⟧
+→ text⟦_⟨STRING: Mangle(UpCase(PathFileStem(#url)))⟩⟧
 
 /* Generate C++ header inclusion declarations */
 func CppIncludes(#imports: List<Core_cqidentifier_sort>) -> Text4_text_sort
 → TextFoldES(Map((imp) -> text⟦
-#include "⟨STRING: JoinQIdentifier(imp, "/")⟩.h"⟧, #imports))
+#include "⟨STRING: JoinQIdentifier(imp, "/", TRUE)⟩.h"⟧, #imports))
 
 // --------- Data sorts
 
@@ -89,7 +89,7 @@ func CppForwardForm(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4
   rule CppForwardForm(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦
     †⟨CppTemplatePrefix(#csortvars?)⟩
-    class †⟨SortNameToCppClassName(#sortname)⟩Var;⟧
+    class Var†⟨SortNameToCppClassName(#sortname)⟩;⟧
 
 /* Generate class and method signatures for data sorts */
 func CppClassDecls(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
@@ -110,6 +110,7 @@ public:
 
 /* Generate class and method signatures for the given data form */
 func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
+
   rule CppFormClass(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
   †⟨CppTemplatePrefix(#csortvars?)⟩
@@ -125,8 +126,14 @@ func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_t
   };⟧
 
   rule CppFormClass(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
-  → text⟦/*TODO: allows-variable*/⟧
-//†⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
+  → text⟦
+      †⟨CppTemplatePrefix(#csortvars?)⟩
+      class Var†⟨SortNameToCppClassName(#sortname)⟩: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩, _Variable
+      {
+        public:
+      };
+    ⟧
+
 // --------- Form to class fields
 
 /* Field declaration helper */

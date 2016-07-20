@@ -85,7 +85,7 @@ func LoadModuleM(#url: String, #standard:Bool) -> Module
 
 /* Convert Tosca module into an url */
 func ResolveImport(#system: TSystem, #url:String, #import: Core_cqidentifier_sort) -> String
-→ ResolveImportAux(#system, #url, QIdentifierList(#import))
+→ ResolveImportAux(#system, #url, QIdentifierList(#import, FALSE))
 
 func ResolveImportAux(#system: TSystem, #url:String, #name: List<String>) -> String
 → ConcatString(If(IsStandardPrefix(Head(#name)), ()->GetConfigDef(#system, "baseStd", ""), ()->PathJoin(PathParent(Path(GetSystemURL(#system))))),
@@ -96,7 +96,7 @@ func ResolveImportAux(#system: TSystem, #url:String, #name: List<String>) -> Str
 
 /* @return `TRUE` if the given `#import` is a standard library module */
 func IsStandardImport(#system: TSystem, #import: Core_cqidentifier_sort) -> Bool
-→ IfConfigDef(#system, "bootstrap", (v)->FALSE, ()->IsStandardPrefix(Head(QIdentifierList(#import))))
+→ IfConfigDef(#system, "bootstrap", (v)->FALSE, ()->IsStandardPrefix(Head(QIdentifierList(#import, FALSE))))
 
 /* @return `TRUE` if the given `#prefix` denotes a standard library module */
 func IsStandardPrefix(#prefix: String) -> Bool

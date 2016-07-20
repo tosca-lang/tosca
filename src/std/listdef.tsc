@@ -22,9 +22,9 @@ rule IsNotEmpty(()                   ) → FALSE
 rule IsNotEmpty(Cons(#:a, #s:List<a>)) → TRUE
 
 /* Evaluate `#true` if the specified `#list` is empty, otherwise `#false` */
-func IfEmpty<a b>(List<a>, b, b) -> b
-rule IfEmpty((                   ), #1, #2) → #1
-rule IfEmpty(Cons(#:a, #s:List<a>), #1, #2) → #2
+func IfEmpty<a b>(List<a>, ()->b, ()->b) -> b
+rule IfEmpty((        ), #1, #2) → #1()
+rule IfEmpty((#, #s...), #1, #2) → #2()
 
 /* `Null(#XS)`
    @param `#XS` list
@@ -41,9 +41,9 @@ rule IsSingleton((                     )) → FALSE
 rule IsSingleton(Cons(#:a, #s : List<a>)) → IsEmpty<a>(#s)
 
 /* Evaluate `#true` if the specified `#list` is a singleton, otherwise `#false` */
-func IfSingleton<a b>(List<a>, b, b) -> b
-rule IfSingleton((                   ), #1, #2) → #2
-rule IfSingleton(Cons(#:a, #s:List<a>), #1, #2) → IfEmpty<a b>(#s, #1, #2)
+func IfSingleton<a b>(List<a>, ()->b, ()->b) -> b
+rule IfSingleton((        ), #1, #2) → #2()
+rule IfSingleton((#, #s...), #1, #2) → IfEmpty(#s, #1, #2)
 
 /* @return head of the given `#list` */
 func Head<a>(List<a>) -> a
@@ -79,7 +79,7 @@ rule Tail(Cons(#:a, #s:List<a>)) → #s
 */
 func SubList<a>(List<a>, Numeric) -> List<a>
 rule SubList((), #index)           → ()
-rule SubList((#X, #XS...), #index) → If(NumberEqual(#index, 0), (#X, #XS...), SubList(#XS, Minus(#index, 1)))
+rule SubList((#X, #XS...), #index) → If(NumberEqual(#index, 0), ()->(#X, #XS...), ()->SubList(#XS, Minus(#index, 1)))
 
 
 /* Get element at given index (zero-based), or NONE

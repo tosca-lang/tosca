@@ -4,6 +4,7 @@
 
 #include <stdexcept>
 #include "term.h"
+#include "mapterm.h"
 #include "closure.h"
 
 class _Context
@@ -13,7 +14,7 @@ class _Context
 typedef _Context& Context;
 
 template<typename T>
-T force(Context ctx, T term)
+T& force(Context ctx, T& term)
 {
     return term;
 }

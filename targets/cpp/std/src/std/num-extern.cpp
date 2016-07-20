@@ -13,6 +13,7 @@ DoubleTerm Minus(Context ctx, DoubleTerm left, DoubleTerm right)
 _Bool& LessThan(Context ctx, DoubleTerm left, DoubleTerm right)
 {
 }
+
 _Bool& GreaterThan(Context ctx, DoubleTerm left, DoubleTerm right)
 {
 }
