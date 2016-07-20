@@ -493,7 +493,7 @@ private:
 };
 
 template<typename R, typename P1, typename P2, typename P3>
-_Closure2C<R, P1, P2, 1>& closure(R& (*function)(Context ctx, P1&, P2&, P3&), P3& c1)
+_Closure2C<R, P1, P2, 1>& closure(R& (*function)(Context ctx, P1&, P2&, P3&), Ref c1)
 {
     return *(new _Closure2C<R, P1, P2, 1>(reinterpret_cast<Function>(function), c1));
 }

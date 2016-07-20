@@ -78,8 +78,15 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
   rule InferTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #esort)
   → InferCons(#env, GetInPattern(#env), IsDataS(GetSystem(#env), #CONSTRUCTOR), #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #esort)
 
-  rule InferTerm(#env, cterm⟦ ##STRING ⟧, #esort) → PairCons(UnifySort(#env, #esort, csort⟦ String  ⟧), cterm⟦ ##STRING ⟧)
-  rule InferTerm(#env, cterm⟦ ##NUMBER ⟧, #esort) → PairCons(UnifySort(#env, #esort, csort⟦ Numeric ⟧), cterm⟦ ##NUMBER ⟧)
+  rule InferTerm(#env, cterm⟦ ##STRING ⟧, #esort)
+  → PairCons(UnifySort(#env, #esort, csort⟦ String  ⟧), cterm⟦ ##STRING ⟧)
+
+  rule InferTerm(#env, cterm⟦ ##NUMBER ⟧, #esort)
+  → PairCons(UnifySort(#env, #esort, csort⟦ Numeric ⟧), cterm⟦ ##NUMBER ⟧)
+
+  // Desugar matching higher-order function without specifying formal parameters
+  rule InferTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, csort⟦ ( ##csort1 ) ##csort ⟧)
+  → InferFormalUp([f] -> InferTerm(IAddFormalSort(#env, f, #csort1), cterm⟦ ##METAVAR ⟨cterms?: AppendTerm(cterm⟦ f ⟧, #cterms?)⟩ ##csubst? ##csortanno? ⟧, #csort), #csort1)
 
   rule InferTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #esort)
   → InferMeta(#env, GetInPattern(#env), #METAVAR, #cterms?, #csubst?, #csortanno?, #esort)
@@ -218,7 +225,7 @@ func InferMeta({String:IEnvEntry}, Bool /* Declaration? */, String, List<Core_ct
 
   // Declaration (for now only in pattern). No need to infer sorts in `#cterms?`.
   rule InferMeta(#env, TRUE, #METAVAR, #cterms?, #csubst?, #csortanno?, #esort)
-  → InferMetaDecl(#env, #METAVAR, #cterms?, #csubst?, INewHOSort(IGetDirectFormalSorts(#env), IGetDirectBoundVarSorts(#env), #esort))
+  → InferMetaDecl(#env, #METAVAR, #cterms?, #csubst?, IGetDirectFormalSorts(#env), IGetDirectBoundVarSorts(#env), #esort)
 
   // Use: retrieve meta-variable/application sort and synthesize arguments. Ignore sort annotation (maybe error if specified?).
   rule InferMeta(#env, FALSE, #METAVAR, #cterms?, #csubst?, #csortanno?, #esort)
@@ -226,8 +233,10 @@ func InferMeta({String:IEnvEntry}, Bool /* Declaration? */, String, List<Core_ct
 
 // Reconstruct meta variable/application declaration
 // apply arguments are optional: get sorts from signature.
-func InferMetaDecl(#env: {String:IEnvEntry}, #METAVAR: String, #cterms?: List<Core_cterms_sort>, #csubst?: List<Core_csubst_sort>, #csort: Core_csort_sort) -> Pair<{String:IEnvEntry} Core_cterm_sort>
-→ PairCons(AddIMetaVar(IAddMetaArgs(#env, #METAVAR, PairCons(GetFormalParamSorts(#csort), IFindBinderSorts(#env, MaybeSubstToTerms(#csubst?), FALSE))), #METAVAR, #csort), cterm⟦ ##METAVAR ##cterms? ##csubst? : ##csort ⟧)
+func InferMetaDecl(#env: {String:IEnvEntry}, #METAVAR: String, #cterms?: List<Core_cterms_sort>, #csubst?: List<Core_csubst_sort>, #fsorts: List<Core_csort_sort>, #bsorts: List<Core_csort_sort>, #csort: Core_csort_sort) -> Pair<{String:IEnvEntry} Core_cterm_sort>
+→ PairCons(AddIMetaVar(IAddMetaArgs(#env, #METAVAR, PairCons(#fsorts, IFindBinderSorts(#env, MaybeSubstToTerms(#csubst?), FALSE))), #METAVAR, #csort), cterm⟦ ##METAVAR ##cterms? ##csubst? : ##csort ⟧)
+
+//PairCons(AddIMetaVar(IAddMetaArgs(#env, #METAVAR, PairCons(GetFormalParamSorts(#csort), IFindBinderSorts(#env, MaybeSubstToTerms(#csubst?), FALSE))),
 
 func InferMetaUse({String:IEnvEntry}, String, List<Core_cterms_sort>, List<Core_csubst_sort>, Option<Core_csort_sort>, Core_csort_sort) -> Pair<{String:IEnvEntry} Core_cterm_sort>
 rule InferMetaUse(#env, #METAVAR, #cterms?, #csubst?, NONE        , #esort) → Error(ConcatString("Error: undefined meta-variable ", #METAVAR))
@@ -239,11 +248,11 @@ rule InferMetaUse1(#METAVAR, PairCons(#env, #cterms?), #csubst?, #dsort, #esort)
 
 func InferMetaUse2(String, List<Core_cterms_sort>, Pair<{String:IEnvEntry} List<Core_csubst_sort>>, Core_csort_sort, Core_csort_sort) -> Pair<{String:IEnvEntry} Core_cterm_sort>
 rule InferMetaUse2(#METAVAR, #cterms?, PairCons(#env, #csubst?), #dsort, #esort)
-→ InferMetaUse3(#env, #METAVAR, #cterms?, #csubst?, #dsort, INewHOSort(IGetDirectFormalSorts(#env), IGetDirectBoundVarSorts(#env), #esort))
+→ InferMetaUse3(#env, #METAVAR, #cterms?, #csubst?, #dsort, #esort)
 
 func InferMetaUse3({String:IEnvEntry}, String, List<Core_cterms_sort>, List<Core_csubst_sort>, Core_csort_sort, Core_csort_sort) -> Pair<{String:IEnvEntry} Core_cterm_sort>
 rule InferMetaUse3(#env, #METAVAR, #cterms?, #csubst?, #dsort, #csort)
-→ PairCons(UnifySort(#env, GetFOSort(#dsort), GetFOSort(#csort)), cterm⟦ ##METAVAR ##cterms? ##csubst? : ##csort ⟧)
+→ PairCons(UnifySort(#env, #dsort, #csort), cterm⟦ ##METAVAR ##cterms? ##csubst? : ##csort ⟧)
 
 // --- Synthesize map
 

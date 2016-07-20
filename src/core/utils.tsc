@@ -144,6 +144,10 @@ func TermsToMaybeTerms(List<Core_cterm_sort>) -> List<Core_cterms_sort>
 rule TermsToMaybeTerms(()     ) → cterms?⟦⟧
 rule TermsToMaybeTerms(#cterm*) → cterms?⟦ ( ##cterm* ) ⟧
 
+/* Append the given `#term` to the given `#cterms?`  */
+func AppendTerm(#term: Core_cterm_sort, #terms?: List<Core_cterms_sort>) -> List<Core_cterms_sort>
+→ cterms?⟦ ( ⟨cterm*: Append(#term, MaybeTermsToTerms(#terms?))⟩ ) ⟧
+
 /* @return `cterm*` from `csubst?` */
 func MaybeSubstToTerms(List<Core_csubst_sort>) -> List<Core_cterm_sort>
 rule MaybeSubstToTerms(csubst?⟦              ⟧) → ()
