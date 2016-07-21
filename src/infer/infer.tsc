@@ -611,12 +611,6 @@ func INewSortMapSorts<a>({String:IEnvEntry}, List<Core_cmapsort_sort>, ({String:
 rule INewSortMapSorts(#env, cmapsort*⟦ ##csort1 : ##csort2 ##cmapsort* ⟧, #cont) → INewSort<a>(#env, #csort1, (env sort1)->INewSort<a>(env, #csort2, (env sort2)->INewSortMapSorts<a>(env, #cmapsort*, (env mapsorts)->#cont(env, cmapsort*⟦ ⟨csort: sort1⟩ : ⟨csort: sort2⟩ ⟨cmapsort*: mapsorts⟩ ⟧))))
 rule INewSortMapSorts(#env, cmapsort*⟦                                 ⟧, #cont) → #cont(#env, cmapsort*⟦⟧)
 
-/* Create higher-order sort */
-func INewHOSort(List<Core_csort_sort>, List<Core_csort_sort>, Core_csort_sort) -> Core_csort_sort
-rule INewHOSort(Cons(#csort: Core_csort_sort, #csort*: List<Core_csort_sort>), #bvsorts, #sort) → csort⟦ ( ##csort ) ⟨csort: INewHOSort(#csort*, #bvsorts, #sort)⟩ ⟧
-rule INewHOSort((), Cons(#csort: Core_csort_sort, #csort*: List<Core_csort_sort>), #sort)       → csort⟦ [ ##csort ] ⟨csort: INewHOSort((), #csort*, #sort)⟩ ⟧
-rule INewHOSort((), (), #csort)                         → #csort
-
 /* Assemble the sort list corresponding to given formal or bound variable parameters list. */
 func IFindBinderSorts({String:IEnvEntry}, List<Core_cterm_sort>, Bool) -> List<Core_csort_sort>
 rule IFindBinderSorts(#env, cterm*⟦ ##cqconstructor ##csortargs? ##cterms? : ##csort  ##cterm* ⟧, #formal) → Cons(#csort, IFindBinderSorts(#env, #cterm*, #formal))

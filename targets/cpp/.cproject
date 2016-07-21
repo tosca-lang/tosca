@@ -7,26 +7,33 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="includePath" name="/Tosca - CPP/runtime"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="includePath" name="/Tosca - CPP/std/src"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/Tosca - CPP"/>
 						<entry flags="RESOLVED" kind="macro" name="toscart" value="/Users/villardl/Projects/tosca/master/targets/cpp/runtime"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/Tosca - CPP/Debug"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="tosca" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.MachO64" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.macosx.exe.debug.894457557" name="Debug" parent="cdt.managedbuild.config.gnu.macosx.exe.debug">
+				<configuration artifactExtension="a" artifactName="tosca" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.macosx.exe.debug.894457557" name="Debug" parent="cdt.managedbuild.config.gnu.macosx.exe.debug">
 					<folderInfo id="cdt.managedbuild.config.gnu.macosx.exe.debug.894457557." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.macosx.exe.debug.569911242" name="MacOSX GCC" superClass="cdt.managedbuild.toolchain.gnu.macosx.exe.debug">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.macosx.exe.debug.228080078" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.macosx.exe.debug"/>
 							<builder buildPath="${workspace_loc:/TransScript - CPP}/Debug" id="cdt.managedbuild.target.gnu.builder.macosx.exe.debug.1540377545" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.macosx.exe.debug"/>
-							<tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.debug.1986315440" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.debug"/>
+							<tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.debug.1986315440" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.debug">
+								<option defaultValue="true" id="macosx.c.link.option.nostart.892040599" name="Do not use standard start files (-nostartfiles)" superClass="macosx.c.link.option.nostart" valueType="boolean"/>
+								<option defaultValue="true" id="macosx.c.link.option.nodeflibs.849671536" name="Do not use default libraries (-nodefaultlibs)" superClass="macosx.c.link.option.nodeflibs" valueType="boolean"/>
+								<option defaultValue="true" id="macosx.c.link.option.shared.388702401" name="Shared (-dynamiclib)" superClass="macosx.c.link.option.shared" valueType="boolean"/>
+							</tool>
 							<tool id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug.1707249683" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug">
+								<option defaultValue="true" id="macosx.cpp.link.option.shared.2118478873" name="Shared (-dynamiclib)" superClass="macosx.cpp.link.option.shared" useByScannerDiscovery="false" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.macosx.cpp.linker.input.1791612045" superClass="cdt.managedbuild.tool.macosx.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -143,7 +150,7 @@
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
 		<configuration configurationName="Debug">
-			<resource resourceType="FOLDER" workspacePath="/TransScript - CPP/runtime"/>
+			<resource resourceType="PROJECT" workspacePath="/Tosca - CPP"/>
 		</configuration>
 		<configuration configurationName="Release">
 			<resource resourceType="PROJECT" workspacePath="/TransScript - CPP"/>
@@ -168,4 +175,5 @@
 			</target>
 		</buildTargets>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cproject>

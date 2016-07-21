@@ -100,7 +100,7 @@ rule CppClassDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 → text⟦
 †⟨TextMapFold((cform) -> CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*)⟩
 †⟨CppTemplatePrefix(#csortvars?)⟩
-class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩ : public _Term
+class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩ : public †⟨CppExtendTerm(#CONSTRUCTOR, #cform*)⟩
 {
 public:
   †⟨TextMapFold((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*)⟩
@@ -108,29 +108,35 @@ public:
 †⟨TextMapFold((cform) -> CppFormClass(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩
 ⟧
 
+func CppExtendTerm(#sortname: String, #form*: List<Core_cform_sort>) -> Text4_text_sort
+→ IfPresent(PickFirst(#form*, (form)->IsAllowsVar(form)),
+    (form)->text⟦_TypedTerm<Var†⟨SortNameToCppClassName(#sortname)⟩>⟧,
+    ()->text⟦_Term⟧)
+
 /* Generate class and method signatures for the given data form */
 func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
 
   rule CppFormClass(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
-  †⟨CppTemplatePrefix(#csortvars?)⟩
-  class †⟨FormCppClassName(#CONSTRUCTOR)⟩: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩
-  {
-  public:
-    †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
-    †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
-    †⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
+      †⟨CppTemplatePrefix(#csortvars?)⟩
+      class †⟨FormCppClassName(#CONSTRUCTOR)⟩: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩
+      {
+      public:
+        †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
+        †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
+        †⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
 
-  protected:
-    †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppDeclField(isvar, type, index, subindex))⟩
-  };⟧
+      protected:
+        †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppDeclField(isvar, type, index, subindex))⟩
+      };⟧
 
   rule CppFormClass(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦
       †⟨CppTemplatePrefix(#csortvars?)⟩
-      class Var†⟨SortNameToCppClassName(#sortname)⟩: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩, _Variable
+      class Var†⟨SortNameToCppClassName(#sortname)⟩: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩, public _TypedVariable<†⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩>
       {
         public:
+          †⟨CppFormConstructorVar(#sortname, #csortvars?, TRUE)⟩
       };
     ⟧
 

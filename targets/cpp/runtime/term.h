@@ -40,6 +40,14 @@ typedef Ref (*Fun11)(Context ctx, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, R
 class _Variable;
 typedef _Variable& Variable;
 
+class _VariableUse;
+
+template<typename T>
+class _TypedVariableUse;
+
+template<typename T>
+class _TypedVariable;
+
 class _Term;
 typedef _Term& Term;
 
@@ -148,15 +156,19 @@ public:
     template<typename T>
     static T Subst(Context c, T term, std::initializer_list<Term> from, std::initializer_list<Term> to);
 
-    /**
-     * Get this term variable, or nullopt when this term is not a variable use.
-     */
-    virtual Optional<_Variable> variable()
-    {
-        return Optional<_Variable>::nullopt;
-    }
 };
 // _Term
+
+/* Templated term */
+template<typename V>
+class _TypedTerm: public _Term
+{
+public:
+    Optional<V> variable()
+    {
+        return Optional<V>::nullopt;
+    }
+};
 
 /* Unevaluated function (thunk) */
 template<typename T>
@@ -197,7 +209,6 @@ protected:
     {
         value = make_optional(value);
     }
-
 };
 
 /*
@@ -206,14 +217,58 @@ protected:
 class _Variable: public _Term
 {
 protected:
-    _Variable(std::string name);
+    _Variable(std::string&& name);
 
     /* Globally unique variable name */
-    std::string name;
+    std::string& name;
 
     /* Count the number of variable use (in the term tree) */
     unsigned long uses;
 };
+
+/*
+ * Templated typed variable
+ */
+template<typename T>
+class _TypedVariable: public _Variable
+{
+public:
+    _TypedVariable(std::string&& name) : _Variable(std::move(name)) {}
+
+
+    T& use()
+    {
+        return *(new _TypedVariableUse<T>(*this));
+    }
+};
+
+/* Variable Use */
+class _VariableUse: public _Term
+{
+public:
+
+};
+
+/*
+ * Templated typed variable use
+ */
+template<typename T>
+class _TypedVariableUse: public _VariableUse
+{
+public:
+    _TypedVariableUse(T& v) : var(v) {}
+
+    T& variable() {
+        return var;
+    }
+protected:
+    // the used variable
+    _TypedVariable<T>& var;
+
+};
+
+
+
 
 /**
  * String term type
@@ -231,7 +286,7 @@ public:
     virtual ~_StringTerm()
     {
     }
-    ;
+
 
     /** Peek at native string value */
     virtual std::string& Unbox() const
@@ -262,10 +317,11 @@ public:
 /**
  * Variable of type String
  */
-class Var_StringTerm: public _StringTerm, _Variable
+class Var_StringTerm: public _StringTerm, public _TypedVariable<_StringTerm>
 {
 public:
-    Var_StringTerm(std::string& name);
+    Var_StringTerm(std::string&& name);
+
 };
 typedef Var_StringTerm& VarStringTerm;
 
@@ -290,7 +346,7 @@ template<>
 struct equal_to<_StringTerm>
 {
 public:
-    bool operator()( const _StringTerm& lhs, const _StringTerm& rhs ) const
+    bool operator()(const _StringTerm& lhs, const _StringTerm& rhs) const
     {
         return lhs.Unbox() == rhs.Unbox();
     }
@@ -314,7 +370,6 @@ public:
     virtual ~_DoubleTerm()
     {
     }
-    ;
 
     /** Peek at native double value */
     virtual double Unbox() const
@@ -335,7 +390,6 @@ protected:
 
 public:
     _ValDoubleTerm(double value);
-    ~_ValDoubleTerm();
 
     Term Copy(Context c);
     double Unbox() const;
@@ -345,10 +399,10 @@ public:
 /*
  * Variable of type Numeric
  */
-class Var_DoubleTerm: public _DoubleTerm, _Variable
+class Var_DoubleTerm: public _DoubleTerm, public _TypedVariable<_DoubleTerm>
 {
 public:
-    Var_DoubleTerm(std::string& name);
+    Var_DoubleTerm(std::string&& name);
 };
 typedef Var_DoubleTerm& VarDoubleTerm;
 

@@ -37,9 +37,11 @@ void _Ref::Release()
 
 // --- Term
 
+// --- Variable Use
+
 // --- Variable
 
-_Variable::_Variable(std::string n) :
+_Variable::_Variable(std::string&& n) :
         name(n), uses(0)
 {
 }
@@ -53,12 +55,18 @@ _StringTerm& stringTerm(std::string&& val)
 
 VarStringTerm var_StringTerm(std::string&& name)
 {
-    return *(new Var_StringTerm(*(new std::string(name))));
+    return *(new Var_StringTerm(std::move(name)));
+}
+
+Var_StringTerm::Var_StringTerm(std::string&& name) :
+        _TypedVariable(std::move(name))
+{
 }
 
 _ValStringTerm::_ValStringTerm(std::string& val) :
         value(val)
-{}
+{
+}
 
 _ValStringTerm::~_ValStringTerm()
 {
@@ -76,8 +84,6 @@ std::string& _ValStringTerm::Unbox() const
     return value;
 }
 
-Var_StringTerm::Var_StringTerm(std::string& name) : _Variable(name) {}
-
 // --- Numeric
 //
 _DoubleTerm& doubleTerm(double val)
@@ -87,12 +93,18 @@ _DoubleTerm& doubleTerm(double val)
 
 VarDoubleTerm varDoubleTerm(std::string&& name)
 {
-    return *(new Var_DoubleTerm(*(new std::string(name))));
+    return *(new Var_DoubleTerm(std::move(name)));
+}
+
+Var_DoubleTerm::Var_DoubleTerm(std::string&& name) :
+        _TypedVariable(std::move(name))
+{
 }
 
 _ValDoubleTerm::_ValDoubleTerm(double val) :
         value(val)
-{}
+{
+}
 
 Term _ValDoubleTerm::Copy(Context c)
 {
@@ -104,9 +116,6 @@ double _ValDoubleTerm::Unbox() const
 {
     return value;
 }
-
-Var_DoubleTerm::Var_DoubleTerm(std::string& name) : _Variable(name) {}
-
 
 //
 //} // runtime

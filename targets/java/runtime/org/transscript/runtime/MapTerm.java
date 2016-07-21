@@ -235,65 +235,31 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 			return value == null ? Core.NONE(context) : (Option<V>) Core.SOME(context, value.ref());
 		}
 
-		@SuppressWarnings("unchecked")
 		public List<V> values(Context context)
 		{
-			final ConstructionDescriptor cons = context.lookupDescriptor("Cons");
-			final ConstructionDescriptor nil = context.lookupDescriptor("Nil");
+			Listdef.List<V> c = Listdef.Nil(context);
 
-			if (isEmpty())
-				return (List<V>) nil.make();
-
-			// TODO: right-to-left
-			Listdef.List<V> top = (List<V>) cons.make();
-			Listdef.List<V> c = top;
-			Listdef.List<V> nc = null;
-			Listdef.List<V> pc = null;
-
-			for (Term term : values())
+			for (V term : values())
 			{
-				c.setSub(0, term.ref());
-
-				nc = (List<V>) cons.make();
-				c.setSub(1, nc);
-				pc = c;
+				Listdef.List<V> nc = Listdef.Cons(context, Ref.ref(term), c);
 				c = nc;
 			}
-			nc.release();
 
-			pc.setSub(1, nil.make());
-			return top;
+			return c;
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		public List<K> keys(Context context)
 		{
-			final ConstructionDescriptor cons = context.lookupDescriptor("Cons");
-			final ConstructionDescriptor nil = context.lookupDescriptor("Nil");
+			Listdef.List<K> c = Listdef.Nil(context);
 
-			if (isEmpty())
-				return (List<K>) nil.make();
-
-			// TODO: right-to-left
-			Listdef.List<K> top = (List<K>) cons.make();
-			Listdef.List<K> c = top;
-			Listdef.List<K> nc = null;
-			Listdef.List<K> pc = null;
-
-			for (Term term : keySet())
+			for (K term : keySet())
 			{
-				c.setSub(0, term.ref());
-
-				nc = (List<K>) cons.make();
-				c.setSub(1, nc);
-				pc = c;
+				Listdef.List<K> nc = Listdef.Cons(context, Ref.ref(term), c);
 				c = nc;
 			}
-			nc.release();
 
-			pc.setSub(1, nil.make());
-			return top;
+			return c;
 		}
 
 		/**
@@ -309,7 +275,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 			{
 				for (V val : vars.values())
 				{
-					Listdef.List<V> nc = Listdef.Cons(context, val, c);
+					Listdef.List<V> nc = Listdef.Cons(context, Ref.ref(val), c);
 					c = nc;
 				}
 			}

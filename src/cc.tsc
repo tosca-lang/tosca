@@ -32,80 +32,80 @@ func CCRulesUp(#key: String, #env: CCEnv) -> Content
 → PutRulesL(CCEnvContent(#env), #key, CCEnvRules(#env))
 
 func CCRule(CCEnv, Core_cdecl_sort) -> CCEnv
-rule CCRule(#env, cdecl⟦ rule ##cterm1 → ##cterm2 ⟧) → Debug(PrintTerm("", cdecl⟦ rule ##cterm1 → ##cterm2 ⟧), ()->CCRuleUp(#cterm1, CCPatternTerm(#env, #cterm1, (env)->CCTerm(env, #cterm2))))
+rule CCRule(#env, cdecl⟦ rule ##cterm1 → ##cterm2 ⟧) → Debug(PrintTerm("", cdecl⟦ rule ##cterm1 → ##cterm2 ⟧), ()->CCRuleUp(#cterm1, CCPatternTerm(#env, #cterm1, CCNewBinderStack, (env)->CCTerm(env, #cterm2))))
 
 func CCRuleUp(Core_cterm_sort, Pair<CCEnv Core_cterm_sort>) -> CCEnv
 rule CCRuleUp(#cterm1, PairCons(#env, #cterm2)) → Debug(PrintTerm("", cdecl⟦ rule ##cterm1 → ##cterm2 ⟧), ()->CCEnvAddRule(#env, cdecl⟦ rule ##cterm1 → ##cterm2 ⟧))
 
 // --- Pattern traversal: record variable and meta-variable sorts
 
-func CCPatternTerm(CCEnv, Core_cterm_sort, (CCEnv)-> Pair<CCEnv Core_cterm_sort>) -> Pair<CCEnv Core_cterm_sort>
+func CCPatternTerm(CCEnv, Core_cterm_sort, CCBinders, (CCEnv)-> Pair<CCEnv Core_cterm_sort>) -> Pair<CCEnv Core_cterm_sort>
 
-  rule CCPatternTerm(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧, #cont)
-  → CCPatternMaybeTerms(#env, #cterms?, #cont)
+  rule CCPatternTerm(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧, #binders, #cont)
+  → CCPatternMaybeTerms(#env, #cterms?, #binders, #cont)
 
-  rule CCPatternTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? : ##csort ⟧, #cont)
-  → CCPatternMaybeTerms(CCEnvAddMetaVar(#env, #METAVAR, CCMeta(#METAVAR, #csort)), #cterms?, (env)->CCPatternMaybeSubst(env, #csubst?, #cont))
+  rule CCPatternTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? : ##csort ⟧, #binders,  #cont)
+  → CCPatternMaybeTerms(CCEnvAddMetaVar(#env, #METAVAR, CCMeta(#METAVAR, HOSort(CCGetBinderSorts(#cterms?, #binders), (), #csort))), #cterms?, #binders, (env)->CCPatternMaybeSubst(env, #csubst?, #binders, #cont))
 
-  rule CCPatternTerm(#env, cterm⟦ ##cliteral ⟧, #cont)
+  rule CCPatternTerm(#env, cterm⟦ ##cliteral ⟧, #binders, #cont)
   → #cont(#env)
 
-  rule CCPatternTerm(#env, cterm⟦ ##canno* ##VARIABLE : ##csort ⟧, #cont)
+  rule CCPatternTerm(#env, cterm⟦ ##canno* ##VARIABLE : ##csort ⟧, #binders, #cont)
   → #cont(CCEnvAddVar(#env, #VARIABLE, CCVar(#VARIABLE, #csort)))
 
-  rule CCPatternTerm(#env, cterm⟦ ##canno* ##VARIABLE ⟧, #cont) // bound vars and formal arguments don't have a sort
+  rule CCPatternTerm(#env, cterm⟦ ##canno* ##VARIABLE ⟧, #binders, #cont) // bound vars and formal arguments don't have a sort
   → #cont(#env)
 
-  rule CCPatternTerm(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧, #cont)
-  → CCPatternTerm(#env, #cterm[x], #cont)
+  rule CCPatternTerm(#env, cterm⟦ [ x : ##csort ] ##cterm[x] ⟧, #binders, #cont)
+  → CCPatternTerm(#env, #cterm[x], CCBinderAdd(#binders, PairCons(x, #csort)), #cont)
 
-  rule CCPatternTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
-  → CCPatternTerm(#env, #cterm[f], #cont)
+  rule CCPatternTerm(#env, cterm⟦ ( f : ##csort ) ##cterm[f] ⟧, #binders, #cont)
+  → CCPatternTerm(#env, #cterm[f], CCBinderAdd(#binders, PairCons(f, #csort)), #cont)
 
-  rule CCPatternTerm(#env, cterm⟦ { ##cmapentries? } : { ##cmapsort } ⟧, #cont)
-  → CCPatternMaybeMapEntries(#env, #cmapentries?, #cmapsort, #cont)
+  rule CCPatternTerm(#env, cterm⟦ { ##cmapentries? } : { ##cmapsort } ⟧, #binders, #cont)
+  → CCPatternMaybeMapEntries(#env, #cmapentries?, #cmapsort, #binders, #cont)
 
-  rule CCPatternTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)
-  → CCPatternTerm(#env, #cterm, #cont)
+  rule CCPatternTerm(#env, cterm⟦ thunk ##cterm ⟧, #binders, #cont)
+  → CCPatternTerm(#env, #cterm, #binders, #cont)
 
-  rule CCPatternTerm(#env, #cterm, #cont) → Error(ConcatString("Internal Error: missing sort annotation\n", PrintTerm("", #cterm)))
+  rule CCPatternTerm(#env, #cterm, #binders, #cont) → Error(ConcatString("Internal Error: missing sort annotation\n", PrintTerm("", #cterm)))
 
-func CCPatternMaybeTerms(CCEnv, List<Core_cterms_sort>, (CCEnv)-> Pair<CCEnv Core_cterm_sort>) -> Pair<CCEnv Core_cterm_sort>
+func CCPatternMaybeTerms(CCEnv, List<Core_cterms_sort>, CCBinders, (CCEnv)-> Pair<CCEnv Core_cterm_sort>) -> Pair<CCEnv Core_cterm_sort>
 
-  rule CCPatternMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, #cont) → CCPatternTerms(#env, #cterm*, #cont)
-  rule CCPatternMaybeTerms(#env, #cterms?               , #cont) → #cont(#env)
+  rule CCPatternMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, #binders, #cont) → CCPatternTerms(#env, #cterm*, #binders,#cont)
+  rule CCPatternMaybeTerms(#env, #cterms?               , #binders, #cont) → #cont(#env)
 
-func CCPatternTerms(CCEnv, List<Core_cterm_sort>, (CCEnv)-> Pair<CCEnv Core_cterm_sort>) -> Pair<CCEnv Core_cterm_sort>
+func CCPatternTerms(CCEnv, List<Core_cterm_sort>, CCBinders, (CCEnv)-> Pair<CCEnv Core_cterm_sort>) -> Pair<CCEnv Core_cterm_sort>
 
-  rule CCPatternTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, #cont) → CCPatternTerm(#env, #cterm, (env)->CCPatternTerms(env, #cterm*, #cont))
-  rule CCPatternTerms(#env, cterm*⟦                  ⟧, #cont) → #cont(#env)
+  rule CCPatternTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, #binders, #cont) → CCPatternTerm(#env, #cterm, #binders, (env)->CCPatternTerms(env, #cterm*, #binders, #cont))
+  rule CCPatternTerms(#env, cterm*⟦                  ⟧, #binders, #cont) → #cont(#env)
 
-func CCPatternMaybeSubst(CCEnv, List<Core_csubst_sort>, (CCEnv)-> Pair<CCEnv Core_cterm_sort>) -> Pair<CCEnv Core_cterm_sort>
+func CCPatternMaybeSubst(CCEnv, List<Core_csubst_sort>, CCBinders, (CCEnv)-> Pair<CCEnv Core_cterm_sort>) -> Pair<CCEnv Core_cterm_sort>
 
-  rule CCPatternMaybeSubst(#env, csubst?⟦ [ ##cterm* ] ⟧, #cont) → CCPatternTerms(#env, #cterm*, #cont)
-  rule CCPatternMaybeSubst(#env, #csubst?               , #cont) → #cont(#env)
+  rule CCPatternMaybeSubst(#env, csubst?⟦ [ ##cterm* ] ⟧, #binders, #cont) → CCPatternTerms(#env, #cterm*, #binders, #cont)
+  rule CCPatternMaybeSubst(#env, #csubst?               , #binders, #cont) → #cont(#env)
 
-func CCPatternMaybeMapEntries(CCEnv, List<Core_cmapentries_sort>, Core_cmapsort_sort, (CCEnv)-> Pair<CCEnv Core_cterm_sort>) -> Pair<CCEnv Core_cterm_sort>
+func CCPatternMaybeMapEntries(CCEnv, List<Core_cmapentries_sort>, Core_cmapsort_sort, CCBinders, (CCEnv)-> Pair<CCEnv Core_cterm_sort>) -> Pair<CCEnv Core_cterm_sort>
 
-  rule CCPatternMaybeMapEntries(#env, cmapentries?⟦ ##cmapentry* ⟧, #cmapsort, #cont) → CCPatternMapEntries(#env, #cmapentry*, #cmapsort, #cont)
-  rule CCPatternMaybeMapEntries(#env, cmapentries?⟦              ⟧, #cmapsort, #cont) → #cont(#env)
+  rule CCPatternMaybeMapEntries(#env, cmapentries?⟦ ##cmapentry* ⟧, #cmapsort, #binders, #cont) → CCPatternMapEntries(#env, #cmapentry*, #cmapsort, #binders, #cont)
+  rule CCPatternMaybeMapEntries(#env, cmapentries?⟦              ⟧, #cmapsort, #binders, #cont) → #cont(#env)
 
-func CCPatternMapEntries(CCEnv, List<Core_cmapentry_sort>, Core_cmapsort_sort, (CCEnv)-> Pair<CCEnv Core_cterm_sort>) -> Pair<CCEnv Core_cterm_sort>
+func CCPatternMapEntries(CCEnv, List<Core_cmapentry_sort>, Core_cmapsort_sort, CCBinders, (CCEnv)-> Pair<CCEnv Core_cterm_sort>) -> Pair<CCEnv Core_cterm_sort>
 
-  rule CCPatternMapEntries(#env, cmapentry*⟦ ##cmapentry ##cmapentry* ⟧, #cmapsort, #cont) → CCPatternMapEntry(#env, #cmapentry, #cmapsort, (env)->CCPatternMapEntries(env, #cmapentry*, #cmapsort, #cont))
-  rule CCPatternMapEntries(#env, cmapentry*⟦                          ⟧, #cmapsort, #cont) → #cont(#env)
+  rule CCPatternMapEntries(#env, cmapentry*⟦ ##cmapentry ##cmapentry* ⟧, #cmapsort, #binders, #cont) → CCPatternMapEntry(#env, #cmapentry, #cmapsort, #binders, (env)->CCPatternMapEntries(env, #cmapentry*, #cmapsort, #binders, #cont))
+  rule CCPatternMapEntries(#env, cmapentry*⟦                          ⟧, #cmapsort, #binders, #cont) → #cont(#env)
 
-func CCPatternMapEntry(CCEnv, Core_cmapentry_sort, Core_cmapsort_sort, (CCEnv)-> Pair<CCEnv Core_cterm_sort>) -> Pair<CCEnv Core_cterm_sort>
+func CCPatternMapEntry(CCEnv, Core_cmapentry_sort, Core_cmapsort_sort, CCBinders, (CCEnv)-> Pair<CCEnv Core_cterm_sort>) -> Pair<CCEnv Core_cterm_sort>
 
-  rule CCPatternMapEntry(#env, cmapentry⟦ : ##METAVAR          ⟧, #cmapsort                       , #cont) → #cont(CCEnvAddMetaVar(#env, #METAVAR, CCMeta(#METAVAR, csort⟦ { ##cmapsort } ⟧)))
-  rule CCPatternMapEntry(#env, cmapentry⟦ ¬ ##METAVAR          ⟧, #cmapsort                       , #cont) → #cont(CCEnvAddMetaVar(#env, #METAVAR, CCMeta(#METAVAR, csort⟦ { ##cmapsort } ⟧)))
-  rule CCPatternMapEntry(#env, cmapentry⟦ ##METAVAR : ##cterm  ⟧, cmapsort⟦ ##csort1 : ##csort2 ⟧ , #cont) → CCPatternTerm(CCEnvAddMetaVar(#env, #METAVAR, CCMeta(#METAVAR, #csort1)), #cterm, #cont)
-  rule CCPatternMapEntry(#env, cmapentry⟦ ##VARIABLE           ⟧, #cmapsort                       , #cont) → #cont(CCEnvAddVar(#env, #VARIABLE, CCVar(#VARIABLE, csort⟦ String ⟧))) // TODO: sort
-  rule CCPatternMapEntry(#env, cmapentry⟦ ¬ ##VARIABLE         ⟧, #cmapsort                       , #cont) → #cont(CCEnvAddVar(#env, #VARIABLE, CCVar(#VARIABLE, csort⟦ String ⟧))) // TODO: sort
-  rule CCPatternMapEntry(#env, cmapentry⟦ ##VARIABLE : ##cterm ⟧, #cmapsort                       , #cont) → CCPatternTerm(CCEnvAddVar(#env, #VARIABLE, CCVar(#VARIABLE, csort⟦ String ⟧)), #cterm, #cont)  // TODO: sort
-  rule CCPatternMapEntry(#env, cmapentry⟦ ##STRING             ⟧, #cmapsort                       , #cont) → #cont(#env)
-  rule CCPatternMapEntry(#env, cmapentry⟦ ¬ ##STRING           ⟧, #cmapsort                       , #cont) → #cont(#env)
-  rule CCPatternMapEntry(#env, cmapentry⟦ ##STRING : ##cterm   ⟧, #cmapsort                       , #cont) → CCPatternTerm(#env, #cterm, #cont)
+  rule CCPatternMapEntry(#env, cmapentry⟦ : ##METAVAR          ⟧, #cmapsort                       , #binders, #cont) → #cont(CCEnvAddMetaVar(#env, #METAVAR, CCMeta(#METAVAR, csort⟦ { ##cmapsort } ⟧)))
+  rule CCPatternMapEntry(#env, cmapentry⟦ ¬ ##METAVAR          ⟧, #cmapsort                       , #binders, #cont) → #cont(CCEnvAddMetaVar(#env, #METAVAR, CCMeta(#METAVAR, csort⟦ { ##cmapsort } ⟧)))
+  rule CCPatternMapEntry(#env, cmapentry⟦ ##METAVAR : ##cterm  ⟧, cmapsort⟦ ##csort1 : ##csort2 ⟧ , #binders, #cont) → CCPatternTerm(CCEnvAddMetaVar(#env, #METAVAR, CCMeta(#METAVAR, #csort1)), #cterm, #binders, #cont)
+  rule CCPatternMapEntry(#env, cmapentry⟦ ##VARIABLE           ⟧, #cmapsort                       , #binders, #cont) → #cont(CCEnvAddVar(#env, #VARIABLE, CCVar(#VARIABLE, csort⟦ String ⟧))) // TODO: sort
+  rule CCPatternMapEntry(#env, cmapentry⟦ ¬ ##VARIABLE         ⟧, #cmapsort                       , #binders, #cont) → #cont(CCEnvAddVar(#env, #VARIABLE, CCVar(#VARIABLE, csort⟦ String ⟧))) // TODO: sort
+  rule CCPatternMapEntry(#env, cmapentry⟦ ##VARIABLE : ##cterm ⟧, #cmapsort                       , #binders, #cont) → CCPatternTerm(CCEnvAddVar(#env, #VARIABLE, CCVar(#VARIABLE, csort⟦ String ⟧)), #cterm, #binders, #cont)  // TODO: sort
+  rule CCPatternMapEntry(#env, cmapentry⟦ ##STRING             ⟧, #cmapsort                       , #binders, #cont) → #cont(#env)
+  rule CCPatternMapEntry(#env, cmapentry⟦ ¬ ##STRING           ⟧, #cmapsort                       , #binders, #cont) → #cont(#env)
+  rule CCPatternMapEntry(#env, cmapentry⟦ ##STRING : ##cterm   ⟧, #cmapsort                       , #binders, #cont) → CCPatternTerm(#env, #cterm, #binders, #cont)
 
 // --- Pre-traversal handlers
 
@@ -364,6 +364,30 @@ func CCCheckSameVariables(List<String>, List<Core_cterm_sort>) -> Bool
   rule CCCheckSameVariables((#x, #xs...), cterm*⟦ ##canno* ##VARIABLE ##csortanno? ##cterm* ⟧) → If(SameVariable(#x, #VARIABLE), ()->CCCheckSameVariables(#xs, #cterm*), ()->FALSE)
   rule CCCheckSameVariables(#vars       , #cterm*                                           ) → FALSE
 
+
+// -- Formal and bound
+
+enum CCBinders | CCBinders(List<Pair<String Core_csort_sort>>)
+
+func CCNewBinderStack -> CCBinders
+→ CCBinders(())
+
+func CCBinderAdd(CCBinders, Pair<String Core_csort_sort>) -> CCBinders
+rule CCBinderAdd(CCBinders(#), #binder) → CCBinders((#binder, #...))
+
+func CCGetBinderSorts(List<Core_cterms_sort>, CCBinders) -> List<Core_csort_sort>
+rule CCGetBinderSorts(cterms?⟦              ⟧, #binders) → ()
+rule CCGetBinderSorts(cterms?⟦ ( ##cterm* )⟧, CCBinders(#binders)) → Map((term)->CCFindSort(term, #binders), #cterm*)
+
+func CCFindSort(Core_cterm_sort, List<Pair<String Core_csort_sort>>) -> Core_csort_sort
+
+  rule CCFindSort(cterm⟦ ##VARIABLE ##csortanno? ⟧, (PairCons(#var, #sort), #binders...))
+  → If(SameVariable(#VARIABLE, #var),
+      ()->#sort,
+      ()->CCFindSort(cterm⟦ ##VARIABLE ⟧, #binders))
+
+  rule CCFindSort(cterm⟦ ##VARIABLE ##csortanno? ⟧, ())
+  → Error("Internal Error: undefined binder.")
 
 // -- Environment
 
