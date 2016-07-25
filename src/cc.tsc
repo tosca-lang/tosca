@@ -184,10 +184,16 @@ func CCLiftedDeclCC(#env: CCEnv, #name:String, #funcdecl: Core_cdecl_sort, #rule
                                          (#ruledecl,),
                                          PutRulesL(PutFuncSortL(CCEnvContent(#env), #funcdecl, FALSE), #name, (#ruledecl,)))))
 
+func CCMaybeSortVars(#env: CCEnv, #name:String) -> List<Core_csortvars_sort>
+→ GetMaybeSortVars(UnSOME(GetFuncSort(CCEnvContent(#env), #name)))
+
 // -- Generate sort for the lifted function
 
 func CCLiftedFunSort(#env : CCEnv, #name: String, #cterm: Core_cterm_sort, #captures: {String : Core_cterm_sort}) -> Core_cdecl_sort
-→ cdecl⟦ func ⟨csortvars?: CCMaybeSortVars(#env, #name)⟩ ⟨csort: CCReturnSort(TermSort(#cterm))⟩ ⟨CONSTRUCTOR: CCName(#env)⟩ ⟨csorts?: SortsToMaybeSorts(Concat(UnZipS(CCEnvParams(#env)), CCCaptureSorts(Concat(MapVarValues(#captures), MapValues(#captures)))))⟩ ⟧
+→ CCLiftedFunSort2(#env, #cterm, Concat(UnZipS(CCEnvParams(#env)), CCCaptureSorts(Concat(MapVarValues(#captures), MapValues(#captures)))))
+
+func CCLiftedFunSort2(#env : CCEnv, #cterm: Core_cterm_sort, #sorts: List<Core_csort_sort>) -> Core_cdecl_sort
+→ cdecl⟦ func ⟨csortvars?: CCUsedSortVars(#sorts)⟩ ⟨csort: CCReturnSort(TermSort(#cterm))⟩ ⟨CONSTRUCTOR: CCName(#env)⟩ ⟨csorts?: SortsToMaybeSorts(#sorts)⟩ ⟧
 
 func CCReturnSort(Option<Core_csort_sort>) -> Core_csort_sort
 rule CCReturnSort(NONE)         → Error("Fatal error: missing term sort annotation (needed by closure converter)")
@@ -196,8 +202,9 @@ rule CCReturnSort(SOME(#csort)) → GetFOSort(#csort)
 func CCCaptureSorts(#terms: List<Core_cterm_sort>) -> List<Core_csort_sort>
 → Map((term)->UnSOME(TermSort(term)), #terms)
 
-func CCMaybeSortVars(#env: CCEnv, #name:String) -> List<Core_csortvars_sort>
-→ GetMaybeSortVars(UnSOME(GetFuncSort(CCEnvContent(#env), #name)))
+/* Gets the list of sort variables used in the given list of `#sorts` */
+func CCUsedSortVars(#sorts: List<Core_csort_sort>) -> List<Core_csortvars_sort>
+→ VarsToMaybeSortVars(SortVarsSorts(#sorts, ()))
 
 // -- Generate rule for the lifted function.
 

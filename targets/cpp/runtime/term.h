@@ -9,25 +9,85 @@
 
 #include "compat.h"
 
-class _Context;
-typedef _Context& Context;
+class Context;
+class Ref;
 
-class _Ref;
-typedef _Ref& Ref;
-
-typedef Ref (*Function)();
-typedef Ref (*Fun0)(Context ctx);
-typedef Ref (*Fun1)(Context ctx, Ref);
-typedef Ref (*Fun2)(Context ctx, Ref, Ref);
-typedef Ref (*Fun3)(Context ctx, Ref, Ref, Ref);
-typedef Ref (*Fun4)(Context ctx, Ref, Ref, Ref, Ref);
-typedef Ref (*Fun5)(Context ctx, Ref, Ref, Ref, Ref, Ref);
-typedef Ref (*Fun6)(Context ctx, Ref, Ref, Ref, Ref, Ref, Ref);
-typedef Ref (*Fun7)(Context ctx, Ref, Ref, Ref, Ref, Ref, Ref, Ref);
-typedef Ref (*Fun8)(Context ctx, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref);
-typedef Ref (*Fun9)(Context ctx, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref);
-typedef Ref (*Fun10)(Context ctx, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref);
-typedef Ref (*Fun11)(Context ctx, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref);
+typedef Ref& (*Function)();
+typedef Ref& (*Fun0)(Context& ctx);
+typedef Ref& (*Fun1)(Context& ctx, Ref&);
+typedef Ref& (*Fun2)(Context& ctx, Ref&, Ref&);
+typedef Ref& (*Fun3)(Context& ctx, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun4)(Context& ctx, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun5)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun6)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun7)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun8)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun9)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun10)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun11)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun12)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun13)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun14)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun15)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&);
+typedef Ref& (*Fun16)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&);
+typedef Ref& (*Fun17)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&);
+typedef Ref& (*Fun18)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun19)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun20)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun21)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun22)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun23)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun24)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun25)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun26)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun27)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun28)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun29)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun30)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun31)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun32)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun33)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&);
+typedef Ref& (*Fun34)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&);
+typedef Ref& (*Fun35)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&);
+typedef Ref& (*Fun36)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun37)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun38)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun39)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
+typedef Ref& (*Fun40)(Context& ctx, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&,
+        Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&, Ref&);
 
 //
 //
@@ -37,21 +97,17 @@ typedef Ref (*Fun11)(Context ctx, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, Ref, R
 //namespace runtime
 //{
 
-class _Variable;
-typedef _Variable& Variable;
+template<typename VU>
+class VariableUse;
 
-class _VariableUse;
+class UVariable;
 
-template<typename T>
-class _TypedVariableUse;
+template<typename VU>
+class Variable;
 
-template<typename T>
-class _TypedVariable;
+class Term;
 
-class _Term;
-typedef _Term& Term;
-
-class _Ref
+class Ref
 {
 public:
     /**
@@ -60,11 +116,11 @@ public:
     unsigned long refcount;
 
 public:
-    _Ref();
-    virtual ~_Ref();
+    Ref();
+    virtual ~Ref();
 
     /** Add new ref */
-    void Ref();
+    void AddRef();
 
     /** Release ref */
     void Release();
@@ -75,20 +131,20 @@ public:
 template<typename T>
 inline T& NewRef(T& ref)
 {
-    ref.Ref();
+    ref.AddRef();
     return static_cast<T&>(ref);
 }
 
 /*
- * Base class for all terms, typed or not.
+ * Base class for terms
  */
-class _Term: public _Ref
+class Term: public Ref
 {
 public:
     /**
      * @return shallow copy of this term.
      */
-    //  virtual Term Copy(Context c) = 0;
+    //  virtual Term Copy(Context& ctx) = 0;
     /** @return true when this term is data */
     virtual bool Data() const
     {
@@ -101,9 +157,9 @@ public:
      * @param i the sub index
      * @return a subterm or null if none at the given index. does not create a new reference.
      */
-    virtual Optional<_Term> Sub(int i) const
+    virtual Optional<Term> Sub(int i) const
     {
-        return Optional<_Term>::nullopt;
+        return Optional<Term>::nullopt;
     }
 
     /**
@@ -123,9 +179,9 @@ public:
      * @param index
      * @return a binder, or null.
      */
-    virtual Optional<_Variable> Binder(int i, int j)
+    virtual Optional<UVariable> Binder(int i, int j)
     {
-        return Optional<_Variable>::nullopt;
+        return Optional<UVariable>::nullopt;
     }
 
     /**
@@ -134,7 +190,7 @@ public:
      * @param i subterm index. Must be >=0 and < number of subs
      * @param j subbinder index.  Must be >=0 and < number of binders for the given sub
      */
-    virtual void SetBinder(int i, int j, Variable var)
+    virtual void SetBinder(int i, int j, UVariable& var)
     {
         assert(false);
     }
@@ -147,32 +203,32 @@ public:
      * @param context
      * @return A new reference to the evaluated term. It might still be a thunk if the evaluation has been interrupted
      */
-    virtual Term Eval(Context c)
+    virtual Term Eval(Context& ctx)
     {
         return *this;
     }
 
     // TODO: use C++11 concepts to restrict T to extends Term
     template<typename T>
-    static T Subst(Context c, T term, std::initializer_list<Term> from, std::initializer_list<Term> to);
+    static T Subst(Context& ctx, T term, std::initializer_list<Term> from, std::initializer_list<Term> to);
 
 };
-// _Term
+// Term
 
-/* Templated term */
-template<typename V>
-class _TypedTerm: public _Term
+/* Term allowing variable */
+template<typename VU>
+class TermVar: public Term
 {
 public:
-    Optional<V> variable()
+    Optional<Variable<VU>> variable()
     {
-        return Optional<V>::nullopt;
+        return Optional<Variable<VU>>::nullopt;
     }
 };
 
 /* Unevaluated function (thunk) */
 template<typename T>
-class _LazyTerm: public _Term
+class _LazyTerm: public Term
 {
 public:
     _LazyTerm(Function f) :
@@ -183,17 +239,17 @@ public:
     /** @return true when this term is data */
     bool Data() const
     {
-        return function == 0 ? reinterpret_cast<_Term&>(value.value()).Data() : false;
+        return function == 0 ? reinterpret_cast<Term&>(value.value()).Data() : false;
     }
 
-    T Eval(Context c)
+    T Eval(Context& ctx)
     {
         if (!value)
         {
-            value = function(c); // Acquire ref.
+            value = function(ctx); // Acquire ref.
             function = 0;
         }
-        value.value().Ref();
+        value.value().AddRef();
         return value.value();
     }
 
@@ -211,82 +267,90 @@ protected:
     }
 };
 
-/*
- * Base class for variable
- */
-class _Variable: public _Term
+/* Base class for typed variables */
+
+class UVariable: public Ref
 {
+
 protected:
-    _Variable(std::string&& name);
+    UVariable(std::string&& name);
 
     /* Globally unique variable name */
     std::string& name;
 
     /* Count the number of variable use (in the term tree) */
     unsigned long uses;
+
 };
 
 /*
  * Templated typed variable
  */
-template<typename T>
-class _TypedVariable: public _Variable
+template<typename VU>
+class Variable: public UVariable
 {
 public:
-    _TypedVariable(std::string&& name) : _Variable(std::move(name)) {}
-
-
-    T& use()
+    Variable(std::string&& name) :
+            UVariable(std::move(name))
     {
-        return *(new _TypedVariableUse<T>(*this));
+    }
+
+    typename VU::type& use()
+    {
+        uses++;
+        return VU::make(*this);
     }
 };
 
-/* Variable Use */
-class _VariableUse: public _Term
+template<typename VU>
+Variable<VU>& newVariable(std::string&& name)
+{
+    return *(new Variable<VU>(std::move(name)));
+}
+
+/* Templated typed variable use */
+template<typename VU>
+class VariableUse: public virtual TermVar<VU>
 {
 public:
-
-};
-
-/*
- * Templated typed variable use
- */
-template<typename T>
-class _TypedVariableUse: public _VariableUse
-{
-public:
-    _TypedVariableUse(T& v) : var(v) {}
-
-    T& variable() {
-        return var;
+    VariableUse(Variable<VU>& v) :
+            var(v)
+    {
     }
+
+    Optional<Variable<VU>> variable()
+    {
+        return make_optional<Variable<VU>>(var);
+    }
+
 protected:
     // the used variable
-    _TypedVariable<T>& var;
+    Variable<VU>& var;
 
 };
 
+// -- Substitution
 
+template<typename T>
+T& Subst(Context& c, T& term, std::initializer_list<UVariable*> binders, std::initializer_list<Term*> substitutes)
+{
+    return term; // TODO
+}
 
+// ----- String Term
 
-/**
- * String term type
- */
-class _StringTerm;
-//using StringTerm = _StringTerm&;
-typedef _StringTerm& StringTerm;
+class StringTerm;
 
 // Construction
-StringTerm stringTerm(std::string&& str);
+StringTerm& stringTerm(std::string&& str);
 
-class _StringTerm: public _Term
+// Base type
+class StringTerm: public Term
 {
 public:
-    virtual ~_StringTerm()
+    virtual ~StringTerm()
     {
     }
-
 
     /** Peek at native string value */
     virtual std::string& Unbox() const
@@ -294,48 +358,48 @@ public:
         throw std::runtime_error("Fatal error: cannot access unevaluated string value.");
     }
 };
-// _StringTerm
 
 /**
  * String term value
  */
-class _ValStringTerm: public _StringTerm
+class CStringTerm: public StringTerm
 {
 protected:
     /** The string value. A reference to it so that we can unbox it. */
     std::string& value;
 
 public:
-    _ValStringTerm(std::string& value);
-    ~_ValStringTerm();
+    CStringTerm(std::string& value);
+    ~CStringTerm();
 
-    Term Copy(Context c);
+    Term Copy(Context& ctx);
     std::string& Unbox() const;
 
 };
 
 /**
- * Variable of type String
+ * Variable use of type String
  */
-class Var_StringTerm: public _StringTerm, public _TypedVariable<_StringTerm>
+class CStringVarUse: public StringTerm, public VariableUse<CStringVarUse>
 {
 public:
-    Var_StringTerm(std::string&& name);
+    typedef CStringVarUse type;
+
+    CStringVarUse(Variable<CStringVarUse>& v);
 
 };
-typedef Var_StringTerm& VarStringTerm;
 
-VarStringTerm var_StringTerm(std::string&& str);
+Variable<CStringVarUse>& varStringTerm(std::string&& name);
 
 // specialize std::hash and std::equal_to
 namespace std
 {
 
 template<>
-struct hash<_StringTerm>
+struct hash<StringTerm>
 {
 public:
-    size_t operator()(const _StringTerm &str) const
+    size_t operator()(const StringTerm &str) const
     {
         std::hash<std::string> str_hash;
         return str_hash(str.Unbox());
@@ -343,10 +407,10 @@ public:
 };
 
 template<>
-struct equal_to<_StringTerm>
+struct equal_to<StringTerm>
 {
 public:
-    bool operator()(const _StringTerm& lhs, const _StringTerm& rhs) const
+    bool operator()(const StringTerm& lhs, const StringTerm& rhs) const
     {
         return lhs.Unbox() == rhs.Unbox();
     }
@@ -357,17 +421,15 @@ public:
 
 // --- Numeric type (double)
 
-class _DoubleTerm;
-//using DoubleTerm = _DoubleTerm&;
-typedef _DoubleTerm& DoubleTerm;
+class DoubleTerm;
 
 // Construction
-DoubleTerm doubleTerm(double value);
+DoubleTerm& doubleTerm(double value);
 
-class _DoubleTerm: public _Term
+class DoubleTerm: public Term
 {
 public:
-    virtual ~_DoubleTerm()
+    virtual ~DoubleTerm()
     {
     }
 
@@ -377,36 +439,37 @@ public:
         throw std::runtime_error("Fatal error: cannot access unevaluated numeric value.");
     }
 };
-// _DoubleTerm
+// DoubleTerm
 
 /**
- * String term value
+ * Double term value
  */
-class _ValDoubleTerm: public _DoubleTerm
+class CDoubleTerm: public DoubleTerm
 {
 protected:
     /** The double value. */
     double value;
 
 public:
-    _ValDoubleTerm(double value);
+    CDoubleTerm(double value);
 
-    Term Copy(Context c);
+    Term Copy(Context& ctx);
     double Unbox() const;
 
 };
 
 /*
- * Variable of type Numeric
+ * Variable Use of type Numeric
  */
-class Var_DoubleTerm: public _DoubleTerm, public _TypedVariable<_DoubleTerm>
+class CDoubleVarUse: public DoubleTerm, public VariableUse<CDoubleVarUse>
 {
 public:
-    Var_DoubleTerm(std::string&& name);
-};
-typedef Var_DoubleTerm& VarDoubleTerm;
+    typedef CDoubleVarUse type;
 
-VarDoubleTerm var_DoubleTerm(double value);
+    CDoubleVarUse(Variable<CDoubleVarUse>& v);
+};
+
+Variable<CDoubleVarUse>& varDoubleTerm(std::string&& name);
 
 #include "mapterm.h"
 

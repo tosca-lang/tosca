@@ -6,24 +6,24 @@
 
 // Forward declarations
 template<typename V>
-class _List;
+class Option;
 
 template<typename V>
-class _Option;
+class List;
 
 template<typename K, typename V>
-class _MapTerm;
+class MapTerm;
 
 // Construction
 template<typename K, typename V>
-_MapTerm<K, V>& mapTerm();
+MapTerm<K, V>& mapTerm();
 
 // MapTerm type definition
 template<typename K, typename V>
-class _MapTerm: public _Term, std::unordered_map<K, V>
+class MapTerm: public Term, std::unordered_map<K, V>
 {
 public:
-    virtual ~_MapTerm()
+    virtual ~MapTerm()
     {
     }
     ;
@@ -36,7 +36,7 @@ public:
      *
      * @return A new non-shared map.
      */
-    virtual _MapTerm<K, V>& extend()
+    virtual MapTerm<K, V>& extend()
     {
 
     }
@@ -58,7 +58,7 @@ public:
      * @param key variable. The reference is used.
      * @param value the associated term value. The reference is used.
      */
-    virtual void putVar(Variable key, V& value)
+    virtual void putVar(UVariable key, V& value)
     {
 
     }
@@ -68,7 +68,7 @@ public:
      * @param key
      * @return An new reference to an optional typed term.
      */
-    virtual _Option<V>& getValue(Context context, K& key)
+    virtual Option<V>& getValue(Context& ctx, K& key)
     {
 
     }
@@ -78,7 +78,7 @@ public:
      * @param key
      * @return An new reference to an optional typed term.
      */
-    virtual Optional<V> getValueVar(Context context, Variable key)
+    virtual Optional<V> getValueVar(Context& ctx, UVariable key)
     {
 
     }
@@ -87,7 +87,7 @@ public:
      * Put all entries in the given map into this map
      * @param map
      */
-    virtual void putAll(_MapTerm<K, V> map)
+    virtual void putAll(MapTerm<K, V> map)
     {
 
     }
@@ -97,7 +97,7 @@ public:
      * @param context
      * @return
      */
-    virtual _List<V>& values(Context context)
+    virtual List<V>& values(Context& ctx)
     {
 
     }
@@ -107,7 +107,7 @@ public:
      * @param context
      * @return
      */
-    virtual _List<K>& keys(Context context)
+    virtual List<K>& keys(Context& ctx)
     {
 
     }
@@ -117,7 +117,7 @@ public:
      * @param context
      * @return
      */
-    virtual _List<V>& varValues(Context context)
+    virtual List<V>& varValues(Context& ctx)
     {
 
     }
@@ -128,7 +128,7 @@ public:
      * @return
      */
     template<typename VK>
-    _List<VK>& varKeys(Context context)
+    List<VK>& varKeys(Context& ctx)
     {
 
     }
@@ -152,7 +152,7 @@ public:
     /**
      * @return true when this map contains an entry for the given variable
      */
-    virtual bool containsVar(Variable var)
+    virtual bool containsVar(UVariable var)
     {
 
     }
@@ -169,30 +169,33 @@ public:
 
 // MapTerm value
 template<typename K, typename V>
-class _ValMapTerm: public _MapTerm<K, V>
+class ValMapTerm: public MapTerm<K, V>
 {
-protected:
 
 public:
-    _ValMapTerm();
-    ~_ValMapTerm();
-
-    Term Copy(Context c);
-    double Unbox() const;
+    ValMapTerm() {}
+    ~ValMapTerm() {}
 
 };
+
+// Construction
+template<typename K, typename V>
+MapTerm<K, V>& mapTerm()
+{
+    return *(new ValMapTerm<K, V>());
+}
 
 /*
- * Variable of type Numeric
+ * Variable use of type Map
  */
 template<typename K, typename V>
-class Var_MapTerm: public _MapTerm<K, V>, _Variable
+class MapTermUse: public MapTerm<K, V>, VariableUse<MapTermUse<K, V>>
 {
 public:
-    Var_MapTerm(std::string& name);
+    MapTermUse(std::string& name);
 };
 
 template<typename K, typename V>
-Var_MapTerm<K, V> var_MapTerm(std::string&& hint);
+Variable<MapTermUse<K, V>> varMapTerm(std::string&& hint);
 
 #endif

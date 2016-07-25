@@ -93,7 +93,7 @@ MakeSortTail[OK, #cont]
 //
 MakeForms[ANTLR_ruleBlock_sort, ok::OK_SORT.Text] :: Text;
 {#E}MakeForms[{#L}%ruleBlock⟦ #alternative #labeledAlt_S1?  #ruleAltList_S1* ⟧, ok¹.#[ok¹]]
-→ {#E}MakeForm[$[IfDef, "truevar", GetElementOptionAlternative[#alternative, "variable"], ()], #alternative, #labeledAlt_S1?, 1, IsEmpty[#ruleAltList_S1*], ok¹ count¹.
+→ {#E}MakeForm[$[IfDef, "truevar", GetElementOptionAlternative[#alternative, "variable"], ()], GetElementOptionAlternative[#alternative, "type"], #alternative, #labeledAlt_S1?, 1, IsEmpty[#ruleAltList_S1*], ok¹ count¹.
       MakeRuleAltList_S1s[ok¹, count¹, #ruleAltList_S1*, o2¹.#[o2¹]]];
 
 //
@@ -103,24 +103,24 @@ MakeRuleAltList_S1s[OK_SORT, $Numeric, $List[ANTLR_ruleAltList_S1_sort], ok::OK_
 → {#E}#[OK];
 
 {#E}MakeRuleAltList_S1s[OK, #count, {#L}%ruleAltList_S1*⟦ | #alternative #labeledAlt_S1? #ruleAltList_S1* ⟧, ok¹.#[ok¹]]
-→ {#E}MakeForm[$[IfDef, "truevar", GetElementOptionAlternative[#alternative, "variable"], ()], #alternative, #labeledAlt_S1?, #count, FALSE, ok¹ count¹.
+→ {#E}MakeForm[$[IfDef, "truevar", GetElementOptionAlternative[#alternative, "variable"], ()], GetElementOptionAlternative[#alternative, "type"], #alternative, #labeledAlt_S1?, #count, FALSE, ok¹ count¹.
       MakeRuleAltList_S1s[ok¹, count¹, #ruleAltList_S1*, o2¹.#[o2¹]]];
 
 //
-MakeForm[$List[ElementOption], ANTLR_alternative_sort, $List[ANTLR_labeledAlt_S1_sort], $Numeric, Boolean, ok::OK_SORT.Text] :: Text;
+MakeForm[$List[ElementOption], $List[ElementOption], ANTLR_alternative_sort, $List[ANTLR_labeledAlt_S1_sort], $Numeric, Boolean, ok::OK_SORT.Text] :: Text;
 
 {#E; "@sort":TEXT[#sort];
      "@pt-rules" : TEXT[#printerRules];
      "@pt-name"  : TEXT[#printerName]}
-MakeForm[(SYMBOL[NONE];), #alternative, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]]
+MakeForm[(SYMBOL[NONE];), (), #alternative, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]]
 → {#E; "@sort"    : TEXT[%n⟦«#sort» | allows-variable⟧];
        "@pt-rules" : TEXT[%n⟦«#printerRules»¶rule «#printerName»(x) → «Text-Text[Text-String2[%n⟦Show(x)⟧]]»⟧];
   }#[OK, #count];
 
-{#E}MakeForm[(SYMBOL[#ref];), {#L}%alternative⟦ #element* ⟧, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]]
+{#E}MakeForm[(SYMBOL[#ref];), (TYPE[#type];), {#L}%alternative⟦ #element* ⟧, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]]
 → {#E}MakeFormNoDup0[{#E}MakeAlternativeName[#labeledAlt_S1?, #count, #unique], #element*, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]];
 
-{#E}MakeForm[(), {#L}%alternative⟦ #element* ⟧, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]]
+{#E}MakeForm[(), #type, {#L}%alternative⟦ #element* ⟧, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]]
 → {#E}MakeFormNoDup0[{#E}MakeAlternativeName[#labeledAlt_S1?, #count, #unique], #element*, #labeledAlt_S1?, #count, #unique, ok¹ count¹.#[ok¹, count¹]];
 
 // Skip subsequent alternative with the same name
@@ -241,7 +241,12 @@ MaybeMakeBinderArgument[$List[ElementOption], ANTLR_element_sort, $Numeric, ok¹
 */
 {#E; "@index": INDEX[#index]}
 MaybeMakeBinderArgument[(BINDER[#binder];), #element, #count, ok¹ count.#[ok¹, count]]
-→ {#E}MakeBinderArgument[#binder, MakeBinderKey[#binder], GetRefElement[#element, (), #index], #count, ok¹ count.#[ok¹, count]];
+→ {#E}MakeBinderArgument[#binder, {#E}GetBinderType[GetElementOptionElement[#element, "type"]], MakeBinderKey[#binder], GetRefElement[#element, (), #index], #count, ok¹ count.#[ok¹, count]];
+
+GetBinderType[$List[ElementOption]] :: Text;
+{#E}GetBinderType[()]                → %n⟦String⟧;
+{#E; "@index": INDEX[{#I}RULEINDEX]}GetBinderType[(TYPE[#ruleRef];)] → %n⟦†«MakeSortName2[{#E}EnvString["@id"], #ruleRef, {#I}IsStringRuleRuleRef[#ruleRef]]»⟧;
+
 
 /* Handle <boundvar=x>:
 
@@ -253,10 +258,10 @@ MaybeMakeBinderArgument[(BINDER[#binder];), #element, #count, ok¹ count.#[ok¹,
    Don't add sort argument.
 
  */
-MakeBinderArgument[$String, $String, Option[$String], $Numeric, ok¹::OK_SORT count::$Numeric.Text] :: Text;
+MakeBinderArgument[$String, Text, $String, Option[$String], $Numeric, ok¹::OK_SORT count::$Numeric.Text] :: Text;
 
 // Binder on sugar: that's an error
-{#E}MakeBinderArgument[#binder, #key, NONE, #count, ok¹ count.#[ok¹, count]]
+{#E}MakeBinderArgument[#binder, #type, #key, NONE, #count, ok¹ count.#[ok¹, count]]
 → Special_error[%n⟦Invalid binder option on an element that is either a constant or skipped.⟧];
 
 -[Data[#key]]:
@@ -264,12 +269,12 @@ MakeBinderArgument[$String, $String, Option[$String], $Numeric, ok¹::OK_SORT co
   "@id"      : STRING[#id];
   "@freshes" : TEXTS[#freshes];
   "@prhs"    : TEXTS[#rhs];
-}MakeBinderArgument[#binder, #key, SOME[#ruleref], #count, ok¹ count.#[ok¹, count]]
+}MakeBinderArgument[#binder, #type, #key, SOME[#ruleref], #count, ok¹ count.#[ok¹, count]]
 → 
 {#E;
-    #key       : BINDER[#ruleref];
-    "@freshes" : TEXTS[(%n⟦[String]⟧; #freshes)];
-    "@prhs"    : TEXTS[(Text-String2[%n⟦Show<String>(†«#binder»)⟧]; #rhs)];
+    #key       : BOUNDVAR[#ruleref, #type];
+    "@freshes" : TEXTS[(%n⟦[«#type»]⟧; #freshes)];
+    "@prhs"    : TEXTS[(Text-String2[%n⟦Show(†«#binder»)⟧]; #rhs)];
   }#[OK, #count];
 
 // Check element option is list of <bound=variable>
@@ -277,7 +282,7 @@ MaybeMakeBindsArgument[$List[ElementOption], ANTLR_element_sort, $Numeric, ok¹:
 
 // No <bound> option. Check for variable
 {#E}MaybeMakeBindsArgument[(), #element, #count, ok¹ count.#[ok¹, count]]
-→ {#E}MaybeMakeSymbolArgument[GetElementOptionElement[#element, "variable"], #element, #count, ok¹ count.#[ok¹, count]];
+→ {#E}MaybeMakeSymbolArgument[GetElementOptionElement[#element, "variable"], GetElementOptionElement[#element, "type"], #element, #count, ok¹ count.#[ok¹, count]];
 
 {#E; "@sort":TEXT[#sort]; "@sep":TEXT[#sep]}
 MaybeMakeBindsArgument[(#binds; #bindss), #element, #count, ok¹ count.#[ok¹, count]]
@@ -293,31 +298,43 @@ MakeBindsArguments[OK_SORT, $List[ElementOption], ok¹::OK_SORT.Text] :: Text;
 → {#E}#[OK];
 
 {#E}MakeBindsArguments[OK, (BINDS[#binder]; #binds), ok¹.#[ok¹]]
-→ {#E}MakeBindsArgument[#binder, ok¹.MakeBindsArguments[ok¹, #binds, ok¹.#[ok¹]]];
+→ {#E}MakeBindsArgument[#binder, MakeBinderKey[#binder], ok¹.MakeBindsArguments[ok¹, #binds, ok¹.#[ok¹]]];
 
-MakeBindsArgument[$String, ok¹::OK_SORT.Text] :: Text;
+MakeBindsArgument[$String, $String, ok¹::OK_SORT.Text] :: Text;
+
+-[Data[#key]]:
+{#E}MakeBindsArgument[#binder, #key, ok¹.#[ok¹]]
+→ {#E}MakeBindsArgument2[#binder, #key, ok¹.#[ok¹]];
+
+MakeBindsArgument2[$String, $String, ok¹::OK_SORT.Text] :: Text;
 
 {#E;
   "@sort"    : TEXT[#sort];
   "@binders" : TEXTS[#binders];
-}MakeBindsArgument[#binder, ok¹.#[ok¹]]
+  #key       : BOUNDVAR[#ruleref, #type]
+}MakeBindsArgument2[#binder, #key, ok¹.#[ok¹]]
 → {#E;
-    "@sort"    : TEXT[%n⟦«#sort» String⟧];
+    "@sort"    : TEXT[%n⟦«#sort» «#type»⟧];
     "@binders" : TEXTS[(%n⟦†«#binder»⟧; #binders)];
   }#[OK];
 
-MaybeMakeSymbolArgument[$List[ElementOption], ANTLR_element_sort, $Numeric, ok¹::OK_SORT count::$Numeric.Text] :: Text;
+
+MaybeMakeSymbolArgument[$List[ElementOption], $List[ElementOption], ANTLR_element_sort, $Numeric, ok¹::OK_SORT count::$Numeric.Text] :: Text;
 
 // No <variable=sort> option. done.
-{#E}MaybeMakeSymbolArgument[(), #element, #count, ok¹ count.#[ok¹, count]]
+{#E}MaybeMakeSymbolArgument[(), #type, #element, #count, ok¹ count.#[ok¹, count]]
 → {#E}MakeRawArgument[OK, #element, #count, ok¹ count.#[ok¹, count]];
 
-// No <variable=sort> option. done.
-{#E}MaybeMakeSymbolArgument[(SYMBOL[NONE];), #element, #count, ok¹ count.#[ok¹, count]]
+// <variable> and no <type> option. done.
+{#E}MaybeMakeSymbolArgument[(SYMBOL[NONE];), (), #element, #count, ok¹ count.#[ok¹, count]]
 → {#E}MakeRawArgument[OK, #element, #count, ok¹ count.#[ok¹, count]];
+
+// <variable> and <type> option. Update type.
+{#E}MaybeMakeSymbolArgument[(SYMBOL[NONE];), (TYPE[#RULE_REF];), #element, #count, ok¹ count.#[ok¹, count]]
+→ {#E}MakeRawArgument[OK, %element⟦ #RULE_REF ⟧, #count, ok¹ count.#[ok¹, count]];
 
 // Got a variable referring to a rule.
-{#E}MaybeMakeSymbolArgument[(SYMBOL[#RULE_REF];), #element, #count, ok¹ count.#[ok¹, count]]
+{#E}MaybeMakeSymbolArgument[(SYMBOL[#RULE_REF];), #type, #element, #count, ok¹ count.#[ok¹, count]]
 → {#E}MakeRawArgument[OK, %element⟦ #RULE_REF ⟧, #count, ok¹ count.#[ok¹, count]];
 
 
@@ -551,7 +568,7 @@ MakeTerminalText[#count, #binders, FALSE]
 → Text-String2[MakeMetaVar[#count, #binders, TRUE]];
   
 MakeTerminalText[#count, (), TRUE]
-→ Text-String[%n⟦TextFold(Map<String Text4_text_sort>((x) -> StringToText(x), «MakeMetaVar[#count, (), TRUE]»), «Text-Text[%n⟪ ⟫]»)⟧];
+→ Text-String[%n⟦TextFold(Map((x) -> StringToText(x), «MakeMetaVar[#count, (), TRUE]»), «Text-Text[%n⟪ ⟫]»)⟧];
 
 MakeRulerefText[$String, $Numeric, $List[Text], Boolean /* list? */, x::Text.Text, $String /* sort */] :: Text;
 
@@ -565,7 +582,7 @@ MakeRulerefText[$String, $Numeric, $List[Text], Boolean /* list? */, x::Text.Tex
 {#E}MakeRulerefText[#ruleRef, #count, #binders, TRUE, t x.#wrap[t, x], #sort]
 → $[If, $[Equal, #sort, "String"],
     Text-String2[%n⟦TextFold(Map((x) ->  StringToText(x), «#wrap[StringToText[#sort], MakeMetaVar[#count, #binders, TRUE]]»), «Text-Text[%n⟪ ⟫]»)⟧],
-    Text-String[%n⟦TextFold(Map<«StringToText[#sort]» Text4_text_sort>((x) ->«{#E; "@ruleRef": STRING[#ruleRef]}MakePrinterName»(x), «#wrap[StringToText[#sort], MakeMetaVar[#count, #binders, TRUE]]»), «Text-Text[%n⟪ ⟫]»)⟧]];
+    Text-String[%n⟦TextFold(Map((x) ->«{#E; "@ruleRef": STRING[#ruleRef]}MakePrinterName»(x), «#wrap[StringToText[#sort], MakeMetaVar[#count, #binders, TRUE]]»), «Text-Text[%n⟪ ⟫]»)⟧]];
  
 /* Generate an unique fake rule name for block. */
 MakeBlockRuleName[$String, $Numeric] :: $String;

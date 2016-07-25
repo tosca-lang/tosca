@@ -5,30 +5,29 @@
 
 #include "ts.h"
 
-template<typename a> class _List;
-class _Bool;
+template<typename a> class List;
+class Bool;
 
 // --- External environment
 
-
 template<typename a>
-a& IfDef(Context ctx, _StringTerm& value_164, _LazyTerm<a>& value_165, _LazyTerm<a>& value_166)
+a& IfDef(Context& ctx, StringTerm& value_164, _LazyTerm<a>& value_165, _LazyTerm<a>& value_166)
 {
 
 }
 
-_StringTerm& GetEnv(Context ctx, _StringTerm& value_161, _StringTerm& value_162);
+StringTerm& GetEnv(Context& ctx, StringTerm& value_161, StringTerm& value_162);
 
 // --- Boolean
 
 template<typename a, typename b>
-_Bool& Equal(Context ctx, a& value_118, b& value_119)
+Bool& Equal(Context& ctx, a& value_118, b& value_119)
 {
 
 }
 
 template<typename a>
-_Bool& DeepEqual(Context ctx, a& value_147, a& value_148)
+Bool& DeepEqual(Context& ctx, a& value_147, a& value_148)
 {
 
 }
@@ -36,56 +35,56 @@ _Bool& DeepEqual(Context ctx, a& value_147, a& value_148)
 // --- Syntactic Variable
 
 template<typename a>
-_List<a>& FreeVariables(Context ctx, a& value_130)
+List<a>& FreeVariables(Context& ctx, a& value_130)
 {
 
 }
 
 template<typename a>
-_List<a>& ExceptVariables(Context ctx, a& value_112, a& value_113)
+List<a>& ExceptVariables(Context& ctx, a& value_112, a& value_113)
 {
 
 }
 
 template<typename a>
-_List<a>& IntersectVariables(Context ctx, a& value_116, a& value_117)
+List<a>& IntersectVariables(Context& ctx, a& value_116, a& value_117)
 {
 
 }
 
 template<typename a, typename b>
-_Bool& SameVariable(Context ctx, a& value_114, b& value_115)
+Bool& SameVariable(Context& ctx, a& value_114, b& value_115)
 {
 
 }
 
 template<typename a, typename b>
-b& VariableNameIs(Context ctx, a& value_127, _StringTerm& value_128, b& value_129);
+b& VariableNameIs(Context& ctx, a& value_127, StringTerm& value_128, b& value_129);
 
 // --- Bit manipulation
 
-_Bool& BitSubSetEq(Context ctx, _DoubleTerm& value_120, _DoubleTerm& value_121);
-_DoubleTerm& BitMinus(Context ctx, _DoubleTerm& value_125, _DoubleTerm& value_126);
-_DoubleTerm& BitOr(Context ctx, _DoubleTerm& value_136, _DoubleTerm& value_137);
-_DoubleTerm& BitAnd(Context ctx, _DoubleTerm& value_159, _DoubleTerm& value_160);
+Bool& BitSubSetEq(Context& ctx, DoubleTerm& value_120, DoubleTerm& value_121);
+DoubleTerm& BitMinus(Context& ctx, DoubleTerm& value_125, DoubleTerm& value_126);
+DoubleTerm& BitOr(Context& ctx, DoubleTerm& value_136, DoubleTerm& value_137);
+DoubleTerm& BitAnd(Context& ctx, DoubleTerm& value_159, DoubleTerm& value_160);
 
 // --- Error
 
 template<typename a>
-a& Error(Context ctx, _StringTerm& value_145)
+a& Error(Context& ctx, StringTerm& value_145)
 {
     throw std::runtime_error("Error");
 }
 
 template<typename a>
-a& ForgivableError(Context ctx, _StringTerm& value_138, _StringTerm& value_139, _StringTerm& value_140,
-        _StringTerm& value_141, _StringTerm& value_142, _StringTerm& value_143, _LazyTerm<a>& value_144)
+a& ForgivableError(Context& ctx, StringTerm& value, StringTerm& value1, StringTerm& value2, StringTerm& value3,
+        StringTerm& value4, StringTerm& value5, Closure0<a>& ret)
 {
 
 }
 
 template<typename a>
-a& EventualError(Context ctx, _StringTerm& value_154)
+a& EventualError(Context& ctx, StringTerm& value_154)
 {
 
 }
@@ -93,13 +92,13 @@ a& EventualError(Context ctx, _StringTerm& value_154)
 // --- Debugging
 
 template<typename a>
-a& Debug(Context ctx, _StringTerm& value_123, _LazyTerm<a>& value_124)
+a& Debug(Context& ctx, StringTerm& value_123, _LazyTerm<a>& value_124)
 {
 
 }
 
 template<typename a>
-_StringTerm& Show(Context ctx, a& value_163)
+StringTerm& Show(Context& ctx, a& value_163)
 {
 
 }

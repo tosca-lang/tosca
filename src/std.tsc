@@ -1,0 +1,10 @@
+// Copyright (c) 2016 IBM Corporation.
+
+/* Helper file to compile the standard library only */
+import std::core
+import std::listdef
+import std::pairdef
+import std::num
+import std::mapdef
+import std::string
+import std::text

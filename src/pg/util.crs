@@ -444,7 +444,7 @@ ConcatSome[{#I}GetConstantLexerElement[#lexerElement], {#I}GetConstantLexerEleme
 
 // --- Element option extraction
 
-ElementOption ::= ( SUGAR; SYMBOL[Option[$String]]; BINDER[$String]; BINDS[$String]; UNKOWN; );
+ElementOption ::= ( SUGAR; SYMBOL[Option[$String]]; BINDER[$String]; BINDS[$String]; TYPE[$String]; UNKOWN; );
 
 // Extract the given element option from alternative. Must contain only one element to succeed.
 GetElementOptionAlternative[ANTLR_alternative_sort, $String] :: $list[ElementOption];
@@ -511,7 +511,8 @@ ToElementOption[#id, SOME[#value]]
 → $[If, $[Equal, #id, "variable"], SYMBOL[UnwrapOptionValue[#value]], 
   $[If, $[Equal, #id, "boundvar"], BINDER[UnwrapOptionValue[#value]], 
   $[If, $[Equal, #id, "bound"], BINDS[UnwrapOptionValue[#value]], 
-  UNKOWN]]];
+  $[If, $[Equal, #id, "type"], TYPE[UnwrapOptionValue[#value]], 
+  UNKOWN]]]];
 
 
 // --- Test whether the rule/rule ref is a string rule

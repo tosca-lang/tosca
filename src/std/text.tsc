@@ -63,8 +63,11 @@ func TextIf(#cond: Bool, #: ()->Text4_text_sort) -> Text4_text_sort
 /* Apply each item in the given list to the given function producing text.
    Concatenate produced text using no separator
  */
-func TextMapFold<a>(#f: (a) -> Text4_text_sort, #list: List<a>) -> Text4_text_sort
-→ TextFold(Map<a Text4_text_sort>(#f, #list), text⟦⟧)
+func TextMapFold<a>(#f: (a) -> Text4_text_sort, #list: List<a>, #sep: Text4_text_sort) -> Text4_text_sort
+→ TextFold(Map(#f, #list), #sep)
+
+func TextMapFoldES<a>(#f: (a) -> Text4_text_sort, #list: List<a>) -> Text4_text_sort
+→ TextMapFold(#f, #list, text⟦⟧)
 
 func TextFold(List<Text4_text_sort>, Text4_text_sort) -> Text4_text_sort
 rule TextFold(()         , #sep) → text⟦⟧

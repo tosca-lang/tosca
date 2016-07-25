@@ -89,7 +89,7 @@ func CppForwardForm(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4
   rule CppForwardForm(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦
     †⟨CppTemplatePrefix(#csortvars?)⟩
-    class Var†⟨SortNameToCppClassName(#sortname)⟩;⟧
+    class †⟨FormCppClassName(#sortname)⟩Use;⟧
 
 /* Generate class and method signatures for data sorts */
 func CppClassDecls(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
@@ -98,20 +98,20 @@ func CppClassDecls(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
 func CppClassDecl(Core_cdecl_sort) -> Text4_text_sort
 rule CppClassDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 → text⟦
-†⟨TextMapFold((cform) -> CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*)⟩
+†⟨TextMapFoldES((cform) -> CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*)⟩
 †⟨CppTemplatePrefix(#csortvars?)⟩
 class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩ : public †⟨CppExtendTerm(#CONSTRUCTOR, #cform*)⟩
 {
 public:
-  †⟨TextMapFold((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*)⟩
+  †⟨TextMapFoldES((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*)⟩
 };
-†⟨TextMapFold((cform) -> CppFormClass(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩
+†⟨TextMapFoldES((cform) -> CppFormClass(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩
 ⟧
 
 func CppExtendTerm(#sortname: String, #form*: List<Core_cform_sort>) -> Text4_text_sort
 → IfPresent(PickFirst(#form*, (form)->IsAllowsVar(form)),
-    (form)->text⟦_TypedTerm<Var†⟨SortNameToCppClassName(#sortname)⟩>⟧,
-    ()->text⟦_Term⟧)
+    (form)->text⟦virtual TermVar<†⟨FormCppClassName(#sortname)⟩Use>⟧,
+    ()->text⟦Term⟧)
 
 /* Generate class and method signatures for the given data form */
 func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
@@ -133,10 +133,12 @@ func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_t
   rule CppFormClass(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦
       †⟨CppTemplatePrefix(#csortvars?)⟩
-      class Var†⟨SortNameToCppClassName(#sortname)⟩: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩, public _TypedVariable<†⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩>
+      class †⟨FormCppClassName(#sortname)⟩Use: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩, public VariableUse<†⟨FormCppClassName(#sortname)⟩Use†⟨MaybeCppTypeArguments(#csortvars?)⟩>
       {
         public:
+          typedef †⟨FormCppClassName(#sortname)⟩Use†⟨MaybeCppTypeArguments(#csortvars?)⟩ type;
           †⟨CppFormConstructorVar(#sortname, #csortvars?, TRUE)⟩
+          †⟨CppFormMethodMake(#sortname, #csortvars?, TRUE)⟩
       };
     ⟧
 
@@ -151,4 +153,4 @@ rule CppDeclField(TRUE, #type, #index, #subindex)  → text⟦†⟨#type⟩& �
 
 /* Generate template function definition corresponding to function sorts. */
 func CppFunctionDecls(#env: {String : EnvEntry}) -> Text4_text_sort
-→ TextMapFold((key) ->CppFunctionDecl(#env, key, TRUE), MapKeys(GetFuncSorts(GetContent(#env))))
+→ TextMapFoldES((key) ->CppFunctionDecl(#env, key, TRUE), MapKeys(GetFuncSorts(GetContent(#env))))

@@ -90,9 +90,9 @@ rule GetSortVars(#)                                                             
 
 /* @return extract `csortvars?` from sort  */
 func GetMaybeSortVars(Core_cdecl_sort) -> List<Core_csortvars_sort>
-rule GetMaybeSortVars(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)                                 → #csortvars?
+rule GetMaybeSortVars(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)                             → #csortvars?
 rule GetMaybeSortVars(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧) → #csortvars?
-rule GetMaybeSortVars(#cdecl                                                                          ) → ()
+rule GetMaybeSortVars(#cdecl                                                                       ) → ()
 
 /* @return the conversion to `csort*` from `csorts?` */
 func MaybeSortsToSorts(List<Core_csorts_sort>) -> List<Core_csort_sort>
@@ -190,6 +190,29 @@ rule DataDeclToSort(#csortvars?, #CONSTRUCTOR) → csort⟦ ##CONSTRUCTOR ( ⟨c
 func MaybeSortVarsToSorts(List<Core_csortvars_sort>) -> List<Core_csort_sort>
 rule MaybeSortVarsToSorts(csortvars?⟦                 ⟧) → csort*⟦⟧
 rule MaybeSortVarsToSorts(csortvars?⟦ ∀ ##VARIABLE+ . ⟧) → Map((var)->csort⟦ ⟨VARIABLE: var⟩ ⟧, #VARIABLE+)
+
+func VarsToMaybeSortVars(List<String>) -> List<Core_csortvars_sort>
+rule VarsToMaybeSortVars(())         → csortvars?⟦⟧
+rule VarsToMaybeSortVars(#VARIABLE+) → csortvars?⟦ ∀ ##VARIABLE+ . ⟧
+
+/* @return the variable of the given sort variable, or an error */
+func GetSortVarE(Core_csort_sort) -> String
+rule GetSortVarE(csort⟦ ##VARIABLE ⟧) → #VARIABLE
+rule GetSortVarE(#csort) → Error(ConcatString("Internal Error: not a variable sort: ", PrintSort(#csort)))
+
+/* @return the list of sort variables in the given list of `#sorts` */
+func SortVarsSorts(#sorts: List<Core_csort_sort>, #svars:List<String>) -> List<String>
+→ FoldlP((sort svars)->SortVarsSort(sort, svars), #svars, #sorts)
+
+/* @return the list of sort variables in the given `#sort` */
+func SortVarsSort(Core_csort_sort, List<String>) -> List<String>
+rule SortVarsSort(csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #svars) → SortVarsSorts(MaybeSortsToSorts(#csorts?), #svars)
+rule SortVarsSort(csort⟦ ##VARIABLE              ⟧, #svars) → ConditionalInsert(Not(HasOption(PickFirst(#svars, (v)->Equal(v, #VARIABLE)))), #VARIABLE, #svars)
+rule SortVarsSort(csort⟦ [ ##csort ] ##csort2    ⟧, #svars) → SortVarsSort(#csort2, SortVarsSort(#csort, #svars))
+rule SortVarsSort(csort⟦ ( ##csort ) ##csort2    ⟧, #svars) → SortVarsSort(#csort2, SortVarsSort(#csort, #svars))
+rule SortVarsSort(csort⟦ { ##cmapsort }          ⟧, #svars) → #svars // TODO
+rule SortVarsSort(csort⟦ data ##csort            ⟧, #svars) → SortVarsSort(#csort, #svars)
+rule SortVarsSort(csort⟦ thunk ##csort           ⟧, #svars) → SortVarsSort(#csort, #svars)
 
 /* @return `TRUE` is the given `cform` is `allows-variable` */
 func IsAllowsVar(Core_cform_sort) -> Bool

@@ -11,23 +11,23 @@
 
 // --- Ref
 
-_Ref::_Ref() :
+Ref::Ref() :
         refcount(1)
 {
 }
 
-_Ref::~_Ref()
+Ref::~Ref()
 {
     // assert(refcount == 0);
 }
 
-void _Ref::Ref()
+void Ref::AddRef()
 {
     // assert(refcount > 0);
     refcount++;
 }
 
-void _Ref::Release()
+void Ref::Release()
 {
     //assert(refcount > 0);
     refcount--;
@@ -41,81 +41,83 @@ void _Ref::Release()
 
 // --- Variable
 
-_Variable::_Variable(std::string&& n) :
-        name(n), uses(0)
+UVariable::UVariable(std::string&& n) :
+        name(n), uses(1)
 {
 }
 
 // --- String
 //
-_StringTerm& stringTerm(std::string&& val)
+StringTerm& stringTerm(std::string&& val)
 {
-    return *(new _ValStringTerm(*(new std::string(val))));
+    return *(new CStringTerm(*(new std::string(val))));
 }
 
-VarStringTerm var_StringTerm(std::string&& name)
+Variable<CStringVarUse>& varStringTerm(std::string&& name)
 {
-    return *(new Var_StringTerm(std::move(name)));
+    return *(new Variable<CStringVarUse>(std::move(name)));
 }
 
-Var_StringTerm::Var_StringTerm(std::string&& name) :
-        _TypedVariable(std::move(name))
+CStringVarUse::CStringVarUse(Variable<CStringVarUse>& v) :
+        VariableUse(v)
 {
 }
 
-_ValStringTerm::_ValStringTerm(std::string& val) :
+CStringTerm::CStringTerm(std::string& val) :
         value(val)
 {
 }
 
-_ValStringTerm::~_ValStringTerm()
+CStringTerm::~CStringTerm()
 {
     delete &value;
 }
 
-Term _ValStringTerm::Copy(Context c)
+Term CStringTerm::Copy(Context& ctx)
 {
     Ref();
     return *this;
 }
 
-std::string& _ValStringTerm::Unbox() const
+std::string& CStringTerm::Unbox() const
 {
     return value;
 }
 
 // --- Numeric
 //
-_DoubleTerm& doubleTerm(double val)
+DoubleTerm& doubleTerm(double val)
 {
-    return *(new _ValDoubleTerm(val));
+    return *(new CDoubleTerm(val));
 }
 
-VarDoubleTerm varDoubleTerm(std::string&& name)
+Variable<CDoubleVarUse>& varDoubleTerm(std::string&& name)
 {
-    return *(new Var_DoubleTerm(std::move(name)));
+    return *(new Variable<CDoubleVarUse>(std::move(name)));
 }
 
-Var_DoubleTerm::Var_DoubleTerm(std::string&& name) :
-        _TypedVariable(std::move(name))
+CDoubleVarUse::CDoubleVarUse(Variable<CDoubleVarUse>& v) :
+        VariableUse(v)
 {
 }
 
-_ValDoubleTerm::_ValDoubleTerm(double val) :
+CDoubleTerm::CDoubleTerm(double val) :
         value(val)
 {
 }
 
-Term _ValDoubleTerm::Copy(Context c)
+Term CDoubleTerm::Copy(Context& ctx)
 {
     Ref();
     return *this;
 }
 
-double _ValDoubleTerm::Unbox() const
+double CDoubleTerm::Unbox() const
 {
     return value;
 }
+
+
 
 //
 //} // runtime

@@ -2,63 +2,80 @@
 
 #include "string-extern.h"
 
-_StringTerm& AfterFirst(_Context&, _StringTerm&, _StringTerm&)
+#include "std/core.h"
+
+StringTerm& AfterFirst(Context& ctx, StringTerm& str1, StringTerm& str2)
+{
+    return str1;
+}
+
+StringTerm& BeforeFirst(Context& ctx, StringTerm& str1, StringTerm& str2)
+{
+    return str1;
+}
+
+Bool& StringEqual(Context& ctx, StringTerm& str1, StringTerm& str2)
+{
+    return newTRUE(ctx);
+}
+
+StringTerm& ConcatString(Context& ctx, StringTerm& str1, StringTerm& str2)
+{
+    return str1;
+}
+
+StringTerm& Escape(Context& ctx, StringTerm&)
 {
 
 }
 
-_StringTerm& BeforeFirst(_Context&, _StringTerm&, _StringTerm&)
+DoubleTerm& Length(Context& ctx, StringTerm&)
 {
 
 }
 
-_Bool& StringEqual(_Context&, _StringTerm&, _StringTerm&)
+StringTerm& Mangle(Context& ctx, StringTerm&)
 {
 
 }
 
-_StringTerm& ConcatString(_Context&, _StringTerm&, _StringTerm&)
+StringTerm& UpCase(Context& ctx, StringTerm&)
 {
 
 }
 
-_StringTerm& Escape(_Context&, _StringTerm&)
+StringTerm& Replace(Context& ctx, StringTerm&, StringTerm&, StringTerm&)
 {
 
 }
 
-_DoubleTerm& Length(_Context&, _StringTerm&)
+Bool& Contains(Context& ctx, StringTerm&, StringTerm&)
 {
 
 }
 
-_StringTerm& Mangle(_Context&, _StringTerm&)
+StringTerm& DownCase(Context& ctx, StringTerm&)
 {
 
 }
 
-_StringTerm& UpCase(_Context&, _StringTerm&)
+StringTerm& Substring(Context& ctx, StringTerm&, DoubleTerm&, DoubleTerm&)
 {
 
 }
 
-_StringTerm& Replace(_Context&, _StringTerm&, _StringTerm&, _StringTerm&)
+StringTerm& Substring2(Context& ctx, StringTerm& str, DoubleTerm&)
+{
+    return str;
+}
+
+Bool& MatchRegex(Context& ctx, StringTerm&, StringTerm&)
 {
 
 }
 
-_Bool& Contains(_Context&, _StringTerm&, _StringTerm&)
+Bool& StartsWith(Context& ctx, StringTerm& str, StringTerm& prefix)
 {
-
-}
-
-_StringTerm& DownCase(_Context&, _StringTerm&)
-{
-
-}
-
-_StringTerm& Substring(_Context&, _StringTerm&, _DoubleTerm&, _DoubleTerm&)
-{
-
+    return newTRUE(ctx);
 }
 

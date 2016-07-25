@@ -2,33 +2,41 @@
 #ifndef _STRING_EXTERN
 #define _STRING_EXTERN
 
-class _StringTerm;
-class _Context;
-class _DoubleTerm;
-class _Bool;
+class StringTerm;
+class Context;
+class DoubleTerm;
+class Bool;
 
-extern _StringTerm& AfterFirst(_Context&, _StringTerm&, _StringTerm&);
+extern StringTerm& AfterFirst(Context&, StringTerm&, StringTerm&);
 
-extern _StringTerm& BeforeFirst(_Context&, _StringTerm&, _StringTerm&);
+extern StringTerm& BeforeFirst(Context&, StringTerm&, StringTerm&);
 
-extern _Bool& StringEqual(_Context&, _StringTerm&, _StringTerm&);
+extern Bool& StringEqual(Context&, StringTerm&, StringTerm&);
 
-extern _StringTerm& ConcatString(_Context&, _StringTerm&, _StringTerm&);
+extern StringTerm& ConcatString(Context&, StringTerm&, StringTerm&);
 
-extern _StringTerm& Escape(_Context&, _StringTerm&);
+extern StringTerm& Escape(Context&, StringTerm&);
 
-extern _DoubleTerm& Length(_Context&, _StringTerm&);
+extern DoubleTerm& Length(Context&, StringTerm&);
 
-extern _StringTerm& Mangle(_Context&, _StringTerm&);
+extern StringTerm& Mangle(Context&, StringTerm&);
 
-extern _StringTerm& UpCase(_Context&, _StringTerm&);
+extern StringTerm& UpCase(Context&, StringTerm&);
 
-extern _StringTerm& Replace(_Context&, _StringTerm&, _StringTerm&, _StringTerm&);
+extern StringTerm& Replace(Context&, StringTerm&, StringTerm&, StringTerm&);
 
-extern _Bool& Contains(_Context&, _StringTerm&, _StringTerm&);
+extern Bool& Contains(Context&, StringTerm&, StringTerm&);
 
-extern _StringTerm& DownCase(_Context&, _StringTerm&);
+extern StringTerm& DownCase(Context&, StringTerm&);
 
-extern _StringTerm& Substring(_Context&, _StringTerm&, _DoubleTerm&, _DoubleTerm&);
+extern StringTerm& Substring(Context&, StringTerm&, DoubleTerm&, DoubleTerm&);
+
+extern StringTerm& Substring2(Context&, StringTerm&, DoubleTerm&);
+
+extern Bool& MatchRegex(Context&, StringTerm&, StringTerm&);
+
+
+/* Tests if the beginning of the given string starts with the specified prefix. */
+extern Bool& StartsWith(Context&, StringTerm& str, StringTerm& prefix);
 
 #endif

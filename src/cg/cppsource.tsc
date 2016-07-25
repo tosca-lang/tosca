@@ -26,14 +26,14 @@ func CppSource(#module: Module) -> Text4_text_sort
 
 /* Generate class definition and method body for data sorts */
 func CppClassDefs(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
-→ TextMapFold<Core_cdecl_sort>((decl) -> CppClassDef(decl), #datasorts)
+→ TextMapFoldES<Core_cdecl_sort>((decl) -> CppClassDef(decl), #datasorts)
 
 func CppClassDef(Core_cdecl_sort) -> Text4_text_sort
 rule CppClassDef(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
 → text⟦
-†⟨TextMapFold((cform) -> WhenNoParams(#csortvars?, ()->CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, FALSE)), #cform*)⟩
-†⟨TextMapFold((cform) -> WhenNoParams(#csortvars?, ()->CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, FALSE)), #cform*)⟩
-†⟨TextMapFold((cform) -> CppFormDefs(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩⟧
+†⟨TextMapFoldES((cform) -> WhenNoParams(#csortvars?, ()->CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, FALSE)), #cform*)⟩
+†⟨TextMapFoldES((cform) -> WhenNoParams(#csortvars?, ()->CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, FALSE)), #cform*)⟩
+†⟨TextMapFoldES((cform) -> CppFormDefs(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩⟧
 
 
 /* Generate class and method definitions for the given data form */
@@ -48,13 +48,14 @@ func CppFormDefs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_te
 
   rule CppFormDefs(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦
-     †⟨CppFormConstructorVar(#sortname, #csortvars?, FALSE)⟩⟧
+      †⟨CppFormConstructorVar(#sortname, #csortvars?, FALSE)⟩
+      †⟨CppFormMethodMake(#sortname, #csortvars?, FALSE)⟩⟧
 
 // --------- Function sorts and associated rules
 
 /* Generate function definitions corresponding to function sorts. */
 func CppFunctionDefs(#env: {String : EnvEntry}) -> Text4_text_sort
-→ TextMapFold((key) -> CppFunctionDecl(#env, key, FALSE), MapKeys(GetFuncSorts(GetContent(#env))))
+→ TextMapFoldES((key) -> CppFunctionDecl(#env, key, FALSE), MapKeys(GetFuncSorts(GetContent(#env))))
 
 
 /* Apply function when the list of template parameters is empty */

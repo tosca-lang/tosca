@@ -5,8 +5,6 @@
 #include <iostream>
 #include <stdexcept>
 
-class _Variable;
-
 // C++17: std::optional
 template<typename T>
 class Optional

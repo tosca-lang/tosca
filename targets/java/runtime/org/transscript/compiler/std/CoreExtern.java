@@ -160,6 +160,7 @@ public class CoreExtern
 		return null;
 	}
 
+	@Deprecated
 	public static <a extends Term> a ForgivableError(Context context, ThunkMaker<a> tma, StringTerm value_1675, StringTerm value_1676, StringTerm value_1677, StringTerm value_1678, StringTerm value_1679, StringTerm value_1680, LazyTerm<a> value_1681)
 	{
 		// TODO Auto-generated method stub
