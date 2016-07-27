@@ -3,9 +3,9 @@
 #define _TS_H
 
 #include <stdexcept>
+#include "closure.h"
 #include "term.h"
 #include "mapterm.h"
-#include "closure.h"
 
 class Context
 {

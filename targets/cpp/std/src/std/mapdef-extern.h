@@ -61,7 +61,7 @@ template<typename a, typename b>
 Option<b>& MapGet(Context& ctx, MapTerm<a, b>& map, a& key)
 {
     MapTerm<a, b>& emap = force(ctx, map);
-    a ekey = force(ctx, key);
+    a& ekey = force(ctx, key);
 
     Option<b>& result = emap.getValue(ctx, ekey);
    // emap.release();
@@ -84,7 +84,7 @@ MapTerm<a, b>& MapPutVar(Context& ctx, MapTerm<a, b>& map, c& key, b& value)
     c& ekey = force(ctx, key);
     b& evalue = force(ctx, value);
 
-    Optional<Variable<c>> v = ekey.variable();
+    Optional<Variable> v = ekey.variable();
     if (v)
     {
         // TODO extends only when refcount > 1
@@ -102,7 +102,7 @@ Option<b>& MapGetVar(Context& ctx, MapTerm<a, b>& map, c& key)
     MapTerm<a, b>& emap = force(ctx, map);
     c& ekey = force(ctx, key);
 
-    Optional<Variable<c>> v = ekey.variable();
+    Optional<Variable> v = ekey.variable();
     if (v)
     {
         Option<b>& result = emap.getValueVar(ctx, v.value());
@@ -160,7 +160,8 @@ MapTerm<a, b>& MapNew(Context& ctx)
  * @param map
  * @return
  */
-template<typename a, typename b> List<b>& MapValues(Context& ctx, MapTerm<a, b>& map)
+template<typename a, typename b>
+List<b>& MapValues(Context& ctx, MapTerm<a, b>& map)
 {
     MapTerm<a, b>& emap = force(ctx, map);
 
@@ -177,7 +178,8 @@ template<typename a, typename b> List<b>& MapValues(Context& ctx, MapTerm<a, b>&
  * @param map
  * @return
  */
-template<typename a, typename b> List<b>& MapVarValues(Context& ctx, MapTerm<a, b>& map)
+template<typename a, typename b>
+List<b>& MapVarValues(Context& ctx, MapTerm<a, b>& map)
 {
     MapTerm<a, b>& emap = force(ctx, map);
 
@@ -203,14 +205,16 @@ Bool& MapIsEmpty(Context& ctx, MapTerm<a, b>& map)
     return result;
 }
 
-template<typename a, typename b, typename c> MapTerm<a, b>& MapFind(Context& ctx, c value)
+template<typename a, typename b, typename c>
+MapTerm<a, b>& MapFind(Context& ctx, c& value)
 {
-
+    // TODO:
+    return MapNew<a, b>(ctx);
 }
 
 template<typename a, typename b, typename c> c MapReplace(Context& ctx, c value_1377, MapTerm<a, b>& map_1378)
 {
-
+throw new std::runtime_error("");
 }
 
 #endif

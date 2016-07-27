@@ -11,23 +11,20 @@ class Option;
 template<typename V>
 class List;
 
-template<typename K, typename V>
-class MapTerm;
 
-// Construction
-template<typename K, typename V>
-MapTerm<K, V>& mapTerm();
+template<typename a> Option<a>& newNONE(Context& ctx);
+template<typename a> Option<a>& newSOME(Context& ctx, a& param);
+template<typename a> List<a>& newNil(Context& ctx);
 
 // MapTerm type definition
 template<typename K, typename V>
-class MapTerm: public Term, std::unordered_map<K, V>
+class MapTerm: public Term, public std::unordered_map<std::reference_wrapper<K>, std::reference_wrapper<V>>
 {
 public:
     virtual ~MapTerm()
     {
     }
-    ;
-
+    
     /**
      * Creates a new map reference which inherits all properties in this
      * instance.
@@ -38,9 +35,9 @@ public:
      */
     virtual MapTerm<K, V>& extend()
     {
-
+        throw new std::runtime_error("");
     }
-
+    
     /**
      * Add key-value pair to map.
      *
@@ -49,20 +46,21 @@ public:
      */
     virtual void putValue(K& key, V& value)
     {
-
+        throw new std::runtime_error("");
     }
-
+    
     /**
      * Add key-value pair to map, where key is a variable.
      *
      * @param key variable. The reference is used.
      * @param value the associated term value. The reference is used.
      */
-    virtual void putVar(UVariable key, V& value)
+    virtual void putVar(Variable key, V& value)
     {
-
+        throw new std::runtime_error("");
+        
     }
-
+    
     /**
      * Get value corresponding to given key
      * @param key
@@ -70,28 +68,28 @@ public:
      */
     virtual Option<V>& getValue(Context& ctx, K& key)
     {
-
+        throw new std::runtime_error("");
     }
-
+    
     /**
      * Get value corresponding to given variable key
      * @param key
      * @return An new reference to an optional typed term.
      */
-    virtual Optional<V> getValueVar(Context& ctx, UVariable key)
+    virtual Option<V> getValueVar(Context& ctx, Variable key)
     {
-
+        throw new std::runtime_error("");
     }
-
+    
     /**
      * Put all entries in the given map into this map
      * @param map
      */
     virtual void putAll(MapTerm<K, V> map)
     {
-
+        throw new std::runtime_error("");
     }
-
+    
     /**
      * Gets map values
      * @param context
@@ -99,9 +97,9 @@ public:
      */
     virtual List<V>& values(Context& ctx)
     {
-
+        throw new std::runtime_error("");
     }
-
+    
     /**
      * Gets map keys
      * @param context
@@ -109,9 +107,9 @@ public:
      */
     virtual List<K>& keys(Context& ctx)
     {
-
+        throw new std::runtime_error("");
     }
-
+    
     /**
      * Gets map variable values
      * @param context
@@ -119,9 +117,9 @@ public:
      */
     virtual List<V>& varValues(Context& ctx)
     {
-
+        throw new std::runtime_error("");
     }
-
+    
     /**
      * Gets map variable keys
      * @param context
@@ -130,72 +128,169 @@ public:
     template<typename VK>
     List<VK>& varKeys(Context& ctx)
     {
-
+        throw new std::runtime_error("");
     }
-
+    
     /**
      * @return true when this map is empty
      */
     virtual bool isEmpty()
     {
-
+        throw new std::runtime_error("");
     }
-
+    
     /**
      * @return true when this map contains an entry for the given key
      */
     virtual bool containsKey(K key)
     {
-
+        throw new std::runtime_error("");
     }
-
+    
     /**
      * @return true when this map contains an entry for the given variable
      */
-    virtual bool containsVar(UVariable var)
+    virtual bool containsVar(Variable var)
     {
-
+        throw new std::runtime_error("");
     }
-
+    
     /**
      * @return true when this map contains an entry for the given key, including variables.
      */
     virtual bool contains(Term key)
     {
-
+        throw new std::runtime_error("");
     }
-
+    
 };
+
+
 
 // MapTerm value
 template<typename K, typename V>
-class ValMapTerm: public MapTerm<K, V>
+class CMapTerm: public MapTerm<K, V>
 {
-
 public:
-    ValMapTerm() {}
-    ~ValMapTerm() {}
-
+    CMapTerm() :
+    parent(Optional<CMapTerm>::nullopt)
+    {
+    }
+    
+    virtual ~CMapTerm()
+    {
+    }
+    
+    MapTerm<K, V>& extend()
+    {
+        CMapTerm<K, V>& extended = *(new CMapTerm<K, V>(*this));
+        return extended;
+    }
+    
+    virtual void putValue(K& key, V& value)
+    {
+        this->emplace(key, value);
+    }
+    
+    virtual void putVar(Variable key, V& value)
+    {
+        throw new std::runtime_error("");
+        
+    }
+    
+    virtual Option<V>& getValue(Context& ctx, K& key)
+    {
+        auto search = this->find(key);
+        if (search == this->end())
+        {
+            if (parent)
+                return parent.value().getValue(ctx, key);
+            
+            return newNONE<V>(ctx);
+        }
+        return newSOME<V>(ctx, search->second);
+    }
+    
+    virtual Option<V> getValueVar(Context& ctx, Variable key)
+    {
+        throw new std::runtime_error("");
+    }
+    
+    virtual void putAll(MapTerm<K, V> map)
+    {
+        throw new std::runtime_error("");
+    }
+    
+    virtual List<V>& values(Context& ctx)
+    {
+        throw new std::runtime_error("");
+    }
+    
+    List<K>& keys(Context& ctx)
+    {
+        throw new std::runtime_error("");
+    }
+    
+    List<V>& varValues(Context& ctx)
+    {
+        throw new std::runtime_error("");
+    }
+    
+    template<typename VK>
+    List<VK>& varKeys(Context& ctx)
+    {
+        throw new std::runtime_error("");
+    }
+    
+    bool isEmpty()
+    {
+        return this->empty();
+    }
+    
+    bool containsKey(K key)
+    {
+        throw new std::runtime_error("");
+    }
+    
+    bool containsVar(Variable var)
+    {
+        throw new std::runtime_error("");
+    }
+    
+    bool contains(Term key)
+    {
+        throw new std::runtime_error("");
+    }
+protected:
+    
+    // Extended map
+    Optional<CMapTerm> parent;
+    
+    CMapTerm(CMapTerm& parent) :
+    parent(make_optional<CMapTerm>(parent))
+    {
+        parent.AddRef();
+    }
 };
 
 // Construction
 template<typename K, typename V>
 MapTerm<K, V>& mapTerm()
 {
-    return *(new ValMapTerm<K, V>());
+    return *(new CMapTerm<K, V>());
 }
 
-/*
- * Variable use of type Map
- */
-template<typename K, typename V>
-class MapTermUse: public MapTerm<K, V>, VariableUse<MapTermUse<K, V>>
-{
-public:
-    MapTermUse(std::string& name);
-};
-
-template<typename K, typename V>
-Variable<MapTermUse<K, V>> varMapTerm(std::string&& hint);
+///*
+// * Variable use of type Map
+// */
+//template<typename K, typename V>
+//class MapTermUse: public MapTerm<K, V>, VariableUse<MapTermUse<K, V>>
+//{
+//public:
+//    MapTermUse(std::string& name);
+//};
+//
+//template<typename K, typename V>
+//Variable<MapTermUse<K, V>> varMapTerm(std::string&& hint);
 
 #endif

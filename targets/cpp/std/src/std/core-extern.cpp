@@ -1,27 +1,37 @@
 // Copyright (c) 2016 IBM Corporation.
 #include "core-extern.h"
 
-StringTerm& GetEnv(Context& ctx, StringTerm& value_161, StringTerm& value_162)
-{
+#include  <cstdlib>
+#include "core.h"
 
+StringTerm& GetEnv(Context& ctx, StringTerm& key, StringTerm& def)
+{
+    char* value = getenv(key.Unbox().c_str());
+    key.Release();
+    if (value)
+    {
+        def.Release();
+        return newStringTerm(value);
+    }
+    return def;
 }
 
-Bool& BitSubSetEq(Context& ctx, DoubleTerm& value_120, DoubleTerm& value_121)
+Bool& BitSubSetEq(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 {
-
+    throw new std::runtime_error("unimplemented");
 }
 
-DoubleTerm& BitMinus(Context& ctx, DoubleTerm& value_125, DoubleTerm& value_126)
+DoubleTerm& BitMinus(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 {
-return value_125;
+    throw new std::runtime_error("unimplemented");
 }
 
-DoubleTerm& BitOr(Context& ctx, DoubleTerm& value_136, DoubleTerm& value_137)
+DoubleTerm& BitOr(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 {
-
+    throw new std::runtime_error("unimplemented");
 }
 
-DoubleTerm& BitAnd(Context& ctx, DoubleTerm& value_159, DoubleTerm& value_160)
+DoubleTerm& BitAnd(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 {
-
+    throw new std::runtime_error("unimplemented");
 }

@@ -48,8 +48,9 @@ func CppFormDefs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_te
 
   rule CppFormDefs(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦
-      †⟨CppFormConstructorVar(#sortname, #csortvars?, FALSE)⟩
-      †⟨CppFormMethodMake(#sortname, #csortvars?, FALSE)⟩⟧
+      †⟨CppVarConstructorVar(#sortname, #csortvars?, FALSE)⟩
+      †⟨CppVarMethodUse(#sortname, #csortvars?, FALSE)⟩
+      †⟨CppVarConstructorUse(#sortname, #csortvars?, FALSE)⟩⟧
 
 // --------- Function sorts and associated rules
 

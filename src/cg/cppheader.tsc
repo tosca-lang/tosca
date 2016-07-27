@@ -83,13 +83,16 @@ func CppForwardForm(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4
 
   rule CppForwardForm(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
-    †⟨CppTemplatePrefix(#csortvars?)⟩
-    class †⟨FormCppClassName(#CONSTRUCTOR)⟩;⟧
+      †⟨CppTemplatePrefix(#csortvars?)⟩
+      class †⟨FormCppClassName(#CONSTRUCTOR)⟩;⟧
 
   rule CppForwardForm(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦
-    †⟨CppTemplatePrefix(#csortvars?)⟩
-    class †⟨FormCppClassName(#sortname)⟩Use;⟧
+      †⟨CppTemplatePrefix(#csortvars?)⟩
+      class †⟨FormCppClassName(#sortname)⟩Var;
+
+      †⟨CppTemplatePrefix(#csortvars?)⟩
+      class †⟨FormCppClassName(#sortname)⟩Use;⟧
 
 /* Generate class and method signatures for data sorts */
 func CppClassDecls(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
@@ -110,7 +113,7 @@ public:
 
 func CppExtendTerm(#sortname: String, #form*: List<Core_cform_sort>) -> Text4_text_sort
 → IfPresent(PickFirst(#form*, (form)->IsAllowsVar(form)),
-    (form)->text⟦virtual TermVar<†⟨FormCppClassName(#sortname)⟩Use>⟧,
+    (form)->text⟦virtual TermVar<†⟨FormCppClassName(#sortname)⟩Var>⟧,
     ()->text⟦Term⟧)
 
 /* Generate class and method signatures for the given data form */
@@ -133,14 +136,19 @@ func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_t
   rule CppFormClass(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦
       †⟨CppTemplatePrefix(#csortvars?)⟩
-      class †⟨FormCppClassName(#sortname)⟩Use: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩, public VariableUse<†⟨FormCppClassName(#sortname)⟩Use†⟨MaybeCppTypeArguments(#csortvars?)⟩>
+      class †⟨FormCppClassName(#sortname)⟩Var: public Variable
       {
         public:
-          typedef †⟨FormCppClassName(#sortname)⟩Use†⟨MaybeCppTypeArguments(#csortvars?)⟩ type;
-          †⟨CppFormConstructorVar(#sortname, #csortvars?, TRUE)⟩
-          †⟨CppFormMethodMake(#sortname, #csortvars?, TRUE)⟩
+          †⟨CppVarConstructorVar(#sortname, #csortvars?, TRUE)⟩
+          †⟨CppVarMethodUse(#sortname, #csortvars?, TRUE)⟩
       };
-    ⟧
+
+      †⟨CppTemplatePrefix(#csortvars?)⟩
+      class †⟨FormCppClassName(#sortname)⟩Use: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩, public VariableUse<†⟨FormCppClassName(#sortname)⟩Var†⟨MaybeCppTypeArguments(#csortvars?)⟩>
+      {
+        public:
+          †⟨CppVarConstructorUse(#sortname, #csortvars?, TRUE)⟩
+      };⟧
 
 // --------- Form to class fields
 

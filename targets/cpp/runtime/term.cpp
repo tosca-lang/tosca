@@ -18,6 +18,7 @@ Ref::Ref() :
 
 Ref::~Ref()
 {
+    std::cout << "delete ref\n";
     // assert(refcount == 0);
 }
 
@@ -31,37 +32,54 @@ void Ref::Release()
 {
     //assert(refcount > 0);
     refcount--;
-    if (refcount == 0)
-        delete this;
+    //if (refcount == 0)
+      //  delete this;
 }
 
 // --- Term
 
 // --- Variable Use
 
+
 // --- Variable
 
-UVariable::UVariable(std::string&& n) :
+Variable::Variable(std::string&& n) :
         name(n), uses(1)
 {
 }
 
 // --- String
 //
-StringTerm& stringTerm(std::string&& val)
+StringTerm& newStringTerm(std::string&& val)
 {
     return *(new CStringTerm(*(new std::string(val))));
 }
 
-Variable<CStringVarUse>& varStringTerm(std::string&& name)
+StringTerm& newStringTerm(std::string& val)
 {
-    return *(new Variable<CStringVarUse>(std::move(name)));
+    return *(new CStringTerm(val));
 }
 
-CStringVarUse::CStringVarUse(Variable<CStringVarUse>& v) :
+CStringVar::CStringVar(std::string&& name) : Variable(std::move(name))
+{
+}
+
+CStringVarUse& CStringVar::Use()
+{
+    return *(new CStringVarUse(*this));
+}
+
+CStringVar& varStringTerm(std::string&& name)
+{
+    return *(new CStringVar(std::move(name)));
+}
+
+
+CStringVarUse::CStringVarUse(CStringVar& v) :
         VariableUse(v)
 {
 }
+
 
 CStringTerm::CStringTerm(std::string& val) :
         value(val)
@@ -70,7 +88,7 @@ CStringTerm::CStringTerm(std::string& val) :
 
 CStringTerm::~CStringTerm()
 {
-    delete &value;
+   // delete &value;
 }
 
 Term CStringTerm::Copy(Context& ctx)
@@ -86,18 +104,23 @@ std::string& CStringTerm::Unbox() const
 
 // --- Numeric
 //
-DoubleTerm& doubleTerm(double val)
+DoubleTerm& newDoubleTerm(double val)
 {
     return *(new CDoubleTerm(val));
 }
 
-Variable<CDoubleVarUse>& varDoubleTerm(std::string&& name)
+CDoubleVar& varDoubleTerm(std::string&& name)
 {
-    return *(new Variable<CDoubleVarUse>(std::move(name)));
+    return *(new CDoubleVar(std::move(name)));
 }
 
-CDoubleVarUse::CDoubleVarUse(Variable<CDoubleVarUse>& v) :
+CDoubleVarUse::CDoubleVarUse(CDoubleVar& v) :
         VariableUse(v)
+{
+}
+
+
+CDoubleVar::CDoubleVar(std::string&& name) : Variable(std::move(name))
 {
 }
 

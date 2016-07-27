@@ -427,7 +427,7 @@ func CCEnvRules(CCEnv) -> List<Core_cdecl_sort>
 rule CCEnvRules(CCEnv(#name, #content, #rules, #params, #counter, #vars)) → #rules
 
 func CCEnvAddRule(CCEnv, Core_cdecl_sort) -> CCEnv
-rule CCEnvAddRule(CCEnv(#name, #content, #rules, #params, #counter, #vars), #rule) → CCEnv(#name, #content, Cons(#rule, #rules), #params, #counter, #vars)
+rule CCEnvAddRule(CCEnv(#name, #content, #rules, #params, #counter, #vars), #rule) → CCEnv(#name, #content, Append(#rule, #rules), #params, #counter, #vars)
 
 func CCEnvParams(CCEnv) -> List<Pair<String  Core_csort_sort>>
 rule CCEnvParams(CCEnv(#name, #content, #rules, #params, #counter, #vars)) → #params

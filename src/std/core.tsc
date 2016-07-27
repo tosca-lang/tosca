@@ -10,7 +10,10 @@ rule Eval(#) → #
 // --- External Environment
 
 @Extern func IfDef<a>(String /* Key */, ()->a, ()->a) -> a
-@Extern func GetEnv(String /* Key */, String /* Default */) -> String
+
+/* @return the string that matches the specified `#key` in the system environment, or
+   the given `#default` string when no such key exists */
+@Extern func GetEnv(#key: String, #default: String) -> String
 
 // --- Optional value
 

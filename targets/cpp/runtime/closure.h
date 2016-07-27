@@ -8,6 +8,7 @@
 // Really ugly. Rely on macro expansion. Might be feasible to use c++ metaprogramming.
 
 #define COMMA() ,
+#define REF() &
 #define SEMI() ;
 #define EMPTY()
 #define LPAR() (
@@ -55,126 +56,110 @@
 #define REPEAT39(oc, a, lp, b, os) REPEAT38(oc, a, lp, b, os) oc() a lp() b ## 39 os()
 #define REPEAT40(oc, a, lp, b, os) REPEAT39(oc, a, lp, b, os) oc() a lp() b ## 40 os()
 
-#define REPEAT2_0(a, b, c, lp, d, rp)
-#define REPEAT2_1(a, b, c, lp, d, rp) REPEAT2_0(a, b, c, lp, d, rp) , a b ## 1 c lp() d ## 1 rp()
-#define REPEAT2_2(a, b, c, lp, d, rp) REPEAT2_1(a, b, c, lp, d, rp) , a b ## 2 c lp() d ## 2 rp()
-#define REPEAT2_3(a, b, c, lp, d, rp) REPEAT2_2(a, b, c, lp, d, rp) , a b ## 3 c lp() d ## 3 rp()
-#define REPEAT2_4(a, b, c, lp, d, rp) REPEAT2_3(a, b, c, lp, d, rp) , a b ## 4 c lp() d ## 4 rp()
-#define REPEAT2_5(a, b, c, lp, d, rp) REPEAT2_4(a, b, c, lp, d, rp) , a b ## 5 c lp() d ## 5 rp()
-#define REPEAT2_6(a, b, c, lp, d, rp) REPEAT2_5(a, b, c, lp, d, rp) , a b ## 6 c lp() d ## 6 rp()
-#define REPEAT2_7(a, b, c, lp, d, rp) REPEAT2_6(a, b, c, lp, d, rp) , a b ## 7 c lp() d ## 7 rp()
-#define REPEAT2_8(a, b, c, lp, d, rp) REPEAT2_7(a, b, c, lp, d, rp) , a b ## 8 c lp() d ## 8 rp()
-#define REPEAT2_9(a, b, c, lp, d, rp) REPEAT2_8(a, b, c, lp, d, rp) , a b ## 9 c lp() d ## 9 rp()
-#define REPEAT2_10(a, b, c, lp, d, rp) REPEAT2_9(a, b, c, lp, d, rp) , a b ## 10 c lp() d ## 10 rp()
-#define REPEAT2_11(a, b, c, lp, d, rp) REPEAT2_10(a, b, c, lp, d, rp) , a b ## 11 c lp() d ## 11 rp()
-#define REPEAT2_12(a, b, c, lp, d, rp) REPEAT2_11(a, b, c, lp, d, rp) , a b ## 12 c lp() d ## 12 rp()
-#define REPEAT2_13(a, b, c, lp, d, rp) REPEAT2_12(a, b, c, lp, d, rp) , a b ## 13 c lp() d ## 13 rp()
-#define REPEAT2_14(a, b, c, lp, d, rp) REPEAT2_13(a, b, c, lp, d, rp) , a b ## 14 c lp() d ## 14 rp()
-#define REPEAT2_15(a, b, c, lp, d, rp) REPEAT2_14(a, b, c, lp, d, rp) , a b ## 15 c lp() d ## 15 rp()
-#define REPEAT2_16(a, b, c, lp, d, rp) REPEAT2_15(a, b, c, lp, d, rp) , a b ## 16 c lp() d ## 16 rp()
-#define REPEAT2_17(a, b, c, lp, d, rp) REPEAT2_16(a, b, c, lp, d, rp) , a b ## 17 c lp() d ## 17 rp()
-#define REPEAT2_18(a, b, c, lp, d, rp) REPEAT2_17(a, b, c, lp, d, rp) , a b ## 18 c lp() d ## 18 rp()
-#define REPEAT2_19(a, b, c, lp, d, rp) REPEAT2_18(a, b, c, lp, d, rp) , a b ## 19 c lp() d ## 19 rp()
-#define REPEAT2_20(a, b, c, lp, d, rp) REPEAT2_19(a, b, c, lp, d, rp) , a b ## 20 c lp() d ## 20 rp()
-#define REPEAT2_21(a, b, c, lp, d, rp) REPEAT2_20(a, b, c, lp, d, rp) , a b ## 21 c lp() d ## 21 rp()
-#define REPEAT2_22(a, b, c, lp, d, rp) REPEAT2_21(a, b, c, lp, d, rp) , a b ## 22 c lp() d ## 22 rp()
-#define REPEAT2_23(a, b, c, lp, d, rp) REPEAT2_22(a, b, c, lp, d, rp) , a b ## 23 c lp() d ## 23 rp()
-#define REPEAT2_24(a, b, c, lp, d, rp) REPEAT2_23(a, b, c, lp, d, rp) , a b ## 24 c lp() d ## 24 rp()
-#define REPEAT2_25(a, b, c, lp, d, rp) REPEAT2_24(a, b, c, lp, d, rp) , a b ## 25 c lp() d ## 25 rp()
-#define REPEAT2_26(a, b, c, lp, d, rp) REPEAT2_25(a, b, c, lp, d, rp) , a b ## 26 c lp() d ## 26 rp()
-#define REPEAT2_27(a, b, c, lp, d, rp) REPEAT2_26(a, b, c, lp, d, rp) , a b ## 27 c lp() d ## 27 rp()
-#define REPEAT2_28(a, b, c, lp, d, rp) REPEAT2_27(a, b, c, lp, d, rp) , a b ## 28 c lp() d ## 28 rp()
-#define REPEAT2_29(a, b, c, lp, d, rp) REPEAT2_28(a, b, c, lp, d, rp) , a b ## 29 c lp() d ## 29 rp()
-#define REPEAT2_30(a, b, c, lp, d, rp) REPEAT2_29(a, b, c, lp, d, rp) , a b ## 30 c lp() d ## 30 rp()
-#define REPEAT2_31(a, b, c, lp, d, rp) REPEAT2_30(a, b, c, lp, d, rp) , a b ## 31 c lp() d ## 31 rp()
-#define REPEAT2_32(a, b, c, lp, d, rp) REPEAT2_31(a, b, c, lp, d, rp) , a b ## 32 c lp() d ## 32 rp()
-#define REPEAT2_33(a, b, c, lp, d, rp) REPEAT2_32(a, b, c, lp, d, rp) , a b ## 33 c lp() d ## 33 rp()
-#define REPEAT2_34(a, b, c, lp, d, rp) REPEAT2_33(a, b, c, lp, d, rp) , a b ## 34 c lp() d ## 34 rp()
-#define REPEAT2_35(a, b, c, lp, d, rp) REPEAT2_34(a, b, c, lp, d, rp) , a b ## 35 c lp() d ## 35 rp()
-#define REPEAT2_36(a, b, c, lp, d, rp) REPEAT2_35(a, b, c, lp, d, rp) , a b ## 36 c lp() d ## 36 rp()
-#define REPEAT2_37(a, b, c, lp, d, rp) REPEAT2_36(a, b, c, lp, d, rp) , a b ## 37 c lp() d ## 37 rp()
-#define REPEAT2_38(a, b, c, lp, d, rp) REPEAT2_37(a, b, c, lp, d, rp) , a b ## 38 c lp() d ## 38 rp()
-#define REPEAT2_39(a, b, c, lp, d, rp) REPEAT2_38(a, b, c, lp, d, rp) , a b ## 39 c lp() d ## 39 rp()
-#define REPEAT2_40(a, b, c, lp, d, rp) REPEAT2_39(a, b, c, lp, d, rp) , a b ## 40 c lp() d ## 40 rp()
+#define REPEAT2_0(oc, a, b, c, lp, d, rp)
+#define REPEAT2_1(oc, a, b, c, lp, d, rp) REPEAT2_0(oc, a, b, c, lp, d, rp) oc() a b ## 1 c lp() d ## 1 rp()
+#define REPEAT2_2(oc, a, b, c, lp, d, rp) REPEAT2_1(oc, a, b, c, lp, d, rp) oc() a b ## 2 c lp() d ## 2 rp()
+#define REPEAT2_3(oc, a, b, c, lp, d, rp) REPEAT2_2(oc, a, b, c, lp, d, rp) oc() a b ## 3 c lp() d ## 3 rp()
+#define REPEAT2_4(oc, a, b, c, lp, d, rp) REPEAT2_3(oc, a, b, c, lp, d, rp) oc() a b ## 4 c lp() d ## 4 rp()
+#define REPEAT2_5(oc, a, b, c, lp, d, rp) REPEAT2_4(oc, a, b, c, lp, d, rp) oc() a b ## 5 c lp() d ## 5 rp()
+#define REPEAT2_6(oc, a, b, c, lp, d, rp) REPEAT2_5(oc, a, b, c, lp, d, rp) oc() a b ## 6 c lp() d ## 6 rp()
+#define REPEAT2_7(oc, a, b, c, lp, d, rp) REPEAT2_6(oc, a, b, c, lp, d, rp) oc() a b ## 7 c lp() d ## 7 rp()
+#define REPEAT2_8(oc, a, b, c, lp, d, rp) REPEAT2_7(oc, a, b, c, lp, d, rp) oc() a b ## 8 c lp() d ## 8 rp()
+#define REPEAT2_9(oc, a, b, c, lp, d, rp) REPEAT2_8(oc, a, b, c, lp, d, rp) oc() a b ## 9 c lp() d ## 9 rp()
+#define REPEAT2_10(oc, a, b, c, lp, d, rp) REPEAT2_9(oc, a, b, c, lp, d, rp) oc() a b ## 10 c lp() d ## 10 rp()
+#define REPEAT2_11(oc, a, b, c, lp, d, rp) REPEAT2_10(oc, a, b, c, lp, d, rp) oc() a b ## 11 c lp() d ## 11 rp()
+#define REPEAT2_12(oc, a, b, c, lp, d, rp) REPEAT2_11(oc, a, b, c, lp, d, rp) oc() a b ## 12 c lp() d ## 12 rp()
+#define REPEAT2_13(oc, a, b, c, lp, d, rp) REPEAT2_12(oc, a, b, c, lp, d, rp) oc() a b ## 13 c lp() d ## 13 rp()
+#define REPEAT2_14(oc, a, b, c, lp, d, rp) REPEAT2_13(oc, a, b, c, lp, d, rp) oc() a b ## 14 c lp() d ## 14 rp()
+#define REPEAT2_15(oc, a, b, c, lp, d, rp) REPEAT2_14(oc, a, b, c, lp, d, rp) oc() a b ## 15 c lp() d ## 15 rp()
+#define REPEAT2_16(oc, a, b, c, lp, d, rp) REPEAT2_15(oc, a, b, c, lp, d, rp) oc() a b ## 16 c lp() d ## 16 rp()
+#define REPEAT2_17(oc, a, b, c, lp, d, rp) REPEAT2_16(oc, a, b, c, lp, d, rp) oc() a b ## 17 c lp() d ## 17 rp()
+#define REPEAT2_18(oc, a, b, c, lp, d, rp) REPEAT2_17(oc, a, b, c, lp, d, rp) oc() a b ## 18 c lp() d ## 18 rp()
+#define REPEAT2_19(oc, a, b, c, lp, d, rp) REPEAT2_18(oc, a, b, c, lp, d, rp) oc() a b ## 19 c lp() d ## 19 rp()
+#define REPEAT2_20(oc, a, b, c, lp, d, rp) REPEAT2_19(oc, a, b, c, lp, d, rp) oc() a b ## 20 c lp() d ## 20 rp()
+#define REPEAT2_21(oc, a, b, c, lp, d, rp) REPEAT2_20(oc, a, b, c, lp, d, rp) oc() a b ## 21 c lp() d ## 21 rp()
+#define REPEAT2_22(oc, a, b, c, lp, d, rp) REPEAT2_21(oc, a, b, c, lp, d, rp) oc() a b ## 22 c lp() d ## 22 rp()
+#define REPEAT2_23(oc, a, b, c, lp, d, rp) REPEAT2_22(oc, a, b, c, lp, d, rp) oc() a b ## 23 c lp() d ## 23 rp()
+#define REPEAT2_24(oc, a, b, c, lp, d, rp) REPEAT2_23(oc, a, b, c, lp, d, rp) oc() a b ## 24 c lp() d ## 24 rp()
+#define REPEAT2_25(oc, a, b, c, lp, d, rp) REPEAT2_24(oc, a, b, c, lp, d, rp) oc() a b ## 25 c lp() d ## 25 rp()
+#define REPEAT2_26(oc, a, b, c, lp, d, rp) REPEAT2_25(oc, a, b, c, lp, d, rp) oc() a b ## 26 c lp() d ## 26 rp()
+#define REPEAT2_27(oc, a, b, c, lp, d, rp) REPEAT2_26(oc, a, b, c, lp, d, rp) oc() a b ## 27 c lp() d ## 27 rp()
+#define REPEAT2_28(oc, a, b, c, lp, d, rp) REPEAT2_27(oc, a, b, c, lp, d, rp) oc() a b ## 28 c lp() d ## 28 rp()
+#define REPEAT2_29(oc, a, b, c, lp, d, rp) REPEAT2_28(oc, a, b, c, lp, d, rp) oc() a b ## 29 c lp() d ## 29 rp()
+#define REPEAT2_30(oc, a, b, c, lp, d, rp) REPEAT2_29(oc, a, b, c, lp, d, rp) oc() a b ## 30 c lp() d ## 30 rp()
+#define REPEAT2_31(oc, a, b, c, lp, d, rp) REPEAT2_30(oc, a, b, c, lp, d, rp) oc() a b ## 31 c lp() d ## 31 rp()
+#define REPEAT2_32(oc, a, b, c, lp, d, rp) REPEAT2_31(oc, a, b, c, lp, d, rp) oc() a b ## 32 c lp() d ## 32 rp()
+#define REPEAT2_33(oc, a, b, c, lp, d, rp) REPEAT2_32(oc, a, b, c, lp, d, rp) oc() a b ## 33 c lp() d ## 33 rp()
+#define REPEAT2_34(oc, a, b, c, lp, d, rp) REPEAT2_33(oc, a, b, c, lp, d, rp) oc() a b ## 34 c lp() d ## 34 rp()
+#define REPEAT2_35(oc, a, b, c, lp, d, rp) REPEAT2_34(oc, a, b, c, lp, d, rp) oc() a b ## 35 c lp() d ## 35 rp()
+#define REPEAT2_36(oc, a, b, c, lp, d, rp) REPEAT2_35(oc, a, b, c, lp, d, rp) oc() a b ## 36 c lp() d ## 36 rp()
+#define REPEAT2_37(oc, a, b, c, lp, d, rp) REPEAT2_36(oc, a, b, c, lp, d, rp) oc() a b ## 37 c lp() d ## 37 rp()
+#define REPEAT2_38(oc, a, b, c, lp, d, rp) REPEAT2_37(oc, a, b, c, lp, d, rp) oc() a b ## 38 c lp() d ## 38 rp()
+#define REPEAT2_39(oc, a, b, c, lp, d, rp) REPEAT2_38(oc, a, b, c, lp, d, rp) oc() a b ## 39 c lp() d ## 39 rp()
+#define REPEAT2_40(oc, a, b, c, lp, d, rp) REPEAT2_39(oc, a, b, c, lp, d, rp) oc() a b ## 40 c lp() d ## 40 rp()
 
 #define TYPENAME(a) REPEAT ## a(COMMA, typename,EMPTY,P,EMPTY)
 #define TYPEARG(a) REPEAT ## a(COMMA,,EMPTY, P,EMPTY)
+#define TYPEARGREF(a) REPEAT ## a(COMMA,,EMPTY, P, REF)
+#define CTYPENAME(a) REPEAT ## a(COMMA, typename,EMPTY,C,EMPTY)
+#define CTYPEARG(a) REPEAT ## a(COMMA,,EMPTY, C,EMPTY)
+#define CTYPEARGREF(a) REPEAT ## a(COMMA,,EMPTY, C, REF)
+
 #define ARG(a) REPEAT ## a(COMMA,,EMPTY, p,EMPTY)
 #define CPTR(a) REPEAT ## a(COMMA,Ref&,EMPTY, c,EMPTY)
 #define CPTRARG(a) REPEAT ## a(COMMA,,EMPTY, c,EMPTY)
-#define DEFCPTR(a) REPEAT ## a(EMPTY,Ref&,EMPTY, cptr, SEMI)
 #define CPTREF(a) REPEAT ## a(COMMA, NewRef, LPAR, cptr, RPAR)
 
-#define PARAM(a) REPEAT2_ ## a(, P, &,EMPTY, p, EMPTY)
-#define INITCPTR(a) REPEAT2_ ## a(,cptr,,LPAR,c,RPAR)
-
-
-#define FUNC(arity) Fun ## arity
-
+#define PARAM(a) REPEAT2_ ## a(COMMA,, P, &,EMPTY, p, EMPTY)
+#define CPARAM(a) REPEAT2_ ## a(COMMA,, C, &,EMPTY, c, EMPTY)
+#define INITCPTR(a) REPEAT2_ ## a(COMMA,, cptr,,LPAR, c, RPAR)
+#define DEFCPTR(a) REPEAT2_ ## a(EMPTY,, C, &, EMPTY, cptr, SEMI)
 
 #define BASE_CLOSURE(free)                                                                      \
   template<typename R TYPENAME(free) >                                                          \
   class Closure ## free : public Ref                                                            \
   {                                                                                             \
   public:                                                                                       \
-    Closure ## free(Function f) :                                                               \
-            function(f)                                                                         \
-    {                                                                                           \
-    }                                                                                           \
-                                                                                                \
-    virtual ~Closure ## free()                                                                  \
-    {                                                                                           \
-    }                                                                                           \
-                                                                                                \
-    virtual R& Eval(Context& ctx PARAM(free))                                                   \
-    {                                                                                           \
-        return dynamic_cast<R&>(reinterpret_cast<Fun ## free>(function)(ctx ARG(free)));        \
-    }                                                                                           \
-                                                                                                \
-  protected:                                                                                    \
-      Function function;                                                                        \
-  };                                                                                            \
-                                                                                                \
-  template<typename R TYPENAME(free), int cc>                                                   \
-  class Closure ## free ## C: public Closure ## free <R TYPEARG(free)>                          \
-  {                                                                                             \
+    virtual R& Eval(Context& ctx PARAM(free)) = 0;                                              \
   };                                                                                            \
 
 
 
 #define CLOSURE_CAPTURE(free, capture, arity)                                                   \
-  template<typename R TYPENAME(free)>                                                           \
-  class Closure ## free ## C <R TYPEARG(free) , capture> : public Closure ## free <R TYPEARG(free)> \
+  template<typename R TYPENAME(free) CTYPENAME(capture) >                                       \
+  class Closure ## free ## C ## capture : public Closure ## free< R TYPEARG(free) >             \
   {                                                                                             \
    public:                                                                                      \
-      Closure ## free ## C (Function f CPTR(capture) ) :                                        \
-        Closure ## free <R TYPEARG(free) >::Closure ## free (f) INITCPTR(capture)               \
+     typedef R& (*ftype)(Context& TYPEARGREF(free) CTYPEARGREF(capture));                       \
+     Closure ## free ## C  ## capture (ftype f CPARAM(capture) ) :                              \
+        function(f) INITCPTR(capture)               \
       {}                                                                                        \
                                                                                                 \
-      ~Closure ## free ## C ()                                                                  \
-     { }                                                                                        \
+     ~Closure ## free ## C ## capture ()                                                        \
+     {}                                                                                        \
                                                                                                 \
                                                                                                 \
     R& Eval(Context& ctx PARAM(free) )                                                          \
     {                                                                                           \
-        return dynamic_cast<R&>(reinterpret_cast< FUNC(arity) >(Closure ## free <R TYPEARG(free) >::function)(ctx ARG(free) CPTREF(capture) )); \
+          return function(ctx ARG(free) CPTREF(capture) );                                      \
     }                                                                                           \
                                                                                                 \
     private:                                                                                    \
+      ftype function; \
       DEFCPTR(capture)                                                                          \
   };                                                                                            \
                                                                                                 \
-  template<typename R TYPENAME(arity)>                                                          \
-  Closure ## free <R TYPEARG(free)> & closure(R& (*function)(Context& ctx PARAM(arity) ) CPTR(capture) )  \
+  template<typename R TYPENAME(free) CTYPENAME(capture)>                                        \
+  Closure ## free <R TYPEARG(free)> & closure(R& (*function)(Context& TYPEARGREF(free) CTYPEARGREF(capture)) CPARAM(capture) )  \
   {                                                                                             \
-    return *(new Closure ## free ## C <R TYPEARG(free) , capture>(reinterpret_cast<Function>(function) CPTRARG(capture) )); \
+    return *(new Closure ## free ## C ## capture <R TYPEARG(free) CTYPEARG(capture) >(function CPTRARG(capture) )); \
   }
 
 #define THUNK(capture)                                                                            \
-  template<typename R TYPENAME(capture)>                                                          \
-  Closure0<R>& thunk(R& (*function)(Context& ctx PARAM(capture) ) CPTR(capture) )                 \
+  template<typename R CTYPENAME(capture)>                                                         \
+  Closure0<R>& thunk(R& (*function)(Context& CTYPEARGREF(capture)) CPARAM(capture) )              \
   {                                                                                               \
-    return *(new Closure0C<R, capture>(reinterpret_cast<Function>(function) CPTRARG(capture) ));  \
+    return *(new Closure0C ## capture <R CTYPEARG(capture)>(function CPTRARG(capture) ));         \
   }
 
 
@@ -236,6 +221,43 @@ CLOSURE_CAPTURE(1, 19, 20)
 BASE_CLOSURE(2)
 CLOSURE_CAPTURE(2, 0, 2)
 CLOSURE_CAPTURE(2, 1, 3)
+//
+//template<typename R, typename P1, typename P2>
+//class Closure2C<R, P1, P2, 1> : public Closure2<R, P1, P2>
+//{
+//public:
+//    Closure2C(Function f, Ref& c1) :
+//    Closure2<R, P1, P2>::Closure2(f), cptr1(c1)
+//    {
+//    }
+//    ~Closure2C()
+//    {
+//    }
+//    R& Eval(Context& ctx, P1 & p1, P2 & p2)
+//    {
+//        try
+//        {
+//            Ref& r = reinterpret_cast<Fun3>(Closure2<R, P1, P2>::function)(ctx, p1, p2, NewRef(cptr1));
+//            return dynamic_cast<R&>(r);
+//        }
+//        catch (const std::bad_cast& e)
+//        {
+//            std::cout << e.what() << '\n';
+//            throw new std::runtime_error("");
+//        }
+//    }
+//private:
+//    Ref& cptr1;
+//};
+//template<typename R, typename P1, typename P2, typename P3> Closure2<R, P1, P2> & closure(
+//                                                                                          R& (*function)(Context& ctx, P1 & p1, P2 & p2, P3 & p3), Ref& c1)
+//{
+//    return *(new Closure2C<R, P1, P2, 1>(reinterpret_cast<Function>(function), c1));
+//}
+//
+//
+
+
 CLOSURE_CAPTURE(2, 2, 4)
 CLOSURE_CAPTURE(2, 3, 5)
 CLOSURE_CAPTURE(2, 4, 6)
@@ -254,6 +276,42 @@ CLOSURE_CAPTURE(2, 15, 17)
 BASE_CLOSURE(3)
 CLOSURE_CAPTURE(3, 0, 3)
 CLOSURE_CAPTURE(3, 1, 4)
+//
+//template<typename R, typename P1, typename P2, typename P3, typename C1>
+//class Closure3C1: public Closure3<R, P1, P2, P3>
+//{
+//public:
+//    Closure3C1(Function f, C1& c1) :
+//    Closure3<R, P1, P2, P3>::Closure3(f), cptr1(c1)
+//    {
+//    }
+//    ~Closure3C1()
+//    {
+//    }
+//    R& Eval(Context& ctx, P1 & p1, P2 & p2, P3 & p3)
+//    {
+//        try
+//        {
+//            return dynamic_cast<R&>(reinterpret_cast<R& (*)(Context&, P1&, P2&, P3&, C1&)>(Closure3<R, P1, P2, P3>::function)(ctx, p1, p2, p3,
+//                                                                                              NewRef(cptr1)));
+//        }
+//        catch (const std::bad_cast& e)
+//        {
+//            std::cout << e.what() << '\n';
+//            throw new std::runtime_error("");
+//        }
+//    }
+//private:
+//    C1& cptr1;
+//};
+//template<typename R, typename P1, typename P2, typename P3, typename C1> Closure3<R, P1, P2, P3> & closure(
+//                                                                                                           R& (*function)(Context& ctx, P1 & p1, P2 & p2, P3 & p3, C1 & p4), C1& c1)
+//{
+//    return *(new Closure3C1<R, P1, P2, P3, C1>(reinterpret_cast<Function>(function), c1));
+//}
+//
+
+
 CLOSURE_CAPTURE(3, 2, 5)
 CLOSURE_CAPTURE(3, 3, 6)
 CLOSURE_CAPTURE(3, 4, 7)
