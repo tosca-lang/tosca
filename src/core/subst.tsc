@@ -63,7 +63,7 @@ rule SubstMapEntry(cmapentry⟦ : ##METAVAR ⟧, #subst) → cmapentry⟦ : ⟨M
 //  DO THE REST WHEN REAL SUPPORT FOR MAP
 
 /* Sort variable substitution */
-func SubstSort(Core_csort_sort, List<Pair<String Core_csort_sort>>) -> Core_csort_sort
+func SubstSort(Core_csort_sort, List<PPair<String Core_csort_sort>>) -> Core_csort_sort
 rule SubstSort(csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #subst) → csort⟦ ##CONSTRUCTOR ⟨csorts?: SubstSortMaybeSorts(#csorts?, #subst)⟩ ⟧
 rule SubstSort(csort⟦ ##VARIABLE              ⟧, #subst) → IfPresent<Core_csort_sort Core_csort_sort>(HeadO<Core_csort_sort>(LookUp<String Core_csort_sort>(#VARIABLE, #subst)), (sort)->sort, ()->csort⟦ ##VARIABLE ⟧)
 rule SubstSort(csort⟦ [ ##csort1 ] ##csort2   ⟧, #subst) → csort⟦ [ ⟨csort: SubstSort(#csort1, #subst)⟩ ] ⟨csort: SubstSort(#csort2, #subst)⟩ ⟧
@@ -72,14 +72,14 @@ rule SubstSort(csort⟦ { ##cmapsort* }         ⟧, #subst) → csort⟦ { ⟨c
 rule SubstSort(csort⟦ thunk ##csort           ⟧, #subst) → csort⟦ thunk ⟨csort: SubstSort(#csort, #subst)⟩ ⟧
 rule SubstSort(csort⟦ data ##csort            ⟧, #subst) → csort⟦ data ⟨csort: SubstSort(#csort, #subst)⟩ ⟧
 
-func SubstSortMaybeSorts(List<Core_csorts_sort>, List<Pair<String Core_csort_sort>>) -> List<Core_csorts_sort>
+func SubstSortMaybeSorts(List<Core_csorts_sort>, List<PPair<String Core_csort_sort>>) -> List<Core_csorts_sort>
 rule SubstSortMaybeSorts(csorts?⟦             ⟧, #subst) → csorts?⟦⟧
 rule SubstSortMaybeSorts(csorts?⟦ ( ##csort*) ⟧, #subst) → csorts?⟦ ( ⟨csort*: SubstSortSorts(#csort*, #subst)⟩ ) ⟧
 
-func SubstSortSorts(List<Core_csort_sort>, List<Pair<String Core_csort_sort>>) -> List<Core_csort_sort>
+func SubstSortSorts(List<Core_csort_sort>, List<PPair<String Core_csort_sort>>) -> List<Core_csort_sort>
 rule SubstSortSorts(csort*⟦ ##csort ##csort*  ⟧, #subst) → csort*⟦ ⟨csort: SubstSort(#csort, #subst)⟩ ⟨csort*: SubstSortSorts(#csort*, #subst)⟩ ⟧
 rule SubstSortSorts(csort*⟦                   ⟧, #subst) → csort*⟦⟧
 
-func SubstMapSorts(List<Core_cmapsort_sort>, List<Pair<String Core_csort_sort>>) -> List<Core_cmapsort_sort>
+func SubstMapSorts(List<Core_cmapsort_sort>, List<PPair<String Core_csort_sort>>) -> List<Core_cmapsort_sort>
 rule SubstMapSorts(cmapsort*⟦ ##csort1 : ##csort2 ##cmapsort* ⟧, #subst) → cmapsort*⟦ ⟨csort: SubstSort(#csort1, #subst)⟩ : ⟨csort: SubstSort(#csort2, #subst)⟩ ⟨cmapsort*: SubstMapSorts(#cmapsort*, #subst)⟩  ⟧
 rule SubstMapSorts(cmapsort*⟦                                 ⟧, #subst) → cmapsort*⟦ ⟧

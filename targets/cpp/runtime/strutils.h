@@ -3,11 +3,12 @@
 #define _STRUTILS
 
 #include <string>
-class Context;
 
+namespace tosca {
+    class Context;
+}
 
 /* Convert UTF-8 chars to external escaped string form. */
-extern std::string& makeEscaped(Context& context, const char *src);
-
+extern std::string& makeEscaped(tosca::Context& context, const char *src);
 
 #endif

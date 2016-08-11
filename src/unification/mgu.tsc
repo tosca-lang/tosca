@@ -19,7 +19,7 @@ import Core::Core
 /* Mgu
    is either a most general unifier, or, FAIL, if no mgu can be found
  */
-enum Mgu | Mgu( List<Pair<String /* Core_METAVAR_sort */
+enum Mgu | Mgu( List<PPair<String /* Core_METAVAR_sort */
                           Core_cterm_sort>>)
          | FAIL
 
@@ -44,7 +44,7 @@ rule Circ(#state, #X, #term) → UpdateMgu( UpdateMgu(#state, [mgu] -> ApplyOnCo
   rule ApplyOnCodomains(#_ ,      FAIL )   → FAIL
   rule ApplyOnCodomains(#psi, Mgu(#theta)) →  Mgu( Map( [x] -> ApplyOnCodomain(#psi, x), #theta))
     /* application on single entry of codomain */
-    func ApplyOnCodomain(Mgu, Pair<String /* Core_METAVAR_sort */ Core_cterm_sort>) -> Pair<String /* Core_METAVAR_sort */ Core_cterm_sort>
+    func ApplyOnCodomain(Mgu, PPair<String /* Core_METAVAR_sort */ Core_cterm_sort>) -> PPair<String /* Core_METAVAR_sort */ Core_cterm_sort>
     rule ApplyOnCodomain(#newPairMgu, PairCons(#X,#RHS)) →  PairCons(#X, ApplySubst(#newPairMgu,#RHS))
 
   /* MguInsert
@@ -52,7 +52,7 @@ rule Circ(#state, #X, #term) → UpdateMgu( UpdateMgu(#state, [mgu] -> ApplyOnCo
      @param  `θ`    a mgu
      @return a new mgu `θ'` where `#pair` has been inserted
   */
-  func MguInsert(Pair<String /* Core_METAVAR_sort */ Core_cterm_sort>, Mgu) -> Mgu
+  func MguInsert(PPair<String /* Core_METAVAR_sort */ Core_cterm_sort>, Mgu) -> Mgu
   rule MguInsert( #_     , FAIL    ) → FAIL
   rule MguInsert(#pair, Mgu(#theta)) → Mgu(Insert( #pair ,#theta))
 
@@ -125,7 +125,7 @@ rule ApplySubst(FAIL, #term)
 */
 func BetaDev(Core_cterm_sort, List<Core_cterm_sort>) -> Core_cterm_sort
 rule BetaDev( #s, #ts ) → BetaDevHelper( #s, #ts, (), ())
-  func BetaDevHelper(Core_cterm_sort, List<Core_cterm_sort>, List<Pair<Core_cvariable_sort Core_cterm_sort>>, List<Core_cvariable_sort>) -> Core_cterm_sort
+  func BetaDevHelper(Core_cterm_sort, List<Core_cterm_sort>, List<PPair<Core_cvariable_sort Core_cterm_sort>>, List<Core_cvariable_sort>) -> Core_cterm_sort
   rule BetaDevHelper(#s, (), #varSubst, #FVs) → ApplyVarSubst(#varSubst, #s, #FVs)
 
   // TODO-2016-02-04: bound term does not work
@@ -141,7 +141,7 @@ rule BetaDev( #s, #ts ) → BetaDevHelper( #s, #ts, (), ())
 /* *********************************************************** */
 
 
-func ApplyVarSubst( List<Pair<Core_cvariable_sort Core_cterm_sort>>, Core_cterm_sort, List<Core_cvariable_sort>) -> Core_cterm_sort
+func ApplyVarSubst( List<PPair<Core_cvariable_sort Core_cterm_sort>>, Core_cterm_sort, List<Core_cvariable_sort>) -> Core_cterm_sort
 /* case: constructor */
 rule ApplyVarSubst(#varSubst, cterm⟦  ##CONSTRUCTOR ##cterms? ⟧, #FVs )
 → cterm⟦ ##CONSTRUCTOR
@@ -160,7 +160,7 @@ rule ApplyVarSubst(#varSubst, Core_cterm_A6([x] -> #cterm(x)) , #FVs)
 → ApplyVarSubstMatch( Elem(x, #FVs), #varSubst, x, #cterm, #FVs )
 
 /* checks whether #variable occurs as free variable in the codomain of #varSubst, i.e., #FVs */
-func ApplyVarSubstMatch(Boolean, List<Pair<Core_cvariable_sort Core_cterm_sort>>, Core_cvariable_sort, Core_cterm_sort, List<Core_cvariable_sort>) -> Core_cterm_sort
+func ApplyVarSubstMatch(Boolean, List<PPair<Core_cvariable_sort Core_cterm_sort>>, Core_cvariable_sort, Core_cterm_sort, List<Core_cvariable_sort>) -> Core_cterm_sort
 
   rule ApplyVarSubstMatch(FALSE, #varSubst, #VARIABLE, #cterm, #FVs)
   → cterm⟦ [ x ] ⟨cterm: ApplyVarSubst[ /* to avoid renaming a bound variables, e.g., F(x.x,x) with (x |-> y) */
@@ -221,7 +221,7 @@ rule IsRenaming(Mgu(#theta)) → FoldlP( [pair z] -> And(IsRenamingHelper((), Sn
 func RestrictDomain(Mgu, Core_cterm_sort) -> Option<Mgu>
 rule RestrictDomain(#mgu, #t) → CheckRestrictability(PartitionMgu(#mgu, MetaVariables(#t)))
   /* checks whether second component the partition is a renaming */
-  func CheckRestrictability(Pair<Mgu Mgu>) -> Option<Mgu>
+  func CheckRestrictability(PPair<Mgu Mgu>) -> Option<Mgu>
   rule CheckRestrictability(PairCons(#sigma1,#sigma2)) → MatchIsRestrictable(IsRenaming(#sigma2), #sigma1)
   func MatchIsRestrictable(Boolean, Mgu) -> Option<Mgu>
   rule MatchIsRestrictable(FALSE, #_     ) → NONE
@@ -232,8 +232,8 @@ rule RestrictDomain(#mgu, #t) → CheckRestrictability(PartitionMgu(#mgu, MetaVa
    @param `Ms` a list of meta variables
    @return `Pair(σ1,σ2)` partitions `θ` where `Domain(σ1)` is a subset of `Ms`
 */
-func PartitionMgu(Mgu, List<String /* Core_METAVAR_sort */>) -> Pair<Mgu Mgu>
+func PartitionMgu(Mgu, List<String /* Core_METAVAR_sort */>) -> PPair<Mgu Mgu>
 rule PartitionMgu(Mgu(#theta), #Ms)
   → PartitionMguHelper(Partition( [ pair ] -> IWrapFoldlP( [ v acc ] -> Or(MetaVariableEqual(Fst(pair),v), acc) , FALSE, #Ms), #theta))
-  func PartitionMguHelper( Pair<List<Pair<String /* Core_METAVAR_sort */ Core_cterm_sort>> List<Pair<String /* Core_METAVAR_sort */ Core_cterm_sort>>>) -> Pair<Mgu Mgu>
+  func PartitionMguHelper( PPair<List<PPair<String /* Core_METAVAR_sort */ Core_cterm_sort>> List<PPair<String /* Core_METAVAR_sort */ Core_cterm_sort>>>) -> PPair<Mgu Mgu>
   rule PartitionMguHelper(PairCons(#sigma1, #sigma2)) → PairCons(Mgu(#sigma1), Mgu(#sigma2))

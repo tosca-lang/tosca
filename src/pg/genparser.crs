@@ -677,7 +677,7 @@ MakeEbnfElement[ANTLR_element_sort, $List[ANTLR_element_sort],  $List[ANTLR_elem
 
 // labeled suffixed trivial (after normalization) block: lift
 {#E}MakeEbnfElement[{#L}%element⟦ #id #labeledElement_S1 #block #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]]   
-→ {#E}MakeLiftedRule[{#E}LiftedRuleNameBlock[#block, SOME[#ebnfSuffix]], {#L}%element⟦ #id #labeledElement_S1 #block #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]];
+→ {#E}MakeLiftedRule[OK, {#E}LiftedRuleNameBlock[#block, SOME[#ebnfSuffix]], {#L}%element⟦ #id #labeledElement_S1 #block #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]];
 
 // Single atom element: lift to allow metavar. #fused must be empty (guaranteed by IsFused)
 {#E}MakeEbnfElement[{#L}%element⟨ #atom ⟩, #element*, (), ok.#[ok]]                        
@@ -693,7 +693,7 @@ MakeEbnfElement[ANTLR_element_sort, $List[ANTLR_element_sort],  $List[ANTLR_elem
 
 // Suffixed trivial block: lift
 {#E}MakeEbnfElement[{#L}%element⟨ #block #ebnfSuffix ⟩, #element*, #fused, ok.#[ok]]                        
-→ {#E}MakeLiftedRule[{#E}LiftedRuleNameBlock[#block, SOME[#ebnfSuffix]], {#L}%element⟦ #block #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]];
+→ {#E}MakeLiftedRule[OK, {#E}LiftedRuleNameBlock[#block, SOME[#ebnfSuffix]], {#L}%element⟦ #block #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]];
 
 // Action: skip
 {#E}MakeEbnfElement[{#L}%element⟨ #ACTION #QUESTION? ⟩, #element*, #fused, ok.#[ok]]                        
@@ -705,15 +705,17 @@ MakeEbnfAtom[ANTLR_atom_sort, Option[ANTLR_ebnfSuffix_sort], ANTLR_element_sort,
 → {#E}MakeEbnfElements[#element*, #fused, ok.#[ok]];
 
 {#E}MakeEbnfAtom[{#L}%atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, SOME[#ebnfSuffix], #element, #element*, #fused, ok.#[ok]] 
-→ {#E}MakeLiftedRule[LiftedRuleNameRuleRef[#RULE_REF, SOME[#ebnfSuffix]], #element, #element*, #fused, ok.#[ok]];
+→ {#E}MakeLiftedRule[OK, LiftedRuleNameRuleRef[#RULE_REF, SOME[#ebnfSuffix]], #element, #element*, #fused, ok.#[ok]];
 
 // Test if atom is constant, which in this case don't lift token
 {#E; "$index": INDEX[{#I}RULEINDEX]}
 MakeEbnfAtom[{#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧, NONE, #element, #element*, #fused, ok.#[ok]] 
 → {#E}MakeEbnfSingleToken[{#I}IsSugarAtom[{#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧], {#L}%atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, ok.#[ok]];
 
-{#E}MakeEbnfAtom[{#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧, SOME[#ebnfSuffix], #element, #element*, #fused, ok.#[ok]] 
-→ {#E}MakeLiftedRule[LiftedRuleNameTokenRef[#TOKEN_REF, SOME[#ebnfSuffix]], #element, #element*, #fused, ok.#[ok]];
+{#E;  "$index": INDEX[{#I}RULEINDEX]}
+MakeEbnfAtom[{#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧, SOME[#ebnfSuffix], #element, #element*, #fused, ok.#[ok]] 
+→ {#E}MakeEbnfToken[{#I}IsSugarAtom[{#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧], 
+         %atom⟦ #TOKEN_REF #elementOptions? ⟧, SOME[#ebnfSuffix], #element, #element*, #fused, ok.#[ok]];
 
 // Constant string literal. move on.
 {#E}MakeEbnfAtom[{#L}%atom⟦ #STRING_LITERAL #elementOptions? ⟧, NONE, #element, #element*, #fused, ok.#[ok]] 
@@ -728,16 +730,29 @@ MakeEbnfSingleToken[Boolean, ANTLR_atom_sort, ANTLR_element_sort, $List[ANTLR_el
 
 // Not a constant token: lift it to allow metavariable
 {#E}MakeEbnfSingleToken[FALSE, {#L}%atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, ok.#[ok]]
-→ {#E}MakeLiftedRule[LiftedRuleNameTokenRef[#TOKEN_REF, NONE], #element, #element*, #fused, ok.#[ok]];
+→ {#E}MakeLiftedRule[OK, LiftedRuleNameTokenRef[#TOKEN_REF, NONE], #element, #element*, #fused, ok.#[ok]];
 
 // Constant token: skip
 {#E}MakeEbnfSingleToken[TRUE, {#L}%atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, ok.#[ok]]
 → {#E}MakeEbnfElements[#element*, #fused, ok.#[ok]];
+
+
+MakeEbnfToken[Boolean, ANTLR_atom_sort, Option[ANTLR_ebnfSuffix_sort], ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
+
+// Not a constant: lift single token, as well as enbf token.
+{#E}MakeEbnfToken[FALSE, {#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧, SOME[#ebnfSuffix], %element⟦ #TOKEN_REF2 #elementOptions?2 #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]] 
+→ {#E}MakeEbnfSingleToken[FALSE, %atom⟦ #TOKEN_REF ⟧, %element⟦ #TOKEN_REF ⟧, %element*⟦⟧, %element*⟦⟧, 
+    ok.MakeLiftedRule[ok, LiftedRuleNameTokenRef[#TOKEN_REF, SOME[#ebnfSuffix]], %element⟦ ⟨TOKEN_REF: TokenToRuleName[#TOKEN_REF2]⟩ #elementOptions?2  #ebnfSuffix ⟧, #element*, #fused, ok.#[ok]]];
+
+// A constant: just lift the enbf token.
+{#E}MakeEbnfToken[TRUE, {#L}%atom⟦ #TOKEN_REF #elementOptions? ⟧, SOME[#ebnfSuffix], #element, #element*, #fused, ok.#[ok]] 
+→ {#E}MakeLiftedRule[OK, LiftedRuleNameTokenRef[#TOKEN_REF, SOME[#ebnfSuffix]], #element, #element*, #fused, ok.#[ok]];
+
  
-MakeLiftedRule[$String, ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
+MakeLiftedRule[OK_SORT, $String, ANTLR_element_sort, $List[ANTLR_element_sort], $List[ANTLR_element_sort], ok¹::OK_SORT.$List[ANTLR_ruleSpec_sort]] :: $List[ANTLR_ruleSpec_sort];
 
 -[Data[#key]]:
-{#E}MakeLiftedRule[#key, #element, #element*, #fused, ok.#[ok]] 
+{#E}MakeLiftedRule[OK, #key, #element, #element*, #fused, ok.#[ok]] 
 → $[{#E}IfDef, #key, 
     {#E}MakeEbnfElements[#element*, (), ok.#[ok]],
     (%ruleSpec⟨ ⟨RULE_REF: #key⟩ : ⟨element*: Concat[#fused, (#element;)]⟩ ; ⟩ ; {#E; #key: DEFINED}MakeEbnfElements[#element*, (), ok.#[ok]])];

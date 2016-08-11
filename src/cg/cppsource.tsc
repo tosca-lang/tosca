@@ -18,6 +18,9 @@ import systemdef
 /* Generate C++ source file for module */
 func CppSource(#module: Module) -> Text4_text_sort
 → text⟦#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩.h"
+
+using namespace tosca;
+
 †⟨CppClassDefs(MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
 †⟨CppFunctionDefs(SetContent(CppNewEnv, GetModuleContent(#module)))⟩⟧
 

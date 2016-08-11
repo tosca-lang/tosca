@@ -72,7 +72,7 @@ rule UnifyTerms(#t1, #t2) → GetMgu(Unify(INIT_STATE, PairCons(#t1,#t2)))
 */
 
 // TODO 2016-02-04	 bound terms
-func Unify(STATE, Pair<Core_cterm_sort Core_cterm_sort>) -> STATE
+func Unify(STATE, PPair<Core_cterm_sort Core_cterm_sort>) -> STATE
 /* term `t1 = x.t1'` and term `t2 = x.t2'` */
 
 
@@ -255,7 +255,7 @@ func FlexFlex2(STATE, String /* Core_cMETAVAR_sort */, List<Core_cvariable_sort>
 rule FlexFlex2(#state,#F,#xs,#G,#ys)
 → MatchFlexFlex2(FRESH_METAVAR(#state), Intersect(#xs,#ys), #F, #xs, #G, #ys)
 
-  func MatchFlexFlex2(Pair<STATE String /* Core_cMETAVAR_sort */>, List<Core_cvariable_sort>, String /* Core_cMETAVAR_sort */, List<Core_cvariable_sort>, String /* Core_cMETAVAR_sort */, List<Core_cvariable_sort>) -> STATE
+  func MatchFlexFlex2(PPair<STATE String /* Core_cMETAVAR_sort */>, List<Core_cvariable_sort>, String /* Core_cMETAVAR_sort */, List<Core_cvariable_sort>, String /* Core_cMETAVAR_sort */, List<Core_cvariable_sort>) -> STATE
   rule MatchFlexFlex2(PairCons(#state, #fresh), #zs, #F, #xs, #G, #ys)
   → Circ(Circ(#state, #F,  WrapSubstitute(#xs, #fresh, #zs)),
                       #G,  WrapSubstitute(#ys, #fresh, #zs))
@@ -290,5 +290,5 @@ rule Case(#state, #V, cterm⟦  ##cvariable ⟧)
 rule Case(#state,#V, cterm⟦   ##METAVAR ##cterms? ⟧)
 → CaseHelper(FRESH_METAVAR(#state), #V, #METAVAR, UnwrapMetaVariableArguments(#cterms?))
 
-func CaseHelper(Pair<STATE String /* Core_cMETAVAR */>,  List<Core_cvariable_sort>, String /* Core_cMETAVAR */, List<Core_cvariable_sort>) -> STATE
+func CaseHelper(PPair<STATE String /* Core_cMETAVAR */>,  List<Core_cvariable_sort>, String /* Core_cMETAVAR */, List<Core_cvariable_sort>) -> STATE
   rule CaseHelper(PairCons(#state, #fresh), #V, #METAVAR, #ys) → Circ(#state, #METAVAR, WrapSubstitute( #ys, #fresh, Intersect(#ys,#V)))

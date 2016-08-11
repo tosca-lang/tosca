@@ -1,30 +1,24 @@
 // Copyright (c) 2016 IBM Corporation.
 #include "ts.h"
-/*
-_StringTerm& concat(Context ctx, _StringTerm& value, _StringTerm& value2)
-{
-    return value;
-}
-_StringTerm& concat3(Context ctx, _StringTerm& value, _StringTerm& value2, _StringTerm& value3)
-{
-    return value3;
-}
 
-_StringTerm& cid(Context ctx, _Closure1<_StringTerm&, _StringTerm&>& callback)
-{
-    _StringTerm& r = callback.eval(ctx, stringTerm("1"));
-     return r;
+namespace tosca {
+    
+    Context::Context()
+    {}
+    
+    Optional<TermFactory> Context::LookupDescriptor(const std::string& symbol)
+    {
+        auto search = factories.find(symbol);
+        if (search == factories.end())
+        {
+            return Optional<TermFactory>::nullopt;
+        }
+        return make_optional(search->second);
+    }
+    
+    void Context::Register(const std::string& symbol, const TermFactory factory)
+    {
+        factories[symbol] = factory;
+    }
+    
 }
-
-int main(int argc, char **argv)
-{
-    Context ctx = *(new _Context());
-    _StringTerm& r = cid(ctx, closure(&concat, stringTerm("5")));
-    std::cout << r.Unbox().value() << "\n";
-    delete &r;
-
-    r = cid(ctx, closure(&concat3, stringTerm("7"), stringTerm("6")));
-    std::cout << r.Unbox().value() << "\n";
-    delete &r;
-}
-*/

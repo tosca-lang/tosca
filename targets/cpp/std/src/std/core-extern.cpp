@@ -4,6 +4,8 @@
 #include  <cstdlib>
 #include "core.h"
 
+using namespace tosca;
+
 StringTerm& GetEnv(Context& ctx, StringTerm& key, StringTerm& def)
 {
     char* value = getenv(key.Unbox().c_str());

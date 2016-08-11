@@ -27,7 +27,7 @@ rule Text-Text(#content) → Text-User("text", #content)
 /* `Text-ConcatPair(#Pair)`
  * Concat pair of `Text`
 */
-func Text-ConcatPair(Pair<Text4_text_sort Text4_text_sort>) -> Text4_text_sort
+func Text-ConcatPair(PPair<Text4_text_sort Text4_text_sort>) -> Text4_text_sort
 rule Text-ConcatPair(PairCons(#1:Text4_text_sort, #2:Text4_text_sort)) → text⟦†⟨#1⟩†⟨#2⟩⟧
 
 // Fragment to be parsed as user language text.

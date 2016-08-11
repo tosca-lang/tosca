@@ -1,16 +1,16 @@
 // Copyright (c) 2015-2016 IBM Corporation.
 
 /**
- * Main Gradle build. 
- * 
+ * Main Gradle build.
+ *
  * The default tasks is install, which creates a candidate Tosca distibution file in build.
- * 
+ *
  * By default, the distribution is created from Tosca source files compiled using a previous Tosca stable build.
- * 
+ *
  * There are various ways of overriding the default behavior by specifying -P option on the gradle command line.
  * These options are:
  * - dev : use latest Tosca class files stored in targets/java/build
- * - crsx3: use crsx3 source files 
+ * - crsx3: use crsx3 source files
  */
 
 import org.transscript.gradle.*
@@ -20,7 +20,7 @@ defaultTasks 'install'
 apply plugin:'base'
 
 project.ext {
-	
+
 // Change to true when changes are made to the runtime affecting generated parsers
 // See also settings.gradle
 nparsers = false
@@ -42,13 +42,13 @@ apply plugin:'org.transscript.gradle'
 repositories {
     flatDir { dirs 'targets/java/dist' } // where to find Tosca jar
     flatDir { dirs 'targets/java/dist/lib' }  // where to find crsx3.jar
-    mavenCentral() // Where to find ANTLR  
+    mavenCentral() // Where to find ANTLR
 }
 
 dependencies {
-    transscript project.hasProperty('dev') ? 'org.transscript:transscript:1.0.0-SNAPSHOT@jar' : 'org.transscript:transscript:1.0.0-ALPHA@jar' 
+    transscript project.hasProperty('dev') ? 'org.transscript:transscript:1.0.0-SNAPSHOT@jar' : 'org.transscript:transscript:1.0.0-ALPHA@jar'
     transscript 'org.crsx:crsx3@jar'
-    transscript 'org.antlr:antlr4:4.5' 
+    transscript 'org.antlr:antlr4:4.5'
 }
 
 // --- Generate all meta and term parsers
@@ -74,16 +74,16 @@ task textParsers(type: PG4Task) {
     source = file('src/std/text/Text4.g4')
     generatedFileDir = file('src/std/text')
     defaultRule = 'text'
-	ncg = true 
+	ncg = true
 	notext = true
 }
 
 // --- dependencies
 
 // --- To make sure we don't delete something important by accident
-task cleanCoreParsers(overwrite : true) {} 
-task cleanTransScriptParsers(overwrite : true) {} 
-task cleanTextParsers(overwrite : true) {} 
+task cleanCoreParsers(overwrite : true) {}
+task cleanTransScriptParsers(overwrite : true) {}
+task cleanTextParsers(overwrite : true) {}
 
 // --- The tarball full distribution
 
@@ -92,50 +92,58 @@ task tarAll(type: Tar, dependsOn: ':targets:java:snapshot') {
 	classifier 'ALPHA'
 	version '1.0'
 	compression Compression.GZIP
-	
+
 	// Tosca compiler.
 	into ('.') {
 		from 'targets/java/dist/transscript-1.0.0-SNAPSHOT.jar'
 		rename { String fileName -> 'tosca.jar'	}
 	}
-	
-    // Java libraries
-    into ('lib') {
-        from 'targets/java/dist/lib'
-        include '*.jar'
-    }
-    
-	
+
+  // Java libraries
+  into ('lib') {
+      from 'targets/java/dist/lib'
+      include '*.jar'
+  }
+
 	// Standard library
 	into ('lib/std/') {
         from 'src/std/'
         include '**/*.tsc'
-    }
-	
+  }
+
+  into ('lib') {
+        from 'src/'
+        include 'std.tsc'
+  }
+
 	// C++ Target
 	into ('targets/cpp/runtime') {
 		from 'targets/cpp/runtime/'
 		include '*.*'
 	}
-	
+
 	into ('targets/cpp') {
 		from 'targets/cpp'
 		include 'build.gradle'
-		
 	}
-	
+
 	into ('targets/cpp/resources') {
-        from '.'
-        include 'gradle/wrapper/**/*'
-        include 'gradlew.*'
-        include 'gradlew'
-    }
-    
+    from '.'
+    include 'gradle/wrapper/**/*'
+    include 'gradlew.*'
+    include 'gradlew'
+  }
+
 	into ('targets/cpp/resources') {
 		from 'targets/cpp/resources/'
 		include '*.*'
 	}
-	
+
+  into ('targets/cpp/std/src/std/') {
+    from 'targets/cpp/std/src/std'
+    include '*-extern.*'
+  }
+
 	into ('.') {
 		from '.'
 		include 'VERSION'
@@ -147,7 +155,7 @@ task tarAll(type: Tar, dependsOn: ':targets:java:snapshot') {
 // --- Local install
 
 task install(type: Copy, dependsOn:'tarAll') {
-    from tarTree(resources.gzip(tasks.getByPath(':tarAll').archivePath)) 
+    from tarTree(resources.gzip(tasks.getByPath(':tarAll').archivePath))
     into "${buildDir}/install"
 }
 

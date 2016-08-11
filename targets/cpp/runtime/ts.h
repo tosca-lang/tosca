@@ -3,17 +3,45 @@
 #define _TS_H
 
 #include <stdexcept>
+#include <unordered_map>
+
 #include "closure.h"
 #include "term.h"
 #include "mapterm.h"
 
-class Context
-{
-
-};
+namespace tosca {
+    
+    typedef Term& (*TermFactory)();
+    
+    class Context
+    {
+    public:
+        Context();
+        
+        /**
+         * Lookup descriptor for symbol
+         *
+         * @param symbol
+         * @return A descriptor or
+         */
+        Optional<TermFactory> LookupDescriptor(const std::string& symbol);
+        
+        /**
+         * Register symbol
+         *
+         * @param symbol
+         * @param desc
+         */
+        void Register(const std::string& symbol, const TermFactory factory);
+    private:
+        
+        // The factories
+        std::unordered_map<std::string, TermFactory> factories;
+    };
+}
 
 template<typename T>
-T& force(Context& ctx, T& term)
+T& force(tosca::Context& ctx, T& term)
 {
     return term;
 }

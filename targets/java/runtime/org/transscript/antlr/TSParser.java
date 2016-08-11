@@ -125,18 +125,21 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 	 */
 	protected String supportCategory(String category)
 	{
+		// TODO: caching.
+		
+		String token = (Character.isUpperCase(category.charAt(0))) ? "_TOK" : "";
 		int len = category.length();
 		char last = category.charAt(len - 1);
 		switch (last)
 		{
 			case '*' :
-				category = category.substring(0, len - 1) + "_ZOM";
+				category = category.substring(0, len - 1) + token + "_ZOM";
 				break;
 			case '?' :
-				category = category.substring(0, len - 1) + "_OPT";
+				category = category.substring(0, len - 1) + token + "_OPT";
 				break;
 			case '+' :
-				category = category.substring(0, len - 1) + "_OOM";
+				category = category.substring(0, len - 1) + token + "_OOM";
 				break;
 		}
 		category = category.substring(_catprefix().length());
@@ -186,23 +189,29 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 		Stream<String> s = Arrays.stream(getRuleNames()).filter(v -> !v.endsWith("_EOF")).map(v -> {
 			String result = v;
 			final int len = v.length();
+			String ebnf = "";
 			if (len > 4)
 			{
 				String suffix = v.substring(len - 4, len);
+				
 				switch (suffix)
 				{
 					case "_ZOM" :
-						result = v.substring(0, len - 4) + "*";
+						ebnf = "*";
+						result = result.substring(0, len - 4);
 						break;
 					case "_OPT" :
-						result = v.substring(0, len - 4) + "?";
+						ebnf = "?";
+						result = result.substring(0, len - 4);
 						break;
 					case "_OOM" :
-						result = v.substring(0, len - 4) + "+";
+						ebnf = "+";
+						result = result.substring(0, len - 4);
 						break;
 				}
 			}
-
+			result = result + ebnf;
+			
 			return _catprefix() + result;
 		});
 		return s::iterator;
@@ -226,8 +235,8 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 	@Override
 	public Sink parse(Sink sink, String category, Reader reader, String unit, int line, int column, Scoping bounds, Scoping freshes)
 	{
-		category = supportCategory(category);
-		if (category == null)
+		String rcategory = supportCategory(category);
+		if (rcategory == null)
 			throw new RuntimeException(getClass().getCanonicalName() + " parser cannot handle the category " + category);
 
 		try
@@ -251,7 +260,7 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 		
 		
 		// Retrieve method to call.
-		realParse(category);
+		realParse(rcategory);
 
 		if (errorListener.error)
 			Utils.fatal("Error(s) while parsing " + unit + ". Exiting.", null);

@@ -15,7 +15,9 @@ public:
     Optional() : v(0) {}
     Optional(T& val) : v(&val){}
 
-    explicit operator bool() const
+    // explicit conversion operator is not yet implemented in GCC 4.4
+    // 
+    /*explicit*/ operator bool() const
     {
         return v != 0;
     }

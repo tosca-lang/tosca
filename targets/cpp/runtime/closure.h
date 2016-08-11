@@ -117,10 +117,10 @@
 
 #define BASE_CLOSURE(free)                                                                      \
   template<typename R TYPENAME(free) >                                                          \
-  class Closure ## free : public Ref                                                            \
+  class Closure ## free : public tosca::Ref                                                     \
   {                                                                                             \
   public:                                                                                       \
-    virtual R& Eval(Context& ctx PARAM(free)) = 0;                                              \
+    virtual R& Eval(tosca::Context& ctx PARAM(free)) = 0;                                       \
   };                                                                                            \
 
 
@@ -130,16 +130,16 @@
   class Closure ## free ## C ## capture : public Closure ## free< R TYPEARG(free) >             \
   {                                                                                             \
    public:                                                                                      \
-     typedef R& (*ftype)(Context& TYPEARGREF(free) CTYPEARGREF(capture));                       \
+     typedef R& (*ftype)(tosca::Context& TYPEARGREF(free) CTYPEARGREF(capture));                \
      Closure ## free ## C  ## capture (ftype f CPARAM(capture) ) :                              \
         function(f) INITCPTR(capture)               \
       {}                                                                                        \
                                                                                                 \
      ~Closure ## free ## C ## capture ()                                                        \
-     {}                                                                                        \
+     {}                                                                                         \
                                                                                                 \
                                                                                                 \
-    R& Eval(Context& ctx PARAM(free) )                                                          \
+    R& Eval(tosca::Context& ctx PARAM(free) )                                                   \
     {                                                                                           \
           return function(ctx ARG(free) CPTREF(capture) );                                      \
     }                                                                                           \
@@ -150,18 +150,17 @@
   };                                                                                            \
                                                                                                 \
   template<typename R TYPENAME(free) CTYPENAME(capture)>                                        \
-  Closure ## free <R TYPEARG(free)> & closure(R& (*function)(Context& TYPEARGREF(free) CTYPEARGREF(capture)) CPARAM(capture) )  \
+  Closure ## free <R TYPEARG(free)> & closure(R& (*function)(tosca::Context& TYPEARGREF(free) CTYPEARGREF(capture)) CPARAM(capture) )  \
   {                                                                                             \
     return *(new Closure ## free ## C ## capture <R TYPEARG(free) CTYPEARG(capture) >(function CPTRARG(capture) )); \
   }
 
 #define THUNK(capture)                                                                            \
   template<typename R CTYPENAME(capture)>                                                         \
-  Closure0<R>& thunk(R& (*function)(Context& CTYPEARGREF(capture)) CPARAM(capture) )              \
+  Closure0<R>& thunk(R& (*function)(tosca::Context& CTYPEARGREF(capture)) CPARAM(capture) )       \
   {                                                                                               \
     return *(new Closure0C ## capture <R CTYPEARG(capture)>(function CPTRARG(capture) ));         \
   }
-
 
 BASE_CLOSURE(0)
 CLOSURE_CAPTURE(0, 0, 0) THUNK(0)
@@ -221,43 +220,6 @@ CLOSURE_CAPTURE(1, 19, 20)
 BASE_CLOSURE(2)
 CLOSURE_CAPTURE(2, 0, 2)
 CLOSURE_CAPTURE(2, 1, 3)
-//
-//template<typename R, typename P1, typename P2>
-//class Closure2C<R, P1, P2, 1> : public Closure2<R, P1, P2>
-//{
-//public:
-//    Closure2C(Function f, Ref& c1) :
-//    Closure2<R, P1, P2>::Closure2(f), cptr1(c1)
-//    {
-//    }
-//    ~Closure2C()
-//    {
-//    }
-//    R& Eval(Context& ctx, P1 & p1, P2 & p2)
-//    {
-//        try
-//        {
-//            Ref& r = reinterpret_cast<Fun3>(Closure2<R, P1, P2>::function)(ctx, p1, p2, NewRef(cptr1));
-//            return dynamic_cast<R&>(r);
-//        }
-//        catch (const std::bad_cast& e)
-//        {
-//            std::cout << e.what() << '\n';
-//            throw new std::runtime_error("");
-//        }
-//    }
-//private:
-//    Ref& cptr1;
-//};
-//template<typename R, typename P1, typename P2, typename P3> Closure2<R, P1, P2> & closure(
-//                                                                                          R& (*function)(Context& ctx, P1 & p1, P2 & p2, P3 & p3), Ref& c1)
-//{
-//    return *(new Closure2C<R, P1, P2, 1>(reinterpret_cast<Function>(function), c1));
-//}
-//
-//
-
-
 CLOSURE_CAPTURE(2, 2, 4)
 CLOSURE_CAPTURE(2, 3, 5)
 CLOSURE_CAPTURE(2, 4, 6)
@@ -276,42 +238,6 @@ CLOSURE_CAPTURE(2, 15, 17)
 BASE_CLOSURE(3)
 CLOSURE_CAPTURE(3, 0, 3)
 CLOSURE_CAPTURE(3, 1, 4)
-//
-//template<typename R, typename P1, typename P2, typename P3, typename C1>
-//class Closure3C1: public Closure3<R, P1, P2, P3>
-//{
-//public:
-//    Closure3C1(Function f, C1& c1) :
-//    Closure3<R, P1, P2, P3>::Closure3(f), cptr1(c1)
-//    {
-//    }
-//    ~Closure3C1()
-//    {
-//    }
-//    R& Eval(Context& ctx, P1 & p1, P2 & p2, P3 & p3)
-//    {
-//        try
-//        {
-//            return dynamic_cast<R&>(reinterpret_cast<R& (*)(Context&, P1&, P2&, P3&, C1&)>(Closure3<R, P1, P2, P3>::function)(ctx, p1, p2, p3,
-//                                                                                              NewRef(cptr1)));
-//        }
-//        catch (const std::bad_cast& e)
-//        {
-//            std::cout << e.what() << '\n';
-//            throw new std::runtime_error("");
-//        }
-//    }
-//private:
-//    C1& cptr1;
-//};
-//template<typename R, typename P1, typename P2, typename P3, typename C1> Closure3<R, P1, P2, P3> & closure(
-//                                                                                                           R& (*function)(Context& ctx, P1 & p1, P2 & p2, P3 & p3, C1 & p4), C1& c1)
-//{
-//    return *(new Closure3C1<R, P1, P2, P3, C1>(reinterpret_cast<Function>(function), c1));
-//}
-//
-
-
 CLOSURE_CAPTURE(3, 2, 5)
 CLOSURE_CAPTURE(3, 3, 6)
 CLOSURE_CAPTURE(3, 4, 7)
@@ -369,6 +295,5 @@ CLOSURE_CAPTURE(4, 15, 19)
 CLOSURE_CAPTURE(4, 16, 20)
 CLOSURE_CAPTURE(4, 17, 21)
 CLOSURE_CAPTURE(4, 18, 22)
-
-
+    
 #endif

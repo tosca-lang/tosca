@@ -3,6 +3,8 @@
 
 #include "std/core.h"
 
+using namespace tosca;
+
 DoubleTerm& Plus(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 {
     DoubleTerm& result = newDoubleTerm(left.Unbox() + right.Unbox());

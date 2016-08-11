@@ -1,0 +1,645 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *
+ * Various utility rules for PG
+ *
+ */
+
+import Std::Core
+import Std::List
+
+
+
+// ---- Rule index
+
+enum RuleIndex   | RULEINDEX({String: ANTLR_ruleSpec_sort}) 
+
+func IndexGrammar(ANTLR_grammarSpec_sort) -> RuleIndex
+rule IndexGrammar(grammarSpec⟦ #DOC_COMMENT? #grammarType #id ; #prequelConstruct* #ruleSpec* #modeSpec* ⟧)
+→ IndexRules(#ruleSpec*)
+
+func IndexRules(List<ANTLR_ruleSpec_sort>) -> RuleIndex
+rule IndexRules(#ruleSpec*) → IndexRules2(#ruleSpec*, RULEINDEX({}))
+
+func IndexRules2(List<ANTLR_ruleSpec_sort>, RuleIndex) -> RuleIndex
+
+rule IndexRules2(ruleSpec*⟦ ⟧, #Index) 
+→ #Index 
+
+rule IndexRules2(ruleSpec*⟦ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec? 
+                           #rulePrequel* : #ruleAltList ; #exceptionHandler* #finallyClause? #ruleSpec* ⟧, #Index)
+→ IndexRules2(#ruleSpec*, #Index(({#I, #RULE_REF : ruleSpec⟦ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec? 
+                           #rulePrequel* : #ruleAltList ; #exceptionHandler* #finallyClause? ⟧})))
+
+rule IndexRules2(ruleSpec*⟦ #DOC_COMMENT? #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; #ruleSpec* ⟧, #Index)
+→ IndexRules2(#ruleSpec*, #Index(({#I, #TOKEN_REF : ruleSpec⟦ #DOC_COMMENT? #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟧})))
+
+// --- Element fusion
+
+/*
+  Test whether the given element can be fused with the next element.
+ 
+  A element can be fused with the next element if they both references the same rule or token, 
+  modulo constant element, and the first one is a single production and the second one a list.
+  
+  TODO: formal description.
+ */
+func IsFused(ANTLR_element_sort, List<ANTLR_element_sort>, RuleIndex) -> Boolean
+
+rule IsFused(#elmt, element*⟦⟧                    , #index       ) → FALSE
+rule IsFused(#elmt, element*⟦ #element #element* ⟧, RULEINDEX({#I})) → IsFused2(IsConstantElement(#elmt, {#I}), GetRefElement(#elmt, #element*, RULEINDEX({#I})), GetEbnfSuffixElement(#elmt), GetRefElement(#element, #element*, RULEINDEX({#I})), GetEbnfSuffixElement(#element))
+
+func IsFused2(Boolean, Option<String>, Option<ANTLR_ebnfSuffix_sort>, Option<String>, Option<ANTLR_ebnfSuffix_sort>) -> Boolean
+
+rule IsFused2(TRUE, #ref1, #ebnfSuffix1, #ref2, #ebnfSuffix2) → FALSE 
+
+rule IsFused2(FALSE, SOME(#ref1), #ebnfSuffix1, SOME(#ref2), #ebnfSuffix2) 
+→ 
+If( Equal( #ref1, #ref2) , ()->IsFuseSuffix(#ebnfSuffix1, #ebnfSuffix2) , ()->FALSE)
+
+rule IsFused2(FALSE, #ref1, #ebnfSuffix1, #ref2, #ebnfSuffix2) → FALSE 
+
+func IsFuseSuffix(Option<ANTLR_ebnfSuffix_sort>, Option<ANTLR_ebnfSuffix_sort>) -> Boolean
+
+// t1 t2: don't fuse
+rule IsFuseSuffix(NONE, NONE) → FALSE
+
+// Don't fuse if second is optional
+rule IsFuseSuffix(NONE, SOME(ebnfSuffix⟦ ? ⟧)) → FALSE
+
+// fuse if second is * 
+rule IsFuseSuffix(NONE, SOME(ebnfSuffix⟦ * ⟧)) → TRUE
+
+// fuse if second is + 
+rule IsFuseSuffix(NONE, SOME(ebnfSuffix⟦ + ⟧)) → TRUE
+
+// don't fuse if first has suffix 
+rule IsFuseSuffix(SOME(#1), #2) → FALSE
+
+// ---  Extract rule/token reference name. Returns the first non-sugar reference found.
+ 
+// Extract ref name from trivial block 
+func GetRefBlock(ANTLR_block_sort, List<ANTLR_element_sort>, RuleIndex) -> Option<String>
+rule GetRefBlock(block⟦ ( #block_S1? #altList ) ⟧, #element*, #index) → GetRefAltList(#altList, #element*, #index)
+
+func GetRefAltList(ANTLR_altList_sort, List<ANTLR_element_sort>, RuleIndex) -> Option<String>
+
+// A trivial block has only one alternative
+rule GetRefAltList(altList⟦ #alternative ⟧, #element*, #index) → GetRefAlternative(#alternative,  #element*, #index)
+
+rule GetRefAltList(altList⟦ #alternative | #alternative2 #altList_S1* ⟧, #element*, #index) → Error( ConcatString( "Internal error: block is not trivial: ", Show( altList⟦ #alternative | #alternative2 #altList_S1* ⟧) ))
+
+func GetRefAlternative(ANTLR_alternative_sort, List<ANTLR_element_sort>, RuleIndex) -> Option<String>
+
+rule GetRefAlternative(alternative⟦ #elementOptions? #element* ⟧, #element*2, #index) 
+→ GetRefElements(Concat(#element*, #element*2), #index) 
+
+func GetRefElements(List<ANTLR_element_sort>, RuleIndex) -> Option<String>
+
+rule GetRefElements(element*⟦ ⟧, #index)                    → NONE
+rule GetRefElements(element*⟦ #element #element* ⟧, #index) → GetRefElement(#element, #element*, #index)
+
+func GetRefElement(ANTLR_element_sort, List<ANTLR_element_sort>, RuleIndex) -> Option<String>
+
+// This is a labeled block: look inside
+rule GetRefElement(element⟦ #id #labeledElement_S1 #block #element_A1_S1 ⟧, #element*, #index) 
+→ GetRefBlock(#block, #element*, #index)
+
+// This is a block: look inside
+rule GetRefElement(element⟦ #block #blockSuffix? ⟧, #element*, #index) 
+→ GetRefBlock(#block, #element*, #index)
+
+// This is a rule ref: must be the no-constant element (not always true but see normalizer for approximation rules)
+rule GetRefElement(element⟦ #RULE_REF #ARG_ACTION? #elementOptions? #element_A2_S1 ⟧, #element*, #index) 
+→ SOME(#RULE_REF)
+
+// This is a token ref: skip it only if constant 
+rule GetRefElement(element⟦ #TOKEN_REF #elementOptions? ⟧, #element*, RULEINDEX({#I})) 
+→ If( Equal( #TOKEN_REF, "EOF")
+   , ()->GetRefElements(#element*, RULEINDEX({#I}))
+   , ()->If(IsConstantRuleSpec(UnSOME(GetSome(#TOKEN_REF, {#I})), {#I}), GetRefElements(#element*, RULEINDEX({#I})), SOME(#TOKEN_REF)))
+// TODO: should output an error when token is not found but the crsx interpreter does not handle errors very well.
+
+rule GetRefElement(#element, #element*, #index) 
+→ GetRefElements(#element*, #index)
+
+// ---  Extract ebnfSuffix 
+
+func GetEbnfSuffixElement(ANTLR_element_sort) -> Option<ANTLR_ebnfSuffix_sort> 
+
+rule GetEbnfSuffixElement(element⟦ #labeledElement ⟧)             → NONE
+rule GetEbnfSuffixElement(element⟦ #labeledElement #ebnfSuffix ⟧) → SOME(#ebnfSuffix) 
+rule GetEbnfSuffixElement(element⟦ #atom ⟧)                       → NONE
+rule GetEbnfSuffixElement(element⟦ #atom #ebnfSuffix ⟧)           → SOME(#ebnfSuffix) 
+rule GetEbnfSuffixElement(element⟦ #block ⟧)                      → NONE  
+rule GetEbnfSuffixElement(element⟦ #block #ebnfSuffix ⟧)          → SOME(#ebnfSuffix) 
+rule GetEbnfSuffixElement(element⟦ #ACTION #QUESTION? ⟧)          → NONE 
+ 
+// --- Test whether a production is constant
+
+// Check if rule spec is trivial
+func IsConstantMaybeRuleSpec(Option<ANTLR_ruleSpec_sort>, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+// Rule is missing. Shouldn't occur. 
+rule IsConstantMaybeRuleSpec(NONE, {#I})            → FALSE // Safe approximation
+
+rule IsConstantMaybeRuleSpec(SOME(#ruleSpec), {#I}) → IsConstantRuleSpec(#ruleSpec, {#I}) 
+
+func IsConstantElement(ANTLR_element_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+// Labeled element with no ebnf suffix. Continue..
+rule IsConstantElement(element⟦ #labeledElement ⟧, {#I}) → IsConstantLabeledElement(#labeledElement, {#I})
+
+// Labeled element with an ebnf suffix. Can't be constant (unless labeledElement always matched the empty string. ANTLR complains about it)
+rule IsConstantElement(element⟦ #labeledElement #ebnfSuffix ⟧, {#I}) → FALSE
+
+// Atom with no ebnfSuffix. Continue
+rule IsConstantElement(element⟦ #atom ⟧, {#I}) → IsConstantAtom(#atom, {#I})
+
+// Atom with ebnfSuffix. Not constant
+rule IsConstantElement(element⟦ #atom #ebnfSuffix ⟧, {#I}) → FALSE
+
+// Block without suffix. Continue
+rule IsConstantElement(element⟦ #block ⟧, {#I}) → IsConstantBlock(#block, {#I})
+
+// Block with suffix. No constant
+rule IsConstantElement(element⟦ #block #blockSuffix ⟧, {#I}) → FALSE
+
+// Actions match no value. 
+rule IsConstantElement(element⟦ #ACTION #QUESTION? ⟧, {#I}) → TRUE
+
+func IsConstantLabeledElement(ANTLR_labeledElement_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+// Extract atom and recurse
+rule IsConstantLabeledElement(labeledElement⟦ #id #labeledElement_S1 #atom ⟧, {#I})
+→
+IsConstantAtom(#atom, {#I})
+
+// Extract block and recurse
+rule IsConstantLabeledElement(labeledElement⟦ #id #labeledElement_S1 #block ⟧, {#I})
+→
+IsConstantBlock(#block, {#I})
+
+func IsConstantAtom(ANTLR_atom_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+// Assume range are not constant. In theory ['a'..'a'] is trivial but not commonly written this way 
+rule IsConstantAtom(atom⟦ #range ⟧, {#I}) → FALSE
+
+// Token ref: dereference and analyze lexer rule (TODO: cache lexer rule analysis)
+rule IsConstantAtom(atom⟦ #TOKEN_REF #elementOptions? ⟧, {#I}) → IsConstantMaybeRuleSpec(GetSome(#TOKEN_REF, {#I}), {#I})
+
+// string literal: this is constant!
+rule IsConstantAtom(atom⟦ #STRING_LITERAL #elementOptions? ⟧, {#I}) → TRUE
+
+// Reference to a rule. Dereference and analyze parser rule. 
+// 
+// here an example of a constant rule:
+//   A : ( B )
+//   B : 'a'
+// For now approximate: NON CONSTANT
+rule IsConstantAtom(atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, {#I}) → FALSE //{#I}IsConstantMaybeRuleSpec[{#I}GetSome[#RULE_REF]];
+
+// notSet is most of the time non-constant
+rule IsConstantAtom(atom⟦ #notSet ⟧, {#I}) →FALSE
+
+// '.' is most of the time non-constant.
+rule IsConstantAtom(atom⟦ . #elementOptions? ⟧, {#I}) → FALSE
+
+// Lexer rule
+func IsConstantRuleSpec(ANTLR_ruleSpec_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+rule IsConstantRuleSpec(ruleSpec⟦ #DOC_COMMENT? #FRAGMENT? #TOKEN_REF : #lexerAltList ; ⟧, {#I})
+→ IsConstantLexerAltList(#lexerAltList, {#I})
+
+// Lexer alternatives
+func IsConstantLexerAltList(ANTLR_lexerAltList_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+// Only one alternative: continue
+rule IsConstantLexerAltList(lexerAltList⟦ #lexerElement+ #lexerCommands? ⟧, {#I}) → IsConstantLexerElements(#lexerElement+, {#I}) 
+
+// More than one: commonly non-constant.
+rule IsConstantLexerAltList(lexerAltList⟦ #lexerAlt1 | #lexerAlt2 #lexerAltList_S1*  ⟧, {#I}) → FALSE
+
+// Sequence of lexer elements must all be constant
+func IsConstantLexerElements(List<ANTLR_lexerElement_sort>, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+rule IsConstantLexerElements(lexerElement+⟦ #lexerElement  ⟧, {#I}) → IsConstantLexerElement(#lexerElement, {#I})
+
+rule IsConstantLexerElements(lexerElement+⟦ #lexerElement #lexerElement+ ⟧, {#I})  
+→
+If(IsConstantLexerElement(#lexerElement, {#I}), IsConstantLexerElements(#lexerElement+, {#I}), FALSE)
+
+func IsConstantLexerElement(ANTLR_lexerElement_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+// Labeled lexer element with no ebnf suffix. Continue..
+rule IsConstantLexerElement(lexerElement⟦ #labeledLexerElement ⟧, {#I}) → IsConstantLabeledLexerElement(#labeledLexerElement, {#I})
+
+// Labeled lexer element with an ebnf suffix. Can't be trivial (unless labeledElement always matched the empty string. ANTLR complains about it)
+rule IsConstantLexerElement(lexerElement⟦ #labeledLexerElement #ebnfSuffix ⟧, {#I}) → FALSE
+
+// Lexer atom with no ebnfSuffix. Continue
+rule IsConstantLexerElement(lexerElement⟦ #lexerAtom ⟧, {#I}) → IsConstantLexerAtom(#lexerAtom, {#I})
+
+// Atom with ebnfSuffix. Can't be trivial
+rule IsConstantLexerElement(lexerElement⟦ #lexerAtom #ebnfSuffix ⟧, {#I}) → FALSE
+
+// Block without suffix. Continue
+rule IsConstantLexerElement(lexerElement⟦ #lexerBlock ⟧, {#I}) → IsConstantLexerBlock(#lexerBlock, {#I})
+
+// Block with suffix. Can't be trivial
+rule IsConstantLexerElement(lexerElement⟦ #lexerBlock #ebnfSuffix ⟧, {#I}) → FALSE
+
+// Actions match no value (so constant)
+rule IsConstantLexerElement(lexerElement⟦ #ACTION #QUESTION? ⟧, {#I}) → TRUE
+
+func IsConstantLabeledLexerElement(ANTLR_labeledLexerElement_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+// Extract atom and recurse
+rule IsConstantLabeledLexerElement(labeledLexerElement⟦ #id #labeledLexerElement_S1 #lexerAtom ⟧, {#I}) → IsConstantLexerAtom(#lexerAtom, {#I})
+//
+//// Extract block and recurse
+//{#I}IsConstantLabeledLexerElement[%labeledLexerElement⟦ #id #labeledLexerElement_S1 #block ⟧] → {#I}IsConstantLexerBlock[#block];
+
+func IsConstantLexerAtom(ANTLR_lexerAtom_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+// Assume range are not trivial. In theory ['a'..'a'] is trivial but not commonly written this way 
+rule IsConstantLexerAtom(lexerAtom⟦ #range ⟧, {#I}) → FALSE
+
+// Token ref: dereference and analyze lexer rule (TODO: cache lexer rule analysis)
+rule IsConstantLexerAtom(lexerAtom⟦ #TOKEN_REF #elementOptions? ⟧, {#I}) → IsConstantMaybeRuleSpec(GetSome(#TOKEN_REF, {#I}), {#I})
+
+// string literal: this is trivial!
+rule IsConstantLexerAtom(lexerAtom⟦ #STRING_LITERAL #elementOptions? ⟧, {#I}) → TRUE
+
+// Reference to a rule. Should not occur
+rule IsConstantLexerAtom(lexerAtom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, {#I}) → FALSE
+
+// notSet is most of the time non-trivial. 
+rule IsConstantLexerAtom(lexerAtom⟦ #notSet ⟧, {#I}) → FALSE
+
+// '.' is most of the time non-trivial.
+rule IsConstantLexerAtom(lexerAtom⟦ . #elementOptions? ⟧, {#I}) → FALSE
+
+// most commonly not rivial
+rule IsConstantLexerAtom(lexerAtom⟦ #LEXER_CHAR_SET ⟧, {#I}) → FALSE
+
+func IsConstantLexerBlock(ANTLR_lexerBlock_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+rule IsConstantLexerBlock(ANTLR_lexerBlock(#1, #lexerAltList, #3), {#I}) → IsConstantLexerAltList(#lexerAltList, {#I})
+
+
+// --- Extract constant token as string value
+
+func GetConstantMaybeRuleSpec(Option<ANTLR_ruleSpec_sort>, {String: ANTLR_ruleSpec_sort}) -> Option<String>
+
+// Rule is missing. Shouldn't occur. 
+rule GetConstantMaybeRuleSpec(NONE, {#I})            → NONE 
+rule GetConstantMaybeRuleSpec(SOME(#ruleSpec), {#I}) → GetConstantRuleSpec(#ruleSpec, {#I}) 
+
+func GetConstantElement(ANTLR_element_sort, {String: ANTLR_ruleSpec_sort}) -> Option<String>
+
+// Labeled element with no ebnf suffix. Continue..
+rule GetConstantElement(element⟦ #labeledElement ⟧, {#I}) → GetConstantLabeledElement(#labeledElement, {#I})
+
+// Labeled element with an ebnf suffix. Can't be constant (unless labeledElement always matched the empty string. ANTLR complains about it)
+rule GetConstantElement(element⟦ #labeledElement #ebnfSuffix ⟧, {#I}) → NONE
+
+// Atom with no ebnfSuffix. Continue
+rule GetConstantElement(element⟦ #atom ⟧, {#I}) → GetConstantAtom(#atom, {#I})
+
+// Atom with ebnfSuffix. Not constant
+rule GetConstantElement(element⟦ #atom #ebnfSuffix ⟧, {#I}) → NONE
+
+// Block without suffix. Continue
+rule GetConstantElement(element⟦ #block ⟧, {#I}) → GetConstantBlock(#block, {#I})
+
+// Block with suffix. No constant
+rule GetConstantElement(element⟦ #block #blockSuffix ⟧, {#I}) → NONE
+
+// Actions match no value. 
+rule GetConstantElement(element⟦ #ACTION #QUESTION? ⟧, {#I}) → NONE
+
+func GetConstantLabeledElement(ANTLR_labeledElement_sort, {String: ANTLR_ruleSpec_sort}) -> Option<String>
+
+// Extract atom and recurse
+rule GetConstantLabeledElement(labeledElement⟦ #id #labeledElement_S1 #atom ⟧, {#I}) → GetConstantAtom(#atom, {#I})
+
+// Extract block and recurse
+rule GetConstantLabeledElement(labeledElement⟦ #id #labeledElement_S1 #block ⟧, {#I}) → GetConstantBlock(#block, {#I})
+
+func GetConstantAtom(ANTLR_atom_sort, {String: ANTLR_ruleSpec_sort}) -> Option<String>
+
+// Assume range are not constant. In theory ['a'..'a'] is trivial but not commonly written this way 
+rule GetConstantAtom(atom⟦ #range ⟧, {#I}) → NONE
+
+// Token ref: dereference and analyze lexer rule (TODO: cache lexer rule analysis)
+rule GetConstantAtom(atom⟦ #TOKEN_REF #elementOptions? ⟧, {#I}) → GetConstantTokenRef(#TOKEN_REF, {#I})
+
+// string literal: this is constant!
+rule GetConstantAtom(atom⟦ #STRING_LITERAL #elementOptions? ⟧, {#I}) → SOME(#STRING_LITERAL)
+
+// Reference to a rule. Dereference and analyze parser rule. 
+// 
+// here an example of a constant rule:
+//   A : ( B )
+//   B : 'a'
+// For now approximate: NON CONSTANT
+rule GetConstantAtom(atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, {#I}) → NONE //{#I}GetConstantMaybeRuleSpec[{#I}GetSome[#RULE_REF]];
+
+// notSet is most of the time non-constant
+rule GetConstantAtom(atom⟦ #notSet ⟧, {#I}) → NONE
+
+// '.' is most of the time non-constant.
+rule GetConstantAtom(atom⟦ . #elementOptions? ⟧, {#I}) → NONE
+
+// Lexer rule
+func GetConstantRuleSpec(ANTLR_ruleSpec_sort, {String: ANTLR_ruleSpec_sort}) -> Option<String>
+
+rule GetConstantRuleSpec(ruleSpec⟦ #DOC_COMMENT? #FRAGMENT? #TOKEN_REF : #lexerAltList ; ⟧, {#I})
+→ GetConstantLexerAltList(#lexerAltList, {#I})
+
+// Lexer alternatives
+func GetConstantLexerAltList(ANTLR_lexerAltList_sort, {String: ANTLR_ruleSpec_sort}) -> Option<String>
+
+// Only one alternative: continue
+rule GetConstantLexerAltList(lexerAltList⟦ #lexerElement+ #lexerCommands? ⟧, {#I}) → GetConstantLexerElements(#lexerElement+, {#I}) 
+
+// More than one: commonly non-constant.
+rule GetConstantLexerAltList(lexerAltList⟦ #lexerAlt1 | #lexerAlt2 #lexerAltList_S1*  ⟧, {#I}) → NONE
+
+// Sequence of lexer elements must all be constant
+func GetConstantLexerElements(List<ANTLR_lexerElement_sort>, {String: ANTLR_ruleSpec_sort}) -> Option<String>
+
+rule GetConstantLexerElements(lexerElement+⟦ #lexerElement  ⟧, {#I}) → GetConstantLexerElement(#lexerElement, {#I})
+
+rule GetConstantLexerElements(lexerElement+⟦ #lexerElement #lexerElement+ ⟧, {#I})  
+→
+ConcatSome(GetConstantLexerElement(#lexerElement, {#I}), GetConstantLexerElements(#lexerElement+, {#I}))
+
+func GetConstantLexerElement(ANTLR_lexerElement_sort, {String: ANTLR_ruleSpec_sort}) -> Option<String>
+
+// Labeled lexer element with no ebnf suffix. Continue..
+rule GetConstantLexerElement(lexerElement⟦ #labeledLexerElement ⟧, {#I}) → GetConstantLabeledLexerElement(#labeledLexerElement, {#I})
+
+// Labeled lexer element with an ebnf suffix. Can't be trivial (unless labeledElement always matched the empty string. ANTLR complains about it)
+rule GetConstantLexerElement(lexerElement⟦ #labeledLexerElement #ebnfSuffix ⟧, {#I}) → NONE
+
+// Lexer atom with no ebnfSuffix. Continue
+rule GetConstantLexerElement(lexerElement⟦ #lexerAtom ⟧, {#I}) → GetConstantLexerAtom(#lexerAtom, {#I})
+
+// Atom with ebnfSuffix. Can't be trivial
+rule GetConstantLexerElement(lexerElement⟦ #lexerAtom #ebnfSuffix ⟧, {#I}) → NONE
+
+// Block without suffix. Continue
+rule GetConstantLexerElement(lexerElement⟦ #lexerBlock ⟧, {#I}) → GetConstantLexerBlock(#lexerBlock, {#I})
+
+// Block with suffix. Can't be trivial
+rule GetConstantLexerElement(lexerElement⟦ #lexerBlock #ebnfSuffix ⟧, {#I}) → NONE
+
+// Actions match no value (so constant)
+rule GetConstantLexerElement(lexerElement⟦ #ACTION #QUESTION? ⟧, {#I}) → NONE
+
+func GetConstantLabeledLexerElement(ANTLR_labeledLexerElement_sort, {String: ANTLR_ruleSpec_sort}) -> Option<String>
+
+// Extract atom and recurse
+rule GetConstantLabeledLexerElement(labeledLexerElement⟦ #id #labeledLexerElement_S1 #lexerAtom ⟧, {#I}) → GetConstantLexerAtom(#lexerAtom, {#I})
+
+//
+//// Extract block and recurse
+//{#I}GetConstantLabeledLexerElement[%labeledLexerElement⟦ #id #labeledLexerElement_S1 #block ⟧] → {#I}GetConstantLexerBlock[#block];
+
+func GetConstantLexerAtom(ANTLR_lexerAtom_sort, {String: ANTLR_ruleSpec_sort}) -> Option<String>
+
+// Assume range are not trivial. In theory ['a'..'a'] is trivial but not commonly written this way 
+rule GetConstantLexerAtom(lexerAtom⟦ #range ⟧, {#I}) → NONE
+
+// Token ref: dereference and analyze lexer rule (TODO: cache lexer rule analysis)
+rule GetConstantLexerAtom(lexerAtom⟦ #TOKEN_REF #elementOptions? ⟧, {#I}) → GetConstantTokenRef(#TOKEN_REF, {#I})
+
+// string literal: this is trivial!
+rule GetConstantLexerAtom(lexerAtom⟦ #STRING_LITERAL #elementOptions? ⟧, {#I}) → SOME(#STRING_LITERAL)
+
+// Reference to a rule. Should not occur
+rule GetConstantLexerAtom(lexerAtom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, {#I}) → NONE
+
+// notSet is most of the time non-trivial. 
+rule GetConstantLexerAtom(lexerAtom⟦ #notSet ⟧, {#I}) → NONE
+
+// '.' is most of the time non-trivial.
+rule GetConstantLexerAtom(lexerAtom⟦ . #elementOptions? ⟧, {#I}) → NONE
+
+// most commonly not rivial
+rule GetConstantLexerAtom(lexerAtom⟦ #LEXER_CHAR_SET ⟧, {#I}) → NONE
+
+func GetConstantTokenRef(String, {String: ANTLR_ruleSpec_sort}) -> Option<String>
+
+// Token ref: dereference 
+rule GetConstantTokenRef(#tokenRef, {#I}) → GetConstantMaybeRuleSpec(GetSome(#tokenRef, {#I}), {#I})
+
+// --- Element option extraction
+
+enum ElementOption   | SUGAR | SYMBOL(Option<String>) | BINDER(String) | BINDS(String) | TYPE(String) | UNKOWN 
+
+// Extract the given element option from alternative. Must contain only one element to succeed.
+func GetElementOptionAlternative(ANTLR_alternative_sort, String) -> list<ElementOption>
+rule GetElementOptionAlternative(alternative⟦                              ⟧, #optionId) → ()
+rule GetElementOptionAlternative(alternative⟦ #element                     ⟧, #optionId) → GetElementOptionElement(#element, #optionId)
+rule GetElementOptionAlternative(alternative⟦ #element #element2 #element* ⟧, #optionId) → ()
+
+// Extract the given element option from element
+func GetElementOptionElement(ANTLR_element_sort, String) -> list<ElementOption>
+
+rule GetElementOptionElement(element⟦ #id #labeledElement_S1 #atom #element_A1_S1  ⟧, #optionId) → GetElementOptionAtom(#atom, #optionId)
+rule GetElementOptionElement(element⟦ #id #labeledElement_S1 #block #element_A1_S1 ⟧, #optionId) → ()  
+rule GetElementOptionElement(element⟦ #atom #element_A2_S1                         ⟧, #optionId) → GetElementOptionAtom(#atom, #optionId)
+rule GetElementOptionElement(element⟦ #block #blockSuffix?                         ⟧, #optionId) → ()
+rule GetElementOptionElement(element⟦ #ACTION #QUESTION?                           ⟧, #optionId) → ()
+
+// Extract the given element option from atom
+func GetElementOptionAtom(ANTLR_atom_sort, String) -> List<ElementOption>
+
+rule GetElementOptionAtom(atom⟦ #range                          ⟧, #optionId) → ()
+rule GetElementOptionAtom(atom⟦ #TOKEN_REF                      ⟧, #optionId) → ()
+rule GetElementOptionAtom(atom⟦ #TOKEN_REF #elementOptions      ⟧, #optionId) → GetElementOptionOptions(#elementOptions, #optionId)
+rule GetElementOptionAtom(atom⟦ #STRING_LITERAL                 ⟧, #optionId) → ()
+rule GetElementOptionAtom(atom⟦ #STRING_LITERAL #elementOptions ⟧, #optionId) → GetElementOptionOptions(#elementOptions, #optionId)
+rule GetElementOptionAtom(atom⟦ #RULE_REF #ARG_ACTION?          ⟧, #optionId) → ()
+rule GetElementOptionAtom(atom⟦ #RULE_REF #ARG_ACTION? #elementOptions ⟧, #optionId) → GetElementOptionOptions(#elementOptions, #optionId)
+rule GetElementOptionAtom(atom⟦ #notSet                         ⟧, #optionId) → ()
+rule GetElementOptionAtom(atom⟦ .                               ⟧, #optionId) → ()
+rule GetElementOptionAtom(atom⟦ . #elementOptions               ⟧, #optionId) → GetElementOptionOptions(#elementOptions, #optionId)
+
+// Extract the given element option from element options
+func GetElementOptionOptions(ANTLR_elementOptions_sort, String) -> List<ElementOption>
+rule GetElementOptionOptions(elementOptions⟦ < #elementOption #elementOptions_S1* > ⟧, #optionId) 
+→ GetElementOptionOption(#elementOption, #elementOptions_S1*, #optionId)
+
+// Extract the given element option from element options
+func GetElementOptionOption(ANTLR_elementOption_sort, List<ANTLR_elementOptions_S1_sort>, String) -> List<ElementOption>
+rule GetElementOptionOption(elementOption⟦ #id ⟧, #elementOptions_S1*, #optionId) 
+→ If(StringEqual(UnwrapId(#id), #optionId), 
+    (ToElementOption(#optionId, NONE), GetElementOptionOptions_S1_ZOM(#elementOptions_S1*, #optionId)...),
+    GetElementOptionOptions_S1_ZOM(#elementOptions_S1*, #optionId))
+
+rule GetElementOptionOption(elementOption⟦ #id = #elementOption_S1 ⟧, #elementOptions_S1*, #optionId) 
+→ If(StringEqual(UnwrapId(#id), #optionId), 
+    (ToElementOption(#optionId, SOME(#elementOption_S1)), GetElementOptionOptions_S1_ZOM(#elementOptions_S1*, #optionId)...),
+    GetElementOptionOptions_S1_ZOM(#elementOptions_S1*, #optionId))
+
+// Extract the given element option from rest of element options
+func GetElementOptionOptions_S1_ZOM(List<ANTLR_elementOptions_sort>, String) -> List<ElementOption>
+rule GetElementOptionOptions_S1_ZOM(elementOptions_S1*⟦⟧, #optionId) 
+→ ()
+
+rule GetElementOptionOptions_S1_ZOM(elementOptions_S1*⟦, #elementOption #elementOptions_S1* ⟧, #optionId)  
+→ GetElementOptionOption(#elementOption, #elementOptions_S1*, #optionId)
+
+// Convert option $String to ElementOption
+func ToElementOption<a >(String, Option<a>) -> ElementOption
+rule ToElementOption(#id, NONE) 
+→ If( Equal( #id, "sugar") , ()->SUGAR 
+  , ()->If( Equal( #id, "variable") , ()->SYMBOL(NONE) 
+  , ()->UNKOWN))
+
+rule ToElementOption(#id, SOME(#value)) 
+→ If( Equal( #id, "variable") , ()->SYMBOL(UnwrapOptionValue(#value)) 
+  , ()->If( Equal( #id, "boundvar") , ()->BINDER(UnwrapOptionValue(#value)) 
+  , ()->If( Equal( #id, "bound") , ()->BINDS(UnwrapOptionValue(#value)) 
+  , ()->If( Equal( #id, "type") , ()->TYPE(UnwrapOptionValue(#value)) 
+  , ()->UNKOWN))))
+
+
+// --- Test whether the rule/rule ref is a string rule
+
+func IsStringRuleRuleRef(String) -> Bool
+rule IsStringRuleRuleRef(#RULE_REF, {#I}) → IsStringRuleMaybeRule(GetSome(#RULE_REF, {#I}), #RULE_REF)
+
+func IsStringRuleMaybeRule(Option<ANTLR_ruleSpec_sort>, String) -> Bool
+
+rule IsStringRuleMaybeRule(NONE, #RULE_REF)            → FALSE //$[Error, $[:, "Error: undefined rule ", #RULE_REF]];
+rule IsStringRuleMaybeRule(SOME(#ruleSpec), #RULE_REF) → IsStringRuleRuleSpec(#ruleSpec)
+
+func IsStringRuleRuleSpec(ANTLR_ruleSpec_sort) -> Bool
+rule IsStringRuleRuleSpec(ruleSpec⟦ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec? 
+                           #rulePrequel* : #ruleAltList ; #exceptionHandler* #finallyClause? ⟧)
+→ IsStringRulePrequels(#rulePrequel*)
+
+rule IsStringRuleRuleSpec(ruleSpec⟦ #DOC_COMMENT? #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ;⟧)
+→ TRUE
+
+func IsStringRulePrequels(List<ANTLR_rulePrequel_sort>) -> Bool
+rule IsStringRulePrequels(())                            → FALSE
+rule IsStringRulePrequels((#rulePrequel, #rulePrequels...)) → IsStringRulePrequel(#rulePrequel, #rulePrequels)
+
+// TODO: for some reason the rulePrequel warpper is missing.
+
+func IsStringRulePrequel(ANTLR_rulePrequel_sort, List<ANTLR_rulePrequel_sort>) -> Bool
+rule IsStringRulePrequel(ANTLR_optionsSpec(#OPTIONS, #optionsSpec_S1*, #SEMI), #rulePrequels) → IsStringRuleOptionSpecs(#optionsSpec_S1*, #rulePrequels)
+//IsStringRulePrequel[ANTLR_rulePrequel_A2[#ruleAction], #rulePrequels] → IsStringRulePrequels[#rulePrequels];
+
+func IsStringRuleOptionSpecs(List<ANTLR_optionsSpec_S1_sort>, List<ANTLR_rulePrequel_sort>) -> Bool
+rule IsStringRuleOptionSpecs((ANTLR_optionsSpec_S1(ANTLR_option(ANTLR_id_A1(#id), #ASSIGN, ANTLR_optionValue_A1(ANTLR_id_A1(#value))), #SEMI),), #rulePrequels)
+→ If( If( Equal( #id, "type") , ()->Equal( #value, "string") , ()->FALSE) , ()->TRUE , ()->FALSE)
+        
+
+// --- Sugar: a constant or as the option <sugar>
+
+// Is element sugar?
+func IsSugarElement(ANTLR_element_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+rule IsSugarElement(#element, {#I}) → Or(IsConstantElement(#element, {#I}), IsNotEmpty(GetElementOptionElement(#element, "sugar")))
+
+// Is atom sugar?
+func IsSugarAtom(ANTLR_atom_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+rule IsSugarAtom(#atom, {#I}) → Or(IsConstantAtom(#atom, {#I}), IsNotEmpty(GetElementOptionAtom(#atom, "sugar")))
+
+// --- Strip ARG_ACTION
+
+func StripArgActionAltList(ANTLR_altList_sort) -> ANTLR_altList_sort
+rule StripArgActionAltList(altList⟦ #alternative #altList_S1* ⟧) 
+→ altList⟦ alternative⟨expr:StripArgActionAlternative(#alternative)⟩ altList_S1*⟨expr:StripArgActionAltList_S1s(#altList_S1*)⟩ ⟧
+
+func StripArgActionAltList_S1s(List<ANTLR_altList_S1_sort>) -> List<ANTLR_altList_S1_sort>
+rule StripArgActionAltList_S1s(altList_S1*⟦ ⟧) 
+→ altList_S1*⟦ ⟧
+
+rule StripArgActionAltList_S1s(altList_S1*⟦ | #alternative #altList_S1* ⟧) 
+→ altList_S1*⟦ | alternative⟨expr:StripArgActionAlternative(#alternative)⟩ altList_S1*⟨expr:StripArgActionAltList_S1s(#altList_S1*)⟩ ⟧
+
+func StripArgActionAlternative(ANTLR_alternative_sort) -> ANTLR_alternative_sort
+rule StripArgActionAlternative(alternative⟦ #elementOptions? #element* ⟧) 
+→ alternative⟦ #elementOptions? element*⟨expr:StripArgActionElements(#element*)⟩ ⟧ 
+
+func StripArgActionElements(List<ANTLR_element_sort>) -> List<ANTLR_element_sort>
+rule StripArgActionElements(element*⟦ ⟧)                    
+→ element*⟦ ⟧
+
+rule StripArgActionElements(element*⟦ #element #element* ⟧)
+→ element*⟦ element⟨expr:StripArgActionElement(#element)⟩ element*⟨expr:StripArgActionElements(#element*)⟩ ⟧
+
+func StripArgActionElement(ANTLR_element_sort) -> ANTLR_element_sort
+
+rule StripArgActionElement(element⟦ #id #labeledElement_S1 #atom ⟧) 
+→ element⟦ #id #labeledElement_S1 atom⟨expr:StripArgActionAtom(#atom)⟩ ⟧
+
+rule StripArgActionElement(element⟦ #id #labeledElement_S1 #block ⟧) 
+→ element⟦ #id #labeledElement_S1 atom⟨expr:StripArgActionBlock(#block)⟩ ⟧
+
+rule StripArgActionElement(element⟦ #atom #element_A2_S1 ⟧) 
+→ element⟦ atom⟨expr:StripArgActionAtom(#atom)⟩ #element_A2_S1 ⟧
+
+rule StripArgActionElement(element⟦ #block #blockSuffix? ⟧) 
+→ element⟦ block⟨expr:StripArgActionBlock(#block)⟩ #blockSuffix? ⟧
+
+rule StripArgActionElement(element⟦ #ACTION #QUESTION? ⟧) 
+→ element⟦ #ACTION #QUESTION? ⟧
+
+func StripArgActionBlock(ANTLR_block_sort) -> ANTLR_block_sort
+rule StripArgActionBlock(block⟦ ( #block_S1? #altList ) ⟧) 
+→ block⟦ ( #block_S1? altList⟨expr:StripArgActionAltList(#altList)⟩ ) ⟧
+
+func StripArgActionAtom(ANTLR_atom_sort) -> ANTLR_atom_sort
+
+rule StripArgActionAtom(atom⟦ #range ⟧) 
+→ atom⟦ #range ⟧
+
+rule StripArgActionAtom(atom⟦ #TOKEN_REF #elementOptions? ⟧) 
+→ atom⟦ #TOKEN_REF #elementOptions? ⟧
+
+rule StripArgActionAtom(atom⟦ #STRING_LITERAL  #elementOptions? ⟧) 
+→ atom⟦ #STRING_LITERAL #elementOptions? ⟧
+
+rule StripArgActionAtom(atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧) 
+→ atom⟦ #RULE_REF #elementOptions? ⟧
+
+// --- Misc...
+
+func Enbf1ToBlockSuffix(ANTLR_element_A1_S1_sort) -> List<ANTLR_blockSuffix_sort>
+rule Enbf1ToBlockSuffix(element_A1_S1⟦             ⟧) → ()
+rule Enbf1ToBlockSuffix(element_A1_S1⟦ #ebnfSuffix ⟧) → ( #ebnfSuffix )
+
+// Unwrap element option value
+func UnwrapOptionValue(ANTLR_elementOption_S1_sort) -> String
+rule UnwrapOptionValue(elementOption_S1⟦ #id             ⟧) → UnwrapId(#id)
+rule UnwrapOptionValue(elementOption_S1⟦ #STRING_LITERAL ⟧) → #STRING_LITERAL
+
+// Unwrap Grammar Id
+func UnwrapId(ANTLR_id_sort) -> String
+rule UnwrapId(ANTLR_id_A1(#id)) → #id
+rule UnwrapId(ANTLR_id_A2(#id)) → #id
+
+func UnBINDS(ElementOption) -> String
+rule UnBINDS(BINDS(#)) → #
+
+func TrimEltOptionAtom(ANTLR_atom_sort) -> ANTLR_atom_sort
+
+rule TrimEltOptionAtom(atom⟦ #range ⟧) 
+→ atom⟦ #range ⟧
+
+rule TrimEltOptionAtom(atom⟦ #TOKEN_REF #elementOptions? ⟧) 
+→ atom⟦ #TOKEN_REF ⟧
+
+rule TrimEltOptionAtom(atom⟦ #STRING_LITERAL #elementOptions? ⟧) 
+→ atom⟦ #STRING_LITERAL ⟧
+
+rule TrimEltOptionAtom(atom⟦ #RULE_REF #ARG_ACTION? ⟧) 
+→ atom⟦ #RULE_REF #ARG_ACTION? ⟧
+

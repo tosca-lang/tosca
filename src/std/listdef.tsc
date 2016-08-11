@@ -244,7 +244,7 @@ rule Reverse(#XS) → Foldl<a List>((x xs) -> Insert<a>(x, xs), (), #XS)
    @return a list of Pairs where the first argument is taken from `#XS` and the second argument from `#YS`.
    @error: if `Length(#XS) != Length(#YS)`
 */
-func Zip<a b>(List<a>, List<b>) -> List<Pair<a b>>
+func Zip<a b>(List<a>, List<b>) -> List<PPair<a b>>
 rule Zip(() ,      ())      → ()
 rule Zip(() ,      # )      → Error<List>("ListExtension.Zip: second argument list was longer")
 rule Zip(#  ,      ())      → Error<List>("ListExtension.Zip: first argument list was longer")
@@ -254,17 +254,17 @@ rule Zip(Cons(#X:a, #XS:List<a>), Cons(#Y:b, #YS:List<b>)) → Cons(PairCons(#X,
    @param  `#XS` list of pairs
    @return a list of the pairs first component
 */
-func UnZipF<a b>(List<Pair<a b>>) -> List<a>
+func UnZipF<a b>(List<PPair<a b>>) -> List<a>
 rule UnZipF(())      → ()
-rule UnZipF(Cons(Pair<a b>::PairCons(#F: a, #S: b), #XS:List<Pair<a b>>)) → Cons(#F, UnZipF<a b>(#XS))
+rule UnZipF(Cons(PPair<a b>::PairCons(#F: a, #S: b), #XS:List<PPair<a b>>)) → Cons(#F, UnZipF<a b>(#XS))
 
 /* `UnZipS(#XS)`
    @param  `#XS` list of pairs
    @return a list of the pairs second component
 */
-func UnZipS<a b>(List<Pair<a b>>) -> List<b>
+func UnZipS<a b>(List<PPair<a b>>) -> List<b>
 rule UnZipS(())      → ()
-rule UnZipS(Cons(Pair<a b>::PairCons(#F: a, #S: b), #XS:List<Pair<a b>>)) → Cons(#S, UnZipS<a b>(#XS))
+rule UnZipS(Cons(PPair<a b>::PairCons(#F: a, #S: b), #XS:List<PPair<a b>>)) → Cons(#S, UnZipS<a b>(#XS))
 
 
 /* `LookUp( #Key, #KeyValueList)`
@@ -272,7 +272,7 @@ rule UnZipS(Cons(Pair<a b>::PairCons(#F: a, #S: b), #XS:List<Pair<a b>>)) → Co
     @param `#KeyValueList` a list of key-value pairs
     @return a list of values associated to the `#Key` in `#KeyValueList` and returns the empty list, if `#Key` was not found
 */
-func LookUp<a b>(a, eager List<Pair<a b>>) -> List<b>
+func LookUp<a b>(a, eager List<PPair<a b>>) -> List<b>
 rule LookUp(#Key, #KeyValueList) → Map<Pair b>((x) -> Snd<a b>(x), Filter<Pair>((pair) -> Equal<a a>(#Key, Fst<a b>(pair)), #KeyValueList))
 
 /* `LookUpVar( #Key, #KeyValueList)`
@@ -280,7 +280,7 @@ rule LookUp(#Key, #KeyValueList) → Map<Pair b>((x) -> Snd<a b>(x), Filter<Pair
     @param `#KeyValueList` a list of key-value pairs
     @return a list of values associated to the `#Key` in `#KeyValueList` and returns the empty list, if `#Key` was not found
 */
-func LookUpVar<a b>(a, List<Pair<a b>>) -> List<b>
+func LookUpVar<a b>(a, List<PPair<a b>>) -> List<b>
 rule LookUpVar(#Key, #KeyValueList) → Map((x) -> Snd(x), Filter((pair) -> SameVariable(#Key, Fst(pair)), #KeyValueList))
 
 
@@ -289,7 +289,7 @@ rule LookUpVar(#Key, #KeyValueList) → Map((x) -> Snd(x), Filter((pair) -> Same
    @param  #KeyValueist` the key-value pairs
    @return a list of `#KeyValueList`, where all entries with `#Key` are deleted
  */
-func DelEntry<a b>(a, List<Pair<a b>>) -> List<Pair<a b>>
+func DelEntry<a b>(a, List<PPair<a b>>) -> List<PPair<a b>>
 rule DelEntry(#Key, #KeyValueList) → Filter<Pair>((pair) -> Not(Equal<a a>(Fst<a b>(pair), #Key)), #KeyValueList)
 
 /* `Partition((x) ->#C(x), #XS)`
@@ -300,10 +300,10 @@ rule DelEntry(#Key, #KeyValueList) → Filter<Pair>((pair) -> Not(Equal<a a>(Fst
            holds all elements for `#C` evaluates to `FALSE`
 */
 
-func Partition<a>((a) -> Bool, List<a>) -> Pair<List<a> List<a>>
+func Partition<a>((a) -> Bool, List<a>) -> PPair<List<a> List<a>>
 rule Partition(#C, #XS) → Foldr<a Pair>((x res) -> MatchPartition<a>(#C(x), x, res), PairCons((),()), #XS)
 
-func MatchPartition<a>(Bool, a, Pair<List<a> List<a>>) -> Pair<List<a> List<a>>
+func MatchPartition<a>(Bool, a, PPair<List<a> List<a>>) -> PPair<List<a> List<a>>
 rule MatchPartition(TRUE,  #X, PairCons(#TS:List<a>, #FS:List<a>)) → PairCons(Insert<a>(#X,#TS), #FS)
 rule MatchPartition(FALSE, #X, PairCons(#TS:List<a>, #FS:List<a>)) → PairCons(#TS, Insert<a>(#X,#FS))
 
@@ -324,19 +324,19 @@ rule Map2(#F, #XS) → Foldr<a List>((y ys) -> Insert<b>(#F(y), ys), (), #XS)
 
 /* Monadic map. Apply each item in list to the function taking a state and an element,
    evaluating to a new state and a value. Apply the next element with the new state.
-   @param `state->a x->b.Pair<a c>` the function to apply
+   @param `state->a x->b.PPair<a c>` the function to apply
    @param `a` the initial state
    @param `List<b>` the list of elements to apply
    @return a pair containing the end state and the a list containing resulting values.
  */
-func MapM<a b c>((a b) -> Pair<a c>, a, List<b>) -> Pair<a List<c>>
+func MapM<a b c>((a b) -> PPair<a c>, a, List<b>) -> PPair<a List<c>>
 rule MapM(#, #state, #s) → MapM2<a b c>(#, #state, #s, ())
 
-func MapM2<a b c>((a b) -> Pair<a c>, a, List<b>, List<c>) -> Pair<a List<c>>
+func MapM2<a b c>((a b) -> PPair<a c>, a, List<b>, List<c>) -> PPair<a List<c>>
 rule MapM2(#, #state, (                    ), #rs) → PairCons(#state, #rs)
 rule MapM2(#, #state, Cons(#1:b, #s:List<b>), #rs) → MapM3<a b c>(#(#state, #1), #, #s, #rs)
 
-func MapM3<a b c>(Pair<a c>, (a b) -> Pair<a c>, List<b>, List<c>) -> Pair<a List<c>>
+func MapM3<a b c>(PPair<a c>, (a b) -> PPair<a c>, List<b>, List<c>) -> PPair<a List<c>>
 rule MapM3(PairCons(#nstate:a, #r:c), #, #s, #rs) → MapM2<a b c>(#, #nstate, #s, Append<c>(#r, #rs))
 
 

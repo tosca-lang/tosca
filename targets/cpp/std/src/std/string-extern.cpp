@@ -5,6 +5,8 @@
 #include "std/core.h"
 #include "strutils.h"
 
+using namespace tosca;
+
 StringTerm& AfterFirst(Context& ctx, StringTerm& string, StringTerm& sep)
 {
     std::string& ustring = string.Unbox();

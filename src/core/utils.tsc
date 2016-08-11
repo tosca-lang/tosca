@@ -94,6 +94,11 @@ rule GetMaybeSortVars(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)    
 rule GetMaybeSortVars(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧) → #csortvars?
 rule GetMaybeSortVars(#cdecl                                                                       ) → ()
 
+/* @return the list of annotations for the given declaration */
+func GetAnnos(Core_cdecl_sort) -> List<Core_canno_sort>
+rule GetAnnos(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧) → #canno*
+rule GetAnnos(#)                                                                             → ()
+
 /* @return the conversion to `csort*` from `csorts?` */
 func MaybeSortsToSorts(List<Core_csorts_sort>) -> List<Core_csort_sort>
 rule MaybeSortsToSorts(csorts?⟦              ⟧)           → ()

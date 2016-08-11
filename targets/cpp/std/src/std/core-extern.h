@@ -1,22 +1,23 @@
 // Copyright (c) 2016 IBM Corporation.
 
-#ifndef _CORE_EXTERN
-#define _CORE_EXTERN
+#ifndef CORE_EXTERN_H_
+#define CORE_EXTERN_H_
 
 #include "ts.h"
 
 template<typename a> class List;
 class Bool;
 
-extern Bool& newTRUE(Context& ctx);
-extern Bool& newFALSE(Context& ctx);
+
+extern Bool& newTRUE(tosca::Context& ctx);
+extern Bool& newFALSE(tosca::Context& ctx);
 
 // --- External environment
 
-StringTerm& GetEnv(Context& ctx, StringTerm& key, StringTerm& def);
+tosca::StringTerm& GetEnv(tosca::Context& ctx, tosca::StringTerm& key, tosca::StringTerm& def);
 
 template<typename a>
-a& IfDef(Context& ctx, StringTerm& key, Closure0<a>& ctrue, Closure0<a>& cfalse)
+a& IfDef(tosca::Context& ctx, tosca::StringTerm& key, Closure0<a>& ctrue, Closure0<a>& cfalse)
 {
     char* value = getenv(key.Unbox().c_str());
     key.Release();
@@ -32,7 +33,7 @@ a& IfDef(Context& ctx, StringTerm& key, Closure0<a>& ctrue, Closure0<a>& cfalse)
 // --- Boolean
 
 template<typename a, typename b>
-Bool& Equal(Context& ctx, a& val1, b& val2)
+Bool& Equal(tosca::Context& ctx, a& val1, b& val2)
 {
     Bool& result = val1 == val2 ? newTRUE(ctx) : newFALSE(ctx);
     val1.Release();
@@ -41,7 +42,7 @@ Bool& Equal(Context& ctx, a& val1, b& val2)
 }
 
 template<typename a>
-Bool& DeepEqual(Context& ctx, a& value_147, a& value_148)
+Bool& DeepEqual(tosca::Context& ctx, a& value_147, a& value_148)
 {
     throw new std::runtime_error("unimplemented");
 }
@@ -49,56 +50,56 @@ Bool& DeepEqual(Context& ctx, a& value_147, a& value_148)
 // --- Syntactic Variable
 
 template<typename a>
-List<a>& FreeVariables(Context& ctx, a& value_130)
+List<a>& FreeVariables(tosca::Context& ctx, a& value_130)
 {
     throw new std::runtime_error("unimplemented");
 }
 
 template<typename a>
-List<a>& ExceptVariables(Context& ctx, a& value_112, a& value_113)
+List<a>& ExceptVariables(tosca::Context& ctx, a& value_112, a& value_113)
 {
     throw new std::runtime_error("unimplemented");
 }
 
 template<typename a>
-List<a>& IntersectVariables(Context& ctx, a& value_116, a& value_117)
+List<a>& IntersectVariables(tosca::Context& ctx, a& value_116, a& value_117)
 {
     throw new std::runtime_error("unimplemented");
 }
 
 template<typename a, typename b>
-Bool& SameVariable(Context& ctx, a& value_114, b& value_115)
+Bool& SameVariable(tosca::Context& ctx, a& value_114, b& value_115)
 {
     throw new std::runtime_error("unimplemented");
 }
 
 template<typename a, typename b>
-b& VariableNameIs(Context& ctx, a& value_127, StringTerm& value_128, b& value_129);
+b& VariableNameIs(tosca::Context& ctx, a& value_127, tosca::StringTerm& value_128, b& value_129);
 
 // --- Bit manipulation
 
-Bool& BitSubSetEq(Context& ctx, DoubleTerm& value_120, DoubleTerm& value_121);
-DoubleTerm& BitMinus(Context& ctx, DoubleTerm& value_125, DoubleTerm& value_126);
-DoubleTerm& BitOr(Context& ctx, DoubleTerm& value_136, DoubleTerm& value_137);
-DoubleTerm& BitAnd(Context& ctx, DoubleTerm& value_159, DoubleTerm& value_160);
+Bool& BitSubSetEq(tosca::Context& ctx, tosca::DoubleTerm& value_120, tosca::DoubleTerm& value_121);
+tosca::DoubleTerm& BitMinus(tosca::Context& ctx, tosca::DoubleTerm& value_125, tosca::DoubleTerm& value_126);
+tosca::DoubleTerm& BitOr(tosca::Context& ctx, tosca::DoubleTerm& value_136, tosca::DoubleTerm& value_137);
+tosca::DoubleTerm& BitAnd(tosca::Context& ctx, tosca::DoubleTerm& value_159, tosca::DoubleTerm& value_160);
 
 // --- Error
 
 template<typename a>
-a& Error(Context& ctx, StringTerm& msg)
+a& Error(tosca::Context& ctx, tosca::StringTerm& msg)
 {
     throw std::runtime_error(msg.Unbox());
 }
 
 template<typename a>
-a& ForgivableError(Context& ctx, StringTerm& value, StringTerm& value1, StringTerm& value2, StringTerm& value3,
-        StringTerm& value4, StringTerm& value5, Closure0<a>& ret)
+a& ForgivableError(tosca::Context& ctx, tosca::StringTerm& value, tosca::StringTerm& value1, tosca::StringTerm& value2, tosca::StringTerm& value3,
+        tosca::StringTerm& value4, tosca::StringTerm& value5, Closure0<a>& ret)
 {
     return ret.Eval(ctx);
 }
 
 template<typename a>
-a& EventualError(Context& ctx, StringTerm& msg)
+a& EventualError(tosca::Context& ctx, tosca::StringTerm& msg)
 {
     throw new std::runtime_error(msg.Unbox());
 }
@@ -106,7 +107,7 @@ a& EventualError(Context& ctx, StringTerm& msg)
 // --- Debugging
 
 template<typename a>
-a& Debug(Context& ctx, StringTerm& msg, Closure0<a>& result)
+a& Debug(tosca::Context& ctx, tosca::StringTerm& msg, Closure0<a>& result)
 {
     std::cout << msg.Unbox();
     msg.Release();
@@ -114,7 +115,7 @@ a& Debug(Context& ctx, StringTerm& msg, Closure0<a>& result)
 }
 
 template<typename a>
-StringTerm& Show(Context& ctx, a& value)
+tosca::StringTerm& Show(tosca::Context& ctx, a& value)
 {
     return newStringTerm("");
 }

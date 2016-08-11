@@ -1,12 +1,11 @@
 // Copyright (c) 2016 IBM Corporation.
-#ifndef _MAPDEF_EXTERN
-#define _MAPDEF_EXTERN
+#ifndef MAPDEF_EXTERN_H_
+#define MAPDEF_EXTERN_H_
 
 #include "ts.h"
 #include "std/core.h"
 
-template<typename a>
-class Option;
+template<typename a> class Option;
 class Bool;
 
 /**
@@ -19,14 +18,14 @@ class Bool;
  * @return
  */
 template<typename a, typename b>
-MapTerm<a, b>& MapPut(Context& ctx, MapTerm<a, b>& map, a& key, b& value)
+tosca::MapTerm<a, b>& MapPut(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key, b& value)
 {
-    MapTerm<a, b>& emap = force(ctx, map);
+    tosca::MapTerm<a, b>& emap = force(ctx, map);
     a& ekey = force(ctx, key);
     b& evalue = force(ctx, value);
 
     // TODO extends only when refcount > 1
-    MapTerm<a, b>& xmap = emap.extend();
+    tosca::MapTerm<a, b>& xmap = emap.extend();
     xmap.putValue(ekey, evalue);
 
     return xmap;
@@ -40,12 +39,12 @@ MapTerm<a, b>& MapPut(Context& ctx, MapTerm<a, b>& map, a& key, b& value)
  * @return
  */
 template<typename a, typename b>
-MapTerm<a, b>& MapAddAll(Context& ctx, MapTerm<a, b>& map1, MapTerm<a, b>& map2)
+tosca::MapTerm<a, b>& MapAddAll(tosca::Context& ctx, tosca::MapTerm<a, b>& map1, tosca::MapTerm<a, b>& map2)
 {
-    MapTerm<a, b>& emap1 = force(ctx, map1);
-    MapTerm<a, b>& emap2 = force(ctx, map2);
+    tosca::MapTerm<a, b>& emap1 = force(ctx, map1);
+    tosca::MapTerm<a, b>& emap2 = force(ctx, map2);
 
-    MapTerm<a, b>& xmap = emap1.extend();
+    tosca::MapTerm<a, b>& xmap = emap1.extend();
     xmap.putAll(emap2);
     return xmap;
 }
@@ -58,9 +57,9 @@ MapTerm<a, b>& MapAddAll(Context& ctx, MapTerm<a, b>& map1, MapTerm<a, b>& map2)
  * @return
  */
 template<typename a, typename b>
-Option<b>& MapGet(Context& ctx, MapTerm<a, b>& map, a& key)
+Option<b>& MapGet(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
 {
-    MapTerm<a, b>& emap = force(ctx, map);
+    tosca::MapTerm<a, b>& emap = force(ctx, map);
     a& ekey = force(ctx, key);
 
     Option<b>& result = emap.getValue(ctx, ekey);
@@ -78,17 +77,17 @@ Option<b>& MapGet(Context& ctx, MapTerm<a, b>& map, a& key)
  * @return
  */
 template<typename a, typename b, typename c>
-MapTerm<a, b>& MapPutVar(Context& ctx, MapTerm<a, b>& map, c& key, b& value)
+tosca::MapTerm<a, b>& MapPutVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, c& key, b& value)
 {
-    MapTerm<a, b>& emap = force(ctx, map);
+    tosca::MapTerm<a, b>& emap = force(ctx, map);
     c& ekey = force(ctx, key);
     b& evalue = force(ctx, value);
 
-    Optional<Variable> v = ekey.variable();
+    Optional<tosca::Variable> v = ekey.variable();
     if (v)
     {
         // TODO extends only when refcount > 1
-        MapTerm<a, b>& xmap = emap.extend();
+        tosca::MapTerm<a, b>& xmap = emap.extend();
         xmap.putVar(v.value(), evalue);
         return xmap;
     }
@@ -97,12 +96,12 @@ MapTerm<a, b>& MapPutVar(Context& ctx, MapTerm<a, b>& map, c& key, b& value)
 }
 
 template<typename a, typename b, typename c>
-Option<b>& MapGetVar(Context& ctx, MapTerm<a, b>& map, c& key)
+Option<b>& MapGetVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, c& key)
 {
-    MapTerm<a, b>& emap = force(ctx, map);
+    tosca::MapTerm<a, b>& emap = force(ctx, map);
     c& ekey = force(ctx, key);
 
-    Optional<Variable> v = ekey.variable();
+    Optional<tosca::Variable> v = ekey.variable();
     if (v)
     {
         Option<b>& result = emap.getValueVar(ctx, v.value());
@@ -122,18 +121,18 @@ Option<b>& MapGetVar(Context& ctx, MapTerm<a, b>& map, c& key)
  * @return
  */
 template<typename a, typename b>
-List<a>& MapKeys(Context& ctx, MapTerm<a, b>& map)
+List<a>& MapKeys(tosca::Context& ctx, tosca::MapTerm<a, b>& map)
 {
-    MapTerm<a, b>& emap = force(ctx, map);
+    tosca::MapTerm<a, b>& emap = force(ctx, map);
     List<a>& keys = emap.keys(ctx);
     //emap.release();
     return keys;
 }
 
 template<typename a, typename b, typename c>
-List<c>& MapVarKeys(Context& ctx, MapTerm<a, b>& map)
+List<c>& MapVarKeys(tosca::Context& ctx, tosca::MapTerm<a, b>& map)
 {
-    MapTerm<a, b>& emap = force(ctx, map);
+    tosca::MapTerm<a, b>& emap = force(ctx, map);
     List<c>& keys = emap.varKeys(ctx);
     //emap.release();
     return keys;
@@ -147,9 +146,9 @@ List<c>& MapVarKeys(Context& ctx, MapTerm<a, b>& map)
  * @return
  */
 template<typename a, typename b>
-MapTerm<a, b>& MapNew(Context& ctx)
+tosca::MapTerm<a, b>& MapNew(tosca::Context& ctx)
 {
-    return mapTerm<a, b>();
+    return *(new tosca::CMapTerm<a, b>());
 }
 
 /**
@@ -161,9 +160,9 @@ MapTerm<a, b>& MapNew(Context& ctx)
  * @return
  */
 template<typename a, typename b>
-List<b>& MapValues(Context& ctx, MapTerm<a, b>& map)
+List<b>& MapValues(tosca::Context& ctx, tosca::MapTerm<a, b>& map)
 {
-    MapTerm<a, b>& emap = force(ctx, map);
+    tosca::MapTerm<a, b>& emap = force(ctx, map);
 
     List<b>& values = emap.values(ctx);
     emap.release();
@@ -179,9 +178,9 @@ List<b>& MapValues(Context& ctx, MapTerm<a, b>& map)
  * @return
  */
 template<typename a, typename b>
-List<b>& MapVarValues(Context& ctx, MapTerm<a, b>& map)
+List<b>& MapVarValues(tosca::Context& ctx, tosca::MapTerm<a, b>& map)
 {
-    MapTerm<a, b>& emap = force(ctx, map);
+    tosca::MapTerm<a, b>& emap = force(ctx, map);
 
     List<b>& values = emap.varValues(ctx);
     emap.release();
@@ -197,24 +196,24 @@ List<b>& MapVarValues(Context& ctx, MapTerm<a, b>& map)
  * @return
  */
 template<typename a, typename b>
-Bool& MapIsEmpty(Context& ctx, MapTerm<a, b>& map)
+Bool& MapIsEmpty(tosca::Context& ctx, tosca::MapTerm<a, b>& map)
 {
-    MapTerm<a, b>& emap = force(ctx, map);
+    tosca::MapTerm<a, b>& emap = force(ctx, map);
     Bool& result = emap.isEmpty() ? newTRUE(ctx) : newFALSE(ctx);
     emap.release();
     return result;
 }
 
 template<typename a, typename b, typename c>
-MapTerm<a, b>& MapFind(Context& ctx, c& value)
+tosca::MapTerm<a, b>& MapFind(tosca::Context& ctx, c& value)
 {
     // TODO:
     return MapNew<a, b>(ctx);
 }
 
-template<typename a, typename b, typename c> c MapReplace(Context& ctx, c value_1377, MapTerm<a, b>& map_1378)
+template<typename a, typename b, typename c> c MapReplace(tosca::Context& ctx, c value_1377, tosca::MapTerm<a, b>& map_1378)
 {
-throw new std::runtime_error("");
+    throw new std::runtime_error("");
 }
 
 #endif

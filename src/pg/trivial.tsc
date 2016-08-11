@@ -1,0 +1,158 @@
+/*
+ * Copyright (c) 2015 IBM Corporation.
+ *
+ * Determine rule triviality 
+ *
+ * Definition: a parser rule/block or lexer rule/block is trivial iff 
+ * it contains at most one non-sugared element. 
+ *
+ * A sugared element is either a constant element or an element with the option <sugar>
+ *
+ * Compute safe approximation: a trivial rule might in non-common cases be identified as non-trivial.
+ */
+import Std::Core
+import Pg::Util
+
+// Helper sort for TrivialElements
+enum TrivialState   | ZERO /* zero non-trivial */ | ONE /* one non-trivial */ | MORE /* more than one non-trivial */ 
+
+func TrivialNextState(TrivialState, Boolean /* next element trivial? */) -> TrivialState
+
+rule TrivialNextState(#state, TRUE) → #state
+
+rule TrivialNextState(ZERO, FALSE) → ONE
+rule TrivialNextState(ONE , FALSE) → MORE
+rule TrivialNextState(MORE, FALSE) → MORE
+
+// Check if rule spec is trivial
+func TrivialMaybeRuleSpec(Option<ANTLR_ruleSpec_sort>, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+rule TrivialMaybeRuleSpec(NONE, {#I})            → FALSE // Safe approximation
+rule TrivialMaybeRuleSpec(SOME(#ruleSpec), {#I}) → TrivialRuleSpec(#ruleSpec, {#I}) 
+
+// Now we have a rule spec
+func TrivialRuleSpec(ANTLR_ruleSpec_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+// Parser rule
+rule TrivialRuleSpec(ruleSpec⟦ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec? 
+                           #rulePrequel* : #ruleAltList ; #exceptionHandler* #finallyClause? ⟧, {#I}) 
+→ 
+TrivialRuleAltList(#ruleAltList, {#I}) 
+
+// Lexer rule
+rule TrivialRuleSpec(ruleSpec⟦ #DOC_COMMENT? #FRAGMENT? #TOKEN_REF : #lexerAltList ; ⟧, {#I}) 
+→
+IsConstantLexerAltList(#lexerAltList, {#I}) 
+
+// Rule alternatives
+func TrivialRuleAltList(ANTLR_ruleAltList_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+// Only one alternative: continue
+rule TrivialRuleAltList(ruleAltList⟦ #elementOptions? #element* #labeledAlt_S1? ⟧, {#I}) → TrivialElements(ZERO, #element*, {#I}) 
+
+// More than one: commonly non-trivial
+rule TrivialRuleAltList(ruleAltList⟦ #labeledAlt | #labeledAlt1 #ruleAltList_S1*  ⟧, {#I}) → FALSE
+
+// Sequence of elements: trivial if at most one element is not trivial 
+func TrivialElements(TrivialState, List<ANTLR_element_sort>, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+// Stop if more than one non-constant
+rule TrivialElements(MORE, #elements*, {#I}) → FALSE 
+
+rule TrivialElements(ZERO, element*⟦⟧, {#I}) → TRUE
+rule TrivialElements(ONE , element*⟦⟧, {#I}) → TRUE
+
+rule TrivialElements(ZERO, element*⟦ #element #element* ⟧, {#I}) 
+→ 
+TrivialElements(TrivialNextState(ZERO, TrivialElement(#element, {#I})), #element*, {#I})
+
+rule TrivialElements(ONE, element*⟦ #element #element* ⟧, {#I}) 
+→ 
+TrivialElements(TrivialNextState(ONE, TrivialElement(#element, {#I})), #element*, {#I})
+
+func TrivialElement(ANTLR_element_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+// Labeled element with no ebnf suffix. Continue..
+rule TrivialElement(element⟦ #labeledElement ⟧, {#I}) → TrivialLabeledElement(#labeledElement, {#I})
+
+// Labeled element with an ebnf suffix. Can't be trivial (unless labeledElement always matched the empty string. ANTLR complains about it)
+rule TrivialElement(element⟦ #labeledElement #ebnfSuffix ⟧, {#I}) → FALSE
+
+// Atom with no ebnfSuffix. Continue
+rule TrivialElement(element⟦ #atom ⟧, {#I}) → TrivialAtom(#atom, {#I})
+
+// Atom with ebnfSuffix. Can't be trivial unless marked as <sugar>
+rule TrivialElement(element⟦ #atom #ebnfSuffix ⟧, {#I}) → IsSugarAtom(#atom, {#I})
+
+// Block without suffix. Continue
+rule TrivialElement(element⟦ #block ⟧, {#I}) → TrivialBlock(#block, {#I})
+
+// Block with suffix. Can't be trivial. (even though sub-element can be marked <sugar>)
+rule TrivialElement(element⟦ #block #blockSuffix ⟧, {#I}) → FALSE
+
+// Actions match no value. 
+rule TrivialElement(element⟦ #ACTION #QUESTION? ⟧, {#I}) → TRUE
+
+func TrivialLabeledElement(ANTLR_labeledElement_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+// Extract atom and recurse
+rule TrivialLabeledElement(labeledElement⟦ #id #labeledElement_S1 #atom ⟧, {#I})
+→
+TrivialAtom(#atom, {#I})
+
+// Extract block and recurse
+rule TrivialLabeledElement(labeledElement⟦ #id #labeledElement_S1 #block ⟧, {#I})
+→
+TrivialBlock(#block, {#I})
+
+func TrivialAtom(ANTLR_atom_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+// Assume range are not trivial. In theory ['a'..'a'] is trivial but not commonly written this way 
+rule TrivialAtom(atom⟦ #range ⟧, {#I})
+→
+FALSE
+
+// Token ref: dereference and analyze lexer rule (TODO: cache lexer rule analysis)
+rule TrivialAtom(atom⟦ #TOKEN_REF #elementOptions? ⟧, {#I})
+→
+TrivialMaybeRuleSpec(GetSome(#TOKEN_REF, {#I}), {#I})
+
+// string literal: this is trivial!
+rule TrivialAtom(atom⟦ #STRING_LITERAL #elementOptions? ⟧, {#I})
+→
+TRUE
+
+// Reference to a rule. Dereference and analyze parser rule. 
+// 
+// here an example of a constant rule:
+//   A : ( B )
+//   B : 'a'
+rule TrivialAtom(atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, {#I})
+→
+TrivialMaybeRuleSpec(GetSome(#RULE_REF, {#I}), {#I})
+
+// notSet is most of the time non-trivial. 
+rule TrivialAtom(atom⟦ #notSet ⟧, {#I})
+→
+FALSE
+
+// '.' is most of the time non-trivial.
+rule TrivialAtom(atom⟦ . #elementOptions? ⟧, {#I})
+→
+FALSE
+
+// Trivial block : drill down
+func TrivialBlock(ANTLR_block_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+rule TrivialBlock(block⟦ ( #block_S1? #altList ) ⟧, {#I})  → TrivialAltList(#altList, {#I})
+ 
+// Alternative list
+func TrivialAltList(ANTLR_altList_sort, {String: ANTLR_ruleSpec_sort}) -> Boolean
+
+// Only one alternative: check if it is trivial
+rule TrivialAltList(altList⟦ #elementOptions? #element* ⟧, {#I})  → TrivialElements(ZERO, #element*, {#I})
+
+// More than one alternative: assume alternatives are disjoint and therefore non-trivial
+rule TrivialAltList(altList⟦ #alternative | #alternative2 #altList_S1* ⟧, {#I}) → FALSE
+
+

@@ -46,7 +46,7 @@ rule UpdateMgu(State(#theta, #counter) , [mgu] -> #F(mgu)) → State( #F(#theta)
    @note   careful, the meta variable is only fresh, if there is no
            meta variable of the shape `#m`, m ≥ 0
 */
-func FRESH_METAVAR(eager STATE) -> Pair<STATE String> //eager to force computation of number plus...
+func FRESH_METAVAR(eager STATE) -> PPair<STATE String> //eager to force computation of number plus...
 rule FRESH_METAVAR( #state )
 → PairCons( UpdateCounter(#state, [counter] ->  NumberPlus(counter, 1)),
             ConcatString("#", Show(GetCounter(#state)))

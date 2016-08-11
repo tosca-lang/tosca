@@ -24,9 +24,12 @@ func CppHeader(#module: Module) -> Text4_text_sort
 #define †⟨HeaderGuard(GetModuleURL(#module))⟩
 #include "ts.h"
 
-#if __has_include("⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩-extern.h")
-#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩-extern.h"
-#endif
+using tosca::StringTerm;
+using tosca::DoubleTerm;
+using tosca::MapTerm;
+
+†⟨TextIf(HasExternFuncM(#module), ()->text⟦
+#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩-extern.h"⟧)⟩
 
 // Imports
 
@@ -52,7 +55,7 @@ func CppHeader(#module: Module) -> Text4_text_sort
 
 /* Generate C++ header guard */
 func HeaderGuard(#url: String) -> Text4_text_sort
-→ text⟦_⟨STRING: Mangle(UpCase(PathFileStem(#url)))⟩⟧
+→ text⟦⟨STRING: Mangle(UpCase(PathFileStem(#url)))⟩_H_⟧
 
 /* Generate C++ header inclusion declarations */
 func CppIncludes(#imports: List<Core_cqidentifier_sort>) -> Text4_text_sort
@@ -113,8 +116,8 @@ public:
 
 func CppExtendTerm(#sortname: String, #form*: List<Core_cform_sort>) -> Text4_text_sort
 → IfPresent(PickFirst(#form*, (form)->IsAllowsVar(form)),
-    (form)->text⟦virtual TermVar<†⟨FormCppClassName(#sortname)⟩Var>⟧,
-    ()->text⟦Term⟧)
+    (form)->text⟦virtual tosca::TermVar<†⟨FormCppClassName(#sortname)⟩Var>⟧,
+    ()->text⟦tosca::Term⟧)
 
 /* Generate class and method signatures for the given data form */
 func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
@@ -136,7 +139,7 @@ func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_t
   rule CppFormClass(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦
       †⟨CppTemplatePrefix(#csortvars?)⟩
-      class †⟨FormCppClassName(#sortname)⟩Var: public Variable
+      class †⟨FormCppClassName(#sortname)⟩Var: public tosca::Variable
       {
         public:
           †⟨CppVarConstructorVar(#sortname, #csortvars?, TRUE)⟩
@@ -144,7 +147,7 @@ func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_t
       };
 
       †⟨CppTemplatePrefix(#csortvars?)⟩
-      class †⟨FormCppClassName(#sortname)⟩Use: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩, public VariableUse<†⟨FormCppClassName(#sortname)⟩Var†⟨MaybeCppTypeArguments(#csortvars?)⟩>
+      class †⟨FormCppClassName(#sortname)⟩Use: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩, public tosca::VariableUse<†⟨FormCppClassName(#sortname)⟩Var†⟨MaybeCppTypeArguments(#csortvars?)⟩>
       {
         public:
           †⟨CppVarConstructorUse(#sortname, #csortvars?, TRUE)⟩

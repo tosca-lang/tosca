@@ -907,7 +907,7 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
   → Error(ConcatString("Internal Error: could not handle pattern ", PrintTerm("", #cterm)))
 
 // Pattern matching on construction arguments.
-func JavaPatternMaybeSubs({String : JEnvEntry}, List<Core_cterms_sort>, Text4_text_sort, Option<Pair<Core_cdecl_sort Core_cform_sort>>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+func JavaPatternMaybeSubs({String : JEnvEntry}, List<Core_cterms_sort>, Text4_text_sort, Option<PPair<Core_cdecl_sort Core_cform_sort>>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   rule JavaPatternMaybeSubs(#env, cterms?⟦⟧, #term, #cform, #cont)
   → #cont(#env)
@@ -915,7 +915,7 @@ func JavaPatternMaybeSubs({String : JEnvEntry}, List<Core_cterms_sort>, Text4_te
   rule JavaPatternMaybeSubs(#env, cterms?⟦()⟧, #term, #cform, #cont)
   → #cont(#env)
 
-  rule JavaPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, SOME(Pair<Core_cdecl_sort Core_cform_sort>::PairCons(#cdecl:Core_cdecl_sort, cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧)), #cont)
+  rule JavaPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, SOME(PPair<Core_cdecl_sort Core_cform_sort>::PairCons(#cdecl:Core_cdecl_sort, cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧)), #cont)
   → JavaPatternSubs(#env, #cterm*, #term, 1, SOME(#csort*), #cont)
 
   rule JavaPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, NONE, #cont)
@@ -1472,7 +1472,7 @@ enum JMapEntry | JMapEntry(Core_cmapentry_sort, Text4_text_sort, Core_cmapsort_s
 enum JEnvEntry | JNum(Numeric) |  JText(Text4_text_sort) | JTexts(List<Text4_text_sort>) | JBool(Bool)
                   | JMapMeta({String : JMetaEntry})
                   | JMapVar({ String : JVarEntry }) | JMapDecl({ String : Core_cdecl_sort })
-                  | JParams(List<Pair<Text4_text_sort Core_csort_sort>>)
+                  | JParams(List<PPair<Text4_text_sort Core_csort_sort>>)
                   | JContext(Text4_text_sort /* context java variable */, Numeric /* Counter */)
                   | JFnAnno(List<Core_canno_sort>)
                   | JMapEntries({String /* (meta)var */: List<JMapEntry>}) /* Delayed map entries */
@@ -1512,7 +1512,7 @@ rule UnJText(JText(#)) → #
 func UnJTexts(JEnvEntry) -> List<Text4_text_sort>
 rule UnJTexts(JTexts(#)) → #
 
-func UnJParams(JEnvEntry) -> List<Pair<Text4_text_sort Core_csort_sort>>
+func UnJParams(JEnvEntry) -> List<PPair<Text4_text_sort Core_csort_sort>>
 rule UnJParams(JParams(#)) → #
 
 func UnJBool(JEnvEntry) -> Bool
@@ -1590,26 +1590,26 @@ rule JSetClassname(#env, #classname) → JSetValue(#env, "classname", JText(#cla
 
 // --- Step method arguments
 
-func JGetParams({String : JEnvEntry}) -> List<Pair<Text4_text_sort Core_csort_sort>>
+func JGetParams({String : JEnvEntry}) -> List<PPair<Text4_text_sort Core_csort_sort>>
 rule JGetParams(#env) → JGetValue<List>(#env, "params", (x) -> UnJParams(x))
 
-func JSetParams({String : JEnvEntry}, List<Pair<Text4_text_sort Core_csort_sort>>) -> {String : JEnvEntry}
+func JSetParams({String : JEnvEntry}, List<PPair<Text4_text_sort Core_csort_sort>>) -> {String : JEnvEntry}
 rule JSetParams(#env, #params) → JSetValue(#env, "params",  JParams(#params))
 
 func JAddParam({String : JEnvEntry}, Text4_text_sort, Core_csort_sort) -> {String : JEnvEntry}
-rule JAddParam(#env, #param, #csort) → JSetValue(#env, "params", JParams(Append<Pair>(PairCons(#param, #csort), JGetParams(#env))))
+rule JAddParam(#env, #param, #csort) → JSetValue(#env, "params", JParams(Append(PairCons(#param, #csort), JGetParams(#env))))
 
 // Move to the next parameter
 func JNextParam({String : JEnvEntry}) -> {String : JEnvEntry}
-rule JNextParam(#env) → JSetParams(#env, Tail<Pair>(JGetParams(#env)))
+rule JNextParam(#env) → JSetParams(#env, Tail(JGetParams(#env)))
 
 // Get the current parameter text
 func JCurrentParam({String : JEnvEntry}) -> Text4_text_sort
-rule JCurrentParam(#env) → Fst<Text4_text_sort Core_csort_sort>(Head<Pair>(JGetParams(#env)))
+rule JCurrentParam(#env) → Fst<Text4_text_sort Core_csort_sort>(Head(JGetParams(#env)))
 
 // Get the current parameter text
 func JCurrentParamSort({String : JEnvEntry}) -> Core_csort_sort
-rule JCurrentParamSort(#env) → Snd<Text4_text_sort Core_csort_sort>(Head<Pair>(JGetParams(#env)))
+rule JCurrentParamSort(#env) → Snd<Text4_text_sort Core_csort_sort>(Head(JGetParams(#env)))
 
 // --- Current method name
 

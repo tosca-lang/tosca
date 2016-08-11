@@ -2,41 +2,44 @@
 #ifndef _STRING_EXTERN
 #define _STRING_EXTERN
 
-class StringTerm;
-class Context;
-class DoubleTerm;
+namespace tosca {
+    class StringTerm;
+    class Context;
+    class DoubleTerm;
+}
+
 class Bool;
 
-extern StringTerm& AfterFirst(Context&, StringTerm&, StringTerm&);
+extern tosca::StringTerm& AfterFirst(tosca::Context&, tosca::StringTerm&, tosca::StringTerm&);
 
-extern StringTerm& BeforeFirst(Context&, StringTerm&, StringTerm&);
+extern tosca::StringTerm& BeforeFirst(tosca::Context&, tosca::StringTerm&, tosca::StringTerm&);
 
-extern Bool& StringEqual(Context&, StringTerm&, StringTerm&);
+extern Bool& StringEqual(tosca::Context&, tosca::StringTerm&, tosca::StringTerm&);
 
-extern StringTerm& ConcatString(Context&, StringTerm&, StringTerm&);
+extern tosca::StringTerm& ConcatString(tosca::Context&, tosca::StringTerm&, tosca::StringTerm&);
 
-extern StringTerm& Escape(Context&, StringTerm&);
+extern tosca::StringTerm& Escape(tosca::Context&, tosca::StringTerm&);
 
-extern DoubleTerm& Length(Context&, StringTerm&);
+extern tosca::DoubleTerm& Length(tosca::Context&, tosca::StringTerm&);
 
-extern StringTerm& Mangle(Context&, StringTerm&);
+extern tosca::StringTerm& Mangle(tosca::Context&, tosca::StringTerm&);
 
-extern StringTerm& UpCase(Context&, StringTerm&);
+extern tosca::StringTerm& UpCase(tosca::Context&, tosca::StringTerm&);
 
-extern StringTerm& Replace(Context&, StringTerm&, StringTerm&, StringTerm&);
+extern tosca::StringTerm& Replace(tosca::Context&, tosca::StringTerm&, tosca::StringTerm&, tosca::StringTerm&);
 
-extern Bool& Contains(Context&, StringTerm&, StringTerm&);
+extern Bool& Contains(tosca::Context&, tosca::StringTerm&, tosca::StringTerm&);
 
-extern StringTerm& DownCase(Context&, StringTerm&);
+extern tosca::StringTerm& DownCase(tosca::Context&, tosca::StringTerm&);
 
-extern StringTerm& Substring(Context&, StringTerm&, DoubleTerm&, DoubleTerm&);
+extern tosca::StringTerm& Substring(tosca::Context&, tosca::StringTerm&, tosca::DoubleTerm&, tosca::DoubleTerm&);
 
-extern StringTerm& Substring2(Context&, StringTerm&, DoubleTerm&);
+extern tosca::StringTerm& Substring2(tosca::Context&, tosca::StringTerm&, tosca::DoubleTerm&);
 
-extern Bool& MatchRegex(Context&, StringTerm&, StringTerm&);
+extern Bool& MatchRegex(tosca::Context&, tosca::StringTerm&, tosca::StringTerm&);
 
 
 /* Tests if the beginning of the given string starts with the specified prefix. */
-extern Bool& StartsWith(Context&, StringTerm& str, StringTerm& prefix);
+extern Bool& StartsWith(tosca::Context&, tosca::StringTerm& str, tosca::StringTerm& prefix);
 
 #endif

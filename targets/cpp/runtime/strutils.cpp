@@ -1,7 +1,7 @@
 // Copyright (c) 2016 IBM Corporation.
 #include "strutils.h"
-
 #include "term.h"
+#include <cstring>
 
 // Interpret one Unicode relaxed UTF-8 character starting at s into codepoint c.
 // NOTE: leaves s on last character in sequence (this leaves s untouched for 7-bit characters)
@@ -115,7 +115,7 @@ static void escape(char **sourcep, char **targetp, char *endsource, char *endtar
     *targetp = (char*)t;
 }
 
-std::string& makeEscaped(Context& context, const char *src)
+std::string& makeEscaped(tosca::Context& context, const char *src)
 {
     size_t src_length = strlen(src);
     size_t tmp_length = src_length*10+3; // enough space even if all are quotes!
@@ -128,4 +128,3 @@ std::string& makeEscaped(Context& context, const char *src)
     *(t++) = '\0';
     return *(new std::string(tmp));
 }
-

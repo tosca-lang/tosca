@@ -28,7 +28,7 @@ enum MapEntry | MapEntry(Core_cmapentry_sort, Text4_text_sort, Core_cmapsort_sor
 
 /* Environment entry sort */
 enum EnvEntry | EContent(Content)
-              | EParams(List<Pair<Text4_text_sort Core_csort_sort>>)
+              | EParams(List<PPair<Text4_text_sort Core_csort_sort>>)
               | EFnAnno(List<Core_canno_sort>)
               | ENum(Numeric)
               | EBool(Bool)
@@ -42,7 +42,7 @@ enum EnvEntry | EContent(Content)
 func UnContent(EnvEntry) -> Content
 rule UnContent(EContent(#)) → #
 
-func UnParams(EnvEntry) -> List<Pair<Text4_text_sort Core_csort_sort>>
+func UnParams(EnvEntry) -> List<PPair<Text4_text_sort Core_csort_sort>>
 rule UnParams(EParams(#)) → #
 
 func UnFnAnno(EnvEntry) -> List<Core_canno_sort>
@@ -107,26 +107,26 @@ func GetContent(#env: {String : EnvEntry}) -> Content
 func NewParams(#env: {String : EnvEntry}) -> {String : EnvEntry}
 → SetValue(#env, "params", EParams(()))
 
-func GetParams(#env: {String : EnvEntry}) -> List<Pair<Text4_text_sort Core_csort_sort>>
+func GetParams(#env: {String : EnvEntry}) -> List<PPair<Text4_text_sort Core_csort_sort>>
 → UnParams(GetValue(#env, "params"))
 
-func SetParams(#env: {String : EnvEntry}, #params: List<Pair<Text4_text_sort Core_csort_sort>>) -> {String : EnvEntry}
+func SetParams(#env: {String : EnvEntry}, #params: List<PPair<Text4_text_sort Core_csort_sort>>) -> {String : EnvEntry}
 → SetValue(#env, "params",  EParams(#params))
 
 func AddParam(#env: {String : EnvEntry}, #param: Text4_text_sort, #csort: Core_csort_sort) -> {String : EnvEntry}
-→ SetValue(#env, "params", EParams(Append<Pair>(PairCons(#param, #csort), GetParams(#env))))
+→ SetValue(#env, "params", EParams(Append(PairCons(#param, #csort), GetParams(#env))))
 
 // Move to the next parameter
 func NextParam(#env: {String : EnvEntry}) -> {String : EnvEntry}
-→ SetParams(#env, Tail<Pair>(GetParams(#env)))
+→ SetParams(#env, Tail(GetParams(#env)))
 
 // Get the current parameter name
 func CurrentParam(#env: {String : EnvEntry}) -> Text4_text_sort
-→ Fst<Text4_text_sort Core_csort_sort>(Head<Pair>(GetParams(#env)))
+→ Fst<Text4_text_sort Core_csort_sort>(Head(GetParams(#env)))
 
 // Get the current parameter sort
 func CurrentParamSort(#env: {String : EnvEntry}) -> Core_csort_sort
-→ Snd<Text4_text_sort Core_csort_sort>(Head<Pair>(GetParams(#env)))
+→ Snd<Text4_text_sort Core_csort_sort>(Head(GetParams(#env)))
 
 // --- Variable
 
@@ -146,7 +146,7 @@ func MaybeGetVar(#env: {String : EnvEntry}, #var: String) -> Option<VarEntry>
 → MapGetVar<String VarEntry String>(GetVars(#env), #var)
 
 func AddVar(#env: {String : EnvEntry}, #var: String /* TODO: Core_cterm_sort */, #entry: VarEntry) -> {String : EnvEntry}
-→ SetValue(#env, "vars", EMapVar(MapPutVar<String VarEntry String>(GetVars(#env), #var, #entry)))
+→ SetValue(#env, "vars", EMapVar(MapPutVar(GetVars(#env), #var, #entry)))
 
 // --- Tail mode.
 
