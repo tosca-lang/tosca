@@ -96,8 +96,8 @@ task textTermParser(type: Antlr4Task, dependsOn: ':textParsers') {
 //-- Meta task to build all parsers.
 task buildParsers(
 	description: "Generate Java meta and term parsers for Antlr, TransScript, Core and Text",
-	dependsOn: ['coreMetaParser', 'coreTermParser', 'toscaMetaParser', 'toscaTermParser',
-				'antlrMetaParser', 'antlrAntlrTermParser', 'textMetaParser', 'textTermParser'])
+	dependsOn: ['coreMetaParser', 'toscaMetaParser', 
+				'antlrMetaParser', 'antlrAntlrTermParser', 'textMetaParser'])
 
 // --- Java compilation
 

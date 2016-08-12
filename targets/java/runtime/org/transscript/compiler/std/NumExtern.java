@@ -82,10 +82,11 @@ public class NumExtern
 		return null;
 	}
 
-	public static StringTerm FormatInteger(Context context, DoubleTerm value_1402)
+	public static StringTerm FormatInteger(Context context, DoubleTerm num)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		StringTerm result = stringTerm(Integer.toString((int) num.unbox()));
+		num.release();
+		return result;
 	}
 
 	public static DoubleTerm Hex(Context context, StringTerm value_1242)

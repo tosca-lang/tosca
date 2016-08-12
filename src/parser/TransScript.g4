@@ -156,7 +156,7 @@ aterm
     : cons                                                           /* Construction with zero or more args */
     | literal                                                        /* Literal construction */
     | groupOrList                                                    /* Grouped expression or List */
-    | VARIABLE<variable> sortAnno?                                   /* Variable occurrence, with optional sort */                                                       /* Variable */
+    | variable<variable> sortAnno?                                   /* Variable occurrence, with optional sort */                                                       /* Variable */
     | map
     | metapp                                                         /* Meta variable/Function call/Substitution */
     | dispatch                                                       /* Dispatch expression */
@@ -289,7 +289,6 @@ constructor
     : CONSTRUCTOR
     ;
 
-
 operator
     : OPERATOR
     | OR
@@ -297,6 +296,11 @@ operator
     | NOT
     | EQ
     ;
+
+variable options { type="string"; }
+   : VARIABLE
+   | MODULE | IMPORT | GRAMMAR | FUNC | ENUM | STRUCT | DISPATCH |  RULE | VAR | FIXITY
+   ;
 
 // Lexer rules
 
@@ -307,11 +311,10 @@ IMPORT          : 'import';
 GRAMMAR         : 'grammar';
 FUNC            : 'func';
 ENUM            : 'enum';
-STRUCT          : 'struct';
+STRUCT          : 'struct'; // not yet supported
 DISPATCH        : 'dispatch';
-EAGER           : 'eager';
-LAZY            : 'lazy';
-EXTERN          : 'extern';
+EAGER           : 'eager'; // deprecate
+EXTERN          : 'extern'; // deprecate
 RULE            : 'rule';
 VAR             : 'allows-variable' | 'variable';
 COMMA           : ',';
