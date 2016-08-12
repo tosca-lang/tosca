@@ -161,6 +161,7 @@ aterm
     | metapp                                                         /* Meta variable/Function call/Substitution */
     | dispatch                                                       /* Dispatch expression */
     | concrete                                                       /* Concrete syntax */
+    | named term                                                     /* named term */
     ;
 
 // Next term
@@ -182,7 +183,7 @@ args
     ;
 
 scopes
-    : namedScope (COMMA namedScope)*
+    : scope (COMMA scope)*
     ;
 
 namedScope
@@ -242,7 +243,11 @@ concrete
     ;
 
 map
-    : LCURLY kvs? (AND kvs?)* RCURLY sortAnno?
+    : LCURLY optkvs (AND optkvs)* RCURLY sortAnno?    // PG bug: (kvs?)* maps to List<kvs> instead of List<List<kvs>>
+    ;
+
+optkvs
+    : kvs?
     ;
 
 kvs

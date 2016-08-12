@@ -88,3 +88,10 @@ func MapContainsVar<a b c>(#map: {a : b}, #key: c) -> Bool
 
 /* Replace last map in the given value. */
 @Extern func MapReplace<a b c>(c, {a:b}) -> c
+
+// ---- Multi-maps
+
+enum MMap2<a b c d> | MMap2({a:b}, {c:d})
+enum MMap3<a b c d e f> | MMap3({a:b}, {c:d}, {e:f})
+enum MMap4<a b c d e f g h> | MMap4({a:b}, {c:d}, {e:f}, {g:h})
+enum MMap5<a b c d e f g h i j> | MMap5({a:b}, {c:d}, {e:f}, {g:h}, {i:j})

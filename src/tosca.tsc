@@ -59,7 +59,6 @@ rule FoldResult(#1, #2) → FAILURE
 
 // --- Module loading.
 
-
 /* Load imported modules into the system, recursively */
 func LoadImportedModules(#system: TSystem, #url:String, #imports: List<Core_cqidentifier_sort>) -> TSystem
 → FoldlP((imp system)->LoadImport(system, #url, imp), #system, #imports)

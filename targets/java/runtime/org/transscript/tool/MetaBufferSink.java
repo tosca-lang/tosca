@@ -144,7 +144,7 @@ public class MetaBufferSink extends MetaSink
 		else
 			args = Cons(
 					context,
-					TransScript_args(context, Cons(context, TransScript_scopes(context, toNamedScopes(cparams.snd)), Nil(context))),
+					TransScript_args(context, Cons(context, TransScript_scopes(context, toScopes(cparams.snd)), Nil(context))),
 					Nil(context));
 
 		TransScript_term_sort term = TransScript_term(
@@ -332,7 +332,7 @@ public class MetaBufferSink extends MetaSink
 	}
 
 	// Convert internal rep sub to list of scopes
-	private List<TransScript_namedScope_sort> toNamedScopes(ArrayList<SubCons> subs)
+	private List<TransScript_scope_sort> toScopes(ArrayList<SubCons> subs)
 	{
 		return toTSList(subs, sub -> {
 			ArrayList<Variable> sparams = sub.snd;
@@ -366,7 +366,7 @@ public class MetaBufferSink extends MetaSink
 				scope = TransScript_scope_A2(context, params);
 			else
 				scope = TransScript_scope_A3(context, sub.thd);
-			return TransScript_namedScope(context, Nil(context), scope);
+			return scope;
 		});
 	}
 
