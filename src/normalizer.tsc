@@ -238,9 +238,12 @@ func NATerm(TransScript_aterm_sort, Bool) -> Core_cterm_sort
   rule NATerm(#aterm, #inpattern) → Error(ConcatString("Internal error: could not handle ", PrintTerm("", #aterm)))
 
 func NMaybeArgs(List<TransScript_args_sort>, Bool) -> List<Core_cterms_sort>
-  rule NMaybeArgs(args?⟦              ⟧, #inpattern) → cterms?⟦⟧
-  rule NMaybeArgs(args?⟦ (          ) ⟧, #inpattern) → cterms?⟦ () ⟧
-  rule NMaybeArgs(args?⟦ ( ##scope* ) ⟧, #inpattern) → cterms?⟦ ( ⟨cterm*: Map<TransScript_scope_sort Core_cterm_sort>((x)->NScope(x, #inpattern), #scope*)⟩ ) ⟧
+  rule NMaybeArgs(args?⟦                   ⟧, #inpattern) → cterms?⟦⟧
+  rule NMaybeArgs(args?⟦ (               ) ⟧, #inpattern) → cterms?⟦ () ⟧
+  rule NMaybeArgs(args?⟦ ( ##namedScope* ) ⟧, #inpattern) → cterms?⟦ ( ⟨cterm*: Map((x)->NNamedScope(x, #inpattern), #namedScope*)⟩ ) ⟧
+
+func NNamedScope(TransScript_namedScope_sort, Bool) -> Core_cterm_sort
+  rule NNamedScope(namedScope⟦ ##named? ##scope ⟧, #inpattern) → NScope(#scope, #inpattern)
 
 func NScope(TransScript_scope_sort, Bool) -> Core_cterm_sort
   rule NScope(scope⟦ ##term           ⟧, #inpattern) → NTerm(#term, #inpattern)

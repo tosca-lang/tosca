@@ -79,7 +79,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	 * @param key variable. The reference is used.
 	 * @param value the associated term value. The reference is used.
 	 */
-	public void putVar(Variable key, V value);
+	public <VV extends Term> void putVar(Variable key, VV value);
 
 	/**
 	 * Get value corresponding to given key
@@ -93,7 +93,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	 * @param key
 	 * @return An new reference to an optional typed term. 
 	 */
-	public Option<V> getValueVar(Context context, Variable key);
+	public <VV extends Term> Option<VV> getValueVar(Context context, Variable key);
 
 	/**
 	 * Put all entries in the given map into this map
@@ -120,7 +120,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	 * @param context
 	 * @return
 	 */
-	public List<V> varValues(Context context);
+	public <VV extends Term> List<VV> varValues(Context context);
 
 	/**
 	 * Gets map variable keys
@@ -158,8 +158,8 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	{
 		private static final long serialVersionUID = -9134352548915946315L;
 
-		/** Variable to term mapping */
-		protected IdentityHashMap<Variable, V> vars;
+		/** Generic Variable to term mapping */
+		protected IdentityHashMap<Variable, Term> vars;
 
 		@Override
 		public Term copy(Context c)
@@ -177,7 +177,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 
 			if (vars != null)
 			{
-				for (Map.Entry<Variable, V> entry : vars.entrySet())
+				for (Map.Entry<Variable, Term> entry : vars.entrySet())
 					copy.putVar(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
 			}
 
@@ -202,13 +202,13 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 
 			if (_map.vars != null)
 			{
-				for (Map.Entry<Variable, V> entry : _map.vars.entrySet())
+				for (Map.Entry<Variable, Term> entry : _map.vars.entrySet())
 					putVar(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
 			}
 		}
 
 		@Override
-		public void putVar(Variable key, V value)
+		public <VV extends Term> void putVar(Variable key, VV value)
 		{
 			if (vars == null)
 				vars = new IdentityHashMap<>();
@@ -267,15 +267,16 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		 * @param context
 		 * @return
 		 */
-		public List<V> varValues(Context context)
+		public <VV extends Term> List<VV> varValues(Context context)
 		{
-			Listdef.List<V> c = Listdef.Nil(context);
+			Listdef.List<VV> c = Listdef.Nil(context);
 
 			if (vars != null)
 			{
-				for (V val : vars.values())
+				for (Term val : vars.values())
 				{
-					Listdef.List<V> nc = Listdef.Cons(context, Ref.ref(val), c);
+					@SuppressWarnings("unchecked")
+					Listdef.List<VV> nc = Listdef.Cons(context, (VV) Ref.ref(val), c);
 					c = nc;
 				}
 			}
@@ -287,16 +288,16 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		 * @param context
 		 * @return
 		 */
-		@SuppressWarnings("unchecked")
 		public <VK extends Term> List<VK> varKeys(Context context)
 		{
-			Listdef.List<VariableUse> c = Listdef.Nil(context);
+			Listdef.List<VK> c = Listdef.Nil(context);
 
 			if (vars != null)
 			{
 				for (Variable var : vars.keySet())
 				{
-					Listdef.List<VariableUse> nc = Listdef.Cons(context, var.use(), c);
+					@SuppressWarnings("unchecked")
+					Listdef.List<VK> nc = Listdef.Cons(context, (VK) var.use(), c);
 					c = nc;
 				}
 			}
@@ -388,7 +389,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		}
 
 		@Override
-		public void putVar(Variable key, V value)
+		public <VV extends Term> void putVar(Variable key, VV value)
 		{
 			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
 		}

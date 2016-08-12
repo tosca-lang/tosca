@@ -28,11 +28,10 @@ importDecl
 
 sortDecl
      : ENUM constructor sortParams? (OR variant)+            /* Enumeration type declaration */
-     | STRUCT constructor sortParams? (AND sortMap)+         /* Map type declaration */
      ;
 
 sortParams
-    : LT VARIABLE+ GT                                               /* Sort parameter declarations. */
+    : LT VARIABLE+ GT                                        /* Sort parameter declarations. */
     ;
 
 // Enumeration type
@@ -83,7 +82,7 @@ sortFormalParams
 
 paramSort
     : constructor sortArgs?                                          /*  Parameterized sort */
-    | LCURLY sortMap RCURLY
+    | LCURLY sortMap (AND sortMap)* RCURLY
     | VARIABLE
     ;
 
@@ -110,7 +109,7 @@ ruleDecl
 // TODO: deprecate EXTERN
 fnDecl
     : anno* EXTERN? FUNC constructor sortParams? fnParamDecls?
-            FNTYPE sort fnBody?                                    /* Function declaration  */
+            FNTYPE sort fnBody?                                      /* Function declaration  */
     ;
 
 
@@ -183,13 +182,21 @@ args
     ;
 
 scopes
-    : scope (COMMA scope)*
+    : namedScope (COMMA namedScope)*
+    ;
+
+namedScope
+    : named? scope
     ;
 
 scope
-    : LSQUARE binders                                                /* Scoped term  */
-    | LPAR formalParams                                              /* Formal parameters */
-    | term                                                           /* Term */
+    : LSQUARE binders                                         /* Scoped term  */
+    | LPAR formalParams                                       /* Formal parameters */
+    | term                                                    /* Term */
+    ;
+
+named
+    : METAVAR EQ
     ;
 
 binders
@@ -235,7 +242,7 @@ concrete
     ;
 
 map
-    : LCURLY kvs? RCURLY sortAnno?
+    : LCURLY kvs? (AND kvs?)* RCURLY sortAnno?
     ;
 
 kvs
@@ -243,7 +250,7 @@ kvs
     ;
 
 kv
-    : METAVAR                                               /* property reference (match/construct)      */
+    : METAVAR                                               /* property reference (match/construct)      */ /*DEPRECATE*/
     | NOT  METAVAR                                          /* no property references (match only)       */
     | METAVAR COLON term                                    /* match property value / construct          */
     | VARIABLE<variable>                                    /* match / construct variable property       */
@@ -282,6 +289,7 @@ operator
     | OR
     | AND
     | NOT
+    | EQ
     ;
 
 // Lexer rules
@@ -319,6 +327,7 @@ RSQUARE         : ']';
 FNTYPE          : '->';
 NOT             : '¬';
 AT              : '@';
+EQ              : '=';
 TAIL            : '...';
 
 FIXITY          : 'infix' | 'infixr' | 'infixl' | 'postfix' | 'prefix';

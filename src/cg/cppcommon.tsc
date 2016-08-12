@@ -836,7 +836,7 @@ func CppTypes2(Core_csort_sort, List<Text4_text_sort> /* formal params */) -> Li
        TextFold(Cons(#formal, #formals), text⟦, ⟧) /* Formal params */⟩>⟧, Nil)
 
   rule CppTypes2(csort⟦ [ ##csort ] ##csort2 ⟧, #formals)
-  → Cons(text⟦C†⟨CppType(#csort)⟩Var⟧, CppTypes2(#csort2, #formals))
+  → Cons(text⟦C†⟨CppType(#csort)⟩Var⟧, CppTypes2(#csort2, #formals)) // TODO: Var must be printed before template args.
 
   rule CppTypes2(csort⟦ ( ##csort ) ##csort2 ⟧, #formals) // no higher-order csort for now.
   → CppTypes2(#csort2, Append(CppType(#csort), #formals))

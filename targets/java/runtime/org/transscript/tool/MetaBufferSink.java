@@ -144,7 +144,7 @@ public class MetaBufferSink extends MetaSink
 		else
 			args = Cons(
 					context,
-					TransScript_args(context, Cons(context, TransScript_scopes(context, toScopes(cparams.snd)), Nil(context))),
+					TransScript_args(context, Cons(context, TransScript_scopes(context, toNamedScopes(cparams.snd)), Nil(context))),
 					Nil(context));
 
 		TransScript_term_sort term = TransScript_term(
@@ -260,10 +260,10 @@ public class MetaBufferSink extends MetaSink
 	@Override
 	public Sink type(String type)
 	{
-//		if (subParams.peek() instanceof MetaParam)
-//			((MetaParam) subParams.peek()).type = type;
-//		else
-//			this.type = type;
+		//		if (subParams.peek() instanceof MetaParam)
+		//			((MetaParam) subParams.peek()).type = type;
+		//		else
+		//			this.type = type;
 		return this;
 	}
 
@@ -332,7 +332,7 @@ public class MetaBufferSink extends MetaSink
 	}
 
 	// Convert internal rep sub to list of scopes
-	private List<TransScript_scope_sort> toScopes(ArrayList<SubCons> subs)
+	private List<TransScript_namedScope_sort> toNamedScopes(ArrayList<SubCons> subs)
 	{
 		return toTSList(subs, sub -> {
 			ArrayList<Variable> sparams = sub.snd;
@@ -343,8 +343,7 @@ public class MetaBufferSink extends MetaSink
 
 				for (int i = sparams.size() - 1; i >= 0; i--)
 				{
-					params = TransScript_formalParams_A1(
-							context, Nil(context), (VarStringTerm) sparams.get(i), params);
+					params = TransScript_formalParams_A1(context, Nil(context), (VarStringTerm) sparams.get(i), params);
 				}
 			}
 
@@ -356,17 +355,18 @@ public class MetaBufferSink extends MetaSink
 
 				for (int i = sbinders.size() - 1; i >= 0; i--)
 				{
-					binders = TransScript_binders_A1(
-							context, Nil(context), (VarStringTerm) sbinders.get(i), binders);
+					binders = TransScript_binders_A1(context, Nil(context), (VarStringTerm) sbinders.get(i), binders);
 				}
 			}
 
+			TransScript_scope_sort scope;
 			if (binders != null)
-				return TransScript_scope_A1(context, binders);
-			if (params != null)
-				return TransScript_scope_A2(context, params);
-
-			return TransScript_scope_A3(context, sub.thd);
+				scope = TransScript_scope_A1(context, binders);
+			else if (params != null)
+				scope = TransScript_scope_A2(context, params);
+			else
+				scope = TransScript_scope_A3(context, sub.thd);
+			return TransScript_namedScope(context, Nil(context), scope);
 		});
 	}
 

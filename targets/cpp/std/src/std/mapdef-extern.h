@@ -76,8 +76,8 @@ Option<b>& MapGet(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
  * @param value
  * @return
  */
-template<typename a, typename b, typename c>
-tosca::MapTerm<a, b>& MapPutVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, c& key, b& value)
+template<typename a, typename b, typename c, typename d>
+tosca::MapTerm<a, b>& MapPutVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, c& key, d& value)
 {
     tosca::MapTerm<a, b>& emap = force(ctx, map);
     c& ekey = force(ctx, key);
@@ -111,6 +111,24 @@ Option<b>& MapGetVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, c& key)
 
     throw std::runtime_error("Invalid MapPutVar key. Excepted a variable use, but instead got :"); // + key.toString()
 }
+
+template<typename a, typename b, typename c, typename d>
+Option<d>& MapGetVarT(tosca::Context& ctx, tosca::MapTerm<a, b>& map, c& key)
+{
+    tosca::MapTerm<a, b>& emap = force(ctx, map);
+    c& ekey = force(ctx, key);
+    
+    Optional<tosca::Variable> v = ekey.variable();
+    if (v)
+    {
+        Option<d>& result = emap.getValueVar(ctx, v.value());
+        //emap.release();
+        return result;
+    }
+    
+    throw std::runtime_error("Invalid MapPutVar key. Excepted a variable use, but instead got :"); // + key.toString()
+}
+
 
 /**
  * Gets list of keys, excluding variable keys

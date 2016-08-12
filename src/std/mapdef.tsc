@@ -29,7 +29,7 @@ func MapGetD<a b>(#map: {a : b}, #key: a, #default: b) -> b
    If a entry for the given key already exists in the map, it is shadowed.
    @return the extended map.
  */
-@Extern func MapPutVar<a b c>({a : b},  c /* variable key */,  b /* value */) -> {a : b}
+@Extern func MapPutVar<a b c d>({a : b},  c /* variable key */,  d /* value */) -> {a : b}
 
 /* Lookup entry for given variable key.
    @return the value of type b or NONE if not in the map
@@ -37,10 +37,15 @@ func MapGetD<a b>(#map: {a : b}, #key: a, #default: b) -> b
 @Extern func MapGetVar<a b c>({a : b}, c /* variable key */) -> Option<b>
 
 /* Lookup entry for given variable key.
+   @return the value of type d or NONE if not in the map
+ */
+@Extern func MapGetVarT<a b c d>({a : b}, c /* variable key */) -> Option<d>
+
+/* Lookup entry for given variable key.
    @return the value of type b or NONE if not in the map
  */
-func MapGetVarD<a b c>(#map: {a : b}, #var: c, #default: b) -> b
-→ IfPresent(MapGetVar(#map, #var), (v)->v, ()->#default)
+func MapGetVarD<a b c d>(#map: {a : b}, #var: c, #default: d) -> d
+→ IfPresent(MapGetVarT(#map, #var), (v)->v, ()->#default)
 
 /* Gets list of keys, excluding variable keys */
 @Extern func MapKeys<a b>({a : b}) -> List<a>
@@ -52,7 +57,7 @@ func MapGetVarD<a b c>(#map: {a : b}, #var: c, #default: b) -> b
 @Extern func MapVarKeys<a b c>({a : b}) -> List<c>
 
 /* Gets list of variable values */
-@Extern func MapVarValues<a b>({a : b}) -> List<b>
+@Extern func MapVarValues<a b c>({a : b}) -> List<c>
 
 /* Create new empty map */
 @Extern func MapNew<a b>() -> {a : b}

@@ -34,10 +34,7 @@ namespace tosca {
          *
          * @return A new non-shared map.
          */
-        virtual MapTerm<K, V>& extend()
-        {
-            throw new std::runtime_error("");
-        }
+        MapTerm<K, V>& extend();
         
         /**
          * Add key-value pair to map.
