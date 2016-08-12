@@ -28,25 +28,26 @@ cdecl
 cterm
     : canno* cqconstructor csortargs? cterms? csortanno?                    /* Constant/Construction */
     | canno* METAVAR cterms? csubst? csortanno?                             /* Meta variable/call/substitution */
-    | cliteral                                                       /* Literal construction */
+    | cliteral                                                              /* Literal construction */
     | canno* VARIABLE<variable> csortanno?                                  /* Variable */
                               /* <variable> means 1. maps VARIABLE to a syntactic variable
                                                   2. look for a bound variable that matches VARIABLE
                                                      in the current tracked bound variables (innermost scope first).
                                                     VARIABLE is free if not found in scope.  */
-    | LCURLY cmapentries? RCURLY csortanno?                          /* Association map */
+    | LCURLY cmapentries? RCURLY csortanno?                                 /* Association map */
 
     // KEEP AT THE 6TH ALTERNATIVE UNTIL METAPARSER GENERATOR PROPERLY HANDLE BOUNDVAR
-    | LSQUARE VARIABLE<boundvar=x> csortanno? RSQUARE cterm<bound=x>    /* Bound term.
-                                                                           VARIABLE<boundvar=x> means VARIABLE is a bound variable we call x
-                                                                           cterm<bound=x>       means x is bound in the context of the cterm */
-    | LPAR VARIABLE<boundvar=x> csortanno? RPAR cterm<bound=x>          /* Formal parameter */
-    | THUNK cterm                                                       /* Unvaluated term */
+    | LSQUARE VARIABLE<boundvar=x> csortanno? RSQUARE cterm<bound=x>        /* Bound term.
+                                                                               VARIABLE<boundvar=x> means VARIABLE is a bound variable we call x
+                                                                               cterm<bound=x>       means x is bound in the context of the cterm */
+    | LPAR VARIABLE<boundvar=x> csortanno? RPAR cterm<bound=x>             /* Formal parameter */
+    | THUNK cterm                                                          /* Unvaluated term */
+    | EQ cterm                                                             /* Named term */
     ;
 
 /* TODO: inline when antlr-based meta parser generator support (()*)? */
 cterms
-    : LPAR ccommaterms? RPAR                    /* Term list */
+    : LPAR ccommaterms? RPAR                                               /* Term list */
     ;
 
 csubst
@@ -172,13 +173,11 @@ csortargs
 DATA            : 'data';
 FN              : 'func';
 RULE            : 'rule';
-ALLOWS_VARIABLE : 'allows-variable';
+ALLOWS_VARIABLE : 'allows-variable' | 'variable';
 MODULE          : 'module';
 IMPORT          : 'import';
 GRAMMAR         : 'grammar';
 EXTERN          : 'extern';
-LAZY            : 'lazy';
-EAGER           : 'eager';
 THUNK           : 'thunk';
 COLON           : ':';
 COLONCOLON      : '::';
@@ -196,6 +195,7 @@ COMMA           : ',';
 DOT             : '.';
 NOT             : '¬';
 AT              : '@';
+EQ              : '=';
 
 // -- Common lexing rules with TransScript.g4.
 //    Cannot extract these rules yet as the antlr meta parser generator does not support modular grammars yet

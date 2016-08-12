@@ -55,13 +55,6 @@ variantSort
     : sort
     ;
 
-// Map type
-
-sortMap
-    : STRING COLON sort
-    | sort COLON sort
-    ;
-
 // Sort Reference
 
 sort
@@ -80,14 +73,21 @@ sortFormalParams
     : LPAR sort* RPAR                                                /* Formal parameter sorts */
     ;
 
+/*  Parameterized type */
 paramSort
-    : constructor sortArgs?                                          /*  Parameterized sort */
+    : constructor sortArgs?
     | LCURLY sortMap (AND sortMap)* RCURLY
     | VARIABLE
     ;
 
 sortArgs
     : LT sort* GT                                                    /* Sort arguments */
+    ;
+
+// Map type
+
+sortMap
+    : sort COLON sort
     ;
 
 sortAnno
@@ -284,6 +284,7 @@ constructor
     : CONSTRUCTOR
     ;
 
+
 operator
     : OPERATOR
     | OR
@@ -307,7 +308,7 @@ EAGER           : 'eager';
 LAZY            : 'lazy';
 EXTERN          : 'extern';
 RULE            : 'rule';
-VAR             : 'allows-variable';
+VAR             : 'allows-variable' | 'variable';
 COMMA           : ',';
 LPAR            : '(';
 RPAR            : ')';
