@@ -48,7 +48,7 @@ func InferRules(#key: String, #rules: List<Core_cdecl_sort>, #content: Content, 
 
 func InferRule({String:IEnvEntry}, Core_cdecl_sort) -> Core_cdecl_sort
 rule InferRule(#env, cdecl⟦ rule ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? → ##cterm ⟧)
-→ Debug(ConcatString("Infer rule ", #CONSTRUCTOR), ()->InferRuleAux(#env, FindFuncSortS(GetSystem(#env), #CONSTRUCTOR), #CONSTRUCTOR, #cterms?, #cterm))
+→ Debug(ConcatString("Infer rule: ", PrintTerm("", cdecl⟦ rule ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? → ##cterm ⟧)), ()->InferRuleAux(#env, FindFuncSortS(GetSystem(#env), #CONSTRUCTOR), #CONSTRUCTOR, #cterms?, #cterm))
 
 func InferRuleAux({String:IEnvEntry}, Option<Core_cdecl_sort>, String, List<Core_cterms_sort>, Core_cterm_sort) -> Core_cdecl_sort
 

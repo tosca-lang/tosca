@@ -27,7 +27,7 @@ importDecl
     ;
 
 sortDecl
-     : ENUM constructor sortParams? (OR variant)+            /* Enumeration type declaration */
+     : ENUM identifierQualifier* constructor sortParams? (OR variant)+            /* Enumeration type declaration */
      ;
 
 sortParams
@@ -266,14 +266,12 @@ kv
     | STRING COLON term                                     /* match named property value / construct    */
     ;
 
-qualifiedIdentifier
-    : identifier COLONCOLON qualifiedIdentifier
-    | identifier
+identifierQualifier
+    : identifier COLONCOLON
     ;
 
-
 qidentifier
-    : (identifier COLONCOLON)* identifier
+    : identifierQualifier* identifier
     ;
 
 identifier

@@ -114,13 +114,18 @@ namespace tosca {
             return *this;
         }
         
+        virtual Optional<Variable> asVariable() const
+        {
+            return Optional<Variable>::nullopt;
+        }
+        
         template<typename T>
         static T Subst(Context& ctx, T term, std::initializer_list<Term> from, std::initializer_list<Term> to);
         
         
         inline bool operator==(const Term& rhs)
         {
-            return true;
+            throw std::runtime_error("not implemented");
         }
     };
     // Term
@@ -133,6 +138,17 @@ namespace tosca {
         virtual Optional<V> variable()
         {
             return Optional<V>::nullopt;
+        }
+        
+        virtual Optional<V> variable() const
+        {
+            return Optional<V>::nullopt;
+        }
+        
+        
+        Optional<Variable> asVariable() const
+        {
+            return make_optional(*dynamic_cast<Variable*>(&variable().value()));
         }
         
     };
@@ -203,6 +219,11 @@ namespace tosca {
         VariableUse(V& v) : var(v) {}
         
         Optional<V> variable()
+        {
+            return make_optional<V>(var);
+        }
+        
+        Optional<V> variable() const
         {
             return make_optional<V>(var);
         }
@@ -383,27 +404,82 @@ tosca::CDoubleTermVar& varDoubleTerm(std::string&& name);
 
 #include "mapterm.h"
 
-// specialize std::hash and std::equal_to
+// specialize std::hash and std::equal_to for string/double/variable
 namespace std
 {
+    // String
     template<>
-    struct hash<std::reference_wrapper<tosca::StringTerm>>
+    struct hash<tosca::StringTerm*>
     {
     public:
-        size_t operator()(const tosca::StringTerm &str) const
+        size_t operator()(const tosca::StringTerm*str) const
         {
             std::hash<std::string> str_hash;
-            return str_hash(str.Unbox());
+            return str_hash(str->Unbox());
         }
     };
     
     template<>
-    struct equal_to<std::reference_wrapper<tosca::StringTerm>>
+    struct equal_to<tosca::StringTerm*>
     {
     public:
-        bool operator()(const tosca::StringTerm& lhs, const tosca::StringTerm& rhs) const
+        bool operator()(const tosca::StringTerm* lhs, const tosca::StringTerm* rhs) const
         {
-            return lhs.Unbox() == rhs.Unbox();
+            return lhs->Unbox() == rhs->Unbox();
+        }
+    };
+    
+    // Variable
+    template<>
+    struct hash<std::reference_wrapper<tosca::Variable>>
+    {
+    public:
+        size_t operator()(const tosca::Variable &var) const
+        {
+            std::hash<const tosca::Variable*> var_hash;
+            return var_hash(&var);
+        }
+    };
+    
+    template<>
+    struct equal_to<std::reference_wrapper<tosca::Variable>>
+    {
+    public:
+        bool operator()(const tosca::Variable& lhs, const tosca::Variable& rhs) const
+        {
+            return (&lhs) == (&rhs);
+        }
+    };
+ 
+    template<>
+    struct hash<std::reference_wrapper<tosca::Term>>
+    {
+    public:
+        size_t operator()(const tosca::Term& e) const
+        {
+            Optional<tosca::Variable> v = e.asVariable();
+            if (v)
+            {
+                std::hash<tosca::Variable*> var_hash;
+                return var_hash(&v.value());
+            }
+            throw runtime_error("Term hashing not supported yet.");
+        }
+    };
+    
+    template<>
+    struct equal_to<std::reference_wrapper<tosca::Term>>
+    {
+    public:
+        bool operator()(const tosca::Term& lhs, const tosca::Term& rhs) const
+        {
+            Optional<tosca::Variable> vlhs = lhs.asVariable();
+            Optional<tosca::Variable> vrhs = rhs.asVariable();
+            if (vlhs && vrhs)
+            {
+                return (&vlhs.value()) == (&vrhs.value());
+            }
+            throw runtime_error("Term equality not supported yet.");
         }
     };
     

@@ -45,8 +45,9 @@ func NDecl(TransScript_decl_sort) -> List<Core_cdecl_sort>
   → cdecl+⟦ import module ⟨cqidentifier: NQIdentifier(#qidentifier)⟩ ⟧
 
   /* Convert enum to data sort */
-  rule NDecl(decl⟦ enum ##constructor ##sortParams? ##variant+ ⟧)
-  → cdecl+⟦ data ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ( ⟨cform*: NVariants(#variant+)⟩ ) ⟧
+  rule NDecl(decl⟦ enum ##identifierQualifier* ##constructor ##sortParams? ##variant+ ⟧)
+  → cdecl+⟦ data ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨cidentifierqualifier*: Map((ident)->NIdentifierQualifier(ident), #identifierQualifier*)⟩
+                  ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ( ⟨cform*: NVariants(#variant+)⟩ ) ⟧
 
   /* Convert function. */
   rule NDecl(decl⟦ ##anno* ##EXTERN? func ##constructor ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
@@ -106,7 +107,7 @@ func NSort(TransScript_sort_sort) -> Core_csort_sort
 
   // Multi-maps
   rule NSort(sort⟦ { ##sortMap* } ⟧)
-  → csort⟦ ⟨CONSTRUCTOR: NMultiMapWrapper(ListLength(#sortMap*))⟩ ( ⟨csort*:Map((sortMap)->NSortMap(sortMap), #sortMap*)⟩ ) ⟧
+  → csort⟦ ⟨CONSTRUCTOR: NMultiMapWrapper(ListLength(#sortMap*))⟩ ( ⟨csort*:Flatten(Map((sortMap)->NSortMap(sortMap), #sortMap*))⟩ ) ⟧
 
 func NMaybeSortScope(List<TransScript_sortScope_sort>, Core_csort_sort) -> Core_csort_sort
 
@@ -164,8 +165,8 @@ func NMaybeSortArgs(List<TransScript_sortArgs_sort>) -> List<Core_csortargs_sort
 rule NMaybeSortArgs(sortArgs?⟦             ⟧) → csortargs?⟦ ⟧
 rule NMaybeSortArgs(sortArgs?⟦ < ##sort* > ⟧) → csortargs?⟦ <  ⟨csort*: Map((x)->NSort(x), #sort*)⟩ > ⟧
 
-func NSortMap(TransScript_sortMap_sort) -> Core_csort_sort
-rule NSortMap(sortMap⟦ ##sort1 : ##sort2 ⟧) → csort⟦ { ⟨csort: NSort(#sort1)⟩ : ⟨csort: NSort(#sort2)⟩ } ⟧
+func NSortMap(TransScript_sortMap_sort) -> List<Core_csort_sort>
+rule NSortMap(sortMap⟦ ##sort1 : ##sort2 ⟧) → csort*⟦ ⟨csort: NSort(#sort1)⟩, ⟨csort: NSort(#sort2)⟩ ⟧
 
 /* Generate wrapper construtor for given multimaps arity */
 func NMultiMapWrapper(#arity: Numeric) -> String
@@ -253,23 +254,23 @@ func NATerm(TransScript_aterm_sort, Bool) -> Core_cterm_sort
   → Error("Error: named terms are only allowed in patterns.")
 
   // Map pattern matching - single map
-  rule NATerm(aterm⟦ { ##optkvs       } ⟧, TRUE)
+  rule NATerm(aterm⟦ { ##optkvs } ⟧, TRUE)
   → NOptKVS(#optkvs)
 
   // Map pattern matching - multi maps - desugar
-  rule NATerm(aterm⟦ { ##optkvs* } ⟧, TRUE)
+  rule NATerm(aterm⟦ { ##optkvs* } ##sortAnno? ⟧, TRUE)
   → cterm⟦ ⟨CONSTRUCTOR: NMultiMapWrapper(ListLength(#optkvs*))⟩ ( ⟨cterm*: Map((optkvs)->NOptKVS(optkvs), #optkvs*)⟩ ) ⟧
 
   // Map construction - empty single map
-  rule NATerm(aterm⟦ {        } ⟧, FALSE)
+  rule NATerm(aterm⟦ {        } ##sortAnno? ⟧, FALSE)
   → cterm⟦ MapNew ⟧
 
   // Map construction - single map
-  rule NATerm(aterm⟦ { ##optkvs } ⟧, FALSE)
+  rule NATerm(aterm⟦ { ##optkvs } ##sortAnno? ⟧, FALSE)
   → NOptKVSContract(#optkvs)
 
   // Map construction - multi maps
-  rule NATerm(aterm⟦ { ##optkvs* } ⟧, FALSE)
+  rule NATerm(aterm⟦ { ##optkvs* } ##sortAnno? ⟧, FALSE)
   → cterm⟦ ⟨CONSTRUCTOR: NMultiMapWrapper(ListLength(#optkvs*))⟩ (⟨cterm*: Map((optkvs)->NOptKVSContract(optkvs), #optkvs*)⟩ ) ⟧
 
   // Assertion error
@@ -320,15 +321,18 @@ rule NGroupOrList(groupOrList⟦ ( ##term , ) ⟧, #inpattern) → cterm⟦ Cons
 rule NGroupOrList(groupOrList⟦ ( ##term* )  ⟧, #inpattern) → NTerms(#term*, #inpattern)
 
 func NQIdentifier(TransScript_qidentifier_sort) -> Core_cqidentifier_sort
-rule NQIdentifier(qidentifier⟦ ##identifier* ##identifier ⟧) → cqidentifier⟦ ⟨cidentifier*: Map((ident)->NIdentifier(ident), #identifier*)⟩ ⟨cidentifier: NIdentifier(#identifier)⟩ ⟧
-rule NQIdentifier(qidentifier⟦ ##identifier               ⟧) → cqidentifier⟦ ⟨cidentifier: NIdentifier(#identifier)⟩ ⟧
+rule NQIdentifier(qidentifier⟦ ##identifierQualifier* ##identifier ⟧) → cqidentifier⟦ ⟨cidentifierqualifier*: Map((ident)->NIdentifierQualifier(ident), #identifierQualifier*)⟩ ⟨cidentifier: NIdentifier(#identifier)⟩ ⟧
+rule NQIdentifier(qidentifier⟦ ##identifier                        ⟧) → cqidentifier⟦ ⟨cidentifier: NIdentifier(#identifier)⟩ ⟧
+
+func NIdentifierQualifier(TransScript_identifierQualifier_sort) -> Core_cidentifierqualifier_sort
+rule NIdentifierQualifier(identifierQualifier⟦ ##identifier :: ⟧) → cidentifierqualifier⟦ ⟨cidentifier: NIdentifier(#identifier)⟩ :: ⟧
 
 func NIdentifier(TransScript_identifier_sort) -> Core_cidentifier_sort
 rule NIdentifier(identifier⟦ ##CONSTRUCTOR ⟧) → cidentifier⟦ ##CONSTRUCTOR ⟧
 rule NIdentifier(identifier⟦ ##VARIABLE ⟧)    → cidentifier⟦ ##VARIABLE ⟧
 
-func NQconstructor(TransScript_qconstructor_sort) -> Core_cqconstructor_sort
-rule NQconstructor(qconstructor⟦ ##sortQualifier* ##constructor ⟧) → cqconstructor⟦ ⟨csortqualifier*: NSortQualifiers(#sortQualifier*)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟧
+func NQConstructor(TransScript_qconstructor_sort) -> Core_cqconstructor_sort
+rule NQConstructor(qconstructor⟦ ##sortQualifier* ##constructor ⟧) → cqconstructor⟦ ⟨csortqualifier*: NSortQualifiers(#sortQualifier*)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟧
 
 func NConstructor(TransScript_constructor_sort) -> String
 rule NConstructor(constructor⟦ ##CONSTRUCTOR ⟧) → #CONSTRUCTOR

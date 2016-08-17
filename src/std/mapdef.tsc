@@ -95,3 +95,15 @@ enum MMap2<a b c d> | MMap2({a:b}, {c:d})
 enum MMap3<a b c d e f> | MMap3({a:b}, {c:d}, {e:f})
 enum MMap4<a b c d e f g h> | MMap4({a:b}, {c:d}, {e:f}, {g:h})
 enum MMap5<a b c d e f g h i j> | MMap5({a:b}, {c:d}, {e:f}, {g:h}, {i:j})
+
+func MMap2Fst<a b c d>({a:b & c:d}) -> {a:b}
+rule MMap2Fst(MMap2(#fst, #snd)) → #fst
+
+func MMap2Snd<a b c d>({a:b & c:d}) -> {c:d}
+rule MMap2Snd(MMap2(#fst, #snd)) → #snd
+
+/* Lookup entry for given key.
+ @return the value of type b or the default value if not in the map
+*/
+func MMap2GetD<a b c d>({a:b & c:d}, a, b) -> b
+rule MMap2GetD(MMap2(#map1, #map2), #key, #default) → MapGetD(#map1, #key, #default)

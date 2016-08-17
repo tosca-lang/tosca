@@ -29,7 +29,7 @@ func CCRules(#key: String, #rules: List<Core_cdecl_sort>, #content: Content) -> 
 → CCRulesUp(#key, FoldlP((rul env) -> CCRule(env, rul), CCEnvNew(#key, #content), #rules))
 
 func CCRulesUp(#key: String, #env: CCEnv) -> Content
-→ PutRulesL(CCEnvContent(#env), #key, CCEnvRules(#env))
+→ PutRulesC(CCEnvContent(#env), #key, CCEnvRules(#env))
 
 func CCRule(CCEnv, Core_cdecl_sort) -> CCEnv
 rule CCRule(#env, cdecl⟦ rule ##cterm1 → ##cterm2 ⟧) → CCRuleUp(#cterm1, CCPatternTerm(#env, #cterm1, CCNewBinderStack, (env)->CCTerm(env, #cterm2)))
@@ -182,7 +182,7 @@ func CCLiftedDeclCC(#env: CCEnv, #name:String, #funcdecl: Core_cdecl_sort, #rule
 → CCEnvIncCounter(CCEnvSetContent(#env,
                                   CCRules(#name,
                                          (#ruledecl,),
-                                         PutRulesL(PutFuncSortL(CCEnvContent(#env), #funcdecl, FALSE), #name, (#ruledecl,)))))
+                                         PutRulesC(PutFuncSortC(CCEnvContent(#env), #funcdecl, FALSE), #name, (#ruledecl,)))))
 
 func CCMaybeSortVars(#env: CCEnv, #name:String) -> List<Core_csortvars_sort>
 → GetMaybeSortVars(UnSOME(GetFuncSort(CCEnvContent(#env), #name)))

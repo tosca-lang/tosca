@@ -25,7 +25,7 @@ rule StripThunk(#cterm                )  → #cterm
 
 /* Check whether the given annotation is in the given list */
 func HasAnnotation(#anno: String, #anno*: List<Core_canno_sort>) -> Bool
-→ HasOption<Core_canno_sort>(PickFirst<Core_canno_sort>(#anno*, (anno) -> EqualAnno(#anno, anno)))
+→ HasOption(PickFirst(#anno*, (anno) -> EqualAnno(#anno, anno)))
 
 /* Whether the 2 annotation are equals */
 func EqualAnno(String, Core_canno_sort) -> Bool
@@ -41,17 +41,12 @@ func JoinQIdentifier(#cqiden: Core_cqidentifier_sort, #sep: String, #mangle:Bool
 
 /* @return string list of qualified identifiers */
 func QIdentifierList(Core_cqidentifier_sort, Bool) -> List<String>
-rule QIdentifierList(cqidentifier⟦ ##cidentifier* ##cidentifier ⟧, #mangle) → Append(IdentifierToString(#cidentifier, #mangle), Map((ident) -> IdentifierToString(ident, #mangle), #cidentifier*))
-rule QIdentifierList(cqidentifier⟦ ##CONSTRUCTOR ⟧, #mangle) → (If(#mangle, ()->Mangle(#CONSTRUCTOR), ()->#CONSTRUCTOR),)
+rule QIdentifierList(cqidentifier⟦ ##cidentifierqualifier* ##cidentifier ⟧, #mangle) → Append(IdentifierToString(#cidentifier, #mangle), IdentifierQList(#cidentifierqualifier*, #mangle))
+rule QIdentifierList(cqidentifier⟦ ##CONSTRUCTOR                         ⟧, #mangle) → (If(#mangle, ()->Mangle(#CONSTRUCTOR), ()->#CONSTRUCTOR),)
 
-/* @return the qualified constructor converted to the equivalent qualified identifier */
-func QConsToQIden(Core_cqconstructor_sort) -> Core_cqidentifier_sort
-rule QConsToQIden(cqconstructor⟦ ##csortqualifier* ##CONSTRUCTOR ⟧) → cqidentifier⟦ ⟨cidentifier*: QConsToQIdens(#csortqualifier*)⟩ ##CONSTRUCTOR ⟧
-rule QConsToQIden(cqconstructor⟦ ##CONSTRUCTOR  ⟧) → cqidentifier⟦ ##CONSTRUCTOR ⟧
-
-func QConsToQIdens(List<Core_csortqualifier_sort>) -> List<Core_cidentifier_sort>
-rule QConsToQIdens(csortqualifier*⟦ ##CONSTRUCTOR :: ##csortqualifier* ⟧) → cidentifier*⟦ ##CONSTRUCTOR :: ⟨cidentifier*: QConsToQIdens(#csortqualifier*)⟩ ⟧
-rule QConsToQIdens(csortqualifier*⟦ ⟧) → cidentifier*⟦ ⟧
+/* @return string list of identifier qualifier */
+func IdentifierQList(List<Core_cidentifierqualifier_sort>, Bool) -> List<String>
+rule IdentifierQList(#cidentifierqualifier*, #mangle) →  Map((ident) -> QIdentifierToString(ident, #mangle), #cidentifierqualifier*)
 
 /* Convert qualified constructor to string, using given separator */
 func QConsToString(#cqcons: Core_cqconstructor_sort, #sep: String) -> String
@@ -60,10 +55,14 @@ func QConsToString(#cqcons: Core_cqconstructor_sort, #sep: String) -> String
 /* Get qualified constructor as a list of string. */
 func QConsToStringList(Core_cqconstructor_sort) -> List<String>
 rule QConsToStringList(cqconstructor⟦ ##csortqualifier* ##CONSTRUCTOR ⟧)
-→ Append<String>(#CONSTRUCTOR, Map<Core_csortqualifier_sort String>((sort) -> QSortToString(sort), #csortqualifier*))
+→ Append<String>(#CONSTRUCTOR, Map((sort) -> QSortToString(sort), #csortqualifier*))
 
 func QSortToString(Core_csortqualifier_sort) -> String
 rule QSortToString(csortqualifier⟦ ##CONSTRUCTOR :: ⟧) → #CONSTRUCTOR
+
+/* @return the string corresponding to the given `#qualifiedIdentifier` */
+func QIdentifierToString(Core_cidentifierqualifier_sort, Bool) -> String
+rule QIdentifierToString(cidentifierqualifier⟦ ##cidentifier :: ⟧, #mangle) → IdentifierToString(#cidentifier, #mangle)
 
 /* @return the string corresponding to the given `#identifier` */
 func IdentifierToString(Core_cidentifier_sort, Bool) -> String

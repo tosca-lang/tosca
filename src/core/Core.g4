@@ -17,7 +17,7 @@ ccrsx
 
 cdecl
     : RULE cterm ARROW cterm                                         /* Rule declaration */
-    | DATA  csortvars? CONSTRUCTOR cforms                            /* Data sort declaration */
+    | DATA  csortvars? cidentifierqualifier* CONSTRUCTOR cforms      /* Data sort declaration */
     | canno* EXTERN? FN csortvars? csort CONSTRUCTOR csorts?         /* Function sort declaration */
     | IMPORT MODULE cqidentifier                                     /* Import module declaration */
     | IMPORT GRAMMAR  cqidentifier                                   /* Import grammar declaration */
@@ -125,7 +125,6 @@ csort
     | VARIABLE                                      /* Sort variable  */
     | LSQUARE csort RSQUARE csort                   /* Bound variable sort */
     | LPAR csort RPAR csort                         /* Formal parameter sort. */
-    // TODO: remove (COMMA mapsort)*
     | LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sorts */
     | DATA csort                                    /* Data sort annotation. Indicate value must normalized */
     | THUNK csort                                   /* Thunk sort annotation. Indicate value is not evaluated */
@@ -152,8 +151,12 @@ cidentifier
     | VARIABLE
     ;
 
+cidentifierqualifier
+    : cidentifier COLONCOLON
+    ;
+
 cqidentifier
-    : (cidentifier COLONCOLON)* cidentifier
+    : cidentifierqualifier* cidentifier
     ;
 
 csortqualifier

@@ -19,7 +19,7 @@ namespace tosca {
     
     // MapTerm type definition
     template<typename K, typename V>
-    class MapTerm: public Term, public std::unordered_map<std::reference_wrapper<K>, std::reference_wrapper<V>>
+    class MapTerm: public Term, public std::unordered_map<K*, V*>
     {
     public:
         virtual ~MapTerm()
@@ -187,7 +187,7 @@ namespace tosca {
         
         virtual void putValue(K& key, V& value)
         {
-            this->insert({key, value});
+            this->insert({&key, &value});
         }
         
         virtual void putVar(Variable key, V& value)
@@ -198,7 +198,7 @@ namespace tosca {
         
         virtual Option<V>& getValue(Context& ctx, K& key)
         {
-            auto search = this->find(std::reference_wrapper<K>(key));
+            auto search = this->find(&key);
             if (search == this->end())
             {
                 if (parent)
@@ -206,7 +206,7 @@ namespace tosca {
                 
                 return newNONE<V>(ctx);
             }
-            return newSOME<V>(ctx, search->second);
+            return newSOME<V>(ctx, *search->second);
         }
         
         virtual Option<V> getValueVar(Context& ctx, Variable key)

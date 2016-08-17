@@ -287,8 +287,15 @@ MakeParserRuleSpec[ANTLR_parserRuleSpec_sort, Mode, $Boolean] :: $List[ANTLR_rul
 //
 MakeRuleAltList[ANTLR_ruleAltList_sort, $String, Mode] :: ANTLR_ruleAltList_sort;
 {#E}MakeRuleAltList[{#L}%ruleAltList⟨ #alternative #labeledAlt_S1? #ruleAltList_S1* ⟩, #RULE_REF, #mode] 
-→ {#L}%ruleAltList⟨ ⟨alternative: {#E}MakeAlternative[#alternative, #labeledAlt_S1?, IsEmpty[#ruleAltList_S1*], 1, GetElementOptionAlternative[#alternative, "variable"], GetElementOptionAlternative[#alternative, "type"], #RULE_REF, IsMeta[#mode]]⟩ 
-                 ⟨ruleAltList_S1*: Concat[{#E}MakeRuleAltList_S1s[#ruleAltList_S1*, 2, #RULE_REF, IsMeta[#mode]], {#E}MakeMetaAltList[#RULE_REF, #mode]]⟩ ⟩; ;
+//→ {#L}%ruleAltList⟨ ⟨alternative: {#E}MakeAlternative[#alternative, #labeledAlt_S1?, IsEmpty[#ruleAltList_S1*], 1, GetElementOptionAlternative[#alternative, "variable"], GetElementOptionAlternative[#alternative, "type"], #RULE_REF, IsMeta[#mode]]⟩ 
+//                 ⟨ruleAltList_S1*: Concat[{#E}MakeRuleAltList_S1s[#ruleAltList_S1*, 2, #RULE_REF, IsMeta[#mode]], {#E}MakeMetaAltList[#RULE_REF, #mode]]⟩ ⟩; ;
+→ ReMakeRuleAltList[Concat[{#E}MakeMetaAltList[#RULE_REF, #mode], 
+                    Concat[{#L}%ruleAltList_S1*⟦ | ⟨alternative: {#E}MakeAlternative[#alternative, #labeledAlt_S1?, IsEmpty[#ruleAltList_S1*], 1, GetElementOptionAlternative[#alternative, "variable"], GetElementOptionAlternative[#alternative, "type"], #RULE_REF, IsMeta[#mode]]⟩ ⟧, 
+                           {#E}MakeRuleAltList_S1s[#ruleAltList_S1*, 2, #RULE_REF, IsMeta[#mode]]]]];
+
+
+ReMakeRuleAltList[$List[ANTLR_ruleAltList_S1_sort]] :: ANTLR_ruleAltList_sort;
+ReMakeRuleAltList[{#L}%ruleAltList_S1*⟦ | #labeledAlt #ruleAltList_S1* ⟧] → {#L}%ruleAltList⟦ #labeledAlt #ruleAltList_S1* ⟧;
 
 //
 MakeRuleAltList_S1s[$List[ANTLR_ruleAltList_S1_sort], $Numeric, $String, $Boolean /* Meta parser? */] :: $List[ANTLR_ruleAltList_S1_sort];
