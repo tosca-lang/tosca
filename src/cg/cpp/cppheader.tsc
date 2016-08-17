@@ -12,8 +12,8 @@ import std::text::Text4
 
 import core::Core
 import core::utils
-import cg::cppcommon
-import cg::cppenv
+import cg::cpp::cppcommon
+import cg::cpp::cppenv
 
 import Systemdef
 

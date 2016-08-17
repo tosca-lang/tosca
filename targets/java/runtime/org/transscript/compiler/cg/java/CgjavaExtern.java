@@ -1,6 +1,6 @@
 /* Copyright (c) 2016 IBM Corporation. */
 
-package org.transscript.compiler.cg;
+package org.transscript.compiler.cg.java;
 
 import org.transscript.runtime.Context;
 import org.transscript.runtime.StringTerm;

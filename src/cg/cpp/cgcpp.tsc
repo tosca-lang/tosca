@@ -12,8 +12,8 @@ import std::language
 import std::text::text4
 
 import systemdef
-import cg::cppheader
-import cg::cppsource
+import cg::cpp::cppheader
+import cg::cpp::cppsource
 
 // ===== API
 

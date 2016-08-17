@@ -18,8 +18,8 @@ import normalizer
 import checker
 import cc
 import infer::infer
-import cg::cgjava
-import cg::cgcpp
+import cg::java::cgjava
+import cg::cpp::cgcpp
 import core::Core
 import core::utils
 import parser::TransScript

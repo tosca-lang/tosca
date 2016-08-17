@@ -1,6 +1,6 @@
 /* Copyright (c) 2016 IBM Corporation. */
 
-package org.transscript.compiler.cg;
+package org.transscript.compiler.cg.cpp;
 
 import static org.transscript.runtime.StringTerm.stringTerm;
 import static org.transscript.runtime.Term.force;

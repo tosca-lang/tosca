@@ -11,8 +11,8 @@ import std::mapdef
 import std::text::Text4
 
 import core::Core
-import cg::cppcommon
-import cg::cppenv
+import cg::cpp::cppcommon
+import cg::cpp::cppenv
 import systemdef
 
 /* Generate C++ source file for module */
