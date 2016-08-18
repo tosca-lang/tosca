@@ -23,34 +23,21 @@ func CppHeader(#module: Module) -> Text4_text_sort
 #ifndef †⟨HeaderGuard(GetModuleURL(#module))⟩
 #define †⟨HeaderGuard(GetModuleURL(#module))⟩
 #include "ts.h"
+#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩_sigs.h"
+
+// Imports class declarations and signatures
+†⟨CppIncludeSigs(GetImports(GetModuleContent(#module)))⟩
 
 using tosca::StringTerm;
 using tosca::DoubleTerm;
 using tosca::MapTerm;
+using tosca::Context;
 
-†⟨TextIf(HasExternFuncM(#module), ()->text⟦
-#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩-extern.h"⟧)⟩
+// Templated method definitions
+†⟨CppMethodDefs(MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
 
-// Imports
-
-†⟨CppIncludes     (GetImports(GetModuleContent(#module)))⟩
-
-// Enumeration forward declarations
-
-†⟨CppForwardDecls (MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
-
-// Function forward declarations
-
-†⟨CppForwardDecls (MapValues(GetFuncSorts(GetModuleContent(#module))))⟩
-
-// Enumeration declarations
-
-†⟨CppClassDecls   (MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
-
-// Template function definitions
-
-†⟨CppFunctionDecls(SetContent(CppNewEnv, GetModuleContent(#module)))⟩
-
+// Templated function definitions
+†⟨CppFunctionDefs(SetContent(CppNewEnv, GetModuleContent(#module)))⟩
 #endif⟧
 
 /* Generate C++ header guard */
@@ -58,110 +45,42 @@ func HeaderGuard(#url: String) -> Text4_text_sort
 → text⟦⟨STRING: Mangle(UpCase(PathFileStem(#url)))⟩_H_⟧
 
 /* Generate C++ header inclusion declarations */
-func CppIncludes(#imports: List<Core_cqidentifier_sort>) -> Text4_text_sort
+func CppIncludeSigs(#imports: List<Core_cqidentifier_sort>) -> Text4_text_sort
 → TextFoldES(Map((imp) -> text⟦
-#include "⟨STRING: JoinQIdentifier(imp, "/", TRUE)⟩.h"⟧, #imports))
+#include "⟨STRING: JoinQIdentifier(imp, "/", TRUE)⟩_sigs.h"⟧, #imports))
 
-// --------- Data sorts
+// --------- Templated method definitions
 
-/* Generate data sort, data form and parameterized function forward declarations */
-func CppForwardDecls(#decls: List<Core_cdecl_sort>) -> Text4_text_sort
-→ TextFoldES(Map((decl) -> CppForwardDecl(decl), #decls))
+func CppMethodDefs(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
+→ TextFoldES(Map((decl) -> CppMethodDef(decl), #datasorts))
 
-func CppForwardDecl(Core_cdecl_sort) -> Text4_text_sort
+func CppMethodDef(Core_cdecl_sort) -> Text4_text_sort
 
-  rule CppForwardDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
+  rule CppMethodDef(cdecl⟦ data ##csortvars ##CONSTRUCTOR ( ##cform* ) ⟧)
   → text⟦
-    †⟨CppTemplatePrefix(#csortvars?)⟩
-    class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩;
-    †⟨TextFoldES(Map((cform) -> CppForwardForm(#CONSTRUCTOR, #csortvars?, cform), #cform*))⟩⟧
+    †⟨TextMapFoldES((cform) -> CppMethodNew(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, cform, TRUE), #cform*)⟩
+    †⟨TextMapFoldES((cform) -> CppMethodAs(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, cform, TRUE), #cform*)⟩
+    †⟨TextMapFoldES((cform) -> CppFormMethod(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, cform), #cform*)⟩⟧
 
-  rule CppForwardDecl(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
-  → CppFunctionDeclD({}, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, TRUE, TRUE)
-
-  rule CppForwardDecl(#cdecl)
+  rule CppMethodDef(#cdecl)
   → text⟦⟧
 
-func CppForwardForm(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
+/* Generate method defs for the given data form */
+func CppFormMethod(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
 
-  rule CppForwardForm(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  rule CppFormMethod(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
-      †⟨CppTemplatePrefix(#csortvars?)⟩
-      class †⟨FormCppClassName(#CONSTRUCTOR)⟩;⟧
+      †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
+      †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
+      †⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩⟧
 
-  rule CppForwardForm(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
+  rule CppFormMethod(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦
-      †⟨CppTemplatePrefix(#csortvars?)⟩
-      class †⟨FormCppClassName(#sortname)⟩Var;
+      †⟨CppVarConstructorVar(#sortname, #csortvars?, TRUE)⟩
+      †⟨CppVarMethodUse(#sortname, #csortvars?, TRUE)⟩
+      †⟨CppVarConstructorUse(#sortname, #csortvars?, TRUE)⟩⟧
 
-      †⟨CppTemplatePrefix(#csortvars?)⟩
-      class †⟨FormCppClassName(#sortname)⟩Use;⟧
+// --------- Templated function definitions
 
-/* Generate class and method signatures for data sorts */
-func CppClassDecls(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
-→ TextFoldES(Map((decl) -> CppClassDecl(decl), #datasorts))
-
-func CppClassDecl(Core_cdecl_sort) -> Text4_text_sort
-rule CppClassDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
-→ text⟦
-†⟨TextMapFoldES((cform) -> CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*)⟩
-†⟨CppTemplatePrefix(#csortvars?)⟩
-class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩ : public †⟨CppExtendTerm(#CONSTRUCTOR, #cform*)⟩
-{
-public:
-  †⟨TextMapFoldES((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, TRUE), #cform*)⟩
-};
-†⟨TextMapFoldES((cform) -> CppFormClass(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩
-⟧
-
-func CppExtendTerm(#sortname: String, #form*: List<Core_cform_sort>) -> Text4_text_sort
-→ IfPresent(PickFirst(#form*, (form)->IsAllowsVar(form)),
-    (form)->text⟦virtual tosca::TermVar<†⟨FormCppClassName(#sortname)⟩Var>⟧,
-    ()->text⟦tosca::Term⟧)
-
-/* Generate class and method signatures for the given data form */
-func CppFormClass(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
-
-  rule CppFormClass(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
-  → text⟦
-      †⟨CppTemplatePrefix(#csortvars?)⟩
-      class †⟨FormCppClassName(#CONSTRUCTOR)⟩: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩
-      {
-      public:
-        †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
-        †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
-        †⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
-
-      protected:
-        †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppDeclField(isvar, type, index, subindex))⟩
-      };⟧
-
-  rule CppFormClass(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
-  → text⟦
-      †⟨CppTemplatePrefix(#csortvars?)⟩
-      class †⟨FormCppClassName(#sortname)⟩Var: public tosca::Variable
-      {
-        public:
-          †⟨CppVarConstructorVar(#sortname, #csortvars?, TRUE)⟩
-          †⟨CppVarMethodUse(#sortname, #csortvars?, TRUE)⟩
-      };
-
-      †⟨CppTemplatePrefix(#csortvars?)⟩
-      class †⟨FormCppClassName(#sortname)⟩Use: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩, public tosca::VariableUse<†⟨FormCppClassName(#sortname)⟩Var†⟨MaybeCppTypeArguments(#csortvars?)⟩>
-      {
-        public:
-          †⟨CppVarConstructorUse(#sortname, #csortvars?, TRUE)⟩
-      };⟧
-
-// --------- Form to class fields
-
-/* Field declaration helper */
-func CppDeclField(Bool, Text4_text_sort, Numeric, Numeric) -> Text4_text_sort
-rule CppDeclField(FALSE, #type, #index, #subindex) → text⟦†⟨#type⟩& †⟨FieldName(#index)⟩;⟧
-rule CppDeclField(TRUE, #type, #index, #subindex)  → text⟦†⟨#type⟩& †⟨VarFieldName(#index, #subindex)⟩;⟧
-
-// --------- Function sorts
-
-/* Generate template function definition corresponding to function sorts. */
-func CppFunctionDecls(#env: {String : EnvEntry}) -> Text4_text_sort
+func CppFunctionDefs(#env: {String : EnvEntry}) -> Text4_text_sort
 → TextMapFoldES((key) ->CppFunctionDecl(#env, key, TRUE), MapKeys(GetFuncSorts(GetContent(#env))))

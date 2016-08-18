@@ -76,11 +76,11 @@ Option<b>& MapGet(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
  * @param value
  * @return
  */
-template<typename a, typename b, typename c, typename d>
-tosca::MapTerm<a, b>& MapPutVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, c& key, d& value)
+template<typename a, typename b>
+tosca::MapTerm<a, b>& MapPutVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key, b& value)
 {
     tosca::MapTerm<a, b>& emap = force(ctx, map);
-    c& ekey = force(ctx, key);
+    a& ekey = force(ctx, key);
     b& evalue = force(ctx, value);
 
     Optional<tosca::Variable> v = ekey.variable();
@@ -95,11 +95,11 @@ tosca::MapTerm<a, b>& MapPutVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, 
     throw std::runtime_error("Invalid MapPutVar key. Excepted a variable use, but instead got :"); //+ key.toString()
 }
 
-template<typename a, typename b, typename c>
-Option<b>& MapGetVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, c& key)
+template<typename a, typename b>
+Option<b>& MapGetVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
 {
     tosca::MapTerm<a, b>& emap = force(ctx, map);
-    c& ekey = force(ctx, key);
+    a& ekey = force(ctx, key);
 
     Optional<tosca::Variable> v = ekey.variable();
     if (v)
@@ -112,16 +112,16 @@ Option<b>& MapGetVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, c& key)
     throw std::runtime_error("Invalid MapPutVar key. Excepted a variable use, but instead got :"); // + key.toString()
 }
 
-template<typename a, typename b, typename c, typename d>
-Option<d>& MapGetVarT(tosca::Context& ctx, tosca::MapTerm<a, b>& map, c& key)
+template<typename a, typename b>
+Option<b>& MapGetVarT(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
 {
     tosca::MapTerm<a, b>& emap = force(ctx, map);
-    c& ekey = force(ctx, key);
+    a& ekey = force(ctx, key);
     
     Optional<tosca::Variable> v = ekey.variable();
     if (v)
     {
-        Option<d>& result = emap.getValueVar(ctx, v.value());
+        Option<b>& result = emap.getValueVar(ctx, v.value());
         //emap.release();
         return result;
     }

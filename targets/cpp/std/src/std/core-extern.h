@@ -56,13 +56,13 @@ List<a>& FreeVariables(tosca::Context& ctx, a& value_130)
 }
 
 template<typename a>
-List<a>& ExceptVariables(tosca::Context& ctx, a& value_112, a& value_113)
+List<a>& ExceptVariables(tosca::Context& ctx, List<a>& value_112, List<a>& value_113)
 {
     throw new std::runtime_error("unimplemented");
 }
 
 template<typename a>
-List<a>& IntersectVariables(tosca::Context& ctx, a& value_116, a& value_117)
+List<a>& IntersectVariables(tosca::Context& ctx, List<a>& value_116, List<a>& value_117)
 {
     throw new std::runtime_error("unimplemented");
 }

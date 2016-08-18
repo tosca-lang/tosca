@@ -1,0 +1,23 @@
+// Copyright (c) 2016 IBM Corporation.
+/*
+ * Generate C++ header file containing forward declarations only.
+ */
+import std::core
+import std::path
+import std::string
+import std::text
+import std::text::Text4
+import core::Core
+import cg::cpp::cppcommon
+import Systemdef
+
+func CppTypes(#module: Module) -> Text4_text_sort
+→ text⟦
+#ifndef †⟨HeaderTypesGuard(GetModuleURL(#module))⟩
+#define †⟨HeaderTypesGuard(GetModuleURL(#module))⟩
+†⟨CppForwardDecls (MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
+#endif⟧
+
+/* Generate C++ header guard */
+func HeaderTypesGuard(#url: String) -> Text4_text_sort
+→ text⟦⟨STRING: Mangle(UpCase(PathFileStem(#url)))⟩_TYPES_H_⟧

@@ -1,0 +1,116 @@
+// Copyright (c) 2016 IBM Corporation.
+/*
+ * Generate C++ header file containing function and method signatures
+ */
+import std::core
+import std::path
+import std::string
+import std::text
+import std::text::Text4
+import core::Core
+import core::utils
+import cg::cpp::cppcommon
+
+import Systemdef
+
+/* Generate C++ header file for module */
+func CppSigs(#module: Module) -> Text4_text_sort
+→ text⟦
+#ifndef †⟨HeaderSigsGuard(GetModuleURL(#module))⟩
+#define †⟨HeaderSigsGuard(GetModuleURL(#module))⟩
+#include "ts.h"
+#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩_types.h"
+†⟨TextIf(HasExternFuncM(#module), ()->text⟦
+#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩-extern.h"⟧)⟩
+
+†⟨CppIncludeTypes(GetImports(GetModuleContent(#module)))⟩
+
+using tosca::StringTerm;
+using tosca::DoubleTerm;
+using tosca::MapTerm;
+using tosca::Context;
+
+// Enumeration declarations
+†⟨CppClassDecls(MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
+
+// Function forward declarations
+†⟨CppForwardDecls (MapValues(GetFuncSorts(GetModuleContent(#module))))⟩
+#endif⟧
+
+/* Generate C++ header guard */
+func HeaderSigsGuard(#url: String) -> Text4_text_sort
+→ text⟦⟨STRING: Mangle(UpCase(PathFileStem(#url)))⟩_SIGS_H_⟧
+
+/* Generate C++ header inclusion declarations */
+func CppIncludeTypes(#imports: List<Core_cqidentifier_sort>) -> Text4_text_sort
+→ TextFoldES(Map((imp) -> text⟦
+#include "⟨STRING: JoinQIdentifier(imp, "/", TRUE)⟩_types.h"⟧, #imports))
+
+//--- Class declaration
+
+/* Generate class and method signatures for data sorts */
+func CppClassDecls(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
+→ TextFoldES(Map((decl) -> CppClassDecl(decl), #datasorts))
+
+func CppClassDecl(Core_cdecl_sort) -> Text4_text_sort
+
+  rule CppClassDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
+  → text⟦
+    †⟨TextMapFoldES((cform) -> CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, FALSE), #cform*)⟩
+    †⟨CppTemplatePrefix(#csortvars?)⟩
+    class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩ : public †⟨CppExtendTerm(#CONSTRUCTOR, #cform*)⟩
+    {
+    public:
+      †⟨TextMapFoldES((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, FALSE), #cform*)⟩
+    };
+    †⟨TextMapFoldES((cform) -> CppFormClassDecl(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩
+    ⟧
+
+  rule CppClassDecl(#cdecl)
+  → text⟦⟧
+
+func CppExtendTerm(#sortname: String, #form*: List<Core_cform_sort>) -> Text4_text_sort
+→ IfPresent(PickFirst(#form*, (form)->IsAllowsVar(form)),
+    (form)->text⟦virtual tosca::TermVar<†⟨FormCppClassName(#sortname)⟩Var>⟧,
+    ()->text⟦tosca::Term⟧)
+
+/* Generate class and method signatures for the given data form */
+func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
+
+  rule CppFormClassDecl(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  → text⟦
+      †⟨CppTemplatePrefix(#csortvars?)⟩
+      class †⟨FormCppClassName(#CONSTRUCTOR)⟩: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩
+      {
+      public:
+        †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
+        †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩
+        †⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
+
+      protected:
+        †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppDeclField(isvar, type, index, subindex))⟩
+      };⟧
+
+  rule CppFormClassDecl(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
+  → text⟦
+      †⟨CppTemplatePrefix(#csortvars?)⟩
+      class †⟨FormCppClassName(#sortname)⟩Var: public tosca::Variable
+      {
+        public:
+          †⟨CppVarConstructorVar(#sortname, #csortvars?, FALSE)⟩
+          †⟨CppVarMethodUse(#sortname, #csortvars?, FALSE)⟩
+      };
+
+      †⟨CppTemplatePrefix(#csortvars?)⟩
+      class †⟨FormCppClassName(#sortname)⟩Use: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩, public tosca::VariableUse<†⟨FormCppClassName(#sortname)⟩Var†⟨MaybeCppTypeArguments(#csortvars?)⟩>
+      {
+        public:
+          †⟨CppVarConstructorUse(#sortname, #csortvars?, FALSE)⟩
+      };⟧
+
+// --------- Form to class fields
+
+/* Field declaration helper */
+func CppDeclField(Bool, Text4_text_sort, Numeric, Numeric) -> Text4_text_sort
+rule CppDeclField(FALSE, #type, #index, #subindex) → text⟦†⟨#type⟩& †⟨FieldName(#index)⟩;⟧
+rule CppDeclField(TRUE, #type, #index, #subindex)  → text⟦†⟨#type⟩& †⟨VarFieldName(#index, #subindex)⟩;⟧

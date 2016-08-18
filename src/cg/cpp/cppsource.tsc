@@ -24,7 +24,6 @@ using namespace tosca;
 †⟨CppClassDefs(MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
 †⟨CppFunctionDefs(SetContent(CppNewEnv, GetModuleContent(#module)))⟩⟧
 
-
 // --------- Data sorts
 
 /* Generate class definition and method body for data sorts */
@@ -32,36 +31,33 @@ func CppClassDefs(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
 → TextMapFoldES<Core_cdecl_sort>((decl) -> CppClassDef(decl), #datasorts)
 
 func CppClassDef(Core_cdecl_sort) -> Text4_text_sort
-rule CppClassDef(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
-→ text⟦
-†⟨TextMapFoldES((cform) -> WhenNoParams(#csortvars?, ()->CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, FALSE)), #cform*)⟩
-†⟨TextMapFoldES((cform) -> WhenNoParams(#csortvars?, ()->CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, FALSE)), #cform*)⟩
-†⟨TextMapFoldES((cform) -> CppFormDefs(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩⟧
 
+  rule CppClassDef(cdecl⟦ data ##CONSTRUCTOR ( ##cform* ) ⟧)
+  → text⟦
+    †⟨TextMapFoldES((cform) -> CppMethodNew(#CONSTRUCTOR, (), cform, TRUE), #cform*)⟩
+    †⟨TextMapFoldES((cform) -> CppMethodAs(#CONSTRUCTOR, (), cform, TRUE), #cform*)⟩
+    †⟨TextMapFoldES((cform) -> CppFormDefs(#CONSTRUCTOR, cform), #cform*)⟩⟧
+
+  rule CppClassDef(#cdecl)
+  → text⟦⟧
 
 /* Generate class and method definitions for the given data form */
-func CppFormDefs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
+func CppFormDefs(String, Core_cform_sort) -> Text4_text_sort
 
-  rule CppFormDefs(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  rule CppFormDefs(#sortname, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
-     †⟨WhenNoParams(#csortvars?, ()->CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE))⟩
-     †⟨WhenNoParams(#csortvars?, ()->CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, FALSE))⟩
-     †⟨WhenNoParams(#csortvars?, ()->CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE))⟩⟧
-   //†⟨WhenNoParams(#csortvars?, ()->CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, FALSE))⟩
+     †⟨CppFormConstructor(#sortname, (), #CONSTRUCTOR, #csorts?, TRUE)⟩
+     †⟨CppFormMethodAs(#sortname, (), #CONSTRUCTOR, TRUE)⟩
+     †⟨CppFormGetValue(#sortname, (), #CONSTRUCTOR, #csorts?, TRUE)⟩⟧
 
-  rule CppFormDefs(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
+  rule CppFormDefs(#sortname, cform⟦ allows-variable ⟧)
   → text⟦
-      †⟨CppVarConstructorVar(#sortname, #csortvars?, FALSE)⟩
-      †⟨CppVarMethodUse(#sortname, #csortvars?, FALSE)⟩
-      †⟨CppVarConstructorUse(#sortname, #csortvars?, FALSE)⟩⟧
+      †⟨CppVarConstructorVar(#sortname, (), TRUE)⟩
+      †⟨CppVarMethodUse(#sortname, (), TRUE)⟩
+      †⟨CppVarConstructorUse(#sortname, (), TRUE)⟩⟧
 
 // --------- Function sorts and associated rules
 
 /* Generate function definitions corresponding to function sorts. */
 func CppFunctionDefs(#env: {String : EnvEntry}) -> Text4_text_sort
 → TextMapFoldES((key) -> CppFunctionDecl(#env, key, FALSE), MapKeys(GetFuncSorts(GetContent(#env))))
-
-
-/* Apply function when the list of template parameters is empty */
-func WhenNoParams(#csortvars?: List<Core_csortvars_sort>, #: ()->Text4_text_sort) -> Text4_text_sort
-→  TextIf(IsEmpty<Core_csortvars_sort>(#csortvars?), #)

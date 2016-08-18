@@ -179,7 +179,7 @@ public class CoreExtern
 		return null;
 	}
 
-	public static <a extends Term> List<a> IntersectVariables(Context context, ThunkMaker<a> tma, a value_1730, a value_1731)
+	public static <a extends Term> List<a> IntersectVariables(Context context, ThunkMaker<a> tma, List<a> value_1730, List<a> value_1731)
 	{
 		// TODO Auto-generated method stub
 		return null;
@@ -200,7 +200,7 @@ public class CoreExtern
 		return null;
 	}
 
-	public static <a extends Term> List<a> ExceptVariables(Context context, ThunkMaker<a> tma, a value_1726, a value_1727)
+	public static <a extends Term> List<a> ExceptVariables(Context context, ThunkMaker<a> tma, List<a> value_1726, List<a> value_1727)
 	{
 		// TODO Auto-generated method stub
 		return null;

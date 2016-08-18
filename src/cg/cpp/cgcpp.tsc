@@ -8,10 +8,13 @@ import std::listdef
 import std::mapdef
 import std::text
 import std::path
+import std::string
 import std::language
 import std::text::text4
 
 import systemdef
+import cg::cpp::cpptypes
+import cg::cpp::cppsigs
 import cg::cpp::cppheader
 import cg::cpp::cppsource
 
@@ -20,13 +23,25 @@ import cg::cpp::cppsource
 /* Generate C++ source and header file for given `#module` */
 func ToCppM(#system:TSystem, #module: Module) -> Result
 → ToCppAux(#system, #module,
+    TargetCppTypes(GetSystemURL(#system), GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")),
+    TargetCppSigs(GetSystemURL(#system), GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")),
     TargetCppHeader(GetSystemURL(#system), GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")),
     TargetCppSource(GetSystemURL(#system), GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")))
 
-func ToCppAux(#system:TSystem, #module: Module, #header:String, #source:String) -> Result
-→ SaveResource("text", #header, CppHeader(#module),
-  SaveResource("text", #source, CppSource(#module),
-  Success((#header, #source))))
+func ToCppAux(#system:TSystem, #module: Module, #types:String, #sigs:String, #header:String, #source:String) -> Result
+→ SaveResource("text", #types, CppTypes(#module),
+   SaveResource("text", #sigs,  CppSigs(#module),
+   SaveResource("text", #header, CppHeader(#module),
+   SaveResource("text", #source, CppSource(#module),
+   Success((#header, #source))))))
+
+/* Get the absolute name of the target c++ header file containing forward declarations */
+func TargetCppTypes(#mainurl: String, #input: String, #dest: String) -> String
+→ Replace(TargetCppHeader(#mainurl, #input, #dest), ".h", "_types.h")
+
+/* Get the absolute name of the target c++ header file containing signatures */
+func TargetCppSigs(#mainurl: String, #input: String, #dest: String) -> String
+→ Replace(TargetCppHeader(#mainurl, #input, #dest), ".h", "_sigs.h")
 
 /* Get the absolute name of the target c++ header file */
 @Extern func TargetCppHeader(#mainurl: String, #input: String, #dest: String) -> String

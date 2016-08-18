@@ -64,7 +64,7 @@ func MapGetVarD<a b c d>(#map: {a : b}, #var: c, #default: d) -> d
 
 /* @return a map containing the given list of key-value pairs*/
 func MapIndex<a b>(#entries: List<PPair<a b>>) -> {a:b}
-→ FoldlP<PPair<a b> {a:b}>((pair map) -> MapPut<a b>(map, Fst<a b>(pair), Snd<a b>(pair)), MapNew<a b>, #entries)
+→ FoldlP((pair map) -> MapPut(map, Fst(pair), Snd(pair)), MapNew, #entries)
 
 /* Add all entried from `#map2` into `#map1`.
    Entries in `#map1` existing in `#map2` are shadowed.
