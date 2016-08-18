@@ -83,12 +83,12 @@ tosca::MapTerm<a, b>& MapPutVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, 
     a& ekey = force(ctx, key);
     b& evalue = force(ctx, value);
 
-    Optional<tosca::Variable> v = ekey.variable();
+    auto v = ekey.variable();
     if (v)
     {
         // TODO extends only when refcount > 1
         tosca::MapTerm<a, b>& xmap = emap.extend();
-        xmap.putVar(v.value(), evalue);
+        xmap.putValue(ekey, evalue);
         return xmap;
     }
 
@@ -111,24 +111,6 @@ Option<b>& MapGetVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
 
     throw std::runtime_error("Invalid MapPutVar key. Excepted a variable use, but instead got :"); // + key.toString()
 }
-
-template<typename a, typename b>
-Option<b>& MapGetVarT(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
-{
-    tosca::MapTerm<a, b>& emap = force(ctx, map);
-    a& ekey = force(ctx, key);
-    
-    Optional<tosca::Variable> v = ekey.variable();
-    if (v)
-    {
-        Option<b>& result = emap.getValueVar(ctx, v.value());
-        //emap.release();
-        return result;
-    }
-    
-    throw std::runtime_error("Invalid MapPutVar key. Excepted a variable use, but instead got :"); // + key.toString()
-}
-
 
 /**
  * Gets list of keys, excluding variable keys

@@ -167,7 +167,7 @@ public class CoreExtern
 		return null;
 	}
 
-	public static <a extends Term> List<a> FreeVariables(Context context, ThunkMaker<a> tma, a value_1721)
+	public static <a extends Term, b extends Term> List<b> FreeVariables(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, a value_1721)
 	{
 		// TODO Auto-generated method stub
 		return null;

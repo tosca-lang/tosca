@@ -1041,7 +1041,7 @@ func JavaPatternMapEntry({String : JEnvEntry}, Core_cmapentry_sort, Text4_text_s
   rule JavaPatternMapEntry(#env, cmapentry⟦ ##VARIABLE : ##cterm ⟧, #term, #cmapsort, #cont)
   → IfPresent(JGetVarO(#env, #VARIABLE),
       (key)->text⟦
-        Option<†⟨SortToType(GetMapValueSort(#cmapsort))⟩> ⟨STRING: mval⟩ = †⟨#term⟩.getValueVar(†⟨GetContext(#env)⟩, †⟨UnJVarVar(key)⟩.variable()).asSOME(†⟨GetContext(#env)⟩);
+        Option<†⟨SortToType(GetMapValueSort(#cmapsort))⟩> ⟨STRING: mval⟩ = †⟨#term⟩.getValue(†⟨GetContext(#env)⟩, †⟨UnJVarVar(key)⟩.use()).asSOME(†⟨GetContext(#env)⟩);
         if (⟨STRING: mval⟩ == null)
           break †⟨JGetLabel(#env)⟩;
         †⟨SortToType(GetMapValueSort(#cmapsort))⟩ ⟨STRING: value⟩ = ⟨STRING: mval⟩.asSOME(†⟨GetContext(#env)⟩).getField1(†⟨GetContext(#env)⟩, false);
@@ -1666,18 +1666,17 @@ func JAddMeta(#env: {String : JEnvEntry}, #metavar:String, #term: Text4_text_sor
 
 // --- Variable
 
-func JGetVars({String : JEnvEntry}) -> { String : JVarEntry }
-rule JGetVars(#env) → JGetValue<{String:JVarEntry}>(#env, "vars", (x) -> UnJMapVar(x))
+func JGetVars({String : JEnvEntry}) -> {String : JVarEntry}
+rule JGetVars(#env) → JGetValue(#env, "vars", (x) -> UnJMapVar(x))
 
 func JGetVar({String : JEnvEntry}, String) -> Text4_text_sort
-rule JGetVar(#env, #var) → UnJVarVar(UnSOME<JVarEntry>(MapGetVar<String JVarEntry String>(JGetVars(#env), #var)))
+rule JGetVar(#env, #var) → UnJVarVar(UnSOME(MapGetVar(JGetVars(#env), #var)))
 
 func JGetVarO({String : JEnvEntry}, String) -> Option<JVarEntry>
-rule JGetVarO(#env, #var) → MapGetVar<String JVarEntry String>(JGetVars(#env), #var)
+rule JGetVarO(#env, #var) → MapGetVar(JGetVars(#env), #var)
 
-func JAddVar({String : JEnvEntry}, String /* TODO: Core_cterm_sort */, JVarEntry) -> {String : JEnvEntry}
-rule JAddVar(#env, #var, #entry)
-→ JSetValue(#env, "vars", JMapVar(MapPutVar<String JVarEntry String>(JGetVars(#env), #var, #entry)))
+func JAddVar(#env: {String : JEnvEntry}, #var:String /* TODO: Core_cterm_sort */, #entry:JVarEntry) -> {String : JEnvEntry}
+→ JSetValue(#env, "vars", JMapVar(MapPutVar(JGetVars(#env), #var, #entry)))
 
 // --- Parent term
 

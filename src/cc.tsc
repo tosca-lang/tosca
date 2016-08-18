@@ -160,7 +160,7 @@ func CCLift(CCEnv, Core_cterm_sort, Core_cterm_sort, {String : Core_cterm_sort})
 rule CCLift(#env, #cterm, #lambda, #captures)
 → PairCons(
     CCLiftedDecl(#env, CCEnvName(#env), #cterm, #lambda, #captures),                    // Create new lifted function
-    cterm⟦ ⟨CONSTRUCTOR: CCName(#env)⟩ ⟨csortargs?: CCMaybeSortArgs(CCMaybeSortVars(#env, CCEnvName(#env)))⟩ ⟨cterms?: TermsToMaybeTerms(Concat(CCCallArgs(CCEnvParams(#env)), Concat(MapVarValues(#captures), MapValues(#captures))))⟩ ⟨csortanno?: MaybeSortToMaybeSortAnno(TermSort(#cterm))⟩⟧) // Updated function call to lifted function
+    cterm⟦ ⟨CONSTRUCTOR: CCName(#env)⟩ ⟨csortargs?: CCMaybeSortArgs(CCMaybeSortVars(#env, CCEnvName(#env)))⟩ ⟨cterms?: TermsToMaybeTerms(Concat(CCCallArgs(CCEnvParams(#env)), MapValues(#captures)))⟩ ⟨csortanno?: MaybeSortToMaybeSortAnno(TermSort(#cterm))⟩⟧) // Updated function call to lifted function
 
 func CCMaybeSortArgs(List<Core_csortvars_sort>) -> List<Core_csortargs_sort>
 rule CCMaybeSortArgs(csortvars?⟦⟧) → csortargs?⟦⟧
@@ -190,7 +190,7 @@ func CCMaybeSortVars(#env: CCEnv, #name:String) -> List<Core_csortvars_sort>
 // -- Generate sort for the lifted function
 
 func CCLiftedFunSort(#env : CCEnv, #name: String, #cterm: Core_cterm_sort, #captures: {String : Core_cterm_sort}) -> Core_cdecl_sort
-→ CCLiftedFunSort2(#env, #cterm, Concat(UnZipS(CCEnvParams(#env)), CCCaptureSorts(Concat(MapVarValues(#captures), MapValues(#captures)))))
+→ CCLiftedFunSort2(#env, #cterm, Concat(UnZipS(CCEnvParams(#env)), CCCaptureSorts(MapValues(#captures))))
 
 func CCLiftedFunSort2(#env : CCEnv, #cterm: Core_cterm_sort, #sorts: List<Core_csort_sort>) -> Core_cdecl_sort
 → cdecl⟦ func ⟨csortvars?: CCUsedSortVars(#sorts)⟩ ⟨csort: CCReturnSort(TermSort(#cterm))⟩ ⟨CONSTRUCTOR: CCName(#env)⟩ ⟨csorts?: SortsToMaybeSorts(#sorts)⟩ ⟧
@@ -209,7 +209,7 @@ func CCUsedSortVars(#sorts: List<Core_csort_sort>) -> List<Core_csortvars_sort>
 // -- Generate rule for the lifted function.
 
 func CCLiftedRule(#env: CCEnv, #name: String, #lambda: Core_cterm_sort, #captures: {String : Core_cterm_sort}) -> Core_cdecl_sort
-→  cdecl⟦ rule ⟨CONSTRUCTOR: #name⟩ ⟨cterms?: TermsToMaybeTerms(Concat(CCLiftedPattern(#name, 0, CCEnvParams(#env)), Concat(MapVarValues(#captures), MapValues(#captures))))⟩ → ⟨cterm: CCLiftedContractum(#name, #lambda, 0, {})⟩ ⟧
+→  cdecl⟦ rule ⟨CONSTRUCTOR: #name⟩ ⟨cterms?: TermsToMaybeTerms(Concat(CCLiftedPattern(#name, 0, CCEnvParams(#env)), MapValues(#captures)))⟩ → ⟨cterm: CCLiftedContractum(#name, #lambda, 0, {})⟩ ⟧
 
 func CCLiftedPattern(String, Numeric, List<PPair<String Core_csort_sort>>) -> List<Core_cterm_sort>
 

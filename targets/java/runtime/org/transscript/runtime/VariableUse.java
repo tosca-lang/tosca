@@ -69,4 +69,23 @@ public class VariableUse implements Term
 		return variable.toString();
 	}
 
+	@Override
+	public int hashCode()
+	{
+		return variable.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (obj instanceof VariableUse)
+			return equals((VariableUse) obj);
+		return false;
+	}
+
+	public boolean equals(VariableUse other)
+	{
+		return other.variable == variable;
+	}
+	
 }

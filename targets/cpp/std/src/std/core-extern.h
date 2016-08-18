@@ -49,8 +49,8 @@ Bool& DeepEqual(tosca::Context& ctx, a& value_147, a& value_148)
 
 // --- Syntactic Variable
 
-template<typename a>
-List<a>& FreeVariables(tosca::Context& ctx, a& value_130)
+template<typename a, typename b>
+List<b>& FreeVariables(tosca::Context& ctx, a& value_130)
 {
     throw new std::runtime_error("unimplemented");
 }

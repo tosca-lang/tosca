@@ -48,7 +48,7 @@ rule SubstGetMetaVar(#cterm) → Error<String>("Fatal Error: invalid meta-variab
 
 // TODO: #VARIABLE because of issue #20
 func SubstVariable(#VARIABLE: String, #csortanno?: List<Core_csortanno_sort>, #subst: {String : Core_cterm_sort}) -> Core_cterm_sort
-→ IfPresent<Core_cterm_sort Core_cterm_sort>(MapGetVar<String Core_cterm_sort String>(#subst, #VARIABLE), (substitute) -> substitute, ()->cterm⟦ ##VARIABLE ##csortanno? ⟧)
+→ IfPresent(MapGetVar(#subst, #VARIABLE), (substitute) -> substitute, ()->cterm⟦ ##VARIABLE ##csortanno? ⟧)
 
 func SubstMaybeMapEntries(List<Core_cmapentries_sort>, {String : Core_cterm_sort}) -> List<Core_cmapentries_sort>
 rule SubstMaybeMapEntries(cmapentries?⟦              ⟧, #subst) → cmapentries?⟦⟧

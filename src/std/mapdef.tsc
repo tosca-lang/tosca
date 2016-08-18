@@ -1,9 +1,9 @@
 /* Copyright (c) 2016 IBM Corporation. */
 
 /*
-    Standard library for homogeneous (hash) map,
-    associated with syntactic variable map
- */
+ Standard library for homogeneous (hash) map
+
+*/
 import std::core
 import std::listdef
 import std::pairdef
@@ -29,35 +29,24 @@ func MapGetD<a b>(#map: {a : b}, #key: a, #default: b) -> b
    If a entry for the given key already exists in the map, it is shadowed.
    @return the extended map.
  */
-@Extern func MapPutVar<a b c d>({a : b},  c /* variable key */,  d /* value */) -> {a : b}
+@Extern func MapPutVar<a b>({a : b},  a /* variable key */,  b /* value */) -> {a : b}
 
 /* Lookup entry for given variable key.
    @return the value of type b or NONE if not in the map
  */
-@Extern func MapGetVar<a b c>({a : b}, c /* variable key */) -> Option<b>
-
-/* Lookup entry for given variable key.
-   @return the value of type d or NONE if not in the map
- */
-@Extern func MapGetVarT<a b c d>({a : b}, c /* variable key */) -> Option<d>
+@Extern func MapGetVar<a b>({a : b}, a /* variable key */) -> Option<b>
 
 /* Lookup entry for given variable key.
    @return the value of type b or NONE if not in the map
  */
-func MapGetVarD<a b c d>(#map: {a : b}, #var: c, #default: d) -> d
-→ IfPresent(MapGetVarT(#map, #var), (v)->v, ()->#default)
+func MapGetVarD<a b>(#map: {a : b}, #var: a, #default: b) -> b
+→ IfPresent(MapGetVar(#map, #var), (v)->v, ()->#default)
 
 /* Gets list of keys, excluding variable keys */
 @Extern func MapKeys<a b>({a : b}) -> List<a>
 
 /* Gets list of values, excluding variable values */
 @Extern func MapValues<a b>({a : b}) -> List<b>
-
-/* Gets list of variable keys */
-@Extern func MapVarKeys<a b c>({a : b}) -> List<c>
-
-/* Gets list of variable values */
-@Extern func MapVarValues<a b c>({a : b}) -> List<c>
 
 /* Create new empty map */
 @Extern func MapNew<a b>() -> {a : b}
@@ -78,10 +67,6 @@ func MapIndex<a b>(#entries: List<PPair<a b>>) -> {a:b}
 /* @return `TRUE` when the given `#map` contains an entry for the given `#key`, `FALSE` otherwise */
 func MapContains<a b>(#map: {a : b}, #key: a) -> Bool
 → HasOption(MapGet(#map, #key))
-
-/* @return `TRUE` when the given `#map` contains an entry for the given variable `#key`, `FALSE` otherwise */
-func MapContainsVar<a b c>(#map: {a : b}, #key: c) -> Bool
-→ HasOption(MapGetVar(#map, #key))
 
 /* Look for a map in the given value, starting from the end. */
 @Extern func MapFind<a b c>(c) -> {a:b}

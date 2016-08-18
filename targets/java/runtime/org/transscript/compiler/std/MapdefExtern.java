@@ -91,59 +91,42 @@ public class MapdefExtern
 	 * @param context
 	 * @param tma
 	 * @param tmb
-	 * @param tmc
 	 * @param map
 	 * @param varuse
 	 * @param value
 	 * @return
 	 */
-	public static <a extends Term, b extends Term, c extends Term, d extends Term> MapTerm<a, b> MapPutVar(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, ThunkMaker<c> tmc, ThunkMaker<d> tmd, MapTerm<a, b> map, c key, d value)
+	public static <a extends Term, b extends Term> MapTerm<a, b> MapPutVar(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map, a key, b value)
 	{
 		MapTerm<a, b> emap = Term.force(context, map);
-		c ekey = Term.force(context, key);
-		d evalue = Term.force(context, value);
+		a ekey = Term.force(context, key);
+		b evalue = Term.force(context, value);
 		
 		if (ekey instanceof VariableUse)
 		{
 			// TODO extends only when refcount > 1
 			MapTerm<a, b> xmap = emap.extend();
-			xmap.putVar(((VariableUse) ekey).variable(), evalue);
+			xmap.putValue(ekey, evalue);
 			return xmap;
 		}
 
 		throw new RuntimeException("Invalid MapPutVar key. Excepted a variable use, but instead got :" + key.toString());
 	}
 
-	public static <a extends Term, b extends Term, c extends Term> Option<b> MapGetVar(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, ThunkMaker<c> tmc, MapTerm<a, b> map, c key)
+	public static <a extends Term, b extends Term> Option<b> MapGetVar(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map, a key)
 	{
 		MapTerm<a, b> emap = Term.force(context, map);
-		c ekey = Term.force(context, key);
+		a ekey = Term.force(context, key);
 
 		if (ekey instanceof VariableUse)
 		{
-			Option<b> result = emap.getValueVar(context, ((VariableUse) ekey).variable());
+			Option<b> result = emap.getValue(context, ekey);
 			emap.release();
 			return result;
 		}
 
 		throw new RuntimeException("Invalid MapPutVar key. Excepted a variable use, but instead got :" + key.toString());
 	}
-
-	public static <a extends Term, b extends Term, c extends Term, d extends Term> Option<d> MapGetVarT(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, ThunkMaker<c> tmc, ThunkMaker<d> tmd, MapTerm<a, b> map, c key)
-	{
-		MapTerm<a, b> emap = Term.force(context, map);
-		c ekey = Term.force(context, key);
-
-		if (ekey instanceof VariableUse)
-		{
-			Option<d> result = emap.getValueVar(context, ((VariableUse) ekey).variable());
-			emap.release();
-			return result;
-		}
-
-		throw new RuntimeException("Invalid MapPutVar key. Excepted a variable use, but instead got :" + key.toString());
-	}
-
 	
 	/**
 	 * Gets list of keys, excluding variable keys
@@ -160,17 +143,7 @@ public class MapdefExtern
 		emap.release();
 		return keys;
 	}
-	
-
-	public static <a extends Term, b extends Term, c extends Term> List<c> MapVarKeys(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, ThunkMaker<c> tmc, MapTerm<a, b> map)
-	{
-		MapTerm<a, b> emap = Term.force(context, map);
-		List<c> keys = emap.varKeys(context);
-		emap.release();
-		return keys;
-	}
-
-
+ 
 	/**
 	 * Create new empty map
 	 * @param context
@@ -199,24 +172,7 @@ public class MapdefExtern
 		emap.release();
 		return values;
 	}
-	
-	/**
-	 * Gets list of variable values
-	 * @param context
-	 * @param tma
-	 * @param tmb
-	 * @param map
-	 * @return
-	 */
-	public static <a extends Term, b extends Term, c extends Term> List<c> MapVarValues(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, ThunkMaker<c> tmc, MapTerm<a, b> map)
-	{
-		MapTerm<a, b> emap = Term.force(context, map);
-
-		List<c> values = emap.varValues(context);
-		emap.release();
-		return values;
-	}
-
+	 
 	/**
 	 * Return true if the given map is empty
 	 * @param context

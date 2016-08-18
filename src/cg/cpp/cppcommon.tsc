@@ -513,7 +513,7 @@ func CppPatternMapEntry({String : EnvEntry}, Core_cmapentry_sort, Text4_text_sor
   rule CppPatternMapEntry(#env, cmapentry⟦ ##VARIABLE : ##cterm ⟧, #term, #cmapsort, #cont)
   → IfPresent(GetVarO(#env, #VARIABLE),
       (key)->text⟦
-        auto ⟨STRING: mval⟩ = †⟨#term⟩.getValueVar(†⟨GetContext(#env)⟩, †⟨UnVarVar(key)⟩.variable()).asSOME(†⟨GetContext(#env)⟩);
+        auto ⟨STRING: mval⟩ = †⟨#term⟩.getValue(†⟨GetContext(#env)⟩, †⟨UnVarVar(key)⟩.Use()).asSOME(†⟨GetContext(#env)⟩);
         if (⟨STRING: mval⟩)
         {
           †⟨CppType(GetMapValueSort(#cmapsort))⟩& ⟨STRING: value⟩ = ⟨STRING: mval⟩.value().getValue1(ctx, true);

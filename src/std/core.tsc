@@ -82,7 +82,7 @@ func NotEqual<a>(#1: a, #2: a) -> Bool
 
 // --- Syntactic Variable
 
-@Extern func FreeVariables<a>(a) -> List<a>
+@Extern func FreeVariables<a b>(a) -> List<b>
 @Extern func IntersectVariables<a>(List<a>, List<a>) -> List<a>
 @Extern func ExceptVariables<a>(List<a>, List<a>) -> List<a>
 @Extern func SameVariable<a b>(a, b) -> Bool

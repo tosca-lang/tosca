@@ -119,9 +119,6 @@ namespace tosca {
             return Optional<Variable>::nullopt;
         }
         
-        template<typename T>
-        static T Subst(Context& ctx, T term, std::initializer_list<Term> from, std::initializer_list<Term> to);
-        
         
         inline bool operator==(const Term& rhs)
         {
@@ -201,6 +198,15 @@ namespace tosca {
         
     public:
         Variable(std::string&& name);
+        
+        bool operator==(const Variable& other) const {
+            return &other == this;
+        }
+        
+        bool operator!=(const Variable& other) const {
+            return !(*this == other);
+        }
+
         
     protected:
         /* Globally unique variable name */

@@ -122,28 +122,28 @@ func NextParam(#env: {String : EnvEntry}) -> {String : EnvEntry}
 
 // Get the current parameter name
 func CurrentParam(#env: {String : EnvEntry}) -> Text4_text_sort
-→ Fst<Text4_text_sort Core_csort_sort>(Head(GetParams(#env)))
+→ Fst(Head(GetParams(#env)))
 
 // Get the current parameter sort
 func CurrentParamSort(#env: {String : EnvEntry}) -> Core_csort_sort
-→ Snd<Text4_text_sort Core_csort_sort>(Head(GetParams(#env)))
+→ Snd(Head(GetParams(#env)))
 
 // --- Variable
 
 func NewVars(#env: {String : EnvEntry}) -> { String : EnvEntry }
-→ SetValue(#env, "vars", EMapVar(MapNew<String VarEntry>))
+→ SetValue(#env, "vars", EMapVar(MapNew))
 
 func GetVars(#env: {String : EnvEntry}) -> { String : VarEntry }
 → UnMapVar(GetValue(#env, "vars"))
 
 func GetVar(#env: {String : EnvEntry}, #var: String) -> Text4_text_sort
-→ UnVarVar(UnSOME<VarEntry>(MapGetVar<String VarEntry String>(GetVars(#env), #var)))
+→ UnVarVar(UnSOME(MapGetVar(GetVars(#env), #var)))
 
 func GetVarO(#env: {String : EnvEntry}, #var: String) -> Option<VarEntry>
 → MapGetVar(GetVars(#env), #var)
 
 func MaybeGetVar(#env: {String : EnvEntry}, #var: String) -> Option<VarEntry>
-→ MapGetVar<String VarEntry String>(GetVars(#env), #var)
+→ MapGetVar(GetVars(#env), #var)
 
 func AddVar(#env: {String : EnvEntry}, #var: String /* TODO: Core_cterm_sort */, #entry: VarEntry) -> {String : EnvEntry}
 → SetValue(#env, "vars", EMapVar(MapPutVar(GetVars(#env), #var, #entry)))

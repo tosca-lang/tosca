@@ -379,7 +379,7 @@ rule NKVContract(kv⟦ ¬ ##METAVAR         ⟧, #map) → Error("Fatal error: t
 rule NKVContract(kv⟦ ##METAVAR : ##term  ⟧, #map) → cterm⟦ MapPut(⟨cterm: #map⟩, ##METAVAR, ⟨cterm: NTerm(#term, FALSE)⟩) ⟧
 rule NKVContract(kv⟦ ##VARIABLE          ⟧, #map) → Error("Fatal error: testing for variable occurrence in map not allowed in contraction.")
 rule NKVContract(kv⟦ ¬ ##VARIABLE        ⟧, #map) → Error("Fatal error: testing for non-occurrence of a variable in map not allowed in contraction.")
-rule NKVContract(kv⟦ ##VARIABLE : ##term ⟧, #map) → cterm⟦ MapPutVar(⟨cterm: #map⟩, ##VARIABLE, ⟨cterm: NTerm(#term, FALSE)⟩) ⟧
+rule NKVContract(kv⟦ ##VARIABLE : ##term ⟧, #map) → cterm⟦ MapPut(⟨cterm: #map⟩, ##VARIABLE, ⟨cterm: NTerm(#term, FALSE)⟩) ⟧
 rule NKVContract(kv⟦ ##STRING            ⟧, #map) → Error("Fatal error: testing for occurrence of a key in map not allowed in contraction.")
 rule NKVContract(kv⟦ ¬ ##STRING          ⟧, #map) → Error("Fatal error: testing for non-occurrence of a key in map not allowed in contraction.")
 rule NKVContract(kv⟦ ##STRING : ##term   ⟧, #map) → cterm⟦ MapPut(⟨cterm: #map⟩, ##STRING, ⟨cterm: NTerm(#term, FALSE)⟩) ⟧

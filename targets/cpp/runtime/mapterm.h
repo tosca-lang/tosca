@@ -15,6 +15,7 @@ template<typename a> ::Option<a>& newNONE(tosca::Context& ctx);
 template<typename a> ::Option<a>& newSOME(tosca::Context& ctx, a& param);
 template<typename a> ::List<a>& newNil(tosca::Context& ctx);
 
+
 namespace tosca {
     
     // MapTerm type definition
@@ -48,33 +49,11 @@ namespace tosca {
         }
         
         /**
-         * Add key-value pair to map, where key is a variable.
-         *
-         * @param key variable. The reference is used.
-         * @param value the associated term value. The reference is used.
-         */
-        virtual void putVar(Variable key, V& value)
-        {
-            throw new std::runtime_error("");
-            
-        }
-        
-        /**
          * Get value corresponding to given key
          * @param key
          * @return An new reference to an optional typed term.
          */
         virtual Option<V>& getValue(Context& ctx, K& key)
-        {
-            throw new std::runtime_error("");
-        }
-        
-        /**
-         * Get value corresponding to given variable key
-         * @param key
-         * @return An new reference to an optional typed term.
-         */
-        virtual Option<V> getValueVar(Context& ctx, Variable key)
         {
             throw new std::runtime_error("");
         }
@@ -109,27 +88,6 @@ namespace tosca {
         }
         
         /**
-         * Gets map variable values
-         * @param context
-         * @return
-         */
-        virtual List<V>& varValues(Context& ctx)
-        {
-            throw new std::runtime_error("");
-        }
-        
-        /**
-         * Gets map variable keys
-         * @param context
-         * @return
-         */
-        template<typename VK>
-        List<VK>& varKeys(Context& ctx)
-        {
-            throw new std::runtime_error("");
-        }
-        
-        /**
          * @return true when this map is empty
          */
         virtual bool isEmpty()
@@ -141,14 +99,6 @@ namespace tosca {
          * @return true when this map contains an entry for the given key
          */
         virtual bool containsKey(K key)
-        {
-            throw new std::runtime_error("");
-        }
-        
-        /**
-         * @return true when this map contains an entry for the given variable
-         */
-        virtual bool containsVar(Variable var)
         {
             throw new std::runtime_error("");
         }
@@ -190,12 +140,6 @@ namespace tosca {
             this->insert({&key, &value});
         }
         
-        virtual void putVar(Variable key, V& value)
-        {
-            throw new std::runtime_error("");
-            
-        }
-        
         virtual Option<V>& getValue(Context& ctx, K& key)
         {
             auto search = this->find(&key);
@@ -207,11 +151,6 @@ namespace tosca {
                 return newNONE<V>(ctx);
             }
             return newSOME<V>(ctx, *search->second);
-        }
-        
-        virtual Option<V> getValueVar(Context& ctx, Variable key)
-        {
-            throw new std::runtime_error("");
         }
         
         virtual void putAll(MapTerm<K, V> map)
@@ -229,28 +168,12 @@ namespace tosca {
             throw new std::runtime_error("");
         }
         
-        List<V>& varValues(Context& ctx)
-        {
-            throw new std::runtime_error("");
-        }
-        
-        template<typename VK>
-        List<VK>& varKeys(Context& ctx)
-        {
-            throw new std::runtime_error("");
-        }
-        
         bool isEmpty()
         {
             return this->empty();
         }
         
         bool containsKey(K key)
-        {
-            throw new std::runtime_error("");
-        }
-        
-        bool containsVar(Variable var)
         {
             throw new std::runtime_error("");
         }

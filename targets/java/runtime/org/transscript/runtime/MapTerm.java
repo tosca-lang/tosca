@@ -14,7 +14,7 @@ import org.transscript.compiler.std.Listdef.List;
 import org.transscript.runtime.Functions.ThunkMaker;
 
 /**
- * Builtin homogeneous map associated with syntactic variable map.
+ * Builtin homogeneous map
  * 
  * @author Lionel Villard
  */
@@ -74,26 +74,11 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	public void putValue(K key, V value);
 
 	/**
-	 * Add key-value pair to map, where key is a variable.
-	 * 
-	 * @param key variable. The reference is used.
-	 * @param value the associated term value. The reference is used.
-	 */
-	public <VV extends Term> void putVar(Variable key, VV value);
-
-	/**
 	 * Get value corresponding to given key
 	 * @param key
 	 * @return An new reference to an optional typed term. 
 	 */
 	public Option<V> getValue(Context context, K key);
-
-	/**
-	 * Get value corresponding to given variable key
-	 * @param key
-	 * @return An new reference to an optional typed term. 
-	 */
-	public <VV extends Term> Option<VV> getValueVar(Context context, Variable key);
 
 	/**
 	 * Put all entries in the given map into this map
@@ -116,20 +101,6 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	public List<K> keys(Context context);
 
 	/**
-	 * Gets map variable values
-	 * @param context
-	 * @return
-	 */
-	public <VV extends Term> List<VV> varValues(Context context);
-
-	/**
-	 * Gets map variable keys
-	 * @param context
-	 * @return
-	 */
-	public <VK extends Term> List<VK> varKeys(Context context);
-
-	/**
 	 * @return true when this map is empty
 	 */
 	public boolean isEmpty();
@@ -139,10 +110,6 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	 */
 	public boolean containsKey(K key);
 
-	/**
-	 * @return true when this map contains an entry for the given variable
-	 */
-	boolean containsVar(Variable var);
 
 	/**
 	 * @return true when this map contains an entry for the given key, including variables.
@@ -158,9 +125,6 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	{
 		private static final long serialVersionUID = -9134352548915946315L;
 
-		/** Generic Variable to term mapping */
-		protected IdentityHashMap<Variable, Term> vars;
-
 		@Override
 		public Term copy(Context c)
 		{
@@ -174,12 +138,6 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 
 			for (Map.Entry<K, V> entry : entrySet())
 				copy.putValue(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
-
-			if (vars != null)
-			{
-				for (Map.Entry<Variable, Term> entry : vars.entrySet())
-					copy.putVar(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
-			}
 
 			return copy;
 		}
@@ -199,21 +157,6 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 
 			for (Map.Entry<K, V> entry : _map.entrySet())
 				putValue(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
-
-			if (_map.vars != null)
-			{
-				for (Map.Entry<Variable, Term> entry : _map.vars.entrySet())
-					putVar(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
-			}
-		}
-
-		@Override
-		public <VV extends Term> void putVar(Variable key, VV value)
-		{
-			if (vars == null)
-				vars = new IdentityHashMap<>();
-
-			vars.put(key, value);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -222,16 +165,6 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		{
 			Term value = get(key);
 
-			return value == null ? Core.NONE(context) : (Option<V>) Core.SOME(context, value.ref());
-		}
-
-		@SuppressWarnings("unchecked")
-		@Override
-		public Option<V> getValueVar(Context context, Variable key)
-		{
-			if (vars == null)
-				return Core.NONE(context);
-			Term value = vars.get(key);
 			return value == null ? Core.NONE(context) : (Option<V>) Core.SOME(context, value.ref());
 		}
 
@@ -262,52 +195,10 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 			return c;
 		}
 
-		/**
-		 * Gets map variable values
-		 * @param context
-		 * @return
-		 */
-		public <VV extends Term> List<VV> varValues(Context context)
-		{
-			Listdef.List<VV> c = Listdef.Nil(context);
-
-			if (vars != null)
-			{
-				for (Term val : vars.values())
-				{
-					@SuppressWarnings("unchecked")
-					Listdef.List<VV> nc = Listdef.Cons(context, (VV) Ref.ref(val), c);
-					c = nc;
-				}
-			}
-			return c;
-		}
-
-		/**
-		 * Gets map variable keys
-		 * @param context
-		 * @return
-		 */
-		public <VK extends Term> List<VK> varKeys(Context context)
-		{
-			Listdef.List<VK> c = Listdef.Nil(context);
-
-			if (vars != null)
-			{
-				for (Variable var : vars.keySet())
-				{
-					@SuppressWarnings("unchecked")
-					Listdef.List<VK> nc = Listdef.Cons(context, (VK) var.use(), c);
-					c = nc;
-				}
-			}
-			return (List<VK>) c;
-		}
-
 		@Override
 		public boolean isEmpty()
 		{
-			return super.isEmpty() && (vars == null || vars.isEmpty());
+			return super.isEmpty();
 		}
 
 		@Override
@@ -316,18 +207,10 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 			return super.containsKey(key);
 		}
 
-		@Override
-		public boolean containsVar(Variable var)
-		{
-			return vars != null && vars.containsKey(var);
-		}
-
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean contains(Term key)
 		{
-			if (key instanceof VariableUse)
-				return containsVar(((VariableUse) key).variable);
 			return containsKey((K) key);
 		}
 
@@ -387,19 +270,8 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		{
 			throw new RuntimeException("Fatal error: cannot query unevaluated map.");
 		}
-
-		@Override
-		public <VV extends Term> void putVar(Variable key, VV value)
-		{
-			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
-		}
-
-		@Override
-		public Option<V> getValueVar(Context context, Variable key)
-		{
-			throw new RuntimeException("Fatal error: cannot query unevaluated map.");
-		}
-
+ 
+ 
 		@Override
 		public void putAll(MapTerm<K, V> map)
 		{
@@ -422,24 +294,6 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		public boolean contains(Term key)
 		{
 			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
-		}
-
-		@Override
-		public boolean containsVar(Variable var)
-		{
-			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
-		}
-
-		@Override
-		public List<V> varValues(Context context)
-		{
-			throw new RuntimeException("Fatal error: cannot query unevaluated map.");
-		}
-
-		@Override
-		public <VK extends Term> List<VK> varKeys(Context context)
-		{
-			throw new RuntimeException("Fatal error: cannot query unevaluated map.");
 		}
 
 	}
