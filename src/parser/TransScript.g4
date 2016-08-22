@@ -77,7 +77,7 @@ sortFormalParams
 paramSort
     : constructor sortArgs?
     | LCURLY sortMap (AND sortMap)* RCURLY
-    | VARIABLE
+    | variable
     ;
 
 sortArgs
@@ -201,13 +201,13 @@ named
     ;
 
 binders
-    : VARIABLE<boundvar=x> sortAnno? binders<bound=x>
+    : variable<boundvar=x> sortAnno? binders<bound=x>
     | RSQUARE FNTYPE term
     | RSQUARE LPAR formalParams
     ;
 
 formalParams
-    : VARIABLE<boundvar=x> sortAnno? formalParams<bound=x>
+    : variable<boundvar=x> sortAnno? formalParams<bound=x>
     | RPAR FNTYPE term
     ;
 
@@ -258,9 +258,9 @@ kv
     : METAVAR                                               /* property reference (match/construct)      */ /*DEPRECATE*/
     | NOT  METAVAR                                          /* no property references (match only)       */
     | METAVAR COLON term                                    /* match property value / construct          */
-    | VARIABLE<variable>                                    /* match / construct variable property       */
-    | NOT VARIABLE<variable>                                /* no variable (match only)                  */
-    | VARIABLE<variable> COLON term                         /* match variable property value / construct */
+    | variable<variable>                                    /* match / construct variable property       */
+    | NOT variable<variable>                                /* no variable (match only)                  */
+    | variable<variable> COLON term                         /* match variable property value / construct */
     | STRING                                                /* match / construct named property          */
     | NOT STRING                                            /* no named property (match only)            */
     | STRING COLON term                                     /* match named property value / construct    */
