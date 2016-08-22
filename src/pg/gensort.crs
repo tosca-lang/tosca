@@ -27,12 +27,12 @@ MakeSorts[#]
 /* Helper */
 MakeGrammarSpec[ANTLR_grammarSpec_sort] :: Text;
 {#E}MakeGrammarSpec[{#L}%grammarSpec⟦ #DOC_COMMENT? #grammarType #id ; #prequelConstruct* #ruleSpec* #modeSpec* ⟧]
-→ {#E}MakeModuleId[UnwrapId[#id], ok¹.ThenSeqMap[ok¹, rule cont.MakeRuleSpec[rule, cont], #ruleSpec*, ok¹.%n⟦⟧]];
+→ {#E}MakeModuleId[UnwrapId[#id], #prequelConstruct*, ok¹.ThenSeqMap[ok¹, rule cont.MakeRuleSpec[rule, cont], #ruleSpec*, ok¹.%n⟦⟧]];
 
 /* Generate Sort/Printer module id */
 
 MakeModuleId[ANTLR_grammarSpec_sort] :: Text;
-{#E}MakeModuleId[#id, ok.#[ok]]
+{#E}MakeModuleId[#id, #prequelConstruct*, ok.#[ok]]
 → %n⟦/* Generated File. */
 import std::core
 import std::listdef
@@ -40,8 +40,11 @@ import std::listdef
   %n⟨
 import std::text::Text4
 import std::text⟩]»
-
+«$[IfDef, "import", MakeImports[$[Get, "import"]], %n⟨⟩]»
 «{#E; "@id": STRING[#id]}#[OK]»⟧; // TODO: must match CRSX syntax
+
+MakeImports[String] :: Text;
+MakeImports[#String] → %n⟦import †«#String»⟧;
 
 /* `MakeRuleSpec[#rule, #cont] :: Text`
    Generates sort and printer for grammar rule

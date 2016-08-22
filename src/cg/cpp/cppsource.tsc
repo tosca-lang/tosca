@@ -11,6 +11,7 @@ import std::mapdef
 import std::text::Text4
 
 import core::Core
+import core::utils
 import cg::cpp::cppcommon
 import cg::cpp::cppenv
 import systemdef
@@ -19,10 +20,19 @@ import systemdef
 func CppSource(#module: Module) -> Text4_text_sort
 → text⟦#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩.h"
 
+// Include template definitions
+†⟨CppIncludeDefs(GetImports(GetModuleContent(#module)))⟩
+
 using namespace tosca;
 
 †⟨CppClassDefs(MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
 †⟨CppFunctionDefs(SetContent(CppNewEnv, GetModuleContent(#module)))⟩⟧
+
+/* Generate C++ header inclusion declarations */
+func CppIncludeDefs(#imports: List<Core_cqidentifier_sort>) -> Text4_text_sort
+→ TextFoldES(Map((imp) -> text⟦
+#include "⟨STRING: JoinQIdentifier(imp, "/", TRUE)⟩.h"⟧, #imports))
+
 
 // --------- Data sorts
 

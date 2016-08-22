@@ -101,10 +101,10 @@ Option<b>& MapGetVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
     tosca::MapTerm<a, b>& emap = force(ctx, map);
     a& ekey = force(ctx, key);
 
-    Optional<tosca::Variable> v = ekey.variable();
+    auto v = ekey.variable();
     if (v)
     {
-        Option<b>& result = emap.getValueVar(ctx, v.value());
+        Option<b>& result = emap.getValue(ctx, v.value().Use());
         //emap.release();
         return result;
     }
@@ -211,7 +211,7 @@ tosca::MapTerm<a, b>& MapFind(tosca::Context& ctx, c& value)
     return MapNew<a, b>(ctx);
 }
 
-template<typename a, typename b, typename c> c MapReplace(tosca::Context& ctx, c value_1377, tosca::MapTerm<a, b>& map_1378)
+template<typename a, typename b, typename c> c& MapReplace(tosca::Context& ctx, c& value_1377, tosca::MapTerm<a, b>& map_1378)
 {
     throw new std::runtime_error("");
 }

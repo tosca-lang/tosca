@@ -35,7 +35,10 @@ namespace tosca {
          *
          * @return A new non-shared map.
          */
-        MapTerm<K, V>& extend();
+        virtual MapTerm<K, V>& extend()
+        {
+            throw new std::runtime_error("");
+        }
         
         /**
          * Add key-value pair to map.
@@ -135,12 +138,12 @@ namespace tosca {
             return extended;
         }
         
-        virtual void putValue(K& key, V& value)
+        void putValue(K& key, V& value)
         {
             this->insert({&key, &value});
         }
         
-        virtual Option<V>& getValue(Context& ctx, K& key)
+        Option<V>& getValue(Context& ctx, K& key)
         {
             auto search = this->find(&key);
             if (search == this->end())
@@ -153,12 +156,12 @@ namespace tosca {
             return newSOME<V>(ctx, *search->second);
         }
         
-        virtual void putAll(MapTerm<K, V> map)
+        void putAll(MapTerm<K, V> map)
         {
             throw new std::runtime_error("");
         }
         
-        virtual List<V>& values(Context& ctx)
+        List<V>& values(Context& ctx)
         {
             throw new std::runtime_error("");
         }

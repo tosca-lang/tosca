@@ -9,7 +9,7 @@
 /* Parse external resource using parser identified by the given category
  * @return a parsed term.
  */
-extern func ParseResource<a>(String /* category */, String /* filename */) -> a
+@Extern func ParseResource<a>(String /* category */, String /* filename */) -> a
 
 /* Parse external resource as term file format.
  * @return a parsed term.
@@ -20,11 +20,11 @@ func ParseTerm<a>(#filename: String /* file location */) -> a
 // --- Serialization
 
 /* Save term to external resource using serializer identified by the given category */
-extern func SaveResource<a b>(String /* category */, String /* filename */, a /* term */, b /* result */) -> b
+@Extern func SaveResource<a b>(String /* category */, String /* filename */, a /* term */, b /* result */) -> b
 
 /* Save term to external resource using term serializer */
 func SaveTerm<a b>(#filename: String, #term:a, #result:b) -> b
 → SaveResource<a b>("term", #filename, #term, #result)
 
 /* Convert term to `String` using serializer identified by the given category */
-extern func PrintTerm<a>(String /* category */, a /* term */) -> String
+@Extern func PrintTerm<a>(String /* category */, a /* term */) -> String

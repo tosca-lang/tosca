@@ -68,6 +68,10 @@ func MapIndex<a b>(#entries: List<PPair<a b>>) -> {a:b}
 func MapContains<a b>(#map: {a : b}, #key: a) -> Bool
 → HasOption(MapGet(#map, #key))
 
+/* @return Apply `#true` if `#key` is in the given `#map`, otherwise apply `#false` */
+func MapIfDef<a b c>(#map: {a : b}, #key: a, #true: ()->c, #false: ()->c) -> c
+→ If(MapContains(#map, #key), #true, #false)
+
 /* Look for a map in the given value, starting from the end. */
 @Extern func MapFind<a b c>(c) -> {a:b}
 

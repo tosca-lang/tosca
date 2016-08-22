@@ -1222,6 +1222,8 @@ func JavaJFreshesVariable({String : JEnvEntry}, Option<JVarEntry>, String, List<
       VarStringTerm fresh†⟨NumberToText(GetCounter(#env))⟩ = varStringTerm(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show<String>(#var))⟩);†⟨
         #cont(IncCounter(JAddVar(#env, #var, JFresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, NONE))))⟩⟧
 
+  // TODO: MUST USE ANOTHER COUNTER FOR FRESH VARIABLE!
+
   // New typed fresh variable
   rule JavaJFreshesVariable(#env, NONE, #var, csortanno?⟦ : ##csort ⟧, #cont)
   → text⟦

@@ -145,7 +145,7 @@ namespace tosca {
         
         Optional<Variable> asVariable() const
         {
-            return make_optional(*dynamic_cast<Variable*>(&variable().value()));
+            return make_optional(static_cast<Variable&>(variable().value()));
         }
         
     };

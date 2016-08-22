@@ -74,7 +74,11 @@ Bool& SameVariable(tosca::Context& ctx, a& value_114, b& value_115)
 }
 
 template<typename a, typename b>
-b& VariableNameIs(tosca::Context& ctx, a& value_127, tosca::StringTerm& value_128, b& value_129);
+b& VariableNameIs(tosca::Context& ctx, a& var, tosca::StringTerm& name, b& result)
+{
+    // TODO:
+    return result;
+}
 
 // --- Bit manipulation
 

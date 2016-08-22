@@ -92,7 +92,7 @@ rule UnMapEntries(EMapEntries(#1)) → #1
 
 /* Create a new empty environment */
 func CppNewEnv -> {String : EnvEntry}
-→ MapNew<String EnvEntry>
+→ MapNew
 
 // --- Module content
 
@@ -156,7 +156,7 @@ func GetTail(#env: {String : EnvEntry}) -> Bool
 func SetTail(#env: {String : EnvEntry}, #bool: Bool) -> {String : EnvEntry}
 → SetValue(#env, "tail", EBool(#bool))
 
-// --- General purpose counter
+// --- Bound variable counter
 
 func GetCounter(#env: {String : EnvEntry}) -> Numeric
 → UnNum(GetValue(#env, "counter"))
@@ -166,6 +166,17 @@ func SetCounter(#env: {String : EnvEntry}, #num: Numeric) -> {String : EnvEntry}
 
 func IncCounter(#env: {String : EnvEntry}) -> {String : EnvEntry}
 → SetValue(#env, "counter", ENum(Plus(GetCounter(#env), 1)))
+
+// --- Fresh variable counter
+
+func GetFreshCounter(#env: {String : EnvEntry}) -> Numeric
+→ UnNum(GetValue(#env, "fcounter"))
+
+func SetFreshCounter(#env: {String : EnvEntry}, #num: Numeric) -> {String : EnvEntry}
+→ SetValue(#env, "fcounter", ENum(#num))
+
+func IncFreshCounter(#env: {String : EnvEntry}) -> {String : EnvEntry}
+→ SetValue(#env, "fcounter", ENum(Plus(GetFreshCounter(#env), 1)))
 
 // --- function annotation
 
