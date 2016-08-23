@@ -821,7 +821,7 @@ func CppTemplatePrefix(List<Core_csortvars_sort>) -> Text4_text_sort
 
 /* Generate comma-seperated list of type parameters */
 func CppTypeParameters(#vars: List<String>) -> Text4_text_sort
-→ TextFold(Map<String Text4_text_sort>((var) -> text⟦typename ⟨STRING: var⟩⟧, #vars), text⟦, ⟧)
+→ TextFold(Map((var) -> text⟦typename ⟨STRING: var⟩⟧, #vars), text⟦, ⟧)
 
 /* Generate comma-separated list of type arguments from sort variables, if any*/
 func MaybeCppTypeArguments(List<Core_csortvars_sort>) -> Text4_text_sort

@@ -40,7 +40,7 @@ public class Functions
 		return new Closure4<>(function, captures);
 	}
 
-	static public class Closure0<R extends Term>
+	static public class Closure0<R extends Term> implements Term
 	{
 		Function0<R> function;
 		Term[] captures; // For reference counting
@@ -55,9 +55,16 @@ public class Functions
 		{
 			return function.apply(context);
 		}
+
+		@Override
+		public Term copy(Context c)
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 
-	static public class Closure1<R extends Term, P1 extends Term>
+	static public class Closure1<R extends Term, P1 extends Term> implements Term
 	{
 		Function1<R, P1> function;
 		Term[] captures;
@@ -80,9 +87,16 @@ public class Functions
 			return function.apply(context, p1);
 		}
 
+		@Override
+		public Term copy(Context c)
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
+
 	}
 
-	static public class Closure2<R extends Term, P1 extends Term, P2 extends Term>
+	static public class Closure2<R extends Term, P1 extends Term, P2 extends Term> implements Term
 	{
 		Function2<R, P1, P2> function;
 		Term[] captures;
@@ -105,9 +119,16 @@ public class Functions
 			return function.apply(context, p1, p2);
 		}
 
+		@Override
+		public Term copy(Context c)
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
+
 	}
 
-	static public class Closure3<R extends Term, P1 extends Term, P2 extends Term, P3 extends Term>
+	static public class Closure3<R extends Term, P1 extends Term, P2 extends Term, P3 extends Term> implements Term
 	{
 		Function3<R, P1, P2, P3> function;
 		Term[] captures;
@@ -130,9 +151,16 @@ public class Functions
 			return function.apply(context, p1, p2, p3);
 		}
 
+		@Override
+		public Term copy(Context c)
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
+
 	}
 
-	static public class Closure4<R extends Term, P1 extends Term, P2 extends Term, P3 extends Term, P4 extends Term>
+	static public class Closure4<R extends Term, P1 extends Term, P2 extends Term, P3 extends Term, P4 extends Term> implements Term
 	{
 		Function4<R, P1, P2, P3, P4> function;
 		Term[] captures;
@@ -153,6 +181,13 @@ public class Functions
 		public R eval(Context context, P1 p1, P2 p2, P3 p3, P4 p4)
 		{
 			return function.apply(context, p1, p2, p3, p4);
+		}
+
+		@Override
+		public Term copy(Context c)
+		{
+			// TODO Auto-generated method stub
+			return null;
 		}
 
 	}

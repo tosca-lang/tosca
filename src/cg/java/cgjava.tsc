@@ -1161,8 +1161,8 @@ rule JavaContractum(#env, #term)
 
 func JavaStatementTerm({String : JEnvEntry}, Core_cterm_sort) -> Text4_text_sort
 rule JavaStatementTerm(#env, #cterm)
-→ text⟦†⟨JavaJFreshesTerm(SetCounter(#env, 0), #cterm, (env) ->
-     text⟦return †⟨JavaExprTerm(SetCounter(env, 0), #cterm, (env) -> text⟦⟧)⟩;⟧)⟩⟧
+→ text⟦†⟨JavaJFreshesTerm(JSetCounter(JSetFreshCounter(#env, 0), 0), #cterm, (env) ->
+     text⟦return †⟨JavaExprTerm(JSetCounter(JSetParamCounter(env, 0), 0), #cterm, (env) -> text⟦⟧)⟩;⟧)⟩⟧
 
 // ---- Generate fresh variable - Only in Java statement mode
 
@@ -1175,16 +1175,19 @@ func JavaJFreshesTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntr
   → #cont(#env)
 
   rule JavaJFreshesTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #cont)
-  → JavaJFreshesVariable(#env, JGetVarO(#env, #VARIABLE), #VARIABLE, #csortanno?, #cont)
+  → JavaJFreshesVariable(#env, JGetVarO(#env, #VARIABLE), #VARIABLE, #csortanno?, TRUE, #cont)
 
   rule JavaJFreshesTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
   → JavaJFreshesMaybeTerms(#env, #cterms?, (env) -> JavaJFreshesMaybeSubst(env, #csubst?, #cont))
 
   rule JavaJFreshesTerm(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧, #cont)
-  → JavaJFreshesVariable(#env, NONE, var:String, #csortanno?, (env) -> JavaJFreshesTerm(env, #cterm[var], #cont))
+  → JavaJFreshesVariable(#env, NONE, var, #csortanno?, FALSE, (env) -> JavaJFreshesTerm(env, #cterm[var], #cont))
 
   rule JavaJFreshesTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
-  → JavaJFreshesTerm(JAddVar(#env, var:String, JFormal(text⟦ dummy ⟧, NONE)), #cterm[var], #cont)
+  → JavaJFreshesTerm(JAddVar(#env, var, JFormal(text⟦ dummy ⟧, NONE)), #cterm[var], #cont)
+
+  rule JavaJFreshesTerm(#env, cterm⟦ { ##cmapentries? } ##csortanno? ⟧, #cont)
+  → Error("Internal Error: map expression must no occur in the contraction.")
 
   rule JavaJFreshesTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)
   → JavaJFreshesTerm(#env, #cterm, #cont)
@@ -1201,6 +1204,7 @@ func JavaJFreshesMaybeTerms({String : JEnvEntry}, List<Core_cterms_sort>, ({Stri
   → JavaJFreshesTerms(#env, #cterm*, #cont)
 
 func JavaJFreshesTerms({String : JEnvEntry}, List<Core_cterm_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
   rule JavaJFreshesTerms(#env, cterm*⟦⟧, #cont)
   → #cont(#env)
 
@@ -1214,24 +1218,26 @@ func JavaJFreshesMaybeSubst({String : JEnvEntry}, List<Core_csubst_sort>, ({Stri
   rule JavaJFreshesMaybeSubst(#env, csubst?⟦ [ ##cterm* ] ⟧, #cont)
   → JavaJFreshesTerms(#env, #cterm*, #cont)
 
-func JavaJFreshesVariable({String : JEnvEntry}, Option<JVarEntry>, String, List<Core_csortanno_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
-
+func JavaJFreshesVariable({String : JEnvEntry}, Option<JVarEntry>, String, List<Core_csortanno_sort>, Bool, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+/*
   // untyped fresh var
   rule JavaJFreshesVariable(#env, NONE, #var, csortanno?⟦  ⟧, #cont)
   → text⟦
-      VarStringTerm fresh†⟨NumberToText(GetCounter(#env))⟩ = varStringTerm(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show<String>(#var))⟩);†⟨
-        #cont(IncCounter(JAddVar(#env, #var, JFresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, NONE))))⟩⟧
+      VarStringTerm fresh†⟨NumberToText(JGetCounter(#env))⟩ = varStringTerm(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show<String>(#var))⟩);†⟨
+        #cont(JIncCounter(JAddVar(#env, #var, JFresh(text⟦fresh†⟨NumberToText(JGetCounter(#env))⟩⟧, NONE))))⟩⟧*/
 
-  // TODO: MUST USE ANOTHER COUNTER FOR FRESH VARIABLE!
-
-  // New typed fresh variable
-  rule JavaJFreshesVariable(#env, NONE, #var, csortanno?⟦ : ##csort ⟧, #cont)
+  rule JavaJFreshesVariable(#env, NONE, #var, csortanno?⟦ : ##csort ⟧, TRUE, #cont)
   → text⟦
-      Var†⟨SortToType(#csort)⟩ fresh†⟨NumberToText(GetCounter(#env))⟩ = var†⟨SortToType(#csort)⟩(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show<String>(#var))⟩);⟨
-        #cont(IncCounter(JAddVar(#env, #var, JFresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, SOME(#csort)))))⟩⟧
+      Var†⟨SortToType(#csort)⟩ fresh†⟨NumberToText(JGetFreshCounter(#env))⟩ = var†⟨SortToType(#csort)⟩(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show(#var))⟩);⟨
+        #cont(JIncFreshCounter(JAddVar(#env, #var, JFresh(text⟦fresh†⟨NumberToText(JGetFreshCounter(#env))⟩⟧, SOME(#csort)))))⟩⟧
+
+  rule JavaJFreshesVariable(#env, NONE, #var, csortanno?⟦ : ##csort ⟧, FALSE, #cont)
+  → text⟦
+      Var†⟨SortToType(#csort)⟩ bound†⟨NumberToText(JGetCounter(#env))⟩ = var†⟨SortToType(#csort)⟩(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show(#var))⟩);⟨
+        #cont(JIncCounter(JAddVar(#env, #var, JFresh(text⟦fresh†⟨NumberToText(JGetCounter(#env))⟩⟧, SOME(#csort)))))⟩⟧
 
   // Variable already exists
-  rule JavaJFreshesVariable(#env, SOME(#:JVarEntry), #var, #csortanno?, #cont)
+  rule JavaJFreshesVariable(#env, SOME(#), #var, #csortanno?, #fresh, #cont)
   → #cont(#env)
 
 // ---- Generate term code - Java expression mode
@@ -1253,14 +1259,13 @@ func JavaExprTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) 
 
   rule JavaExprTerm(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧, #cont)
   → text⟦
-      fresh†⟨NumberToText(GetCounter(#env))⟩, †⟨JavaExprTerm(JAddVar(IncCounter(#env), var:String, JFresh(text⟦fresh†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
+      bound†⟨NumberToText(JGetCounter(#env))⟩, †⟨JavaExprTerm(JAddVar(JIncCounter(#env), var, JBound(text⟦bound†⟨NumberToText(JGetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
 
   rule JavaExprTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
-  → text⟦newClosure((†⟨GetContext(NewContext(#env))⟩†⟨JavaExprLambda(NewContext(#env), Core_cterm_A7(#csortanno?, [y:String] -> #cterm[y]), #cont)⟩⟧
+  → text⟦newClosure((†⟨GetContext(NewContext(#env))⟩†⟨JavaExprLambda(NewContext(#env), cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)⟩⟧
 
   rule JavaExprTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)
   → text⟦newClosure(†⟨GetContext(NewContext(#env))⟩ -> ⟨JavaExprTerm(NewContext(#env), #cterm, (env) -> text⟦)⟨#cont(env)⟩⟧)⟩⟧
-
 
 // ---- construction expression
 
@@ -1313,14 +1318,14 @@ rule JavaIfBranch(#cterm                ) → StripThunk(#cterm)
 
 func JavaExprMaybeVar({String : JEnvEntry}, Option<JVarEntry>, String, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaExprMaybeVar(#env, NONE, #svar, #cont) // JFresh variable must have been declared
-  → #cont(#env)
+  /*rule JavaExprMaybeVar(#env, NONE, #svar, #cont) // JFresh variable must have been declared
+  → #cont(#env)*/
 
-  rule JavaExprMaybeVar(#env, SOME(JVarEntry::JFormal(#var:Text4_text_sort, #type:Option<Core_csort_sort>)), #svar, #cont)
+  rule JavaExprMaybeVar(#env, SOME(JFormal(#var, #type)), #svar, #cont)
   → text⟦†⟨#var⟩†⟨#cont(#env)⟩⟧
 
   // fallback
-  rule JavaExprMaybeVar(#env, SOME(#varEntry:JVarEntry), #svar, #cont)
+  rule JavaExprMaybeVar(#env, SOME(#varEntry), #svar, #cont)
   → text⟦†⟨UnJVarVar(#varEntry)⟩.use()†⟨#cont(#env)⟩⟧
 
 // ----  metavar expression
@@ -1360,8 +1365,8 @@ func JavaExprMetaArgs({String : JEnvEntry}, List<Text4_text_sort> /* pattern arg
 
 func JavaExprLambda({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaExprLambda(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x]: Core_cterm_sort), #cont)
-  → text⟦, p†⟨NumberToText(GetCounter(#env))⟩†⟨JavaExprLambda(JAddVar(IncCounter(#env), var:String, JFormal(text⟦p†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
+  rule JavaExprLambda(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
+  → text⟦, p†⟨NumberToText(JGetParamCounter(#env))⟩†⟨JavaExprLambda(JAddVar(JIncParamCounter(#env), var, JFormal(text⟦p†⟨NumberToText(JGetParamCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
 
   // fallback
   rule JavaExprLambda(#env, #cterm, #cont)
@@ -1711,18 +1716,39 @@ func IncSubBinderIndex({String : JEnvEntry}) -> {String : JEnvEntry}
 rule IncSubBinderIndex(#env)
 → JSetValue(#env, "binderindex", JNum(Plus(GetSubBinderIndex(#env), 1)))
 
-// --- General purpose counter
+// --- Bound variable counter
 
-func GetCounter({String : JEnvEntry}) -> Numeric
-rule GetCounter(#env) → JGetValue<Numeric>(#env, "counter", (x) -> UnJNum(x))
+func JGetCounter(#env:{String : JEnvEntry}) -> Numeric
+→ JGetValue(#env, "counter", (x) -> UnJNum(x))
 
-func SetCounter({String : JEnvEntry}, Numeric) -> {String : JEnvEntry}
-rule SetCounter(#env, #index)
+func JSetCounter(#env:{String : JEnvEntry}, #index:Numeric) -> {String : JEnvEntry}
 → JSetValue(#env, "counter", JNum(#index))
 
-func IncCounter({String : JEnvEntry}) -> {String : JEnvEntry}
-rule IncCounter(#env)
-→ JSetValue(#env, "counter", JNum(Plus(GetCounter(#env), 1)))
+func JIncCounter(#env:{String : JEnvEntry}) -> {String : JEnvEntry}
+→ JSetValue(#env, "counter", JNum(Plus(JGetCounter(#env), 1)))
+
+// --- Fresh variable counter
+
+func JGetFreshCounter(#env: {String : JEnvEntry}) -> Numeric
+→ JGetValue(#env, "fcounter", (x) -> UnJNum(x))
+
+func JSetFreshCounter(#env: {String : JEnvEntry}, #index:Numeric) -> {String : JEnvEntry}
+→ JSetValue(#env, "fcounter", JNum(#index))
+
+func JIncFreshCounter(#env: {String : JEnvEntry}) -> {String : JEnvEntry}
+→ JSetValue(#env, "fcounter", JNum(Plus(JGetFreshCounter(#env), 1)))
+
+// --- Lambda parameter counter
+
+func JGetParamCounter(#env: {String : JEnvEntry}) -> Numeric
+→ JGetValue(#env, "pcounter", (x) -> UnJNum(x))
+
+func JSetParamCounter(#env: {String : JEnvEntry}, #index:Numeric) -> {String : JEnvEntry}
+→ JSetValue(#env, "pcounter", JNum(#index))
+
+func JIncParamCounter(#env: {String : JEnvEntry}) -> {String : JEnvEntry}
+→ JSetValue(#env, "pcounter", JNum(Plus(JGetParamCounter(#env), 1)))
+
 
 // --- Context
 

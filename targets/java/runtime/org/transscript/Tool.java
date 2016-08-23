@@ -153,7 +153,8 @@ public class Tool
 				buildEnv.put("infer", env.get("infer"));
 			if (env.get("nostd") != null)
 				buildEnv.put("nostd", env.get("nostd"));
-
+			buildEnv.put("parsers", env.get("parsers"));
+			
 			if (javabasepackage != null)
 				buildEnv.put("javabasepackage", javabasepackage);
 			buildEnv.put("java", "1");
@@ -173,6 +174,7 @@ public class Tool
 				runEnv.put("classloader", classLoader);
 
 			env.put("class", clazz);
+			
 			Context context = new Context();
 			rewrite(context, env, runEnv);
 			//output(context, env, term);
@@ -318,7 +320,7 @@ public class Tool
 		if (target.equals("cpp"))
 			config.putValue(stringTerm("cpp"), stringTerm("1"));
 
-		buildEnv.put("grammar", parsers); // TODO: Temporary.
+		buildEnv.put("parsers", parsers); // TODO: Temporary.
 		//buildEnv.put("output", output);
 
 		if (javabasepackage != null)
@@ -697,7 +699,7 @@ public class Tool
 		}
 
 		// Add grammars
-		String grammars = env.get("grammar");
+		String grammars = env.get("parsers");
 		addGrammars(context, grammars);
 
 		// Get top-level method to invoke. A combination of "main" and "arg" property value
