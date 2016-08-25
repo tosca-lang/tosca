@@ -4,11 +4,13 @@
 
 #include <string>
 
-class Variable;
-class Context;
-class Term;
-class StringTerm;
-class DoubleTerm;
+namespace tosca {
+    class Variable;
+    class Context;
+    class Term;
+    class StringTerm;
+    class DoubleTerm;
+
 
 /**
  * Consumes simple term events.
@@ -96,5 +98,7 @@ private:
     // The context
     Context& context;
 };
+    
+} // namespace tosca
 
-#endif 
+#endif

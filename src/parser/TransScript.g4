@@ -348,7 +348,8 @@ OPERATOR          : OpHead Operator*
                   | '/' (OpCommon | '$' | '_' | ':') Operator*
                   ;
 
-CONCRETE          : Lower (Alpha | Digit | '-' | '_')* Ebnf? '\u27e6' (CONCRETE|.)*? '\u27e7';   // category⟦ ⟧
+CONCRETE          : Lower (Alpha | Digit | '-' | '_')* Ebnf? '\u27e6' (CONCRETE|'\u27e7\u27e7'|'\\\u27e7'|~'\u27e7')*? '\u27e7';   // category⟦ ⟧
+
 
 CONSTRUCTOR       : ConsHead ConsChar*  Ebnf?;     // '$' is for internal use only.
 

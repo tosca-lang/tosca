@@ -35,7 +35,17 @@ namespace tosca {
     
     // --- Term
     
+    Optional<Variable> Term::GetGVariable() const
+    {
+        return Optional<Variable>::nullopt;
+    }
+    
     // --- Variable Use
+    
+    Optional<Variable> VariableUse::GetGVariable() const
+    {
+        return make_optional<Variable>(var);
+    }
     
     
     // --- Variable
@@ -59,14 +69,12 @@ namespace tosca {
     
     
     
-    CStringTermVarUse::CStringTermVarUse(CStringTermVar& v) :
-    VariableUse<CStringTermVar>::VariableUse(v)
+    CStringTermVarUse::CStringTermVarUse(CStringTermVar& v) : VariableUse::VariableUse(v)
     {
     }
     
     
-    CStringTerm::CStringTerm(std::string& val) :
-    value(val)
+    CStringTerm::CStringTerm(const std::string& val) : value(val)
     {
     }
     
@@ -81,7 +89,7 @@ namespace tosca {
         return *this;
     }
     
-    std::string& CStringTerm::Unbox() const
+    const std::string& CStringTerm::Unbox() const
     {
         return value;
     }
@@ -89,8 +97,7 @@ namespace tosca {
     // --- Numeric
     //
     
-    CDoubleTermVarUse::CDoubleTermVarUse(CDoubleTermVar& v) :
-    VariableUse<CDoubleTermVar>::VariableUse(v)
+    CDoubleTermVarUse::CDoubleTermVarUse(CDoubleTermVar& v) : VariableUse::VariableUse(v)
     {
     }
     
@@ -124,7 +131,7 @@ StringTerm& newStringTerm(std::string&& val)
     return *(new CStringTerm(*(new std::string(val))));
 }
 
-StringTerm& newStringTerm(std::string& val)
+StringTerm& newStringTerm(const std::string& val)
 {
     return *(new CStringTerm(val));
 }

@@ -5,6 +5,7 @@ package org.transscript.tool;
 import java.io.IOException;
 
 import org.transscript.runtime.DoubleTerm;
+import org.transscript.runtime.MapTerm;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
 import org.transscript.runtime.Variable;
@@ -58,16 +59,21 @@ public class TermPrinter
 		out.append("\n");
 		indent(indent, out);
 
-		if (term instanceof StringTerm || term instanceof DoubleTerm)
+		if (term instanceof StringTerm)
+			out.append('"').append(term.toString()).append('"');
+		else if(term instanceof DoubleTerm || term instanceof MapTerm)
 			out.append(term.toString());
 		else
-			out.append(term.getClass().getSimpleName());
+			out.append(term.getClass().getSimpleName().substring(1)); // Remove _
 
 		// Print subs
 		int i = 0;
 		Term sub = term.sub(i);
+		boolean hasSub = sub != null;
 		while (sub != null)
 		{
+			out.append(i == 0 ? "(" : ",");
+
 			int j = 0;
 			Variable binder = term.binder(i, j);
 			while (binder != null)
@@ -87,5 +93,7 @@ public class TermPrinter
 			print(sub, out, indent + 2);
 			sub = term.sub(++i);
 		}
+		if (hasSub)
+			out.append(")");
 	}
 }

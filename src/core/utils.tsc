@@ -218,6 +218,10 @@ rule SortVarsSort(csort⟦ { ##cmapsort }          ⟧, #svars) → #svars // TO
 rule SortVarsSort(csort⟦ data ##csort            ⟧, #svars) → SortVarsSort(#csort, #svars)
 rule SortVarsSort(csort⟦ thunk ##csort           ⟧, #svars) → SortVarsSort(#csort, #svars)
 
+/* @return `TRUE` is the given list of `cform*` contains `allows-variable` */
+func IsAllowsVarForms(#cforms:List<Core_cform_sort>) -> Bool
+→ HasOption(PickFirst(#cforms, (cform)->IsAllowsVar(cform)))
+
 /* @return `TRUE` is the given `cform` is `allows-variable` */
 func IsAllowsVar(Core_cform_sort) -> Bool
 rule IsAllowsVar(cform⟦ allows-variable ⟧) → TRUE

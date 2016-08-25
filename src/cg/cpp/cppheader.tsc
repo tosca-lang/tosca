@@ -60,6 +60,7 @@ func CppMethodDef(Core_cdecl_sort) -> Text4_text_sort
   → text⟦
     †⟨TextMapFoldES((cform) -> CppMethodNew(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, cform, TRUE), #cform*)⟩
     †⟨TextMapFoldES((cform) -> CppMethodAs(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, cform, TRUE), #cform*)⟩
+    †⟨CppMethodGetVariable(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, TRUE)⟩
     †⟨TextMapFoldES((cform) -> CppFormMethod(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, cform), #cform*)⟩⟧
 
   rule CppMethodDef(#cdecl)
@@ -78,7 +79,9 @@ func CppFormMethod(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_
   → text⟦
       †⟨CppVarConstructorVar(#sortname, #csortvars?, TRUE)⟩
       †⟨CppVarMethodUse(#sortname, #csortvars?, TRUE)⟩
-      †⟨CppVarConstructorUse(#sortname, #csortvars?, TRUE)⟩⟧
+      †⟨CppVarMethodGUse(#sortname, #csortvars?, TRUE)⟩
+      †⟨CppVarConstructorUse(#sortname, #csortvars?, TRUE)⟩
+      †⟨CppVarMethodGetVariable(#sortname, #csortvars?, TRUE)⟩⟧
 
 // --------- Templated function definitions
 

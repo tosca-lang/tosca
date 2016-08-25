@@ -101,7 +101,7 @@ Option<b>& MapGetVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
     tosca::MapTerm<a, b>& emap = force(ctx, map);
     a& ekey = force(ctx, key);
 
-    auto v = ekey.variable();
+    auto v = ekey.GetVariable();
     if (v)
     {
         Option<b>& result = emap.getValue(ctx, v.value().Use());

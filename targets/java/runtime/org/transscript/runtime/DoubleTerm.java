@@ -5,7 +5,6 @@ package org.transscript.runtime;
 import java.util.function.Function;
 
 import org.transscript.runtime.Functions.ThunkMaker;
-import org.transscript.runtime.StringTerm.VarStringTermUse;
 
 /**
  * 
@@ -26,6 +25,19 @@ public interface DoubleTerm extends Term
 	{
 		return new DoubleValue(d);
 	}
+	
+
+	/**
+	 * Create a new variable of type Numeric
+	 * @param context
+	 * @param hint
+	 * @return
+	 */
+	static VarDoubleTerm varDoubleTerm(Context context, String hint)
+	{
+		return new VarDoubleTerm(context.makeGlobalName(hint));
+	}
+
 
 	static DoubleTerm newLazyDoubleTerm(Function<Context, DoubleTerm> f)
 	{

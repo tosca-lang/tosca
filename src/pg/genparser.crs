@@ -178,9 +178,9 @@ ParserConstructs[#id, $True, #meta, #header, #members]
             "protected void _enterAlt() { fireEnterAlt(_parseListeners, _ctx); }\n",
             "protected void _exitAlt()  { fireExitAlt(_parseListeners, _ctx); }\n",
             "protected void _hide()     { fireHide(_parseListeners, _ctx); }\n",
-            "protected void _enterSymbol()  { fireEnterSymbol(_parseListeners, _ctx); }\n",
+            "protected void _enterSymbol(String type)  { fireEnterSymbol(_parseListeners, _ctx, type); }\n",
             "protected void _exitSymbol()     { fireExitSymbol(_parseListeners, _ctx); }\n",
-            "protected void _enterBinder(String name)     { fireEnterBinder(_parseListeners, _ctx, name); }\n",
+            "protected void _enterBinder(String name, String type)     { fireEnterBinder(_parseListeners, _ctx, name, type); }\n",
             "protected void _exitBinder()     { fireExitBinder(_parseListeners, _ctx); }\n",
             "protected void _enterBinds(String names) { fireEnterBinds(_parseListeners, _ctx, names); }\n",
             "protected void _exitBinds()  { fireExitBinds(_parseListeners, _ctx); }\n",
@@ -383,20 +383,23 @@ MakeTail[#RULE_REF, $True]     → %element*⟨ ({_tail();} (⟨ACTION: $[:, "{_
 MaybeHideAtom[Boolean, $Boolean, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
 MaybeHideAtom[TRUE, $False, #atom, #element]  → %element*⟨ {_hide();} #element ⟩;
 MaybeHideAtom[TRUE, $True, #atom, #element]  → %element*⟨ #element ⟩;
-MaybeHideAtom[FALSE, #strule,#atom, #element] → MaybeBinderAtom[GetElementOptionAtom[#atom, "boundvar"], #atom, #element];
+MaybeHideAtom[FALSE, #strule,#atom, #element] → MaybeBinderAtom[GetElementOptionAtom[#atom, "boundvar"], GetElementOptionAtom[#atom, "type"], #atom, #element];
 
 // Produce grammar for binder
-MaybeBinderAtom[$List[ElementOption], ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
-MaybeBinderAtom[(), #atom, #element]          
+MaybeBinderAtom[$List[ElementOption], $List[ElementOption], ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
+MaybeBinderAtom[(), #type, #atom, #element]          
 → MaybeBindsAtom[GetElementOptionAtom[#atom, "bound"], #atom, #element];
 
-MaybeBinderAtom[(BINDER[#binder];), #atom, #element] 
-→ %element*⟨ ⟨ACTION: $[:, "{_enterBinder(\"", #binder, "\");}"]⟩ ⟨element: #element⟩ {_exitBinder();} ⟩;
+MaybeBinderAtom[(BINDER[#binder];), (), #atom, #element] 
+→ %element*⟨ ⟨ACTION: $[:, "{_enterBinder(\"", #binder, "\",\"String\");}"]⟩ ⟨element: #element⟩ {_exitBinder();} ⟩;
+
+MaybeBinderAtom[(BINDER[#binder];), (TYPE[#type];), #atom, #element] 
+→ %element*⟨ ⟨ACTION: $[:, "{_enterBinder(\"", #binder, "\",\"", #type, "\");}"]⟩ ⟨element: #element⟩ {_exitBinder();} ⟩;
 
 // Produce grammar for binds
 MaybeBindsAtom[$List[ElementOption], ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
 MaybeBindsAtom[(), #atom, #element] 
-→ MaybeSymbolAtom[GetElementOptionAtom[#atom, "variable"], #atom, #element];
+→ MaybeSymbolAtom[GetElementOptionAtom[#atom, "variable"], GetElementOptionAtom[#atom, "type"], #atom, #element];
 
 MaybeBindsAtom[(#binds; #bindss), #atom, #element] 
 → %element*⟨ ⟨ACTION: ConcatString[Foldl[val result.ConcatString[result, ConcatString[" ", UnBINDS[val]]], "{_enterBinds(\"", (#binds; #bindss)], "\");}"] ⟩
@@ -404,12 +407,15 @@ MaybeBindsAtom[(#binds; #bindss), #atom, #element]
              {_exitBinds();} ⟩;
 
 // Produce grammar for symbol
-MaybeSymbolAtom[$List[ElementOption], ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
-MaybeSymbolAtom[(), #atom, #element]        
+MaybeSymbolAtom[$List[ElementOption], $List[ElementOption], ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */] :: $List[ANTLR_element_sort];
+MaybeSymbolAtom[(), #type, #atom, #element]        
 → %element*⟨ ⟨element: #element⟩ ⟩;
 
-MaybeSymbolAtom[(SYMBOL[#ruleref];), #atom, #element] 
-→ %element*⟨ {_enterSymbol();} ⟨element: #element⟩ {_exitSymbol();} ⟩;
+MaybeSymbolAtom[(SYMBOL[#ruleref];), (), #atom, #element] 
+→ %element*⟨ {_enterSymbol("String");} ⟨element: #element⟩ {_exitSymbol();} ⟩;
+
+MaybeSymbolAtom[(SYMBOL[#ruleref];), (TYPE[#type];), #atom, #element] 
+→ %element*⟨ ⟨ACTION: $[:, "{_enterSymbol(\"", #type, "\");}"]⟩ ⟨element: #element⟩ {_exitSymbol();} ⟩;
 
 // Produce grammar to hide constant productions inside a block.
 

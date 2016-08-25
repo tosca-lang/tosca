@@ -8,10 +8,11 @@ import std::string
 import std::text::Text4
 
 func PrintText(Text4_text_sort) -> String
-rule PrintText(Text4_text_A1(#content:Text4_content_sort, #text:Text4_text_sort)) → ConcatString(PrintContent(#content), PrintText(#text))
+rule PrintText(Text4_text_A1(#content, #text)) → ConcatString(PrintContent(#content), PrintText(#text))
 rule PrintText(text⟦⟧)              → ""
 
 func PrintContent(Text4_content_sort) -> String
+rule PrintContent(content⟦⟨⟨⟧)     → "⟨"
 rule PrintContent(content⟦#STRING⟧) → #STRING
 rule PrintContent(content⟦#BREAK⟧) → "\n"
 rule PrintContent(content⟦†#text⟧) →  PrintText(#text)

@@ -69,11 +69,15 @@ public class Utils
 		try
 		{
 			category = category == null ? "" : category;
-			if (term instanceof Text4_text_sort && (category.equals("") || category.equals("text")))
+			if (term instanceof StringTerm && (category.equals("") || category.equals("string")))
+			{
+				output.append(term.toString());
+			}
+			else if (term instanceof Text4_text_sort && (category.equals("") || category.equals("text")))
 			{
 				term = Printer.PrintText(context, (Text4_text_sort) term);
 				term = Normalizer.force(context, term);
-				TermPrinter.print(term, output);
+				printTerm(context, "string", term, outputName, output);
 			}
 			else if (term instanceof Core_cterm_sort && (category.equals("") || category.equals("cterm")))
 			{
@@ -92,11 +96,12 @@ public class Utils
 				printTerm(
 						context, "text", TransScript.TransScript_Print_term(context, (TransScript_term_sort) term), outputName,
 						output);
-			} else if (term instanceof TransScript_transscript_sort && (category.equals("") || category.equals("transscript")))
+			}
+			else if (term instanceof TransScript_transscript_sort && (category.equals("") || category.equals("transscript")))
 			{
 				printTerm(
-						context, "text", TransScript.TransScript_Print_transscript(context, (TransScript_transscript_sort) term), outputName,
-						output);
+						context, "text", TransScript.TransScript_Print_transscript(context, (TransScript_transscript_sort) term),
+						outputName, output);
 			}
 			else
 				TermPrinter.print(term, output);
@@ -327,10 +332,9 @@ public class Utils
 	{
 		dest += File.separator + "src";
 
-
 		String subdir = relativePath(input, mainurl);
 		dest = subdir.trim().equals("") ? dest : dest + File.separator + subdir;
-		
+
 		if (makeDirs)
 		{
 			File destFile = new File(dest);

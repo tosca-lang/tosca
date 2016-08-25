@@ -58,21 +58,17 @@ func CppClassDecl(Core_cdecl_sort) -> Text4_text_sort
   → text⟦
     †⟨TextMapFoldES((cform) -> CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, FALSE), #cform*)⟩
     †⟨CppTemplatePrefix(#csortvars?)⟩
-    class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩ : public †⟨CppExtendTerm(#CONSTRUCTOR, #cform*)⟩
+    class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩ : public tosca::Term
     {
     public:
       †⟨TextMapFoldES((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, FALSE), #cform*)⟩
+      †⟨TextIf(IsAllowsVarForms(#cform*), ()->CppMethodGetVariable(#CONSTRUCTOR, #csortvars?, FALSE))⟩
     };
     †⟨TextMapFoldES((cform) -> CppFormClassDecl(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩
     ⟧
 
   rule CppClassDecl(#cdecl)
   → text⟦⟧
-
-func CppExtendTerm(#sortname: String, #form*: List<Core_cform_sort>) -> Text4_text_sort
-→ IfPresent(PickFirst(#form*, (form)->IsAllowsVar(form)),
-    (form)->text⟦virtual tosca::TermVar<†⟨FormCppClassName(#sortname)⟩Var>⟧,
-    ()->text⟦tosca::Term⟧)
 
 /* Generate class and method signatures for the given data form */
 func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
@@ -99,13 +95,16 @@ func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Tex
         public:
           †⟨CppVarConstructorVar(#sortname, #csortvars?, FALSE)⟩
           †⟨CppVarMethodUse(#sortname, #csortvars?, FALSE)⟩
+        protected:
+          †⟨CppVarMethodGUse(#sortname, #csortvars?, FALSE)⟩
       };
 
       †⟨CppTemplatePrefix(#csortvars?)⟩
-      class †⟨FormCppClassName(#sortname)⟩Use: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩, public tosca::VariableUse<†⟨FormCppClassName(#sortname)⟩Var†⟨MaybeCppTypeArguments(#csortvars?)⟩>
+      class †⟨FormCppClassName(#sortname)⟩Use: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩, public tosca::VariableUse
       {
         public:
           †⟨CppVarConstructorUse(#sortname, #csortvars?, FALSE)⟩
+          †⟨CppVarMethodGetVariable(#sortname, #csortvars?, FALSE)⟩
       };⟧
 
 // --------- Form to class fields

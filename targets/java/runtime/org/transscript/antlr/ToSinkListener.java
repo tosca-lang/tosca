@@ -18,6 +18,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.transscript.compiler.parser.TransScript.TransScript_term_sort;
 import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.ConstructionDescriptor;
+import org.transscript.runtime.Context;
 import org.transscript.runtime.Sink;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Variable;
@@ -99,9 +100,14 @@ public class ToSinkListener implements ParseTreeListener
 		fire(listeners, _ctx, l -> ((ToSinkListener) l).embed(_ctx));
 	}
 
+	public static void fireEnterSymbol(List<ParseTreeListener> listeners, ParserRuleContext _ctx, String type)
+	{
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).enterSymbol(_ctx, type));
+	}
+
 	public static void fireEnterSymbol(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
 	{
-		fire(listeners, _ctx, l -> ((ToSinkListener) l).enterSymbol(_ctx));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).enterSymbol(_ctx, "String"));
 	}
 
 	public static void fireExitSymbol(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
@@ -109,9 +115,14 @@ public class ToSinkListener implements ParseTreeListener
 		fire(listeners, _ctx, l -> ((ToSinkListener) l).exitSymbol(_ctx));
 	}
 
+	public static void fireEnterBinder(List<ParseTreeListener> listeners, ParserRuleContext _ctx, String name, String type)
+	{
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).enterBinder(_ctx, name, type));
+	}
+
 	public static void fireEnterBinder(List<ParseTreeListener> listeners, ParserRuleContext _ctx, String name)
 	{
-		fire(listeners, _ctx, l -> ((ToSinkListener) l).enterBinder(_ctx, name));
+		fire(listeners, _ctx, l -> ((ToSinkListener) l).enterBinder(_ctx, name, "String"));
 	}
 
 	public static void fireExitBinder(List<ParseTreeListener> listeners, ParserRuleContext _ctx)
@@ -181,8 +192,11 @@ public class ToSinkListener implements ParseTreeListener
 	/** Name being constructed. Whitespace are ignored. */
 	private String binderName;
 
+	/** Type of the name being constructed. Whitespace are ignored. */
+	private String binderType;
+
 	/** Pending bound variable. See enterBinder/enterBounds */
-	private ArrayDeque<Pair<String, String>> pendingBounds;
+	private ArrayDeque<Pair<String, Pair<String, String>>> pendingBounds;
 
 	/** In scope bound variables. */
 	private Scoping bounds;
@@ -251,6 +265,9 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void enterZOM(ParserRuleContext context)
 	{
+		if (parser.getNumberOfSyntaxErrors() > 0)
+			return;
+
 		ParserRuleContext parentCtx = ruleContext.peek();
 		String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
 		String type = fixupType(ruleName);
@@ -265,21 +282,11 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void exitZOM(ParserRuleContext context)
 	{
+		if (parser.getNumberOfSyntaxErrors() > 0)
+			return;
 
 		if (!tail)
-		{
-			if (metasink() != null)
-			{
-				ParserRuleContext parentCtx = ruleContext.peek();
-				String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
-				String type = fixupType(ruleName);
-
-//				if (parser.sendTypes())
-//					metasink().type(type);
-			}
-
 			sink.start(nilDesc).end();
-		}
 
 		int count = consCount.pop().fst.v;
 		while (count-- > 0)
@@ -317,6 +324,8 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void enterAlt(ParserRuleContext context)
 	{
+		if (parser.getNumberOfSyntaxErrors() > 0)
+			return;
 		switch (state)
 		{
 			case CONCRETE :
@@ -326,8 +335,6 @@ public class ToSinkListener implements ParseTreeListener
 				String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
 
 				sendLocation(parentCtx.getStart());
-//				if (metasink() != null && parser.sendTypes())
-//					metasink().type(fixupType(ruleName));
 				sink = sink.start(sink.context().lookupDescriptor(prefix + ruleName));
 		}
 	}
@@ -342,6 +349,8 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void enterAlt(ParserRuleContext context, String name)
 	{
+		if (parser.getNumberOfSyntaxErrors() > 0)
+			return;
 		if (state == State.CONCRETE)
 			return;
 
@@ -353,8 +362,8 @@ public class ToSinkListener implements ParseTreeListener
 		{
 			sendLocation(parentCtx.getStart());
 
-//			if (metasink() != null && parser.sendTypes())
-//				metasink().type(fixupType(ruleName));
+			//			if (metasink() != null && parser.sendTypes())
+			//				metasink().type(fixupType(ruleName));
 
 			// TEMPORARY BC BEHAVIOR
 			if (name.length() > 0 && Character.isDigit(name.charAt(0)))
@@ -378,6 +387,8 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void exitAlt(ParserRuleContext context)
 	{
+		if (parser.getNumberOfSyntaxErrors() > 0)
+			return;
 		switch (state)
 		{
 			case END_CONCRETE :
@@ -406,7 +417,7 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void term(ParserRuleContext _ctx, String type)
 	{
-	//	termType = fixupType(type);
+		//	termType = fixupType(type);
 		kind = TokenKind.METAVAR;
 	}
 
@@ -432,8 +443,9 @@ public class ToSinkListener implements ParseTreeListener
 	 * Receive the notification the next tokens are part of a binder name
 	 * @param context
 	 * @param name to associate to the binder
+	 * @param type 
 	 */
-	public void enterBinder(ParserRuleContext context, String name)
+	public void enterBinder(ParserRuleContext context, String name, String type)
 	{
 		assert !tail : "Cannot declare a binder is a list tail";
 		assert binderId == null : "Cannot nest binders";
@@ -441,6 +453,7 @@ public class ToSinkListener implements ParseTreeListener
 		state = State.NAME;
 		binderId = name.trim();
 		binderName = "";
+		binderType = type.trim();
 	}
 
 	/**
@@ -449,26 +462,33 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void exitBinder(ParserRuleContext context)
 	{
+		if (parser.getNumberOfSyntaxErrors() > 0)
+			return;
 		assert state == State.NAME;
 		assert !tail : "Cannot declare a binder is a list tail";
 		assert binderId != null : "Missing enterBinder notification";
 
-		pendingBounds.push(new Pair<>(binderId, binderName));
+		pendingBounds.push(new Pair<>(binderId, new Pair<>(binderName, binderType)));
 		binderId = null;
 		binderName = null;
+		binderType = null;
 		state = State.PARSE;
 	}
 
 	/**
 	 * Receive the notification the next tokens declare a binder
 	 * @param context
+	 * @param type 
 	 */
-	public void enterSymbol(ParserRuleContext context)
+	public void enterSymbol(ParserRuleContext context, String type)
 	{
+		if (parser.getNumberOfSyntaxErrors() > 0)
+			return;
 		assert !tail : "Cannot declare a binder is a list tail";
 		assert binderId == null : "Cannot nest binders";
 
 		binderName = "";
+		binderType = type;
 		state = State.NAME;
 	}
 
@@ -478,6 +498,8 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void exitSymbol(ParserRuleContext context)
 	{
+		if (parser.getNumberOfSyntaxErrors() > 0)
+			return;
 		assert state == State.NAME;
 		assert !tail : "Cannot declare a name in a list tail";
 		assert !"".equals(binderName) : "Expected a symbol but got nothing";
@@ -519,7 +541,8 @@ public class ToSinkListener implements ParseTreeListener
 			{
 				// Create new fresh variable.
 				// For now all variables are of type String
-				variable = Optional.of(new Pair<>(binderName, StringTerm.varStringTerm(sink.context(), binderName)));
+				//variable = Optional.of(new Pair<>(binderName, StringTerm.varStringTerm(sink.context(), binderName)));
+				variable = Optional.of(new Pair<>(binderName, makeVariable(binderType, binderName)));
 
 				freshes.push(variable.get());
 			}
@@ -527,7 +550,11 @@ public class ToSinkListener implements ParseTreeListener
 			// Can now emit variable
 			sink = sink.use(variable.get().snd);
 		}
+		binderName = null;
+		binderType = null;
+
 		state = State.PARSE;
+
 	}
 
 	/**
@@ -537,6 +564,8 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void enterBinds(ParserRuleContext context, String names)
 	{
+		if (parser.getNumberOfSyntaxErrors() > 0)
+			return;
 		String[] snames = names.trim().split(" ");
 		Variable[] binders = new Variable[snames.length];
 
@@ -547,19 +576,22 @@ public class ToSinkListener implements ParseTreeListener
 
 			// Search for a variable in the pending list, fifo.
 			// Only support consuming pending bound variable *once*.
-			Optional<Pair<String, String>> pairo = pendingBounds.stream().filter(pair -> {
+			Optional<Pair<String, Pair<String, String>>> pairo = pendingBounds.stream().filter(pair -> {
 				return pair.fst.equals(id);
 			}).findFirst();
 
 			if (!pairo.isPresent())
 				throw new RuntimeException("Invalid grammar: undeclared bound variable " + id);
 
-			Pair<String, String> pair = pairo.get();
-			String name = pair.snd;
+			Pair<String, Pair<String, String>> pair = pairo.get();
+			String name = pair.snd.fst;
+			String type = pair.snd.snd;
 
 			// bind.
 
-			binders[i] = StringTerm.varStringTerm(sink.context(), name);
+			//binders[i] = StringTerm.varStringTerm(sink.context(), name);
+			binders[i] = makeVariable(type, name);
+
 			bounds.push(new Pair<>(name, binders[i]));
 
 			// and consume.
@@ -610,6 +642,8 @@ public class ToSinkListener implements ParseTreeListener
 	@Override
 	public void exitEveryRule(ParserRuleContext context)
 	{
+		if (parser.getNumberOfSyntaxErrors() > 0)
+			return;
 		consCount.pop();
 		ruleContext.pop();
 	}
@@ -621,6 +655,8 @@ public class ToSinkListener implements ParseTreeListener
 	@Override
 	public void visitTerminal(TerminalNode context)
 	{
+		if (parser.getNumberOfSyntaxErrors() > 0)
+			return;
 		switch (state)
 		{
 			case SKIP :
@@ -838,6 +874,19 @@ public class ToSinkListener implements ParseTreeListener
 	{
 		// TODO: this is quite brittle. Should change PG.
 		return parsets && altname.equals("aterm_A8");
+	}
+
+	/** Make variable of the given type 
+	 * @param name */
+	private Variable makeVariable(String type, String name)
+	{
+		if (metasink() != null || parsets)
+		{
+			// Parsing embbeded syntax: create generic variable
+			return StringTerm.varStringTerm(sink.context(), name);
+		}
+		String rtype = prefix + type;
+		return sink.context().makeVariable(rtype, name);
 	}
 
 }

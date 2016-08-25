@@ -11,7 +11,7 @@
 
 namespace tosca {
     
-    typedef Term& (*TermFactory)();
+    typedef Term& (*TermFactory)(Context&);
     
     class Context
     {
@@ -19,12 +19,12 @@ namespace tosca {
         Context();
         
         /**
-         * Lookup descriptor for symbol
+         * Make new construction for the given symbol
          *
          * @param symbol
-         * @return A descriptor or
+         * @return A term, or an exception when symbol hasn't been registered
          */
-        Optional<TermFactory> LookupDescriptor(const std::string& symbol);
+        Term& MakeConstructor(const std::string& symbol);
         
         /**
          * Register symbol

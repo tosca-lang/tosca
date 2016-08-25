@@ -9,8 +9,8 @@ using namespace tosca;
 
 StringTerm& AfterFirst(Context& ctx, StringTerm& string, StringTerm& sep)
 {
-    std::string& ustring = string.Unbox();
-    std::string& usep = sep.Unbox();
+    const std::string& ustring = string.Unbox();
+    const std::string& usep = sep.Unbox();
     std::string::size_type idx = ustring.find(usep);
 
     StringTerm& result = newStringTerm((idx == -1) ? "" : ustring.substr(idx + 1));
@@ -21,8 +21,8 @@ StringTerm& AfterFirst(Context& ctx, StringTerm& string, StringTerm& sep)
 
 StringTerm& BeforeFirst(Context& ctx, StringTerm& string, StringTerm& sep)
 {
-    std::string& ustring = string.Unbox();
-    std::string& usep = sep.Unbox();
+    const std::string& ustring = string.Unbox();
+    const std::string& usep = sep.Unbox();
     std::string::size_type idx = ustring.find(usep);
 
     StringTerm& result = newStringTerm((idx == -1) ? ustring : ustring.substr(0, idx));
@@ -33,8 +33,8 @@ StringTerm& BeforeFirst(Context& ctx, StringTerm& string, StringTerm& sep)
 
 Bool& StringEqual(Context& ctx, StringTerm& str1, StringTerm& str2)
 {
-    std::string& ustr1 = str1.Unbox();
-    std::string& ustr2 = str2.Unbox();
+    const std::string& ustr1 = str1.Unbox();
+    const std::string& ustr2 = str2.Unbox();
     Bool& result = ustr1 == ustr2 ? newTRUE(ctx) : newFALSE(ctx);
     str1.Release();
     str2.Release();
@@ -83,8 +83,8 @@ StringTerm& Replace(Context& ctx, StringTerm& str, StringTerm&, StringTerm&)
 
 Bool& Contains(Context& ctx, StringTerm& str1, StringTerm& str2)
 {
-    std::string& ustr1 = str1.Unbox();
-    std::string& ustr2 = str2.Unbox();
+    const std::string& ustr1 = str1.Unbox();
+    const std::string& ustr2 = str2.Unbox();
     Bool& result = ustr1.find(ustr2) != std::string::npos ? newTRUE(ctx) : newFALSE(ctx);
     str1.Release();
     str2.Release();
@@ -104,7 +104,7 @@ StringTerm& Substring(Context& ctx, StringTerm& str1, DoubleTerm& str2, DoubleTe
 
 StringTerm& Substring2(Context& ctx, StringTerm& str, DoubleTerm& from)
 {
-    std::string& ustr = str.Unbox();
+    const std::string& ustr = str.Unbox();
     std::string::size_type pos = static_cast<std::string::size_type>(from.Unbox());
     StringTerm& result = newStringTerm(ustr.substr(pos));
     str.Release();
@@ -119,8 +119,8 @@ Bool& MatchRegex(Context& ctx, StringTerm&, StringTerm&)
 
 Bool& StartsWith(Context& ctx, StringTerm& str, StringTerm& prefix)
 {
-    std::string& ustr = str.Unbox();
-    std::string& uprefix = prefix.Unbox();
+    const std::string& ustr = str.Unbox();
+    const std::string& uprefix = prefix.Unbox();
     Bool& result = (!ustr.compare(0, uprefix.size(), uprefix)) ? newTRUE(ctx) : newFALSE(ctx);
     str.Release();
     prefix.Release();

@@ -37,6 +37,11 @@ public class Context
 	public HashMap<String, ConstructionDescriptor> descriptors;
 
 	/**
+	 * Registered variable factories
+	 */
+	protected HashMap<String, VariableMaker<? extends Variable>> varMakers;
+	
+	/**
 	 * Registered parsers
 	 */
 	protected HashSet<String> parserNames;
@@ -61,6 +66,11 @@ public class Context
 		this.descriptors = new HashMap<>(2048);
 		this.parsers = new HashMap<>(128);
 		this.parserNames = new HashSet<>();
+		this.varMakers = new HashMap<>();
+		
+		// Register builtin types
+		varMakers.put("String", StringTerm::varStringTerm);
+		varMakers.put("Numeric", DoubleTerm::varDoubleTerm);		
 	}
 
 	/**
@@ -74,6 +84,22 @@ public class Context
 		return new Variable(makeGlobalName(hint));
 	}
 
+	/**
+	 * Make new unique variable of type T
+	 * 
+	 * @param hint
+	 * @return
+	 */
+	public <T extends Variable> T makeVariable(String type, String hint)
+	{
+		@SuppressWarnings("unchecked")
+		VariableMaker<T> maker = (VariableMaker<T>) varMakers.get(type);
+		if (maker == null)
+			throw new RuntimeException("Fatal error: cannot make variable of type " + type);
+		
+		return maker.make(this, hint);
+	}
+	
 	/**
 	 * Make new context-scoped unique name.
 	 * 
@@ -115,7 +141,7 @@ public class Context
 	 */
 	public ConstructionDescriptor lookupDescriptor(String symbol)
 	{
-		return descriptors.get(symbol); 
+		return descriptors.get(symbol);
 	}
 
 	/**
@@ -153,6 +179,14 @@ public class Context
 					return maker.get();
 				}
 			});
+	}
+
+	public <T extends Variable> void registerVarMaker(String type, VariableMaker<T> maker)
+	{
+		if (varMakers.get(type) != null)
+			System.out.println("Warning: variable maker already registered for type " + type);
+		
+		varMakers.put(type, maker);
 	}
 
 	// --- Parser management
@@ -294,5 +328,17 @@ public class Context
 			return realParent.loadClass(name);
 		}
 	}
- 
+
+	@FunctionalInterface
+	public interface VariableMaker<T extends Variable>
+	{
+
+		/**
+		 * Make a variable of type T
+		 *
+		 * @return a variable
+		 */
+		T make(Context context, String hint);
+	}
+
 }

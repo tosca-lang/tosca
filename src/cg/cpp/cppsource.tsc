@@ -64,7 +64,10 @@ func CppFormDefs(String, Core_cform_sort) -> Text4_text_sort
   → text⟦
       †⟨CppVarConstructorVar(#sortname, (), TRUE)⟩
       †⟨CppVarMethodUse(#sortname, (), TRUE)⟩
-      †⟨CppVarConstructorUse(#sortname, (), TRUE)⟩⟧
+      †⟨CppVarMethodGUse(#sortname, (), TRUE)⟩
+      †⟨CppVarConstructorUse(#sortname, (), TRUE)⟩
+      †⟨CppMethodGetVariable(#sortname, (), TRUE)⟩
+      †⟨CppVarMethodGetVariable(#sortname, (), TRUE)⟩⟧
 
 // --------- Function sorts and associated rules
 

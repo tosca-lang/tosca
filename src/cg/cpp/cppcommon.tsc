@@ -102,7 +102,7 @@ func CppMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Te
   rule CppMethodAs(#sortname, #csortvars?, cform⟦ allows-variable ⟧, #def)
   → text⟦⟧
 
-/* Generate use method. */
+/* Generate typed use method. */
 func CppVarMethodUse(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
 → text⟦
     †⟨CppTemplatePrefix(#csortvars?)⟩
@@ -110,8 +110,17 @@ func CppVarMethodUse(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #
       If(#def, ()->text⟦{
        return (*new †⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VARUSE)⟩(*this));
       }⟧, ()->text⟦;⟧)⟩
-    ⟧
+  ⟧
 
+/* Generate untyped use method. */
+func CppVarMethodGUse(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
+→ text⟦
+    †⟨CppTemplatePrefix(#csortvars?)⟩
+    tosca::Term& †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩GUse()†⟨
+      If(#def, ()->text⟦{
+       return Use();
+      }⟧, ()->text⟦;⟧)⟩
+  ⟧
 /* Generate class constructor corresponding to the given `#formname`. */
 func CppFormConstructor(#sortname: String, #csortvars?: List<Core_csortvars_sort>, #formname: String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
 → text⟦
@@ -122,13 +131,37 @@ func CppFormConstructor(#sortname: String, #csortvars?: List<Core_csortvars_sort
         ()->text⟦: †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppInitField(isvar, type, index, subindex))⟩⟧)⟩{}⟧,
       ()->text⟦;⟧)⟩⟧
 
-/* Generate method Use corresponding to the given `#formname`. */
+/* Generate method Use corresponding to the given `#sortname`. */
 func CppVarConstructorUse(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
 → text⟦
    †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
    †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩†⟨FormCppClassName(#sortname)⟩Use(†⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VAR)⟩& v)†⟨
    If(#def,
-     ()->text⟦: tosca::VariableUse<†⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VAR)⟩>::VariableUse(v) {}⟧,
+     ()->text⟦: tosca::VariableUse::VariableUse(v) {}⟧,
+     ()->text⟦;⟧)⟩
+  ⟧
+
+/* Generate base method GetVariable corresponding to the given `#sortname`. */
+func CppMethodGetVariable(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
+→ text⟦
+   †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+   †⟨TextIf(Not(#def), ()->text⟦virtual⟧)⟩ Optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩> †⟨CppQualifier(#sortname, #csortvars?, #def)⟩GetVariable() const†⟨
+   If(#def,
+     ()->text⟦{
+         return Optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩>::nullopt;
+       }⟧,
+     ()->text⟦;⟧)⟩
+  ⟧
+
+/* Generate method GetVariable corresponding to the given `#sortname`. */
+func CppVarMethodGetVariable(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
+→ text⟦
+   †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+   Optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩> †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩GetVariable() const†⟨
+   If(#def,
+     ()->text⟦{
+         return make_optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩>(*dynamic_cast<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩*>(&VariableUse::GetGVariable().value()));
+       }⟧,
      ()->text⟦;⟧)⟩
   ⟧
 
@@ -404,7 +437,7 @@ func CppPatternVariable(Option<VarEntry>, {String : EnvEntry}, String, Option<Co
   // First variable occurrence: the term is a free variable.
   rule CppPatternVariable(NONE, #env, #variable, #csort, #term, #cont)
   → text⟦
-      Optional<C†⟨MaybeCppTypeD(#csort, text⟦⟧)⟩Var> ⟨STRING: ovar⟩ = †⟨#term⟩.variable();
+      Optional<C†⟨MaybeCppTypeD(#csort, text⟦⟧)⟩Var> ⟨STRING: ovar⟩ = †⟨#term⟩.GetVariable();
       if (⟨STRING: ovar⟩)
       {
         C†⟨MaybeCppTypeD(#csort, text⟦⟧)⟩Var& ⟨STRING: var⟩ = ⟨STRING: ovar⟩.value();
@@ -413,7 +446,7 @@ func CppPatternVariable(Option<VarEntry>, {String : EnvEntry}, String, Option<Co
 
   rule CppPatternVariable(SOME(Bound(#var, #sort)), #env, #variable, #csort, #term, #cont)
   → text⟦
-      Optional<C†⟨MaybeCppTypeD(#csort, text⟦⟧)⟩Var> ⟨STRING: ovar⟩ = †⟨#term⟩.variable();
+      Optional<C†⟨MaybeCppTypeD(#csort, text⟦⟧)⟩Var> ⟨STRING: ovar⟩ = †⟨#term⟩.GetVariable();
       if (⟨STRING: ovar⟩ && †⟨#var⟩ == ⟨STRING: ovar⟩.value()) {
         †⟨#cont(#env)⟩
       }⟧
@@ -493,7 +526,7 @@ func CppPatternMapEntry({String : EnvEntry}, Core_cmapentry_sort, Text4_text_sor
   rule CppPatternMapEntry(#env, cmapentry⟦ ##VARIABLE ⟧, #term, #cmapsort, #cont)
   → IfPresent(GetVarO(#env, #VARIABLE),
       (key)->text⟦
-        if (!†⟨#term⟩.containsVar(†⟨UnVarVar(key)⟩.variable()))
+        if (!†⟨#term⟩.containsVar(†⟨UnVarVar(key)⟩.GetVariable()))
         {
            †⟨#cont(#env)⟩
         }
@@ -503,7 +536,7 @@ func CppPatternMapEntry({String : EnvEntry}, Core_cmapentry_sort, Text4_text_sor
   rule CppPatternMapEntry(#env, cmapentry⟦ ¬ ##VARIABLE ⟧, #term, #cmapsort, #cont)
   → IfPresent(GetVarO(#env, #VARIABLE),
       (key)->text⟦
-        if (†⟨#term⟩.containsVar(†⟨UnVarVar(key)⟩.variable()))
+        if (†⟨#term⟩.containsVar(†⟨UnVarVar(key)⟩.GetVariable()))
         {
           †⟨#cont(#env)⟩
         }

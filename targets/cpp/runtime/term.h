@@ -16,7 +16,7 @@ namespace tosca {
     class Context;
     class Ref;
     typedef Ref& (*Function)();
-    template<typename VU> class VariableUse;
+    class VariableUse;
     class Variable;
     class Term;
     
@@ -74,7 +74,7 @@ namespace tosca {
          * @param i the sub index. Must be >=0 and < number of subs
          * @param term the term. The reference is transferred.
          */
-        virtual void SetSub(int i, Term sub)
+        virtual void SetSub(int i, Term& sub)
         {
             assert(false);
         }
@@ -96,7 +96,7 @@ namespace tosca {
          * @param i subterm index. Must be >=0 and < number of subs
          * @param j subbinder index.  Must be >=0 and < number of binders for the given sub
          */
-        virtual void SetBinder(int i, int j, Variable& var)
+        virtual void SetBinder(int i, int j, const Variable& var)
         {
             assert(false);
         }
@@ -114,41 +114,20 @@ namespace tosca {
             return *this;
         }
         
-        virtual Optional<Variable> asVariable() const
-        {
-            return Optional<Variable>::nullopt;
-        }
-        
-        
         inline bool operator==(const Term& rhs)
         {
             throw std::runtime_error("not implemented");
         }
+        
+    protected:
+        
+        /* @return The variable when this term is a variable use, otherwise nullopt */
+        virtual Optional<Variable> GetGVariable() const;
+        
+        friend struct std::hash<std::reference_wrapper<tosca::Term>>;
+        friend struct std::equal_to<std::reference_wrapper<tosca::Term>>;
     };
     // Term
-    
-    /* Term allowing variable */
-    template <typename V>
-    class TermVar: public Term
-    {
-    public:
-        virtual Optional<V> variable()
-        {
-            return Optional<V>::nullopt;
-        }
-        
-        virtual Optional<V> variable() const
-        {
-            return Optional<V>::nullopt;
-        }
-        
-        
-        Optional<Variable> asVariable() const
-        {
-            return make_optional(static_cast<Variable&>(variable().value()));
-        }
-        
-    };
     
     /* Unevaluated function (thunk) */
     template<typename T>
@@ -163,7 +142,7 @@ namespace tosca {
         /** @return true when this term is data */
         bool Data() const
         {
-            return function == 0 ? reinterpret_cast<Term&>(value.value()).Data() : false;
+            return function == 0 ? value.value().Data() : false;
         }
         
         T Eval(Context& ctx)
@@ -192,21 +171,21 @@ namespace tosca {
     };
     
     /* Base class for typed variables */
-    
     class Variable: public Ref
     {
         
     public:
         Variable(std::string&& name);
         
-        bool operator==(const Variable& other) const {
+        bool operator==(const Variable& other) const
+        {
             return &other == this;
         }
         
-        bool operator!=(const Variable& other) const {
+        bool operator!=(const Variable& other) const
+        {
             return !(*this == other);
         }
-
         
     protected:
         /* Globally unique variable name */
@@ -215,29 +194,24 @@ namespace tosca {
         /* Count the number of variable use (in the term tree) */
         unsigned long uses;
         
+        /* @Brief Create an new use of this variable */
+        Term& GUse();
+        
+        friend class BufferSink;
     };
     
-    /* Variable use interface */
-    template <typename V>
-    class VariableUse: public virtual TermVar<V>
+    /* Generic Variable use interface */
+    class VariableUse: public virtual Term
     {
     public:
-        VariableUse(V& v) : var(v) {}
+        VariableUse(Variable& v) : var(v) {}
         
-        Optional<V> variable()
-        {
-            return make_optional<V>(var);
-        }
-        
-        Optional<V> variable() const
-        {
-            return make_optional<V>(var);
-        }
         
     protected:
         // the used variable
-        V& var;
+        Variable& var;
         
+        Optional<Variable> GetGVariable() const;
     };
     
     
@@ -260,7 +234,7 @@ namespace tosca {
         }
         
         /** Peek at native string value */
-        virtual std::string& Unbox() const
+        virtual const std::string& Unbox() const
         {
             throw std::runtime_error("Fatal error: cannot access unevaluated string value.");
         }
@@ -283,14 +257,14 @@ namespace tosca {
     {
     protected:
         /** The string value. A reference to it so that we can unbox it. */
-        std::string& value;
+        const std::string& value;
         
     public:
-        CStringTerm(std::string& value);
+        CStringTerm(const std::string& value);
         ~CStringTerm();
         
         Term Copy(Context& ctx);
-        std::string& Unbox() const;
+        const std::string& Unbox() const;
         
     };
     
@@ -299,7 +273,7 @@ namespace tosca {
     /**
      * Variable use of type String
      */
-    class CStringTermVarUse: public StringTerm, public VariableUse<CStringTermVar>
+    class CStringTermVarUse: public StringTerm, public VariableUse
     {
     public:
         CStringTermVarUse(CStringTermVar& v);
@@ -364,7 +338,7 @@ namespace tosca {
     /*
      * Variable Use of type Numeric
      */
-    class CDoubleTermVarUse: public DoubleTerm, public VariableUse<CDoubleTermVar>
+    class CDoubleTermVarUse: public DoubleTerm, public VariableUse
     {
     public:
         CDoubleTermVarUse(CDoubleTermVar& v);
@@ -398,7 +372,7 @@ T& Subst(tosca::Context& c, T& term, std::initializer_list<tosca::Variable*> bin
 
 // Global string methods
 tosca::StringTerm& newStringTerm(std::string&& str);
-tosca::StringTerm& newStringTerm(std::string& str);
+tosca::StringTerm& newStringTerm(const std::string& str);
 tosca::CStringTermVar& varStringTerm(std::string&& name);
 
 // Global double methods
@@ -463,7 +437,7 @@ namespace std
     public:
         size_t operator()(const tosca::Term& e) const
         {
-            Optional<tosca::Variable> v = e.asVariable();
+            Optional<tosca::Variable> v = e.GetGVariable();
             if (v)
             {
                 std::hash<tosca::Variable*> var_hash;
@@ -479,8 +453,8 @@ namespace std
     public:
         bool operator()(const tosca::Term& lhs, const tosca::Term& rhs) const
         {
-            Optional<tosca::Variable> vlhs = lhs.asVariable();
-            Optional<tosca::Variable> vrhs = rhs.asVariable();
+            Optional<tosca::Variable> vlhs = lhs.GetGVariable();
+            Optional<tosca::Variable> vrhs = rhs.GetGVariable();
             if (vlhs && vrhs)
             {
                 return (&vlhs.value()) == (&vrhs.value());

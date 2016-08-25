@@ -73,7 +73,7 @@ public class ⟨STRING:ClassName(#url)⟩ {
   /* Typed enumerations */
   †⟨TextFold(Map((x) ->EnumToClass(x, ClassName(#url)), MapValues(#datasorts)), text⟦⟧)⟩
   †⟨TextFold(Map((x) ->JavaMethod(x, text⟦⟨STRING:ClassName(#url)⟩⟧, #rules, #datasorts, #funcsorts), MapKeys(#funcsorts)), text⟦⟧)⟩
-  †⟨InitModule(#datasorts, #funcsorts, #imports, #bootstrap)⟩
+  †⟨InitModule(ClassName(#url), #datasorts, #funcsorts, #imports, #bootstrap)⟩
 }⟧
 
 func JavaImport(Core_cqidentifier_sort, Bool) -> Text4_text_sort
@@ -1375,15 +1375,15 @@ func JavaExprLambda({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}
 // ----- initModule
 
 /* Generate code initializing a module. */
-func InitModule({ String : Core_cdecl_sort }, { String : Core_cdecl_sort }, List<Core_cqidentifier_sort>, Bool) -> Text4_text_sort
+func InitModule(String, { String : Core_cdecl_sort }, { String : Core_cdecl_sort }, List<Core_cqidentifier_sort>, Bool) -> Text4_text_sort
 
-rule InitModule(#data, #func, #imports, #bootstrap)
+rule InitModule(#classname, #data, #func, #imports, #bootstrap)
 → text⟦
     private static boolean initialized = false;
     public static void init(Context context) {
       if (!initialized) {
         initialized = true;
-        †⟨TextFold(Map((sort )->RegisterDataSort(sort), MapValues(#data)), text⟦⟧)⟩
+        †⟨TextFold(Map((sort )->RegisterDataSort(#classname, sort), MapValues(#data)), text⟦⟧)⟩
         †⟨TextFold(Map((qcons)->RegisterImport(qcons, #bootstrap),  #imports), text⟦⟧)⟩
       }
 }⟧
@@ -1392,18 +1392,19 @@ func RegisterImport(#name: Core_cqidentifier_sort, #bootstrap: Bool) -> Text4_te
 → text⟦
     †⟨PathToImport(JoinQIdentifier(#name, "::", TRUE), #bootstrap)⟩.init(context);⟧ // TODO: maybe use '.' sep
 
-func RegisterDataSort(Core_cdecl_sort) -> Text4_text_sort
-rule RegisterDataSort(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
-→ TextFold(Map<Core_cform_sort Text4_text_sort>((x) -> RegisterDataForm(x), #cform*), text⟦⟧)
+func RegisterDataSort(String, Core_cdecl_sort) -> Text4_text_sort
+rule RegisterDataSort(#classname, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
+→ TextFoldES(Map((x) -> RegisterDataForm(#classname, #CONSTRUCTOR, x), #cform*))
 
-func RegisterDataForm(Core_cform_sort) -> Text4_text_sort
-  rule RegisterDataForm(cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+func RegisterDataForm(String, String, Core_cform_sort) -> Text4_text_sort
+
+  rule RegisterDataForm(#classname, #sortname, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
-  context.register(†⟨Text-QuoteEscape(#CONSTRUCTOR)⟩, †⟨EValueClassName(#CONSTRUCTOR)⟩::new);⟧
+       context.register(†⟨Text-QuoteEscape(#CONSTRUCTOR)⟩, †⟨EValueClassName(#CONSTRUCTOR)⟩::new);⟧
 
-
-  rule RegisterDataForm(cform⟦ allows-variable ⟧)
-  → text⟦⟧
+  rule RegisterDataForm(#classname, #sortname, cform⟦ allows-variable ⟧)
+  → text⟦
+       context.registerVarMaker(†⟨Text-QuoteEscape(#sortname)⟩, ⟨STRING:#classname⟩::var⟨STRING: Mangle(#sortname)⟩);⟧
 
 /* Print package declaration */
 func PackageDeclaration(#url: String, #mainurl: String, #package: String) -> Text4_text_sort

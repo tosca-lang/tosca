@@ -6,14 +6,14 @@ namespace tosca {
     Context::Context()
     {}
     
-    Optional<TermFactory> Context::LookupDescriptor(const std::string& symbol)
+    Term& Context::MakeConstructor(const std::string& symbol)
     {
         auto search = factories.find(symbol);
         if (search == factories.end())
         {
-            return Optional<TermFactory>::nullopt;
+            throw std::runtime_error("Internal Error: symbol not registered.");
         }
-        return make_optional(search->second);
+        return search->second(*this);
     }
     
     void Context::Register(const std::string& symbol, const TermFactory factory)

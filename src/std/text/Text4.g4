@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2016 IBM Corporation.
  *
- * Grammar for simple structured text with embedded terms.
+ * Grammar for simple structured text.
  *
  */
 grammar Text4;
@@ -14,14 +14,12 @@ text
 content
     : STRING
     | BREAK
-    | OPENINDENT text CLOSEINDENT
     | CASTCONTENT text
+    | ESCAPE
     ;
 
-OPENINDENT  : '\u27e6'; // ⟦
-CLOSEINDENT : '\u27e7'; // ⟧
 CASTCONTENT  : '\u2020'; // †
+ESCAPE       : '⟨⟨';
 
-
-STRING : ~[\n\r\f\u00b6\u27e6\u27e7\u27e8\u2020\u00ab\u00bb⟨]+;
+STRING : ~[\n\r\f\u00b6\u2020⟨]+;
 BREAK : [\n\r\f\u00b6]+;
