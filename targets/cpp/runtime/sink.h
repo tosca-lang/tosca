@@ -40,11 +40,21 @@ public:
      *
      * The following events are the construction arguments, either terms or bound terms.
      *
-     * @param descriptor of the construction
+     * @param symbol external construction symbol
      * @return this sink
      */
     virtual Sink& Start(const StringTerm& symbol) = 0;
     
+    /**
+     * Start of construction.
+     *
+     * The following events are the construction arguments, either terms or bound terms.
+     *
+     * @param term uninitialized term.
+     * @return this sink
+     */
+    virtual Sink& Start(Term& term) = 0;
+        
     /**
      * End of construction.
      *

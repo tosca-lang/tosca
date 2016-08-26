@@ -88,7 +88,7 @@ func CppFunctionDefs(#env: {String : EnvEntry}) -> Text4_text_sort
 func CppInitModule(#name: String, #imports: List<Core_cqidentifier_sort>, #data: {String : Core_cdecl_sort}) -> Text4_text_sort
 → text⟦
   static bool initialized = false;
-  void InitModule_⟨STRING: #name⟩(Context& context)
+  void InitModule_⟨STRING: #name⟩(tosca::Context& context)
   {
     if (!initialized) {
       initialized = true;

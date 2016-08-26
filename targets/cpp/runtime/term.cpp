@@ -47,6 +47,11 @@ namespace tosca {
         return make_optional<Variable>(var);
     }
     
+    Optional<Variable> VariableUse::GetGVariable()
+    {
+        return make_optional<Variable>(var);
+    }
+    
     
     // --- Variable
     

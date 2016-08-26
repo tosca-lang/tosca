@@ -119,10 +119,10 @@ namespace tosca {
             throw std::runtime_error("not implemented");
         }
         
-    protected:
-        
         /* @return The variable when this term is a variable use, otherwise nullopt */
         virtual Optional<Variable> GetGVariable() const;
+        
+    protected:
         
         friend struct std::hash<std::reference_wrapper<tosca::Term>>;
         friend struct std::equal_to<std::reference_wrapper<tosca::Term>>;
@@ -207,11 +207,11 @@ namespace tosca {
         VariableUse(Variable& v) : var(v) {}
         
         
+        virtual Optional<Variable> GetGVariable() const;
+        Optional<Variable> GetGVariable();
     protected:
         // the used variable
         Variable& var;
-        
-        Optional<Variable> GetGVariable() const;
     };
     
     

@@ -36,13 +36,16 @@ namespace tosca {
             binderIndex.push_back(0); // reset sub binder position.
         }
     }
-    
     Sink& BufferSink::Start(const StringTerm& symbol)
     {
-        Term& sub = GetContext().MakeConstructor(symbol);
-        AddSub(sub);
+        return Start(GetContext().MakeConstructor(symbol));
+    }
+    
+    Sink& BufferSink::Start(Term& term)
+    {
+        AddSub(term);
         
-        terms.push_back(&sub);
+        terms.push_back(&term);
         subIndex.push_back(0);
         binderIndex.push_back(0);
         

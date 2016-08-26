@@ -68,7 +68,7 @@ func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> T
   rule CppMethodNew(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #def)
   → text⟦
       †⟨CppTemplatePrefix(#csortvars?)⟩
-      †⟨CppTypeRefName(#csortvars?, #sortname)⟩ †⟨CppNewMethodName(#CONSTRUCTOR)⟩(Context& ctx†⟨MaybeCppFormalParams(#csorts?, text⟦, ⟧, FALSE)⟩)†⟨
+      †⟨CppTypeRefName(#csortvars?, #sortname)⟩ †⟨CppNewMethodName(#CONSTRUCTOR)⟩(tosca::Context& ctx†⟨MaybeCppFormalParams(#csorts?, text⟦, ⟧, FALSE)⟩)†⟨
       If(#def, ()->text⟦{
        return (*new †⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩(†⟨MaybeCppFormalParams(#csorts?, text⟦⟧, TRUE)⟩));
       }⟧, ()->text⟦;⟧)⟩
@@ -93,7 +93,7 @@ func CppMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Te
   rule CppMethodAs(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #def)
   → text⟦
     †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-    †⟨TextIf(Not(#def), ()->text⟦virtual⟧)⟩ Optional<†⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩> †⟨CppQualifier(#sortname, #csortvars?, #def)⟩†⟨CppAsMethodName(#CONSTRUCTOR)⟩(Context& ctx)†⟨
+    †⟨TextIf(Not(#def), ()->text⟦virtual⟧)⟩ Optional<†⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩> †⟨CppQualifier(#sortname, #csortvars?, #def)⟩†⟨CppAsMethodName(#CONSTRUCTOR)⟩(tosca::Context& ctx)†⟨
     If(#def, ()->text⟦{
        return Optional<†⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩>::nullopt;
     }⟧, ()->text⟦;⟧)⟩⟧
@@ -147,7 +147,7 @@ func CppFormDefaultConstructor(#sortname: String, #csortvars?: List<Core_csortva
 func CppFormMethodMake(#sortname: String, #csortvars?: List<Core_csortvars_sort>, #formname: String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
 → text⟦
     †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-    †⟨TextIf(Not(#def), ()->text⟦static ⟧)⟩tosca::Term& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Make(Context& ctx)†⟨
+    †⟨TextIf(Not(#def), ()->text⟦static ⟧)⟩tosca::Term& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Make(tosca::Context& ctx)†⟨
     If(#def,
       ()->text⟦{ return *(new †⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩()); }⟧,
       ()->text⟦;⟧)⟩⟧
@@ -201,7 +201,7 @@ func CppFormMethodAs(String, List<Core_csortvars_sort>, String, Bool) -> Text4_t
 rule CppFormMethodAs(#sortname, #csortvars?, #formname, #def)
 → text⟦
   †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-  Optional<†⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩> †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩†⟨CppAsMethodName(#formname)⟩(Context& ctx)†⟨
+  Optional<†⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩> †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩†⟨CppAsMethodName(#formname)⟩(tosca::Context& ctx)†⟨
   If(#def, ()->text⟦{
      return make_optional<†⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩>(*this);
   }⟧, ()->text⟦;⟧)⟩⟧
@@ -210,7 +210,7 @@ rule CppFormMethodAs(#sortname, #csortvars?, #formname, #def)
 func CppFormMethodCopy(String, List<Core_csortvars_sort>, String, Bool) -> Text4_text_sort
   rule CppFormMethodCopy(#sortname, #csortvars?, #formname, #def)
   → text⟦
-    tosca::Term †⟨CppQualifier(#formname, #csortvars?, #def)⟩Copy(Context& ctx)†⟨
+    tosca::Term †⟨CppQualifier(#formname, #csortvars?, #def)⟩Copy(tosca::Context& ctx)†⟨
     If(#def, ()->text⟦{
        return (*new †⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩());
     }⟧, ()->text⟦;⟧)⟩⟧
@@ -224,7 +224,7 @@ func CppFormGetValue(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #
 func CppGetValue(Bool, Text4_text_sort, Numeric, Numeric, Bool, Text4_text_sort, Text4_text_sort) -> Text4_text_sort
 
   rule CppGetValue(FALSE, #type, #index, #subindex, #def, #prefix, #qualifier)
-  → text⟦†⟨#prefix⟩†⟨#type⟩& †⟨#qualifier⟩getValue†⟨NumberToText(#index)⟩(Context& ctx, bool mustforce)†⟨
+  → text⟦†⟨#prefix⟩†⟨#type⟩& †⟨#qualifier⟩getValue†⟨NumberToText(#index)⟩(tosca::Context& ctx, bool mustforce)†⟨
       If(#def, ()->text⟦{
         return *†⟨FieldName(#index)⟩;
       }⟧, ()->text⟦;⟧)⟩⟧

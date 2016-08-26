@@ -29,7 +29,6 @@ using tosca::StringTerm;
 using tosca::CStringTerm;
 using tosca::DoubleTerm;
 using tosca::MapTerm;
-using tosca::Context;
 
 // Enumeration declarations
 †⟨CppClassDecls(MapValues(GetDataSortsM(#module)))⟩
@@ -41,7 +40,7 @@ using tosca::Context;
 †⟨CppGlobalData(MapValues(GetDataSortsM(#module)))⟩
 
 /* @Brief Initialize module. Register data symbols and variable types */
-void InitModule_⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩(Context& context);
+void InitModule_⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩(tosca::Context& context);
 #endif⟧
 
 /* Generate C++ header guard */
@@ -108,7 +107,6 @@ func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Tex
         public:
           †⟨CppVarConstructorVar(#sortname, #csortvars?, FALSE)⟩
           †⟨CppVarMethodUse(#sortname, #csortvars?, FALSE)⟩
-        protected:
           †⟨CppVarMethodGUse(#sortname, #csortvars?, FALSE)⟩
       };
 

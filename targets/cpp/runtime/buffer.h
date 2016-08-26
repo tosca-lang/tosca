@@ -18,6 +18,7 @@ public:
     BufferSink(Context& context);
     
     Sink& Start(const StringTerm& symbol);
+    Sink& Start(Term& term);
     Sink& End();
     Sink& Bind(Variable& binder);
     Sink& Use(Variable& variable);
