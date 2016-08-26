@@ -60,7 +60,7 @@ func CppMethodDef(Core_cdecl_sort) -> Text4_text_sort
   → text⟦
     †⟨TextMapFoldES((cform) -> CppMethodNew(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, cform, TRUE), #cform*)⟩
     †⟨TextMapFoldES((cform) -> CppMethodAs(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, cform, TRUE), #cform*)⟩
-    †⟨CppMethodGetVariable(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, TRUE)⟩
+    †⟨TextIf(IsAllowsVarForms(#cform*), ()->CppMethodGetVariable(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, TRUE))⟩
     †⟨TextMapFoldES((cform) -> CppFormMethod(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, cform), #cform*)⟩⟧
 
   rule CppMethodDef(#cdecl)
@@ -73,7 +73,11 @@ func CppFormMethod(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_
   → text⟦
       †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
       †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
-      †⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩⟧
+      †⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
+      †⟨CppFormGetSub(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
+      †⟨CppFormSetSub(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
+      †⟨CppFormGetBinder(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
+      †⟨CppFormSetBinder(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩⟧
 
   rule CppFormMethod(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦

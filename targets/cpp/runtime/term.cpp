@@ -50,9 +50,13 @@ namespace tosca {
     
     // --- Variable
     
-    Variable::Variable(std::string&& n) :
-    name(n), uses(1)
+    Variable::Variable(std::string&& n) : name(n), uses(1)
     {
+    }
+    
+    Term& Variable::GUse()
+    {
+        throw std::runtime_error("Internal Error: cannot create untyped variable use.");
     }
     
     // --- String
@@ -62,17 +66,20 @@ namespace tosca {
     {
     }
     
-    CStringTermVarUse& CStringTermVar::Use()
+    StringTerm& CStringTermVar::Use()
     {
         return *(new CStringTermVarUse(*this));
     }
     
-    
+    Term& CStringTermVar::GUse()
+    {
+        return Use();
+    }
     
     CStringTermVarUse::CStringTermVarUse(CStringTermVar& v) : VariableUse::VariableUse(v)
     {
     }
-    
+
     
     CStringTerm::CStringTerm(const std::string& val) : value(val)
     {
@@ -104,6 +111,16 @@ namespace tosca {
     
     CDoubleTermVar::CDoubleTermVar(std::string&& name) : Variable(std::move(name))
     {
+    }
+    
+    DoubleTerm& CDoubleTermVar::Use()
+    {
+        return *(new CDoubleTermVarUse(*this));
+    }
+    
+    Term& CDoubleTermVar::GUse()
+    {
+        return Use();
     }
     
     CDoubleTerm::CDoubleTerm(double val) :

@@ -195,30 +195,165 @@ func CppFormMethodCopy(String, List<Core_csortvars_sort>, String, Bool) -> Text4
     }⟧, ()->text⟦;⟧)⟩⟧
 
 /* Generate getValue method for the given `formname`. */
-func CppFormGetValue(String, List<Core_csortvars_sort>, String,  List<Core_csorts_sort>, Bool) -> Text4_text_sort
+func CppFormGetValue(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
+→ MaybeCppClassFields(#csorts?, (isvar type index subindex)->
+     CppGetValue(isvar, type, index, subindex, #def, TextIf(#def, ()->CppTemplatePrefix(#csortvars?)), CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)))
 
-  rule CppFormGetValue(#sortname, #csortvars?, #formname, #csorts?, #def)
-  → MaybeCppClassFields(#csorts?, (isvar type index subindex)->
-       CppGetValue(isvar, type, index, subindex, #def, TextIf(#def, ()->CppTemplatePrefix(#csortvars?)), CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)))
-
-/* GetValue generator */
+/* Generate GetValueXX for each form parameters */
 func CppGetValue(Bool, Text4_text_sort, Numeric, Numeric, Bool, Text4_text_sort, Text4_text_sort) -> Text4_text_sort
 
   rule CppGetValue(FALSE, #type, #index, #subindex, #def, #prefix, #qualifier)
   → text⟦†⟨#prefix⟩†⟨#type⟩& †⟨#qualifier⟩getValue†⟨NumberToText(#index)⟩(Context& ctx, bool mustforce)†⟨
       If(#def, ()->text⟦{
-        if (mustforce)
-         †⟨FieldName(#index)⟩ = force(ctx, †⟨FieldName(#index)⟩);
-        return †⟨FieldName(#index)⟩;
+        return *†⟨FieldName(#index)⟩;
       }⟧, ()->text⟦;⟧)⟩⟧
 
   rule CppGetValue(TRUE, #type, #index, #subindex, #def, #prefix, #qualifier)
   → text⟦†⟨#prefix⟩†⟨#type⟩& †⟨#qualifier⟩getVar†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩()†⟨
       If(#def, ()->text⟦{
-        return †⟨VarFieldName(#index, #subindex)⟩;
+        return *†⟨VarFieldName(#index, #subindex)⟩;
       }⟧, ()->text⟦;⟧)⟩⟧
 
-// --- Generate code for class field declarations, initialization, lookup, and update
+/* Generate the generic Sub function for the given `#form` */
+func CppFormGetSub(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
+→ TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦
+     †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+     Optional<tosca::Term> †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Sub(int subi) const†⟨
+     If(#def, ()->text⟦
+       {
+          switch (subi)
+          {
+            †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppGetSub(isvar, index))⟩
+            default: return Optional<tosca::Term>::nullopt;
+          }
+       }⟧, ()->text⟦;⟧)⟩
+   ⟧)
+
+func CppGetSub(Bool, Numeric) -> Text4_text_sort
+
+  rule CppGetSub(FALSE, #index)
+  → text⟦case ⟨STRING: FormatInteger(#index)⟩: return make_optional<tosca::Term>(*†⟨FieldName(#index)⟩);⟧
+
+  rule CppGetSub(TRUE, #index) // this is a scoped variable, not a sub. Skip.
+  → text⟦⟧
+
+/* Generate the generic SetSub function for the given `#form` */
+func CppFormSetSub(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
+→ TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦
+     †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+     void †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩SetSub(int subi, tosca::Term& sub)†⟨
+     If(#def, ()->text⟦
+       {
+          switch (subi)
+          {
+            †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppSetSub(isvar, type, index))⟩
+            default: assert(false);
+          }
+       }⟧, ()->text⟦;⟧)⟩
+   ⟧)
+
+func CppSetSub(Bool, Text4_text_sort, Numeric) -> Text4_text_sort
+
+  rule CppSetSub(FALSE, #type, #index)
+  → text⟦case †⟨NumberToText(#index)⟩:
+           if (†⟨FieldName(#index)⟩)
+             †⟨FieldName(#index)⟩->Release();
+           †⟨FieldName(#index)⟩ = dynamic_cast<†⟨#type⟩*>(&sub);⟧
+
+  rule CppSetSub(TRUE, #type, #index) // this is a scoped variable, not a sub. Skip.
+  → text⟦⟧
+
+/* Generate the generic Binder function for the given `#form` */
+func CppFormGetBinder(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
+→ TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦
+     †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+     Optional<tosca::Variable> †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Binder(int subi, int binderi)†⟨
+     If(#def, ()->text⟦
+       {
+          switch (subi)
+          {
+            †⟨CppGetSubBinders(MaybeSortsToSorts(#csorts?), 1)⟩
+            default: return Optional<tosca::Variable>::nullopt;
+          }
+       }⟧, ()->text⟦;⟧)⟩
+   ⟧)
+
+func CppGetSubBinders(List<Core_csort_sort>, Numeric) -> Text4_text_sort
+
+  rule CppGetSubBinders(csort*⟦⟧, #index)
+  → text⟦⟧
+
+  rule CppGetSubBinders(csort*⟦ ##csort ##csort* ⟧, #index)
+  → text⟦
+      †⟨If(HasBindersSort(#csort),
+          ()->text⟦
+            case †⟨NumberToText(#index)⟩:
+            {
+              switch (binderi) {
+                †⟨CppClassField(CppTypes(#csort), #index, 1, (isvar type index subindex)->CppGetBinder(isvar, index, subindex))⟩
+                default: return Optional<Variable>::nullopt;
+              }
+            }⟧,
+           ()->text⟦⟧)⟩
+      †⟨CppGetSubBinders(#csort*, Plus(#index, 1))⟩⟧
+
+func CppGetBinder(Bool, Numeric, Numeric) -> Text4_text_sort
+
+  rule CppGetBinder(FALSE, #index, #subindex)
+  → text⟦⟧
+
+  rule CppGetBinder(TRUE, #index, #subindex)
+  → text⟦
+      case †⟨NumberToText(#subindex)⟩: return *†⟨VarFieldName(#index, #subindex)⟩;⟧
+
+  /* Generate the generic SetBinder function for the given `#form` */
+  func CppFormSetBinder(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
+  → TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦
+       †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+       void †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩SetBinder(int subi, int binderi, tosca::Variable& var)†⟨
+       If(#def, ()->text⟦
+         {
+            switch (subi)
+            {
+              †⟨CppSetSubBinders(MaybeSortsToSorts(#csorts?), 1)⟩
+              default: assert(false);
+            }
+         }⟧, ()->text⟦;⟧)⟩
+     ⟧)
+
+  func CppSetSubBinders(List<Core_csort_sort>, Numeric) -> Text4_text_sort
+
+    rule CppSetSubBinders(csort*⟦⟧, #index)
+    → text⟦⟧
+
+    rule CppSetSubBinders(csort*⟦ ##csort ##csort* ⟧, #index)
+    → text⟦
+        †⟨If(HasBindersSort(#csort),
+            ()->text⟦
+              case †⟨NumberToText(#index)⟩:
+              {
+                switch (binderi) {
+                  †⟨CppClassField(CppTypes(#csort), #index, 1, (isvar type index subindex)->CppSetBinder(isvar, type, index, subindex))⟩
+                  default: assert(false);
+                }
+              }⟧,
+             ()->text⟦⟧)⟩
+        †⟨CppSetSubBinders(#csort*, Plus(#index, 1))⟩⟧
+
+  func CppSetBinder(Bool, Text4_text_sort, Numeric, Numeric) -> Text4_text_sort
+
+    rule CppSetBinder(FALSE, #type, #index, #subindex)
+    → text⟦⟧
+
+    rule CppSetBinder(TRUE, #type, #index, #subindex)
+    → text⟦
+        case †⟨NumberToText(#subindex)⟩:
+          if (†⟨VarFieldName(#index, #subindex)⟩)
+            †⟨VarFieldName(#index, #subindex)⟩->Release();
+          †⟨VarFieldName(#index, #subindex)⟩ = dynamic_cast<†⟨#type⟩*>(&var);⟧
+
+
+// --- Generate code for class field declarations, initialization, lookup, and update.
 
 /* Generic form sorts traversal */
 func MaybeCppClassFields(List<Core_csorts_sort>, (Bool Text4_text_sort Numeric Numeric)->Text4_text_sort) -> Text4_text_sort
@@ -230,6 +365,7 @@ func MaybeCppClassFields(List<Core_csorts_sort>, (Bool Text4_text_sort Numeric N
   → CppClassFields(#csort*, 1, #print)
 
 func CppClassFields(List<Core_csort_sort>, Numeric, (Bool Text4_text_sort Numeric Numeric)->Text4_text_sort) -> Text4_text_sort
+
   rule CppClassFields(csort*⟦⟧, #index, #print)
   → text⟦⟧
 
@@ -237,10 +373,11 @@ func CppClassFields(List<Core_csort_sort>, Numeric, (Bool Text4_text_sort Numeri
   → text⟦†⟨CppClassField(CppTypes(#csort), #index, 1, #print)⟩†⟨CppClassFields(#csort*, Plus(#index, 1), #print)⟩⟧
 
 func CppClassField(List<Text4_text_sort>, Numeric, Numeric, (Bool Text4_text_sort Numeric Numeric)->Text4_text_sort) -> Text4_text_sort
-  rule CppClassField(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex, #print)
+
+  rule CppClassField((#type,), #index, #subindex, #print)
   → #print(FALSE, #type, #index, #subindex)
 
-  rule CppClassField(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex, #print)
+  rule CppClassField((#type, #types...), #index, #subindex, #print)
   → text⟦†⟨#print(TRUE, #type, #index, #subindex)⟩†⟨CppClassField(#types, #index, Plus(#subindex, 1), #print)⟩⟧
 
 func FieldName(#index: Numeric) -> Text4_text_sort
@@ -255,8 +392,8 @@ func FieldSep(#sep: Text4_text_sort, #index: Numeric, #subindex: Numeric) -> Tex
 
 /* Field initialization helper */
 func CppInitField(Bool, Text4_text_sort, Numeric, Numeric) -> Text4_text_sort
-rule CppInitField(FALSE, #type, #index, #subindex) → text⟦†⟨FieldSep(text⟦, ⟧, #index, #subindex)⟩†⟨FieldName(#index)⟩(†⟨ParamName(#index)⟩)⟧
-rule CppInitField(TRUE, #type, #index, #subindex)  → text⟦†⟨FieldSep(text⟦, ⟧, #index, #subindex)⟩†⟨VarFieldName(#index, #subindex)⟩(†⟨VarParamName(#index, #subindex)⟩)⟧
+rule CppInitField(FALSE, #type, #index, #subindex) → text⟦†⟨FieldSep(text⟦, ⟧, #index, #subindex)⟩†⟨FieldName(#index)⟩(&†⟨ParamName(#index)⟩)⟧
+rule CppInitField(TRUE, #type, #index, #subindex)  → text⟦†⟨FieldSep(text⟦, ⟧, #index, #subindex)⟩†⟨VarFieldName(#index, #subindex)⟩(&†⟨VarParamName(#index, #subindex)⟩)⟧
 
 // --- Function translation functions
 

@@ -6,7 +6,7 @@
 
 namespace tosca {
     
-    BufferSink::BufferSink(Context& ctx): Sink(ctx), term(nullptr)
+    BufferSink::BufferSink(Context& ctx): Sink(ctx), term(0)
     {
     };
     
@@ -37,14 +37,15 @@ namespace tosca {
         }
     }
     
-    Sink& BufferSink::Start(const std::string& symbol)
+    Sink& BufferSink::Start(const StringTerm& symbol)
     {
-        Term& sub = GetContext().MakeConstructor(symbol);
-        AddSub(sub);
-        
-        terms.push_back(&sub);
-        subIndex.push_back(0);
-        binderIndex.push_back(0);
+        std::cout << symbol.Unbox();
+//        Term& sub = GetContext().MakeConstructor(symbol);
+//        AddSub(sub);
+//        
+//        terms.push_back(&sub);
+//        subIndex.push_back(0);
+//        binderIndex.push_back(0);
         
         return *this;
     }
@@ -63,7 +64,7 @@ namespace tosca {
         return *this;
     }
     
-    Sink& BufferSink::Bind(const Variable& binder)
+    Sink& BufferSink::Bind(Variable& binder)
     {
         Term& term = *terms.back();
         int bindex = binderIndex.back();

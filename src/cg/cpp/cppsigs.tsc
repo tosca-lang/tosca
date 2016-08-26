@@ -82,6 +82,10 @@ func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Tex
         †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
         †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩
         †⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
+        †⟨CppFormGetSub(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
+        †⟨CppFormSetSub(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
+        †⟨CppFormGetBinder(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
+        †⟨CppFormSetBinder(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
 
       protected:
         †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppDeclField(isvar, type, index, subindex))⟩
@@ -111,5 +115,5 @@ func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Tex
 
 /* Field declaration helper */
 func CppDeclField(Bool, Text4_text_sort, Numeric, Numeric) -> Text4_text_sort
-rule CppDeclField(FALSE, #type, #index, #subindex) → text⟦†⟨#type⟩& †⟨FieldName(#index)⟩;⟧
-rule CppDeclField(TRUE, #type, #index, #subindex)  → text⟦†⟨#type⟩& †⟨VarFieldName(#index, #subindex)⟩;⟧
+rule CppDeclField(FALSE, #type, #index, #subindex) → text⟦†⟨#type⟩* †⟨FieldName(#index)⟩;⟧
+rule CppDeclField(TRUE, #type, #index, #subindex)  → text⟦†⟨#type⟩* †⟨VarFieldName(#index, #subindex)⟩;⟧

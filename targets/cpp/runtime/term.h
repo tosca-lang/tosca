@@ -96,23 +96,23 @@ namespace tosca {
          * @param i subterm index. Must be >=0 and < number of subs
          * @param j subbinder index.  Must be >=0 and < number of binders for the given sub
          */
-        virtual void SetBinder(int i, int j, const Variable& var)
+        virtual void SetBinder(int i, int j, Variable& var)
         {
             assert(false);
         }
         
-        /**
-         * Evaluates thunk (if needed).
-         *
-         * The reference to this term is consumed.
-         *
-         * @param context
-         * @return A new reference to the evaluated term. It might still be a thunk if the evaluation has been interrupted
-         */
-        virtual Term Eval(Context& ctx)
-        {
-            return *this;
-        }
+//        /**
+//         * Evaluates thunk (if needed).
+//         *
+//         * The reference to this term is consumed.
+//         *
+//         * @param context
+//         * @return A new reference to the evaluated term. It might still be a thunk if the evaluation has been interrupted
+//         */
+//        virtual Term Eval(Context& ctx)
+//        {
+//            return *this;
+//        }
         
         inline bool operator==(const Term& rhs)
         {
@@ -195,7 +195,7 @@ namespace tosca {
         unsigned long uses;
         
         /* @Brief Create an new use of this variable */
-        Term& GUse();
+        virtual Term& GUse();
         
         friend class BufferSink;
     };
@@ -256,7 +256,7 @@ namespace tosca {
     class CStringTerm: public StringTerm
     {
     protected:
-        /** The string value. A reference to it so that we can unbox it. */
+        /** The string value. A reference so that we can unbox it. */
         const std::string& value;
         
     public:
@@ -284,8 +284,8 @@ namespace tosca {
     {
     public:
         CStringTermVar(std::string&& name);
-        CStringTermVarUse& Use();
-        
+        StringTerm& Use();
+        Term& GUse();
     };
     
     
@@ -348,6 +348,8 @@ namespace tosca {
     {
     public:
         CDoubleTermVar(std::string&& name);
+        virtual DoubleTerm& Use();
+        virtual Term& GUse();
     };
     
    

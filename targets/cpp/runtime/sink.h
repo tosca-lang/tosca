@@ -43,7 +43,7 @@ public:
      * @param descriptor of the construction
      * @return this sink
      */
-    virtual Sink& Start(const std::string& symbol) = 0;
+    virtual Sink& Start(const StringTerm& symbol) = 0;
     
     /**
      * End of construction.
@@ -58,7 +58,7 @@ public:
      * @param binder to be bound here. The variable reference is used by this method.
      * @return this sink.
      */
-    virtual Sink& Bind(const Variable& binder) = 0;
+    virtual Sink& Bind(Variable& binder) = 0;
     
     /**
      * Insert variable occurrence subterm.
@@ -66,7 +66,7 @@ public:
      * @param variable to reference. The variable reference is used by this method.
      * @return this sink
      */
-    virtual Sink& Use(const Variable& variable) = 0;
+    virtual Sink& Use(Variable& variable) = 0;
     
     /**
      * Insert string literal subterm.
@@ -74,20 +74,13 @@ public:
      * @param literal to add
      * @return this sink
      */
-    virtual Sink& Literal(const StringTerm& literal) = 0;
-    
-    /**
-     * Insert double literal subterm.
-     *
-     * @return this sink
-     */
-    virtual Sink& Literal(const DoubleTerm& literal) = 0;
+    virtual Sink& Literal(const std::string& literal) = 0;
     
     /**
      * Copy given term. Reference is consumed.
      * @param term
      */
-    virtual Sink& Copy(const Term& term) = 0;
+    virtual Sink& Copy(Term& term) = 0;
     
     /**
      * @return the context

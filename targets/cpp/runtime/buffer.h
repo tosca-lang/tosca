@@ -17,9 +17,9 @@ class BufferSink: public Sink
 public:
     BufferSink(Context& context);
     
-    Sink& Start(const std::string& symbol);
+    Sink& Start(const StringTerm& symbol);
     Sink& End();
-    Sink& Bind(const Variable& binder);
+    Sink& Bind(Variable& binder);
     Sink& Use(Variable& variable);
     Sink& Literal(const std::string& literal);
     Sink& Copy(Term& term);

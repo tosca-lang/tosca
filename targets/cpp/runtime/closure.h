@@ -117,7 +117,7 @@
 
 #define BASE_CLOSURE(free)                                                                      \
   template<typename R TYPENAME(free) >                                                          \
-  class Closure ## free : public tosca::Ref                                                     \
+  class Closure ## free : public tosca::Term                                                    \
   {                                                                                             \
   public:                                                                                       \
     virtual R& Eval(tosca::Context& ctx PARAM(free)) = 0;                                       \

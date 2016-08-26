@@ -345,10 +345,10 @@ func SortsToGetSubs(List<Core_csort_sort>, Numeric) -> Text4_text_sort
 
 func SortToGetSubs(List<Text4_text_sort>, Numeric, Numeric) -> Text4_text_sort
 
-  rule SortToGetSubs(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex)
+  rule SortToGetSubs(Cons(#type, Nil), #index, #subindex)
   → text⟦case †⟨NumberToText(#index)⟩: return field†⟨FieldSuffix(Plus(#index, 1))⟩;⟧
 
-  rule SortToGetSubs(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex)
+  rule SortToGetSubs(Cons(#type, #types), #index, #subindex)
   → SortToGetSubs(#types, #index, Plus(#subindex, 1))
 
 // --- SetSub function
@@ -571,14 +571,6 @@ func HasBinders(List<Core_csort_sort>) -> Bool
   rule HasBinders(csort*⟦ ##csort ##csort* ⟧)
   → Or(HasBindersSort(#csort), HasBinders(#csort*))
 
-func HasBindersSort(Core_csort_sort) -> Bool
-  rule HasBindersSort(csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → FALSE
-  rule HasBindersSort(csort⟦ ##VARIABLE ⟧)              → FALSE
-  rule HasBindersSort(csort⟦ [ ##csort ] ##csort2 ⟧)    → TRUE
-  rule HasBindersSort(csort⟦ ( ##csort ) ##csort2 ⟧)    → HasBindersSort(#csort2)
-  rule HasBindersSort(csort⟦ { ##cmapsort } ⟧)          → FALSE
-  rule HasBindersSort(csort⟦ data ##csort ⟧)            → HasBindersSort(#csort)
-  rule HasBindersSort(csort⟦ thunk ##csort ⟧)           → HasBindersSort(#csort)
 
 /** Generate classname corresponding to an enumeration value */
 func EValueClassName(String) -> Text4_text_sort
