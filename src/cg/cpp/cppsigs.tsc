@@ -26,15 +26,22 @@ func CppSigs(#module: Module) -> Text4_text_sort
 †⟨CppIncludeTypes(GetImports(GetModuleContent(#module)))⟩
 
 using tosca::StringTerm;
+using tosca::CStringTerm;
 using tosca::DoubleTerm;
 using tosca::MapTerm;
 using tosca::Context;
 
 // Enumeration declarations
-†⟨CppClassDecls(MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
+†⟨CppClassDecls(MapValues(GetDataSortsM(#module)))⟩
 
 // Function forward declarations
-†⟨CppForwardDecls (MapValues(GetFuncSorts(GetModuleContent(#module))))⟩
+†⟨CppForwardDecls (MapValues(GetFuncSortsM(#module)))⟩
+
+// Initialize data symbols
+†⟨CppGlobalData(MapValues(GetDataSortsM(#module)))⟩
+
+/* @Brief Initialize module. Register data symbols and variable types */
+void InitModule_⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩(Context& context);
 #endif⟧
 
 /* Generate C++ header guard */
@@ -80,6 +87,7 @@ func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Tex
       {
       public:
         †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
+        †⟨CppFormMethodMake(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
         †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩
         †⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
         †⟨CppFormGetSub(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
@@ -89,6 +97,7 @@ func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Tex
 
       protected:
         †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppDeclField(isvar, type, index, subindex))⟩
+        †⟨CppFormDefaultConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
       };⟧
 
   rule CppFormClassDecl(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
@@ -117,3 +126,23 @@ func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Tex
 func CppDeclField(Bool, Text4_text_sort, Numeric, Numeric) -> Text4_text_sort
 rule CppDeclField(FALSE, #type, #index, #subindex) → text⟦†⟨#type⟩* †⟨FieldName(#index)⟩;⟧
 rule CppDeclField(TRUE, #type, #index, #subindex)  → text⟦†⟨#type⟩* †⟨VarFieldName(#index, #subindex)⟩;⟧
+
+// --------- Global constants for data forms
+
+/* Generate class and method signatures for data sorts */
+func CppGlobalData(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
+→ TextFoldES(Map((decl) -> CppGlobalDataDecl(decl), #datasorts))
+
+func CppGlobalDataDecl(Core_cdecl_sort) -> Text4_text_sort
+rule CppGlobalDataDecl(cdecl⟦ data ##CONSTRUCTOR ( ##cform* ) ⟧) → TextFoldES(Map((form) -> CppGlobalDataForm(#CONSTRUCTOR, form), #cform*))
+rule CppGlobalDataDecl(#cdecl)                                   → text⟦⟧
+
+func CppGlobalDataForm(String, Core_cform_sort) -> Text4_text_sort
+
+  rule CppGlobalDataForm(#sortname, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  → text⟦
+       const CStringTerm GC†⟨STRING: Mangle(#CONSTRUCTOR)⟩(†⟨Text-QuoteEscape(#CONSTRUCTOR)⟩);⟧
+
+  rule CppGlobalDataForm(#sortname, cform⟦ allows-variable ⟧)
+  → text⟦
+       const CStringTerm GT†⟨STRING: Mangle(#sortname)⟩(†⟨Text-QuoteEscape(#sortname)⟩);⟧

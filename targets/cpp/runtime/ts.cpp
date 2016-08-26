@@ -6,9 +6,9 @@ namespace tosca {
     Context::Context()
     {}
     
-    Term& Context::MakeConstructor(const std::string& symbol)
+    Term& Context::MakeConstructor(const StringTerm& symbol)
     {
-        auto search = factories.find(symbol);
+        auto search = factories.find(&symbol);
         if (search == factories.end())
         {
             throw std::runtime_error("Internal Error: symbol not registered.");
@@ -16,9 +16,15 @@ namespace tosca {
         return search->second(*this);
     }
     
-    void Context::Register(const std::string& symbol, const TermFactory factory)
+    void Context::Register(const StringTerm& symbol, const TermFactory factory)
     {
-        factories[symbol] = factory;
+        factories[&symbol] = factory;
     }
+    
+    void Context::RegisterVariable(const StringTerm& type, const VarFactory factory)
+    {
+        varFactories[&type] = factory;
+    }
+
     
 }

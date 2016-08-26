@@ -411,6 +411,28 @@ namespace std
         }
     };
     
+    // String
+    template<>
+    struct hash<const tosca::StringTerm*>
+    {
+    public:
+        size_t operator()(const tosca::StringTerm*str) const
+        {
+            std::hash<std::string> str_hash;
+            return str_hash(str->Unbox());
+        }
+    };
+    
+    template<>
+    struct equal_to<const tosca::StringTerm*>
+    {
+    public:
+        bool operator()(const tosca::StringTerm* lhs, const tosca::StringTerm* rhs) const
+        {
+            return lhs->Unbox() == rhs->Unbox();
+        }
+    };
+    
     // Variable
     template<>
     struct hash<std::reference_wrapper<tosca::Variable>>

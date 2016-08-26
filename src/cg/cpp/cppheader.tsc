@@ -72,6 +72,8 @@ func CppFormMethod(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_
   rule CppFormMethod(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
       †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
+      †⟨CppFormDefaultConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
+      †⟨CppFormMethodMake(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
       †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
       †⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩
       †⟨CppFormGetSub(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, TRUE)⟩

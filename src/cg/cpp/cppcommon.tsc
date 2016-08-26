@@ -121,6 +121,7 @@ func CppVarMethodGUse(#sortname: String, #csortvars?:List<Core_csortvars_sort>, 
        return Use();
       }⟧, ()->text⟦;⟧)⟩
   ⟧
+
 /* Generate class constructor corresponding to the given `#formname`. */
 func CppFormConstructor(#sortname: String, #csortvars?: List<Core_csortvars_sort>, #formname: String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
 → text⟦
@@ -129,6 +130,26 @@ func CppFormConstructor(#sortname: String, #csortvars?: List<Core_csortvars_sort
     If(#def,
       ()->text⟦†⟨TextIf(HasSorts(#csorts?),
         ()->text⟦: †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppInitField(isvar, type, index, subindex))⟩⟧)⟩{}⟧,
+      ()->text⟦;⟧)⟩⟧
+
+/* Generate default class constructor corresponding to the given `#formname`. Only if not a constant, since otherwise it has already been generated. */
+func CppFormDefaultConstructor(#sortname: String, #csortvars?: List<Core_csortvars_sort>, #formname: String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
+→ TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦
+    †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+    †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩†⟨FormCppClassName(#formname)⟩()†⟨
+    If(#def,
+      ()->text⟦†⟨TextIf(HasSorts(#csorts?),
+        ()->text⟦: †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppNullifyField(isvar, type, index, subindex))⟩⟧)⟩{}⟧,
+      ()->text⟦;⟧)⟩⟧)
+
+
+/* Generate static Make function corresponding to the given `#formname`.*/
+func CppFormMethodMake(#sortname: String, #csortvars?: List<Core_csortvars_sort>, #formname: String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
+→ text⟦
+    †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+    †⟨TextIf(Not(#def), ()->text⟦static ⟧)⟩tosca::Term& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Make(Context& ctx)†⟨
+    If(#def,
+      ()->text⟦{ return *(new †⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩()); }⟧,
       ()->text⟦;⟧)⟩⟧
 
 /* Generate method Use corresponding to the given `#sortname`. */
@@ -255,17 +276,18 @@ func CppFormSetSub(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #fo
 func CppSetSub(Bool, Text4_text_sort, Numeric) -> Text4_text_sort
 
   rule CppSetSub(FALSE, #type, #index)
-  → text⟦case †⟨NumberToText(#index)⟩:
+  → text⟦case †⟨NumberToText(Minus(#index, 1))⟩:
            if (†⟨FieldName(#index)⟩)
              †⟨FieldName(#index)⟩->Release();
-           †⟨FieldName(#index)⟩ = dynamic_cast<†⟨#type⟩*>(&sub);⟧
+           †⟨FieldName(#index)⟩ = dynamic_cast<†⟨#type⟩*>(&sub);
+           break;⟧
 
   rule CppSetSub(TRUE, #type, #index) // this is a scoped variable, not a sub. Skip.
   → text⟦⟧
 
 /* Generate the generic Binder function for the given `#form` */
 func CppFormGetBinder(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
-→ TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦
+→ TextIf(HasBindersSorts(MaybeSortsToSorts(#csorts?)), ()->text⟦
      †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
      Optional<tosca::Variable> †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Binder(int subi, int binderi)†⟨
      If(#def, ()->text⟦
@@ -287,7 +309,7 @@ func CppGetSubBinders(List<Core_csort_sort>, Numeric) -> Text4_text_sort
   → text⟦
       †⟨If(HasBindersSort(#csort),
           ()->text⟦
-            case †⟨NumberToText(#index)⟩:
+            case †⟨NumberToText(Minus(#index, 1))⟩:
             {
               switch (binderi) {
                 †⟨CppClassField(CppTypes(#csort), #index, 1, (isvar type index subindex)->CppGetBinder(isvar, index, subindex))⟩
@@ -308,7 +330,7 @@ func CppGetBinder(Bool, Numeric, Numeric) -> Text4_text_sort
 
   /* Generate the generic SetBinder function for the given `#form` */
   func CppFormSetBinder(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
-  → TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦
+  → TextIf(HasBindersSorts(MaybeSortsToSorts(#csorts?)), ()->text⟦
        †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
        void †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩SetBinder(int subi, int binderi, tosca::Variable& var)†⟨
        If(#def, ()->text⟦
@@ -316,6 +338,7 @@ func CppGetBinder(Bool, Numeric, Numeric) -> Text4_text_sort
             switch (subi)
             {
               †⟨CppSetSubBinders(MaybeSortsToSorts(#csorts?), 1)⟩
+              break;
               default: assert(false);
             }
          }⟧, ()->text⟦;⟧)⟩
@@ -330,7 +353,7 @@ func CppGetBinder(Bool, Numeric, Numeric) -> Text4_text_sort
     → text⟦
         †⟨If(HasBindersSort(#csort),
             ()->text⟦
-              case †⟨NumberToText(#index)⟩:
+              case †⟨NumberToText(Minus(#index, 1))⟩:
               {
                 switch (binderi) {
                   †⟨CppClassField(CppTypes(#csort), #index, 1, (isvar type index subindex)->CppSetBinder(isvar, type, index, subindex))⟩
@@ -347,7 +370,7 @@ func CppGetBinder(Bool, Numeric, Numeric) -> Text4_text_sort
 
     rule CppSetBinder(TRUE, #type, #index, #subindex)
     → text⟦
-        case †⟨NumberToText(#subindex)⟩:
+        case †⟨NumberToText(Minus(#subindex, 1))⟩:
           if (†⟨VarFieldName(#index, #subindex)⟩)
             †⟨VarFieldName(#index, #subindex)⟩->Release();
           †⟨VarFieldName(#index, #subindex)⟩ = dynamic_cast<†⟨#type⟩*>(&var);⟧
@@ -394,6 +417,11 @@ func FieldSep(#sep: Text4_text_sort, #index: Numeric, #subindex: Numeric) -> Tex
 func CppInitField(Bool, Text4_text_sort, Numeric, Numeric) -> Text4_text_sort
 rule CppInitField(FALSE, #type, #index, #subindex) → text⟦†⟨FieldSep(text⟦, ⟧, #index, #subindex)⟩†⟨FieldName(#index)⟩(&†⟨ParamName(#index)⟩)⟧
 rule CppInitField(TRUE, #type, #index, #subindex)  → text⟦†⟨FieldSep(text⟦, ⟧, #index, #subindex)⟩†⟨VarFieldName(#index, #subindex)⟩(&†⟨VarParamName(#index, #subindex)⟩)⟧
+
+/* Field nullification  helper */
+func CppNullifyField(Bool, Text4_text_sort, Numeric, Numeric) -> Text4_text_sort
+rule CppNullifyField(FALSE, #type, #index, #subindex) → text⟦†⟨FieldSep(text⟦, ⟧, #index, #subindex)⟩†⟨FieldName(#index)⟩(0)⟧
+rule CppNullifyField(TRUE, #type, #index, #subindex)  → text⟦†⟨FieldSep(text⟦, ⟧, #index, #subindex)⟩†⟨VarFieldName(#index, #subindex)⟩(0)⟧
 
 // --- Function translation functions
 

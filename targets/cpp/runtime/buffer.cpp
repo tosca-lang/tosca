@@ -39,13 +39,12 @@ namespace tosca {
     
     Sink& BufferSink::Start(const StringTerm& symbol)
     {
-        std::cout << symbol.Unbox();
-//        Term& sub = GetContext().MakeConstructor(symbol);
-//        AddSub(sub);
-//        
-//        terms.push_back(&sub);
-//        subIndex.push_back(0);
-//        binderIndex.push_back(0);
+        Term& sub = GetContext().MakeConstructor(symbol);
+        AddSub(sub);
+        
+        terms.push_back(&sub);
+        subIndex.push_back(0);
+        binderIndex.push_back(0);
         
         return *this;
     }

@@ -101,18 +101,18 @@ func AfterLast(String, String) -> String
 func AfterLast2(String, String) -> String
 rule AfterLast2(#string, #sep) → AfterLast(#string, #sep)
 
-func BeforeLast(String, String) -> String
 
-rule BeforeLast(#String, #Sep)
-→ If<String>(Contains(#String, #Sep),
-    ()->BeforeLast2(BeforeFirst(#String, #Sep), #Sep, BeforeLast(AfterFirst(#String, #Sep), #Sep)),
+/* @return the string before the last given `#sep` string.
+   If `#sep` is not found in `#string`, return the empty string */
+func BeforeLast(#string: String, #sep:String) -> String
+→ If(Contains(#string, #sep),
+    ()->BeforeLast-Helper(BeforeFirst(#string, #sep), #sep, BeforeLast(AfterFirst(#string, #sep), #sep)),
     ()->"")
 
-func BeforeLast2(String, String, String) -> String
-rule BeforeLast2(#Before, #Sep, #After)
-→ If<String>(StringEqual(#After, ""),
-    ()->#Before,
-    ()->ConcatString(#Before, ConcatString(#Sep, #After)))
+func BeforeLast-Helper(#before: String, #sep: String, #after: String) -> String
+→ If(StringEqual(#after, ""),
+    ()->#before,
+    ()->ConcatString(#before, ConcatString(#sep, #after)))
 
 /* Returns a new String joining the given list of strings together with the specified separator.*/
 func Join(List<String>, String) -> String

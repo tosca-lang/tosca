@@ -12,6 +12,7 @@
 namespace tosca {
     
     typedef Term& (*TermFactory)(Context&);
+    typedef Variable& (*VarFactory)(std::string&& hint);
     
     class Context
     {
@@ -24,19 +25,34 @@ namespace tosca {
          * @param symbol
          * @return A term, or an exception when symbol hasn't been registered
          */
-        Term& MakeConstructor(const std::string& symbol);
+        Term& MakeConstructor(const StringTerm& symbol);
         
         /**
          * Register symbol
          *
          * @param symbol
-         * @param desc
+         * @param factory
          */
-        void Register(const std::string& symbol, const TermFactory factory);
+        void Register(const StringTerm& symbol, const TermFactory factory);
+        
+        
+        /**
+         * Register factory for the specified variable type.
+         *
+         * @param type
+         * @param factory
+         */
+        void RegisterVariable(const StringTerm& type, const VarFactory factory);
+        
+
     private:
         
         // The factories
-        std::unordered_map<std::string, TermFactory> factories;
+        std::unordered_map<const StringTerm*, TermFactory> factories;
+        
+        // The variable factories
+        std::unordered_map<const StringTerm*, VarFactory> varFactories;
+
     };
 }
 

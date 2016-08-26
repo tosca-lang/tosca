@@ -172,13 +172,17 @@ func GetBoundVarSorts(Core_csort_sort) -> List<Core_csort_sort>
 rule GetBoundVarSorts(csort⟦ [ ##csort1 ] ##csort2 ⟧)  → Cons(#csort1, GetBoundVarSorts(#csort2))
 rule GetBoundVarSorts(#csort                       )  → ()
 
-/* @return `TRUE` is the given sort defines at least one scoped variable */
+/* @return `TRUE` is the given `#csort` defines at least one scoped variable */
 func HasBindersSort(Core_csort_sort) -> Bool
 rule HasBindersSort(csort⟦ [ ##csort ] ##csort2 ⟧) → TRUE
 rule HasBindersSort(csort⟦ ( ##csort ) ##csort2 ⟧) → HasBindersSort(#csort2)
 rule HasBindersSort(csort⟦ data ##csort ⟧)         → HasBindersSort(#csort)
 rule HasBindersSort(csort⟦ thunk ##csort ⟧)        → HasBindersSort(#csort)
 rule HasBindersSort(#csort)                        → FALSE
+
+/* @return `TRUE` is the given list of `#csorts` defines at least one scoped variable */
+func HasBindersSorts(#csorts: List<Core_csort_sort>) -> Bool
+→ HasOption(PickFirst(#csorts, (csort)->HasBindersSort(csort)))
 
 /* @return the sort without binder sorts */
 func GetFOSort(Core_csort_sort) -> Core_csort_sort
