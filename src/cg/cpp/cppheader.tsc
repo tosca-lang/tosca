@@ -86,7 +86,8 @@ func CppFormMethod(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_
       †⟨CppVarMethodUse(#sortname, #csortvars?, TRUE)⟩
       †⟨CppVarMethodGUse(#sortname, #csortvars?, TRUE)⟩
       †⟨CppVarConstructorUse(#sortname, #csortvars?, TRUE)⟩
-      †⟨CppVarMethodGetVariable(#sortname, #csortvars?, TRUE)⟩⟧
+      †⟨CppVarMethodGetVariable(#sortname, #csortvars?, TRUE)⟩
+      †⟨CppVarMethodGetGVariable(#sortname, #csortvars?, TRUE)⟩⟧
 
 // --------- Templated function definitions
 

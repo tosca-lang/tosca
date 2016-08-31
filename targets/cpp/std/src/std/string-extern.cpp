@@ -96,10 +96,16 @@ StringTerm& DownCase(Context& ctx, StringTerm& str)
     throw new std::runtime_error("");
 }
 
-StringTerm& Substring(Context& ctx, StringTerm& str1, DoubleTerm& str2, DoubleTerm& str3)
+StringTerm& Substring(Context& ctx, StringTerm& str, DoubleTerm& from, DoubleTerm& to)
 {
-    throw new std::runtime_error("");
-
+    const std::string& ustr = str.Unbox();
+    std::string::size_type pos = static_cast<std::string::size_type>(from.Unbox());
+    std::string::size_type end = static_cast<std::string::size_type>(to.Unbox());
+    std::string::size_type count = end > pos ? end - pos : 0;
+    StringTerm& result = newStringTerm(ustr.substr(pos, count));
+    str.Release();
+    from.Release();
+    return result;
 }
 
 StringTerm& Substring2(Context& ctx, StringTerm& str, DoubleTerm& from)

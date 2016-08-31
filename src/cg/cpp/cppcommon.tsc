@@ -79,7 +79,7 @@ func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> T
       †⟨CppTemplatePrefix(#csortvars?)⟩
       †⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VAR)⟩& †⟨CppFnName(ConcatString("var", #sortname))⟩(std::string&& hint)†⟨
       If(#def, ()->text⟦{
-        return *(new †⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VAR)⟩(std::move(hint)));
+        return *(new †⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VAR)⟩(hint));
       }⟧, ()->text⟦;⟧)⟩
     ⟧
 
@@ -181,7 +181,19 @@ func CppVarMethodGetVariable(#sortname: String, #csortvars?:List<Core_csortvars_
    Optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩> †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩GetVariable() const†⟨
    If(#def,
      ()->text⟦{
-         return make_optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩>(*dynamic_cast<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩*>(&VariableUse::GetGVariable().value()));
+         return make_optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩>(dynamic_cast<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩&>(VariableUse::GetGVariable().value()));
+       }⟧,
+     ()->text⟦;⟧)⟩
+  ⟧
+
+/* Generate method GetGVariable corresponding to the given `#sortname`. Needed to resolve multiple inheritance ambiguity. */
+func CppVarMethodGetGVariable(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
+→ text⟦
+   †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+   Optional<tosca::Variable> †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩GetGVariable() const†⟨
+   If(#def,
+     ()->text⟦{
+         return VariableUse::GetGVariable();
        }⟧,
      ()->text⟦;⟧)⟩
   ⟧
@@ -190,11 +202,31 @@ func CppVarMethodGetVariable(#sortname: String, #csortvars?:List<Core_csortvars_
 func CppVarConstructorVar(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
 → text⟦
    †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-   †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩(std::string&& name)†⟨
+   †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩(std::string& name)†⟨
    If(#def,
-     ()->text⟦: tosca::Variable(std::move(name)) {}⟧,
+     ()->text⟦: tosca::Variable(name) {}⟧,
      ()->text⟦;⟧)⟩
   ⟧
+
+/* Generate the Symbol method for the given `#formname`. */
+func CppFormMethodSymbol(String, List<Core_csortvars_sort>, String, Bool) -> Text4_text_sort
+rule CppFormMethodSymbol(#sortname, #csortvars?, #formname, #def)
+→ text⟦
+  †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+  †⟨TextIf(Not(#def), ()->text⟦virtual ⟧)⟩std::string& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Symbol() const†⟨
+  If(#def, ()->text⟦{
+     return *(new std::string(†⟨Text-QuoteEscape(#formname)⟩));
+  }⟧, ()->text⟦;⟧)⟩⟧
+
+  /* Generate the Symbol method for the given `#sortname`. */
+  func CppVarMethodSymbol(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
+  → text⟦
+    †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+    †⟨TextIf(Not(#def), ()->text⟦virtual ⟧)⟩std::string& †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩Symbol() const†⟨
+    If(#def, ()->text⟦{
+       return VariableUse::Symbol();
+    }⟧, ()->text⟦;⟧)⟩⟧
+
 
 /* Generate overridden lookup method (the 'as' method) for the given `formname`. */
 func CppFormMethodAs(String, List<Core_csortvars_sort>, String, Bool) -> Text4_text_sort
@@ -279,7 +311,7 @@ func CppSetSub(Bool, Text4_text_sort, Numeric) -> Text4_text_sort
   → text⟦case †⟨NumberToText(Minus(#index, 1))⟩:
            if (†⟨FieldName(#index)⟩)
              †⟨FieldName(#index)⟩->Release();
-           †⟨FieldName(#index)⟩ = dynamic_cast<†⟨#type⟩*>(&sub);
+           †⟨FieldName(#index)⟩ = &dynamic_cast<†⟨#type⟩&>(sub);
            break;⟧
 
   rule CppSetSub(TRUE, #type, #index) // this is a scoped variable, not a sub. Skip.
@@ -373,7 +405,7 @@ func CppGetBinder(Bool, Numeric, Numeric) -> Text4_text_sort
         case †⟨NumberToText(Minus(#subindex, 1))⟩:
           if (†⟨VarFieldName(#index, #subindex)⟩)
             †⟨VarFieldName(#index, #subindex)⟩->Release();
-          †⟨VarFieldName(#index, #subindex)⟩ = dynamic_cast<†⟨#type⟩*>(&var);⟧
+          †⟨VarFieldName(#index, #subindex)⟩ = &dynamic_cast<†⟨#type⟩&>(var);⟧
 
 
 // --- Generate code for class field declarations, initialization, lookup, and update.

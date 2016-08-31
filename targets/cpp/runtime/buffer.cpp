@@ -55,8 +55,8 @@ namespace tosca {
     Sink& BufferSink::End()
     {
         Term& c = *(terms.back());
-        terms.pop_back();
         
+        terms.pop_back();
         subIndex.pop_back();
         binderIndex.pop_back();
         
@@ -87,6 +87,13 @@ namespace tosca {
     Sink& BufferSink::Literal(const std::string& literal)
     {
         AddSub(newStringTerm(literal));
+        return *this;
+    }
+    
+   
+    
+    Sink& BufferSink::EndMap()
+    {
         return *this;
     }
     

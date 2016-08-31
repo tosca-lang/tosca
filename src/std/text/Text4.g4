@@ -16,10 +16,14 @@ content
     | BREAK
     | CASTCONTENT text
     | ESCAPE
+    | INDENT
+    | OUTDENT
     ;
 
 CASTCONTENT  : '\u2020'; // †
 ESCAPE       : '⟨⟨';
 
-STRING : ~[\n\r\f\u00b6\u2020⟨]+;
-BREAK : [\n\r\f\u00b6]+;
+STRING : ~[\n\r\f\u00b6\u2020⟨→←]+;
+BREAK : [\n\r\f\u00b6]+; // ¶=\u00b6
+INDENT: '→';
+OUTDENT : '←';

@@ -121,7 +121,8 @@ a& Debug(tosca::Context& ctx, tosca::StringTerm& msg, Closure0<a>& result)
 template<typename a>
 tosca::StringTerm& Show(tosca::Context& ctx, a& value)
 {
-    return newStringTerm("");
+  return newStringTerm(value.Symbol());
+  //return newStringTerm("");
 }
 
 #endif

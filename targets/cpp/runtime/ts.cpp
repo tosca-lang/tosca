@@ -18,6 +18,9 @@ namespace tosca {
     
     void Context::Register(const StringTerm& symbol, const TermFactory factory)
     {
+        std::size_t s = std::hash<const tosca::StringTerm*>{}(&symbol);
+        
+        
         factories[&symbol] = factory;
     }
     

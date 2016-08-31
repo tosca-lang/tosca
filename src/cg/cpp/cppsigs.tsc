@@ -36,9 +36,6 @@ using tosca::MapTerm;
 // Function forward declarations
 †⟨CppForwardDecls (MapValues(GetFuncSortsM(#module)))⟩
 
-// Initialize data symbols
-†⟨CppGlobalData(MapValues(GetDataSortsM(#module)))⟩
-
 /* @Brief Initialize module. Register data symbols and variable types */
 void InitModule_⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩(tosca::Context& context);
 #endif⟧
@@ -116,7 +113,32 @@ func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Tex
         public:
           †⟨CppVarConstructorUse(#sortname, #csortvars?, FALSE)⟩
           †⟨CppVarMethodGetVariable(#sortname, #csortvars?, FALSE)⟩
-      };⟧
+          †⟨CppVarMethodGetGVariable(#sortname, #csortvars?, FALSE)⟩
+      };
+
+      namespace std {
+          template<>
+          struct hash<†⟨SortNameToCppClassName(#sortname)⟩*>
+          {
+          public:
+            size_t operator()(const †⟨SortNameToCppClassName(#sortname)⟩* term) const
+            {
+              return std::hash<tosca::Term*>{}(term);
+            }
+          };
+
+          template<>
+          struct equal_to<†⟨SortNameToCppClassName(#sortname)⟩*>
+          {
+          public:
+            bool operator()(const †⟨SortNameToCppClassName(#sortname)⟩* lhs, const †⟨SortNameToCppClassName(#sortname)⟩* rhs) const
+            {
+                return std::equal_to<tosca::Term*>{}(lhs, rhs);
+            }
+          };
+      }
+
+      ⟧
 
 // --------- Form to class fields
 
@@ -125,7 +147,7 @@ func CppDeclField(Bool, Text4_text_sort, Numeric, Numeric) -> Text4_text_sort
 rule CppDeclField(FALSE, #type, #index, #subindex) → text⟦†⟨#type⟩* †⟨FieldName(#index)⟩;⟧
 rule CppDeclField(TRUE, #type, #index, #subindex)  → text⟦†⟨#type⟩* †⟨VarFieldName(#index, #subindex)⟩;⟧
 
-// --------- Global constants for data forms
+// --------- Global constants declarations for data forms
 
 /* Generate class and method signatures for data sorts */
 func CppGlobalData(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
@@ -139,8 +161,8 @@ func CppGlobalDataForm(String, Core_cform_sort) -> Text4_text_sort
 
   rule CppGlobalDataForm(#sortname, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
-       const CStringTerm GC†⟨STRING: Mangle(#CONSTRUCTOR)⟩(†⟨Text-QuoteEscape(#CONSTRUCTOR)⟩);⟧
+       extern const CStringTerm& GC†⟨STRING: Mangle(#CONSTRUCTOR)⟩;⟧
 
   rule CppGlobalDataForm(#sortname, cform⟦ allows-variable ⟧)
   → text⟦
-       const CStringTerm GT†⟨STRING: Mangle(#sortname)⟩(†⟨Text-QuoteEscape(#sortname)⟩);⟧
+       extern const CStringTerm& GT†⟨STRING: Mangle(#sortname)⟩;⟧

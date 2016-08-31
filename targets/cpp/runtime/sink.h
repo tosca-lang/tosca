@@ -87,6 +87,25 @@ public:
     virtual Sink& Literal(const std::string& literal) = 0;
     
     /**
+     * Start of map.
+     *
+     * The following events are the map key-value pairs
+     *
+     * @return this sink
+     */
+    template <typename K, typename V>
+    Sink& StartMap() { return *this;
+    }
+    
+    /**
+     * End of map.
+     *
+     * @return this sink
+     */
+    virtual Sink& EndMap() = 0;
+    
+    
+    /**
      * Copy given term. Reference is consumed.
      * @param term
      */

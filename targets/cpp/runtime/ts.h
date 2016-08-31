@@ -7,18 +7,17 @@
 
 #include "closure.h"
 #include "term.h"
-#include "mapterm.h"
 
 namespace tosca {
-    
+
     typedef Term& (*TermFactory)(Context&);
     typedef Variable& (*VarFactory)(std::string&& hint);
-    
+
     class Context
     {
     public:
         Context();
-        
+
         /**
          * Make new construction for the given symbol
          *
@@ -26,7 +25,7 @@ namespace tosca {
          * @return A term, or an exception when symbol hasn't been registered
          */
         Term& MakeConstructor(const StringTerm& symbol);
-        
+
         /**
          * Register symbol
          *
@@ -34,8 +33,8 @@ namespace tosca {
          * @param factory
          */
         void Register(const StringTerm& symbol, const TermFactory factory);
-        
-        
+
+
         /**
          * Register factory for the specified variable type.
          *
@@ -43,13 +42,13 @@ namespace tosca {
          * @param factory
          */
         void RegisterVariable(const StringTerm& type, const VarFactory factory);
-        
+
 
     private:
-        
+
         // The factories
         std::unordered_map<const StringTerm*, TermFactory> factories;
-        
+
         // The variable factories
         std::unordered_map<const StringTerm*, VarFactory> varFactories;
 

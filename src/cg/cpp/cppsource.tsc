@@ -27,6 +27,7 @@ using namespace tosca;
 
 †⟨CppClassDefs(MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
 †⟨CppFunctionDefs(SetContent(CppNewEnv, GetModuleContent(#module)))⟩
+
 †⟨CppInitModule(Mangle(PathFileStem(GetModuleURL(#module))), GetImportsM(#module), GetDataSortsM(#module))⟩⟧
 
 /* Generate C++ header inclusion declarations */
@@ -74,13 +75,34 @@ func CppFormDefs(String, Core_cform_sort) -> Text4_text_sort
       †⟨CppVarMethodGUse(#sortname, (), TRUE)⟩
       †⟨CppVarConstructorUse(#sortname, (), TRUE)⟩
       †⟨CppMethodGetVariable(#sortname, (), TRUE)⟩
-      †⟨CppVarMethodGetVariable(#sortname, (), TRUE)⟩⟧
+      †⟨CppVarMethodGetVariable(#sortname, (), TRUE)⟩
+      †⟨CppVarMethodGetGVariable(#sortname, (), TRUE)⟩⟧
 
 // --------- Function sorts and associated rules
 
 /* Generate function definitions corresponding to function sorts. */
 func CppFunctionDefs(#env: {String : EnvEntry}) -> Text4_text_sort
 → TextMapFoldES((key) -> CppFunctionDecl(#env, key, FALSE), MapKeys(GetFuncSorts(GetContent(#env))))
+
+// --------- Global constants definitions for data forms
+
+/* Generate class and method signatures for data sorts */
+func CppDefGlobalData(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
+→ TextFoldES(Map((decl) -> CppDefGlobalDataDecl(decl), #datasorts))
+
+func CppDefGlobalDataDecl(Core_cdecl_sort) -> Text4_text_sort
+rule CppDefGlobalDataDecl(cdecl⟦ data ##CONSTRUCTOR ( ##cform* ) ⟧) → TextFoldES(Map((form) -> CppDefGlobalDataForm(#CONSTRUCTOR, form), #cform*))
+rule CppDefGlobalDataDecl(#cdecl)                                   → text⟦⟧
+
+func CppDefGlobalDataForm(String, Core_cform_sort) -> Text4_text_sort
+
+  rule CppDefGlobalDataForm(#sortname, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  → text⟦
+       const CStringTerm& GC†⟨STRING: Mangle(#CONSTRUCTOR)⟩ = *(new CStringTerm(†⟨Text-QuoteEscape(#CONSTRUCTOR)⟩));⟧
+
+  rule CppDefGlobalDataForm(#sortname, cform⟦ allows-variable ⟧)
+  → text⟦
+       const CStringTerm& GT†⟨STRING: Mangle(#sortname)⟩ = *(new CStringTerm(†⟨Text-QuoteEscape(#sortname)⟩));⟧
 
 // ----- InitModule
 
@@ -114,8 +136,8 @@ func CppRegisterDataForm(String, Core_cform_sort) -> Text4_text_sort
 
   rule CppRegisterDataForm(#sortname, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
-       context.Register(GC⟨STRING: Mangle(#CONSTRUCTOR)⟩, †⟨CppFormQualifier(#CONSTRUCTOR, (), CFC_CONS, TRUE)⟩Make);⟧
+       context.Register(newStringTerm(†⟨Text-QuoteEscape(#CONSTRUCTOR)⟩), †⟨CppFormQualifier(#CONSTRUCTOR, (), CFC_CONS, TRUE)⟩Make);⟧
 
   rule CppRegisterDataForm(#sortname, cform⟦ allows-variable ⟧)
   → text⟦
-       context.RegisterVariable(GT⟨STRING: Mangle(#sortname)⟩, reinterpret_cast<const VarFactory>(†⟨CppFnName(ConcatString("var", #sortname))⟩));⟧
+       context.RegisterVariable(newStringTerm(†⟨Text-QuoteEscape(#sortname)⟩), reinterpret_cast<const VarFactory>(†⟨CppFnName(ConcatString("var", #sortname))⟩));⟧

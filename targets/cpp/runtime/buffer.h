@@ -8,7 +8,10 @@
 #include "sink.h"
 
 namespace tosca {
-
+    
+// Forward declarations
+template<typename K, typename V> class MapTerm;
+template<typename K, typename V> MapTerm<K, V>& newMapTerm();
 /*
  * Consume simple term events to construct in-memory term representation
  */
@@ -24,6 +27,14 @@ public:
     Sink& Use(Variable& variable);
     Sink& Literal(const std::string& literal);
     Sink& Copy(Term& term);
+    
+    template <typename K, typename V> Sink& StartMap()
+    {
+        AddSub(newMapTerm<K, V>());
+        return *this;
+        
+    }
+    Sink& EndMap();
     
     /* @return the constructed term */
     Term& GetTerm();
