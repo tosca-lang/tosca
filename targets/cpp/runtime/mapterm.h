@@ -19,6 +19,7 @@ template<typename a> ::List<a>& newNil(tosca::Context& ctx);
 
 namespace tosca {
 
+    
     // MapTerm type definition
     template<typename K, typename V>
     class MapTerm: public Term
@@ -114,11 +115,17 @@ namespace tosca {
         {
             throw new std::runtime_error("");
         }
+        
+        Term& Substitute(tosca::Context& c, std::unordered_map<Variable*, Term*>& substitutes)
+        {
+            throw new std::runtime_error("NOT IMPLEMENTED: substitution in map");
+        }
 
     };
-
-
-
+    
+    // Forward declarations
+    template<typename K, typename V> MapTerm<K, V>& newMapTerm();
+    
     // MapTerm value
     template<typename K, typename V>
     class CMapTerm: public MapTerm<K, V>
@@ -131,6 +138,11 @@ namespace tosca {
         virtual ~CMapTerm()
         {
           std::cout << "destroy map";
+        }
+        
+        Term& Copy(Context& ctx)
+        {
+            return newMapTerm<K, V>();
         }
 
         MapTerm<K, V>& extend()

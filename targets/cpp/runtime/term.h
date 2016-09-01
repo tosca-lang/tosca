@@ -6,6 +6,7 @@
 #include <cassert>
 #include <string>
 #include <functional>
+#include <unordered_map>
 
 #include "compat.h"
 
@@ -55,12 +56,13 @@ namespace tosca {
          * Get this term symbol.
          * TODO: document what's a symbol
          */
-        std::string& Symbol() const;
+        const std::string& Symbol() const;
 
         /**
-         * @return shallow copy of this term.
+         * @return A shallow copy of this term. Subs are not initialized.
          */
-        //  virtual Term Copy(Context& ctx) = 0;
+        virtual Term& Copy(Context& ctx);
+        
         /** @return true when this term is data */
         virtual bool Data() const;
 
@@ -106,7 +108,23 @@ namespace tosca {
 
         /* @return The variable when this term is a variable use, otherwise nullopt */
         Optional<Variable> GetGVariable();
+        
+        /**
+         * Apply substitution on this term
+         *
+         * <p>
+         * Either update this term or copy it, depending if it is shared or not.
+         *
+         * <p>
+         * When this method is called, it owns a reference to itself.
+         *
+         * @param c.
+         * @param substitutes 
+         * @return 
+         */
+        virtual Term& Substitute(tosca::Context& c, std::unordered_map<Variable*, Term*>& substitutes);
 
+        
     protected:
 
         friend struct std::hash<std::reference_wrapper<tosca::Term>>;
@@ -174,8 +192,13 @@ namespace tosca {
         }
 
         /* @return the name of this variable */
-        std::string& Symbol() const;
+        const std::string& Symbol() const;
 
+        /**
+         * Make a new variable of the same type as this one.
+         */
+        virtual Variable& Copy(Context& ctx) const;
+        
     protected:
         /* Globally unique variable name */
         std::string& name;
@@ -187,6 +210,7 @@ namespace tosca {
         virtual Term& GUse();
 
         friend class BufferSink;
+        friend Term& Term::Substitute(tosca::Context& c, std::unordered_map<Variable*, Term*>& substitutes);
     };
 
 
@@ -198,7 +222,7 @@ namespace tosca {
 
 
         Optional<Variable> GetGVariable() const;
-
+        
     protected:
         // the used variable
         Variable& var;
@@ -241,7 +265,7 @@ namespace tosca {
         CStringTerm(const std::string& value);
         ~CStringTerm();
 
-        Term Copy(Context& ctx);
+        Term& Copy(Context& ctx);
         const std::string& Unbox() const;
 
     };
@@ -302,7 +326,7 @@ namespace tosca {
     public:
         CDoubleTerm(double value);
 
-        Term Copy(Context& ctx);
+        Term& Copy(Context& ctx);
         double Unbox() const;
 
     };
@@ -341,8 +365,29 @@ inline T& NewRef(T& ref)
 template<typename T>
 T& Subst(tosca::Context& c, T& term, std::initializer_list<tosca::Variable*> binders, std::initializer_list<tosca::Term*> substitutes)
 {
-    return term; // TODO
+    std::unordered_map<tosca::Variable*, tosca::Term*> map;
+    auto var = binders.begin();
+    auto subst = substitutes.begin();
+    for (; var != binders.end() && subst != substitutes.end(); var++, subst++)
+    {
+        tosca::Variable* v = *var;
+        tosca::Term* s = *subst;
+        map[v] = s;
+    }
+    if (var != binders.end() || subst != substitutes.end())
+        throw new std::runtime_error("Internal error: mismatch number of binders and substitutes");
+    
+    tosca::Term& result = term.Substitute(c, map);
+    
+    subst = substitutes.begin();
+    for (; subst != substitutes.end(); subst++)
+    {
+        (*subst)->Release();
+    }
+    return static_cast<T&>(result);
 }
+
+
 
 // Global string methods
 tosca::StringTerm& newStringTerm(std::string&& str);

@@ -85,6 +85,7 @@ func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Tex
       public:
         †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
         †⟨CppFormMethodMake(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
+        †⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩
         †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩
         †⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
         †⟨CppFormGetSub(#sortname, #csortvars?, #CONSTRUCTOR, #csorts?, FALSE)⟩
@@ -106,6 +107,7 @@ func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Tex
           †⟨CppVarConstructorVar(#sortname, #csortvars?, FALSE)⟩
           †⟨CppVarMethodUse(#sortname, #csortvars?, FALSE)⟩
           †⟨CppVarMethodGUse(#sortname, #csortvars?, FALSE)⟩
+          †⟨CppVarMethodCopy(#sortname, #csortvars?, FALSE)⟩
       };
 
       †⟨CppTemplatePrefix(#csortvars?)⟩
@@ -115,7 +117,8 @@ func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Tex
           †⟨CppVarConstructorUse(#sortname, #csortvars?, FALSE)⟩
           †⟨CppVarMethodGetVariable(#sortname, #csortvars?, FALSE)⟩
           †⟨CppVarMethodGetGVariable(#sortname, #csortvars?, FALSE)⟩
-      };⟧
+      };
+      †⟨TextIf(IsEmpty(MaybeSortVarsToSorts(#csortvars?)), ()->text⟦STD_HASH_EQUAL_TO_TERM(†⟨FormCppClassName(#sortname)⟩Use)⟧)⟩⟧
 
 // --------- Form to class fields
 

@@ -61,6 +61,7 @@ func CppFormDefs(String, Core_cform_sort) -> Text4_text_sort
      †⟨CppFormConstructor(#sortname, (), #CONSTRUCTOR, #csorts?, TRUE)⟩
      †⟨CppFormDefaultConstructor(#sortname, (), #CONSTRUCTOR, #csorts?, TRUE)⟩
      †⟨CppFormMethodMake(#sortname, (), #CONSTRUCTOR, #csorts?, TRUE)⟩
+     †⟨CppFormMethodCopy(#sortname, (), #CONSTRUCTOR, TRUE)⟩
      †⟨CppFormMethodAs(#sortname, (), #CONSTRUCTOR, TRUE)⟩
      †⟨CppFormGetValue(#sortname, (), #CONSTRUCTOR, #csorts?, TRUE)⟩
      †⟨CppFormGetSub(#sortname, (), #CONSTRUCTOR, #csorts?, TRUE)⟩
@@ -73,6 +74,7 @@ func CppFormDefs(String, Core_cform_sort) -> Text4_text_sort
       †⟨CppVarConstructorVar(#sortname, (), TRUE)⟩
       †⟨CppVarMethodUse(#sortname, (), TRUE)⟩
       †⟨CppVarMethodGUse(#sortname, (), TRUE)⟩
+      †⟨CppVarMethodCopy(#sortname, (), TRUE)⟩
       †⟨CppVarConstructorUse(#sortname, (), TRUE)⟩
       †⟨CppMethodGetVariable(#sortname, (), TRUE)⟩
       †⟨CppVarMethodGetVariable(#sortname, (), TRUE)⟩

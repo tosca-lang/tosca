@@ -41,13 +41,19 @@ namespace tosca {
 
     Term::~Term(){}
 
-    std::string& Term::Symbol() const
+    const std::string& Term::Symbol() const
     {
        auto v = this->GetGVariable();
        if (v)
          return v.value().Symbol();
 
+        // TODO: LEAK!
        return *(new std::string(""));
+    }
+
+    Term& Term::Copy(Context& ctx)
+    {
+        throw new std::runtime_error("Internal error: missing Copy override");
     }
 
     bool Term::Data() const
@@ -90,6 +96,91 @@ namespace tosca {
         return true;
     }
 
+    Term& Term::Substitute(tosca::Context& ctx, std::unordered_map<Variable*, Term*>& substitutes)
+    {
+        Optional<Variable> ovariable = GetGVariable();
+        if (ovariable)
+        {
+            // Substitute variable
+        
+            auto substitute = substitutes.find(&ovariable.value());
+            if (substitute != substitutes.end())
+            {
+                Release();
+                substitute->second->AddRef();
+                return *substitute->second;
+            }
+        
+            return *this; // Transfer reference
+        }
+        
+        // Substitute construction.
+        Term& copy = Copy(ctx);
+        int i = 0;
+        while (true)
+        {
+            Optional<Term> osub = Sub(i); // peek at sub
+            if (!osub)
+                break;
+            
+            Optional<Variable> obinder = Binder(i, 0);
+            if (!obinder)
+            {
+                // --  i'th subterm with no binders: just continue copying.
+                if (substitutes.empty())
+                {
+                    // Nothing to substitute: just reference sub
+                    Term& sub =  osub.value();
+                    sub.AddRef();
+                    copy.SetSub(i, sub);
+                }
+                else
+                {
+                    // Recursively substitute.
+                    Term& sub = osub.value();
+                    sub.AddRef();
+                    copy.SetSub(i, sub.Substitute(ctx, substitutes));
+                }
+            }
+            else
+            {
+                // -- i'th subterm with binders, second and following copy: add new binders to substitution!
+                int j = 0;
+                while (true)
+                {
+                    Optional<Variable> ooldbinder = Binder(i, j);
+                    if (!ooldbinder)
+                        break;
+                    
+                    Variable& oldbinder = ooldbinder.value();
+                    Variable& subbinder = oldbinder.Copy(ctx);
+                    
+                    substitutes.insert({&oldbinder, &subbinder.GUse()});
+                    copy.SetBinder(i, j, subbinder);
+                    j++;
+                }
+                
+                Term& sub = osub.value();
+                sub.AddRef();
+                copy.SetSub(i, sub.Substitute(ctx, substitutes));
+                
+                // Cleanup
+                j = 0;
+                while (true)
+                {
+                    Optional<Variable> ooldbinder = Binder(i, j);
+                    if (!ooldbinder)
+                        break;
+                    
+                    substitutes.erase(&ooldbinder.value());
+                    j++;
+                }
+            }
+            i ++;
+        }
+        return copy;
+    }
+    
     // --- Variable Use
 
     Optional<Variable> VariableUse::GetGVariable() const
@@ -108,10 +199,16 @@ namespace tosca {
         throw std::runtime_error("Internal Error: cannot create untyped variable use.");
     }
 
-    std::string& Variable::Symbol() const
+    const std::string& Variable::Symbol() const
     {
         return name;
     }
+    
+    Variable& Variable::Copy(Context& ctx) const
+    {
+        throw new std::runtime_error("Internal error: cannot create untyped variable");
+    }
+
 
     // --- String
 
@@ -155,9 +252,9 @@ namespace tosca {
         // delete &value;
     }
 
-    Term CStringTerm::Copy(Context& ctx)
+    Term& CStringTerm::Copy(Context& ctx)
     {
-        Ref();
+        AddRef();
         return *this;
     }
 
@@ -196,9 +293,9 @@ namespace tosca {
     {
     }
 
-    Term CDoubleTerm::Copy(Context& ctx)
+    Term& CDoubleTerm::Copy(Context& ctx)
     {
-        Ref();
+        AddRef();
         return *this;
     }
 

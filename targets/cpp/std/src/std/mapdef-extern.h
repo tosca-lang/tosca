@@ -105,7 +105,7 @@ Option<b>& MapGetVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
     if (v)
     {
         Option<b>& result = emap.getValue(ctx, v.value().Use());
-        //emap.release();
+        //emap.release();.
         return result;
     }
 
