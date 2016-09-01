@@ -77,9 +77,9 @@ func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> T
   rule CppMethodNew(#sortname, #csortvars?, cform⟦ allows-variable ⟧, #def)
   → text⟦
       †⟨CppTemplatePrefix(#csortvars?)⟩
-      †⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VAR)⟩& †⟨CppFnName(ConcatString("var", #sortname))⟩(std::string&& hint)†⟨
+      †⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VAR)⟩& †⟨CppFnName(ConcatString("var", #sortname))⟩(tosca::Context& ctx, const std::string& hint)†⟨
       If(#def, ()->text⟦{
-        return *(new †⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VAR)⟩(hint));
+        return *(new †⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VAR)⟩(ctx.MakeGlobalName(hint)));
       }⟧, ()->text⟦;⟧)⟩
     ⟧
 
@@ -899,12 +899,12 @@ func CppMakeFreshVariable({String : EnvEntry}, String, Core_csort_sort, Bool, ({
 
 rule CppMakeFreshVariable(#env, #var, #csort, TRUE, #cont)
 → text⟦
-   C†⟨CppType(#csort)⟩Var& fresh†⟨NumberToText(GetFreshCounter(#env))⟩ = var†⟨CppType(#csort)⟩(†⟨Text-QuoteEscape(Show(#var))⟩);⟨
+   C†⟨CppType(#csort)⟩Var& fresh†⟨NumberToText(GetFreshCounter(#env))⟩ = var†⟨CppType(#csort)⟩(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show(#var))⟩);⟨
    #cont(IncFreshCounter(AddVar(#env, #var, Fresh(text⟦fresh†⟨NumberToText(GetFreshCounter(#env))⟩⟧, SOME(#csort)))))⟩⟧
 
 rule CppMakeFreshVariable(#env, #var, #csort, FALSE, #cont)
 → text⟦
-    C†⟨CppType(#csort)⟩Var& bound†⟨NumberToText(GetCounter(#env))⟩ = var†⟨CppType(#csort)⟩(†⟨Text-QuoteEscape(Show(#var))⟩);⟨
+    C†⟨CppType(#csort)⟩Var& bound†⟨NumberToText(GetCounter(#env))⟩ = var†⟨CppType(#csort)⟩(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show(#var))⟩);⟨
     #cont(IncCounter(AddVar(#env, #var, Bound(text⟦bound†⟨NumberToText(GetCounter(#env))⟩⟧, SOME(#csort)))))⟩⟧
 
 // ---- Generate term code - C++ expression mode

@@ -68,7 +68,8 @@ func CppClassDecl(Core_cdecl_sort) -> Text4_text_sort
       †⟨TextIf(IsAllowsVarForms(#cform*), ()->CppMethodGetVariable(#CONSTRUCTOR, #csortvars?, FALSE))⟩
     };
     †⟨TextMapFoldES((cform) -> CppFormClassDecl(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩
-    ⟧
+
+    †⟨TextIf(IsEmpty(MaybeSortVarsToSorts(#csortvars?)), ()->text⟦STD_HASH_EQUAL_TO_TERM(†⟨SortNameToCppClassName(#CONSTRUCTOR)⟩)⟧)⟩⟧
 
   rule CppClassDecl(#cdecl)
   → text⟦⟧
@@ -114,31 +115,7 @@ func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Tex
           †⟨CppVarConstructorUse(#sortname, #csortvars?, FALSE)⟩
           †⟨CppVarMethodGetVariable(#sortname, #csortvars?, FALSE)⟩
           †⟨CppVarMethodGetGVariable(#sortname, #csortvars?, FALSE)⟩
-      };
-
-      namespace std {
-          template<>
-          struct hash<†⟨SortNameToCppClassName(#sortname)⟩*>
-          {
-          public:
-            size_t operator()(const †⟨SortNameToCppClassName(#sortname)⟩* term) const
-            {
-              return std::hash<tosca::Term*>{}(term);
-            }
-          };
-
-          template<>
-          struct equal_to<†⟨SortNameToCppClassName(#sortname)⟩*>
-          {
-          public:
-            bool operator()(const †⟨SortNameToCppClassName(#sortname)⟩* lhs, const †⟨SortNameToCppClassName(#sortname)⟩* rhs) const
-            {
-                return std::equal_to<tosca::Term*>{}(lhs, rhs);
-            }
-          };
-      }
-
-      ⟧
+      };⟧
 
 // --------- Form to class fields
 

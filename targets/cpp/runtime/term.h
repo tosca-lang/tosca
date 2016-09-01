@@ -326,8 +326,6 @@ namespace tosca {
         virtual Term& GUse();
     };
 
-
-
 }
 
 /* Just a convenient function for the user code to look nicer */
@@ -349,19 +347,18 @@ T& Subst(tosca::Context& c, T& term, std::initializer_list<tosca::Variable*> bin
 // Global string methods
 tosca::StringTerm& newStringTerm(std::string&& str);
 tosca::StringTerm& newStringTerm(const std::string& str);
-tosca::CStringTermVar& varStringTerm(std::string& name);
-tosca::CStringTermVar& varStringTerm(std::string&& name);
+tosca::CStringTermVar& varStringTerm(tosca::Context& ctx, const std::string& hint);
 
 // Global double methods
 
 // Construction
 
 tosca::DoubleTerm& newDoubleTerm(double value);
-tosca::CDoubleTermVar& varDoubleTerm(std::string& name);
+tosca::CDoubleTermVar& varDoubleTerm(tosca::Context& ctx, const std::string& hint);
 
 #include "mapterm.h"
 
-// specialize std::hash and std::equal_to for string/double/variable
+// specialize std::hash and std::equal_to for string/double
 namespace std
 {
     // String
@@ -369,7 +366,7 @@ namespace std
     struct hash<tosca::StringTerm*>
     {
     public:
-        size_t operator()(const tosca::StringTerm*str) const
+        size_t operator()(const tosca::StringTerm* str) const
         {
             return std::hash<std::string>{}(str->Unbox());
         }
@@ -405,34 +402,42 @@ namespace std
             return lhs->Unbox() == rhs->Unbox();
         }
     };
-
-    template<>
-    struct hash<tosca::Term*>
-    {
-    public:
-        size_t operator()(const tosca::Term* e) const
-        {
-            Optional<tosca::Variable> v = e->GetGVariable();
-            if (v)
-                return std::hash<void*>{}(&v.value());
-            throw runtime_error("Term hashing not supported yet.");
-        }
-    };
-
-    template<>
-    struct equal_to<tosca::Term*>
-    {
-    public:
-        bool operator()(const tosca::Term* lhs, const tosca::Term* rhs) const
-        {
-            Optional<tosca::Variable> vlhs = lhs->GetGVariable();
-            Optional<tosca::Variable> vrhs = rhs->GetGVariable();
-            if (vlhs && vrhs)
-                return vlhs.value() == vrhs.value();
-            throw runtime_error("Term equality not supported yet.");
-        }
-    };
-
 }
+
+// Macro specializing both std::hash and std::equal_to for term.
+// I would like to use this:
+// struct hash<typename std::enable_if<std::is_base_of<tosca::Term, T>::value, T>::type*>
+// but does not work because of T used in a non-deduced context (on the left of ::)
+// Meanwhile use a macro.
+
+#define STD_HASH_EQUAL_TO_TERM(T)                                                             \
+    namespace std {                                                                               \
+        template<>                                                                                \
+        struct hash<T*>                                                                           \
+        {                                                                                         \
+        public:                                                                                   \
+            size_t operator()(T* t) const                                                         \
+            {                                                                                     \
+                Optional<tosca::Variable> v = t->GetGVariable();                                  \
+                if (v)                                                                            \
+                    return std::hash<void*>{}(&v.value());                                        \
+                throw runtime_error("Term hashing not supported yet.");                           \
+            }                                                                                     \
+        };                                                                                        \
+                                                                                                  \
+        template<>                                                                                \
+        struct equal_to<T*>                                                                       \
+        {                                                                                         \
+        public:                                                                                   \
+            bool operator()(T* lhs, T* rhs) const                                                 \
+            {                                                                                     \
+                Optional<tosca::Variable> vlhs = lhs->GetGVariable();                             \
+                Optional<tosca::Variable> vrhs = rhs->GetGVariable();                             \
+                if (vlhs && vrhs)                                                                 \
+                    return &vlhs.value() == &vrhs.value();                                        \
+                throw runtime_error("Term equality not supported yet.");                          \
+            }                                                                                     \
+        };                                                                                        \
+    }
 
 #endif

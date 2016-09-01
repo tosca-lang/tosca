@@ -11,7 +11,7 @@
 namespace tosca {
 
     typedef Term& (*TermFactory)(Context&);
-    typedef Variable& (*VarFactory)(std::string&& hint);
+    typedef Variable& (*VarFactory)(Context&, std::string& hint);
 
     class Context
     {
@@ -43,6 +43,13 @@ namespace tosca {
          */
         void RegisterVariable(const StringTerm& type, const VarFactory factory);
 
+        /**
+         * Make globally unique name from the given hint
+         *
+         * @param hint
+         * @return A new unique name
+         */
+        std::string& MakeGlobalName(const std::string& hint);
 
     private:
 
@@ -52,6 +59,8 @@ namespace tosca {
         // The variable factories
         std::unordered_map<const StringTerm*, VarFactory> varFactories;
 
+        // global counter.
+        unsigned long long ts;
     };
 }
 

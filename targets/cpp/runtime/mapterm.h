@@ -174,7 +174,7 @@ namespace tosca {
 
         bool isEmpty()
         {
-            return map.empty();
+            return map.empty() && (parent) ? parent.value().isEmpty() : true;
         }
 
         bool containsKey(K key)

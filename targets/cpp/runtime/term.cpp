@@ -3,6 +3,7 @@
 
 #include "term.h"
 #include "compat.h"
+#include "ts.h"
 
 namespace tosca {
 
@@ -220,22 +221,18 @@ StringTerm& newStringTerm(const std::string& val)
     return *(new CStringTerm(val));
 }
 
-CStringTermVar& varStringTerm(std::string& name)
+CStringTermVar& varStringTerm(tosca::Context& ctx, const std::string& hint)
 {
-    return *(new CStringTermVar(name));
+    return *(new CStringTermVar(ctx.MakeGlobalName(hint)));
 }
 
-CStringTermVar& varStringTerm(std::string&& name)
-{
-    return *(new CStringTermVar(name));
-}
 
 DoubleTerm& newDoubleTerm(double val)
 {
     return *(new CDoubleTerm(val));
 }
 
-CDoubleTermVar& varDoubleTerm(std::string& name)
+CDoubleTermVar& varDoubleTerm(tosca::Context& ctx, const std::string& hint)
 {
-    return *(new CDoubleTermVar(name));
+    return *(new CDoubleTermVar(ctx.MakeGlobalName(hint)));
 }
