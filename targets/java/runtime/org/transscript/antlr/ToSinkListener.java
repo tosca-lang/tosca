@@ -521,21 +521,10 @@ public class ToSinkListener implements ParseTreeListener
 		{
 			// This is a binder occurrence. Resolve and emit
 			assert bounds != null;
-			Optional<Pair<String, Variable>> variable = bounds.stream().filter(pair -> {
-				if (pair == MARKER)
-					return false;
-
-				return pair.fst.equals(binderName);
-			}).findFirst();
+			Optional<Pair<String, Variable>> variable = findBinder(binderName);
 
 			if (!variable.isPresent())
-			{
-				// Try among fresh variables
-				variable = freshes.stream().filter(pair -> {
-					return pair.fst.equals(binderName);
-
-				}).findFirst();
-			}
+				variable = findFreshVar(binderName);
 
 			if (!variable.isPresent())
 			{
@@ -555,6 +544,29 @@ public class ToSinkListener implements ParseTreeListener
 
 		state = State.PARSE;
 
+	}
+	
+	/* Look for a fresh variable corresponding to the given variable occurrence */
+	private Optional<Pair<String, Variable>> findFreshVar(String var)
+	{
+		Optional<Pair<String, Variable>> variable;
+		variable = freshes.stream().filter(pair -> {
+			return pair.fst.equals(var);
+
+		}).findFirst();
+		return variable;
+	}
+
+	/* Look for the binder for the given variable occurrence */
+	private Optional<Pair<String, Variable>> findBinder(String var)
+	{
+		Optional<Pair<String, Variable>> variable = bounds.stream().filter(pair -> {
+			if (pair == MARKER)
+				return false;
+
+			return pair.fst.equals(var);
+		}).findFirst();
+		return variable;
 	}
 
 	/**
@@ -705,16 +717,34 @@ public class ToSinkListener implements ParseTreeListener
 							int si = rawMeta.indexOf('[');
 							if (si != -1)
 							{
+								// parsing a meta variable inside some concrete syntax, with some substitution arguments.
+								// All arguments must be variables (for now).
+								
 								metaargs = rawMeta.substring(si + 1, rawMeta.length() - 1).split(",");
-								for (int i = 0; i < metaargs.length; i++)
-									metaargs[i] = metaargs[i].trim();
-							}
-
-							// TODO: deprecate backward-compatible behavior (no []) = bind all
-							for (Pair<String, Variable> bound : bounds)
-							{
-								if (bound != MARKER && (metaargs != null && containsArg(bound.fst, metaargs)))
-									sink.use(bound.snd);
+								if (metaargs.length > 1 || !metaargs[0].trim().equals(""))
+								{
+									for (int i = 0; i < metaargs.length; i++)
+									{
+										String metaarg = metaargs[i].trim();
+										if (metaarg.equals(""))
+											throw new RuntimeException("Fatal error: Invalid empty meta-variable argument in " + rawMeta);
+										
+										Optional<Pair<String, Variable>> variable = findBinder(metaarg);
+	
+										if (!variable.isPresent())
+											variable = findFreshVar(metaarg);
+	
+										if (!variable.isPresent())
+										{
+											// Create new fresh variable.
+											variable = Optional.of(new Pair<>(metaarg, makeVariable("", metaarg)));
+	
+											freshes.push(variable.get());
+										}
+										
+										sink.use(variable.get().snd);
+									}
+								}
 							}
 
 							metasink().endSubstitutes();
@@ -782,14 +812,6 @@ public class ToSinkListener implements ParseTreeListener
 				break;
 
 		}
-	}
-
-	private boolean containsArg(String var, String[] args)
-	{
-		for (int i = 0; i < args.length; i++)
-			if (args[i].equals(var))
-				return true;
-		return false;
 	}
 
 	// Parse concrete syntax
@@ -882,7 +904,7 @@ public class ToSinkListener implements ParseTreeListener
 	{
 		if (metasink() != null || parsets)
 		{
-			// Parsing embbeded syntax: create generic variable
+			// Parsing embedded syntax: create generic variable
 			return StringTerm.varStringTerm(sink.context(), name);
 		}
 		String rtype = prefix + type;
