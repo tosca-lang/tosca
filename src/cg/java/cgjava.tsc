@@ -40,6 +40,7 @@ import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.StringTerm.VarStringTerm;
 import org.transscript.runtime.DoubleTerm;
 import org.transscript.runtime.DoubleTerm.VarDoubleTerm;
+import org.transscript.runtime.AppendableTerm;
 import org.transscript.runtime.MapTerm;
 import static org.transscript.runtime.Term.unbox;
 import static org.transscript.runtime.Term.force;
@@ -54,6 +55,7 @@ import static org.transscript.runtime.DoubleTerm.lazyDoubleTermMaker;
 import static org.transscript.runtime.DoubleTerm.doubleTerm;
 import static org.transscript.runtime.MapTerm.lazyMapTerm;
 import static org.transscript.runtime.MapTerm.lazyMapTermMaker;
+import static org.transscript.runtime.AppendableTerm.appendableTerm;
 import static org.transscript.runtime.LazyTerm.thunk;
 
 †⟨JavaUnit(GetModuleURL(#module), GetImportsM(#module), GetRulesM(#module), GetDataSortsM(#module), GetFuncSortsM(#module), HasOption<String>(GetConfig(#system, "bootstrap")))⟩
@@ -580,9 +582,10 @@ rule EValueClassName(#name) → text⟦_⟨STRING:Mangle(#name)⟩⟧
 
 func FixupPrimitiveType(String) -> String
 rule FixupPrimitiveType(#typename)
-→ If<String>(StringEqual(#typename, "String"), ()->"StringTerm",
-  ()->If<String>(StringEqual(#typename, "Numeric"), ()->"DoubleTerm",
-       ()->#typename))
+→ If(    StringEqual(#typename, "String"), ()->"StringTerm",
+  ()->If(StringEqual(#typename, "Numeric"), ()->"DoubleTerm",
+  ()->If(StringEqual(#typename, "Appendable"), ()->"AppendableTerm",
+  ()->#typename)))
 
 
 //---- Sort tranlation

@@ -22,11 +22,11 @@ import cg::cpp::cppsource
 
 /* Generate C++ source and header file for given `#module` */
 func ToCppM(#system:TSystem, #module: Module) -> Result
-→ ToCppAux(#system, #module,
+→ Debug(ConcatString("C++ Code gen ", GetModuleURL(#module)), ()->ToCppAux(#system, #module,
     TargetCppTypes(GetSystemURL(#system), GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")),
     TargetCppSigs(GetSystemURL(#system), GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")),
     TargetCppHeader(GetSystemURL(#system), GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")),
-    TargetCppSource(GetSystemURL(#system), GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")))
+    TargetCppSource(GetSystemURL(#system), GetModuleURL(#module), GetConfigDef(#system, "build-dir", ""))))
 
 func ToCppAux(#system:TSystem, #module: Module, #types:String, #sigs:String, #header:String, #source:String) -> Result
 → SaveResource("text", #types, CppTypes(#module),

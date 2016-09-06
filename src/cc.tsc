@@ -16,10 +16,10 @@ import systemdef
 /* Convert closures in the given module. */
 func ClosureConvertM(#system: TSystem, #module: Module) -> Module
 → IfConfigDef(#system, "cpp",
-    (v) -> SetModuleContent(#module, FoldlP(
+    (v) -> Debug(ConcatString("Closure convert ", GetModuleURL(#module)), ()->SetModuleContent(#module, FoldlP(
                                        (key content) -> CCRules(key, UnSOME(GetRulesForKeyC(content, key)), content),
                                        GetModuleContent(#module),
-                                       MapKeys(GetRulesM(#module)))),
+                                       MapKeys(GetRulesM(#module))))),
     ( ) -> #module)
 
 /* Convert the given rules.
@@ -45,7 +45,9 @@ func CCPatternTerm(CCEnv, Core_cterm_sort, CCBinders, (CCEnv)-> PPair<CCEnv Core
   → CCPatternMaybeTerms(#env, #cterms?, #binders, #cont)
 
   rule CCPatternTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? : ##csort ⟧, #binders,  #cont)
-  → CCPatternMaybeTerms(CCEnvAddMetaVar(#env, #METAVAR, CCMeta(#METAVAR, HOSort(CCGetBinderSorts(#cterms?, #binders), (), #csort))), #cterms?, #binders, (env)->CCPatternMaybeSubst(env, #csubst?, #binders, #cont))
+  → CCPatternMaybeTerms(CCEnvAddMetaVar(#env, #METAVAR, CCMeta(#METAVAR, HOSort(CCGetBinderSorts(MaybeTermsToTerms(#cterms?), #binders),
+                                                                                 CCGetBinderSorts(MaybeSubstToTerms(#csubst?), #binders), #csort))),
+                           #cterms?, #binders, (env)->CCPatternMaybeSubst(env, #csubst?, #binders, #cont))
 
   rule CCPatternTerm(#env, cterm⟦ ##cliteral ⟧, #binders, #cont)
   → #cont(#env)
@@ -239,12 +241,12 @@ func CCMetaVar(#name: String, #i: Numeric) -> String
 func CCCapture(CCEnv, Core_cterm_sort, {String : Core_cterm_sort}) -> {String : Core_cterm_sort}
 
   rule CCCapture(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧, #cptrs) → CCCaptureMaybeTerms(#env, #cterms?, #cptrs)
-  rule CCCapture(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno?          ⟧, #cptrs) → CCCaptureMaybeSubst(#env, #csubst?, CCCaptureMaybeTerms(#env, #cterms?, CCCaptureMeta(#env, #METAVAR, #cptrs)))
+  rule CCCapture(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno?          ⟧, #cptrs) → CCCaptureMaybeSubst(#env, #csubst?, CCCaptureMaybeTerms(#env, #cterms?, CCCaptureMeta(#env, #METAVAR, UnSOME(CCEnvGetMetaVar(#env, #METAVAR)), #cptrs)))
   rule CCCapture(#env, cterm⟦ ##cliteral                                                   ⟧, #cptrs) → #cptrs
   rule CCCapture(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno?                             ⟧, #cptrs) → CCCaptureVar(#env, #VARIABLE, #cptrs)
-  rule CCCapture(#env, cterm⟦ { ##cmapentries? } ##csortanno?                              ⟧, #cptrs) → #cptrs // TODO
-  rule CCCapture(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x]                              ⟧, #cptrs) → CCCapture(#env, #cterm[x], #cptrs)
-  rule CCCapture(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f]                              ⟧, #cptrs) → CCCapture(#env, #cterm[f], #cptrs)
+  rule CCCapture(#env, cterm⟦ { ##cmapentries? } ##csortanno?                              ⟧, #cptrs) → Error("CC: map capture not implemented yet")
+  rule CCCapture(#env, cterm⟦ [ x ##csortanno? ] ##cterm[x]                                ⟧, #cptrs) → CCCapture(#env, #cterm[x], #cptrs)
+  rule CCCapture(#env, cterm⟦ ( f ##csortanno? ) ##cterm[f]                                ⟧, #cptrs) → CCCapture(#env, #cterm[f], #cptrs)
   rule CCCapture(#env, cterm⟦ thunk ##cterm                                                ⟧, #cptrs) → CCCapture(#env, #cterm, #cptrs)
 
 func CCCaptureMaybeTerms(CCEnv, List<Core_cterms_sort>, {String : Core_cterm_sort}) -> {String : Core_cterm_sort}
@@ -262,10 +264,10 @@ func CCCaptureMaybeSubst(CCEnv, List<Core_csubst_sort>, {String : Core_cterm_sor
   rule CCCaptureMaybeSubst(#env, csubst?⟦ [ ##cterm* ] ⟧, #cptrs) → CCCaptureTerms(#env, #cterm*, #cptrs)
   rule CCCaptureMaybeSubst(#env, #csubst?              , #cptrs) → #cptrs
 
-func CCCaptureMeta(#env: CCEnv, #METAVAR: String, #cptrs: {String : Core_cterm_sort}) -> {String : Core_cterm_sort}
+func CCCaptureMeta(#env: CCEnv, #METAVAR: String, #varentry: CCVarEntry, #cptrs: {String : Core_cterm_sort}) -> {String : Core_cterm_sort}
 → IfPresent(MapGet(#cptrs, #METAVAR),
     (term)->#cptrs, // already captured.
-    ()->MapPut(#cptrs, #METAVAR, cterm⟦ ##METAVAR : ⟨csort: CCGetSort(UnSOME(CCEnvGetMetaVar(#env, #METAVAR)))⟩ ⟧)) // TODO: generate METAVAR parameters
+    ()->MapPut(#cptrs, #METAVAR, CCBoundTerm(GetBoundVarSorts(CCGetSort(#varentry)), #METAVAR, cterm*⟦⟧, CCGetSort(#varentry))))
 
 func CCCaptureVar(#env: CCEnv, #VARIABLE: String, #cptrs:{String : Core_cterm_sort}) -> {String : Core_cterm_sort}
 → IfPresent(MapGetVar(#cptrs, #VARIABLE),
@@ -276,6 +278,11 @@ func CCCaptureVar2(#env: CCEnv, #VARIABLE: String, #cptrs:{String : Core_cterm_s
 → IfPresent(CCEnvGetVar(#env, #VARIABLE),
     (entry)->MapPutVar(#cptrs, #VARIABLE, cterm⟦ ##VARIABLE : ⟨csort: CCGetSort(entry)⟩ ⟧),
     ()-> #cptrs) // a bound variable. Not tracked.
+
+/* Bound the given `#cterm` with bound variables of the given `#csorts` */
+func CCBoundTerm(List<Core_csort_sort>, String, List<Core_cterm_sort>, Core_csort_sort) -> Core_cterm_sort
+rule CCBoundTerm(csort*⟦                  ⟧, #METAVAR, #csubst*, #csort ) → cterm⟦ ##METAVAR ⟨csubst?:TermsToMaybeSubst(#csubst*)⟩ : ##csort ⟧
+rule CCBoundTerm(csort*⟦ ##csort ##csort* ⟧, #METAVAR, #csubst*, #csort2) → cterm⟦ [ x : ##csort ] ⟨cterm: CCBoundTerm(#csort*, #METAVAR, Append(cterm⟦ x ⟧, #csubst*), #csort2)⟩ ⟧
 
 // --- Post traversal handlers
 
@@ -382,9 +389,8 @@ func CCNewBinderStack -> CCBinders
 func CCBinderAdd(CCBinders, PPair<String Core_csort_sort>) -> CCBinders
 rule CCBinderAdd(CCBinders(#), #binder) → CCBinders((#binder, #...))
 
-func CCGetBinderSorts(List<Core_cterms_sort>, CCBinders) -> List<Core_csort_sort>
-rule CCGetBinderSorts(cterms?⟦              ⟧, #binders) → ()
-rule CCGetBinderSorts(cterms?⟦ ( ##cterm* )⟧, CCBinders(#binders)) → Map((term)->CCFindSort(term, #binders), #cterm*)
+func CCGetBinderSorts(List<Core_cterm_sort>, CCBinders) -> List<Core_csort_sort>
+rule CCGetBinderSorts(#cterm*, CCBinders(#binders)) → Map((term)->CCFindSort(term, #binders), #cterm*)
 
 func CCFindSort(Core_cterm_sort, List<PPair<String Core_csort_sort>>) -> Core_csort_sort
 

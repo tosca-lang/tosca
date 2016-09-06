@@ -51,7 +51,7 @@ func CodeGenerateM(#system: TSystem, #module: Module) -> Result
 
 /* Merge all results */
 func FoldResults(#results: List<Result>) -> Result
-→ FoldlP<Result Result>((r rs)->FoldResult(r, rs), Success(()), #results)
+→ FoldlP((r rs)->FoldResult(r, rs), Success(()), #results)
 
 func FoldResult(Result, Result) -> Result
 rule FoldResult(Success(#1), Success(#2)) → Success(Concat(#1, #2))

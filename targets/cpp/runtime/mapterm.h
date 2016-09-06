@@ -118,7 +118,9 @@ namespace tosca {
         
         Term& Substitute(tosca::Context& c, std::unordered_map<Variable*, Term*>& substitutes)
         {
-            throw new std::runtime_error("NOT IMPLEMENTED: substitution in map");
+            //std::cout << "WARNING: MAP SUBSTITUTION NOT IMPLEMENTED!" << "\n";
+          //  throw new std::runtime_error("NOT IMPLEMENTED: substitution in map");
+            return *this;
         }
 
     };

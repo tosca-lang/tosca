@@ -34,8 +34,8 @@ import org.transscript.runtime.Term;
 import org.transscript.runtime.utils.StringUtils;
 
 /**
- * Collection of utility methods 
- * 
+ * Collection of utility methods
+ *
  * @author Lionel Villard
  */
 public class Utils
@@ -44,6 +44,7 @@ public class Utils
 	/** Save term to file of the given name */
 	public static void saveTerm(Context context, String category, Term result, String filename)
 	{
+    System.out.print("save term..");
 		try (Writer writer = new FileWriter(filename))
 		{
 			printTerm(context, category, result, filename, writer);
@@ -52,6 +53,8 @@ public class Utils
 		{
 			fatal("Error while saving term to file " + filename, e);
 		}
+
+    System.out.println("done.");
 	}
 
 	/** print term to console. Try using known serializer */
@@ -60,8 +63,8 @@ public class Utils
 		printTerm(new Context(), null, term, "sysout", System.out);
 	}
 
-	/** 
-	 * Print term to given output 
+	/**
+	 * Print term to given output
 	 * @param term to print. Reference is consumed
 	 */
 	public static void printTerm(Context context, String category, Term term, String outputName, Appendable output)
@@ -147,9 +150,9 @@ public class Utils
 		return defaul;
 	}
 
-	/** 
-	 * Load class or throw exception 
-	 * @param loader 
+	/**
+	 * Load class or throw exception
+	 * @param loader
 	 */
 	public static Class<?> loadClass(String name, ClassLoader loader)
 	{
@@ -164,9 +167,9 @@ public class Utils
 		}
 	}
 
-	/** 
-	 * Gets the given method or throw exception.  
-	 * @throws NoSuchMethodException 
+	/**
+	 * Gets the given method or throw exception.
+	 * @throws NoSuchMethodException
 	 */
 	public static Method getMethod(Class<?> clss, String name, Class<?>... params)
 	{
@@ -289,9 +292,9 @@ public class Utils
 	/**
 	 * Get the absolute name of the target java file
 	 * The file name is of the form {dest}/{package}/{subpackage}/{input}.java
-	 *  
+	 *
 	 * where {subpackage} is a function of {input} and {mainurl}
-	 *  
+	 *
 	 * @param input Tosca file
 	 * @param dest target directory
 	 * @param pkg
@@ -320,7 +323,7 @@ public class Utils
 		return output;
 	}
 
-	/** 
+	/**
 	 * Get the absolute name of the target cpp file
 	 * @param input Tosca file
 	 * @param dest target directory

@@ -3,11 +3,15 @@
 #ifndef CORE_EXTERN_H_
 #define CORE_EXTERN_H_
 
+#include <unordered_set>
 #include "ts.h"
 
-template<typename a> class List;
-class Bool;
+// Forward declarations
 
+template<typename a> class List;
+template<typename a> List<a>& newNil(tosca::Context& ctx);
+template<typename a> List<a>& newCons(tosca::Context& ctx, a& param1, List<a>& param2);
+class Bool;
 
 extern Bool& newTRUE(tosca::Context& ctx);
 extern Bool& newFALSE(tosca::Context& ctx);
@@ -49,10 +53,66 @@ Bool& DeepEqual(tosca::Context& ctx, a& value_147, a& value_148)
 
 // --- Syntactic Variable
 
-template<typename a, typename b>
-List<b>& FreeVariables(tosca::Context& ctx, a& value_130)
+
+template <typename b>
+List<b>* FreeVariablesImpl(tosca::Context& ctx, tosca::Term& term, List<b>* result, std::unordered_set<tosca::Variable*>& bound)
 {
-    throw new std::runtime_error("unimplemented");
+    Optional<tosca::Variable> ovar = term.GetGVariable();
+    if (ovar)
+    {
+        tosca::Variable& v = ovar.value();
+        auto search = bound.find(&v);
+        if (search == bound.end())
+            return &newCons<b>(ctx, dynamic_cast<b&>(v.GUse()), *result);
+        
+        return result;
+    }
+    else
+    {
+        int subidx = 0;
+        while (true)
+        {
+            Optional<tosca::Term> osub = term.Sub(subidx);
+            if (!osub)
+                break;
+            
+            int binderidx = 0;
+            while (true)
+            {
+                Optional<tosca::Variable> binder = term.Binder(subidx, binderidx);
+                if (!binder)
+                    break;
+                
+                bound.insert(&binder.value());
+                binderidx ++;
+            }
+            
+            result = FreeVariablesImpl(ctx, osub.value(), result, bound);
+            
+            binderidx = 0;
+            while (true)
+            {
+                Optional<tosca::Variable> binder = term.Binder(subidx, binderidx);
+                if (!binder)
+                    break;
+                
+                bound.erase(&binder.value());
+                binderidx ++;
+            }
+            
+            subidx ++;
+        }
+        
+        return result;
+    }
+}
+
+
+template<typename a, typename b>
+List<b>& FreeVariables(tosca::Context& ctx, a& term)
+{
+    std::unordered_set<tosca::Variable*> bound;
+    return *FreeVariablesImpl(ctx, term, &newNil<b>(ctx), bound);
 }
 
 template<typename a>

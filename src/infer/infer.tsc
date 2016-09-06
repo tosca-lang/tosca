@@ -29,7 +29,7 @@ import systemdef
 /* Infer sorts of given `#module` */
 func InferM(#system: TSystem, #module: Module) -> Module
 → IfConfigDef(#system, "infer",
-    (v) -> SetModuleContent(#module, InferContent(GetModuleContent(#module), #system)),
+    (v) -> SetModuleContent(#module, Debug(ConcatString("Type check ", GetModuleURL(#module)), ()->InferContent(GetModuleContent(#module), #system))),
     ( ) -> #module)
 
 // -- Content
@@ -48,7 +48,7 @@ func InferRules(#key: String, #rules: List<Core_cdecl_sort>, #content: Content, 
 
 func InferRule({String:IEnvEntry}, Core_cdecl_sort) -> Core_cdecl_sort
 rule InferRule(#env, cdecl⟦ rule ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? → ##cterm ⟧)
-→ Debug(ConcatString("Infer rule: ", PrintTerm("", cdecl⟦ rule ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? → ##cterm ⟧)), ()->InferRuleAux(#env, FindFuncSortS(GetSystem(#env), #CONSTRUCTOR), #CONSTRUCTOR, #cterms?, #cterm))
+→ Debug(ConcatString("Infer rule ", #CONSTRUCTOR), ()->InferRuleAux(#env, FindFuncSortS(GetSystem(#env), #CONSTRUCTOR), #CONSTRUCTOR, #cterms?, #cterm))
 
 func InferRuleAux({String:IEnvEntry}, Option<Core_cdecl_sort>, String, List<Core_cterms_sort>, Core_cterm_sort) -> Core_cdecl_sort
 
@@ -60,7 +60,7 @@ func InferRuleAux({String:IEnvEntry}, Option<Core_cdecl_sort>, String, List<Core
 
 func InferPatternUp(String, PPair<{String:IEnvEntry} List<Core_cterms_sort>>, Core_csort_sort, Core_cterm_sort) -> Core_cdecl_sort
 rule InferPatternUp(#CONSTRUCTOR, PairCons(#env, #cterms?), #esort, #contractum)
-→ InferRuleUp(cterm⟦ ##CONSTRUCTOR ##cterms? ⟧, InferTerm(SetInPattern(IPushBinderSorts(#env), FALSE), #contractum, #esort))
+→ InferRuleUp(cterm⟦ ##CONSTRUCTOR ##cterms? ⟧, Debug("Infer contractum", ()->InferTerm(SetInPattern(IPushBinderSorts(#env), FALSE), #contractum, #esort)))
 
 func InferRuleUp(Core_cterm_sort, PPair<{String:IEnvEntry} Core_cterm_sort>) -> Core_cdecl_sort
 rule InferRuleUp(#cterm1, PairCons(#env, #cterm2)) → ISubstRule(OptimizeSorts(#env), #cterm1, #cterm2)
@@ -430,7 +430,7 @@ func UnifySortVar({String:IEnvEntry}, String, Option<Core_csort_sort>, Core_csor
   → PutSort(#env, #VARIABLE1, #sort2)
 
   // Case 3: unify with another non-variable sort, existing entry
-  rule UnifySortVar(#env, #VARIABLE1, SOME(#sort1:Core_csort_sort), #sort2)
+  rule UnifySortVar(#env, #VARIABLE1, SOME(#sort1), #sort2)
   → UnifySort(#env, #sort1, #sort2)
 
 // Helper due to issue #?? (final)
@@ -448,10 +448,10 @@ func UnifySortVar2({String:IEnvEntry}, String, Option<Core_csort_sort>, String, 
   → PutSort(#env, #VARIABLE1, csort⟦ ##VARIABLE2 ⟧)
 
   rule UnifySortVar2(#env, #VARIABLE1, SOME(#sort1: Core_csort_sort), #VARIABLE2, NONE)
-  → If<{String:IEnvEntry}>(IsDummy(#sort1), ()->PutSort(#env, #VARIABLE2, csort⟦ ##VARIABLE1 ⟧), ()->UnifySort(#env, #sort1, csort⟦ ##VARIABLE2 ⟧))
+  → If(IsDummy(#sort1), ()->PutSort(#env, #VARIABLE2, csort⟦ ##VARIABLE1 ⟧), ()->UnifySort(#env, #sort1, csort⟦ ##VARIABLE2 ⟧))
 
   rule UnifySortVar2(#env, #VARIABLE1, NONE, #VARIABLE2, SOME(#sort2: Core_csort_sort))
-  → If<{String:IEnvEntry}>(IsDummy(#sort2), ()->PutSort(#env, #VARIABLE1, csort⟦ ##VARIABLE2 ⟧), ()->UnifySort(#env, csort⟦ ##VARIABLE1 ⟧, #sort2))
+  → If(IsDummy(#sort2), ()->PutSort(#env, #VARIABLE1, csort⟦ ##VARIABLE2 ⟧), ()->UnifySort(#env, csort⟦ ##VARIABLE1 ⟧, #sort2))
 
   rule UnifySortVar2(#env, #VARIABLE1, SOME(#sort1: Core_csort_sort), #VARIABLE2, SOME(#sort2: Core_csort_sort))
   →  If(IsDummy(#sort1),
@@ -464,10 +464,10 @@ func UnifySortVar2({String:IEnvEntry}, String, Option<Core_csort_sort>, String, 
 
 /* Optimize the sort environment by computing its transitive closure. */
 func OptimizeSorts(#env: {String : IEnvEntry}) -> {String : IEnvEntry}
-→ SetSorts(#env, FoldlP(
+→ Debug("OptimizeSorts", ()->SetSorts(#env, FoldlP(
                      (key sorts) -> OptimizeSort(sorts, (key,), MapGet(sorts, key), NONE),
                      GetSorts(#env),
-                     MapKeys(GetSorts(#env))))
+                     MapKeys(GetSorts(#env)))))
 
 func OptimizeSort({String : Core_csort_sort}, List<String>, Option<Core_csort_sort>, Option<Core_csort_sort> /* previous sort */) -> {String : Core_csort_sort}
 
@@ -498,7 +498,7 @@ func OptimizeSortAux(Bool, {String : Core_csort_sort}, List<String>, String, Opt
 // ---- Apply sort instantiation
 
 func ISubstRule(#env: {String:IEnvEntry}, #cterm1: Core_cterm_sort, #cterm2: Core_cterm_sort) -> Core_cdecl_sort
-→ cdecl⟦ rule ⟨cterm: ISubstTerm(#env, #cterm1)⟩ → ⟨cterm: ISubstTerm(#env, #cterm2)⟩ ⟧
+→ Debug("Subst rule", ()->cdecl⟦ rule ⟨cterm: ISubstTerm(#env, #cterm1)⟩ → ⟨cterm: ISubstTerm(#env, #cterm2)⟩ ⟧)
 
 func ISubstTerm({String:IEnvEntry}, Core_cterm_sort) -> Core_cterm_sort
 rule ISubstTerm(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧) → cterm⟦ ##canno* ⟨cqconstructor: ISubstQCons(#env, #cqconstructor)⟩ ⟨csortargs?: ISubstMaybeSortArgs(#env, #csortargs?)⟩ ⟨cterms?: ISubstMaybeTerms(#env, #cterms?)⟩ ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
@@ -608,7 +608,7 @@ rule INewSortSorts(#env, csort*⟦ ##csort ##csort*  ⟧, #cont) → INewSort<a>
 rule INewSortSorts(#env, csort*⟦                   ⟧, #cont) → #cont(#env, csort*⟦⟧)
 
 func INewSortMapSorts<a>({String:IEnvEntry}, List<Core_cmapsort_sort>, ({String:IEnvEntry} List<Core_cmapsort_sort>)->a) -> a
-rule INewSortMapSorts(#env, cmapsort*⟦ ##csort1 : ##csort2 ##cmapsort* ⟧, #cont) → INewSort<a>(#env, #csort1, (env sort1)->INewSort<a>(env, #csort2, (env sort2)->INewSortMapSorts<a>(env, #cmapsort*, (env mapsorts)->#cont(env, cmapsort*⟦ ⟨csort: sort1⟩ : ⟨csort: sort2⟩ ⟨cmapsort*: mapsorts⟩ ⟧))))
+rule INewSortMapSorts(#env, cmapsort*⟦ ##csort1 : ##csort2 ##cmapsort* ⟧, #cont) → INewSort(#env, #csort1, (env sort1)->INewSort<a>(env, #csort2, (env sort2)->INewSortMapSorts<a>(env, #cmapsort*, (env mapsorts)->#cont(env, cmapsort*⟦ ⟨csort: sort1⟩ : ⟨csort: sort2⟩ ⟨cmapsort*: mapsorts⟩ ⟧))))
 rule INewSortMapSorts(#env, cmapsort*⟦                                 ⟧, #cont) → #cont(#env, cmapsort*⟦⟧)
 
 /* Assemble the sort list corresponding to given formal or bound variable parameters list. */

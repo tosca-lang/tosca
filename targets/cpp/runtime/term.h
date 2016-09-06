@@ -199,6 +199,9 @@ namespace tosca {
          */
         virtual Variable& Copy(Context& ctx) const;
         
+        /* @Brief Create an new use of this variable */
+        virtual Term& GUse();
+        
     protected:
         /* Globally unique variable name */
         std::string& name;
@@ -206,11 +209,8 @@ namespace tosca {
         /* Count the number of variable use (in the term tree) */
         unsigned long uses;
 
-        /* @Brief Create an new use of this variable */
-        virtual Term& GUse();
-
-        friend class BufferSink;
-        friend Term& Term::Substitute(tosca::Context& c, std::unordered_map<Variable*, Term*>& substitutes);
+       // friend class BufferSink;
+       // friend Term& Term::Substitute(tosca::Context& c, std::unordered_map<Variable*, Term*>& substitutes);
     };
 
 
@@ -219,7 +219,6 @@ namespace tosca {
     {
     public:
         VariableUse(Variable& v) : var(v) {}
-
 
         Optional<Variable> GetGVariable() const;
         
@@ -402,6 +401,10 @@ tosca::DoubleTerm& newDoubleTerm(double value);
 tosca::CDoubleTermVar& varDoubleTerm(tosca::Context& ctx, const std::string& hint);
 
 #include "mapterm.h"
+
+// Dummy appendable type. Not supported for C++ backend
+class Appendable {};
+
 
 // specialize std::hash and std::equal_to for string/double
 namespace std

@@ -1190,7 +1190,8 @@ rule MaybeCppTypeD(SOME(#csort), #default) → CppType(#csort) // TODO: could op
 func CppFixupPrimitiveType(#typename: String) -> String
 → If(StringEqual(#typename, "String"), ()->"StringTerm",
     ()->If(StringEqual(#typename, "Numeric"), ()->"DoubleTerm",
-         ()->#typename))
+    ()->If(StringEqual(#typename, "Appendable"), ()->"StringTerm",
+    ()->#typename)))
 
 func CppMaybeTypeArgs(List<Core_csortargs_sort>) -> Text4_text_sort
 rule CppMaybeTypeArgs(csortargs?⟦              ⟧) → text⟦⟧

@@ -15,7 +15,7 @@
  * @return a parsed term.
  */
 func ParseTerm<a>(#filename: String /* file location */) -> a
-→ ParseResource<a>("term", #filename)
+→ ParseResource("term", #filename)
 
 // --- Serialization
 
@@ -24,7 +24,7 @@ func ParseTerm<a>(#filename: String /* file location */) -> a
 
 /* Save term to external resource using term serializer */
 func SaveTerm<a b>(#filename: String, #term:a, #result:b) -> b
-→ SaveResource<a b>("term", #filename, #term, #result)
+→ SaveResource("term", #filename, #term, #result)
 
 /* Convert term to `String` using serializer identified by the given category */
 @Extern func PrintTerm<a>(String /* category */, a /* term */) -> String

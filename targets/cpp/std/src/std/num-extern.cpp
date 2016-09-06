@@ -1,6 +1,7 @@
 // Copyright (c) 2016 IBM Corporation.
 #include "num-extern.h"
 
+#include <cstdio>
 #include "std/core.h"
 
 using namespace tosca;
@@ -58,7 +59,10 @@ StringTerm& FormatDecimal(Context& ctx, DoubleTerm& num)
     throw new std::runtime_error("");
 }
 
-DoubleTerm& Hex(Context& ctx, StringTerm& str)
+DoubleTerm& Hex(Context& ctx, StringTerm& hex)
 {
-    throw new std::runtime_error("");
-}
+    long long num;
+    if (std::sscanf(hex.Unbox().c_str(), "%llX", &num) <= 0)
+        throw new std::runtime_error("Illegally formatted hex: " + hex.Unbox());
+    return newDoubleTerm(num);
+   }

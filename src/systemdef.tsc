@@ -324,7 +324,7 @@ func MaybeFindFormI(#datasorts: {String: Core_cdecl_sort}, #datasort: Option<Cor
 func FindFormI(#datasorts: {String: Core_cdecl_sort}, #datasort: Core_csort_sort, #formname: String) -> Option<PPair<Core_cdecl_sort Core_cform_sort>>
 
   rule FindFormI(#datasorts, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #formname)
-  → MaybeO((cdecl)->FindFormD(cdecl, #formname), MapGet<String Core_cdecl_sort>(#datasorts, #CONSTRUCTOR))
+  → MaybeO((cdecl)->FindFormD(cdecl, #formname), MapGet(#datasorts, #CONSTRUCTOR))
 
   // Fallback to search accross all data sort declaration
   rule FindFormI(#datasorts, #csort, #formname)

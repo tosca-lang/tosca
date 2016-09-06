@@ -1,27 +1,28 @@
 /* Copyright © 2016 IBM Corporation. */
 
 /**
- * Print text String
+ * Print text and send result to an Appendable.
  */
 import std::text
 import std::string
 import std::text::Text4
+import std::appendable
 
 func PrintText(#text: Text4_text_sort) -> String
-→ PrintTextI(#text, "")
+→ AppendableToString(PrintTextI(#text, "", StringToAppendable("")))
 
-func PrintTextI(Text4_text_sort, String) -> String
+func PrintTextI(Text4_text_sort, String, Appendable) -> Appendable
 
-  rule PrintTextI(Text4_text_A1(#content, #text), #indent)
-  → PrintContent(#content, #indent, #text)
+  rule PrintTextI(Text4_text_A1(#content, #text), #indent, #result)
+  → PrintContent(#content, #indent, #result, #text)
 
-  rule PrintTextI(text⟦⟧, #indent)
-  → ""
+  rule PrintTextI(text⟦⟧, #indent, #result)
+  → #result
 
-func PrintContent(Text4_content_sort, String, Text4_text_sort) -> String
-rule PrintContent(content⟦⟨⟨⟧, #indent, #text)      → ConcatString("⟨",  PrintTextI(#text, #indent))
-rule PrintContent(content⟦#STRING⟧, #indent, #text) → ConcatString(#STRING, PrintTextI(#text, #indent))
-rule PrintContent(content⟦#BREAK⟧, #indent, #text)  → ConcatString("\n", ConcatString(#indent, PrintTextI(#text, #indent)))
-rule PrintContent(content⟦†#text⟧, #indent, #ntext)  → ConcatString(PrintTextI(#text, #indent), PrintTextI(#ntext, #indent))
-rule PrintContent(content⟦→⟧, #indent, #text)      → PrintTextI(#text, ConcatString(#indent, "  "))
-rule PrintContent(content⟦←⟧, #indent, #text)      → PrintTextI(#text, RemoveLastChar(RemoveLastChar(#indent)))
+func PrintContent(Text4_content_sort, String, Appendable, Text4_text_sort) -> Appendable
+rule PrintContent(content⟦⟨⟨⟧, #indent, #result, #text)      → PrintTextI(#text, #indent, AppendableAppend(#result, StringToAppendable("⟨")))
+rule PrintContent(content⟦#STRING⟧, #indent, #result, #text) → PrintTextI(#text, #indent, AppendableAppend(#result, StringToAppendable(#STRING)))
+rule PrintContent(content⟦#BREAK⟧, #indent, #result,#text)   → PrintTextI(#text, #indent, AppendableAppend(AppendableAppend(#result, StringToAppendable("\n")), StringToAppendable(#indent)))
+rule PrintContent(content⟦†#text⟧, #indent, #result, #ntext) → PrintTextI(#ntext, #indent, PrintTextI(#text, #indent, #result))
+rule PrintContent(content⟦→⟧, #indent, #result, #text)       → PrintTextI(#text, ConcatString(#indent, "  "), #result)
+rule PrintContent(content⟦←⟧, #indent, #result,#text)        → PrintTextI(#text, RemoveLastChar(RemoveLastChar(#indent)), #result)

@@ -138,7 +138,6 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 
 			for (Map.Entry<K, V> entry : entrySet())
 				copy.putValue(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
-
 			return copy;
 		}
 

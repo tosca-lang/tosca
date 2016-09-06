@@ -37,3 +37,4 @@ DoubleTerm& BitAnd(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 {
     throw new std::runtime_error("unimplemented");
 }
+

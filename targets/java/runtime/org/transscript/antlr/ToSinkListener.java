@@ -620,6 +620,9 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void exitBinds(ParserRuleContext context)
 	{
+		if (parser.getNumberOfSyntaxErrors() > 0)
+			return;
+	
 		assert !bounds.isEmpty() : "Unbalanced use of enterBinds/exitBinds";
 
 		while (bounds.pop() != MARKER);
@@ -630,6 +633,9 @@ public class ToSinkListener implements ParseTreeListener
 	@Override
 	public void enterEveryRule(ParserRuleContext context)
 	{
+		if (parser.getNumberOfSyntaxErrors() > 0)
+			return;
+	
 		// Is that a rule part of a list?
 		if (!consCount.isEmpty() && consCount.peek().fst != MutableInt.MARKER)
 		{
