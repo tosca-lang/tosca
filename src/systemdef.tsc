@@ -35,12 +35,15 @@ enum Module | Module(String /* filename */, Content /* of module */, Bool /* Com
 
 // --- module representation
 
+type DeclIndex = {String /* Constructor */ : Core_cdecl_sort}
+
 /* Module content. Sorts and rules are indexed for fast lookup. */
 enum Content
     | Content(
            List<Core_cqidentifier_sort>,                        /* Imports */
            {String /* Constructor */ : List<Core_cdecl_sort>},  /* Rules */
            {String /* Constructor */ : Core_cdecl_sort},        /* Data sorts */
+           {String /* Constructor */ : Core_cdecl_sort},        /* Sort aliases */
            {String /* Constructor */ : Core_cdecl_sort})        /* Function sorts */
 
 /* Compilation result */
@@ -72,7 +75,7 @@ func HasModule(#system: TSystem, #url: String) -> Bool
   @return An existing module or a new one.
  */
 func LookupOrCreateModule(#system: TSystem, #url: String /* url */) -> Module
-→ IfPresent(LookupModule(#system, #url), (mod)->mod, ()->Module(#url, Content((), {}, {}, {}), FALSE))
+→ IfPresent(LookupModule(#system, #url), (mod)->mod, ()->Module(#url, Content((), {}, {}, {}, {}), FALSE))
 
 /* Get import declarations for the module at given `#url` */
 func GetImportsS(#system: TSystem, #url: String) -> List<Core_cqidentifier_sort>
@@ -97,6 +100,12 @@ func FindFuncSortS(#system: TSystem, #constructor: String) -> Option<Core_cdecl_
 func FindFormS(#system: TSystem, #datasort: Core_csort_sort, #formname: String) -> Option<PPair<Core_cdecl_sort Core_cform_sort>>
 → PickFirstO(Map((mod) -> FindFormM(mod, #datasort, #formname), MapValues(GetModules(#system))))
 
+/* Search for the alias declaration sort for the given `#constructor` in the given `#system`
+   @return An alias declaration or `NONE` */
+func FindAliasS(#system: TSystem, #constructor: String) -> Option<Core_cdecl_sort>
+→ PickFirstO(Map((mod) -> FindAliasM(mod, #constructor), MapValues(GetModules(#system))))
+
+
 // --- System mutation functions. Convention: function name is suffixed by S
 
 /* Put the given `#module` for given `#url` into the given `#system`. */
@@ -120,6 +129,9 @@ func PutRuleS(#system: TSystem, #url: String, #rule: Core_cdecl_sort) -> TSystem
 
 func PutFuncSortS(#system: TSystem, #url: String, #funcsort: Core_cdecl_sort, #overwrite: Bool) -> TSystem
 → PutModule(#system, #url, PutFuncSortM(LookupOrCreateModule(#system, #url), #funcsort, #overwrite))
+
+func PutAliasS(#system: TSystem, #url: String, #alias: Core_cdecl_sort) -> TSystem
+→ PutModule(#system, #url, PutAliasM(LookupOrCreateModule(#system, #url), #alias))
 
 // --- Module querying functions. Convention: function name is suffixed by M
 
@@ -152,6 +164,11 @@ func GetFuncSortsM(#module: Module) -> {String: Core_cdecl_sort}
    @return A function declaration or `NONE` */
 func FindFuncSortM(#module: Module, #constructor: String) -> Option<Core_cdecl_sort>
 → GetFuncSort(GetModuleContent(#module), #constructor)
+
+/* Search for the alias declaration for the given `#constructor` in the given `#module`
+   @return An alias or `NONE` */
+func FindAliasM(#module: Module, #constructor: String) -> Option<Core_cdecl_sort>
+→ GetAliasC(GetModuleContent(#module), #constructor)
 
 /* @return `TRUE` if `#sort` is a data sort in the given `#module` */
 func IsDataSortM(#module: Module, #sort: Core_csort_sort) -> Bool
@@ -190,22 +207,25 @@ func PutRuleM(#module: Module, #rule: Core_cdecl_sort) -> Module
 func PutFuncSortM(#module: Module, #funcsort: Core_cdecl_sort, #overwrite: Bool) -> Module
 → SetModuleContent(#module, PutFuncSortC(GetModuleContent(#module), #funcsort, #overwrite))
 
+func PutAliasM(#module: Module, #alias: Core_cdecl_sort) -> Module
+→ SetModuleContent(#module, PutAliasC(GetModuleContent(#module), #alias))
+
 // --- Content lookup functions. Convention: function name is suffixed by C
 
 func GetImports(Content) -> List<Core_cqidentifier_sort>
-rule GetImports(Content(#imports, #rules, #datasorts, #funcsorts)) → #imports
+rule GetImports(Content(#imports, #rules, #datasorts, #aliases, #funcsorts)) → #imports
 
 func GetRules(Content) -> {String: List<Core_cdecl_sort>}
-rule GetRules(Content(#imports, #rules, #datasorts, #funcsorts)) → #rules
+rule GetRules(Content(#imports, #rules, #datasorts, #aliases, #funcsorts)) → #rules
 
 /* @return The list of rules for the given `#key` in the given `#system` */
 func GetRulesForKeyC(Content, String) -> Option<List<Core_cdecl_sort>>
-rule GetRulesForKeyC(Content(#imports, #rules, #datasorts, #funcsorts), #key)
+rule GetRulesForKeyC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #key)
 → MapGet(#rules, #key)
 
 /* @return all indexed data sorts */
 func GetDataSortsC(Content) -> {String: Core_cdecl_sort}
-rule GetDataSortsC(Content(#imports, #rules, #datasorts, #funcsorts)) → #datasorts
+rule GetDataSortsC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts)) → #datasorts
 
 /* @return `TRUE` if `#sort` is a data sort in the given loaded `#content` */
 func IsDataSortC(#content: Content, #sort: Core_csort_sort) -> Bool
@@ -222,7 +242,7 @@ func FindFormC(#content: Content, #datasort: Core_csort_sort, #formname: String)
 → FindFormI(GetDataSortsC(#content), #datasort, #formname)
 
 func GetFuncSorts(Content) -> {String: Core_cdecl_sort}
-rule GetFuncSorts(Content(#imports, #rules, #datasorts, #funcsorts)) → #funcsorts
+rule GetFuncSorts(Content(#imports, #rules, #datasorts, #aliases, #funcsorts)) → #funcsorts
 
 /* @return the function sort for the given `#constructor` in the given module `#content`, or `NONE` */
 func GetFuncSort(#content: Content, #constructor: String) -> Option<Core_cdecl_sort>
@@ -233,30 +253,38 @@ func GetFuncSortCE(#content: Content, #key: String) -> Core_cdecl_sort
     (decl) -> decl,
     ()->Error(ConcatString("Error: missing function declaration ", #key)))
 
+
+func GetAliasesC(Content) -> {String: Core_cdecl_sort}
+rule GetAliasesC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts)) → #aliases
+
+/* @return the alias declaration for the given `#constructor` in the given module `#content`, or `NONE` */
+func GetAliasC(#content: Content, #constructor: String) -> Option<Core_cdecl_sort>
+→ MapGet(GetAliasesC(#content), #constructor)
+
 // --- Content mutation functions. Convention: function name is suffixed by C
 
 /* Add the given import `#identifier` to the given module `#content`. */
 func AddImportC(Content, Core_cqidentifier_sort) -> Content
-rule AddImportC(Content(#imports, #rules, #datasorts, #funcsorts), #identifier)
-→ Content(Append(#identifier, #imports), #rules, #datasorts, #funcsorts)
+rule AddImportC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #identifier)
+→ Content(Append(#identifier, #imports), #rules, #datasorts, #aliases, #funcsorts)
 
 /*  Add the given data sort `#declaration` to the given module `#content`.
     Fail if the given data sort already exists and `#extends` is set to `FALSE`. */
 func PutDataSortC(Content, Core_cdecl_sort, Bool) -> Content
-rule PutDataSortC(Content(#imports, #rules, #datasorts, #funcsorts), #decl, #extends)
-→ Content(#imports, #rules, PutDataSort(#datasorts, #decl, #extends), #funcsorts)
+rule PutDataSortC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #decl, #extends)
+→ Content(#imports, #rules, PutDataSort(#datasorts, #decl, #extends), #aliases, #funcsorts)
 
 /* Add `#rules` of given `#constructor` to module `#content`. Always succeed, replacing existing entry if any.
    @return the updated content */
 func PutRulesC(Content, String, List<Core_cdecl_sort>) -> Content
-rule PutRulesC(Content(#imports, #rules, #datasorts, #funcsorts), #constructor, #rulesForCons)
-→ Content(#imports, MapPut(#rules, #constructor, #rulesForCons), #datasorts, #funcsorts)
+rule PutRulesC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #constructor, #rulesForCons)
+→ Content(#imports, MapPut(#rules, #constructor, #rulesForCons), #datasorts, #aliases, #funcsorts)
 
 /* Append the given `#rule` to module `#content`.
    @return the updated content */
 func PutRuleC(Content, Core_cdecl_sort) -> Content
-rule PutRuleC(Content(#imports, #rules, #datasorts, #funcsorts), #rule)
-→ Content(#imports, PutRule(#rules, #rule), #datasorts, #funcsorts)
+rule PutRuleC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #rule)
+→ Content(#imports, PutRule(#rules, #rule), #datasorts, #aliases, #funcsorts)
 
 /* Add rule to module content. Always succeed. */
 func PutRule({String : List<Core_cdecl_sort>}, Core_cdecl_sort) -> {String : List<Core_cdecl_sort>}
@@ -291,8 +319,8 @@ func PutDataSort1(Option<Core_cdecl_sort>, {String: Core_cdecl_sort}, String, Co
 // FIXME: lazy call to MapGet...
 
 func PutFuncSortC(Content, Core_cdecl_sort, Bool) -> Content
-rule PutFuncSortC(Content(#imports, #rules, #datasorts, #funcsorts), #funcsort, #overwrite)
-→ Content(#imports, #rules, #datasorts, PutFuncSort(#funcsorts, #funcsort, #overwrite))
+rule PutFuncSortC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #funcsort, #overwrite)
+→ Content(#imports, #rules, #datasorts, #aliases, PutFuncSort(#funcsorts, #funcsort, #overwrite))
 
 func PutFuncSort({String : Core_cdecl_sort}, Core_cdecl_sort, Bool) -> {String : Core_cdecl_sort}
 rule PutFuncSort(#func, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #overwrite)
@@ -309,11 +337,21 @@ func PutFuncSort1(Option<Core_cdecl_sort>, { String : Core_cdecl_sort }, String,
   rule PutFuncSort1(SOME(#datasort:Core_cdecl_sort), #func, #constructor, #rule, FALSE)
   → Error(ConcatString("Function sort already declared:", #constructor))
 
+
+func PutAliasC(Content, Core_cdecl_sort) -> Content
+rule PutAliasC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #alias)
+→ Content(#imports, #rules, #datasorts, PutAliasI(#aliases, #alias), #funcsorts)
+
+/* Add alias to module content. Always succeed. */
+func PutAliasI({String : Core_cdecl_sort}, Core_cdecl_sort) -> {String : Core_cdecl_sort}
+rule PutAliasI(#aliases, cdecl⟦ alias ##csortvars? ##CONSTRUCTOR ##csort ⟧)
+→ MapPut(#aliases, #CONSTRUCTOR, cdecl⟦ alias ##csortvars? ##CONSTRUCTOR ##csort ⟧)
+
 // --- Declaration querying functions. Convention: function name is suffixed by D
 
 /* @return data sort declaration from sort reference, or `NONE` */
 func LookupDataSortDecl({String:Core_cdecl_sort}, Core_csort_sort) -> Option<Core_cdecl_sort>
-rule LookupDataSortDecl(#data, csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → MapGet<String Core_cdecl_sort>(#data, #CONSTRUCTOR)
+rule LookupDataSortDecl(#data, csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → MapGet(#data, #CONSTRUCTOR)
 rule LookupDataSortDecl(#data, csort⟦ data ##csort            ⟧) → LookupDataSortDecl(#data, #csort)
 rule LookupDataSortDecl(#data, #csort                         ) → NONE
 
@@ -368,7 +406,7 @@ func IfConfigDef<a>(#system: TSystem, #key: String, #true: (String)->a, #false: 
    @return loaded core program into internal representation
  */
 func LoadCore(#system: TSystem, #url: String, #core: Core_ccrsx_sort, #compiled: Bool) -> TSystem
-→ LoadCoreS(If(HasModule(#system, #url), ()->#system, ()->PutModule(#system, #url, Module(#url, Content((), {}, {}, {}), #compiled))),
+→ LoadCoreS(If(HasModule(#system, #url), ()->#system, ()->PutModule(#system, #url, Module(#url, Content((), {}, {}, {}, {}), #compiled))),
               #url, #core)
 
 func LoadCoreS(TSystem, String, Core_ccrsx_sort) -> TSystem
@@ -391,6 +429,10 @@ func LoadDeclsS(TSystem, String, List<Core_cdecl_sort>, Bool) -> TSystem
   → LoadDeclsS(
        LoadDeclsS(#system, ResolveImportAux(#system, #url, IdentifierQList(#cidentifierqualifier*, FALSE)), cdecl+⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧, TRUE),
        #url, #cdecl+, #extends)
+
+  // Sort alias declaration
+  rule LoadDeclsS(#system, #url, cdecl+⟦ alias ##csortvars? ##CONSTRUCTOR ##csort ##cdecl+ ⟧, #extends)
+  → LoadDeclsS(PutAliasS(#system, #url, cdecl⟦ alias ##csortvars? ##CONSTRUCTOR ##csort ⟧), #url, #cdecl+, #extends)
 
   rule LoadDeclsS(#system, #url, cdecl+⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ##cdecl+ ⟧, #extends)
   → LoadDeclsS(PutFuncSortS(#system, #url, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, FALSE), #url, #cdecl+, #extends)

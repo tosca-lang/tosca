@@ -16,31 +16,29 @@ func CheckCoreM(#system: TSystem, #module: Module) -> Module
  * Analysis module content and add missing @Fallback annotation
  */
 func CheckFallback(Content) -> Content
-  rule CheckFallback(Content(#imports:List<Core_cqconstructor_sort>, #rules:{String:List<Core_cdecl_sort>},
-                                 #datasorts:{String:Core_cdecl_sort}, #funcsorts:{String:Core_cdecl_sort}))
-  → Content(#imports, #rules, #datasorts,
-    FoldlP<String {String:Core_cdecl_sort}>(
-      (name sorts) -> CheckFallbackFunc(sorts, UnSOME<Core_cdecl_sort>(MapGet<String Core_cdecl_sort>(#funcsorts, name)),
-        HasFallback(MapGet<String List>(#rules, name))),
-          #funcsorts, MapKeys<String Core_cdecl_sort>(#funcsorts)))
+rule CheckFallback(Content(#imports, #rules, #datasorts, #alias, #funcsorts))
+→ Content(#imports, #rules, #datasorts, #alias,
+           FoldlP((name sorts) -> CheckFallbackFunc(sorts, UnSOME(MapGet(#funcsorts, name)),
+                    HasFallback(MapGet(#rules, name))), #funcsorts, MapKeys(#funcsorts)))
 
 func CheckFallbackFunc(#funcsorts: {String:Core_cdecl_sort},  #sort: Core_cdecl_sort, #fallback: Bool) -> {String:Core_cdecl_sort}
-  rule CheckFallbackFunc(#funcsorts,
-    cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #fallback)
-  → PutFuncSort(#funcsorts, cdecl⟦ ⟨canno*: CheckFallbackAnno(#canno*, #fallback, HasAnnotation("Fallback", #canno*))⟩ ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, TRUE)
+rule CheckFallbackFunc(#funcsorts,
+                        cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #fallback)
+→ PutFuncSort(#funcsorts, cdecl⟦ ⟨canno*: CheckFallbackAnno(#canno*, #fallback, HasAnnotation("Fallback", #canno*))⟩ ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, TRUE)
 
 func CheckFallbackAnno(List<Core_canno_sort>, Bool /* Fallback */, Bool /* Has Fallback */) -> List<Core_canno_sort>
-  rule CheckFallbackAnno(#anno*, TRUE, TRUE)   → #anno*
-  rule CheckFallbackAnno(#anno*, TRUE, FALSE)  → AddAnnotation("Fallback", #anno*)
-  rule CheckFallbackAnno(#anno*, FALSE, TRUE)  → Error<List>("Invalid @Fallback annotation: function declaration does not have a fallback rule.")
-  rule CheckFallbackAnno(#anno*, FALSE, FALSE) → #anno*
+rule CheckFallbackAnno(#anno*, TRUE, TRUE)   → #anno*
+rule CheckFallbackAnno(#anno*, TRUE, FALSE)  → AddAnnotation("Fallback", #anno*)
+rule CheckFallbackAnno(#anno*, FALSE, TRUE)  → Error("Invalid @Fallback annotation: function declaration does not have a fallback rule.")
+rule CheckFallbackAnno(#anno*, FALSE, FALSE) → #anno*
 
 func HasFallback(#orules: Option<List<Core_cdecl_sort>>) -> Bool
-→ IfPresent<List Bool>(#orules,
-    (rs) -> IsNotEmpty<Core_cdecl_sort>(Filter<Core_cdecl_sort>((rr)->IsFallbackRule(rr), rs)),
+→ IfPresent(#orules,
+    (rs) -> IsNotEmpty(Filter((rr)->IsFallbackRule(rr), rs)),
     () -> FALSE)
 
 func IsFallbackRule(Core_cdecl_sort) -> Bool
+
   rule IsFallbackRule(cdecl⟦ rule ##cqconstructor ##csortargs? ##csortanno? → ##cterm ⟧)
   → TRUE
 
@@ -48,4 +46,4 @@ func IsFallbackRule(Core_cdecl_sort) -> Bool
   → TRUE
 
   rule IsFallbackRule(cdecl⟦ rule ##cqconstructor ##csortargs? ( ##cterm* ) ##csortanno? → ##cterm ⟧ )
-  → Not(HasOption<Core_cterm_sort>(PickFirst<Core_cterm_sort>(#cterm*, (term) -> Not(IsMeta(term)))))
+  → Not(HasOption(PickFirst(#cterm*, (term) -> Not(IsMeta(term)))))
