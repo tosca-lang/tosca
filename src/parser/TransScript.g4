@@ -28,6 +28,7 @@ importDecl
 
 sortDecl
      : ENUM identifierQualifier* constructor sortParams? (OR variant)+            /* Enumeration type declaration */
+     | ALIAS constructor sortParams? EQ sort                                      /* Type alias */
      ;
 
 sortParams
@@ -55,10 +56,10 @@ variantSort
     : sort
     ;
 
-// Sort Reference
+// Types
 
 sort
-    : sortScope? paramSort
+    : anno* sortScope? paramSort
     ;
 
 sortScope
@@ -114,7 +115,7 @@ fnDecl
 
 
 anno
-    : AT CONSTRUCTOR                                                 /* General purpose annotation */
+    : AT qidentifier args?                                           /* General purpose annotation */
     ;
 
 fnParamDecls
@@ -297,7 +298,7 @@ operator
 
 variable options { type="string"; }
    : VARIABLE
-   | MODULE | IMPORT | GRAMMAR | FUNC | ENUM | STRUCT | DISPATCH |  RULE | VAR | FIXITY
+   | MODULE | IMPORT | GRAMMAR | FUNC | ENUM | STRUCT | DISPATCH |  RULE | VAR | FIXITY | ALIAS
    ;
 
 // Lexer rules
@@ -315,6 +316,7 @@ EAGER           : 'eager'; // deprecate
 EXTERN          : 'extern'; // deprecate
 RULE            : 'rule';
 VAR             : 'allows-variable' | 'variable';
+ALIAS           : 'type';
 COMMA           : ',';
 LPAR            : '(';
 RPAR            : ')';

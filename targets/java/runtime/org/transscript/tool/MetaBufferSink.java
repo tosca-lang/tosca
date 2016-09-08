@@ -314,7 +314,7 @@ public class MetaBufferSink extends MetaSink
 			args = Cons(context, TransScript_sortArgs(context, Cons(
 					context,
 					TransScript_sort(
-							context, Nil(context),
+							context, Nil(context), Nil(context),
 							TransScript_paramSort_A1(context, TransScript_constructor(context, stringTerm(listArg)), Nil(context))),
 					Nil(context))), Nil(context));
 		}
@@ -322,7 +322,8 @@ public class MetaBufferSink extends MetaSink
 			args = Nil(context);
 
 		return TransScript_sort(
-				context, Nil(context), TransScript_paramSort_A1(context, TransScript_constructor(context, stringTerm(type)), args));
+				context, Nil(context), Nil(context),
+				TransScript_paramSort_A1(context, TransScript_constructor(context, stringTerm(type)), args));
 	}
 
 	// Convert internal rep sub to list of terms

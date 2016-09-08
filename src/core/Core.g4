@@ -121,13 +121,13 @@ cforms
     ;
 
 csort
-    : CONSTRUCTOR csorts?                           /* Construction sort */
-    | VARIABLE                                      /* Sort variable  */
-    | LSQUARE csort RSQUARE csort                   /* Bound variable sort */
-    | LPAR csort RPAR csort                         /* Formal parameter sort. */
-    | LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sorts */
-    | DATA csort                                    /* Data sort annotation. Indicate value must normalized */
-    | THUNK csort                                   /* Thunk sort annotation. Indicate value is not evaluated */
+    : canno* CONSTRUCTOR csorts?                           /* Construction sort */
+    | canno* VARIABLE                                      /* Sort variable  */
+    | canno* LSQUARE csort RSQUARE csort                   /* Bound variable sort */
+    | canno* LPAR csort RPAR csort                         /* Formal parameter sort. */
+    | canno* LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sorts */
+    | canno* DATA csort                                    /* Data sort annotation. Indicate value must normalized */
+    | canno* THUNK csort                                   /* Thunk sort annotation. Indicate value is not evaluated */
     ;
 
 csorts

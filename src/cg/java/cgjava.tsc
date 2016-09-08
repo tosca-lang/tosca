@@ -768,12 +768,12 @@ func JavaSigArg({String : JEnvEntry}, Core_csort_sort, Bool /* data? */,
  // Monomorphic sort
    rule JavaSigArg(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #data, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #csort*, #rules)
    → text⟦, †⟨#type⟩ ⟨STRING: value:String⟩†⟨
-       JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: value⟩⟧, Core_csort_A1(#CONSTRUCTOR, #csorts?)), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
+       JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: value⟩⟧, csort⟦ ##CONSTRUCTOR ##csorts? ⟧), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
 
    // Sort variable
    rule JavaSigArg(#env, csort⟦ ##VARIABLE ⟧, #data, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #csort*, #rules)
    → text⟦, †⟨#type⟩ ⟨STRING: value:String⟩†⟨
-       JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: value⟩⟧, Core_csort_A2(#VARIABLE)), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
+       JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: value⟩⟧, csort⟦ ##VARIABLE ⟧), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
 
    // Syntactic variable sort
    rule JavaSigArg(#env, csort⟦ [ ##csort ] ##csort2 ⟧, #data, Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #csort*, #rules)
@@ -786,7 +786,7 @@ func JavaSigArg({String : JEnvEntry}, Core_csort_sort, Bool /* data? */,
 
    rule JavaSigArg(#env, csort⟦ { ##cmapsort* } ⟧, #data, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #csort*, #rules)
    → text⟦, †⟨#type⟩ ⟨STRING: map:String⟩†⟨
-       JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: map⟩⟧, Core_csort_A5(#cmapsort*)), text⟦⟨STRING: map⟩⟧), #csort*, #rules)⟩⟧
+       JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: map⟩⟧, csort⟦ { ##cmapsort* } ⟧), text⟦⟨STRING: map⟩⟧), #csort*, #rules)⟩⟧
 
    rule JavaSigArg(#env, csort⟦ data ##csort ⟧, #data, #types, #csort*, #rules)
    → JavaSigArg(#env, #csort, TRUE, #types, #csort*, #rules)
