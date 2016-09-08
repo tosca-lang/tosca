@@ -18,7 +18,7 @@ ccrsx
 cdecl
     : RULE cterm ARROW cterm                                         /* Rule declaration */
     | DATA  csortvars? cidentifierqualifier* CONSTRUCTOR cforms      /* Data sort declaration */
-    | canno* EXTERN? FN csortvars? csort CONSTRUCTOR csorts?         /* Function sort declaration */
+    | canno* EXTERN? FUNC csortvars? csort CONSTRUCTOR csorts?         /* Function sort declaration */
     | IMPORT MODULE cqidentifier                                     /* Import module declaration */
     | IMPORT GRAMMAR  cqidentifier                                   /* Import grammar declaration */
     ;
@@ -29,7 +29,7 @@ cterm
     : canno* cqconstructor csortargs? cterms? csortanno?                    /* Constant/Construction */
     | canno* METAVAR cterms? csubst? csortanno?                             /* Meta variable/call/substitution */
     | cliteral                                                              /* Literal construction */
-    | canno* VARIABLE<variable> csortanno?                                  /* Variable */
+    | canno* cvariable<variable> csortanno?                                  /* Variable */
                               /* <variable> means 1. maps VARIABLE to a syntactic variable
                                                   2. look for a bound variable that matches VARIABLE
                                                      in the current tracked bound variables (innermost scope first).
@@ -37,10 +37,10 @@ cterm
     | LCURLY cmapentries? RCURLY csortanno?                                 /* Association map */
 
     // KEEP AT THE 6TH ALTERNATIVE UNTIL METAPARSER GENERATOR PROPERLY HANDLE BOUNDVAR
-    | LSQUARE VARIABLE<boundvar=x> csortanno? RSQUARE cterm<bound=x>        /* Bound term.
+    | LSQUARE cvariable<boundvar=x> csortanno? RSQUARE cterm<bound=x>        /* Bound term.
                                                                                VARIABLE<boundvar=x> means VARIABLE is a bound variable we call x
                                                                                cterm<bound=x>       means x is bound in the context of the cterm */
-    | LPAR VARIABLE<boundvar=x> csortanno? RPAR cterm<bound=x>             /* Formal parameter */
+    | LPAR cvariable<boundvar=x> csortanno? RPAR cterm<bound=x>             /* Formal parameter */
     | THUNK cterm                                                          /* Unvaluated term */
     | METAVAR EQ cterm                                                     /* Named term */
     ;
@@ -71,9 +71,9 @@ cmapentry
     : COLON METAVAR                                      /* property reference (match/construct)      */
     | NOT METAVAR                                        /* no property references (match only)       */
     | METAVAR COLON cterm                                /* match property value / construct          */
-    | VARIABLE<variable>                                 /* match / construct variable property       */
-    | NOT VARIABLE<variable>                             /* no variable (match only)                  */
-    | VARIABLE<variable> COLON cterm                     /* match variable property value / construct */
+    | cvariable<variable>                                 /* match / construct variable property       */
+    | NOT cvariable<variable>                             /* no variable (match only)                  */
+    | cvariable<variable> COLON cterm                     /* match variable property value / construct */
     | STRING                                             /* match / construct named property          */
     | NOT STRING                                         /* no named property (match only)            */
     | STRING COLON cterm                                 /* match named property value / construct    */
@@ -122,7 +122,7 @@ cforms
 
 csort
     : canno* CONSTRUCTOR csorts?                           /* Construction sort */
-    | canno* VARIABLE                                      /* Sort variable  */
+    | canno* cvariable                                     /* Sort variable  */
     | canno* LSQUARE csort RSQUARE csort                   /* Bound variable sort */
     | canno* LPAR csort RPAR csort                         /* Formal parameter sort. */
     | canno* LCURLY cmapsort (COMMA cmapsort)* RCURLY      /* Association map sorts */
@@ -148,7 +148,7 @@ csortanno
 
 cidentifier
     : CONSTRUCTOR
-    | VARIABLE
+    | cvariable
     ;
 
 cidentifierqualifier
@@ -167,6 +167,12 @@ cqconstructor
     : csortqualifier* CONSTRUCTOR
     ;
 
+cvariable options { type="string"; }
+    : VARIABLE
+    | DATA | FUNC | RULE | ALLOWS_VARIABLE | MODULE | IMPORT | GRAMMAR |  EXTERN | THUNK
+    ;
+
+
 csortargs
     : LT ccommasorts GT                            /* Sort arguments */
     ;
@@ -174,7 +180,7 @@ csortargs
 // Lexer rules
 
 DATA            : 'data';
-FN              : 'func';
+FUNC            : 'func';
 RULE            : 'rule';
 ALLOWS_VARIABLE : 'allows-variable' | 'variable';
 MODULE          : 'module';

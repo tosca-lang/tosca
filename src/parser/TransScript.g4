@@ -257,7 +257,7 @@ kvs
 
 kv
     : METAVAR                                               /* property reference (match/construct)      */ /*DEPRECATE*/
-    | NOT  METAVAR                                          /* no property references (match only)       */
+    | NOT METAVAR                                          /* no property references (match only)       */
     | METAVAR COLON term                                    /* match property value / construct          */
     | variable<variable>                                    /* match / construct variable property       */
     | NOT variable<variable>                                /* no variable (match only)                  */
@@ -277,7 +277,7 @@ qidentifier
 
 identifier
     : CONSTRUCTOR
-    | VARIABLE
+    | variable
     ;
 
 qconstructor
@@ -298,7 +298,7 @@ operator
 
 variable options { type="string"; }
    : VARIABLE
-   | MODULE | IMPORT | GRAMMAR | FUNC | ENUM | STRUCT | DISPATCH |  RULE | VAR | FIXITY | ALIAS
+   | MODULE | IMPORT | GRAMMAR | FUNC | ENUM | STRUCT | DISPATCH |  RULE | VAR | FIXITY | ALIAS | EXTERN | EAGER
    ;
 
 // Lexer rules
