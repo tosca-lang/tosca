@@ -49,6 +49,10 @@ func NDecl(TransScript_decl_sort) -> List<Core_cdecl_sort>
   → cdecl+⟦ data ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨cidentifierqualifier*: Map((ident)->NIdentifierQualifier(ident), #identifierQualifier*)⟩
                   ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ( ⟨cform*: NVariants(#variant+)⟩ ) ⟧
 
+  /* Convert aliases */
+  rule NDecl(decl⟦ type ##constructor ##sortParams? = ##sort ⟧)
+  → cdecl+⟦ alias ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨csort: NSort(#sort)⟩ ⟧
+
   /* Convert function. */
   rule NDecl(decl⟦ ##anno* ##EXTERN? func ##constructor ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
   → cdecl+⟦
@@ -70,7 +74,6 @@ func NVariants(List<TransScript_variant_sort>) -> List<Core_cform_sort>
   rule NVariants(variant+⟦ | ##constructor ##variantArgs? ##variant+ ⟧)
   → cform*⟦ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨csorts?: NMaybeVariantArgs(#variantArgs?)⟩ ⟨cform*: NVariants(#variant+)⟩ ⟧
 
-  // deprecated
   rule NVariants(variant+⟦ | allows-variable ##variant+ ⟧)
   → cform*⟦ allows-variable ⟨cform*: NVariants(#variant+)⟩ ⟧
 

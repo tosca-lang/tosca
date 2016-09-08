@@ -18,7 +18,8 @@ ccrsx
 cdecl
     : RULE cterm ARROW cterm                                         /* Rule declaration */
     | DATA  csortvars? cidentifierqualifier* CONSTRUCTOR cforms      /* Data sort declaration */
-    | canno* EXTERN? FUNC csortvars? csort CONSTRUCTOR csorts?         /* Function sort declaration */
+    | ALIAS csortvars? CONSTRUCTOR csort                             /* Sort alias */
+    | canno* EXTERN? FUNC csortvars? csort CONSTRUCTOR csorts?       /* Function sort declaration */
     | IMPORT MODULE cqidentifier                                     /* Import module declaration */
     | IMPORT GRAMMAR  cqidentifier                                   /* Import grammar declaration */
     ;
@@ -169,7 +170,7 @@ cqconstructor
 
 cvariable options { type="string"; }
     : VARIABLE
-    | DATA | FUNC | RULE | ALLOWS_VARIABLE | MODULE | IMPORT | GRAMMAR |  EXTERN | THUNK
+    | DATA | FUNC | RULE | ALLOWS_VARIABLE | MODULE | IMPORT | GRAMMAR |  EXTERN | THUNK | ALIAS
     ;
 
 
@@ -188,6 +189,7 @@ IMPORT          : 'import';
 GRAMMAR         : 'grammar';
 EXTERN          : 'extern';
 THUNK           : 'thunk';
+ALIAS           : 'alias';
 COLON           : ':';
 COLONCOLON      : '::';
 ARROW           : '→';
