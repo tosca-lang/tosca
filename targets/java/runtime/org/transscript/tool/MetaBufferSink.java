@@ -33,9 +33,9 @@ import org.transscript.runtime.Term;
 import org.transscript.runtime.Variable;
 
 /** 
- * Build term meta representation matching the TransScript term syntax.
+ * Build term meta representation matching the Tosca term syntax.
  * 
- * NOTE: the implementation is highly dependent on the TransScript grammar description
+ * NOTE: the implementation is highly dependent on the Tosca grammar description
  * in TransScript.g4.
  * 
  * <p>
@@ -44,8 +44,8 @@ import org.transscript.runtime.Variable;
  * is parsed to the following (simplified) term 
  * <pre>Core_term_A1(Core_literal_A2(1))</pre>
  * 
- * is then turned into this following TransScript term:
- * <pre>TS_term_A1(TransScript_constructor("Core_term_A1", (TransScript_term_A1(... </pre>
+ * is then turned by this class into this following Tosca term:
+ * <pre>TransScript_term_A1(TransScript_constructor("Core_term_A1", (TransScript_term_A1(... </pre>
  */
 public class MetaBufferSink extends MetaSink
 {

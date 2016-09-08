@@ -7,7 +7,7 @@ import java.io.Reader;
 import org.transscript.runtime.utils.Scoping;
  
 /**
- * Instances permit creation of TransScript terms from text.
+ * Instances permit creation of Tosca terms from text.
  * 
  * @author Lionel Villard
  */
@@ -20,7 +20,7 @@ public interface Parser
 	/**
 	 * All parsers for actual use must be retrieved by this method.
 	 * Each parser retrieved in this way can be used once, 
-	 * and be aware that TransScript may keep several parsers running simultaneously.
+	 * and be aware that Tosca may keep several parsers running simultaneously.
 	 */
 	public Parser parser();
 	

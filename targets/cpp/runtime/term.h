@@ -50,6 +50,7 @@ namespace tosca {
     {
     public:
         Term();
+        Term(Term& other) {};
         virtual ~Term();
 
         /**

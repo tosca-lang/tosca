@@ -18,9 +18,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.transscript.compiler.parser.TransScript.TransScript_term_sort;
 import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.ConstructionDescriptor;
-import org.transscript.runtime.Context;
 import org.transscript.runtime.Sink;
-import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Variable;
 import org.transscript.runtime.utils.Pair;
 import org.transscript.runtime.utils.Scoping;
@@ -28,6 +26,7 @@ import org.transscript.runtime.utils.StringUtils;
 import org.transscript.tool.MetaBufferSink;
 import org.transscript.tool.MetaSink;
 import org.transscript.tool.MutableInt;
+import org.transscript.tool.TermBufferSink;
 
 /**
  * Convert custom ANTLR parse tree events to {@link Sink} events.
@@ -146,9 +145,6 @@ public class ToSinkListener implements ParseTreeListener
 			listeners.stream().filter(l -> l instanceof ToSinkListener).forEach(apply);
 	}
 
-	// Variable stack marker
-	final static private Pair<String, Variable> MARKER = new Pair<>(null, null);
-
 	// Some enums
 
 	enum State {
@@ -248,9 +244,7 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	protected void sendLocation(Token token)
 	{
-
-		// No location until crsx4 can compile crsx4
-
+		// TODO
 		//		int column = token.getCharPositionInLine();
 		//		int line = token.getLine();
 		//		return Util.wrapWithLocation(sink, c, parser.getInputStream().getSourceName(), line, column);
@@ -362,9 +356,6 @@ public class ToSinkListener implements ParseTreeListener
 		{
 			sendLocation(parentCtx.getStart());
 
-			//			if (metasink() != null && parser.sendTypes())
-			//				metasink().type(fixupType(ruleName));
-
 			// TEMPORARY BC BEHAVIOR
 			if (name.length() > 0 && Character.isDigit(name.charAt(0)))
 			{
@@ -376,7 +367,12 @@ public class ToSinkListener implements ParseTreeListener
 				if (name.equals("tsc_nil"))
 					sink.start(nilDesc);
 				else
-					sink.start(sink.context().lookupDescriptor(prefix + name));
+				{
+					ConstructionDescriptor desc = sink.context().lookupDescriptor(prefix + name);
+					if (desc == null)
+						throw new RuntimeException("Fatal error: construction symbol not defined: " + prefix + name);
+					sink.start(desc);
+				}
 			}
 		}
 	}
@@ -417,7 +413,6 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	public void term(ParserRuleContext _ctx, String type)
 	{
-		//	termType = fixupType(type);
 		kind = TokenKind.METAVAR;
 	}
 
@@ -545,28 +540,30 @@ public class ToSinkListener implements ParseTreeListener
 		state = State.PARSE;
 
 	}
-	
+
 	/* Look for a fresh variable corresponding to the given variable occurrence */
 	private Optional<Pair<String, Variable>> findFreshVar(String var)
 	{
-		Optional<Pair<String, Variable>> variable;
-		variable = freshes.stream().filter(pair -> {
-			return pair.fst.equals(var);
-
-		}).findFirst();
-		return variable;
+		return freshes.findVarDecl(var);
+		//		Optional<Pair<String, Variable>> variable;
+		//		variable = freshes.stream().filter(pair -> {
+		//			return pair.fst.equals(var);
+		//
+		//		}).findFirst();
+		//		return variable;
 	}
 
 	/* Look for the binder for the given variable occurrence */
 	private Optional<Pair<String, Variable>> findBinder(String var)
 	{
-		Optional<Pair<String, Variable>> variable = bounds.stream().filter(pair -> {
-			if (pair == MARKER)
-				return false;
-
-			return pair.fst.equals(var);
-		}).findFirst();
-		return variable;
+		return bounds.findVarDecl(var);
+		//		Optional<Pair<String, Variable>> variable = bounds.stream().filter(pair -> {
+		//			if (pair == Scoping.MARKER)
+		//				return false;
+		//
+		//			return pair.fst.equals(var);
+		//		}).findFirst();
+		//		return variable;
 	}
 
 	/**
@@ -581,7 +578,7 @@ public class ToSinkListener implements ParseTreeListener
 		String[] snames = names.trim().split(" ");
 		Variable[] binders = new Variable[snames.length];
 
-		bounds.push(MARKER);
+		bounds.push(Scoping.MARKER);
 		for (int i = 0; i < snames.length; i++)
 		{
 			String id = snames[i];
@@ -599,9 +596,7 @@ public class ToSinkListener implements ParseTreeListener
 			String name = pair.snd.fst;
 			String type = pair.snd.snd;
 
-			// bind.
-
-			//binders[i] = StringTerm.varStringTerm(sink.context(), name);
+			// bind typed variable
 			binders[i] = makeVariable(type, name);
 
 			bounds.push(new Pair<>(name, binders[i]));
@@ -622,10 +617,10 @@ public class ToSinkListener implements ParseTreeListener
 	{
 		if (parser.getNumberOfSyntaxErrors() > 0)
 			return;
-	
+
 		assert !bounds.isEmpty() : "Unbalanced use of enterBinds/exitBinds";
 
-		while (bounds.pop() != MARKER);
+		while (bounds.pop() != Scoping.MARKER);
 	}
 
 	// Overrides
@@ -635,7 +630,7 @@ public class ToSinkListener implements ParseTreeListener
 	{
 		if (parser.getNumberOfSyntaxErrors() > 0)
 			return;
-	
+
 		// Is that a rule part of a list?
 		if (!consCount.isEmpty() && consCount.peek().fst != MutableInt.MARKER)
 		{
@@ -725,7 +720,7 @@ public class ToSinkListener implements ParseTreeListener
 							{
 								// parsing a meta variable inside some concrete syntax, with some substitution arguments.
 								// All arguments must be variables (for now).
-								
+
 								metaargs = rawMeta.substring(si + 1, rawMeta.length() - 1).split(",");
 								if (metaargs.length > 1 || !metaargs[0].trim().equals(""))
 								{
@@ -733,21 +728,22 @@ public class ToSinkListener implements ParseTreeListener
 									{
 										String metaarg = metaargs[i].trim();
 										if (metaarg.equals(""))
-											throw new RuntimeException("Fatal error: Invalid empty meta-variable argument in " + rawMeta);
-										
+											throw new RuntimeException(
+													"Fatal error: Invalid empty meta-variable argument in " + rawMeta);
+
 										Optional<Pair<String, Variable>> variable = findBinder(metaarg);
-	
+
 										if (!variable.isPresent())
 											variable = findFreshVar(metaarg);
-	
+
 										if (!variable.isPresent())
 										{
 											// Create new fresh variable.
 											variable = Optional.of(new Pair<>(metaarg, makeVariable("", metaarg)));
-	
+
 											freshes.push(variable.get());
 										}
-										
+
 										sink.use(variable.get().snd);
 									}
 								}
@@ -820,7 +816,7 @@ public class ToSinkListener implements ParseTreeListener
 		}
 	}
 
-	// Parse concrete syntax
+	// Parse concrete syntax. Only applies when parsing Tosca source files.
 	private void parseConcrete(String text, int line, int column)
 	{
 		String category = text.substring(0, text.indexOf("⟦"));
@@ -833,6 +829,9 @@ public class ToSinkListener implements ParseTreeListener
 
 		try (Reader reader = new StringReader(program))
 		{
+			// Use MetaBufferSink to construct a meta-representation of the concrete syntax.
+			// As such, construct a Tosca term following the Tosca grammar.
+
 			MetaBufferSink innersink = new MetaBufferSink(sink.context());
 			parser.parse(innersink, category, reader, null, line, column, bounds, freshes);
 			sink.copy(innersink.metaterm().asTransScript_term(sink.context()).getField1(sink.context(), false));
@@ -846,15 +845,28 @@ public class ToSinkListener implements ParseTreeListener
 		{} // can't happen.
 	}
 
-	// Parse embedded TS term.
+	// Parse embedded TS term. 
 	private void parseTSTerm(String text, int line, int column)
 	{
 		try (Reader reader = new StringReader(text))
 		{
 			org.transscript.runtime.Parser innerParser = sink.context().getParser("term", false);
-			BufferSink buffer = sink.context().makeBuffer();
-			innerParser.parser().parse(buffer, "term", reader, null, line, column, bounds, freshes);
-			metasink().copy((TransScript_term_sort) buffer.term());
+			if (innerParser == null)
+				throw new RuntimeException("Internal Error: missing Tosca metaparser.");
+
+			if (isMeta())
+			{
+				BufferSink buffer = sink.context().makeBuffer();
+				innerParser.parser().parse(buffer, "term", reader, null, line, column, bounds, freshes);
+				sink.copy((TransScript_term_sort) buffer.term());
+			}
+			else
+			{
+				// Regular term parsing. 
+				BufferSink buffer = new TermBufferSink(sink.context());
+				((TSParser) innerParser.parser()).parse(buffer, "term", reader, null, line, column, bounds, freshes);
+				sink.copy(buffer.term());
+			}
 		}
 		catch (IOException e)
 		{} // can't happen.
@@ -891,10 +903,16 @@ public class ToSinkListener implements ParseTreeListener
 		//		return (islist ? "List<" : "") + prefix + type + "_sort" + (islist ? ">" : "");
 	}
 
-	/** Cast sink to metasink */
+	// Cast sink to metasink 
 	final private MetaSink metasink()
 	{
 		return sink instanceof MetaSink ? (MetaSink) sink : null;
+	}
+
+	// Whether parser is in meta-parsing mode (i.e constructs a Tosca term)
+	final private boolean isMeta()
+	{
+		return sink instanceof MetaSink;
 	}
 
 	// Tell whether about to parse concrete programs.
@@ -904,15 +922,17 @@ public class ToSinkListener implements ParseTreeListener
 		return parsets && altname.equals("aterm_A8");
 	}
 
-	/** Make variable of the given type 
-	 * @param name */
+	/** 
+	 * Make variable of the given type 
+	 * @param name 
+	 */
 	private Variable makeVariable(String type, String name)
 	{
-		if (metasink() != null || parsets)
-		{
-			// Parsing embedded syntax: create generic variable
-			return StringTerm.varStringTerm(sink.context(), name);
-		}
+		//		if (metasink() != null && parsets)
+		//		{
+		//			// Parsing embedded syntax: create generic variable
+		//			return StringTerm.varStringTerm(sink.context(), name);
+		//		}
 		String rtype = prefix + type;
 		return sink.context().makeVariable(rtype, name);
 	}

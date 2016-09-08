@@ -70,7 +70,11 @@ public class Context
 		
 		// Register builtin types
 		varMakers.put("String", StringTerm::varStringTerm);
-		varMakers.put("Numeric", DoubleTerm::varDoubleTerm);		
+		varMakers.put("Numeric", DoubleTerm::varDoubleTerm);
+		
+		// Temporary until Builtin parsers support true variables (see meta parser generator)
+		varMakers.put("TransScript_String", StringTerm::varStringTerm);
+		varMakers.put("Core_String", StringTerm::varStringTerm);
 	}
 
 	/**

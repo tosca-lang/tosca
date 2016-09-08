@@ -288,11 +288,14 @@ rule NScope(scope⟦ ( ##formalParams ⟧, #inpattern) → NFormalParams(#formal
 
 func NBinders(TransScript_binders_sort, Bool) -> Core_cterm_sort
 
-  rule NBinders(binders⟦ b ##sortAnno?[] ##binders[b] ⟧, #inpattern)
+  rule NBinders(binders⟦ b ##sortAnno? ##binders[b] ⟧, #inpattern)
   → cterm⟦ [ x ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ] ⟨cterm: NBinders(#binders[x], #inpattern)⟩ ⟧
 
   rule NBinders(binders⟦ ] -> ##term ⟧, #inpattern)
   → NTerm(#term, #inpattern)
+
+  rule NBinders(binders⟦ ] ( ##formalParams ⟧, #inpattern)
+  → NFormalParams(#formalParams, TRUE, #inpattern)
 
 func NFormalParams(TransScript_formalParams_sort, Bool, Bool) -> Core_cterm_sort
 

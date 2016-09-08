@@ -110,7 +110,7 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 	{
 		return true;
 	}
-	
+
 	/**
 	 * Return Crsx4 compatible parser 
 	 * @return
@@ -126,7 +126,7 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 	protected String supportCategory(String category)
 	{
 		// TODO: caching.
-		
+
 		String token = (Character.isUpperCase(category.charAt(0))) ? "_TOK" : "";
 		int len = category.length();
 		char last = category.charAt(len - 1);
@@ -193,7 +193,7 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 			if (len > 4)
 			{
 				String suffix = v.substring(len - 4, len);
-				
+
 				switch (suffix)
 				{
 					case "_ZOM" :
@@ -211,7 +211,7 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 				}
 			}
 			result = result + ebnf;
-			
+
 			return _catprefix() + result;
 		});
 		return s::iterator;
@@ -249,7 +249,7 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 		}
 
 		initLexerState(category);
-		
+
 		ToSinkListener listener = new ToSinkListener(sink, _prefix(), _metachar(), this, bounds, freshes);
 		//setTrace(true);
 		addParseListener(listener);
@@ -257,10 +257,38 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 		TSAntlrErrorListener errorListener = new TSAntlrErrorListener();
 		addErrorListener(errorListener);
 		//addErrorListener(new DiagnosticErrorListener(false));
-		
-		
+
 		// Retrieve method to call.
 		realParse(rcategory);
+
+		if (errorListener.error)
+			Utils.fatal("Error(s) while parsing " + unit + ". Exiting.", null);
+
+		return sink;
+	}
+
+	public Sink parseTerm(Sink sink, Reader reader, String unit, int line, int column, Scoping bounds, Scoping freshes, String prefix, String metachar)
+	{
+		try
+		{
+			setupInput(reader, line, column);
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
+
+		initLexerState("term");
+
+		ToSinkListener listener = new ToSinkListener(sink, prefix, metachar, this, bounds, freshes);
+		addParseListener(listener);
+
+		TSAntlrErrorListener errorListener = new TSAntlrErrorListener();
+		addErrorListener(errorListener);
+		//addErrorListener(new DiagnosticErrorListener(false));
+
+		// Retrieve method to call.
+		realParse("term");
 
 		if (errorListener.error)
 			Utils.fatal("Error(s) while parsing " + unit + ". Exiting.", null);
