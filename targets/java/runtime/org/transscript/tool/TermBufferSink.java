@@ -166,7 +166,6 @@ public class TermBufferSink extends BufferSink
 		pendingSort = null;
 		state = State.SKIP;
 		return super.bind(languageVar);
-
 	}
 
 }

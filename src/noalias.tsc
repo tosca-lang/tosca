@@ -1,0 +1,137 @@
+// Copyright (c) 2016 IBM Corporation.
+import std::core
+import std::mapdef
+import std::listdef
+import std::pairdef
+import std::string
+import std::language
+import std::num
+import core::Core
+import core::utils
+import core::subst
+import systemdef
+
+// --- API
+
+/* Substitute type aliases. */
+func NoAliasM(#system: TSystem, #module: Module) -> Module
+→ //IfConfigDef(#system, "java",
+    //(v) ->
+    Debug(ConcatString("Remove type aliases ", GetModuleURL(#module)),
+            ()->SetModuleContent(#module, NoAliasC(#system, GetModuleContent(#module)))) //,
+    //() -> #module)
+
+func NoAliasC(TSystem, Content) -> Content
+rule NoAliasC(#system, Content(#imports, #rules, #datasorts, #aliases, #funcsorts))
+→ Content(#imports, NoAliasRules(#system, #rules), NoAliasDataSorts(#system, #datasorts), {}, NoAliasFuncSorts(#system, #funcsorts))
+
+// --- Rules
+
+func NoAliasRules(#system: TSystem, #rules: {String : List<Core_cdecl_sort>}) -> {String : List<Core_cdecl_sort>}
+→ FoldlP((key rules)->MapPut(rules, key, Map((rule)->NoAliasRule(#system, rule), UnSOME(MapGet(#rules, key)))), #rules, MapKeys(#rules))
+
+func NoAliasRule(TSystem, Core_cdecl_sort) -> Core_cdecl_sort
+rule NoAliasRule(#system, cdecl⟦ rule ##cterm1 → ##cterm2 ⟧) → cdecl⟦ rule ⟨cterm: NoAliasTerm(#system, #cterm1)⟩ → ⟨cterm: NoAliasTerm(#system, #cterm2)⟩ ⟧
+
+func NoAliasTerm(TSystem, Core_cterm_sort) -> Core_cterm_sort
+
+  rule NoAliasTerm(#system, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧)
+  → cterm⟦ ##canno* ##cqconstructor ##csortargs? ⟨cterms?: NoAliasMaybeTerms(#system, #cterms?)⟩ ⟨csortanno?: NoAliasMaybeSortAnno(#system, #csortanno?)⟩ ⟧
+
+  rule NoAliasTerm(#system, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? : ##csort ⟧)
+  → cterm⟦ ##canno* ##METAVAR ⟨cterms?: NoAliasMaybeTerms(#system, #cterms?)⟩  ⟨csubst?: NoAliasMaybeSubst(#system, #csubst?)⟩  : ⟨csort: NoAliasSort(#system, #csort)⟩ ⟧
+
+  rule NoAliasTerm(#system, cterm⟦ ##canno* ##VARIABLE : ##csort ⟧)
+  → cterm⟦ ##canno* ##VARIABLE : ⟨csort: NoAliasSort(#system, #csort)⟩ ⟧
+
+  rule NoAliasTerm(#system, cterm⟦ [ x : ##csort ] ##cterm[x] ⟧)
+  → cterm⟦ [ x : ⟨csort: NoAliasSort(#system, #csort)⟩] ⟨cterm: NoAliasTerm(#system, #cterm[x])⟩ ⟧
+
+  rule NoAliasTerm(#system, cterm⟦ ( f : ##csort ) ##cterm[f] ⟧)
+  → cterm⟦ ( f : ⟨csort: NoAliasSort(#system, #csort)⟩ ) ⟨cterm: NoAliasTerm(#system, #cterm[f])⟩ ⟧
+
+  rule NoAliasTerm(#system, cterm⟦ { ##cmapentries? } : { ##cmapsort } ⟧)
+  → cterm⟦ { ⟨cmapentries?: NoAliasMaybeMapEntries(#system, #cmapentries?)⟩ } : { ⟨cmapsort: NoAliasMapSort(#system, #cmapsort)⟩ } ⟧
+
+  rule NoAliasTerm(#system, cterm⟦ thunk ##cterm ⟧)
+  → cterm⟦ thunk ⟨cterm: NoAliasTerm(#system, #cterm)⟩ ⟧
+
+  rule NoAliasTerm(#system, #cterm) → #cterm
+
+func NoAliasMaybeTerms(TSystem, List<Core_cterms_sort>) -> List<Core_cterms_sort>
+rule NoAliasMaybeTerms(#system, cterms?⟦              ⟧) → cterms?⟦⟧
+rule NoAliasMaybeTerms(#system, cterms?⟦ (          ) ⟧) → cterms?⟦ () ⟧
+rule NoAliasMaybeTerms(#system, cterms?⟦ ( ##cterm* ) ⟧) → cterms?⟦ ( ⟨cterm*: Map((term)->NoAliasTerm(#system, term), #cterm*)⟩ ) ⟧
+
+func NoAliasMaybeSubst(TSystem, List<Core_csubst_sort>) -> List<Core_csubst_sort>
+rule NoAliasMaybeSubst(#system, csubst?⟦              ⟧) → csubst?⟦⟧
+rule NoAliasMaybeSubst(#system, csubst?⟦ [ ##cterm* ] ⟧) → csubst?⟦ [ ⟨cterm*: Map((term)->NoAliasTerm(#system, term), #cterm*)⟩ ] ⟧
+
+func NoAliasMaybeSortAnno(TSystem, List<Core_csortanno_sort>) -> List<Core_csortanno_sort>
+rule NoAliasMaybeSortAnno(#system, csortanno?⟦           ⟧) → csortanno?⟦⟧
+rule NoAliasMaybeSortAnno(#system, csortanno?⟦ : ##csort ⟧) → csortanno?⟦ : ⟨csort: NoAliasSort(#system, #csort)⟩ ⟧
+
+func NoAliasMaybeMapEntries(TSystem, List<Core_cmapentries_sort>) -> List<Core_cmapentries_sort>
+rule NoAliasMaybeMapEntries(#system, cmapentries?⟦              ⟧) → cmapentries?⟦⟧
+rule NoAliasMaybeMapEntries(#system, cmapentries?⟦ ##cmapentry* ⟧) → cmapentries?⟦ ⟨cmapentry*: Map((entry)->NoAliasMapEntry(#system, entry), #cmapentry*)⟩ ⟧
+
+func NoAliasMapEntry(TSystem, Core_cmapentry_sort) -> Core_cmapentry_sort
+rule NoAliasMapEntry(#system, cmapentry⟦ ##METAVAR : ##cterm  ⟧) → cmapentry⟦ ##METAVAR : ⟨cterm: NoAliasTerm(#system, #cterm)⟩ ⟧
+rule NoAliasMapEntry(#system, cmapentry⟦ ##VARIABLE : ##cterm ⟧) → cmapentry⟦ ##VARIABLE : ⟨cterm: NoAliasTerm(#system, #cterm)⟩ ⟧
+rule NoAliasMapEntry(#system, cmapentry⟦ ##STRING : ##cterm   ⟧) → cmapentry⟦ ##STRING : ⟨cterm: NoAliasTerm(#system, #cterm)⟩ ⟧
+rule NoAliasMapEntry(#system, #cmapentry                       ) → #cmapentry
+
+// --- Sorts
+
+func NoAliasSort(TSystem, Core_csort_sort) -> Core_csort_sort
+rule NoAliasSort(#system, csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → NoAliasSortConstructor(FindAliasS(#system, #CONSTRUCTOR), #system, #CONSTRUCTOR, #csorts?)
+rule NoAliasSort(#system, csort⟦ ##VARIABLE              ⟧) → csort⟦ ##VARIABLE ⟧
+rule NoAliasSort(#system, csort⟦ [ ##csort1 ] ##csort2   ⟧) → csort⟦ [ ⟨csort: NoAliasSort(#system, #csort1)⟩ ] ⟨csort: NoAliasSort(#system, #csort2)⟩ ⟧
+rule NoAliasSort(#system, csort⟦ ( ##csort1 ) ##csort2   ⟧) → csort⟦ ( ⟨csort: NoAliasSort(#system, #csort1)⟩ ) ⟨csort: NoAliasSort(#system, #csort2)⟩ ⟧
+rule NoAliasSort(#system, csort⟦ { ##cmapsort* }         ⟧) → csort⟦ { ⟨cmapsort*: NoAliasMapSorts(#system, #cmapsort*)⟩ } ⟧
+rule NoAliasSort(#system, csort⟦ thunk ##csort           ⟧) → csort⟦ thunk ⟨csort: NoAliasSort(#system, #csort)⟩ ⟧
+rule NoAliasSort(#system, csort⟦ data ##csort            ⟧) → csort⟦ data ⟨csort: NoAliasSort(#system, #csort)⟩ ⟧
+
+func NoAliasSortConstructor(Option<Core_cdecl_sort>, TSystem, String, List<Core_csorts_sort>) -> Core_csort_sort
+
+  rule NoAliasSortConstructor(NONE, #system, #CONSTRUCTOR, #csorts?)
+  → csort⟦ ##CONSTRUCTOR ⟨csorts?: NoAliasMaybeSorts(#system, #csorts?)⟩ ⟧
+
+  rule NoAliasSortConstructor(SOME(cdecl⟦ alias ##CONSTRUCTOR1 ##csort ⟧), #system, #CONSTRUCTOR, csorts?⟦⟧)
+  → NoAliasSort(#system, #csort)
+
+  rule NoAliasSortConstructor(SOME(#cdecl), #system, #CONSTRUCTOR, #csorts?)
+  → Error("Polymorphic sort aliases not supported yet")
+
+func NoAliasMaybeSorts(TSystem, List<Core_csorts_sort>) -> List<Core_csorts_sort>
+rule NoAliasMaybeSorts(#system, csorts?⟦             ⟧) → csorts?⟦⟧
+rule NoAliasMaybeSorts(#system, csorts?⟦ ( ##csort* )⟧) → csorts?⟦ ( ⟨csort*: Map((sort)->NoAliasSort(#system, sort), #csort*)⟩ ) ⟧
+
+func NoAliasMapSorts(TSystem, List<Core_cmapsort_sort>) -> List<Core_cmapsort_sort>
+rule NoAliasMapSorts(#system, cmapsort*⟦                        ⟧) → cmapsort*⟦⟧
+rule NoAliasMapSorts(#system, cmapsort*⟦ ##cmapsort ##cmapsort* ⟧) → cmapsort*⟦ ⟨cmapsort: NoAliasMapSort(#system, #cmapsort)⟩ ⟨cmapsort*: NoAliasMapSorts(#system, #cmapsort*)⟩ ⟧
+
+func NoAliasMapSort(TSystem, Core_cmapsort_sort) -> Core_cmapsort_sort
+rule NoAliasMapSort(#system, cmapsort⟦ ##csort1 : ##csort2 ⟧) → cmapsort⟦ ⟨csort: NoAliasSort(#system, #csort1)⟩ : ⟨csort: NoAliasSort(#system, #csort2)⟩ ⟧
+
+// --- Data sorts
+
+func NoAliasDataSorts(#system: TSystem, #sorts: {String : Core_cdecl_sort}) -> {String : Core_cdecl_sort}
+→ FoldlP((key sorts)->MapPut(sorts, key, NoAliasDataSort(#system, UnSOME(MapGet(#sorts, key)))), #sorts, MapKeys(#sorts))
+
+func NoAliasDataSort(TSystem, Core_cdecl_sort) -> Core_cdecl_sort
+rule NoAliasDataSort(#system, cdecl⟦ data ##csortvars? ##cidentifierqualifier* ##CONSTRUCTOR ( ##cform* ) ⟧)
+→ cdecl⟦ data ##csortvars? ##cidentifierqualifier* ##CONSTRUCTOR ( ⟨cform*: Map((form)->NoAliasForm(#system, form), #cform*)⟩ ) ⟧
+
+func NoAliasForm(TSystem, Core_cform_sort) -> Core_cform_sort
+rule NoAliasForm(#system, cform⟦ ##CONSTRUCTOR ##csorts? ⟧) → cform⟦ ##CONSTRUCTOR ⟨csorts?: NoAliasMaybeSorts(#system, #csorts?)⟩ ⟧
+rule NoAliasForm(#system, #cform) → #cform
+
+// --- Func sorts
+
+func NoAliasFuncSorts(#system: TSystem, #sorts: {String : Core_cdecl_sort}) -> {String : Core_cdecl_sort}
+→ FoldlP((key sorts)->MapPut(sorts, key, NoAliasFuncSort(#system, UnSOME(MapGet(#sorts, key)))), #sorts, MapKeys(#sorts))
+
+func NoAliasFuncSort(TSystem, Core_cdecl_sort) -> Core_cdecl_sort
+rule NoAliasFuncSort(#system, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
+→ cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ⟨csort: NoAliasSort(#system, #csort)⟩ ##CONSTRUCTOR ⟨csorts?: NoAliasMaybeSorts(#system, #csorts?)⟩ ⟧

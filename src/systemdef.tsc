@@ -28,7 +28,7 @@ enum TSystem | TSystem(String /* Initial url */, {String /* url */ : Module}, {S
 
 /* Initialize system with main module */
 func InitSystem(#url: String, #config: {String:String}) -> TSystem
-→ TSystem(#url, MapNew<String Module>, #config)
+→ TSystem(#url, MapNew, #config)
 
 /* A Tosca module  */
 enum Module | Module(String /* filename */, Content /* of module */, Bool /* Compiled? */)
@@ -299,7 +299,7 @@ rule PutRule1(SOME(#rulesForCons:List<Core_cdecl_sort>), #rules, #constructor, #
 → MapPut(#rules, #constructor, Append(#rule, #rulesForCons))  // Keep rules in order.
 
 /*  Add data sort to module content. Fail if data sort already exists and `#extends` is set to `FALSE` */
-func PutDataSort({ String : Core_cdecl_sort }, Core_cdecl_sort, Bool) -> {String : Core_cdecl_sort}
+func PutDataSort({String:Core_cdecl_sort}, Core_cdecl_sort, Bool) -> {String : Core_cdecl_sort}
 rule PutDataSort(#data, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧, #extends)
 → PutDataSort1(MapGet(#data, #CONSTRUCTOR), #data, #CONSTRUCTOR, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧, #extends)
 

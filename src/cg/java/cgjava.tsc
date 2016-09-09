@@ -73,8 +73,8 @@ func JavaUnit(#url: String, #imports: List<Core_cqidentifier_sort>, #rules: {Str
 public class ⟨STRING:ClassName(#url)⟩ {
 
   /* Typed enumerations */
-  †⟨TextFold(Map((x) ->EnumToClass(x, ClassName(#url)), MapValues(#datasorts)), text⟦⟧)⟩
-  †⟨TextFold(Map((x) ->JavaMethod(x, text⟦⟨STRING:ClassName(#url)⟩⟧, #rules, #datasorts, #funcsorts), MapKeys(#funcsorts)), text⟦⟧)⟩
+  †⟨TextFold(Map((x)->EnumToClass(x, ClassName(#url)), MapValues(#datasorts)), text⟦⟧)⟩
+  †⟨TextFold(Map((x)->JavaMethod(x, text⟦⟨STRING:ClassName(#url)⟩⟧, #rules, #datasorts, #funcsorts), MapKeys(#funcsorts)), text⟦⟧)⟩
   †⟨InitModule(ClassName(#url), #datasorts, #funcsorts, #imports, #bootstrap)⟩
 }⟧
 
@@ -90,7 +90,7 @@ func EnumToClass(Core_cdecl_sort, String) -> Text4_text_sort
 rule EnumToClass(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, #classname)
 → text⟦
 
-†⟨TextFold(Map<Core_cform_sort Text4_text_sort>((x) -> FormToMethodNew(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
+†⟨TextMapFoldES((form)->FormToMethodNew(#CONSTRUCTOR, #csortvars?, form), #cform*)⟩
 
 static public †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩(Function<Context, ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> function)
 {
@@ -104,10 +104,10 @@ static public †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ThunkMaker<⟨STR
 
 public interface ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends Term
 {
-  †⟨TextFold(Map<Core_cform_sort Text4_text_sort>((x) -> FormToMethodAs(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
+  †⟨TextMapFoldES((form)->FormToMethodAs(#CONSTRUCTOR, #csortvars?, form), #cform*)⟩
 }
 
-†⟨TextFold(Map<Core_cform_sort Text4_text_sort>((x) -> FormToImplValue(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
+†⟨TextMapFoldES((form) -> FormToImplValue(#CONSTRUCTOR, #csortvars?, form), #cform*)⟩
 
 static class Lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends LazyTerm<⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> implements ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
 {
@@ -122,14 +122,13 @@ static class Lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#c
 		super(function);
 	}
 
-  †⟨TextFold(Map<Core_cform_sort Text4_text_sort>((x) -> FormToMethodMemoAs(#CONSTRUCTOR, #csortvars?, x), #cform*), text⟦⟧)⟩
+  †⟨TextMapFoldES((form)->FormToMethodMemoAs(#CONSTRUCTOR, #csortvars?, form), #cform*)⟩
 
   @Override
 	public ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ copy(Context c)
 	{
 		return new Lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(value);
 	}
-
 }⟧
 
 /* Generate a 'new' static method for each enum value */
@@ -138,34 +137,34 @@ static class Lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#c
 func FormToMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
   rule FormToMethodNew(#constructor, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
-    static public †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨STRING: Mangle(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨STRING: Mangle(#CONSTRUCTOR)⟩ (Context context†⟨MaybeSortsToJFormalParams(#csorts?, text⟦, ⟧)⟩)
-    {
-      return new †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(†⟨MaybeSortsToArgs(#csorts?)⟩);
-    }⟧
+      static public †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨STRING: Mangle(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨STRING: Mangle(#CONSTRUCTOR)⟩ (Context context†⟨JavaMaybeSortsToFormalParams(#csorts?, text⟦, ⟧)⟩)
+      {
+        return new †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(†⟨MaybeSortsToArgs(#csorts?)⟩);
+      }⟧
 
   rule FormToMethodNew(#constructor, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦
-    static public †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ Var⟨STRING: Mangle(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨STRING: Mangle(ConcatString("var", #constructor))⟩ (Context ctx, String hint)
-    {
-      return new Var⟨STRING: Mangle(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(ctx.makeGlobalName(hint));
-    }⟧
+       static public †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ Var⟨STRING: Mangle(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ ⟨STRING: Mangle(ConcatString("var", #constructor))⟩ (Context ctx, String hint)
+       {
+         return new Var⟨STRING: Mangle(#constructor)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(ctx.makeGlobalName(hint));
+       }⟧
 
 // --- Generate a 'as' method for each enum value
 
 func FormToMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
   rule FormToMethodAs(#enumname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦
-      default †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ †⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
-      {
-        return null;
-      }⟧
+       default †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ †⟨MethodNameAs(#CONSTRUCTOR)⟩(Context context)
+       {
+         return null;
+       }⟧
 
   rule FormToMethodAs(#enumname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦
-      default Var⟨STRING: Mangle(#enumname)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ variable()
-      {
-        return null;
-      }⟧
+       default Var⟨STRING: Mangle(#enumname)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ variable()
+       {
+         return null;
+       }⟧
 
 func FormToMethodMemoAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
   rule FormToMethodMemoAs(#enumname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
@@ -179,8 +178,8 @@ func FormToMethodMemoAs(String, List<Core_csortvars_sort>, Core_cform_sort) -> T
  rule FormToMethodMemoAs(#enumname, #csortvars?, cform⟦ allows-variable ⟧)
  → text⟦⟧
 
-func MethodNameAs(String) -> Text4_text_sort
-rule MethodNameAs(#formCons) → text⟦⟨STRING: Mangle(ConcatString("as", #formCons))⟩⟧
+func MethodNameAs(#formCons: String) -> Text4_text_sort
+→ text⟦⟨STRING: Mangle(ConcatString("as", #formCons))⟩⟧
 
 // --- Generate an static class for the enumeration value
 
@@ -193,7 +192,7 @@ func FormToImplValue(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
 
           †⟨MaybeSortsToDefaultConstructor(#csorts?,  EValueClassName(#CONSTRUCTOR))⟩
 
-          public †⟨EValueClassName(#CONSTRUCTOR)⟩(†⟨MaybeSortsToJFormalParams(#csorts?, text⟦⟧)⟩)
+          public †⟨EValueClassName(#CONSTRUCTOR)⟩(†⟨JavaMaybeSortsToFormalParams(#csorts?, text⟦⟧)⟩)
           {
             †⟨MaybeSortsToInitFields(#csorts?)⟩
           }
@@ -266,31 +265,25 @@ func FormToImplValue(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
 //--- Default empty constructor
 
 func MaybeSortsToDefaultConstructor(List<Core_csorts_sort>, Text4_text_sort) -> Text4_text_sort
-  rule MaybeSortsToDefaultConstructor(csorts?⟦⟧, #classname)
-  → text⟦⟧
-
-  rule MaybeSortsToDefaultConstructor(csorts?⟦ ( ##csort*) ⟧, #classname)
-  → text⟦private †⟨#classname⟩() {}⟧
+rule MaybeSortsToDefaultConstructor(csorts?⟦              ⟧, #classname) → text⟦⟧
+rule MaybeSortsToDefaultConstructor(csorts?⟦ ( ##csort* ) ⟧, #classname) → text⟦private †⟨#classname⟩() {}⟧
 
 //--- Class fields
 
 func MaybeSortsToClassFields(List<Core_csorts_sort>) -> Text4_text_sort
-  rule MaybeSortsToClassFields(csorts?⟦⟧)
-  → text⟦⟧
-
-  rule MaybeSortsToClassFields(csorts?⟦ ( ##csort* ) ⟧)
-  → text⟦
-    /* Form arguments */
-    †⟨SortsToClassFields(#csort*, 1)⟩⟧
+rule MaybeSortsToClassFields(csorts?⟦              ⟧) → text⟦⟧
+rule MaybeSortsToClassFields(csorts?⟦ ( ##csort* ) ⟧) → text⟦ /* Form arguments */ †⟨SortsToClassFields(#csort*, 1)⟩⟧
 
 func SortsToClassFields(List<Core_csort_sort>, Numeric) -> Text4_text_sort
-  rule SortsToClassFields(csort*⟦⟧, #index)
+
+  rule SortsToClassFields(csort*⟦                  ⟧, #index)
   → text⟦⟧
 
   rule SortsToClassFields(csort*⟦ ##csort ##csort* ⟧, #index)
   → text⟦†⟨SortToClassFields(SortToTypes(#csort), #index, 1)⟩†⟨SortsToClassFields(#csort*, Plus(#index, 1))⟩⟧
 
 func SortToClassFields(List<Text4_text_sort>, Numeric, Numeric) -> Text4_text_sort
+
   rule SortToClassFields(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex)
   → text⟦†⟨#type⟩ field†⟨FieldSuffix(#index)⟩;⟧
 
@@ -302,11 +295,8 @@ func SortToClassFields(List<Text4_text_sort>, Numeric, Numeric) -> Text4_text_so
 //--- Class fields initialization
 
 func MaybeSortsToInitFields(List<Core_csorts_sort>) -> Text4_text_sort
-  rule MaybeSortsToInitFields(csorts?⟦⟧)
-  → text⟦⟧
-
-  rule MaybeSortsToInitFields(csorts?⟦ ( ##csort* ) ⟧)
-  → SortsToInitFields(#csort*, 1)
+rule MaybeSortsToInitFields(csorts?⟦              ⟧) → text⟦⟧
+rule MaybeSortsToInitFields(csorts?⟦ ( ##csort* ) ⟧) → SortsToInitFields(#csort*, 1)
 
 func SortsToInitFields(List<Core_csort_sort>, Numeric) -> Text4_text_sort
   rule SortsToInitFields(csort*⟦⟧, #index)
@@ -339,6 +329,7 @@ func MaybeSortsToGetSubs(List<Core_csorts_sort>) -> Text4_text_sort
       }⟧
 
 func SortsToGetSubs(List<Core_csort_sort>, Numeric) -> Text4_text_sort
+
   rule SortsToGetSubs(csort*⟦⟧, #index)
   → text⟦⟧
 
@@ -394,7 +385,7 @@ func MaybeSortsToGetBinder(List<Core_csorts_sort>) -> Text4_text_sort
   → text⟦⟧
 
   rule MaybeSortsToGetBinder(csorts?⟦ ( ##csort* ) ⟧)
-  → If<Text4_text_sort>(HasBinders(#csort*),
+  → If(HasBinders(#csort*),
       ()->text⟦
         @Override
         public Variable binder(int i, int j) {
@@ -411,7 +402,7 @@ func SortsToGetBinder(List<Core_csort_sort>, Numeric) -> Text4_text_sort
 
   rule SortsToGetBinder(csort*⟦ ##csort ##csort* ⟧, #index)
   → text⟦
-      †⟨If<Text4_text_sort>(HasBindersSort(#csort),
+      †⟨If(HasBindersSort(#csort),
         ()->text⟦
           case †⟨NumberToText(#index)⟩: {
             switch (j) {
@@ -483,26 +474,26 @@ func SortToSetBinder(List<Text4_text_sort>, Numeric, Numeric) -> Text4_text_sort
 
 //--- Sort to formal parameters
 
-func MaybeSortsToJFormalParams(List<Core_csorts_sort>, Text4_text_sort) -> Text4_text_sort
-  rule MaybeSortsToJFormalParams(csorts?⟦⟧, #sep)
+func JavaMaybeSortsToFormalParams(List<Core_csorts_sort>, Text4_text_sort) -> Text4_text_sort
+  rule JavaMaybeSortsToFormalParams(csorts?⟦⟧, #sep)
   → text⟦⟧
 
-  rule MaybeSortsToJFormalParams(csorts?⟦ ( ##csort*) ⟧, #sep)
-  → SortsToJFormalParams(#csort*, 1, #sep)
+  rule JavaMaybeSortsToFormalParams(csorts?⟦ ( ##csort*) ⟧, #sep)
+  → JavaSortsToFormalParams(#csort*, 1, #sep)
 
-func SortsToJFormalParams(List<Core_csort_sort>, Numeric, Text4_text_sort) -> Text4_text_sort
-  rule SortsToJFormalParams(csort*⟦⟧, #index, #sep)
+func JavaSortsToFormalParams(List<Core_csort_sort>, Numeric, Text4_text_sort) -> Text4_text_sort
+  rule JavaSortsToFormalParams(csort*⟦⟧, #index, #sep)
   → text⟦⟧
 
-  rule SortsToJFormalParams(csort*⟦ ##csort ##csort* ⟧, #index, #sep)
-  → text⟦†⟨#sep⟩†⟨SortToJFormalParams(SortToTypes(#csort), #index, 1)⟩†⟨SortsToJFormalParams(#csort*, Plus(#index, 1), text⟦, ⟧)⟩⟧
+  rule JavaSortsToFormalParams(csort*⟦ ##csort ##csort* ⟧, #index, #sep)
+  → text⟦†⟨#sep⟩†⟨JavaSortToFormalParams(SortToTypes(#csort), #index, 1)⟩†⟨JavaSortsToFormalParams(#csort*, Plus(#index, 1), text⟦, ⟧)⟩⟧
 
-func SortToJFormalParams(List<Text4_text_sort>, Numeric, Numeric) -> Text4_text_sort
-  rule SortToJFormalParams(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex)
+func JavaSortToFormalParams(List<Text4_text_sort>, Numeric, Numeric) -> Text4_text_sort
+  rule JavaSortToFormalParams((#type,), #index, #subindex)
   → text⟦†⟨#type⟩ param†⟨FieldSuffix(#index)⟩⟧
 
-  rule SortToJFormalParams(Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #index, #subindex)
-  → text⟦†⟨#type⟩ param†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩, †⟨SortToJFormalParams(#types, #index, Plus(#subindex, 1))⟩⟧
+  rule JavaSortToFormalParams((#type, #types...), #index, #subindex)
+  → text⟦†⟨#type⟩ param†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩, †⟨JavaSortToFormalParams(#types, #index, Plus(#subindex, 1))⟩⟧
 
 //--- Sort to function call arguments
 
@@ -602,7 +593,7 @@ func MaybeSortsToTypeParams(List<Core_csorts_sort>) -> Text4_text_sort
   → text⟦⟧
 
   rule MaybeSortsToTypeParams(csorts?⟦ ( ##csort* )⟧)
-  → text⟦<†⟨TextFold( Flatten<Text4_text_sort>(Map<Core_csort_sort List>((x) -> SortToTypes(x), #csort*)), text⟦, ⟧)⟩>⟧
+  → text⟦<†⟨TextFold(Flatten(Map((x) -> SortToTypes(x), #csort*)), text⟦, ⟧)⟩>⟧
 
 /** Convert sort annotation to equivalent Java type */
 func MaybeSortAnnoToType(List<Core_csortanno_sort>) -> Text4_text_sort
@@ -612,8 +603,9 @@ func MaybeSortAnnoToType(List<Core_csortanno_sort>) -> Text4_text_sort
   rule MaybeSortAnnoToType(csortanno?⟦ : ##csort ⟧)
   → SortToType(#csort)
 
-/* Translate Transscript sort to equivalent list of Java types:
+/* Translate Tosca sort to equivalent list of Java types:
  * a list of types corresponding to syntactic variable sorts and a type for the last sort
+ * Eliminate aliases 
  */
 func SortToTypes(Core_csort_sort) -> List<Text4_text_sort>
 rule SortToTypes(#csort) → SortToTypes2(#csort, ())
