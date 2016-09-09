@@ -9,6 +9,7 @@ import org.transscript.runtime.MapTerm;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
 import org.transscript.runtime.Variable;
+import org.transscript.runtime.VariableUse;
 
 /**
  * Simple term printer using Java reflection API.
@@ -61,7 +62,7 @@ public class TermPrinter
 
 		if (term instanceof StringTerm)
 			out.append('"').append(term.toString()).append('"');
-		else if(term instanceof DoubleTerm || term instanceof MapTerm)
+		else if (term instanceof DoubleTerm || term instanceof MapTerm || term instanceof VariableUse)
 			out.append(term.toString());
 		else
 			out.append(term.getClass().getSimpleName().substring(1)); // Remove _
@@ -78,17 +79,29 @@ public class TermPrinter
 			Variable binder = term.binder(i, j);
 			while (binder != null)
 			{
-				out.append('[').append(binder.name()).append(']');
+				if (j == 0)
+					out.append('[');
+				out.append(binder.name());
 				binder = term.binder(i, ++j);
+
 			}
+			if (term.binder(i, 0) != null)
+				out.append(']');
 
 			j = 0;
 			Variable param = term.param(i, j);
 			while (param != null)
 			{
-				out.append('(').append(param.name()).append(')');
+				if (j == 0)
+					out.append('(');
+				out.append(param.name());
 				param = term.param(i, ++j);
 			}
+			if (term.param(i, 0) != null)
+				out.append(')');
+
+			if (term.binder(i, 0) != null || term.param(i, 0) != null)
+				out.append("->");
 
 			print(sub, out, indent + 2);
 			sub = term.sub(++i);

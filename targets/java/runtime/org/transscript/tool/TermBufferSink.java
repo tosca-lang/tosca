@@ -4,14 +4,11 @@ package org.transscript.tool;
 
 import java.util.ArrayDeque;
 import java.util.IdentityHashMap;
-import java.util.Optional;
 
 import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.ConstructionDescriptor;
 import org.transscript.runtime.Context;
 import org.transscript.runtime.Variable;
-import org.transscript.runtime.utils.Pair;
-import org.transscript.runtime.utils.Scoping;
 
 /** 
  * Build language specific terms from Tosca term syntax.
@@ -39,9 +36,14 @@ public class TermBufferSink extends BufferSink
 	/** Cached descriptors */
 	//final protected ConstructionDescriptor termDesc;
 	final protected ConstructionDescriptor consDesc;
-	final protected ConstructionDescriptor literalDesc;
+	final protected ConstructionDescriptor stringDesc;
+	final protected ConstructionDescriptor doubleDesc;
 	final protected ConstructionDescriptor constructorDesc;
 	final protected ConstructionDescriptor bindersDesc;
+	final protected ConstructionDescriptor emptyListDesc;
+	final protected ConstructionDescriptor singleListDesc;
+	final protected ConstructionDescriptor lnilDesc;
+	final protected ConstructionDescriptor lconsDesc;
 
 	/** Current parsing state */
 	protected State state;
@@ -68,8 +70,14 @@ public class TermBufferSink extends BufferSink
 		vars = new IdentityHashMap<>();
 		consDesc = context.lookupDescriptor("TransScript_cons");
 		constructorDesc = context.lookupDescriptor("TransScript_constructor");
-		literalDesc = context.lookupDescriptor("TransScript_literal");
+		emptyListDesc = context.lookupDescriptor("TransScript_groupOrList_A1");
+		singleListDesc = context.lookupDescriptor("TransScript_groupOrList_A2");
+		stringDesc = context.lookupDescriptor("TransScript_literal_A1");
+		doubleDesc = context.lookupDescriptor("TransScript_literal_A2");
 		bindersDesc = context.lookupDescriptor("TransScript_binders_A1");
+
+		lnilDesc = context.lookupDescriptor("Nil");
+		lconsDesc = context.lookupDescriptor("Cons");
 		state = State.SKIP;
 	}
 	// Overrides
@@ -82,13 +90,22 @@ public class TermBufferSink extends BufferSink
 			// expected a literal representing the construction symbol 
 			state = State.CONSTRUCTOR;
 		}
-		else if (descriptor == literalDesc && state == State.SKIP)
+		else if ((descriptor == stringDesc || descriptor == doubleDesc) && state == State.SKIP)
 		{
 			state = State.LITERAL;
 		}
 		else if (descriptor == bindersDesc)
 		{
 			state = State.SORTANNO;
+		}
+		else if (descriptor == emptyListDesc)
+		{
+			super.start(lnilDesc);
+			super.end();
+		}
+		else if (descriptor == singleListDesc)
+		{
+			super.start(lconsDesc);
 		}
 		descs.push(descriptor);
 		return this;
@@ -98,7 +115,7 @@ public class TermBufferSink extends BufferSink
 	public BufferSink end()
 	{
 		ConstructionDescriptor descriptor = descs.pop();
-		if (descriptor == consDesc && state == State.SKIP) // trigger the end of a construction, which includes subs.
+		if ((descriptor == consDesc || descriptor == singleListDesc) && state == State.SKIP)
 			super.end();
 
 		return this;
@@ -118,10 +135,20 @@ public class TermBufferSink extends BufferSink
 				break;
 			}
 			case LITERAL :
-				super.literal(literal);
+				// TODO: this is a bit of a hack. Need to change ToSinkListener to distinguish between numeric vs string.
+				try
+				{
+					double v = Double.parseDouble(literal);
+					super.literal(v);
+				} catch (NumberFormatException e)
+				{
+					super.literal(literal);
+				}
+				state = State.SKIP;
 				break;
 			case SORTANNO : {
 				pendingSort = literal;
+				state = State.SKIP;
 				break;
 			}
 			case SKIP :
@@ -158,14 +185,23 @@ public class TermBufferSink extends BufferSink
 	{
 		// Map Tosca variable onto language variable
 		if (pendingSort == null)
-			pendingSort = "String";
+			throw new RuntimeException("Missing bound variable type: " + binder.name());
 
 		Variable languageVar = context.makeVariable(pendingSort, binder.name());
 		vars.put(binder, languageVar);
 
+		try
+		{
+			super.bind(languageVar);
+		}
+		catch (ClassCastException e)
+		{
+			throw new RuntimeException("Invalid type for variable named " + binder.name() + ":" + pendingSort);
+		}
+
 		pendingSort = null;
 		state = State.SKIP;
-		return super.bind(languageVar);
+		return this;
 	}
 
 }

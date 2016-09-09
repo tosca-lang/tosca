@@ -19,6 +19,7 @@ import org.transscript.compiler.parser.TransScript.TransScript_term_sort;
 import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.ConstructionDescriptor;
 import org.transscript.runtime.Sink;
+import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Variable;
 import org.transscript.runtime.utils.Pair;
 import org.transscript.runtime.utils.Scoping;
@@ -545,25 +546,12 @@ public class ToSinkListener implements ParseTreeListener
 	private Optional<Pair<String, Variable>> findFreshVar(String var)
 	{
 		return freshes.findVarDecl(var);
-		//		Optional<Pair<String, Variable>> variable;
-		//		variable = freshes.stream().filter(pair -> {
-		//			return pair.fst.equals(var);
-		//
-		//		}).findFirst();
-		//		return variable;
 	}
 
 	/* Look for the binder for the given variable occurrence */
 	private Optional<Pair<String, Variable>> findBinder(String var)
 	{
 		return bounds.findVarDecl(var);
-		//		Optional<Pair<String, Variable>> variable = bounds.stream().filter(pair -> {
-		//			if (pair == Scoping.MARKER)
-		//				return false;
-		//
-		//			return pair.fst.equals(var);
-		//		}).findFirst();
-		//		return variable;
 	}
 
 	/**
@@ -862,6 +850,7 @@ public class ToSinkListener implements ParseTreeListener
 			}
 			else
 			{
+				System.out.println(text);
 				// Regular term parsing. 
 				BufferSink buffer = new TermBufferSink(sink.context());
 				((TSParser) innerParser.parser()).parse(buffer, "term", reader, null, line, column, bounds, freshes);
@@ -928,11 +917,11 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	private Variable makeVariable(String type, String name)
 	{
-		//		if (metasink() != null && parsets)
-		//		{
-		//			// Parsing embedded syntax: create generic variable
-		//			return StringTerm.varStringTerm(sink.context(), name);
-		//		}
+		if (metasink() != null || parsets)
+		{
+			// Parsing embedded syntax: create generic variable
+			return StringTerm.varStringTerm(sink.context(), name);
+		}
 		String rtype = prefix + type;
 		return sink.context().makeVariable(rtype, name);
 	}

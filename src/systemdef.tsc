@@ -43,7 +43,7 @@ enum Content
            List<Core_cqidentifier_sort>,                        /* Imports */
            {String /* Constructor */ : List<Core_cdecl_sort>},  /* Rules */
            {String /* Constructor */ : Core_cdecl_sort},        /* Data sorts */
-           {String /* Constructor */ : Core_cdecl_sort},        /* Sort aliases */
+           DeclIndex,        /* Sort aliases */
            {String /* Constructor */ : Core_cdecl_sort})        /* Function sorts */
 
 /* Compilation result */
