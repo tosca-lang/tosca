@@ -113,8 +113,12 @@ TODO:  make change to meta parser to directly support $List(cform) with either
        - (cform (COMMA cform)* | )
 */
 cform
-    : CONSTRUCTOR csorts?                           /* Construction form */
+    : CONSTRUCTOR csorts? cdefaultvalue?            /* Construction form with optional default value */
     | ALLOWS_VARIABLE                               /* Allow variable form */
+    ;
+
+cdefaultvalue
+    : EQ cterm                                            /* Default value */
     ;
 
 cforms
@@ -131,20 +135,21 @@ csort
     | canno* THUNK csort                                   /* Thunk sort annotation. Indicate value is not evaluated */
     ;
 
+
 csorts
-    : LPAR ccommasorts RPAR                         /* List of sort references */
+    : LPAR ccommasorts RPAR                                 /* List of sort references */
     ;
 
 ccommasorts
-    : csort (COMMA csort)*                         /* Comma-separated sorts */
+    : csort (COMMA csort)*                                 /* Comma-separated sorts */
     ;
 
 cmapsort
-    : csort COLON csort                            /* Association map sort */
+    : csort COLON csort                                   /* Association map sort */
     ;
 
 csortanno
-    : COLON csort                                  /* Sort annotation */
+    : COLON csort                                         /* Sort annotation */
     ;
 
 cidentifier

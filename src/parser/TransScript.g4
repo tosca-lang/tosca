@@ -53,7 +53,11 @@ variantSorts
 // TODO: variantSort is needed to avoid conflict with sort* below. Metaparser needs to be fixed.
 
 variantSort
-    : sort
+    : sort defaultValue?
+    ;
+
+defaultValue
+    : EQ term
     ;
 
 // Types
@@ -137,6 +141,7 @@ eager
 fnParamName
     : METAVAR COLON
     ;
+
 
 fnBody
     : ARROW terms
