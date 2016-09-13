@@ -115,9 +115,14 @@ public class TermBufferSink extends BufferSink
 	public BufferSink end()
 	{
 		ConstructionDescriptor descriptor = descs.pop();
-		if ((descriptor == consDesc || descriptor == singleListDesc) && state == State.SKIP)
+		if (descriptor == consDesc && state == State.SKIP)
 			super.end();
-
+		else if (descriptor == singleListDesc && state == State.SKIP)
+		{
+			super.start(lnilDesc);
+			super.end();
+			super.end();
+		}
 		return this;
 	}
 
@@ -140,7 +145,8 @@ public class TermBufferSink extends BufferSink
 				{
 					double v = Double.parseDouble(literal);
 					super.literal(v);
-				} catch (NumberFormatException e)
+				}
+				catch (NumberFormatException e)
 				{
 					super.literal(literal);
 				}

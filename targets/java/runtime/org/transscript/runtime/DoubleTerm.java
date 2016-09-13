@@ -25,7 +25,6 @@ public interface DoubleTerm extends Term
 	{
 		return new DoubleValue(d);
 	}
-	
 
 	/**
 	 * Create a new variable of type Numeric
@@ -37,7 +36,6 @@ public interface DoubleTerm extends Term
 	{
 		return new VarDoubleTerm(context.makeGlobalName(hint));
 	}
-
 
 	static DoubleTerm newLazyDoubleTerm(Function<Context, DoubleTerm> f)
 	{
@@ -70,6 +68,13 @@ public interface DoubleTerm extends Term
 		}
 
 		@Override
+		public String symbol()
+		{
+			// TODO: FIX BY ADDING INTEGERTERM
+			return Integer.toString((int) value);
+		}
+
+		@Override
 		public Term copy(Context c)
 		{
 			return new DoubleValue(value);
@@ -79,7 +84,7 @@ public interface DoubleTerm extends Term
 		public String toString()
 		{
 			// TODO: FIX BY ADDING INTEGERTERM
-			return Integer.toString((int)value);
+			return Integer.toString((int) value);
 		}
 
 		@Override
@@ -135,7 +140,7 @@ public interface DoubleTerm extends Term
 
 	}
 
-	static class LazyDoubleTerm extends LazyTerm<DoubleTerm>implements DoubleTerm
+	static class LazyDoubleTerm extends LazyTerm<DoubleTerm> implements DoubleTerm
 	{
 
 		public LazyDoubleTerm(Function<Context, DoubleTerm> f)

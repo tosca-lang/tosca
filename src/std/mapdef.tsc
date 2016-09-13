@@ -96,3 +96,6 @@ rule MMap2Snd(MMap2(#fst, #snd)) → #snd
 */
 func MMap2GetD<a b c d>({a:b & c:d}, a, b) -> b
 rule MMap2GetD(MMap2(#map1, #map2), #key, #default) → MapGetD(#map1, #key, #default)
+
+func MapAddAll3<a b c d e f>(#map1: {a : b & c : d & e : f}, #map2: {a : b & c : d & e : f}) -> {a : b & c : d & e : f}
+rule MapAddAll3({#map11&#map12&#map13},{#map21&#map22&#map23}) → MMap3(MapAddAll(#map11, #map21), MapAddAll(#map12, #map22), MapAddAll(#map13, #map23))

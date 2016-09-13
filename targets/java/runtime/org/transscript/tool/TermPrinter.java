@@ -59,13 +59,7 @@ public class TermPrinter
 	{
 		out.append("\n");
 		indent(indent, out);
-
-		if (term instanceof StringTerm)
-			out.append('"').append(term.toString()).append('"');
-		else if (term instanceof DoubleTerm || term instanceof MapTerm || term instanceof VariableUse)
-			out.append(term.toString());
-		else
-			out.append(term.getClass().getSimpleName().substring(1)); // Remove _
+		out.append(term.symbol());
 
 		// Print subs
 		int i = 0;
@@ -79,8 +73,7 @@ public class TermPrinter
 			Variable binder = term.binder(i, j);
 			while (binder != null)
 			{
-				if (j == 0)
-					out.append('[');
+				out.append(j == 0 ? '[' : ' ');
 				out.append(binder.name());
 				binder = term.binder(i, ++j);
 
@@ -92,8 +85,7 @@ public class TermPrinter
 			Variable param = term.param(i, j);
 			while (param != null)
 			{
-				if (j == 0)
-					out.append('(');
+				out.append(j == 0 ? '(' : ' ');
 				out.append(param.name());
 				param = term.param(i, ++j);
 			}

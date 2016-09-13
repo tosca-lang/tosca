@@ -204,6 +204,12 @@ func FormToImplValue(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text
           }
 
           @Override
+          public java.lang.String symbol()
+          {
+            return †⟨Text-QuoteEscape(#CONSTRUCTOR)⟩;
+          }
+
+          @Override
           public Term copy(Context c)
           {
             return new †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩();

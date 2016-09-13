@@ -72,7 +72,7 @@ public interface StringTerm extends Term
 	{
 		return null;
 	}
-	
+
 	/**
 	 * The actual string term.
 	 */
@@ -89,6 +89,12 @@ public interface StringTerm extends Term
 		public _StringTerm(String str)
 		{
 			this.value = str;
+		}
+
+		@Override
+		public String symbol()
+		{
+			return "\"" + value + "\"";
 		}
 
 		@Override
@@ -174,19 +180,19 @@ public interface StringTerm extends Term
 		{
 			return variable.toString();
 		}
-		
+
 		@Override
 		public VarStringTerm variable()
 		{
 			return (VarStringTerm) super.variable();
-		}			
+		}
 	}
 
 	/**
 	 * Unevaluated string value
 	 *
 	 */
-	static class LazyStringTerm extends LazyTerm<StringTerm>implements StringTerm
+	static class LazyStringTerm extends LazyTerm<StringTerm> implements StringTerm
 	{
 
 		public LazyStringTerm(Function<Context, StringTerm> f)

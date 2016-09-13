@@ -92,12 +92,11 @@ func NMaybeVariantArgs(List<TransScript_variantArgs_sort>) -> List<Core_csortsde
   → csortsdefault?⟦ ( ⟨csortdefault*: Map((x)->NVariantSort(x), #variantSort*)⟩ ) ⟧
 
 func NVariantSort(TransScript_variantSort_sort) -> Core_csortdefault_sort
-rule NVariantSort(variantSort⟦ ##sort ##defaultValue? ⟧) → csortdefault⟦ ⟨csort: NSort(#sort)⟩ ⟧
+rule NVariantSort(variantSort⟦ ##sort ##defaultValue? ⟧) → csortdefault⟦ ⟨csort: NSort(#sort)⟩ ⟨cdefaultvalue?: NMaybeDefaultValue(#defaultValue?)⟩ ⟧
 
-/*
 func NMaybeDefaultValue(List<TransScript_defaultValue_sort>) -> List<Core_cdefaultvalue_sort>
 rule NMaybeDefaultValue(defaultValue?⟦           ⟧) → cdefaultvalue?⟦⟧
-rule NMaybeDefaultValue(defaultValue?⟦ = ##term  ⟧) → cdefaultvalue?⟦ = ⟨cterm: NTerm(#term, FALSE)⟩ ⟧*/
+rule NMaybeDefaultValue(defaultValue?⟦ = ##term  ⟧) → cdefaultvalue?⟦ = ⟨cterm: NTerm(#term, FALSE)⟩ ⟧
 
 // ---- Sort reference
 

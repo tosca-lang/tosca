@@ -31,6 +31,13 @@ public class VariableUse implements Term
 	{
 		return variable;
 	}
+	
+
+	@Override
+	public String symbol()
+	{
+		return variable.name();
+	}
 
 	@Override
 	public VariableUse copy(Context c)
@@ -87,5 +94,6 @@ public class VariableUse implements Term
 	{
 		return other.variable == variable;
 	}
+
 	
 }

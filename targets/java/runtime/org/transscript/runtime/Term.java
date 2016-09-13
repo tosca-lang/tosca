@@ -14,13 +14,21 @@ import org.transscript.compiler.std.Core.Bool;
  */
 public interface Term extends Ref 
 {
-
+	
 	@Override
 	default Term ref()
 	{
 		return (Term) Ref.super.ref();
 	}
 
+	/**
+	 * Return this term symbol
+	 */
+	default String symbol()
+	{
+		return "<nosymbol>";
+	}
+	
 	/**
 	 * @return shallow copy of this term. 
 	 */
