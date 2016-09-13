@@ -43,7 +43,7 @@ cterm
                                                                                cterm<bound=x>       means x is bound in the context of the cterm */
     | LPAR cvariable<boundvar=x> csortanno? RPAR cterm<bound=x>             /* Formal parameter */
     | THUNK cterm                                                          /* Unvaluated term */
-    | METAVAR EQ cterm                                                     /* Named term */
+    | METAVAR csortanno? EQ cterm                                          /* Named term */
     ;
 
 /* TODO: inline when antlr-based meta parser generator support (()*)? */

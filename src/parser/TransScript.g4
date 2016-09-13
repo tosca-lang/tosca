@@ -167,7 +167,7 @@ aterm
     | metapp                                                         /* Meta variable/Function call/Substitution */
     | dispatch                                                       /* Dispatch expression */
     | concrete                                                       /* Concrete syntax */
-    | named term                                                     /* named term */
+    | named term                                           /* named term */
     ;
 
 // Next term
@@ -203,7 +203,7 @@ scope
     ;
 
 named
-    : METAVAR EQ
+    : METAVAR sortAnno? EQ
     ;
 
 binders

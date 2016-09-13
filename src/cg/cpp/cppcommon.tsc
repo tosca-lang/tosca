@@ -607,6 +607,10 @@ func CppPatternTerm({String : EnvEntry}, Core_cterm_sort, Text4_text_sort /* Cur
   rule CppPatternTerm(#env, cterm⟦ ( f  ##csortanno? ) ##cterm[f] ⟧, #term, #csort, #storage, #cont)
   → CppPatternTerm(#env, #cterm[var:String], #term, #csort, #storage, #cont)
 
+  rule CppPatternTerm(#env, cterm⟦ ##METAVAR ##csortanno? = ##cterm ⟧, #term, #csort, #storage, #cont)
+  → CppPatternNamedTerm(#env, #METAVAR, #cterm, #term, #csort, #storage, #cont)
+
+
 // Pattern matching on construction arguments.
 func CppPatternMaybeSubs( {String : EnvEntry}, List<Core_cterms_sort>, Text4_text_sort, Option<PPair<Core_cdecl_sort Core_cform_sort>>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
@@ -792,6 +796,12 @@ func CppApplyDelayEntries(#env: {String : EnvEntry}, #var: String, #cont:({Strin
 func CppApplyDelayEntriesAux({String : EnvEntry}, List<MapEntry>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 rule CppApplyDelayEntriesAux(#env, Cons(MapEntry(#cmapentry, #term, #cmapsort), #entries), #cont) → CppPatternMapEntry(#env, #cmapentry, #term, #cmapsort, (env)->CppApplyDelayEntriesAux(env, #entries, #cont))
 rule CppApplyDelayEntriesAux(#env, Nil                                                    , #cont) → #cont(#env)
+
+// --- Named term
+
+func CppPatternNamedTerm(#env: {String : EnvEntry}, #metavar: String, #cterm: Core_cterm_sort, #term: Text4_text_sort,
+                         #csort: Option<Core_csort_sort>, #storage: Storage, #cont: ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+→ CppPatternMaybeMetaArgs(#env, #metavar, csubst?⟦⟧, #term, #csort, (env)->CppPatternTerm(env, #cterm, #term, #csort, #storage, #cont))
 
 //  --------- Helper function for pattern matching
 

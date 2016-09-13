@@ -24,6 +24,7 @@ rule Substitute(cterm⟦ { ##cmapentries? } ##csortanno?                        
 rule Substitute(cterm⟦ [ x ##csortanno? ] ##cterm[x]                                ⟧, #subst) → cterm⟦ [ x ##csortanno? ] ⟨cterm: Substitute(#cterm[x], #subst)⟩ ⟧
 rule Substitute(cterm⟦ ( f ##csortanno? ) ##cterm[f]                                ⟧, #subst) → cterm⟦ ( f ##csortanno? ) ⟨cterm: Substitute(#cterm[f], #subst)⟩ ⟧
 rule Substitute(cterm⟦ thunk ##cterm                                                ⟧, #subst) → cterm⟦ thunk ⟨cterm: Substitute(#cterm, #subst)⟩ ⟧
+rule Substitute(cterm⟦ ##METAVAR ##csortanno? = ##cterm                             ⟧, #subst) → cterm⟦ ⟨METAVAR: SubstMetaVar(#METAVAR, #subst)⟩ ##csortanno? = ⟨cterm: Substitute(#cterm, #subst)⟩ ⟧
 
 func SubstMaybeTerms(List<Core_cterms_sort>, {String : Core_cterm_sort}) -> List<Core_cterms_sort>
 rule SubstMaybeTerms(cterms?⟦              ⟧, #subst) → cterms?⟦ ⟧

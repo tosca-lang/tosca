@@ -56,6 +56,9 @@ func NoAliasTerm(TSystem, Core_cterm_sort) -> Core_cterm_sort
   rule NoAliasTerm(#system, cterm⟦ thunk ##cterm ⟧)
   → cterm⟦ thunk ⟨cterm: NoAliasTerm(#system, #cterm)⟩ ⟧
 
+  rule NoAliasTerm(#system, cterm⟦ ##METAVAR ##csortanno? = ##cterm ⟧)
+  → cterm⟦ ##METAVAR ⟨csortanno?: NoAliasMaybeSortAnno(#system, #csortanno?)⟩ = ⟨cterm: NoAliasTerm(#system, #cterm)⟩ ⟧
+
   rule NoAliasTerm(#system, #cterm) → #cterm
 
 func NoAliasMaybeTerms(TSystem, List<Core_cterms_sort>) -> List<Core_cterms_sort>

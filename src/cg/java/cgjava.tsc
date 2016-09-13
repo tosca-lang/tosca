@@ -896,6 +896,9 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
   rule JavaPatternTerm(#env, cterm⟦ { ##cmapentries? } : { ##cmapsort } ⟧, #term, #csort, #storage, #cont)
   → JavaPatternMap(#env, #cmapentries?, #term, #cmapsort, #cont)
 
+  rule JavaPatternTerm(#env, cterm⟦ ##METAVAR ##csortanno? = ##cterm ⟧, #term, #csort, #storage, #cont)
+  → JavaPatternNamedTerm(#env, #METAVAR, #cterm, #term, #csort, #storage, #cont)
+
   rule JavaPatternTerm(#env, #cterm, #term, #csort, #storage, #cont)
   → Error(ConcatString("Internal Error: could not handle pattern ", PrintTerm("", #cterm)))
 
@@ -1069,6 +1072,12 @@ func JApplyDelayEntries(#env: {String : JEnvEntry}, #var: String, #cont:({String
 func JApplyDelayEntriesAux({String : JEnvEntry}, List<JMapEntry>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 rule JApplyDelayEntriesAux(#env, Cons(JMapEntry(#cmapentry, #term, #cmapsort), #entries), #cont) → JavaPatternMapEntry(#env, #cmapentry, #term, #cmapsort, (env)->JApplyDelayEntriesAux(env, #entries, #cont))
 rule JApplyDelayEntriesAux(#env, Nil                                                    , #cont) → #cont(#env)
+
+// --- Named term
+
+func JavaPatternNamedTerm(#env: {String : JEnvEntry}, #metavar: String, #cterm: Core_cterm_sort, #term: Text4_text_sort,
+                         #csort: Option<Core_csort_sort>, #storage: Storage, #cont: ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+→ JavaPatternMaybeMetaArgs(#env, #metavar, csubst?⟦⟧, #term, #csort, (env)->JavaPatternTerm(env, #cterm, #term, #csort, #storage, #cont))
 
 //  --------- Helper function for pattern matching
 

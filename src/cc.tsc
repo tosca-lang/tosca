@@ -70,6 +70,9 @@ func CCPatternTerm(CCEnv, Core_cterm_sort, CCBinders, (CCEnv)-> PPair<CCEnv Core
   rule CCPatternTerm(#env, cterm⟦ thunk ##cterm ⟧, #binders, #cont)
   → CCPatternTerm(#env, #cterm, #binders, #cont)
 
+  rule CCPatternTerm(#env, cterm⟦ ##METAVAR ##csortanno? = ##cterm ⟧, #binders, #cont)
+  → CCPatternTerm(#env, #cterm, #binders, #cont)
+
   rule CCPatternTerm(#env, #cterm, #binders, #cont) → Error(ConcatString("Internal Error: missing sort annotation\n", PrintTerm("", #cterm)))
 
 func CCPatternMaybeTerms(CCEnv, List<Core_cterms_sort>, CCBinders, (CCEnv)-> PPair<CCEnv Core_cterm_sort>) -> PPair<CCEnv Core_cterm_sort>
@@ -119,6 +122,7 @@ rule CCTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? �
 rule CCTerm(#env, cterm⟦ [ x ##csortanno? ] ##cterm[x] ⟧)                                → CCBinderUp(#csortanno?, [x] -> CCTerm(#env, #cterm[x]))
 rule CCTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧)                                → CCFormal(CCEnvResetParams(#env), cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧)
 rule CCTerm(#env, cterm⟦ thunk ##cterm ⟧)                                                → CCThunkUp(CCThunk(CCEnvResetParams(#env), #cterm))
+rule CCTerm(#env, cterm⟦ ##METAVAR ##csortanno? = ##cterm ⟧)                             → Error("Internal Error: named terms cannot occur in contraction.")
 rule CCTerm(#env, #cterm)                                                                → PairCons(#env, #cterm) // literal, variable and map (since only occur in pattern) don't need to be lifted!
 
 /* Traverses terms */
@@ -248,6 +252,7 @@ func CCCapture(CCEnv, Core_cterm_sort, {String : Core_cterm_sort}) -> {String : 
   rule CCCapture(#env, cterm⟦ [ x ##csortanno? ] ##cterm[x]                                ⟧, #cptrs) → CCCapture(#env, #cterm[x], #cptrs)
   rule CCCapture(#env, cterm⟦ ( f ##csortanno? ) ##cterm[f]                                ⟧, #cptrs) → CCCapture(#env, #cterm[f], #cptrs)
   rule CCCapture(#env, cterm⟦ thunk ##cterm                                                ⟧, #cptrs) → CCCapture(#env, #cterm, #cptrs)
+  rule CCCapture(#env, cterm⟦ ##METAVAR ##csortanno? = ##cterm                             ⟧, #cptrs) → CCCapture(#env, #cterm, #cptrs)
 
 func CCCaptureMaybeTerms(CCEnv, List<Core_cterms_sort>, {String : Core_cterm_sort}) -> {String : Core_cterm_sort}
 
@@ -356,6 +361,7 @@ func CCConvertCaptured(List<Core_cterm_sort>) -> Bool
   rule CCConvertCaptured(cterm*⟦ [ x ##csortanno?[] ] ##cterm[x]                              ##cterm* ⟧) → Or(CCConvertBound((x,), #cterm[x]), CCConvertCaptured(#cterm*))
   rule CCConvertCaptured(cterm*⟦ ( f ##csortanno?[] ) ##cterm[f]                              ##cterm* ⟧) → Or(CCConvertFormal((f,), #cterm[f]), CCConvertCaptured(#cterm*))
   rule CCConvertCaptured(cterm*⟦ thunk ##cterm                                                ##cterm* ⟧) → TRUE
+  rule CCConvertCaptured(cterm*⟦ ##METAVAR ##csortanno? = ##cterm                             ##cterm* ⟧) → Error("Internal Error: named terms cannot occur in contraction.")
   rule CCConvertCaptured(cterm*⟦                                                                       ⟧) → FALSE
 
 func CCConvertBound(List<String>, Core_cterm_sort) -> Bool

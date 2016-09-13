@@ -323,8 +323,9 @@ rule PutFuncSortC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #
 → Content(#imports, #rules, #datasorts, #aliases, PutFuncSort(#funcsorts, #funcsort, #overwrite))
 
 func PutFuncSort({String : Core_cdecl_sort}, Core_cdecl_sort, Bool) -> {String : Core_cdecl_sort}
-rule PutFuncSort(#func, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #overwrite)
-→ PutFuncSort1(MapGet(#func, #CONSTRUCTOR), #func, #CONSTRUCTOR,  cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #overwrite)
+rule PutFuncSort(#func, #decl = cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #overwrite)
+//→ PutFuncSort1(MapGet(#func, #CONSTRUCTOR), #func, #CONSTRUCTOR,  cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #overwrite)
+→ PutFuncSort1(MapGet(#func, #CONSTRUCTOR), #func, #CONSTRUCTOR, #decl, #overwrite)
 
 func PutFuncSort1(Option<Core_cdecl_sort>, { String : Core_cdecl_sort }, String, Core_cdecl_sort, Bool) -> { String : Core_cdecl_sort}
 

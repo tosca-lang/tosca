@@ -254,10 +254,10 @@ func NATerm(TransScript_aterm_sort, Bool) -> Core_cterm_sort
   rule NATerm(aterm⟦ ##CONCRETE ⟧, #inpattern)
   → Error("Internal error: concrete syntax must have already been expanded.")
 
-  rule NATerm(aterm⟦ ##METAVAR = ##term ⟧, TRUE)
-  → cterm⟦ ##METAVAR = ⟨cterm: NTerm(#term, TRUE)⟩ ⟧
+  rule NATerm(aterm⟦ ##METAVAR ##sortAnno? = ##term ⟧, TRUE)
+  → cterm⟦ ##METAVAR ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ = ⟨cterm: NTerm(#term, TRUE)⟩ ⟧
 
-  rule NATerm(aterm⟦ ##METAVAR = ##term ⟧, FALSE)
+  rule NATerm(aterm⟦ ##METAVAR ##sortAnno? = ##term ⟧, FALSE)
   → Error("Error: named terms are only allowed in patterns.")
 
   // Map pattern matching - single map
