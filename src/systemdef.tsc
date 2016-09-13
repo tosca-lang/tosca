@@ -378,8 +378,8 @@ func FindFormD(Core_cdecl_sort, String) -> Option<PPair<Core_cdecl_sort Core_cfo
   → NONE
 
 func MatchConsForm(Core_cform_sort, String) -> Bool
-rule MatchConsForm(cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #formname) → StringEqual(#CONSTRUCTOR, #formname)
-rule MatchConsForm(#, #formname)                                → FALSE
+rule MatchConsForm(cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧, #formname) → StringEqual(#CONSTRUCTOR, #formname)
+rule MatchConsForm(#, #formname)                                       → FALSE
 
 // --- Configuration
 

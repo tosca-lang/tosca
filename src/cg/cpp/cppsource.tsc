@@ -56,18 +56,18 @@ func CppClassDef(Core_cdecl_sort) -> Text4_text_sort
 /* Generate class and method definitions for the given data form */
 func CppFormDefs(String, Core_cform_sort) -> Text4_text_sort
 
-  rule CppFormDefs(#sortname, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  rule CppFormDefs(#sortname, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧)
   → text⟦
-     †⟨CppFormConstructor(#sortname, (), #CONSTRUCTOR, #csorts?, TRUE)⟩
-     †⟨CppFormDefaultConstructor(#sortname, (), #CONSTRUCTOR, #csorts?, TRUE)⟩
-     †⟨CppFormMethodMake(#sortname, (), #CONSTRUCTOR, #csorts?, TRUE)⟩
+     †⟨CppFormConstructor(#sortname, (), #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩
+     †⟨CppFormDefaultConstructor(#sortname, (), #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩
+     †⟨CppFormMethodMake(#sortname, (), #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩
      †⟨CppFormMethodCopy(#sortname, (), #CONSTRUCTOR, TRUE)⟩
      †⟨CppFormMethodAs(#sortname, (), #CONSTRUCTOR, TRUE)⟩
-     †⟨CppFormGetValue(#sortname, (), #CONSTRUCTOR, #csorts?, TRUE)⟩
-     †⟨CppFormGetSub(#sortname, (), #CONSTRUCTOR, #csorts?, TRUE)⟩
-     †⟨CppFormSetSub(#sortname, (), #CONSTRUCTOR, #csorts?, TRUE)⟩
-     †⟨CppFormGetBinder(#sortname, (), #CONSTRUCTOR, #csorts?, TRUE)⟩
-     †⟨CppFormSetBinder(#sortname, (), #CONSTRUCTOR, #csorts?, TRUE)⟩⟧
+     †⟨CppFormGetValue(#sortname, (), #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩
+     †⟨CppFormGetSub(#sortname, (), #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩
+     †⟨CppFormSetSub(#sortname, (), #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩
+     †⟨CppFormGetBinder(#sortname, (), #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩
+     †⟨CppFormSetBinder(#sortname, (), #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩⟧
 
   rule CppFormDefs(#sortname, cform⟦ allows-variable ⟧)
   → text⟦
@@ -98,7 +98,7 @@ rule CppDefGlobalDataDecl(#cdecl)                                   → text⟦�
 
 func CppDefGlobalDataForm(String, Core_cform_sort) -> Text4_text_sort
 
-  rule CppDefGlobalDataForm(#sortname, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  rule CppDefGlobalDataForm(#sortname, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧)
   → text⟦
        const CStringTerm& GC†⟨STRING: Mangle(#CONSTRUCTOR)⟩ = *(new CStringTerm(†⟨Text-QuoteEscape(#CONSTRUCTOR)⟩));⟧
 
@@ -136,7 +136,7 @@ func CppRegisterDataSort(Core_cdecl_sort) -> Text4_text_sort
 
 func CppRegisterDataForm(String, Core_cform_sort) -> Text4_text_sort
 
-  rule CppRegisterDataForm(#sortname, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  rule CppRegisterDataForm(#sortname, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧)
   → text⟦
        context.Register(newStringTerm(†⟨Text-QuoteEscape(#CONSTRUCTOR)⟩), †⟨CppFormQualifier(#CONSTRUCTOR, (), CFC_CONS, TRUE)⟩Make);⟧
 

@@ -53,7 +53,7 @@ rule InferRule(#env, cdecl⟦ rule ##CONSTRUCTOR ##csortargs? ##cterms? ##csorta
 func InferRuleAux({String:IEnvEntry}, Option<Core_cdecl_sort>, String, List<Core_cterms_sort>, Core_cterm_sort) -> Core_cdecl_sort
 
   rule InferRuleAux(#env, SOME(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧), #funcname, #cterms?, #contractum)
-  → InferPatternUp(#CONSTRUCTOR, InferMaybeTerms(IAddDummySorts(#env, #csortvars?), #CONSTRUCTOR, #cterms?, MaybeSortsToSorts(#csorts?)), #csort, #contractum)
+  → InferPatternUp(#CONSTRUCTOR, InferMaybeTerms(IAddDummySorts(#env, #csortvars?), #CONSTRUCTOR, #cterms?, MaybeSortsToSorts(#csorts?), ()), #csort, #contractum)
 
   rule InferRuleAux(#env, NONE,  #funcname, cterms?⟦⟧, #contractum)
   → Error(ConcatString("Error: undeclared function named ", #funcname))
@@ -112,28 +112,40 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
   → UnPair(InferTerm(#env, #cterm, #csort), (env term)->PairCons(env, cterm⟦ thunk ⟨cterm: term⟩ ⟧))
 
 /* Traverse terms */
-func InferMaybeTerms({String:IEnvEntry}, String, List<Core_cterms_sort>, List<Core_csort_sort>) -> PPair<{String:IEnvEntry} List<Core_cterms_sort>>
-rule InferMaybeTerms(#env, #constructor, cterms?⟦              ⟧, #esort*) → PairCons(#env, cterms?⟦    ⟧) // TODO: check sort arity
-rule InferMaybeTerms(#env, #constructor, cterms?⟦ (          ) ⟧, #esort*) → PairCons(#env, cterms?⟦ () ⟧)  // TODO: check sort arity
-rule InferMaybeTerms(#env, #constructor, cterms?⟦ ( ##cterm* ) ⟧, #esort*) → UnPair(InferTerms(#env, #constructor, #cterm*, #esort*), (env terms)->PairCons(env, cterms?⟦ ( ⟨cterm*: terms⟩ ) ⟧))
+func InferMaybeTerms({String:IEnvEntry}, String, List<Core_cterms_sort>, List<Core_csort_sort>, List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterms_sort>>
+rule InferMaybeTerms(#env, #constructor, cterms?⟦              ⟧, #esort*, #dvs) → PairCons(#env, cterms?⟦ ⟧) // TODO: check arity
+rule InferMaybeTerms(#env, #constructor, cterms?⟦ (          ) ⟧, #esort*, #dvs) → UnPair(InferDefaultValues(IPushBinderSorts(#env), #constructor, #esort*, #dvs), (env terms)->PairCons(IPopBinderSorts(env), cterms?⟦ ( ⟨cterm*: terms⟩ ) ⟧))
+rule InferMaybeTerms(#env, #constructor, cterms?⟦ ( ##cterm* ) ⟧, #esort*, #dvs) → UnPair(InferTerms(IPushBinderSorts(#env), #constructor, #cterm*, #esort*, #dvs), (env terms)->PairCons(IPopBinderSorts(env), cterms?⟦ ( ⟨cterm*: terms⟩ ) ⟧))
 
 /* Traverse subst */
 func InferMaybeSubst({String:IEnvEntry}, String, List<Core_csubst_sort>, List<Core_csort_sort>) -> PPair<{String:IEnvEntry} List<Core_csubst_sort>>
 rule InferMaybeSubst(#env, #constructor, csubst?⟦              ⟧, csort*⟦⟧) → PairCons(#env, csubst?⟦⟧)
-rule InferMaybeSubst(#env, #constructor, csubst?⟦ [ ##cterm* ] ⟧, #esort*)  → UnPair(InferTerms(#env, #constructor, #cterm*, #esort*), (env terms)->PairCons(env, csubst?⟦ [ ⟨cterm*: terms⟩ ] ⟧))
+rule InferMaybeSubst(#env, #constructor, csubst?⟦ [ ##cterm* ] ⟧, #esort*)  → UnPair(InferTerms(IPushBinderSorts(#env), #constructor, #cterm*, #esort*, ()), (env terms)->PairCons(IPopBinderSorts(env), csubst?⟦ [ ⟨cterm*: terms⟩ ] ⟧))
 rule InferMaybeSubst(#env, #constructor, csubst?⟦              ⟧, #csort*)  → Error(ConcatString("Error: missing substitution argument in ", #constructor))
 
 /* Traverse terms */
-func InferTerms({String:IEnvEntry}, String, List<Core_cterm_sort>, List<Core_csort_sort>) -> PPair<{String:IEnvEntry} List<Core_cterm_sort>>
-rule InferTerms(#env, #constructor, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦ ##csort ##csort* ⟧) → InferTermsUp(InferTerm(IPushBinderSorts(#env), #cterm, #csort), #constructor, #cterm*, #csort*)
-rule InferTerms(#env, #constructor, cterm*⟦                  ⟧, csort*⟦                  ⟧) → PairCons(IPopBinderSorts(#env), cterm*⟦⟧)
-rule InferTerms(#env, #constructor, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦                  ⟧) → Error(ConcatString("Error: extra argument(s) in ", #constructor))
-rule InferTerms(#env, #constructor, cterm*⟦                  ⟧, csort*⟦ ##csort ##csort* ⟧) → Error(ConcatString("Error: missing argument(s) in ", #constructor))
+func InferTerms({String:IEnvEntry}, String, List<Core_cterm_sort>, List<Core_csort_sort>, List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterm_sort>>
+rule InferTerms(#env, #constructor, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦ ##csort ##csort* ⟧, (#dv, #dvs...)) → InferTermsUp(InferTerm(#env, #cterm, #csort), #constructor, #cterm*, #csort*, #dvs)
+rule InferTerms(#env, #constructor, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦ ##csort ##csort* ⟧, #dvs)           → InferTermsUp(InferTerm(#env, #cterm, #csort), #constructor, #cterm*, #csort*, #dvs)
+rule InferTerms(#env, #constructor, cterm*⟦                  ⟧, csort*⟦                  ⟧, ())             → PairCons(#env, cterm*⟦⟧)
+rule InferTerms(#env, #constructor, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦                  ⟧, #dvs)           → Error(ConcatString("Error: extra argument(s) in ", #constructor))
+rule InferTerms(#env, #constructor, cterm*⟦                  ⟧, csort*⟦ ##csort ##csort* ⟧, #dvs)           → InferDefaultValues(#env, #constructor, csort*⟦ ##csort ##csort* ⟧, #dvs)
 
 /* Reconstruct terms */
-func InferTermsUp(PPair<{String:IEnvEntry} Core_cterm_sort>, String, List<Core_cterm_sort>, List<Core_csort_sort>) -> PPair<{String:IEnvEntry} List<Core_cterm_sort>>
-rule InferTermsUp(PairCons(#env, #cterm), #constructor, #cterm*, #csort*)
-→ UnPair(InferTerms(IResetBinderSorts(#env), #constructor, #cterm*, #csort*), (env cterms) -> PairCons(env, cterm*⟦ ##cterm ⟨cterm*: cterms⟩⟧))
+func InferTermsUp(PPair<{String:IEnvEntry} Core_cterm_sort>, String, List<Core_cterm_sort>, List<Core_csort_sort>, List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterm_sort>>
+rule InferTermsUp(PairCons(#env, #cterm), #constructor, #cterm*, #csort*, #dvs)
+→ UnPair(InferTerms(IResetBinderSorts(#env), #constructor, #cterm*, #csort*, #dvs), (env cterms) -> PairCons(env, cterm*⟦ ##cterm ⟨cterm*: cterms⟩⟧))
+
+/* Process default value  */
+func InferDefaultValues({String:IEnvEntry}, String, List<Core_csort_sort>, List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterm_sort>>
+rule InferDefaultValues(#env, #constructor, csort*⟦ ##csort ##csort* ⟧, ((cdefaultvalue⟦ = ##cterm⟧,), #dvs...)) → InferDefaultValuesUp(InferTerm(#env, #cterm, #csort), #constructor, #csort*, #dvs)
+rule InferDefaultValues(#env, #constructor, csort*⟦                  ⟧, ())                → PairCons(#env, cterm*⟦⟧)
+rule InferDefaultValues(#env, #constructor, csort*⟦ ##csort ##csort* ⟧, (()    , #dvs...)) → Error(ConcatString("Error: missing argument(s) in ", #constructor))
+
+/* Reconstruct default value terms */
+func InferDefaultValuesUp(PPair<{String:IEnvEntry} Core_cterm_sort>, String, List<Core_csort_sort>, List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterm_sort>>
+rule InferDefaultValuesUp(PairCons(#env, #cterm), #constructor, #csort*, #dvs)
+→ UnPair(InferDefaultValues(IResetBinderSorts(#env), #constructor, #csort*, #dvs), (env cterms) -> PairCons(env, cterm*⟦ ##cterm ⟨cterm*: cterms⟩⟧))
 
 // --- Synthesize construction sort
 
@@ -157,7 +169,7 @@ func InferFunc(#env: {String:IEnvEntry}, #CONSTRUCTOR: String, #csortargs?: List
 func InferFuncAux({String:IEnvEntry}, Option<Core_cdecl_sort>, List<Core_csortargs_sort>, List<Core_cterms_sort>, String, Option<Core_csort_sort>) -> PPair<{String:IEnvEntry} Core_cterm_sort>
 
   rule InferFuncAux(#env, SOME(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧), #csortargs?, #cterms?, #funcname, #esort)
-  → InferSubs(#env, #CONSTRUCTOR, FALSE, #csortvars?, #csortargs?, #cterms?, MaybeSortsToSorts(#csorts?), #csort, #esort)
+  → InferSubs(#env, #CONSTRUCTOR, FALSE, #csortvars?, #csortargs?, #cterms?, MaybeSortsToSorts(#csorts?), (), #csort, #esort)
 
   rule InferFuncAux(#env, NONE, #csortargs?, cterms?⟦⟧, #funcname, #esort)
   → Error(ConcatString("Error: undeclared function named ", #funcname))
@@ -165,8 +177,8 @@ func InferFuncAux({String:IEnvEntry}, Option<Core_cdecl_sort>, List<Core_csortar
 /* Synthesize data: if no data decl found, raise an error. Otherwise compute sort from declaration and move on */
 func InferData({String:IEnvEntry}, String,  List<Core_csortargs_sort>, List<Core_cterms_sort>, Option<PPair<Core_cdecl_sort Core_cform_sort>>, Core_csort_sort) -> PPair<{String:IEnvEntry} Core_cterm_sort>
 
-  rule InferData(#env, #formname, #csortargs?, #cterms?, SOME(PairCons(#cdecl, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)), #esort)
-  → InferSubs(#env, #CONSTRUCTOR, TRUE, GetMaybeSortVars(#cdecl), #csortargs?, #cterms?, MaybeSortsToSorts(#csorts?), DeclToSort(#cdecl), SOME(#esort))
+  rule InferData(#env, #formname, #csortargs?, #cterms?, SOME(PairCons(#cdecl, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧)), #esort)
+  → InferSubs(#env, #CONSTRUCTOR, TRUE, GetMaybeSortVars(#cdecl), #csortargs?, #cterms?, MaybeSortsDefaultToSorts(#csortsdefault?), MaybeSortsDefaultToDefault(#csortsdefault?), DeclToSort(#cdecl), SOME(#esort))
 
   rule InferData(#env, #formname, #csortargs?, #cterms?, NONE, #esort)
   → Error(ConcatString("Error: undefined enumeration value ", ConcatString(#formname, ConcatString(" in type ", PrintSort(#esort)))))
@@ -174,14 +186,15 @@ func InferData({String:IEnvEntry}, String,  List<Core_csortargs_sort>, List<Core
 /* Synthesize construction sub terms */
 func InferSubs(#env: {String:IEnvEntry}, #CONSTRUCTOR: String, #data: Bool,
                #csortvars?: List<Core_csortvars_sort>, #csortargs?: List<Core_csortargs_sort>,
-               #cterms?: List<Core_cterms_sort>, #dsort*: List<Core_csort_sort> /* in decl domain */,
+               #cterms?: List<Core_cterms_sort>, #dsort*: List<Core_csort_sort> /* in decl domain */, #default: List<List<Core_cdefaultvalue_sort>>,
                #edsort: Core_csort_sort /* in decl domain */, #esort: Option<Core_csort_sort>) -> PPair<{String:IEnvEntry} Core_cterm_sort>
-→ InferSubsAux(InferSortArgs(#env, #csortvars?, #csortargs?), #CONSTRUCTOR, #data, #cterms?, #dsort*, #edsort, #esort)
+→ InferSubsAux(InferSortArgs(#env, #csortvars?, #csortargs?), #CONSTRUCTOR, #data, #cterms?, #dsort*, #default, #edsort, #esort)
 
 func InferSubsAux(#env: {String:IEnvEntry}, #CONSTRUCTOR: String, #data: Bool,
-                  #cterms?: List<Core_cterms_sort>, #dsort*: List<Core_csort_sort> /* in decl domain */,
+                  #cterms?: List<Core_cterms_sort>, #dsort*: List<Core_csort_sort> /* in decl domain */, #default: List<List<Core_cdefaultvalue_sort>>,
                   #edsort: Core_csort_sort, #esort: Option<Core_csort_sort>) -> PPair<{String:IEnvEntry} Core_cterm_sort>
-→ InferConsUp(#CONSTRUCTOR, #data, GetSortArgs(#env), InferMaybeTerms(UnifySort(#env, SubstSort(#edsort, GetSortArgsMap(#env)), UnSOME(#esort)), #CONSTRUCTOR, #cterms?, SubstSortSorts(#dsort*, GetSortArgsMap(#env))), SubstSort(#edsort, GetSortArgsMap(#env)))
+→ InferConsUp(#CONSTRUCTOR, #data, GetSortArgs(#env),
+                InferMaybeTerms(UnifySort(#env, SubstSort(#edsort, GetSortArgsMap(#env)), UnSOME(#esort)), #CONSTRUCTOR, #cterms?, SubstSortSorts(#dsort*, GetSortArgsMap(#env)), #default), SubstSort(#edsort, GetSortArgsMap(#env)))
 
 /* Reconstruct construction. Add @Data annotation if constructor is a data symbol */
 func InferConsUp(String, Bool, List<Core_csortargs_sort>, PPair<{String:IEnvEntry} List<Core_cterms_sort>>, Core_csort_sort) -> PPair<{String:IEnvEntry} Core_cterm_sort>
@@ -240,7 +253,7 @@ func InferMetaDecl(#env: {String:IEnvEntry}, #METAVAR: String, #cterms?: List<Co
 
 func InferMetaUse({String:IEnvEntry}, String, List<Core_cterms_sort>, List<Core_csubst_sort>, Option<Core_csort_sort>, Core_csort_sort) -> PPair<{String:IEnvEntry} Core_cterm_sort>
 rule InferMetaUse(#env, #METAVAR, #cterms?, #csubst?, NONE        , #esort) → Error(ConcatString("Error: undefined meta-variable ", #METAVAR))
-rule InferMetaUse(#env, #METAVAR, #cterms?, #csubst?, SOME(#dsort), #esort) → InferMetaUse1(#METAVAR, InferMaybeTerms(#env, #METAVAR, #cterms?, IGetMetaFormalArgs(#env, #METAVAR)), #csubst?, #dsort, #esort)
+rule InferMetaUse(#env, #METAVAR, #cterms?, #csubst?, SOME(#dsort), #esort) → InferMetaUse1(#METAVAR, InferMaybeTerms(#env, #METAVAR, #cterms?, IGetMetaFormalArgs(#env, #METAVAR), ()), #csubst?, #dsort, #esort)
 
 func InferMetaUse1(String, PPair<{String:IEnvEntry} List<Core_cterms_sort>>, List<Core_csubst_sort>, Core_csort_sort, Core_csort_sort) -> PPair<{String:IEnvEntry} Core_cterm_sort>
 rule InferMetaUse1(#METAVAR, PairCons(#env, #cterms?), #csubst?, #dsort, #esort)

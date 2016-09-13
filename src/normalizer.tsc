@@ -72,7 +72,7 @@ func NVariants(List<TransScript_variant_sort>) -> List<Core_cform_sort>
   → cform*⟦ ⟧
 
   rule NVariants(variant+⟦ | ##constructor ##variantArgs? ##variant+ ⟧)
-  → cform*⟦ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨csorts?: NMaybeVariantArgs(#variantArgs?)⟩ ⟨cform*: NVariants(#variant+)⟩ ⟧
+  → cform*⟦ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨csortsdefault?: NMaybeVariantArgs(#variantArgs?)⟩ ⟨cform*: NVariants(#variant+)⟩ ⟧
 
   rule NVariants(variant+⟦ | allows-variable ##variant+ ⟧)
   → cform*⟦ allows-variable ⟨cform*: NVariants(#variant+)⟩ ⟧
@@ -80,19 +80,24 @@ func NVariants(List<TransScript_variant_sort>) -> List<Core_cform_sort>
   rule NVariants(variant+⟦ | variable ##variant+ ⟧)
   → cform*⟦ allows-variable ⟨cform*: NVariants(#variant+)⟩ ⟧
 
-func NMaybeVariantArgs(List<TransScript_variantArgs_sort>) -> List<Core_csorts_sort>
+func NMaybeVariantArgs(List<TransScript_variantArgs_sort>) -> List<Core_csortsdefault_sort>
 
-  rule NMaybeVariantArgs(variantArgs?⟦  ⟧ )
-  → csorts?⟦⟧
+  rule NMaybeVariantArgs(variantArgs?⟦  ⟧)
+  → csortsdefault?⟦⟧
 
-  rule NMaybeVariantArgs(variantArgs?⟦()⟧ )
-  → csorts?⟦⟧
+  rule NMaybeVariantArgs(variantArgs?⟦()⟧)
+  → csortsdefault?⟦⟧
 
   rule NMaybeVariantArgs(variantArgs?⟦ ( ##variantSort* ) ⟧)
-  → csorts?⟦ ( ⟨csort*: Map((x)->NVariantSort(x), #variantSort*)⟩ ) ⟧
+  → csortsdefault?⟦ ( ⟨csortdefault*: Map((x)->NVariantSort(x), #variantSort*)⟩ ) ⟧
 
-func NVariantSort(TransScript_variantSort_sort) -> Core_csort_sort
-rule NVariantSort(variantSort⟦ ##sort ⟧) → NSort(#sort)
+func NVariantSort(TransScript_variantSort_sort) -> Core_csortdefault_sort
+rule NVariantSort(variantSort⟦ ##sort ##defaultValue? ⟧) → csortdefault⟦ ⟨csort: NSort(#sort)⟩ ⟧
+
+/*
+func NMaybeDefaultValue(List<TransScript_defaultValue_sort>) -> List<Core_cdefaultvalue_sort>
+rule NMaybeDefaultValue(defaultValue?⟦           ⟧) → cdefaultvalue?⟦⟧
+rule NMaybeDefaultValue(defaultValue?⟦ = ##term  ⟧) → cdefaultvalue?⟦ = ⟨cterm: NTerm(#term, FALSE)⟩ ⟧*/
 
 // ---- Sort reference
 

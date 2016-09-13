@@ -42,7 +42,7 @@ func CppForwardDecl(Core_cdecl_sort) -> Text4_text_sort
 
 func CppForwardForm(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
 
-  rule CppForwardForm(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  rule CppForwardForm(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧)
   → text⟦
       †⟨CppTemplatePrefix(#csortvars?)⟩
       class †⟨ParamFormCppClassName(#CONSTRUCTOR, (), CFC_CONS)⟩;⟧
@@ -65,12 +65,12 @@ func CppForwardForm(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4
 */
 func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Text4_text_sort
 
-  rule CppMethodNew(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #def)
+  rule CppMethodNew(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧, #def)
   → text⟦
       †⟨CppTemplatePrefix(#csortvars?)⟩
-      †⟨CppTypeRefName(#csortvars?, #sortname)⟩ †⟨CppNewMethodName(#CONSTRUCTOR)⟩(tosca::Context& ctx†⟨MaybeCppFormalParams(#csorts?, text⟦, ⟧, FALSE)⟩)†⟨
+      †⟨CppTypeRefName(#csortvars?, #sortname)⟩ †⟨CppNewMethodName(#CONSTRUCTOR)⟩(tosca::Context& ctx†⟨MaybeCppFormalParams(MaybeSortsDefaultToMaybeSorts(#csortsdefault?), text⟦, ⟧, FALSE)⟩)†⟨
       If(#def, ()->text⟦{
-       return (*new †⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩(†⟨MaybeCppFormalParams(#csorts?, text⟦⟧, TRUE)⟩));
+       return (*new †⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩(†⟨MaybeCppFormalParams(MaybeSortsDefaultToMaybeSorts(#csortsdefault?), text⟦⟧, TRUE)⟩));
       }⟧, ()->text⟦;⟧)⟩
     ⟧
 
@@ -90,7 +90,7 @@ func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> T
    @param `#def` whether to generate the method definition in additition to its declaration. */
 func CppMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Text4_text_sort
 
-  rule CppMethodAs(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csorts? ⟧, #def)
+  rule CppMethodAs(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧, #def)
   → text⟦
     †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
     †⟨TextIf(Not(#def), ()->text⟦virtual⟧)⟩ Optional<†⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩> †⟨CppQualifier(#sortname, #csortvars?, #def)⟩†⟨CppAsMethodName(#CONSTRUCTOR)⟩(tosca::Context& ctx)†⟨
@@ -616,8 +616,8 @@ func CppPatternMaybeSubs( {String : EnvEntry}, List<Core_cterms_sort>, Text4_tex
   rule CppPatternMaybeSubs(#env, cterms?⟦()⟧, #term, #cform, #cont)
   → #cont(#env)
 
-  rule CppPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, SOME(PPair<Core_cdecl_sort Core_cform_sort>::PairCons(#cdecl:Core_cdecl_sort, cform⟦ ##CONSTRUCTOR ( ##csort* ) ⟧)), #cont)
-  → CppPatternSubs(#env, #cterm*, #term, 1, SOME(#csort*), #cont)
+  rule CppPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, SOME(PairCons(#cdecl, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧)), #cont)
+  → CppPatternSubs(#env, #cterm*, #term, 1, SOME(MaybeSortsDefaultToSorts(#csortsdefault?)), #cont)
 
   rule CppPatternMaybeSubs(#env, cterms?⟦ ( ##cterm* ) ⟧, #term, NONE, #cont)
   → CppPatternSubs(#env, #cterm*, #term, 1, NONE, #cont)

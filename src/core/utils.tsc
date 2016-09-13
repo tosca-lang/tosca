@@ -98,6 +98,35 @@ func GetAnnos(Core_cdecl_sort) -> List<Core_canno_sort>
 rule GetAnnos(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧) → #canno*
 rule GetAnnos(#)                                                                             → ()
 
+/* @return the conversion to `csort*` from `csortsdefault?` */
+func MaybeSortsDefaultToSorts(List<Core_csortsdefault_sort>) -> List<Core_csort_sort>
+rule MaybeSortsDefaultToSorts(csortsdefault?⟦                     ⟧) → ()
+rule MaybeSortsDefaultToSorts(csortsdefault?⟦ ( ##csortdefault* ) ⟧) → Map((sortdefault)->SortDefaultToSort(sortdefault), #csortdefault*)
+
+/* @return the list of optional default value from `#csortsdefault?` */
+func MaybeSortsDefaultToDefault(List<Core_csortsdefault_sort>) -> List<List<Core_cdefaultvalue_sort>>
+rule MaybeSortsDefaultToDefault(csortsdefault?⟦                     ⟧) → ()
+rule MaybeSortsDefaultToDefault(csortsdefault?⟦ ( ##csortdefault* ) ⟧) → Map((sortdefault)->SortDefaultToDefault(sortdefault), #csortdefault*)
+
+/* @return the conversion to `csorts?` from `csortsdefault?` */
+func MaybeSortsDefaultToMaybeSorts(List<Core_csortsdefault_sort>) -> List<Core_csorts_sort>
+rule MaybeSortsDefaultToMaybeSorts(csortsdefault?⟦                     ⟧) → csorts?⟦⟧
+rule MaybeSortsDefaultToMaybeSorts(csortsdefault?⟦ ( ##csortdefault* ) ⟧) → csorts?⟦ ( ⟨csort*: Map((sortdefault)->SortDefaultToSort(sortdefault), #csortdefault*)⟩ ) ⟧
+
+/* @return the conversion to `csortdefault*` from `csortsdefault?` */
+func MaybeSortsDefaultToSortsDefault(List<Core_csortsdefault_sort>) -> List<Core_csortdefault_sort>
+rule MaybeSortsDefaultToSortsDefault(csortsdefault?⟦                     ⟧) → csortdefault*⟦⟧
+rule MaybeSortsDefaultToSortsDefault(csortsdefault?⟦ ( ##csortdefault* ) ⟧) → #csortdefault*
+
+/* @return the sort from `#sortdefault` */
+func SortDefaultToSort(Core_csortdefault_sort) -> Core_csort_sort
+rule SortDefaultToSort(csortdefault⟦ ##csort ##cdefaultvalue? ⟧) → #csort
+
+/* @return the optional default value  from `#sortdefault` */
+func SortDefaultToDefault(Core_csortdefault_sort) -> List<Core_cdefaultvalue_sort>
+rule SortDefaultToDefault(csortdefault⟦ ##csort ##cdefaultvalue? ⟧) → #cdefaultvalue?
+
+
 /* @return the conversion to `csort*` from `csorts?` */
 func MaybeSortsToSorts(List<Core_csorts_sort>) -> List<Core_csort_sort>
 rule MaybeSortsToSorts(csorts?⟦              ⟧)           → ()

@@ -124,8 +124,15 @@ rule NoAliasDataSort(#system, cdecl⟦ data ##csortvars? ##cidentifierqualifier*
 → cdecl⟦ data ##csortvars? ##cidentifierqualifier* ##CONSTRUCTOR ( ⟨cform*: Map((form)->NoAliasForm(#system, form), #cform*)⟩ ) ⟧
 
 func NoAliasForm(TSystem, Core_cform_sort) -> Core_cform_sort
-rule NoAliasForm(#system, cform⟦ ##CONSTRUCTOR ##csorts? ⟧) → cform⟦ ##CONSTRUCTOR ⟨csorts?: NoAliasMaybeSorts(#system, #csorts?)⟩ ⟧
+rule NoAliasForm(#system, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧) → cform⟦ ##CONSTRUCTOR ⟨csortsdefault?: NoAliasMaybeSortsDefault(#system, #csortsdefault?)⟩ ⟧
 rule NoAliasForm(#system, #cform) → #cform
+
+func NoAliasMaybeSortsDefault(TSystem, List<Core_csortsdefault_sort>) -> List<Core_csortsdefault_sort>
+rule NoAliasMaybeSortsDefault(#system, csortsdefault?⟦                     ⟧) → csortsdefault?⟦⟧
+rule NoAliasMaybeSortsDefault(#system, csortsdefault?⟦ ( ##csortdefault* ) ⟧) → csortsdefault?⟦ ( ⟨csortdefault*: Map((sortdefault)->NoAliasSortDefault(#system, sortdefault), #csortdefault*)⟩ ) ⟧
+
+func NoAliasSortDefault(TSystem, Core_csortdefault_sort) -> Core_csortdefault_sort
+rule NoAliasSortDefault(#system, csortdefault⟦ ##csort ##cdefaultvalue? ⟧) → csortdefault⟦ ⟨csort: NoAliasSort(#system, #csort)⟩ ⟧
 
 // --- Func sorts
 
