@@ -27,8 +27,8 @@ importDecl
     ;
 
 sortDecl
-     : ENUM identifierQualifier* constructor sortParams? (OR variant)+            /* Enumeration type declaration */
-     | ALIAS constructor sortParams? EQ sort                                      /* Type alias */
+     : anno* ENUM identifierQualifier* constructor sortParams? (OR variant)+            /* Enumeration type declaration */
+     | anno* TYPE constructor sortParams? EQ sort                                       /* Type alias */
      ;
 
 sortParams
@@ -106,20 +106,21 @@ sortQualifier
 // Rule Declaration
 
 ruleDecl
-    : RULE constructor args? ARROW terms                             /* Rewrite rule  */
+    : anno* RULE anno* constructor args? ARROW terms                 /* Rewrite rule  */
     ;
 
 // Function declaration, signature and optional body
 
 // TODO: deprecate EXTERN
 fnDecl
-    : anno* EXTERN? FUNC constructor sortParams? fnParamDecls?
+    : anno* EXTERN? FUNC anno* constructor sortParams? fnParamDecls?
             FNTYPE sort fnBody?                                      /* Function declaration  */
     ;
 
 
 anno
     : AT qidentifier args?                                           /* General purpose annotation */
+    | AT METAVAR                                                     /* Annotation meta-variable (matching/construction) */
     ;
 
 fnParamDecls
@@ -154,7 +155,12 @@ terms
     ;
 
 term
-    : aterm nterm
+    : annoterm nterm
+    ;
+
+// Annotated atom term
+annoterm
+    : anno* aterm
     ;
 
 // Atom term
@@ -163,11 +169,11 @@ aterm
     | literal                                                        /* Literal construction */
     | groupOrList                                                    /* Grouped expression or List */
     | variable<variable> sortAnno?                                   /* Variable occurrence, with optional sort */                                                       /* Variable */
-    | map
+    | map                                                            /* Assocative array */
     | metapp                                                         /* Meta variable/Function call/Substitution */
     | dispatch                                                       /* Dispatch expression */
     | concrete                                                       /* Concrete syntax */
-    | named term                                           /* named term */
+    | named term                                                     /* named term */
     ;
 
 // Next term
@@ -303,7 +309,7 @@ operator
 
 variable options { type="string"; }
    : VARIABLE
-   | MODULE | IMPORT | GRAMMAR | FUNC | ENUM | STRUCT | DISPATCH |  RULE | VAR | FIXITY | ALIAS | EXTERN | EAGER
+   | MODULE | IMPORT | GRAMMAR | FUNC | ENUM | STRUCT | DISPATCH |  RULE | VAR | FIXITY | TYPE | EXTERN | EAGER
    ;
 
 // Lexer rules
@@ -321,7 +327,7 @@ EAGER           : 'eager'; // deprecate
 EXTERN          : 'extern'; // deprecate
 RULE            : 'rule';
 VAR             : 'allows-variable' | 'variable';
-ALIAS           : 'type';
+TYPE           : 'type';
 COMMA           : ',';
 LPAR            : '(';
 RPAR            : ')';

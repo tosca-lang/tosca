@@ -16,34 +16,32 @@ ccrsx
     ;
 
 cdecl
-    : RULE cterm ARROW cterm                                         /* Rule declaration */
-    | DATA  csortvars? cidentifierqualifier* CONSTRUCTOR cforms      /* Data sort declaration */
-    | ALIAS csortvars? CONSTRUCTOR csort                             /* Sort alias */
-    | canno* EXTERN? FUNC csortvars? csort CONSTRUCTOR csorts?       /* Function sort declaration */
-    | IMPORT MODULE cqidentifier                                     /* Import module declaration */
-    | IMPORT GRAMMAR  cqidentifier                                   /* Import grammar declaration */
+    : canno* RULE cterm ARROW cterm                                         /* Rule declaration */
+    | canno* DATA  csortvars? cidentifierqualifier* CONSTRUCTOR cforms      /* Data sort declaration */
+    | canno* ALIAS csortvars? CONSTRUCTOR csort                             /* Sort alias */
+    | canno* EXTERN? FUNC csortvars? csort CONSTRUCTOR csorts?              /* Function sort declaration */
+    | IMPORT MODULE cqidentifier                                            /* Import module declaration */
+    | IMPORT GRAMMAR  cqidentifier                                          /* Import grammar declaration */
     ;
 
 // -- Term
 
 cterm
-    : canno* cqconstructor csortargs? cterms? csortanno?                    /* Constant/Construction */
-    | canno* METAVAR cterms? csubst? csortanno?                             /* Meta variable/call/substitution */
-    | cliteral                                                              /* Literal construction */
+    : canno* cqconstructor csortargs? cterms? csortanno?                     /* Constant/Construction */
+    | canno* METAVAR cterms? csubst? csortanno?                              /* Meta variable/call/substitution */
+    | canno* cliteral                                                        /* Literal construction */
     | canno* cvariable<variable> csortanno?                                  /* Variable */
                               /* <variable> means 1. maps VARIABLE to a syntactic variable
                                                   2. look for a bound variable that matches VARIABLE
                                                      in the current tracked bound variables (innermost scope first).
                                                     VARIABLE is free if not found in scope.  */
-    | LCURLY cmapentries? RCURLY csortanno?                                 /* Association map */
-
-    // KEEP AT THE 6TH ALTERNATIVE UNTIL METAPARSER GENERATOR PROPERLY HANDLE BOUNDVAR
-    | LSQUARE cvariable<boundvar=x> csortanno? RSQUARE cterm<bound=x>        /* Bound term.
+    | canno* LCURLY cmapentries? RCURLY csortanno?                           /* Association map */
+    | canno* LSQUARE cvariable<boundvar=x> csortanno? RSQUARE cterm<bound=x> /* Bound term.
                                                                                VARIABLE<boundvar=x> means VARIABLE is a bound variable we call x
                                                                                cterm<bound=x>       means x is bound in the context of the cterm */
-    | LPAR cvariable<boundvar=x> csortanno? RPAR cterm<bound=x>             /* Formal parameter */
-    | THUNK cterm                                                          /* Unvaluated term */
-    | METAVAR csortanno? EQ cterm                                          /* Named term */
+    | canno* LPAR cvariable<boundvar=x> csortanno? RPAR cterm<bound=x>       /* Formal parameter */
+    | canno* THUNK cterm                                                     /* Unvaluated term */
+    | canno* METAVAR csortanno? EQ cterm                                     /* Named term */
     ;
 
 /* TODO: inline when antlr-based meta parser generator support (()*)? */
@@ -72,8 +70,8 @@ cmapentry
     : COLON METAVAR                                      /* property reference (match/construct)      */
     | NOT METAVAR                                        /* no property references (match only)       */
     | METAVAR COLON cterm                                /* match property value / construct          */
-    | cvariable<variable>                                 /* match / construct variable property       */
-    | NOT cvariable<variable>                             /* no variable (match only)                  */
+    | cvariable<variable>                                /* match / construct variable property       */
+    | NOT cvariable<variable>                            /* no variable (match only)                  */
     | cvariable<variable> COLON cterm                     /* match variable property value / construct */
     | STRING                                             /* match / construct named property          */
     | NOT STRING                                         /* no named property (match only)            */
@@ -81,7 +79,7 @@ cmapentry
     ;
 
 canno
-    : AT CONSTRUCTOR                                                 /* General purpose annotation */
+    : AT cqidentifier cterms?                            /* General purpose annotation */
     ;
 
 // -- Sorts

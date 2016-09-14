@@ -822,7 +822,11 @@ public class ToSinkListener implements ParseTreeListener
 
 			MetaBufferSink innersink = new MetaBufferSink(sink.context());
 			parser.parse(innersink, category, reader, null, line, column, bounds, freshes);
-			sink.copy(innersink.metaterm().asTransScript_term(sink.context()).getField1(sink.context(), false));
+
+			// The meta buffer sink produces a 'term', but a concrete term is actually a 'aterm'. Just unwrap!
+			sink.copy(
+					innersink.metaterm().asTransScript_term(sink.context()).getField1(sink.context(), false).asTransScript_annoterm(
+							sink.context()).getField2(sink.context(), false));
 		}
 		catch (RuntimeException e)
 		{

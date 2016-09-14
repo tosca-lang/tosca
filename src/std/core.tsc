@@ -79,7 +79,6 @@ func NotEqual<a>(#1: a, #2: a) -> Bool
 @Extern func BitMinus(Numeric, Numeric) -> Numeric
 @Extern func BitSubSetEq(Numeric, Numeric) -> Bool
 
-
 // --- Syntactic Variable
 
 @Extern func FreeVariables<a b>(a) -> List<b>
@@ -87,6 +86,10 @@ func NotEqual<a>(#1: a, #2: a) -> Bool
 @Extern func ExceptVariables<a>(List<a>, List<a>) -> List<a>
 @Extern func SameVariable<a b>(a, b) -> Bool
 @Extern func VariableNameIs<a b>(a, String, b) -> b
+
+// --- Location
+
+@Extern func Location<a b>(a) -> b
 
 // --- Debugging
 

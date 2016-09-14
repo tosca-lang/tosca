@@ -148,7 +148,10 @@ public class MetaBufferSink extends MetaSink
 					Nil(context));
 
 		TransScript_term_sort term = TransScript_term(
-				context, TransScript_aterm_A1(context, TransScript_cons(context, cparams.fst, Nil(context), args, Nil(context))),
+				context,
+				TransScript_annoterm(
+						context, Nil(context),
+						TransScript_aterm_A1(context, TransScript_cons(context, cparams.fst, Nil(context), args, Nil(context)))),
 				TransScript_nterm_A2(context));
 
 		addSub(term);
@@ -159,7 +162,9 @@ public class MetaBufferSink extends MetaSink
 	public Sink literal(String literal)
 	{
 		TransScript_term_sort term = TransScript_term(
-				context, TransScript_aterm_A2(context, TransScript_literal_A1(context, stringTerm(literal))),
+				context,
+				TransScript_annoterm(
+						context, Nil(context), TransScript_aterm_A2(context, TransScript_literal_A1(context, stringTerm(literal)))),
 				TransScript_nterm_A2(context));
 
 		addSub(term);
@@ -170,7 +175,10 @@ public class MetaBufferSink extends MetaSink
 	public Sink literal(double literal)
 	{
 		TransScript_term_sort term = TransScript_term(
-				context, TransScript_aterm_A2(context, TransScript_literal_A2(context, stringTerm(Double.toString(literal)))),
+				context,
+				TransScript_annoterm(
+						context, Nil(context),
+						TransScript_aterm_A2(context, TransScript_literal_A2(context, stringTerm(Double.toString(literal))))),
 				TransScript_nterm_A2(context));
 
 		addSub(term);
@@ -181,7 +189,10 @@ public class MetaBufferSink extends MetaSink
 	public Sink use(Variable variable)
 	{
 		TransScript_term_sort term = TransScript_term(
-				context, TransScript_aterm_A4(context, (StringTerm) variable.use(), Nil(context)), TransScript_nterm_A2(context));
+				context,
+				TransScript_annoterm(
+						context, Nil(context), TransScript_aterm_A4(context, (StringTerm) variable.use(), Nil(context))),
+				TransScript_nterm_A2(context));
 
 		addSub(term);
 		return this;
@@ -235,8 +246,11 @@ public class MetaBufferSink extends MetaSink
 
 		TransScript_term_sort term = TransScript_term(
 				context,
-				TransScript_aterm_A6(
-						context, TransScript_metapp(context, stringTerm(mparams.fst), apply, subst, toTSSortAnno(mparams.type))),
+				TransScript_annoterm(
+						context, Nil(context),
+						TransScript_aterm_A6(
+								context,
+								TransScript_metapp(context, stringTerm(mparams.fst), apply, subst, toTSSortAnno(mparams.type)))),
 				TransScript_nterm_A2(context));
 
 		addSub(term);

@@ -84,7 +84,6 @@ public class CoreExtern
 		return stringTerm(term.toString());
 	}
 
-
 	public static <a extends Term> a IfDef(Context ctx, ThunkMaker<a> tm, StringTerm key, Closure0<a> def, Closure0<a> notdef)
 	{
 		java.lang.String value = System.getProperty(key.unbox());
@@ -97,7 +96,6 @@ public class CoreExtern
 		return notdef.eval(ctx);
 	}
 
-	
 	public static <a extends Term> a IfDef(Context ctx, ThunkMaker<a> tm, StringTerm key, LazyTerm<a> def, LazyTerm<a> notdef)
 	{
 		java.lang.String value = System.getProperty(key.unbox());
@@ -153,7 +151,6 @@ public class CoreExtern
 		return null;
 	}
 
-
 	public static <a extends Term> a ForgivableError(Context context, ThunkMaker<a> tma, StringTerm value_1675, StringTerm value_1676, StringTerm value_1677, StringTerm value_1678, StringTerm value_1679, StringTerm value_1680, Closure0<a> value_1681)
 	{
 		// TODO Auto-generated method stub
@@ -185,8 +182,7 @@ public class CoreExtern
 		return null;
 	}
 
-
-	public static  <a extends Term> a Debug(Context context, ThunkMaker<a> tma, StringTerm msg, Closure0<a> result)
+	public static <a extends Term> a Debug(Context context, ThunkMaker<a> tma, StringTerm msg, Closure0<a> result)
 	{
 		StringTerm emsg = Term.force(context, msg);
 		System.out.println(emsg);
@@ -194,7 +190,7 @@ public class CoreExtern
 		return result.eval(context);
 	}
 
-	public static  <a extends Term> a Debug(Context context, ThunkMaker<a> tma, StringTerm value_1738, LazyTerm<a> value_1739)
+	public static <a extends Term> a Debug(Context context, ThunkMaker<a> tma, StringTerm value_1738, LazyTerm<a> value_1739)
 	{
 		// TODO Auto-generated method stub
 		return null;
@@ -206,7 +202,13 @@ public class CoreExtern
 		return null;
 	}
 
-	public static  <a extends Term> Bool DeepEqual(Context context, ThunkMaker<a> tma, a value_1780, a value_1781)
+	public static <a extends Term> Bool DeepEqual(Context context, ThunkMaker<a> tma, a value_1780, a value_1781)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static <a extends Term, b extends Term> b Location(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, a value_15168)
 	{
 		// TODO Auto-generated method stub
 		return null;
