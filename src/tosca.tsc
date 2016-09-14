@@ -18,6 +18,7 @@ import normalizer
 import checker
 import cc
 import noalias
+import noanno
 import infer::infer
 import cg::java::cgjava
 import cg::cpp::cgcpp
@@ -33,7 +34,8 @@ import parser::TransScript
    @return a result
  */
 func Compile(#url: String, #config: {String:String}) -> Result
-→ CompileS(LoadModuleS(InitSystem(#url, #config), #url, FALSE))
+→ CompileS(NoAnnoS(LoadModuleS(InitSystem(#url, #config), #url, FALSE)))
+
 
 // --- Compilation
 
@@ -45,7 +47,8 @@ func CompileS(#system: TSystem) -> Result
 func CompileM(#system: TSystem, #module: Module) -> Result
 → If(IsModuleCompiled(#module),
     ()->Success(()),
-    ()->Debug(ConcatString("Compile", GetModuleURL(#module)), ()->CodeGenerateM(#system, NoAliasM(#system, CheckCoreM(#system, ClosureConvertM(#system, InferM(#system, #module)))))))
+    ()->Debug(ConcatString("Compile", GetModuleURL(#module)),
+          ()->CodeGenerateM(#system, NoAliasM(#system, CheckCoreM(#system, ClosureConvertM(#system, InferM(#system, #module)))))))
 
 func CodeGenerateM(#system: TSystem, #module: Module) -> Result
 → IfConfigDef(#system, "cpp", (v)->ToCppM(#system, #module), ()->ToJavaM(#system, #module))
@@ -78,10 +81,3 @@ func LoadModuleS(#system: TSystem, #url: String, #standard:Bool) -> TSystem
 
 func LoadModuleAux(#system: TSystem, #url: String) -> TSystem
 → LoadImportedModules(#system, #url, GetImportsS(#system, #url))
-/*
-/* Load module content.
-   @param `#url` the location of the module. Support loading core Tosca program (*.tscc file). */
-func LoadModuleM(#system: TSystem, #url: String, #standard: Bool) -> TSystem
-→ LoadCore(#system, #url, If(EndsWith(#url, ".tscc"),
-                               ()->ParseResource("ccrsx", #url),
-                               ()->ToCore(#url, ParseResource("transscript", #url))), #standard)*/

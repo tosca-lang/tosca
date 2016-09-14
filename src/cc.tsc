@@ -32,10 +32,10 @@ func CCRulesUp(#key: String, #env: CCEnv) -> Content
 → PutRulesC(CCEnvContent(#env), #key, CCEnvRules(#env))
 
 func CCRule(CCEnv, Core_cdecl_sort) -> CCEnv
-rule CCRule(#env, cdecl⟦ rule ##cterm1 → ##cterm2 ⟧) → CCRuleUp(#cterm1, CCPatternTerm(#env, #cterm1, CCNewBinderStack, (env)->CCTerm(env, #cterm2)))
+rule CCRule(#env, cdecl⟦ ##canno* rule ##cterm1 → ##cterm2 ⟧) → CCRuleUp(#canno*, #cterm1, CCPatternTerm(#env, #cterm1, CCNewBinderStack, (env)->CCTerm(env, #cterm2)))
 
-func CCRuleUp(Core_cterm_sort, PPair<CCEnv Core_cterm_sort>) -> CCEnv
-rule CCRuleUp(#cterm1, PairCons(#env, #cterm2)) → CCEnvAddRule(#env, cdecl⟦ rule ##cterm1 → ##cterm2 ⟧)
+func CCRuleUp(List<Core_canno_sort>, Core_cterm_sort, PPair<CCEnv Core_cterm_sort>) -> CCEnv
+rule CCRuleUp(#canno*, #cterm1, PairCons(#env, #cterm2)) → CCEnvAddRule(#env, cdecl⟦ ##canno* rule ##cterm1 → ##cterm2 ⟧)
 
 // --- Pattern traversal: record variable and meta-variable sorts
 

@@ -45,24 +45,27 @@ func NDecl(TransScript_decl_sort) -> List<Core_cdecl_sort>
   → cdecl+⟦ import module ⟨cqidentifier: NQIdentifier(#qidentifier)⟩ ⟧
 
   /* Convert enum to data sort */
-  rule NDecl(decl⟦ enum ##identifierQualifier* ##constructor ##sortParams? ##variant+ ⟧)
-  → cdecl+⟦ data ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨cidentifierqualifier*: Map((ident)->NIdentifierQualifier(ident), #identifierQualifier*)⟩
+  rule NDecl(decl⟦ ##anno* enum ##identifierQualifier* ##constructor ##sortParams? ##variant+ ⟧)
+  → cdecl+⟦ ⟨canno*: NAnnos(#anno*)⟩
+             data ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨cidentifierqualifier*: Map((ident)->NIdentifierQualifier(ident), #identifierQualifier*)⟩
                   ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ( ⟨cform*: NVariants(#variant+)⟩ ) ⟧
 
   /* Convert aliases */
-  rule NDecl(decl⟦ type ##constructor ##sortParams? = ##sort ⟧)
-  → cdecl+⟦ alias ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨csort: NSort(#sort)⟩ ⟧
+  rule NDecl(decl⟦ ##anno* type ##constructor ##sortParams? = ##sort ⟧)
+  → cdecl+⟦ ⟨canno*: NAnnos(#anno*)⟩
+             alias ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨csort: NSort(#sort)⟩ ⟧
 
   /* Convert function. */
   rule NDecl(decl⟦ ##anno* ##EXTERN? func ##constructor ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
   → cdecl+⟦
-    ⟨canno*: NAnnos(#anno*)⟩ ##EXTERN? func ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨csort: NSort(#sort)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩  ⟨csorts?: NMaybeParamDecls(#fnParamDecls?)⟩
-    ⟨cdecl+: NMaybeBody(#fnBody?, #constructor, #fnParamDecls?)⟩
-  ⟧
+       ⟨canno*: NAnnos(#anno*)⟩
+       ##EXTERN? func ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨csort: NSort(#sort)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩  ⟨csorts?: NMaybeParamDecls(#fnParamDecls?)⟩
+                 ⟨cdecl+: NMaybeBody(#fnBody?, #constructor, #fnParamDecls?)⟩ ⟧
 
   /* Convert rule */
-  rule NDecl(decl⟦ rule ##constructor ##args? → ##term* ⟧)
-  → cdecl+⟦ rule ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨cterms?: NMaybeArgs(#args?, TRUE)⟩ → ⟨cterm: NTerms(#term*, FALSE)⟩ ⟧
+  rule NDecl(decl⟦ ##anno* rule ##constructor ##args? → ##term* ⟧)
+  → cdecl+⟦ ⟨canno*: NAnnos(#anno*)⟩
+             rule ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨cterms?: NMaybeArgs(#args?, TRUE)⟩ → ⟨cterm: NTerms(#term*, FALSE)⟩ ⟧
 
 // ---- Enumeration
 
@@ -185,7 +188,8 @@ func NAnnos(#anno*: List<TransScript_anno_sort>) -> List<Core_canno_sort>
 → Map((anno)->NAnno(anno), #anno*)
 
 func NAnno(TransScript_anno_sort) -> Core_canno_sort
-rule NAnno(anno⟦ @ ##CONSTRUCTOR ⟧) → canno⟦ @ ##CONSTRUCTOR ⟧
+rule NAnno(anno⟦ @ ##qidentifier ##args? ⟧) → canno⟦ @ ⟨cqidentifier: NQIdentifier(#qidentifier)⟩ ⟨cterms?: NMaybeArgs(#args?, FALSE)⟩ ⟧
+rule NAnno(anno⟦ @ ##METAVAR ⟧) → canno⟦ @ ##METAVAR ⟧
 
 // ---- Function declaration
 

@@ -1,0 +1,105 @@
+// Copyright (c) 2016 IBM Corporation.
+import std::core
+import std::mapdef
+import std::string
+import std::listdef
+import core::Core
+import core::utils
+import systemdef
+
+// --- API
+
+/* Expand annotation on all declarations in the given `#system` */
+func NoAnnoS(#system: TSystem) -> TSystem
+→ FoldlP((mod system)->PutModule(system, GetModuleURL(mod), NoAnnoM(#system, mod)), #system, MapValues(GetModules(#system)))
+
+/* Expand annotation on declarations in the given `#module` */
+func NoAnnoM(#system: TSystem, #module: Module) -> Module
+→  Debug(ConcatString("Expand runtime annotation on declarations ", GetModuleURL(#module)),
+            ()->SetModuleContent(#module, NoAnnoC(#system, GetModuleContent(#module))))
+
+func NoAnnoC(TSystem, Content) -> Content
+rule NoAnnoC(#system, Content(#imports, #rules, #datasorts, #aliases, #funcsorts))
+→ Content(#imports, #rules, NoAnnoDataSorts(#system, #datasorts), #aliases, #funcsorts)
+
+// --- Data sorts
+
+func NoAnnoDataSorts(#system: TSystem, #sorts: {String : Core_cdecl_sort}) -> {String : Core_cdecl_sort}
+→ FoldlP((key sorts)->MapPut(sorts, key, NoAnnoDataSort(#system, UnSOME(MapGet(#sorts, key)))), #sorts, MapKeys(#sorts))
+
+func NoAnnoDataSort(TSystem, Core_cdecl_sort) -> Core_cdecl_sort
+rule NoAnnoDataSort(#system, cdecl⟦ ##canno* data ##csortvars? ##cidentifierqualifier* ##CONSTRUCTOR ( ##cform* ) ⟧)
+→ cdecl⟦ ⟨canno*: NoAnnoRemoveRuntimeAnno(#system, #canno*)⟩
+         data ##csortvars? ##cidentifierqualifier* ##CONSTRUCTOR ( ⟨cform*: Map((form)->NoAnnoForm(#system, form, NoAnnoSortDefaults(#system, #canno*)), #cform*)⟩ ) ⟧
+
+func NoAnnoForm(TSystem, Core_cform_sort, List<Core_csortdefault_sort>) -> Core_cform_sort
+
+  rule NoAnnoForm(#system, #cform, csortdefault*⟦⟧)
+  → #cform
+
+  rule NoAnnoForm(#system, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧, #csortdefault*)
+  → cform⟦ ##CONSTRUCTOR ⟨csortsdefault?: NoAnnoMaybeSortsDefault(#system, #csortsdefault?, #csortdefault*)⟩ ⟧
+
+  // TODO: annotation on variable
+  rule NoAnnoForm(#system, #cform = cform⟦ allows-variable ⟧, #csortsdefault*)
+  → #cform
+
+func NoAnnoMaybeSortsDefault(TSystem, List<Core_csortsdefault_sort>, List<Core_csortdefault_sort>) ->  List<Core_csortsdefault_sort>
+
+  rule NoAnnoMaybeSortsDefault(#system, csortsdefault?⟦⟧, csortdefault*⟦⟧)
+  → csortsdefault?⟦⟧
+
+  rule NoAnnoMaybeSortsDefault(#system, csortsdefault?⟦⟧, #csortdefault*)
+  → csortsdefault?⟦ ( ##csortdefault* )⟧
+
+  rule NoAnnoMaybeSortsDefault(#system, csortsdefault?⟦ ( ##csortdefault* )⟧, #csortdefault*2)
+  → csortsdefault?⟦ ( ⟨csortdefault*: Concat(#csortdefault*, #csortdefault*2)⟩ ) ⟧
+
+func NoAnnoSortDefaults(TSystem, List<Core_canno_sort>) -> List<Core_csortdefault_sort>
+
+  rule NoAnnoSortDefaults(#system, canno*⟦⟧)
+  → csortdefault*⟦⟧
+
+  rule NoAnnoSortDefaults(#system, canno*⟦ @ ##CONSTRUCTOR ##cterms? ##canno* ⟧)
+  → NoAnnoSortDefault(#system, FindAliasS(#system, #CONSTRUCTOR), #cterms?, NoAnnoSortDefaults(#system, #canno*))
+
+  rule NoAnnoSortDefaults(#system, canno*⟦ ##canno ##canno* ⟧)
+  → NoAnnoSortDefaults(#system, #canno*)
+
+func NoAnnoSortDefault(TSystem, Option<Core_cdecl_sort>, List<Core_cterms_sort>, List<Core_csortdefault_sort>) -> List<Core_csortdefault_sort>
+
+  rule NoAnnoSortDefault(#system, NONE, #cterms?, #csortdefault*)
+  → #csortdefault*
+
+  rule NoAnnoSortDefault(#system, SOME(cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ⟧), #cterms?, #csortdefault*)
+  → If(HasAnnotation("Runtime", #canno*),
+       ()->(csortdefault⟦ ##CONSTRUCTOR ⟨cdefaultvalue?: NoAnnoDefault(#cterms?)⟩ ⟧, #csortdefault*...),
+       ()->#csortdefault*)
+
+func NoAnnoDefault(List<Core_cterms_sort>) -> List<Core_cdefaultvalue_sort>
+rule NoAnnoDefault(cterms?⟦              ⟧) → cdefaultvalue?⟦⟧
+rule NoAnnoDefault(cterms?⟦ ( ##cterm )  ⟧) → cdefaultvalue?⟦ = ##cterm ⟧
+rule NoAnnoDefault(cterms?⟦ ( ##cterm* ) ⟧) → Error("Error: too many arguments in runtime annotation")
+
+// Remove runtime annotations.
+func NoAnnoRemoveRuntimeAnno(TSystem, List<Core_canno_sort>) -> List<Core_canno_sort>
+
+  rule NoAnnoRemoveRuntimeAnno(#system, canno*⟦⟧)
+  → canno*⟦⟧
+
+  rule NoAnnoRemoveRuntimeAnno(#system, canno*⟦ @ ##CONSTRUCTOR ##cterms? ##canno* ⟧)
+  → NoAnnoRemoveRuntimeAnno2(#system, FindAliasS(#system, #CONSTRUCTOR), canno⟦ @ ##CONSTRUCTOR ##cterms? ⟧, NoAnnoRemoveRuntimeAnno(#system, #canno*))
+
+  rule NoAnnoRemoveRuntimeAnno(#system, canno*⟦ ##canno ##canno* ⟧)
+  → (#canno, NoAnnoRemoveRuntimeAnno(#system, #canno*)...)
+
+func NoAnnoRemoveRuntimeAnno2(TSystem, Option<Core_cdecl_sort>, Core_canno_sort, List<Core_canno_sort>) -> List<Core_canno_sort>
+
+  // Annotation is not declared: it's a static one. (TODO: consider raising an error?)
+  rule NoAnnoRemoveRuntimeAnno2(#system, NONE, #canno, #canno*) → (#canno, #canno*...)
+
+  // Anno
+  rule NoAnnoRemoveRuntimeAnno2(#system, SOME(cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ⟧), #canno, #canno*2)
+  → If(HasAnnotation("Runtime", #canno*),
+       ()->#canno*2,
+       ()->(#canno, #canno*2...))

@@ -87,19 +87,19 @@ func HasSorts(#csorts? :List<Core_csorts_sort>) -> Bool
 
 /* @return true if the sort declaration is parameterized */
 func HasSortVars(Core_cdecl_sort) -> Bool
-rule HasSortVars(cdecl⟦ data ##csortvars ##CONSTRUCTOR ##cforms ⟧)                                 → TRUE
+rule HasSortVars(cdecl⟦ ##canno* data ##csortvars ##CONSTRUCTOR ##cforms ⟧)                    → TRUE
 rule HasSortVars(cdecl⟦ ##canno* ##EXTERN? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧) → TRUE
-rule HasSortVars(#)                                                                                → FALSE
+rule HasSortVars(#)                                                                            → FALSE
 
 /* @return sort declaration sort parameters, or `NONE` */
 func GetSortVars(Core_cdecl_sort) -> Option<Core_csortvars_sort>
-rule GetSortVars(cdecl⟦ data ##csortvars ##CONSTRUCTOR ##cforms ⟧)                                 → SOME(#csortvars)
+rule GetSortVars(cdecl⟦  ##canno* data ##csortvars ##CONSTRUCTOR ##cforms ⟧)                   → SOME(#csortvars)
 rule GetSortVars(cdecl⟦ ##canno* ##EXTERN? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧) → SOME(#csortvars)
-rule GetSortVars(#)                                                                                → NONE
+rule GetSortVars(#)                                                                            → NONE
 
 /* @return extract `csortvars?` from sort  */
 func GetMaybeSortVars(Core_cdecl_sort) -> List<Core_csortvars_sort>
-rule GetMaybeSortVars(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)                             → #csortvars?
+rule GetMaybeSortVars(cdecl⟦ ##canno* data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)                    → #csortvars?
 rule GetMaybeSortVars(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧) → #csortvars?
 rule GetMaybeSortVars(#cdecl                                                                       ) → ()
 
@@ -238,7 +238,7 @@ rule GetFOSort(#sort) → #sort
 
 /* @return a sort corresponding to the given sort declaration */
 func DeclToSort(Core_cdecl_sort) -> Core_csort_sort
-rule DeclToSort(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)               → DataDeclToSort(#csortvars?, #CONSTRUCTOR)
+rule DeclToSort(cdecl⟦ ##canno* data ##csortvars? ##CONSTRUCTOR ##cforms ⟧) → DataDeclToSort(#csortvars?, #CONSTRUCTOR)
 
 // TODO: function
 //rule DeclToSort(cdecl⟦ ##canno* ##EXTERN? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧) → SOME(#csortvars)

@@ -31,7 +31,7 @@ func NoAliasRules(#system: TSystem, #rules: {String : List<Core_cdecl_sort>}) ->
 → FoldlP((key rules)->MapPut(rules, key, Map((rule)->NoAliasRule(#system, rule), UnSOME(MapGet(#rules, key)))), #rules, MapKeys(#rules))
 
 func NoAliasRule(TSystem, Core_cdecl_sort) -> Core_cdecl_sort
-rule NoAliasRule(#system, cdecl⟦ rule ##cterm1 → ##cterm2 ⟧) → cdecl⟦ rule ⟨cterm: NoAliasTerm(#system, #cterm1)⟩ → ⟨cterm: NoAliasTerm(#system, #cterm2)⟩ ⟧
+rule NoAliasRule(#system, cdecl⟦ ##canno* rule ##cterm1 → ##cterm2 ⟧) → cdecl⟦ ##canno* rule ⟨cterm: NoAliasTerm(#system, #cterm1)⟩ → ⟨cterm: NoAliasTerm(#system, #cterm2)⟩ ⟧
 
 func NoAliasTerm(TSystem, Core_cterm_sort) -> Core_cterm_sort
 
@@ -100,7 +100,7 @@ func NoAliasSortConstructor(Option<Core_cdecl_sort>, TSystem, String, List<Core_
   rule NoAliasSortConstructor(NONE, #system, #CONSTRUCTOR, #csorts?)
   → csort⟦ ##CONSTRUCTOR ⟨csorts?: NoAliasMaybeSorts(#system, #csorts?)⟩ ⟧
 
-  rule NoAliasSortConstructor(SOME(cdecl⟦ alias ##CONSTRUCTOR1 ##csort ⟧), #system, #CONSTRUCTOR, csorts?⟦⟧)
+  rule NoAliasSortConstructor(SOME(cdecl⟦ ##canno* alias ##CONSTRUCTOR1 ##csort ⟧), #system, #CONSTRUCTOR, csorts?⟦⟧)
   → NoAliasSort(#system, #csort)
 
   rule NoAliasSortConstructor(SOME(#cdecl), #system, #CONSTRUCTOR, #csorts?)
@@ -123,8 +123,8 @@ func NoAliasDataSorts(#system: TSystem, #sorts: {String : Core_cdecl_sort}) -> {
 → FoldlP((key sorts)->MapPut(sorts, key, NoAliasDataSort(#system, UnSOME(MapGet(#sorts, key)))), #sorts, MapKeys(#sorts))
 
 func NoAliasDataSort(TSystem, Core_cdecl_sort) -> Core_cdecl_sort
-rule NoAliasDataSort(#system, cdecl⟦ data ##csortvars? ##cidentifierqualifier* ##CONSTRUCTOR ( ##cform* ) ⟧)
-→ cdecl⟦ data ##csortvars? ##cidentifierqualifier* ##CONSTRUCTOR ( ⟨cform*: Map((form)->NoAliasForm(#system, form), #cform*)⟩ ) ⟧
+rule NoAliasDataSort(#system, cdecl⟦ ##canno* data ##csortvars? ##cidentifierqualifier* ##CONSTRUCTOR ( ##cform* ) ⟧)
+→ cdecl⟦ ##canno* data ##csortvars? ##cidentifierqualifier* ##CONSTRUCTOR ( ⟨cform*: Map((form)->NoAliasForm(#system, form), #cform*)⟩ ) ⟧
 
 func NoAliasForm(TSystem, Core_cform_sort) -> Core_cform_sort
 rule NoAliasForm(#system, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧) → cform⟦ ##CONSTRUCTOR ⟨csortsdefault?: NoAliasMaybeSortsDefault(#system, #csortsdefault?)⟩ ⟧

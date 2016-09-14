@@ -75,7 +75,7 @@ MaybeMakeSort[$Boolean /* String rule? */, ANTLR_ruleSpec_sort, Cont[Text]] :: T
  */
 MakeSort[ANTLR_ruleSpec_sort, Cont[Text]] :: Text;
  {#E}MakeSort[#ruleBlock, #cont]
-→ %n⟦¶¶enum «{#E}MakeSortName» «
+→ %n⟦¶¶«$[IfDef, "location", MakeLocation[$[Get, "location"]], %n⟨⟩]»¶enum «{#E}MakeSortName» «
    {#E; "@sortname" : TEXT[{#E}MakeSortName];
         "@sort"     : TEXT[%n⟪⟫];
         "@pt-name"  : TEXT[{#E}MakePrinterName];
@@ -92,6 +92,9 @@ MakeSortTail[OK_SORT, Cont[Text]] :: Text;
      "@pt-subs" : TEXT[#printerSubs];}
 MakeSortTail[OK, #cont]
 → %n⟦«#sort»¶¶func «#printerName»(«#sortname») -> Text4_text_sort«#printerRules»«#printerSubs»«{#E}ApplyCont[#cont]»⟧;
+
+MakeLocation[String] :: Text;
+MakeLocation[#loc] → %n⟦@†«#loc»⟧;
 
 //
 MakeForms[ANTLR_ruleBlock_sort, ok::OK_SORT.Text] :: Text;

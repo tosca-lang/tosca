@@ -11,6 +11,7 @@
    - functions raising an error are suffixed by E
  */
 
+
 import std::core
 import std::string
 import std::mapdef
@@ -104,7 +105,6 @@ func FindFormS(#system: TSystem, #datasort: Core_csort_sort, #formname: String) 
    @return An alias declaration or `NONE` */
 func FindAliasS(#system: TSystem, #constructor: String) -> Option<Core_cdecl_sort>
 → PickFirstO(Map((mod) -> FindAliasM(mod, #constructor), MapValues(GetModules(#system))))
-
 
 // --- System mutation functions. Convention: function name is suffixed by S
 
@@ -288,20 +288,20 @@ rule PutRuleC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #rule
 
 /* Add rule to module content. Always succeed. */
 func PutRule({String : List<Core_cdecl_sort>}, Core_cdecl_sort) -> {String : List<Core_cdecl_sort>}
-rule PutRule(#rules, cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
-→ PutRule1(MapGet(#rules, #CONSTRUCTOR), #rules, #CONSTRUCTOR, cdecl⟦ rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
+rule PutRule(#rules, cdecl⟦ ##canno* rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
+→ PutRule1(MapGet(#rules, #CONSTRUCTOR), #rules, #CONSTRUCTOR, cdecl⟦ ##canno* rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
 
 func PutRule1(Option<List<Core_cdecl_sort>>, {String : List<Core_cdecl_sort>}, String, Core_cdecl_sort) -> { String : List<Core_cdecl_sort> }
 rule PutRule1(NONE, #rules, #constructor, #rule)
 → MapPut(#rules, #constructor, (#rule,))
 
-rule PutRule1(SOME(#rulesForCons:List<Core_cdecl_sort>), #rules, #constructor, #rule)
+rule PutRule1(SOME(#rulesForCons), #rules, #constructor, #rule)
 → MapPut(#rules, #constructor, Append(#rule, #rulesForCons))  // Keep rules in order.
 
 /*  Add data sort to module content. Fail if data sort already exists and `#extends` is set to `FALSE` */
 func PutDataSort({String:Core_cdecl_sort}, Core_cdecl_sort, Bool) -> {String : Core_cdecl_sort}
-rule PutDataSort(#data, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧, #extends)
-→ PutDataSort1(MapGet(#data, #CONSTRUCTOR), #data, #CONSTRUCTOR, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧, #extends)
+rule PutDataSort(#data, cdecl⟦ ##canno* data ##csortvars? ##CONSTRUCTOR ##cforms ⟧, #extends)
+→ PutDataSort1(MapGet(#data, #CONSTRUCTOR), #data, #CONSTRUCTOR, cdecl⟦ ##canno* data ##csortvars? ##CONSTRUCTOR ##cforms ⟧, #extends)
 
 func PutDataSort1(Option<Core_cdecl_sort>, {String: Core_cdecl_sort}, String, Core_cdecl_sort, Bool) -> { String : Core_cdecl_sort}
 
@@ -309,8 +309,8 @@ func PutDataSort1(Option<Core_cdecl_sort>, {String: Core_cdecl_sort}, String, Co
   → MapPut(#data, #constructor, #decl)
 
   // Merge the two given data sorts
-  rule PutDataSort1(SOME(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧), #data, #constructor, cdecl⟦ data ##csortvars?2  ##CONSTRUCTOR2 ( ##cform*2 ) ⟧, TRUE)
-  → MapPut(#data, #constructor, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ⟨cform*: Concat(#cform*, #cform*2)⟩ ) ⟧)
+  rule PutDataSort1(SOME(cdecl⟦ ##canno* data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧), #data, #constructor, cdecl⟦ ##canno*2 data ##csortvars?2  ##CONSTRUCTOR2 ( ##cform*2 ) ⟧, TRUE)
+  → MapPut(#data, #constructor, cdecl⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ data ##csortvars? ##CONSTRUCTOR ( ⟨cform*: Concat(#cform*, #cform*2)⟩ ) ⟧)
 
   rule PutDataSort1(SOME(#edecl), #data, #constructor, #decl, FALSE)
   → Error(ConcatString("Data sort already declared:", #constructor))
@@ -345,8 +345,8 @@ rule PutAliasC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #ali
 
 /* Add alias to module content. Always succeed. */
 func PutAliasI({String : Core_cdecl_sort}, Core_cdecl_sort) -> {String : Core_cdecl_sort}
-rule PutAliasI(#aliases, cdecl⟦ alias ##csortvars? ##CONSTRUCTOR ##csort ⟧)
-→ MapPut(#aliases, #CONSTRUCTOR, cdecl⟦ alias ##csortvars? ##CONSTRUCTOR ##csort ⟧)
+rule PutAliasI(#aliases, cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ⟧)
+→ MapPut(#aliases, #CONSTRUCTOR, cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ⟧)
 
 // --- Declaration querying functions. Convention: function name is suffixed by D
 
@@ -372,8 +372,8 @@ func FindFormI(#datasorts: {String: Core_cdecl_sort}, #datasort: Core_csort_sort
 /* Find form of the given name in the data sort */
 func FindFormD(Core_cdecl_sort, String) -> Option<PPair<Core_cdecl_sort Core_cform_sort>>
 
-  rule FindFormD(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, #formname)
-  → MaybeO((cform)->SOME(PairCons(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, cform)), PickFirst(#cform*, (x) -> MatchConsForm(x, #formname)))
+  rule FindFormD(cdecl⟦ ##canno* data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, #formname)
+  → MaybeO((cform)->SOME(PairCons(cdecl⟦ ##canno* data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, cform)), PickFirst(#cform*, (x) -> MatchConsForm(x, #formname)))
 
   rule FindFormD(#cdecl, #formname)
   → NONE
@@ -422,8 +422,8 @@ func LoadDeclsS(TSystem, String, List<Core_cdecl_sort>, Bool) -> TSystem
   → LoadDeclsS(AddImportS(#system, #url, #cqidentifier), #url, #cdecl+, #extends)
 
   // Local data sort declaration
-  rule LoadDeclsS(#system, #url, cdecl+⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ##cdecl+ ⟧, #extends)
-  → LoadDeclsS(PutDataSortS(#system, #url, cdecl⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧, #extends), #url, #cdecl+, #extends)
+  rule LoadDeclsS(#system, #url, cdecl+⟦ ##canno* data ##csortvars? ##CONSTRUCTOR ##cforms ##cdecl+ ⟧, #extends)
+  → LoadDeclsS(PutDataSortS(#system, #url, cdecl⟦ ##canno* data ##csortvars? ##CONSTRUCTOR ##cforms ⟧, #extends), #url, #cdecl+, #extends)
 
   // Extend existing data sort declaration
   rule LoadDeclsS(#system, #url, cdecl+⟦ data ##csortvars? ##cidentifierqualifier* ##CONSTRUCTOR ##cforms ##cdecl+ ⟧, #extends)
@@ -432,14 +432,14 @@ func LoadDeclsS(TSystem, String, List<Core_cdecl_sort>, Bool) -> TSystem
        #url, #cdecl+, #extends)
 
   // Sort alias declaration
-  rule LoadDeclsS(#system, #url, cdecl+⟦ alias ##csortvars? ##CONSTRUCTOR ##csort ##cdecl+ ⟧, #extends)
-  → LoadDeclsS(PutAliasS(#system, #url, cdecl⟦ alias ##csortvars? ##CONSTRUCTOR ##csort ⟧), #url, #cdecl+, #extends)
+  rule LoadDeclsS(#system, #url, cdecl+⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ##cdecl+ ⟧, #extends)
+  → LoadDeclsS(PutAliasS(#system, #url, cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ⟧), #url, #cdecl+, #extends)
 
   rule LoadDeclsS(#system, #url, cdecl+⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ##cdecl+ ⟧, #extends)
   → LoadDeclsS(PutFuncSortS(#system, #url, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, FALSE), #url, #cdecl+, #extends)
 
-  rule LoadDeclsS(#system, #url,  cdecl+⟦ rule ##cterm → ##cterm2 ##cdecl+  ⟧, #extends)
-  → LoadDeclsS(PutRuleS(#system, #url, cdecl⟦ rule  ##cterm → ##cterm2 ⟧), #url, #cdecl+, #extends)
+  rule LoadDeclsS(#system, #url,  cdecl+⟦ ##canno* rule ##cterm → ##cterm2 ##cdecl+  ⟧, #extends)
+  → LoadDeclsS(PutRuleS(#system, #url, cdecl⟦ ##canno* rule  ##cterm → ##cterm2 ⟧), #url, #cdecl+, #extends)
 
 // ---- Import function helpers
 

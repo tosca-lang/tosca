@@ -1,4 +1,16 @@
 /* Copyright (c) 2016 IBM Corporation. */
+
+// --- Builtin annotations
+
+/* Indicate whether the value of the type with this annotation is retained at runtime, when used as an annotation */
+//type Extern = Bool
+
+/* Indicate whether the value of the type with this annotation is retained at runtime, when used as an annotation */
+type Runtime = Bool
+
+@Runtime
+type Loc = {String:String}
+
 // --- Evaluation
 
 /**
