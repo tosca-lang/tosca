@@ -56,7 +56,7 @@ func NDecl(TransScript_decl_sort) -> List<Core_cdecl_sort>
   /* Convert function. */
   rule NDecl(decl⟦ ##anno* ##EXTERN? func ##constructor ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
   → cdecl+⟦
-    ⟨canno*: Map((anno)->NAnno(anno), #anno*)⟩ ##EXTERN? func ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨csort: NSort(#sort)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩  ⟨csorts?: NMaybeParamDecls(#fnParamDecls?)⟩
+    ⟨canno*: NAnnos(#anno*)⟩ ##EXTERN? func ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨csort: NSort(#sort)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩  ⟨csorts?: NMaybeParamDecls(#fnParamDecls?)⟩
     ⟨cdecl+: NMaybeBody(#fnBody?, #constructor, #fnParamDecls?)⟩
   ⟧
 
@@ -181,6 +181,9 @@ func NMultiMapWrapper(#arity: Numeric) -> String
 
 // ---- Annotation
 
+func NAnnos(#anno*: List<TransScript_anno_sort>) -> List<Core_canno_sort>
+→ Map((anno)->NAnno(anno), #anno*)
+
 func NAnno(TransScript_anno_sort) -> Core_canno_sort
 rule NAnno(anno⟦ @ ##CONSTRUCTOR ⟧) → canno⟦ @ ##CONSTRUCTOR ⟧
 
@@ -219,69 +222,72 @@ rule NPatternArg(fnParam⟦ ##sort ⟧)             → Error("Missing function 
 // ---- Terms
 
 func NTerms(List<TransScript_term_sort>, Bool) -> Core_cterm_sort
-rule NTerms(term*⟦ ##aterm                ⟧, #inpattern) → NATerm(#aterm, #inpattern)
-rule NTerms(#term*                        , #inpattern) → NList(#term*, #inpattern)
+rule NTerms(term*⟦ ##annoterm ⟧, #inpattern) → NAnnoTerm(#annoterm, #inpattern)
+rule NTerms(#term*             , #inpattern) → NList(#term*, #inpattern)
 
 func NList(List<TransScript_term_sort>, Bool) -> Core_cterm_sort
-rule NList(term*⟦ ##aterm1 , ##aterm2 ... ⟧, #inpattern) → cterm⟦ Cons( ⟨cterm: NATerm(#aterm1, #inpattern)⟩, ⟨cterm: NATerm(#aterm2, #inpattern)⟩ ) ⟧
-rule NList(term*⟦ ##term ##term*          ⟧, #inpattern) → cterm⟦ Cons( ⟨cterm: NTerm(#term, #inpattern)⟩, ⟨cterm: NList(#term*, #inpattern)⟩ ) ⟧
-rule NList(term*⟦                         ⟧, #inpattern) → cterm⟦ Nil ⟧
+rule NList(term*⟦ ##annoterm1 , ##annoterm2 ... ⟧, #inpattern) → cterm⟦ Cons( ⟨cterm: NAnnoTerm(#annoterm1, #inpattern)⟩, ⟨cterm: NAnnoTerm(#annoterm2, #inpattern)⟩ ) ⟧
+rule NList(term*⟦ ##term ##term*                ⟧, #inpattern) → cterm⟦ Cons( ⟨cterm: NTerm(#term, #inpattern)⟩, ⟨cterm: NList(#term*, #inpattern)⟩ ) ⟧
+rule NList(term*⟦                               ⟧, #inpattern) → cterm⟦ Nil ⟧
 
 func NTerm(TransScript_term_sort, Bool) -> Core_cterm_sort
-rule NTerm(term⟦ ##aterm ⟧, #inpattern) → NATerm(#aterm, #inpattern)
+rule NTerm(term⟦ ##annoterm ⟧, #inpattern) → NAnnoTerm(#annoterm, #inpattern)
 
-func NATerm(TransScript_aterm_sort, Bool) -> Core_cterm_sort
+func NAnnoTerm(TransScript_annoterm_sort, Bool) -> Core_cterm_sort
+rule NAnnoTerm(annoterm⟦ ##anno* ##aterm ⟧, #inpattern) → NATerm(NAnnos(#anno*), #aterm, #inpattern)
 
-  rule NATerm(aterm⟦ ##sortQualifier* ##constructor ##sortArgs? ##args? ##sortAnno? ⟧, #inpattern)
-  → cterm⟦ ⟨csortqualifier*: NSortQualifiers(#sortQualifier*)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩
+func NATerm(List<Core_canno_sort>, TransScript_aterm_sort, Bool) -> Core_cterm_sort
+
+  rule NATerm(#canno*, aterm⟦ ##sortQualifier* ##constructor ##sortArgs? ##args? ##sortAnno? ⟧, #inpattern)
+  → cterm⟦ ##canno* ⟨csortqualifier*: NSortQualifiers(#sortQualifier*)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩
       ⟨csortargs?: NMaybeSortArgs(#sortArgs?)⟩ ⟨cterms?: NMaybeArgs(#args?, #inpattern)⟩ ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ⟧
 
-  rule NATerm(aterm⟦ ##STRING ⟧, #inpattern)
-  → cterm⟦ ##STRING ⟧
+  rule NATerm(#canno*, aterm⟦ ##STRING ⟧, #inpattern)
+  → cterm⟦ ##canno* ##STRING ⟧
 
-  rule NATerm(aterm⟦ ##NUMBER ⟧, #inpattern)
-  → cterm⟦ ##NUMBER ⟧
+  rule NATerm(#canno*, aterm⟦ ##NUMBER ⟧, #inpattern)
+  → cterm⟦ ##canno* ##NUMBER ⟧
 
-  rule NATerm(aterm⟦ ##groupOrList ⟧, #inpattern)
+  rule NATerm(#canno*, aterm⟦ ##groupOrList ⟧, #inpattern)
   → NGroupOrList(#groupOrList, #inpattern)
 
-  rule NATerm(aterm⟦ ##VARIABLE ##sortAnno? ⟧, #inpattern)
-  → cterm⟦ ##VARIABLE ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ⟧
+  rule NATerm(#canno*, aterm⟦ ##VARIABLE ##sortAnno? ⟧, #inpattern)
+  → cterm⟦ ##canno* ##VARIABLE ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ⟧
 
-  rule NATerm(aterm⟦ ##METAVAR ##apply? ##subst? ##sortAnno? ⟧, #inpattern)
-  → cterm⟦ ##METAVAR ⟨cterms?: NMaybeApply(#apply?, #inpattern)⟩ ⟨csubst?: NMaybeSubst(#subst?, #inpattern)⟩ ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ⟧
+  rule NATerm(#canno*, aterm⟦ ##METAVAR ##apply? ##subst? ##sortAnno? ⟧, #inpattern)
+  → cterm⟦ ##canno* ##METAVAR ⟨cterms?: NMaybeApply(#apply?, #inpattern)⟩ ⟨csubst?: NMaybeSubst(#subst?, #inpattern)⟩ ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ ⟧
 
-  rule NATerm(aterm⟦ ##CONCRETE ⟧, #inpattern)
+  rule NATerm(#canno*, aterm⟦ ##CONCRETE ⟧, #inpattern)
   → Error("Internal error: concrete syntax must have already been expanded.")
 
-  rule NATerm(aterm⟦ ##METAVAR ##sortAnno? = ##term ⟧, TRUE)
-  → cterm⟦ ##METAVAR ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ = ⟨cterm: NTerm(#term, TRUE)⟩ ⟧
+  rule NATerm(#canno*, aterm⟦ ##METAVAR ##sortAnno? = ##term ⟧, TRUE)
+  → cterm⟦ ##canno* ##METAVAR ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ = ⟨cterm: NTerm(#term, TRUE)⟩ ⟧
 
-  rule NATerm(aterm⟦ ##METAVAR ##sortAnno? = ##term ⟧, FALSE)
+  rule NATerm(#canno*, aterm⟦ ##METAVAR ##sortAnno? = ##term ⟧, FALSE)
   → Error("Error: named terms are only allowed in patterns.")
 
   // Map pattern matching - single map
-  rule NATerm(aterm⟦ { ##optkvs } ⟧, TRUE)
+  rule NATerm(#canno*, aterm⟦ { ##optkvs } ⟧, TRUE)
   → NOptKVS(#optkvs)
 
   // Map pattern matching - multi maps - desugar
-  rule NATerm(aterm⟦ { ##optkvs* } ##sortAnno? ⟧, TRUE)
-  → cterm⟦ ⟨CONSTRUCTOR: NMultiMapWrapper(ListLength(#optkvs*))⟩ ( ⟨cterm*: Map((optkvs)->NOptKVS(optkvs), #optkvs*)⟩ ) ⟧
+  rule NATerm(#canno*, aterm⟦ { ##optkvs* } ##sortAnno? ⟧, TRUE)
+  → cterm⟦ ##canno* ⟨CONSTRUCTOR: NMultiMapWrapper(ListLength(#optkvs*))⟩ ( ⟨cterm*: Map((optkvs)->NOptKVS(optkvs), #optkvs*)⟩ ) ⟧
 
   // Map construction - empty single map
-  rule NATerm(aterm⟦ {        } ##sortAnno? ⟧, FALSE)
-  → cterm⟦ MapNew ⟧
+  rule NATerm(#canno*, aterm⟦ {        } ##sortAnno? ⟧, FALSE)
+  → cterm⟦ ##canno* MapNew ⟧
 
   // Map construction - single map
-  rule NATerm(aterm⟦ { ##optkvs } ##sortAnno? ⟧, FALSE)
+  rule NATerm(#canno*, aterm⟦ { ##optkvs } ##sortAnno? ⟧, FALSE)
   → NOptKVSContract(#optkvs)
 
   // Map construction - multi maps
-  rule NATerm(aterm⟦ { ##optkvs* } ##sortAnno? ⟧, FALSE)
-  → cterm⟦ ⟨CONSTRUCTOR: NMultiMapWrapper(ListLength(#optkvs*))⟩ (⟨cterm*: Map((optkvs)->NOptKVSContract(optkvs), #optkvs*)⟩ ) ⟧
+  rule NATerm(#canno*, aterm⟦ { ##optkvs* } ##sortAnno? ⟧, FALSE)
+  → cterm⟦ ##canno* ⟨CONSTRUCTOR: NMultiMapWrapper(ListLength(#optkvs*))⟩ (⟨cterm*: Map((optkvs)->NOptKVSContract(optkvs), #optkvs*)⟩ ) ⟧
 
   // Assertion error
-  rule NATerm(#aterm, #inpattern) → Error(ConcatString("Internal error: could not handle ", PrintTerm("", #aterm)))
+  rule NATerm(#canno*, #aterm, #inpattern) → Error(ConcatString("Internal error: could not handle ", PrintTerm("", #aterm)))
 
 func NMaybeArgs(List<TransScript_args_sort>, Bool) -> List<Core_cterms_sort>
 rule NMaybeArgs(args?⟦              ⟧, #inpattern) → cterms?⟦⟧

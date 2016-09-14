@@ -63,14 +63,19 @@ rule HeadAll(Cons(#:a, List<a>::Cons(#2:a, #s:List<a>))) → Cons(#, HeadAll<a>(
 
 /* @return last item of the list */
 func Last<a>(List<a>) -> a
-rule Last((                     )) → Error<a>("Last of empty list")
-rule Last(Cons(#:a, List<a>::Nil)) → #
-rule Last(Cons(#:a, #s:List<a>  )) → Last<a>(#s)
+rule Last((        )) → Error("Last of empty list")
+rule Last((#,      )) → #
+rule Last((#, #s...)) → Last(#s)
 
 /* @return Tail of the list */
 func Tail<a>(List<a>) -> List<a>
-rule Tail((                   )) → Error<List>("Tail of empty list")
-rule Tail(Cons(#:a, #s:List<a>)) → #s
+rule Tail((        )) → Error("Tail of empty list")
+rule Tail((#, #s...)) → #s
+
+/* @return Tail of the list. Return the empty list when there is no tail. */
+func TailNE<a>(List<a>) -> List<a>
+rule TailNE((        )) → ()
+rule TailNE((#, #s...)) → #s
 
 /* `SubList(#XS, #from)`
    @param  `#XS` list

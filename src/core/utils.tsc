@@ -27,13 +27,23 @@ rule StripThunk(#cterm                )  → #cterm
 func HasAnnotation(#anno: String, #anno*: List<Core_canno_sort>) -> Bool
 → HasOption(PickFirst(#anno*, (anno) -> EqualAnno(#anno, anno)))
 
-/* Whether the 2 annotation are equals */
+/* Get the first annotation of the given `#name` in the given `#list` */
+func GetAnnotation(#anno: String, #anno*: List<Core_canno_sort>) -> Option<Core_canno_sort>
+→ PickFirst(#anno*, (anno) -> EqualAnno(#anno, anno))
+
+/* Whether the 2 annotations are equals */
 func EqualAnno(String, Core_canno_sort) -> Bool
-rule EqualAnno(#anno, canno⟦ @ ##CONSTRUCTOR ⟧) → StringEqual(#CONSTRUCTOR, #anno)
+rule EqualAnno(#anno, canno⟦ @ ##CONSTRUCTOR ##cterms? ⟧) → StringEqual(#CONSTRUCTOR, #anno)
+rule EqualAnno(#anno, canno⟦ @ ##METAVAR               ⟧) → StringEqual(#METAVAR, ConcatString("#", #anno))
 
 /* Add annotation to list. Does not check if already there. */
 func AddAnnotation(#anno: String, #anno*: List<Core_canno_sort>) ->  List<Core_canno_sort>
-→ Cons(canno⟦ @ ⟨CONSTRUCTOR: #anno⟩ ⟧, #anno*)
+→ (canno⟦ @ ⟨CONSTRUCTOR: #anno⟩ ⟧, #anno*...)
+
+/* Remove the given annotation from the list. Only remove the first found annotation. */
+func RemoveAnnotation(String, List<Core_canno_sort>) ->  List<Core_canno_sort>
+rule RemoveAnnotation(#anno, (                 )) → ()
+rule RemoveAnnotation(#anno, (#anno2, #annos...)) → If(EqualAnno(#anno, #anno2), ()->#annos, ()->(#anno2, RemoveAnnotation(#anno, #annos)...))
 
 /* @return the string concatenation represeting the given `#qualifiedIdentifier` */
 func JoinQIdentifier(#cqiden: Core_cqidentifier_sort, #sep: String, #mangle:Bool) -> String

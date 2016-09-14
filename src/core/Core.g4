@@ -80,6 +80,7 @@ cmapentry
 
 canno
     : AT cqidentifier cterms?                            /* General purpose annotation */
+    | AT METAVAR                                         /* Annotation meta-variable (matching/construction) */
     ;
 
 // -- Sorts

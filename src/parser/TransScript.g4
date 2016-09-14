@@ -113,7 +113,7 @@ ruleDecl
 
 // TODO: deprecate EXTERN
 fnDecl
-    : anno* EXTERN? FUNC anno* constructor sortParams? fnParamDecls?
+    : anno* EXTERN? FUNC constructor sortParams? fnParamDecls?
             FNTYPE sort fnBody?                                      /* Function declaration  */
     ;
 
