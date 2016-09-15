@@ -59,7 +59,7 @@ task coreParsers(type: PG4Task) {
     generatedFileDir = file('src/core')
     metaPrefix = '##'
 	ncg = true
-    locsort = 'Loc({})'
+    locsort = 'Region({})'
 }
 
 task toscaParsers(type: PG4Task) {
@@ -68,7 +68,7 @@ task toscaParsers(type: PG4Task) {
     generatedFileDir = file('src/parser')
     metaPrefix = '##'
 	ncg =  true
-	//locsort = 'Loc({})'
+	//locsort = 'Region({})'
 }
 
 task textParsers(type: PG4Task) {

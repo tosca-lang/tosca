@@ -8,8 +8,9 @@
 /* Indicate whether the value of the type with this annotation is retained at runtime, when used as an annotation */
 type Runtime = Bool
 
+/* Hold region in source file */
 @Runtime
-type Loc = {String:String}
+type Region = {String:String}
 
 // --- Evaluation
 
