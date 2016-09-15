@@ -131,9 +131,9 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		}
 
 		@Override
-		public Term copy(Context c)
+		public MapTerm<K, V> copy(Context c)
 		{
-			throw new RuntimeException();
+			return mapTerm();
 		}
 
 		@Override
@@ -216,6 +216,16 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		public boolean contains(Term key)
 		{
 			return containsKey((K) key);
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public Term substitute(Context ctx, Object... substitutes)
+		{
+			MapTerm<K, V> copy = copy(ctx);
+			for (K key : keySet())
+				copy.putValue(key, (V) get(key).ref().substitute(ctx, substitutes));
+			return copy;
 		}
 
 	}

@@ -136,7 +136,6 @@ rule SortDefaultToSort(csortdefault⟦ ##csort ##cdefaultvalue? ⟧) → #csort
 func SortDefaultToDefault(Core_csortdefault_sort) -> List<Core_cdefaultvalue_sort>
 rule SortDefaultToDefault(csortdefault⟦ ##csort ##cdefaultvalue? ⟧) → #cdefaultvalue?
 
-
 /* @return the conversion to `csort*` from `csorts?` */
 func MaybeSortsToSorts(List<Core_csorts_sort>) -> List<Core_csort_sort>
 rule MaybeSortsToSorts(csorts?⟦              ⟧)           → ()

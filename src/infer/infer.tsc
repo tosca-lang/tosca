@@ -122,9 +122,8 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
 /* Traverse terms */
 func InferMaybeTerms({String:IEnvEntry}, String, List<Core_cterms_sort>, List<Core_csort_sort>, List<Core_canno_sort>, List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterms_sort>>
 rule InferMaybeTerms(#env, #constructor, cterms?⟦              ⟧, #esort*, #canno*, #dvs) → PairCons(#env, cterms?⟦ ⟧) // TODO: check arity check no runtime annotation left
-//rule InferMaybeTerms(#env, #constructor, cterms?⟦ (          ) ⟧, #esort*, #canno*, #dvs) → UnPair(InferDefaultValues(IPushBinderSorts(#env), #constructor, #esort*, #dvs), (env terms)->PairCons(IPopBinderSorts(env), cterms?⟦ ( ⟨cterm*: terms⟩ ) ⟧))
-rule InferMaybeTerms(#env, #constructor, cterms?⟦ (          ) ⟧, #esort*, #canno*, #dvs) → UnPair(InferAnnos(IPushBinderSorts(#env), #constructor, #esort*, #canno*, #dvs), (env terms)->PairCons(IPopBinderSorts(env), cterms?⟦ ( ⟨cterm*: terms⟩ ) ⟧))
-rule InferMaybeTerms(#env, #constructor, cterms?⟦ ( ##cterm* ) ⟧, #esort*, #canno*, #dvs) → UnPair(InferTerms(IPushBinderSorts(#env), #constructor, #cterm*, #esort*, #canno*, #dvs), (env terms)->PairCons(IPopBinderSorts(env), cterms?⟦ ( ⟨cterm*: terms⟩ ) ⟧))
+rule InferMaybeTerms(#env, #constructor, cterms?⟦ (          ) ⟧, #esort*, #canno*, #dvs) → UnPair(InferAnnos(IPushBinderSorts(IResetMetaCounter(#env)), #constructor, #esort*, #canno*, #dvs), (env terms)->PairCons(IPopBinderSorts(env), cterms?⟦ ( ⟨cterm*: terms⟩ ) ⟧))
+rule InferMaybeTerms(#env, #constructor, cterms?⟦ ( ##cterm* ) ⟧, #esort*, #canno*, #dvs) → UnPair(InferTerms(IPushBinderSorts(IResetMetaCounter(#env)), #constructor, #cterm*, #esort*, #canno*, #dvs), (env terms)->PairCons(IPopBinderSorts(env), cterms?⟦ ( ⟨cterm*: terms⟩ ) ⟧))
 
 /* Traverse subst */
 func InferMaybeSubst({String:IEnvEntry}, String, List<Core_csubst_sort>, List<Core_csort_sort>) -> PPair<{String:IEnvEntry} List<Core_csubst_sort>>
@@ -190,9 +189,11 @@ func InferAnnos2({String:IEnvEntry}, Option<Core_canno_sort>, String, List<Core_
 /* Process default value */
 func InferDefaultValues({String:IEnvEntry}, String, List<Core_csort_sort>, List<Core_canno_sort>, List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterm_sort>>
 
+  // There is a default value provided for the missing argument
+  // If in pattern, currently match all.
   rule InferDefaultValues(#env, #constructor, csort*⟦ ##csort ##csort* ⟧, #canno*, ((cdefaultvalue⟦ = ##cterm ⟧,), #dvs...))
   → If(GetInPattern(#env),
-      ()->InferTermsUp(InferTerm(#env, cterm⟦ ⟨METAVAR: "#DUMMY"⟩ ⟧, #csort), #constructor, cterm*⟦⟧, #csort*, #canno*, #dvs),
+      ()->InferTermsUp(InferTerm(IIncMetaCounter(#env), cterm⟦ ⟨METAVAR: ConcatString("#$", FormatInteger(IGetMetaCounter(#env)))⟩ ⟧, #csort), #constructor, cterm*⟦⟧, #csort*, #canno*, #dvs),
       ()->InferTermsUp(InferTerm(#env, #cterm, #csort), #constructor, cterm*⟦⟧, #csort*, #canno*, #dvs))
 
   rule InferDefaultValues(#env, #constructor, csort*⟦                  ⟧, #canno*, ())
