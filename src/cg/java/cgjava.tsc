@@ -1084,12 +1084,10 @@ rule SubSort(#env, #cterm, #csorts?)
 → SubSort2(SubSortFromTerm(#env, #cterm), #csorts?)
 
 func SubSort2(Option<Core_csort_sort>, Option<List<Core_csort_sort>>) -> Option<Core_csort_sort>
-rule SubSort2(SOME(#csort:Core_csort_sort), #)       → SOME(#csort)
+rule SubSort2(SOME(#csort), #)                       → SOME(#csort)
 rule SubSort2(NONE, NONE)                            → NONE
 rule SubSort2(NONE, SOME(csort*⟦ ##csort ##csort* ⟧)) → SOME(#csort)
-
-// TODO: enable when fixing issue #19
-//rule SubSort2(NONE, SOME(csort*⟦ ⟧))                  → Error<Option>("Error: could not find type for sub term.")
+rule SubSort2(NONE, SOME(csort*⟦ ⟧))                  → Error("Error: could not find type for sub term.")
 
 func SubSortFromTerm({String : JEnvEntry}, Core_cterm_sort) -> Option<Core_csort_sort>
 
@@ -1203,12 +1201,6 @@ func JavaJFreshesMaybeSubst({String : JEnvEntry}, List<Core_csubst_sort>, ({Stri
   → JavaJFreshesTerms(#env, #cterm*, #cont)
 
 func JavaJFreshesVariable({String : JEnvEntry}, Option<JVarEntry>, String, List<Core_csortanno_sort>, Bool, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
-/*
-  // untyped fresh var
-  rule JavaJFreshesVariable(#env, NONE, #var, csortanno?⟦  ⟧, #cont)
-  → text⟦
-      VarStringTerm fresh†⟨NumberToText(JGetCounter(#env))⟩ = varStringTerm(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show<String>(#var))⟩);†⟨
-        #cont(JIncCounter(JAddVar(#env, #var, JFresh(text⟦fresh†⟨NumberToText(JGetCounter(#env))⟩⟧, NONE))))⟩⟧*/
 
   rule JavaJFreshesVariable(#env, NONE, #var, csortanno?⟦ : ##csort ⟧, TRUE, #cont)
   → text⟦
@@ -1301,9 +1293,6 @@ rule JavaIfBranch(#cterm                ) → StripThunk(#cterm)
 // --- Variable
 
 func JavaExprMaybeVar({String : JEnvEntry}, Option<JVarEntry>, String, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
-
-  /*rule JavaExprMaybeVar(#env, NONE, #svar, #cont) // JFresh variable must have been declared
-  → #cont(#env)*/
 
   rule JavaExprMaybeVar(#env, SOME(JFormal(#var, #type)), #svar, #cont)
   → text⟦†⟨#var⟩†⟨#cont(#env)⟩⟧
