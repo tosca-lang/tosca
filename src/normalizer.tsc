@@ -101,11 +101,13 @@ func NMaybeDefaultValue(List<TransScript_defaultValue_sort>) -> List<Core_cdefau
 rule NMaybeDefaultValue(defaultValue?⟦           ⟧) → cdefaultvalue?⟦⟧
 rule NMaybeDefaultValue(defaultValue?⟦ = ##term  ⟧) → cdefaultvalue?⟦ = ⟨cterm: NTerm(#term, FALSE)⟩ ⟧
 
-// ---- Sort reference
+// ---- Sort
+
 
 func NSort(TransScript_sort_sort) -> Core_csort_sort
+rule NSort(sort⟦ ##anno* ##sortScope? ##paramSort ⟧) → NMaybeSortScope(NAnnos(#anno*), #sortScope?, #paramSort)
 
-  rule NSort(sort⟦ ##sortScope? ##constructor ##sortArgs? ⟧)
+  /*rule NSort(sort⟦ ##sortScope? ##constructor ##sortArgs? ⟧)
   → NMaybeSortScope(#sortScope?, NParamSort(#constructor, #sortArgs?))
 
   rule NSort(sort⟦ ##sortScope? ##VARIABLE ⟧)
@@ -117,43 +119,60 @@ func NSort(TransScript_sort_sort) -> Core_csort_sort
 
   // Multi-maps
   rule NSort(sort⟦ { ##sortMap* } ⟧)
-  → csort⟦ ⟨CONSTRUCTOR: NMultiMapWrapper(ListLength(#sortMap*))⟩ ( ⟨csort*:Flatten(Map((sortMap)->NSortMap(sortMap), #sortMap*))⟩ ) ⟧
+  → csort⟦ ⟨CONSTRUCTOR: NMultiMapWrapper(ListLength(#sortMap*))⟩ ( ⟨csort*:Flatten(Map((sortMap)->NSortMap(sortMap), #sortMap*))⟩ ) ⟧*/
 
-func NMaybeSortScope(List<TransScript_sortScope_sort>, Core_csort_sort) -> Core_csort_sort
+func NMaybeSortScope(List<Core_canno_sort>, List<TransScript_sortScope_sort>, TransScript_paramSort_sort) -> Core_csort_sort
 
-  rule NMaybeSortScope(sortScope?⟦ ⟧, #csort)
-  → #csort
+  rule NMaybeSortScope(#canno*, sortScope?⟦ ⟧, #paramSort)
+  → NParamSort(#canno*, #paramSort)
 
-  rule NMaybeSortScope(sortScope?⟦ [ ##sort* ] -> ⟧, #csort)
-  → NSortScope(#sort*, (), #csort)
+  rule NMaybeSortScope(#canno*, sortScope?⟦ [ ##sort* ] -> ⟧, #paramSort)
+  → NSortScope(#canno*, #sort*, (), #paramSort)
 
-  rule NMaybeSortScope(sortScope?⟦ ( ) -> ⟧, #csort)
-  → csort⟦ thunk ##csort ⟧
+  rule NMaybeSortScope(#canno*, sortScope?⟦ ( ) -> ⟧, #paramSort)
+  → csort⟦ ##canno* thunk ⟨csort: NParamSort(canno*⟦⟧, #paramSort)⟩ ⟧
 
-  rule NMaybeSortScope(sortScope?⟦ ( ##sort* ) -> ⟧, #csort)
-  → NFormalParamSorts(#sort*, #csort)
+  rule NMaybeSortScope(#canno*, sortScope?⟦ ( ##sort* ) -> ⟧, #paramSort)
+  → NFormalParamSorts(#canno*, #sort*, #paramSort)
 
-  rule NMaybeSortScope(sortScope?⟦ [ ##sort*1 ] ( ##sort*2 ) -> ⟧, #csort)
-  → NSortScope(#sort*1, #sort*2, #csort)
+  rule NMaybeSortScope(#canno*, sortScope?⟦ [ ##sort*1 ] ( ##sort*2 ) -> ⟧, #paramSort)
+  → NSortScope(#canno*, #sort*1, #sort*2, #paramSort)
 
-func NSortScope(List<TransScript_sort_sort>, List<TransScript_sort_sort>, Core_csort_sort) -> Core_csort_sort
+func NSortScope(List<Core_canno_sort>, List<TransScript_sort_sort>, List<TransScript_sort_sort>, TransScript_paramSort_sort) -> Core_csort_sort
 
-  rule NSortScope(sort*⟦ ⟧, #cformalParamSorts, #csort)
-  → NFormalParamSorts(#cformalParamSorts, #csort)
+  rule NSortScope(#canno*, sort*⟦ ⟧, #cformalParamSorts, #paramSort)
+  → NFormalParamSorts(#canno*, #cformalParamSorts, #paramSort)
 
-  rule NSortScope(sort*⟦ ##sort ##sort* ⟧, #cformalParamSorts, #csort)
-  → csort⟦ [ ⟨csort: NSort(#sort)⟩ ] ⟨csort: NSortScope(#sort*, #cformalParamSorts, #csort)⟩ ⟧
+  rule NSortScope(#canno*, sort*⟦ ##sort ##sort* ⟧, #cformalParamSorts, #paramSort)
+  → csort⟦ ##canno* [ ⟨csort: NSort(#sort)⟩ ] ⟨csort: NSortScope(canno*⟦⟧, #sort*, #cformalParamSorts, #paramSort)⟩ ⟧
 
-func NFormalParamSorts(List<TransScript_sort_sort>, Core_csort_sort) -> Core_csort_sort
+func NFormalParamSorts(List<Core_canno_sort>,  List<TransScript_sort_sort>, TransScript_paramSort_sort) -> Core_csort_sort
 
-  rule NFormalParamSorts(sort*⟦ ⟧, #csort)
-  → #csort
+  rule NFormalParamSorts(#canno*, sort*⟦ ⟧, #paramSort)
+  → NParamSort(#canno*, #paramSort)
 
-  rule NFormalParamSorts(sort*⟦ ##sort ##sort* ⟧, #csort)
-  → csort⟦ ( ⟨csort: NSort(#sort)⟩ ) ⟨csort: NFormalParamSorts(#sort*, #csort)⟩ ⟧
+  rule NFormalParamSorts(#canno*, sort*⟦ ##sort ##sort* ⟧, #paramSort)
+  → csort⟦ ##canno* ( ⟨csort: NSort(#sort)⟩ ) ⟨csort: NFormalParamSorts(canno*⟦⟧, #sort*, #paramSort)⟩ ⟧
 
-func NParamSort(#constructor: TransScript_constructor_sort, #sortArgs?: List<TransScript_sortArgs_sort>) -> Core_csort_sort
-→ csort⟦ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨csorts?: NMaybeSorts(#sortArgs?) ⟩ ⟧
+/*func NParamSort(#constructor: TransScript_constructor_sort, #sortArgs?: List<TransScript_sortArgs_sort>) -> Core_csort_sort
+→ csort⟦ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨csorts?: NMaybeSorts(#sortArgs?) ⟩ ⟧*/
+
+func NParamSort(List<Core_canno_sort>, TransScript_paramSort_sort) -> Core_csort_sort
+
+  rule NParamSort(#canno*, paramSort⟦ ##constructor ##sortArgs? ⟧)
+  → csort⟦ ##canno* ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨csorts?: NMaybeSorts(#sortArgs?) ⟩ ⟧
+
+  rule NParamSort(#canno*, paramSort⟦ ##VARIABLE ⟧)
+  → csort⟦ ##canno* ##VARIABLE ⟧
+
+  // Single map
+  rule NParamSort(#canno*, paramSort⟦ { ##sort1 : ##sort2 } ⟧)
+  → csort⟦ ##canno* { ⟨csort: NSort(#sort1)⟩ : ⟨csort: NSort(#sort2)⟩ } ⟧
+
+  // Multi-maps
+  rule NParamSort(#canno*, paramSort⟦ { ##sortMap* } ⟧)
+  → csort⟦ ##canno* ⟨CONSTRUCTOR: NMultiMapWrapper(ListLength(#sortMap*))⟩ ( ⟨csort*:Flatten(Map((sortMap)->NSortMap(sortMap), #sortMap*))⟩ ) ⟧
+
 
 func NMaybeSorts(List<TransScript_sortArgs_sort>) -> List<Core_csorts_sort>
 rule NMaybeSorts(sortArgs?⟦           ⟧) → csorts?⟦⟧

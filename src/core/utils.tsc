@@ -209,20 +209,20 @@ rule TermsToMaybeSubst(#cterm* ) → csubst?⟦ [ ##cterm* ] ⟧
 
 
 func GetFormalParamSorts(Core_csort_sort) -> List<Core_csort_sort>
-rule GetFormalParamSorts(csort⟦ ( ##csort1 ) ##csort2 ⟧)  → Cons(#csort1, GetFormalParamSorts(#csort2))
+rule GetFormalParamSorts(csort⟦ ##canno* ( ##csort1 ) ##csort2 ⟧)  → Cons(#csort1, GetFormalParamSorts(#csort2))
 rule GetFormalParamSorts(#csort                       )  → ()
 
 func GetBoundVarSorts(Core_csort_sort) -> List<Core_csort_sort>
-rule GetBoundVarSorts(csort⟦ [ ##csort1 ] ##csort2 ⟧)  → Cons(#csort1, GetBoundVarSorts(#csort2))
+rule GetBoundVarSorts(csort⟦ ##canno* [ ##csort1 ] ##csort2 ⟧)  → Cons(#csort1, GetBoundVarSorts(#csort2))
 rule GetBoundVarSorts(#csort                       )  → ()
 
 /* @return `TRUE` is the given `#csort` defines at least one scoped variable */
 func HasBindersSort(Core_csort_sort) -> Bool
-rule HasBindersSort(csort⟦ [ ##csort ] ##csort2 ⟧) → TRUE
-rule HasBindersSort(csort⟦ ( ##csort ) ##csort2 ⟧) → HasBindersSort(#csort2)
-rule HasBindersSort(csort⟦ data ##csort ⟧)         → HasBindersSort(#csort)
-rule HasBindersSort(csort⟦ thunk ##csort ⟧)        → HasBindersSort(#csort)
-rule HasBindersSort(#csort)                        → FALSE
+rule HasBindersSort(csort⟦ ##canno* [ ##csort ] ##csort2 ⟧) → TRUE
+rule HasBindersSort(csort⟦ ##canno* ( ##csort ) ##csort2 ⟧) → HasBindersSort(#csort2)
+rule HasBindersSort(csort⟦ ##canno* data ##csort ⟧)         → HasBindersSort(#csort)
+rule HasBindersSort(csort⟦ ##canno* thunk ##csort ⟧)        → HasBindersSort(#csort)
+rule HasBindersSort(#csort)                                → FALSE
 
 /* @return `TRUE` is the given list of `#csorts` defines at least one scoped variable */
 func HasBindersSorts(#csorts: List<Core_csort_sort>) -> Bool
@@ -230,9 +230,9 @@ func HasBindersSorts(#csorts: List<Core_csort_sort>) -> Bool
 
 /* @return the sort without binder sorts */
 func GetFOSort(Core_csort_sort) -> Core_csort_sort
-rule GetFOSort(csort⟦ [ ##csort1 ] ##csort2 ⟧) → GetFOSort(#csort2)
-rule GetFOSort(csort⟦ ( ##csort1 ) ##csort2 ⟧) → GetFOSort(#csort2)
-rule GetFOSort(csort⟦ thunk ##csort ⟧) → GetFOSort(#csort)
+rule GetFOSort(csort⟦ ##canno* [ ##csort1 ] ##csort2 ⟧) → GetFOSort(#csort2)
+rule GetFOSort(csort⟦ ##canno* ( ##csort1 ) ##csort2 ⟧) → GetFOSort(#csort2)
+rule GetFOSort(csort⟦ ##canno* thunk ##csort ⟧)         → GetFOSort(#csort)
 rule GetFOSort(#sort) → #sort
 
 /* @return a sort corresponding to the given sort declaration */
@@ -257,7 +257,7 @@ rule VarsToMaybeSortVars(#VARIABLE+) → csortvars?⟦ ∀ ##VARIABLE+ . ⟧
 
 /* @return the variable of the given sort variable, or an error */
 func GetSortVarE(Core_csort_sort) -> String
-rule GetSortVarE(csort⟦ ##VARIABLE ⟧) → #VARIABLE
+rule GetSortVarE(csort⟦ ##canno* ##VARIABLE ⟧) → #VARIABLE
 rule GetSortVarE(#csort) → Error(ConcatString("Internal Error: not a variable sort: ", PrintSort(#csort)))
 
 /* @return the list of sort variables in the given list of `#sorts` */
@@ -266,13 +266,13 @@ func SortVarsSorts(#sorts: List<Core_csort_sort>, #svars:List<String>) -> List<S
 
 /* @return the list of sort variables in the given `#sort` */
 func SortVarsSort(Core_csort_sort, List<String>) -> List<String>
-rule SortVarsSort(csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #svars) → SortVarsSorts(MaybeSortsToSorts(#csorts?), #svars)
-rule SortVarsSort(csort⟦ ##VARIABLE              ⟧, #svars) → ConditionalInsert(Not(HasOption(PickFirst(#svars, (v)->Equal(v, #VARIABLE)))), #VARIABLE, #svars)
-rule SortVarsSort(csort⟦ [ ##csort ] ##csort2    ⟧, #svars) → SortVarsSort(#csort2, SortVarsSort(#csort, #svars))
-rule SortVarsSort(csort⟦ ( ##csort ) ##csort2    ⟧, #svars) → SortVarsSort(#csort2, SortVarsSort(#csort, #svars))
-rule SortVarsSort(csort⟦ { ##cmapsort }          ⟧, #svars) → #svars // TODO
-rule SortVarsSort(csort⟦ data ##csort            ⟧, #svars) → SortVarsSort(#csort, #svars)
-rule SortVarsSort(csort⟦ thunk ##csort           ⟧, #svars) → SortVarsSort(#csort, #svars)
+rule SortVarsSort(csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #svars) → SortVarsSorts(MaybeSortsToSorts(#csorts?), #svars)
+rule SortVarsSort(csort⟦ ##canno* ##VARIABLE              ⟧, #svars) → ConditionalInsert(Not(HasOption(PickFirst(#svars, (v)->Equal(v, #VARIABLE)))), #VARIABLE, #svars)
+rule SortVarsSort(csort⟦ ##canno* [ ##csort ] ##csort2    ⟧, #svars) → SortVarsSort(#csort2, SortVarsSort(#csort, #svars))
+rule SortVarsSort(csort⟦ ##canno* ( ##csort ) ##csort2    ⟧, #svars) → SortVarsSort(#csort2, SortVarsSort(#csort, #svars))
+rule SortVarsSort(csort⟦ ##canno* { ##cmapsort }          ⟧, #svars) → #svars // TODO
+rule SortVarsSort(csort⟦ ##canno* data ##csort            ⟧, #svars) → SortVarsSort(#csort, #svars)
+rule SortVarsSort(csort⟦ ##canno* thunk ##csort           ⟧, #svars) → SortVarsSort(#csort, #svars)
 
 /* @return `TRUE` is the given list of `cform*` contains `allows-variable` */
 func IsAllowsVarForms(#cforms:List<Core_cform_sort>) -> Bool
@@ -287,4 +287,4 @@ rule IsAllowsVar(#cform                  ) → FALSE
 
 /* Print the given `#sort` */
 func PrintSort(#sort: Core_csort_sort) -> String
-→ Trim(PrintTerm<Text4_text_sort>("text", Core_Print_csort(#sort)))
+→ Trim(PrintTerm("text", Core_Print_csort(#sort)))

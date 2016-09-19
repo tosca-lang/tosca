@@ -2,6 +2,12 @@
 
 // --- Builtin annotations
 
+/* Tell the compiler to keep a reference to the annotated term. */
+type Keep = Bool
+
+/* Tell the compiler to discard the annotated term. */
+type Discard = List<String>
+
 /* Indicate whether the value of the type with this annotation is retained at runtime, when used as an annotation */
 //type Extern = Bool
 
@@ -34,15 +40,15 @@ enum Option<a> | SOME(a) | NONE
 
 /* @return the optional value. Raises an error when there is no such value */
 func UnSOME<a>(Option<a>) -> a
-rule UnSOME(SOME(#:a)) → #
-rule UnSOME(NONE)      → Error<a>("Error: no optional value.")
+rule UnSOME(SOME(#)) → #
+rule UnSOME(NONE)    → Error("Error: no optional value.")
 
 /* `HasOption(#option)`
    Whether #option is `SOME` value.
  */
 func HasOption<a>(Option<a>) -> Bool
-rule HasOption(NONE)      → FALSE
-rule HasOption(SOME(#:a)) → TRUE
+rule HasOption(NONE)    → FALSE
+rule HasOption(SOME(#)) → TRUE
 
 func Maybe<a b>((a)->b, Option<a>) -> Option<b>
 rule Maybe((x)->#(x), NONE)       → NONE
@@ -54,8 +60,8 @@ rule MaybeO((x)->#(x), SOME(#val)) → #(#val)
 
 /* Apply `#true` if option is present, otherwise `#false` */
 func IfPresent<a b>(Option<a>, (a)->b, ()->b) -> b
-rule IfPresent(SOME(#:a), #true, #false) → #true(#)
-rule IfPresent(NONE     , #true, #false) → #false()
+rule IfPresent(SOME(#), #true, #false) → #true(#)
+rule IfPresent(NONE   , #true, #false) → #false()
 
 // --- Bool
 
@@ -77,8 +83,9 @@ func Not(Bool) -> Bool
 rule Not(TRUE)  → FALSE
 rule Not(FALSE) → TRUE
 
+
 /* String comparison of the two given values */
-@Extern func Equal<a b>(a, b) -> Bool
+@Extern func Equal<a>(a, a) -> Bool
 
 func NotEqual<a>(#1: a, #2: a) -> Bool
 → Not(Equal(#1, #2))

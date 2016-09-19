@@ -65,13 +65,13 @@ rule SubstMapEntry(cmapentry⟦ : ##METAVAR ⟧, #subst) → cmapentry⟦ : ⟨M
 
 /* Sort variable substitution */
 func SubstSort(Core_csort_sort, List<PPair<String Core_csort_sort>>) -> Core_csort_sort
-rule SubstSort(csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #subst) → csort⟦ ##CONSTRUCTOR ⟨csorts?: SubstSortMaybeSorts(#csorts?, #subst)⟩ ⟧
-rule SubstSort(csort⟦ ##VARIABLE              ⟧, #subst) → IfPresent<Core_csort_sort Core_csort_sort>(HeadO<Core_csort_sort>(LookUp<String Core_csort_sort>(#VARIABLE, #subst)), (sort)->sort, ()->csort⟦ ##VARIABLE ⟧)
-rule SubstSort(csort⟦ [ ##csort1 ] ##csort2   ⟧, #subst) → csort⟦ [ ⟨csort: SubstSort(#csort1, #subst)⟩ ] ⟨csort: SubstSort(#csort2, #subst)⟩ ⟧
-rule SubstSort(csort⟦ ( ##csort1 ) ##csort2   ⟧, #subst) → csort⟦ ( ⟨csort: SubstSort(#csort1, #subst)⟩ ) ⟨csort: SubstSort(#csort2, #subst)⟩ ⟧
-rule SubstSort(csort⟦ { ##cmapsort* }         ⟧, #subst) → csort⟦ { ⟨cmapsort*: SubstMapSorts(#cmapsort*, #subst)⟩ } ⟧
-rule SubstSort(csort⟦ thunk ##csort           ⟧, #subst) → csort⟦ thunk ⟨csort: SubstSort(#csort, #subst)⟩ ⟧
-rule SubstSort(csort⟦ data ##csort            ⟧, #subst) → csort⟦ data ⟨csort: SubstSort(#csort, #subst)⟩ ⟧
+rule SubstSort(csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #subst) → csort⟦ ##canno* ##CONSTRUCTOR ⟨csorts?: SubstSortMaybeSorts(#csorts?, #subst)⟩ ⟧
+rule SubstSort(csort⟦ ##canno* ##VARIABLE              ⟧, #subst) → IfPresent(HeadO(LookUp(#VARIABLE, #subst)), (sort)->sort, ()->csort⟦ ##canno* ##VARIABLE ⟧)
+rule SubstSort(csort⟦ ##canno* [ ##csort1 ] ##csort2   ⟧, #subst) → csort⟦ ##canno* [ ⟨csort: SubstSort(#csort1, #subst)⟩ ] ⟨csort: SubstSort(#csort2, #subst)⟩ ⟧
+rule SubstSort(csort⟦ ##canno* ( ##csort1 ) ##csort2   ⟧, #subst) → csort⟦ ##canno* ( ⟨csort: SubstSort(#csort1, #subst)⟩ ) ⟨csort: SubstSort(#csort2, #subst)⟩ ⟧
+rule SubstSort(csort⟦ ##canno* { ##cmapsort* }         ⟧, #subst) → csort⟦ ##canno* { ⟨cmapsort*: SubstMapSorts(#cmapsort*, #subst)⟩ } ⟧
+rule SubstSort(csort⟦ ##canno* thunk ##csort           ⟧, #subst) → csort⟦ ##canno* thunk ⟨csort: SubstSort(#csort, #subst)⟩ ⟧
+rule SubstSort(csort⟦ ##canno* data ##csort            ⟧, #subst) → csort⟦ ##canno* data ⟨csort: SubstSort(#csort, #subst)⟩ ⟧
 
 func SubstSortMaybeSorts(List<Core_csorts_sort>, List<PPair<String Core_csort_sort>>) -> List<Core_csorts_sort>
 rule SubstSortMaybeSorts(csorts?⟦             ⟧, #subst) → csorts?⟦⟧

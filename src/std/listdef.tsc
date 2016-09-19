@@ -105,8 +105,8 @@ rule Concat(Cons(#1:a, #s:List<a>), #tail) → Cons(#1, Concat<a>(#s, #tail))
 /* Flatten list of lists
 */
 func Flatten<a>(List<List<a>>) -> List<a>
-rule Flatten((                                )) → ()
-rule Flatten(Cons(#1:List<a>, #s:List<List<a>>)) → Concat<a>(#1, Flatten<a>(#s))
+rule Flatten((         )) → ()
+rule Flatten((#1, #s...)) → Concat(#1, Flatten(#s))
 
 /* `Elem(#X,#XS)`
    @param  `#X`  element
@@ -116,7 +116,7 @@ rule Flatten(Cons(#1:List<a>, #s:List<List<a>>)) → Concat<a>(#1, Flatten<a>(#s
    @note   read "#X is element of #XS to remember the order of the parameters"
 */
 func Elem<a>(a , List<a>) -> Bool
-rule Elem(#X, #XS) → Foldr<a Bool>((x y) -> Or(Equal<a a>(#X, x), y), FALSE, #XS)
+rule Elem(#X, #XS) → Foldr((x y) -> Or(Equal(#X, x), y), FALSE, #XS)
 
 /* `Insert(#X, #XS)`
    @param  `#X`  element
@@ -204,7 +204,7 @@ rule ContainsDuplicates((#H, #T...)) → Or(Elem(#H, #T), ContainsDuplicates(#T)
 */
 func RemoveDuplicates<a>(List<a>) -> List<a>
 rule RemoveDuplicates(())           → ()
-rule RemoveDuplicates(Cons(#X:a, #XS:List<a>)) → Cons(#X, RemoveDuplicates<a>(Filter<a>((x) -> Not(Equal<a a>(x,#X)), #XS)))
+rule RemoveDuplicates((#X, #XS...)) → (#X, RemoveDuplicates(Filter((x) -> Not(Equal(x,#X)), #XS))...)
 
 /* `Length(#XS)`
    @param  `#XS` list
@@ -277,7 +277,7 @@ rule UnZipS(Cons(PPair<a b>::PairCons(#F: a, #S: b), #XS:List<PPair<a b>>)) → 
     @return a list of values associated to the `#Key` in `#KeyValueList` and returns the empty list, if `#Key` was not found
 */
 func LookUp<a b>(a, eager List<PPair<a b>>) -> List<b>
-rule LookUp(#Key, #KeyValueList) → Map<Pair b>((x) -> Snd<a b>(x), Filter<Pair>((pair) -> Equal<a a>(#Key, Fst<a b>(pair)), #KeyValueList))
+rule LookUp(#Key, #KeyValueList) → Map<Pair b>((x) -> Snd<a b>(x), Filter<Pair>((pair) -> Equal(#Key, Fst<a b>(pair)), #KeyValueList))
 
 /* `LookUpVar( #Key, #KeyValueList)`
     @param `#Key`          a variable
@@ -294,7 +294,7 @@ rule LookUpVar(#Key, #KeyValueList) → Map((x) -> Snd(x), Filter((pair) -> Same
    @return a list of `#KeyValueList`, where all entries with `#Key` are deleted
  */
 func DelEntry<a b>(a, List<PPair<a b>>) -> List<PPair<a b>>
-rule DelEntry(#Key, #KeyValueList) → Filter<Pair>((pair) -> Not(Equal<a a>(Fst<a b>(pair), #Key)), #KeyValueList)
+rule DelEntry(#Key, #KeyValueList) → Filter<Pair>((pair) -> Not(Equal(Fst(pair), #Key)), #KeyValueList)
 
 /* `Partition((x) ->#C(x), #XS)`
     @param `(x) ->#C(x)` a condition to partition

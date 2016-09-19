@@ -85,39 +85,39 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
   → PairCons(UnifySort(#env, #esort, csort⟦ Numeric ⟧), cterm⟦ ##NUMBER ⟧)
 
   // Desugar matching higher-order function without specifying formal parameters
-  rule InferTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, csort⟦ ( ##csort1 ) ##csort ⟧)
+  rule InferTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, csort⟦ ##canno* ( ##csort1 ) ##csort ⟧)
   → InferFormalUp([f] -> InferTerm(IAddFormalSort(#env, f, #csort1), cterm⟦ ##METAVAR ⟨cterms?: AppendTerm(cterm⟦ f ⟧, #cterms?)⟩ ##csubst? ##csortanno? ⟧, #csort), #csort1)
 
-  rule InferTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #esort)
+  rule InferTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #esort)
   → InferMeta(#env, GetInPattern(#env), #METAVAR, #cterms?, #csubst?, #csortanno?, #esort)
 
-  rule InferTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #esort)
+  rule InferTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧, #esort)
   → InferVar(#env, GetInPattern(#env), #VARIABLE, IGetVarSort(#env, #VARIABLE), MaybeSortAnnoToSort(#csortanno?), #esort)
 
-  rule InferTerm(#env, cterm⟦ [ v ##csortanno? ] ##cterm[v] ⟧, csort⟦ [ ##csort1 ] ##csort ⟧)
+  rule InferTerm(#env, cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ⟧, csort⟦ ##canno* [ ##csort1 ] ##csort ⟧)
   → InferBinderUp([v] -> InferTerm(IAddBoundVarSort(#env, v, #csort1), #cterm[v], #csort), #csort1)
 
-  rule InferTerm(#env, cterm⟦ [ v ##csortanno? ] ##cterm[v] ⟧, #esort)
+  rule InferTerm(#env, cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ⟧, #esort)
   → Error("Type error") // TODO:
 
-  rule InferTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧, csort⟦ ( ##csort1 ) ##csort ⟧)
+  rule InferTerm(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧, csort⟦ ##canno* ( ##csort1 ) ##csort ⟧)
   → InferFormalUp([f] -> InferTerm(IAddFormalSort(#env, f, #csort1), #cterm[f], #csort), #csort1)
 
-  rule InferTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧, #esort)
+  rule InferTerm(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧, #esort)
   → Error("Type error") // TODO:
 
-  rule InferTerm(#env, cterm⟦ { ##cmapentries? } ⟧, csort⟦ { ##cmapsort } ⟧)
+  rule InferTerm(#env, cterm⟦ ##canno* { ##cmapentries? } ⟧, csort⟦ ##canno* { ##cmapsort } ⟧)
   → InferMapUp(InferMap(#env, #cmapentries?, #cmapsort), #cmapsort)
 
   // Could be an alias...
-  rule InferTerm(#env, cterm⟦ { ##cmapentries? } ⟧, csort⟦ ##CONSTRUCTOR ##csorts? ⟧)
-  → InferMapAlias(#env, FindAliasS(GetSystem(#env), #CONSTRUCTOR), cterm⟦ { ##cmapentries? } ⟧, csort⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  rule InferTerm(#env, cterm⟦ ##canno* { ##cmapentries? } ⟧, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧)
+  → InferMapAlias(#env, FindAliasS(GetSystem(#env), #CONSTRUCTOR), cterm⟦ { ##cmapentries? } ⟧, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧)
 
-  rule InferTerm(#env, cterm⟦ thunk ##cterm              ⟧, csort⟦ thunk ##csort ⟧)
+  rule InferTerm(#env, cterm⟦ ##canno* thunk ##cterm              ⟧, csort⟦ ##canno* thunk ##csort ⟧)
   → UnPair(InferTerm(#env, #cterm, #csort), (env term)->PairCons(env, cterm⟦ thunk ⟨cterm: term⟩ ⟧))
 
   // TODO: check name is unique
-  rule InferTerm(#env, cterm⟦ ##METAVAR ##csortanno? = ##cterm ⟧, #esort)
+  rule InferTerm(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧, #esort)
   → InferNamedUp(#METAVAR, #esort, InferTerm(AddIMetaVar(#env, #METAVAR, #esort), #cterm, #esort))
 
 /* Traverse terms */
@@ -460,34 +460,39 @@ rule IAddDummySortsAux(#env, (                      ))  → #env
 */
 func UnifySort({String:IEnvEntry}, Core_csort_sort, Core_csort_sort) -> {String:IEnvEntry}
 
-  rule UnifySort(#env, csort⟦ thunk ##csort1 ⟧, csort⟦ thunk ##csort2 ⟧) → UnifySort(#env, #csort1, #csort2)
-  rule UnifySort(#env, csort⟦ data ##csort1  ⟧, #csort2                ) → UnifySort(#env, #csort1, #csort2)
-  rule UnifySort(#env, #csort1                , csort⟦ data ##csort2  ⟧) → UnifySort(#env, #csort1, #csort2)
+  rule UnifySort(#env, csort⟦ ##canno* thunk ##csort1 ⟧, csort⟦ ##canno* thunk ##csort2 ⟧)
+  → UnifySort(#env, #csort1, #csort2)
 
-  rule UnifySort(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, csort⟦ ##CONSTRUCTOR2 ##csorts?2 ⟧)
+  rule UnifySort(#env, csort⟦ ##canno* data ##csort1  ⟧, #csort2)
+  → UnifySort(#env, #csort1, #csort2)
+
+  rule UnifySort(#env, #csort1, csort⟦ ##canno* data ##csort2  ⟧)
+  → UnifySort(#env, #csort1, #csort2)
+
+  rule UnifySort(#env, csort⟦ ##canno*1 ##CONSTRUCTOR ##csorts? ⟧, csort⟦ ##canno*2 ##CONSTRUCTOR2 ##csorts?2 ⟧)
   → UnifyMaybeSorts(#env, #csorts?, #csorts?2)
 
-  rule UnifySort(#env, csort⟦ ##VARIABLE ⟧, #csort)
+  rule UnifySort(#env, csort⟦ ##canno* ##VARIABLE ⟧, #csort)
   → UnifySortVar(#env, #VARIABLE, GetSort(#env, #VARIABLE), #csort)
 
-  rule UnifySort(#env, #csort, csort⟦ ##VARIABLE ⟧)
+  rule UnifySort(#env, #csort, csort⟦ ##canno* ##VARIABLE ⟧)
   → UnifySortVar(#env, #VARIABLE, GetSort(#env, #VARIABLE), #csort)
 
-  rule UnifySort(#env, csort⟦ [ ##csort11 ] ##csort12 ⟧, csort⟦ [ ##csort21 ] ##csort22 ⟧)
+  rule UnifySort(#env, csort⟦ ##canno*1 [ ##csort11 ] ##csort12 ⟧, csort⟦ ##canno*2 [ ##csort21 ] ##csort22 ⟧)
   → UnifySort(UnifySort(#env, #csort11, #csort21), #csort12, #csort22)
 
-  rule UnifySort(#env, csort⟦ ( ##csort11 ) ##csort12 ⟧, csort⟦ ( ##csort21 ) ##csort22 ⟧)
+  rule UnifySort(#env, csort⟦ ##canno*1 ( ##csort11 ) ##csort12 ⟧, csort⟦ ##canno*2 ( ##csort21 ) ##csort22 ⟧)
   → UnifySort(UnifySort(#env, #csort11, #csort21), #csort12, #csort22)
 
-  rule UnifySort(#env, csort⟦ { ##csort11 : ##csort12 } ⟧, csort⟦ { ##csort21 : ##csort22 } ⟧)
+  rule UnifySort(#env, csort⟦ ##canno*1 { ##csort11 : ##csort12 } ⟧, csort⟦ ##canno*2 { ##csort21 : ##csort22 } ⟧)
   → UnifySort(UnifySort(#env, #csort11, #csort21), #csort12, #csort22)
 
   // Handle aliases
-  rule UnifySort(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #csort)
-  → UnifyMaybeAlias(#env, FindAliasS(GetSystem(#env), #CONSTRUCTOR), csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #csort)
+  rule UnifySort(#env, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #csort)
+  → UnifyMaybeAlias(#env, FindAliasS(GetSystem(#env), #CONSTRUCTOR), csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #csort)
 
-  rule UnifySort(#env, #csort, csort⟦ ##CONSTRUCTOR ##csorts? ⟧)
-  → UnifyMaybeAlias(#env, FindAliasS(GetSystem(#env), #CONSTRUCTOR), csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #csort)
+  rule UnifySort(#env, #csort, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧)
+  → UnifyMaybeAlias(#env, FindAliasS(GetSystem(#env), #CONSTRUCTOR), csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #csort)
 
   rule UnifySort(#env, #csort1, #csort2)
   → Error(ConcatString("Error: type ", ConcatString(PrintSort(#csort2), ConcatString(" is not an instance of type ", PrintSort(#csort1)))))
@@ -511,7 +516,7 @@ rule UnifySorts(#env, #csort*1, #csort*2) → Error("Error: mismatched type arit
 func UnifySortVar({String:IEnvEntry}, String, Option<Core_csort_sort>, Core_csort_sort) -> {String:IEnvEntry}
 
   // Case 1: unify two sort variables
-  rule UnifySortVar(#env, #VARIABLE1, #sort1, csort⟦ ##VARIABLE2 ⟧)
+  rule UnifySortVar(#env, #VARIABLE1, #sort1, csort⟦ ##canno* ##VARIABLE2 ⟧)
   → UnifySortVar1(#env, #VARIABLE1, #sort1, #VARIABLE2, GetSort(#env, #VARIABLE2))
 
   // Case 2: unify with another non-variable sort, no existing entry
@@ -536,13 +541,13 @@ func UnifySortVar2({String:IEnvEntry}, String, Option<Core_csort_sort>, String, 
   rule UnifySortVar2(#env, #VARIABLE1, NONE, #VARIABLE2, NONE)
   → PutSort(#env, #VARIABLE1, csort⟦ ##VARIABLE2 ⟧)
 
-  rule UnifySortVar2(#env, #VARIABLE1, SOME(#sort1: Core_csort_sort), #VARIABLE2, NONE)
+  rule UnifySortVar2(#env, #VARIABLE1, SOME(#sort1), #VARIABLE2, NONE)
   → If(IsDummy(#sort1), ()->PutSort(#env, #VARIABLE2, csort⟦ ##VARIABLE1 ⟧), ()->UnifySort(#env, #sort1, csort⟦ ##VARIABLE2 ⟧))
 
-  rule UnifySortVar2(#env, #VARIABLE1, NONE, #VARIABLE2, SOME(#sort2: Core_csort_sort))
+  rule UnifySortVar2(#env, #VARIABLE1, NONE, #VARIABLE2, SOME(#sort2))
   → If(IsDummy(#sort2), ()->PutSort(#env, #VARIABLE1, csort⟦ ##VARIABLE2 ⟧), ()->UnifySort(#env, csort⟦ ##VARIABLE1 ⟧, #sort2))
 
-  rule UnifySortVar2(#env, #VARIABLE1, SOME(#sort1: Core_csort_sort), #VARIABLE2, SOME(#sort2: Core_csort_sort))
+  rule UnifySortVar2(#env, #VARIABLE1, SOME(#sort1), #VARIABLE2, SOME(#sort2))
   →  If(IsDummy(#sort1),
        ()->UnifySort(#env, csort⟦ ##VARIABLE1 ⟧, #sort2),
        ()->If(IsDummy(#sort2),
@@ -573,7 +578,7 @@ func OptimizeSorts(#env: {String : IEnvEntry}) -> {String : IEnvEntry}
 func OptimizeSort({String : Core_csort_sort}, List<String>, Option<Core_csort_sort>, Option<Core_csort_sort> /* previous sort */) -> {String : Core_csort_sort}
 
    // Map to a variable -> continue optimizing
-   rule OptimizeSort(#sorts, #keys, SOME(csort⟦ ##VARIABLE ⟧), #previous)
+   rule OptimizeSort(#sorts, #keys, SOME(csort⟦ ##canno* ##VARIABLE ⟧), #previous)
    → OptimizeSortAux(IsDummy(csort⟦ ##VARIABLE ⟧), #sorts, #keys, #VARIABLE, #previous)
 
    // Not a variable -> substitute
@@ -658,13 +663,13 @@ rule ISubstSorts(#env, csort*⟦ ##csort ##csort* ⟧) → csort*⟦ ⟨csort: I
 rule ISubstSorts(#env, csort*⟦                  ⟧) → csort*⟦⟧
 
 func ISubstSort({String:IEnvEntry}, Core_csort_sort) -> Core_csort_sort
-rule ISubstSort(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → csort⟦ ##CONSTRUCTOR ⟨csorts?: ISubstMaybeSorts(#env, #csorts?)⟩ ⟧
-rule ISubstSort(#env, csort⟦ ##VARIABLE              ⟧) → ISubstVar(#env, #VARIABLE, GetSort(#env, #VARIABLE))
-rule ISubstSort(#env, csort⟦ [ ##csort1 ] ##csort2   ⟧) → csort⟦ [ ⟨csort: ISubstSort(#env, #csort1)⟩ ] ⟨csort: ISubstSort(#env, #csort2)⟩ ⟧
-rule ISubstSort(#env, csort⟦ ( ##csort1 ) ##csort2   ⟧) → csort⟦ ( ⟨csort: ISubstSort(#env, #csort1)⟩ ) ⟨csort: ISubstSort(#env, #csort2)⟩ ⟧
-rule ISubstSort(#env, csort⟦ { ##cmapsort* }         ⟧) → csort⟦ { ⟨cmapsort*: ISubstMapSorts(#env, #cmapsort*)⟩ } ⟧
-rule ISubstSort(#env, csort⟦ thunk ##csort           ⟧) → csort⟦ thunk ⟨csort: ISubstSort(#env, #csort)⟩ ⟧
-rule ISubstSort(#env, csort⟦ data ##csort            ⟧) → csort⟦ data ⟨csort: ISubstSort(#env, #csort)⟩ ⟧
+rule ISubstSort(#env, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧) → csort⟦ ##canno* ##CONSTRUCTOR ⟨csorts?: ISubstMaybeSorts(#env, #csorts?)⟩ ⟧
+rule ISubstSort(#env, csort⟦ ##canno* ##VARIABLE              ⟧) → ISubstVar(#env, #VARIABLE, GetSort(#env, #VARIABLE))
+rule ISubstSort(#env, csort⟦ ##canno* [ ##csort1 ] ##csort2   ⟧) → csort⟦ ##canno* [ ⟨csort: ISubstSort(#env, #csort1)⟩ ] ⟨csort: ISubstSort(#env, #csort2)⟩ ⟧
+rule ISubstSort(#env, csort⟦ ##canno* ( ##csort1 ) ##csort2   ⟧) → csort⟦ ##canno* ( ⟨csort: ISubstSort(#env, #csort1)⟩ ) ⟨csort: ISubstSort(#env, #csort2)⟩ ⟧
+rule ISubstSort(#env, csort⟦ ##canno* { ##cmapsort* }         ⟧) → csort⟦ ##canno* { ⟨cmapsort*: ISubstMapSorts(#env, #cmapsort*)⟩ } ⟧
+rule ISubstSort(#env, csort⟦ ##canno* thunk ##csort           ⟧) → csort⟦ ##canno* thunk ⟨csort: ISubstSort(#env, #csort)⟩ ⟧
+rule ISubstSort(#env, csort⟦ ##canno* data ##csort            ⟧) → csort⟦ ##canno* data ⟨csort: ISubstSort(#env, #csort)⟩ ⟧
 
 func ISubstMaybeSorts({String:IEnvEntry}, List<Core_csorts_sort>) -> List<Core_csorts_sort>
 rule ISubstMaybeSorts(#env, csorts?⟦ ( ##csort* ) ⟧) → csorts?⟦ ( ⟨csort*: ISubstSorts(#env, #csort*)⟩ ) ⟧
@@ -683,8 +688,8 @@ rule ISubstMapSorts(#env, cmapsort*⟦ ##csort1 : ##csort2 ##cmapsort* ⟧) → 
 
 /* @return `TRUE` is the given `#sort` is the dummy sort */
 func IsDummy(Core_csort_sort) -> Bool
-rule IsDummy(csort⟦ ##VARIABLE ⟧) → StringEqual(#VARIABLE, "dummy")
-rule IsDummy(#csort            ) → FALSE
+rule IsDummy(csort⟦ ##canno* ##VARIABLE ⟧) → StringEqual(#VARIABLE, "dummy")
+rule IsDummy(#csort                     ) → FALSE
 
 /* Create a new sort variable. */
 func INewSortVar(#env: {String:IEnvEntry}) -> String
@@ -692,13 +697,13 @@ func INewSortVar(#env: {String:IEnvEntry}) -> String
 
 /* Create a new generic sort from sort prototype. */
 func INewSort<a>({String:IEnvEntry}, Core_csort_sort, ({String:IEnvEntry} Core_csort_sort)->a) -> a
-rule INewSort(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #cont) → INewSortMaybeSorts(#env, #csorts?, (env csorts)->#cont(env, csort⟦ ##CONSTRUCTOR ⟨csorts?: csorts⟩ ⟧))
-rule INewSort(#env, csort⟦ ##VARIABLE              ⟧, #cont) → #cont(IIncCounter(#env), csort⟦ ⟨VARIABLE: INewSortVar(#env)⟩ ⟧)
-rule INewSort(#env, csort⟦ [ ##csort1 ] ##csort2   ⟧, #cont) → INewSort(#env, #csort1, (env sort1)->INewSort<a>(env, #csort2, (env sort2)->#cont(env,  csort⟦ [ ⟨csort: sort1⟩ ] ⟨csort: sort2⟩ ⟧)))
-rule INewSort(#env, csort⟦ ( ##csort1 ) ##csort2   ⟧, #cont) → INewSort(#env, #csort1, (env sort1)->INewSort<a>(env, #csort2, (env sort2)->#cont(env,  csort⟦ ( ⟨csort: sort1⟩ ) ⟨csort: sort2⟩ ⟧)))
-rule INewSort(#env, csort⟦ { ##cmapsort* }         ⟧, #cont) → INewSortMapSorts(#env, #cmapsort*, (env mapsorts)->#cont(env, csort⟦ { ⟨cmapsort*: mapsorts⟩ } ⟧))
-rule INewSort(#env, csort⟦ thunk ##csort           ⟧, #cont) → INewSort(#env, #csort, (env sort)->#cont(env, csort⟦ thunk ⟨csort: sort⟩ ⟧))
-rule INewSort(#env, csort⟦ data ##csort            ⟧, #cont) → INewSort(#env, #csort, (env sort)->#cont(env, csort⟦ data ⟨csort: sort⟩ ⟧))
+rule INewSort(#env, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #cont) → INewSortMaybeSorts(#env, #csorts?, (env csorts)->#cont(env, csort⟦ ##canno* ##CONSTRUCTOR ⟨csorts?: csorts⟩ ⟧))
+rule INewSort(#env, csort⟦ ##canno* ##VARIABLE              ⟧, #cont) → #cont(IIncCounter(#env), csort⟦ ##canno* ⟨VARIABLE: INewSortVar(#env)⟩ ⟧)
+rule INewSort(#env, csort⟦ ##canno* [ ##csort1 ] ##csort2   ⟧, #cont) → INewSort(#env, #csort1, (env sort1)->INewSort(env, #csort2, (env sort2)->#cont(env,  csort⟦ ##canno* [ ⟨csort: sort1⟩ ] ⟨csort: sort2⟩ ⟧)))
+rule INewSort(#env, csort⟦ ##canno* ( ##csort1 ) ##csort2   ⟧, #cont) → INewSort(#env, #csort1, (env sort1)->INewSort(env, #csort2, (env sort2)->#cont(env,  csort⟦ ##canno* ( ⟨csort: sort1⟩ ) ⟨csort: sort2⟩ ⟧)))
+rule INewSort(#env, csort⟦ ##canno* { ##cmapsort* }         ⟧, #cont) → INewSortMapSorts(#env, #cmapsort*, (env mapsorts)->#cont(env, csort⟦ ##canno*  { ⟨cmapsort*: mapsorts⟩ } ⟧))
+rule INewSort(#env, csort⟦ ##canno* thunk ##csort           ⟧, #cont) → INewSort(#env, #csort, (env sort)->#cont(env, csort⟦ ##canno* thunk ⟨csort: sort⟩ ⟧))
+rule INewSort(#env, csort⟦ ##canno* data ##csort            ⟧, #cont) → INewSort(#env, #csort, (env sort)->#cont(env, csort⟦ ##canno* data ⟨csort: sort⟩ ⟧))
 
 func INewSortMaybeSorts<a>({String:IEnvEntry}, List<Core_csorts_sort>, ({String:IEnvEntry} List<Core_csorts_sort>)->a) -> a
 rule INewSortMaybeSorts(#env, csorts?⟦             ⟧, #cont) → #cont(#env, csorts?⟦⟧)

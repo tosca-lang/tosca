@@ -87,13 +87,13 @@ rule NoAliasMapEntry(#system, #cmapentry                       ) → #cmapentry
 // --- Sorts
 
 func NoAliasSort(TSystem, Core_csort_sort) -> Core_csort_sort
-rule NoAliasSort(#system, csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → NoAliasSortConstructor(FindAliasS(#system, #CONSTRUCTOR), #system, #CONSTRUCTOR, #csorts?)
-rule NoAliasSort(#system, csort⟦ ##VARIABLE              ⟧) → csort⟦ ##VARIABLE ⟧
-rule NoAliasSort(#system, csort⟦ [ ##csort1 ] ##csort2   ⟧) → csort⟦ [ ⟨csort: NoAliasSort(#system, #csort1)⟩ ] ⟨csort: NoAliasSort(#system, #csort2)⟩ ⟧
-rule NoAliasSort(#system, csort⟦ ( ##csort1 ) ##csort2   ⟧) → csort⟦ ( ⟨csort: NoAliasSort(#system, #csort1)⟩ ) ⟨csort: NoAliasSort(#system, #csort2)⟩ ⟧
-rule NoAliasSort(#system, csort⟦ { ##cmapsort* }         ⟧) → csort⟦ { ⟨cmapsort*: NoAliasMapSorts(#system, #cmapsort*)⟩ } ⟧
-rule NoAliasSort(#system, csort⟦ thunk ##csort           ⟧) → csort⟦ thunk ⟨csort: NoAliasSort(#system, #csort)⟩ ⟧
-rule NoAliasSort(#system, csort⟦ data ##csort            ⟧) → csort⟦ data ⟨csort: NoAliasSort(#system, #csort)⟩ ⟧
+rule NoAliasSort(#system, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧) → NoAliasSortConstructor(FindAliasS(#system, #CONSTRUCTOR), #system, #CONSTRUCTOR, #csorts?)
+rule NoAliasSort(#system, csort⟦ ##canno* ##VARIABLE              ⟧) → csort⟦ ##canno* ##VARIABLE ⟧
+rule NoAliasSort(#system, csort⟦ ##canno* [ ##csort1 ] ##csort2   ⟧) → csort⟦ ##canno* [ ⟨csort: NoAliasSort(#system, #csort1)⟩ ] ⟨csort: NoAliasSort(#system, #csort2)⟩ ⟧
+rule NoAliasSort(#system, csort⟦ ##canno* ( ##csort1 ) ##csort2   ⟧) → csort⟦ ##canno* ( ⟨csort: NoAliasSort(#system, #csort1)⟩ ) ⟨csort: NoAliasSort(#system, #csort2)⟩ ⟧
+rule NoAliasSort(#system, csort⟦ ##canno* { ##cmapsort* }         ⟧) → csort⟦ ##canno* { ⟨cmapsort*: NoAliasMapSorts(#system, #cmapsort*)⟩ } ⟧
+rule NoAliasSort(#system, csort⟦ ##canno* thunk ##csort           ⟧) → csort⟦ ##canno* thunk ⟨csort: NoAliasSort(#system, #csort)⟩ ⟧
+rule NoAliasSort(#system, csort⟦ ##canno* data ##csort            ⟧) → csort⟦ ##canno* data ⟨csort: NoAliasSort(#system, #csort)⟩ ⟧
 
 func NoAliasSortConstructor(Option<Core_cdecl_sort>, TSystem, String, List<Core_csorts_sort>) -> Core_csort_sort
 

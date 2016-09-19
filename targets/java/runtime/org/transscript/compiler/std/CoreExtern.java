@@ -43,7 +43,7 @@ public class CoreExtern
 	 * @param term2
 	 * @return
 	 */
-	public static <a extends Term, b extends Term> Bool Equal(Context ctx, ThunkMaker<a> tma, ThunkMaker<b> tmb, a term1, b term2)
+	public static <a extends Term> Bool Equal(Context ctx, ThunkMaker<a> tma, a term1, a term2)
 	{
 		final boolean result = term1.equals(term2);
 		term1.release();

@@ -850,9 +850,9 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
   rule JavaPatternTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #term, #csort, #storage, #cont)
   → text⟦
       †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨ResolveTypeParamCons(#csort)⟩ ⟨STRING: value:String⟩ = †⟨#term⟩.†⟨MethodNameAs(#CONSTRUCTOR)⟩(context);
-      if (⟨STRING: value⟩ == null) {
+      if (⟨STRING: value⟩ == null)
         break †⟨JGetLabel(#env)⟩;
-      }†⟨
+      †⟨
       JavaPatternMaybeSubs(#env, #cterms?, text⟦⟨STRING: value⟩⟧, MaybeFindFormI(JGetDataSorts(#env), #csort, #CONSTRUCTOR), #cont)⟩⟧
 
   // TODO: check literal
@@ -1136,12 +1136,10 @@ func JSubSortFromVar(Option<JVarEntry>, String) -> Option<Core_csort_sort>
 
 // ----- Contraction
 
-func JavaContractum({String : JEnvEntry}, Core_cterm_sort) -> Text4_text_sort
-rule JavaContractum(#env, #term)
+func JavaContractum(#env: {String : JEnvEntry}, #term: Core_cterm_sort) -> Text4_text_sort
 → JavaStatementTerm(#env, #term)
 
-func JavaStatementTerm({String : JEnvEntry}, Core_cterm_sort) -> Text4_text_sort
-rule JavaStatementTerm(#env, #cterm)
+func JavaStatementTerm(#env: {String : JEnvEntry}, #cterm:Core_cterm_sort) -> Text4_text_sort
 → text⟦†⟨JavaJFreshesTerm(JSetCounter(JSetFreshCounter(#env, 0), 0), #cterm, (env) ->
      text⟦return †⟨JavaExprTerm(JSetCounter(JSetParamCounter(env, 0), 0), #cterm, (env) -> text⟦⟧)⟩;⟧)⟩⟧
 
@@ -1154,7 +1152,6 @@ func JavaJFreshesTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntr
 
   rule JavaJFreshesTerm(#env, cterm⟦ ##cliteral ⟧, #cont)
   → #cont(#env)
-
 
   rule JavaJFreshesTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #cont)
   → JavaJFreshesVariable(#env, JGetVarO(#env, #VARIABLE), #VARIABLE, #csortanno?, TRUE, #cont)

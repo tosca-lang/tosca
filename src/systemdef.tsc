@@ -352,9 +352,9 @@ rule PutAliasI(#aliases, cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##cs
 
 /* @return data sort declaration from sort reference, or `NONE` */
 func LookupDataSortDecl({String:Core_cdecl_sort}, Core_csort_sort) -> Option<Core_cdecl_sort>
-rule LookupDataSortDecl(#data, csort⟦ ##CONSTRUCTOR ##csorts? ⟧) → MapGet(#data, #CONSTRUCTOR)
-rule LookupDataSortDecl(#data, csort⟦ data ##csort            ⟧) → LookupDataSortDecl(#data, #csort)
-rule LookupDataSortDecl(#data, #csort                         ) → NONE
+rule LookupDataSortDecl(#data, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧) → MapGet(#data, #CONSTRUCTOR)
+rule LookupDataSortDecl(#data, csort⟦ ##canno* data ##csort            ⟧) → LookupDataSortDecl(#data, #csort)
+rule LookupDataSortDecl(#data, #csort                                  ) → NONE
 
 func MaybeFindFormI(#datasorts: {String: Core_cdecl_sort}, #datasort: Option<Core_csort_sort>, #formname: String) -> Option<PPair<Core_cdecl_sort Core_cform_sort>>
 → MaybeO((csort)->FindFormI(#datasorts, csort, #formname), #datasort)
@@ -362,7 +362,7 @@ func MaybeFindFormI(#datasorts: {String: Core_cdecl_sort}, #datasort: Option<Cor
 /* Search for `#formname` in the indexed list of `#datasorts`. Limit the search to the given `#datasort` when known */
 func FindFormI(#datasorts: {String: Core_cdecl_sort}, #datasort: Core_csort_sort, #formname: String) -> Option<PPair<Core_cdecl_sort Core_cform_sort>>
 
-  rule FindFormI(#datasorts, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #formname)
+  rule FindFormI(#datasorts, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #formname)
   → MaybeO((cdecl)->FindFormD(cdecl, #formname), MapGet(#datasorts, #CONSTRUCTOR))
 
   // Fallback to search accross all data sort declaration
