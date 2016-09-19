@@ -1012,7 +1012,7 @@ func CppExprMeta({String : EnvEntry}, String, List<Core_cterms_sort>, List<Core_
  → text⟦†⟨GetMetaVar(#env, #metavar)⟩.Eval(†⟨GetContext(#env)⟩†⟨CppExprTerms(#env, #cterm*, #cont)⟩⟧
 
  // Substitution
- rule CppExprMeta(#env, #metavar, cterms?⟦⟧, csubst?⟦ [ ##cterm* ] ⟧, #cont)
+ rule CppExprMeta(#env, #metavar, #cterms?, csubst?⟦ [ ##cterm* ] ⟧, #cont)
  → text⟦Subst(†⟨GetContext(#env)⟩, †⟨GetMetaVar(#env, #metavar)⟩, { †⟨TextMapFold((b)->text⟦&†⟨b⟩⟧, GetMetaArgs(#env, #metavar), text⟦, ⟧)⟩ }, { †⟨CppExprMetaArgs(#env, #cterm*, text⟦⟧, #cont)⟩⟧
 
 

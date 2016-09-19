@@ -32,13 +32,9 @@ public class MapdefExtern
 	 */
 	public static <a extends Term, b extends Term> MapTerm<a, b> MapPut(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map, a key, b value)
 	{
-		MapTerm<a, b> emap = Term.force(context, map);
-		a ekey = Term.force(context, key);
-		b evalue = Term.force(context, value);
-
 		// TODO extends only when refcount > 1
-		MapTerm<a, b> xmap = emap.extend();
-		xmap.putValue(ekey, evalue);
+		MapTerm<a, b> xmap = map.extend();
+		xmap.putValue(key, value);
 
 		return xmap;
 	}
@@ -54,11 +50,9 @@ public class MapdefExtern
 	 */
 	public static <a extends Term, b extends Term> MapTerm<a, b> MapAddAll(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map1, MapTerm<a, b> map2)
 	{
-		MapTerm<a, b> emap1 = Term.force(context, map1);
-		MapTerm<a, b> emap2 = Term.force(context, map2);
-
-		MapTerm<a, b> xmap = emap1.extend();
-		xmap.putAll(emap2);
+		MapTerm<a, b> xmap = map1.extend();
+		xmap.putAll(map2);
+		map2.release();
 		return xmap;
 	}
 
@@ -73,16 +67,9 @@ public class MapdefExtern
 	 */
 	public static <a extends Term, b extends Term> Option<b> MapGet(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map, a key)
 	{
-		MapTerm<a, b> emap = Term.force(context, map);
-		a ekey = Term.force(context, key);
-		if (emap.data() && ekey.data())
-		{
-			Option<b> result = emap.getValue(context, ekey);
-			emap.release();
-			return result;
-		}
-
-		return Core.lazyOption(c -> MapGet(c, tma, tmb, emap, ekey));
+		Option<b> result = map.getValue(context, key);
+		map.release();
+		return result;
 	}
 
 	/**
@@ -98,36 +85,20 @@ public class MapdefExtern
 	 */
 	public static <a extends Term, b extends Term> MapTerm<a, b> MapPutVar(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map, a key, b value)
 	{
-		MapTerm<a, b> emap = Term.force(context, map);
-		a ekey = Term.force(context, key);
-		b evalue = Term.force(context, value);
-		
-		if (ekey instanceof VariableUse)
-		{
-			// TODO extends only when refcount > 1
-			MapTerm<a, b> xmap = emap.extend();
-			xmap.putValue(ekey, evalue);
-			return xmap;
-		}
+		if (key instanceof VariableUse)
+			return MapPut(context, tma, tmb, map, key, value);
 
 		throw new RuntimeException("Invalid MapPutVar key. Excepted a variable use, but instead got :" + key.toString());
 	}
 
 	public static <a extends Term, b extends Term> Option<b> MapGetVar(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map, a key)
 	{
-		MapTerm<a, b> emap = Term.force(context, map);
-		a ekey = Term.force(context, key);
-
-		if (ekey instanceof VariableUse)
-		{
-			Option<b> result = emap.getValue(context, ekey);
-			emap.release();
-			return result;
-		}
+		if (key instanceof VariableUse)
+			return MapGet(context, tma, tmb, map, key);
 
 		throw new RuntimeException("Invalid MapPutVar key. Excepted a variable use, but instead got :" + key.toString());
 	}
-	
+
 	/**
 	 * Gets list of keys, excluding variable keys
 	 * @param context
@@ -138,12 +109,11 @@ public class MapdefExtern
 	 */
 	public static <a extends Term, b extends Term> List<a> MapKeys(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map)
 	{
-		MapTerm<a, b> emap = Term.force(context, map);
-		List<a> keys = emap.keys(context);
-		emap.release();
+		List<a> keys = map.keys(context);
+		map.release();
 		return keys;
 	}
- 
+
 	/**
 	 * Create new empty map
 	 * @param context
@@ -166,13 +136,11 @@ public class MapdefExtern
 	 */
 	public static <a extends Term, b extends Term> List<b> MapValues(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map)
 	{
-		MapTerm<a, b> emap = Term.force(context, map);
-
-		List<b> values = emap.values(context);
-		emap.release();
+		List<b> values = map.values(context);
+		map.release();
 		return values;
 	}
-	 
+
 	/**
 	 * Return true if the given map is empty
 	 * @param context
@@ -183,23 +151,19 @@ public class MapdefExtern
 	 */
 	public static <a extends Term, b extends Term> Bool MapIsEmpty(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map)
 	{
-		MapTerm<a, b> emap = Term.force(context, map);
-		Bool result = emap.isEmpty() ? Core.TRUE(context) : Core.FALSE(context);
-		emap.release();
+		Bool result = map.isEmpty() ? Core.TRUE(context) : Core.FALSE(context);
+		map.release();
 		return result;
 	}
 
 	public static <a extends Term, b extends Term, c extends Term> MapTerm<a, b> MapFind(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, ThunkMaker<c> tmc, c value)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		throw new RuntimeException("Not implemented");
 	}
 
 	public static <a extends Term, b extends Term, c extends Term> c MapReplace(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, ThunkMaker<c> tmc, c value_1377, MapTerm<a, b> map_1378)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		throw new RuntimeException("Not implemented");
 	}
-
 
 }

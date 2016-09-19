@@ -123,7 +123,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	static class _MapTerm<K extends Term, V extends Term> extends HashMap<K, V> implements MapTerm<K, V>
 	{
 		private static final long serialVersionUID = -9134352548915946315L;
-
+		
 		@Override
 		public String symbol()
 		{
