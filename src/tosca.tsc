@@ -15,7 +15,7 @@ import std::text::printer  // not used but keep it so it gets compiled.
 
 import systemdef
 import normalizer
-import checker
+import analyzer
 import cc
 import noalias
 import noanno
@@ -36,7 +36,6 @@ import parser::TransScript
 func Compile(#url: String, #config: {String:String}) -> Result
 → CompileS(NoAnnoS(LoadModuleS(InitSystem(#url, #config), #url, FALSE)))
 
-
 // --- Compilation
 
 /* Compile system. */
@@ -48,7 +47,7 @@ func CompileM(#system: TSystem, #module: Module) -> Result
 → If(IsModuleCompiled(#module),
     ()->Success(()),
     ()->Debug(ConcatString("Compile", GetModuleURL(#module)),
-          ()->CodeGenerateM(#system, NoAliasM(#system, CheckCoreM(#system, ClosureConvertM(#system, InferM(#system, #module)))))))
+          ()->CodeGenerateM(#system, AnalyzeCoreM(#system, NoAliasM(#system, ClosureConvertM(#system, InferM(#system, #module)))))))
 
 func CodeGenerateM(#system: TSystem, #module: Module) -> Result
 → IfConfigDef(#system, "cpp", (v)->ToCppM(#system, #module), ()->ToJavaM(#system, #module))

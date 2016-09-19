@@ -122,9 +122,16 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
 
 /* Traverse terms */
 func InferMaybeTerms({String:IEnvEntry}, String, List<Core_cterms_sort>, List<Core_csort_sort>, List<Core_canno_sort>, List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterms_sort>>
-rule InferMaybeTerms(#env, #constructor, cterms?⟦              ⟧, #esort*, #canno*, #dvs) → PairCons(#env, cterms?⟦ ⟧) // TODO: check arity check no runtime annotation left
-rule InferMaybeTerms(#env, #constructor, cterms?⟦ (          ) ⟧, #esort*, #canno*, #dvs) → UnPair(InferAnnos(IPushBinderSorts(IResetMetaCounter(#env)), #constructor, #esort*, #canno*, #dvs), (env terms)->PairCons(IPopBinderSorts(env), cterms?⟦ ( ⟨cterm*: terms⟩ ) ⟧))
-rule InferMaybeTerms(#env, #constructor, cterms?⟦ ( ##cterm* ) ⟧, #esort*, #canno*, #dvs) → UnPair(InferTerms(IPushBinderSorts(IResetMetaCounter(#env)), #constructor, #cterm*, #esort*, #canno*, #dvs), (env terms)->PairCons(IPopBinderSorts(env), cterms?⟦ ( ⟨cterm*: terms⟩ ) ⟧))
+
+  rule InferMaybeTerms(#env, #constructor, cterms?⟦              ⟧, #esort*, #canno*, #dvs)
+  → UnPair(InferAnnos(IPushBinderSorts(IResetMetaCounter(#env)), #constructor, #esort*, #canno*, #dvs), (env terms)->
+            PairCons(IPopBinderSorts(env), If(IsEmpty(terms), ()->cterms?⟦⟧, ()->cterms?⟦ ( ⟨cterm*: terms⟩ ) ⟧)))
+
+  rule InferMaybeTerms(#env, #constructor, cterms?⟦ (          ) ⟧, #esort*, #canno*, #dvs)
+  → UnPair(InferAnnos(IPushBinderSorts(IResetMetaCounter(#env)), #constructor, #esort*, #canno*, #dvs), (env terms)->PairCons(IPopBinderSorts(env), cterms?⟦ ( ⟨cterm*: terms⟩ ) ⟧))
+
+  rule InferMaybeTerms(#env, #constructor, cterms?⟦ ( ##cterm* ) ⟧, #esort*, #canno*, #dvs)
+  → UnPair(InferTerms(IPushBinderSorts(IResetMetaCounter(#env)), #constructor, #cterm*, #esort*, #canno*, #dvs), (env terms)->PairCons(IPopBinderSorts(env), cterms?⟦ ( ⟨cterm*: terms⟩ ) ⟧))
 
 /* Traverse subst */
 func InferMaybeSubst({String:IEnvEntry}, String, List<Core_csubst_sort>, List<Core_csort_sort>) -> PPair<{String:IEnvEntry} List<Core_csubst_sort>>

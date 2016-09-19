@@ -24,42 +24,42 @@ func ToJavaM(#system: TSystem, #module: Module) -> Result
     GetSystemURL(#system), GetConfigDef(#system, "package", "")))
 
 func ToJavaAux(#system: TSystem, #module: Module, #source: String) -> Result
-→
-SaveResource("text", #source, text⟦
-/** Generated File */
-†⟨PackageDeclaration(GetModuleURL(#module), GetSystemURL(#system), GetConfigDef(#system, "package", ""))⟩
+→ SaveResource("text", #source, text⟦
+      /** Generated File */
+      †⟨PackageDeclaration(GetModuleURL(#module), GetSystemURL(#system), GetConfigDef(#system, "package", ""))⟩
 
-import java.util.function.Function;
+      import java.util.function.Function;
 
-import org.transscript.runtime.Context;
-import org.transscript.runtime.Term;
-import org.transscript.runtime.Variable;
-import org.transscript.runtime.VariableUse;
-import org.transscript.runtime.LazyTerm;
-import org.transscript.runtime.StringTerm;
-import org.transscript.runtime.StringTerm.VarStringTerm;
-import org.transscript.runtime.DoubleTerm;
-import org.transscript.runtime.DoubleTerm.VarDoubleTerm;
-import org.transscript.runtime.AppendableTerm;
-import org.transscript.runtime.MapTerm;
-import static org.transscript.runtime.Term.unbox;
-import static org.transscript.runtime.Term.force;
-import static org.transscript.runtime.Term.subst;
-import static org.transscript.runtime.Functions.*;
-import static org.transscript.runtime.StringTerm.lazyStringTerm;
-import static org.transscript.runtime.StringTerm.lazyStringTermMaker;
-import static org.transscript.runtime.StringTerm.stringTerm;
-import static org.transscript.runtime.StringTerm.varStringTerm;
-import static org.transscript.runtime.DoubleTerm.lazyDoubleTerm;
-import static org.transscript.runtime.DoubleTerm.lazyDoubleTermMaker;
-import static org.transscript.runtime.DoubleTerm.doubleTerm;
-import static org.transscript.runtime.MapTerm.lazyMapTerm;
-import static org.transscript.runtime.MapTerm.lazyMapTermMaker;
-import static org.transscript.runtime.AppendableTerm.appendableTerm;
-import static org.transscript.runtime.LazyTerm.thunk;
+      import org.transscript.runtime.Context;
+      import org.transscript.runtime.Term;
+      import org.transscript.runtime.Variable;
+      import org.transscript.runtime.VariableUse;
+      import org.transscript.runtime.LazyTerm;
+      import org.transscript.runtime.StringTerm;
+      import org.transscript.runtime.StringTerm.VarStringTerm;
+      import org.transscript.runtime.DoubleTerm;
+      import org.transscript.runtime.DoubleTerm.VarDoubleTerm;
+      import org.transscript.runtime.AppendableTerm;
+      import org.transscript.runtime.MapTerm;
+      import static org.transscript.runtime.Term.unbox;
+      import static org.transscript.runtime.Term.force;
+      import static org.transscript.runtime.Term.subst;
+      import static org.transscript.runtime.Functions.*;
+      import static org.transscript.runtime.StringTerm.lazyStringTerm;
+      import static org.transscript.runtime.StringTerm.lazyStringTermMaker;
+      import static org.transscript.runtime.StringTerm.stringTerm;
+      import static org.transscript.runtime.StringTerm.varStringTerm;
+      import static org.transscript.runtime.DoubleTerm.lazyDoubleTerm;
+      import static org.transscript.runtime.DoubleTerm.lazyDoubleTermMaker;
+      import static org.transscript.runtime.DoubleTerm.doubleTerm;
+      import static org.transscript.runtime.MapTerm.lazyMapTerm;
+      import static org.transscript.runtime.MapTerm.lazyMapTermMaker;
+      import static org.transscript.runtime.AppendableTerm.appendableTerm;
+      import static org.transscript.runtime.LazyTerm.thunk;
 
-†⟨JavaUnit(GetModuleURL(#module), GetImportsM(#module), GetRulesM(#module), GetDataSortsM(#module), GetFuncSortsM(#module), HasOption<String>(GetConfig(#system, "bootstrap")))⟩
-⟧, Success((#source,)))
+      †⟨JavaUnit(GetModuleURL(#module), GetImportsM(#module), GetRulesM(#module), GetDataSortsM(#module), GetFuncSortsM(#module), HasOption(GetConfig(#system, "bootstrap")))⟩
+    ⟧,
+    Success((#source,)))
 
 // --- Translate module
 
@@ -67,21 +67,18 @@ import static org.transscript.runtime.LazyTerm.thunk;
 func JavaUnit(#url: String, #imports: List<Core_cqidentifier_sort>, #rules: {String:List<Core_cdecl_sort>},
                 #datasorts: {String:Core_cdecl_sort}, #funcsorts: {String: Core_cdecl_sort}, #bootstrap: Bool) -> Text4_text_sort
 → text⟦
-†⟨TextFold(Map((x) -> JavaImport(x, #bootstrap), #imports), text⟦⟧)⟩
+     †⟨TextFoldES(Map((imp) -> JavaImport(imp, #bootstrap), #imports))⟩
 
-@SuppressWarnings("unused")
-public class ⟨STRING:ClassName(#url)⟩ {
+     @SuppressWarnings("unused")
+     public class ⟨STRING:ClassName(#url)⟩ {→
+       †⟨TextMapFoldES((x)->EnumToClass(x, ClassName(#url)), MapValues(#datasorts))⟩
+       †⟨TextMapFoldES((x)->JavaMethod(x, text⟦⟨STRING:ClassName(#url)⟩⟧, #rules, #datasorts, #funcsorts), MapKeys(#funcsorts))⟩
+       †⟨InitModule(ClassName(#url), #datasorts, #funcsorts, #imports, #bootstrap)⟩
+     ←}⟧
 
-  /* Typed enumerations */
-  †⟨TextFold(Map((x)->EnumToClass(x, ClassName(#url)), MapValues(#datasorts)), text⟦⟧)⟩
-  †⟨TextFold(Map((x)->JavaMethod(x, text⟦⟨STRING:ClassName(#url)⟩⟧, #rules, #datasorts, #funcsorts), MapKeys(#funcsorts)), text⟦⟧)⟩
-  †⟨InitModule(ClassName(#url), #datasorts, #funcsorts, #imports, #bootstrap)⟩
-}⟧
-
-func JavaImport(Core_cqidentifier_sort, Bool) -> Text4_text_sort
-rule JavaImport(#name, #bootstrap)
+func JavaImport(#name: Core_cqidentifier_sort, #bootstrap: Bool) -> Text4_text_sort
 → text⟦
-import static †⟨PathToImport(JoinQIdentifier(#name, "::", TRUE), #bootstrap)⟩.*;⟧ // TODO: maybe use '.' separator
+    import static †⟨PathToImport(JoinQIdentifier(#name, "::", TRUE), #bootstrap)⟩.*;⟧ // TODO: maybe use '.' separator
 
 //-------------- Translate enumerations
 
@@ -90,48 +87,48 @@ func EnumToClass(Core_cdecl_sort, String) -> Text4_text_sort
 rule EnumToClass(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧, #classname)
 → text⟦
 
-†⟨TextMapFoldES((form)->FormToMethodNew(#CONSTRUCTOR, #csortvars?, form), #cform*)⟩
+      †⟨TextMapFoldES((form)->FormToMethodNew(#CONSTRUCTOR, #csortvars?, form), #cform*)⟩
 
-static public †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩(Function<Context, ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> function)
-{
-  return new Lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩(function);
-}
+      static public †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩(Function<Context, ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> function)
+      {
+        return new Lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩(function);
+      }
 
-static public †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ThunkMaker<⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩Maker()
-{
-  return ⟨STRING: #classname⟩::lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩;
-}
+      static public †⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ ThunkMaker<⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩Maker()
+      {
+        return ⟨STRING: #classname⟩::lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩;
+      }
 
-public interface ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends Term
-{
-  †⟨TextMapFoldES((form)->FormToMethodAs(#CONSTRUCTOR, #csortvars?, form), #cform*)⟩
-}
+      public interface ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends Term
+      {
+        †⟨TextMapFoldES((form)->FormToMethodAs(#CONSTRUCTOR, #csortvars?, form), #cform*)⟩
+      }
 
-†⟨TextMapFoldES((form) -> FormToImplValue(#CONSTRUCTOR, #csortvars?, form), #cform*)⟩
+      †⟨TextMapFoldES((form) -> FormToImplValue(#CONSTRUCTOR, #csortvars?, form), #cform*)⟩
 
-static class Lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends LazyTerm<⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> implements ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
-{
+      static class Lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ extends LazyTerm<⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> implements ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩
+      {
 
-  protected Lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩(⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ value)
-	{
-		super(value);
-	}
+        protected Lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩(⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ value)
+      	{
+      		super(value);
+      	}
 
-  public Lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩(Function<Context, ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> function)
-	{
-		super(function);
-	}
+        public Lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩(Function<Context, ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩> function)
+      	{
+      		super(function);
+      	}
 
-  †⟨TextMapFoldES((form)->FormToMethodMemoAs(#CONSTRUCTOR, #csortvars?, form), #cform*)⟩
+        †⟨TextMapFoldES((form)->FormToMethodMemoAs(#CONSTRUCTOR, #csortvars?, form), #cform*)⟩
 
-  @Override
-	public ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ copy(Context c)
-	{
-		return new Lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(value);
-	}
-}⟧
+        @Override
+      	public ⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩ copy(Context c)
+      	{
+      		return new Lazy⟨STRING: Mangle(#CONSTRUCTOR)⟩†⟨SortParamToTypeParam(#csortvars?, FALSE)⟩(value);
+      	}
+      }⟧
 
-/* Generate a 'new' static method for each enum value */
+// --- Generate a 'new' static method for each enum value */
 
 // TODO: optimize constant value.
 func FormToMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
@@ -541,7 +538,8 @@ func SortsToGetValue(List<Core_csort_sort>, Numeric) -> Text4_text_sort
   → text⟦†⟨SortToGetValue(SortToTypes(#csort), #index, 1)⟩†⟨SortsToGetValue(#csort*, Plus(#index, 1))⟩⟧
 
 func SortToGetValue(List<Text4_text_sort>, Numeric, Numeric) -> Text4_text_sort
-  rule SortToGetValue(Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #index, #subindex)
+
+  rule SortToGetValue((#type,), #index, #subindex)
   → text⟦public †⟨#type⟩ getField†⟨FieldSuffix(#index)⟩(Context ctx, boolean force) {
             if (force)
                field†⟨FieldSuffix(#index)⟩ = force(ctx, field†⟨FieldSuffix(#index)⟩);
@@ -562,7 +560,7 @@ func FieldSuffix(Numeric) -> Text4_text_sort
 
 func MaybeSortsCount(List<Core_csorts_sort>) -> Numeric
   rule MaybeSortsCount(csorts?⟦⟧)             → 0
-  rule MaybeSortsCount(csorts?⟦ (##csort*) ⟧) → ListLength<Core_csort_sort>(#csort*)
+  rule MaybeSortsCount(csorts?⟦ (##csort*) ⟧) → ListLength(#csort*)
 
 /** whether list of sorts has at least one binders */
 func HasBinders(List<Core_csort_sort>) -> Bool
@@ -674,13 +672,12 @@ rule SortQualifierToType(csortqualifier⟦ ##csort ::⟧)
 //-------------- Translate functions and rules
 
 /* Generate method for function. Start with method signature */
-func JavaMethod(String, Text4_text_sort, {String : List<Core_cdecl_sort>},
-           { String : Core_cdecl_sort }, { String : Core_cdecl_sort }) -> Text4_text_sort
-rule JavaMethod(#constructor, #classname, #rules, #datasorts, #funcsorts)
+func JavaMethod(#constructor: String, #classname: Text4_text_sort, #rules: {String:List<Core_cdecl_sort>},
+                  #datasorts: {String:Core_cdecl_sort}, #funcsorts:{String:Core_cdecl_sort}) -> Text4_text_sort
 → text⟦final public static †⟨
           JavaMethodSig(JSetDataSorts(JSetFuncSorts(JSetClassname(JNewEnv, #classname), #funcsorts), #datasorts),
-                        UnSOME<Core_cdecl_sort>(MapGet<String Core_cdecl_sort>(#funcsorts, #constructor)),
-                        MapGet<String List>(#rules, #constructor))⟩⟧
+                        UnSOME(MapGet(#funcsorts, #constructor)),
+                        MapGet(#rules, #constructor))⟩⟧
 
 func JavaMethodSig({String : JEnvEntry}, Core_cdecl_sort, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
 rule JavaMethodSig(#env, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #rules)
@@ -696,14 +693,13 @@ rule JavaMethodSig(#env, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort #
 
 // --- Generate return type
 
-func ReturnType(List<Core_csortvars_sort>, Core_csort_sort) -> Text4_text_sort
-rule ReturnType(#csortvars?, #csort)
-→ text⟦†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ †⟨TextFold(SortToTypes(#csort), text⟦⟧)⟩ ⟧
+func ReturnType(#csortvars?: List<Core_csortvars_sort>, #csort:Core_csort_sort) -> Text4_text_sort
+→ text⟦†⟨SortParamToTypeParam(#csortvars?, TRUE)⟩ †⟨TextFoldES(SortToTypes(#csort))⟩ ⟧
 
 /* Since Java erases sort parameters at runtime, need to pass them along */
 func ThunkMakerSig(List<Core_csortvars_sort>) -> Text4_text_sort
-rule ThunkMakerSig(csortvars?⟦             ⟧) → text⟦⟧
-rule ThunkMakerSig(csortvars?⟦ ∀ ##VARIABLE+ . ⟧) → TextFold(Map<String Text4_text_sort>((x)->ThunkMakerSigHelper(x), #VARIABLE+), text⟦⟧)
+rule ThunkMakerSig(csortvars?⟦             ⟧)     → text⟦⟧
+rule ThunkMakerSig(csortvars?⟦ ∀ ##VARIABLE+ . ⟧) → TextFold(Map((x)->ThunkMakerSigHelper(x), #VARIABLE+), text⟦⟧)
 
 func ThunkMakerSigHelper(String) -> Text4_text_sort
 rule ThunkMakerSigHelper(#) → text⟦, ThunkMaker<⟨STRING: #⟩> tm⟨STRING: #⟩⟧
@@ -806,28 +802,19 @@ func JavaBody({String : JEnvEntry}, Option<List<Core_cdecl_sort>>) -> Text4_text
   rule JavaBody(#env, SOME(#rules:List<Core_cdecl_sort>))
   → text⟦
     ) {
-        †⟨TextFold(Map<Core_cdecl_sort Text4_text_sort>((x) -> JavaBodyRule(#env, x), #rules), text⟦⟧)⟩
-
+        †⟨TextMapFoldES((x) -> JavaBodyRule(#env, x), #rules)⟩
         †⟨FallbackThunk(#env, HasAnnotation("Fallback", GetFnAnno(#env)))⟩
       }⟧
 
-// Generate code to normalize arguments marked as 'data'
-func JavaApplyData(Text4_text_sort) -> Text4_text_sort
-rule JavaApplyData(#term)
-→ text⟦†⟨#term⟩.eval(context).release();⟧
-
 /* Generate fallback thunk (or error) if function is not complete */
 func FallbackThunk({String : JEnvEntry}, Bool) -> Text4_text_sort
-
-  rule FallbackThunk(#env, TRUE)  → text⟦⟧
-
-  rule FallbackThunk(#env, FALSE)
-  //→ text⟦return †⟨JJGetThunkMaker(#env)⟩(c -> †⟨JGetMethodName(#env)⟩(c†⟨TextFold(JGetThunk(#env), text⟦, ⟧)⟩));⟧
-  → text⟦throw new RuntimeException("Missing case");⟧
+rule FallbackThunk(#env, TRUE)  → text⟦⟧
+rule FallbackThunk(#env, FALSE)→ text⟦throw new RuntimeException("Missing case");⟧
 
 // --- Start method body
 
 func JavaBodyRule({String : JEnvEntry}, Core_cdecl_sort) -> Text4_text_sort
+
   rule JavaBodyRule(#env, cdecl⟦ rule ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##csortanno? → ##cterm ⟧)
   → JavaContractum(#env, #cterm)
 
@@ -855,7 +842,6 @@ rule JavaCasePattern(#env, cterm*⟦ ⟧, #contractum)
 rule JavaCasePattern(#env, cterm*⟦ ##cterm ##cterm* ⟧, #contractum)
 → JavaPatternTerm(JNextParam(#env), #cterm, JCurrentParam(#env), SOME(JCurrentParamSort(#env)), PARAMETER, (env) -> JavaCasePattern(env, #cterm*, #contractum))
 
-
 // --- Term pattern matching
 
 func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* Current term */,
@@ -863,7 +849,6 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
 
   rule JavaPatternTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #term, #csort, #storage, #cont)
   → text⟦
-      †⟨ForceParameter(#env, #term, #storage)⟩
       †⟨EValueClassName(#CONSTRUCTOR)⟩†⟨ResolveTypeParamCons(#csort)⟩ ⟨STRING: value:String⟩ = †⟨#term⟩.†⟨MethodNameAs(#CONSTRUCTOR)⟩(context);
       if (⟨STRING: value⟩ == null) {
         break †⟨JGetLabel(#env)⟩;
@@ -949,7 +934,6 @@ func JavaPatternVariable(Option<JVarEntry>, {String : JEnvEntry}, String, Option
   // TODO: release acquired references.
   rule JavaPatternVariable(SOME(JBound(#javavar, #sort)), #env, #variable, #csort, #term, #cont)
   → text⟦
-      †⟨#term⟩ = force(context, †⟨#term⟩);
       if (!isVariableUse(†⟨#term⟩) || †⟨#javavar⟩ != †⟨#term⟩.variable()) {
         break †⟨JGetLabel(#env)⟩;
       }†⟨#cont(#env)⟩⟧
@@ -977,7 +961,6 @@ func JavaFindJBoundVar({String : JEnvEntry}, Core_cterm_sort) -> Text4_text_sort
 func JavaPatternMap({String : JEnvEntry}, List<Core_cmapentries_sort>, Text4_text_sort, Core_cmapsort_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
   rule JavaPatternMap(#env, cmapentries?⟦⟧, #term, #cmapsort, #cont)
   → text⟦
-      †⟨#term⟩ = force(context, †⟨#term⟩);
       if (!†⟨#term⟩.isEmpty())
         break †⟨JGetLabel(#env)⟩;
       †⟨#cont(#env)⟩⟧
@@ -1001,7 +984,6 @@ func JavaPatternMapEntry({String : JEnvEntry}, Core_cmapentry_sort, Text4_text_s
   rule JavaPatternMapEntry(#env, cmapentry⟦  ¬ ##METAVAR ⟧, #term, #cmapsort, #cont)
   → IfPresent(JGetMetaVarO(#env, #METAVAR),
       (key)->text⟦
-        †⟨key⟩ = force(context, †⟨key⟩);
         if (†⟨#term⟩.contains(†⟨key⟩))
           break †⟨JGetLabel(#env)⟩;
         †⟨#cont(#env)⟩⟧,
@@ -1010,7 +992,6 @@ func JavaPatternMapEntry({String : JEnvEntry}, Core_cmapentry_sort, Text4_text_s
   rule JavaPatternMapEntry(#env, cmapentry⟦ ##METAVAR : ##cterm ⟧, #term, #cmapsort, #cont)
   → IfPresent(JGetMetaVarO(#env, #METAVAR),
       (key)->text⟦
-        †⟨key⟩ = force(context, †⟨key⟩);
         Option<†⟨SortToType(GetMapValueSort(#cmapsort))⟩> ⟨STRING: mval⟩ = †⟨#term⟩.getValue(†⟨GetContext(#env)⟩, †⟨key⟩).asSOME(†⟨GetContext(#env)⟩);
         if (⟨STRING: mval⟩ == null)
           break †⟨JGetLabel(#env)⟩;
