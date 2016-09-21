@@ -18,8 +18,8 @@ rule IsEmpty((#, #s...)) → FALSE
 
 /* @return `TRUE` if list is not empty */
 func IsNotEmpty<a>(List<a>) -> Bool
-rule IsNotEmpty(()                   ) → FALSE
-rule IsNotEmpty(Cons(#:a, #s:List<a>)) → TRUE
+rule IsNotEmpty(()        ) → FALSE
+rule IsNotEmpty((#, #s...)) → TRUE
 
 /* Evaluate `#true` if the specified `#list` is empty, otherwise `#false` */
 func IfEmpty<a b>(List<a>, ()->b, ()->b) -> b
@@ -32,13 +32,13 @@ rule IfEmpty((#, #s...), #1, #2) → #2()
            `FALSE` otherwise
 */
 func Null<a>(List<a>) -> Bool
-rule Null((                    )) → TRUE
-rule Null(Cons(#H:a, #T:List<a>)) → FALSE
+rule Null((         )) → TRUE
+rule Null((#H, #T...)) → FALSE
 
 /* @return `TRUE` is list is a singleton, otherwise `FALSE` */
 func IsSingleton<a>(List<a>) -> Bool
-rule IsSingleton((                     )) → FALSE
-rule IsSingleton(Cons(#:a, #s : List<a>)) → IsEmpty<a>(#s)
+rule IsSingleton((        )) → FALSE
+rule IsSingleton((#, #s...)) → IsEmpty(#s)
 
 /* Evaluate `#true` if the specified `#list` is a singleton, otherwise `#false` */
 func IfSingleton<a b>(List<a>, ()->b, ()->b) -> b
@@ -47,19 +47,19 @@ rule IfSingleton((#, #s...), #1, #2) → IfEmpty(#s, #1, #2)
 
 /* @return head of the given `#list` */
 func Head<a>(List<a>) -> a
-rule Head((                   )) → Error<a>("Head of empty list")
-rule Head(Cons(#:a, #s:List<a>)) → #
+rule Head((        )) → Error("Head of empty list")
+rule Head((#, #s...)) → #
 
 /* @return head of the given `#list`, as an Option */
 func HeadO<a>(List<a>) -> Option<a>
-rule HeadO((                   )) → NONE
-rule HeadO(Cons(#:a, #s:List<a>)) → SOME(#)
+rule HeadO((        )) → NONE
+rule HeadO((#, #s...)) → SOME(#)
 
 /* @return all element in the list, except the last one. If the list is empty, return the empty list. */
 func HeadAll<a>(List<a>) -> List<a>
-rule HeadAll((                     )) → ()
-rule HeadAll(Cons(#:a, List<a>::Nil)) → ()
-rule HeadAll(Cons(#:a, List<a>::Cons(#2:a, #s:List<a>))) → Cons(#, HeadAll<a>(Cons(#2:a, #s:List<a>)))
+rule HeadAll((            )) → ()
+rule HeadAll((#,)          ) → ()
+rule HeadAll((#, #2, #s...)) → (#, HeadAll((#2, #s...))...)
 
 /* @return last item of the list */
 func Last<a>(List<a>) -> a
@@ -91,7 +91,7 @@ rule SubList((#X, #XS...), #index) → If(NumberEqual(#index, 0), ()->(#X, #XS..
    @param `List<a>` the list
    @param `Numeric` the index
  */
-func At<a>(List<a>, eager Numeric) -> Option<a>
+func At<a>(List<a>, Numeric) -> Option<a>
 rule At((        ), #i) → NONE
 rule At((#, #s...), #i) → If(Equal(#i, 0), ()->SOME(#), ()->At(#s, Minus(#i, 1)))
 

@@ -23,7 +23,7 @@ package org.transscript.runtime;
 public interface Ref
 {
 
-	/** Safe reference counting: check for null value */
+	/** Typed reference counting */
 	@SuppressWarnings("unchecked")
 	static <T extends Ref> T ref(T ref)
 	{

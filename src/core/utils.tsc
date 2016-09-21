@@ -9,7 +9,7 @@ import std::language
 import std::text::Text4
 import core::Core
 
-/* @return TRUE if the term is a meta-application. Ignore binders and formal parameters  */
+/* @return `TRUE` if the term is a meta-variable. Ignore binders and formal parameters  */
 func IsMeta(Core_cterm_sort) -> Bool
 rule IsMeta(cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧) → TRUE
 rule IsMeta(cterm⟦ { : ##METAVAR  } ##csortanno? ⟧)              → TRUE  // Equivalent to just #METAVAR.
@@ -17,6 +17,11 @@ rule IsMeta(cterm⟦ [ v ##csortanno? ] ##cterm[v] ⟧)              → IsMeta(
 rule IsMeta(cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧)              → IsMeta(#cterm[var:String])
 rule IsMeta(cterm⟦ thunk ##cterm ⟧)                              → IsMeta(#cterm)
 rule IsMeta(#term)                                               → FALSE
+
+/* @return `TRUE` if the given `#term` is a meta variable of the given `#name`  */
+func IsNamedMeta(Core_cterm_sort, String) -> Bool
+rule IsNamedMeta(cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #name) → StringEqual(#METAVAR, #name)
+rule IsNamedMeta(#term, #name)                                               → FALSE
 
 /* @return the given term without 'thunk' */
 func StripThunk(Core_cterm_sort) -> Core_cterm_sort
@@ -44,6 +49,12 @@ func AddAnnotation(#anno: String, #anno*: List<Core_canno_sort>) ->  List<Core_c
 func RemoveAnnotation(String, List<Core_canno_sort>) ->  List<Core_canno_sort>
 rule RemoveAnnotation(#anno, (                 )) → ()
 rule RemoveAnnotation(#anno, (#anno2, #annos...)) → If(EqualAnno(#anno, #anno2), ()->#annos, ()->(#anno2, RemoveAnnotation(#anno, #annos)...))
+
+/* Get the annotation arguments */
+func GetAnnotationArgs(Core_canno_sort) -> List<Core_cterm_sort>
+rule GetAnnotationArgs(canno⟦ @ ##CONSTRUCTOR ( ##cterm* ) ⟧) → #cterm*
+rule GetAnnotationArgs(#canno                               ) → () 
+
 
 /* @return the string concatenation represeting the given `#qualifiedIdentifier` */
 func JoinQIdentifier(#cqiden: Core_cqidentifier_sort, #sep: String, #mangle:Bool) -> String

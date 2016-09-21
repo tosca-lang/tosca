@@ -41,6 +41,7 @@ func ToJavaAux(#system: TSystem, #module: Module, #source: String) -> Result
       import org.transscript.runtime.DoubleTerm.VarDoubleTerm;
       import org.transscript.runtime.AppendableTerm;
       import org.transscript.runtime.MapTerm;
+      import static org.transscript.runtime.Ref.ref;
       import static org.transscript.runtime.Term.unbox;
       import static org.transscript.runtime.Term.force;
       import static org.transscript.runtime.Term.subst;
@@ -590,7 +591,7 @@ func SortParamToTypeParam(List<Core_csortvars_sort>, Bool /* parameterize or par
   → text⟦⟧
 
   rule SortParamToTypeParam(csortvars?⟦ ∀ ##VARIABLE+ . ⟧, #parameterize)
-  → text⟦<†⟨TextFold(Map<String Text4_text_sort>((x) -> text⟦⟨STRING: Mangle(x)⟩†⟨If<Text4_text_sort>(#parameterize, ()->text⟦ extends Term⟧, ()->text⟦⟧)⟩⟧, #VARIABLE+), text⟦, ⟧)⟩>⟧
+  → text⟦<†⟨TextFold(Map((x) -> text⟦⟨STRING: Mangle(x)⟩†⟨If(#parameterize, ()->text⟦ extends Term⟧, ()->text⟦⟧)⟩⟧, #VARIABLE+), text⟦, ⟧)⟩>⟧
 
 func MaybeSortsToTypeParams(List<Core_csorts_sort>) -> Text4_text_sort
   rule MaybeSortsToTypeParams(csorts?⟦ ⟧)
@@ -628,7 +629,7 @@ func SortToTypes2(Core_csort_sort, List<Text4_text_sort> /* formal params */) ->
   → Cons(text⟦⟨STRING: Mangle(#VARIABLE)⟩⟧, Nil)
 
   rule SortToTypes2(csort⟦ ##VARIABLE ⟧, Cons(#formal:Text4_text_sort, #formals:List<Text4_text_sort>))
-  → Cons(text⟦Closure†⟨NumberToText(Plus(ListLength<Text4_text_sort>(#formals), 1))⟩<⟨STRING: #VARIABLE /* Return type */⟩, †⟨
+  → Cons(text⟦Closure†⟨NumberToText(Plus(ListLength(#formals), 1))⟩<⟨STRING: #VARIABLE /* Return type */⟩, †⟨
        TextFold(Cons(#formal, #formals), text⟦, ⟧) /* JFormal params */⟩>⟧, Nil)
 
   rule SortToTypes2(csort⟦ [ ##csort ] ##csort2 ⟧, #formals)
@@ -641,7 +642,7 @@ func SortToTypes2(Core_csort_sort, List<Text4_text_sort> /* formal params */) ->
   → Cons(text⟦MapTerm<†⟨SortToType(#csort1)⟩,†⟨SortToType(#csort2)⟩>⟧, Nil)
 
   rule SortToTypes2(csort⟦ { ##cmapsort } ⟧, Cons(#formal:Text4_text_sort, #formals:List<Text4_text_sort>))
-  → Cons(text⟦Closure†⟨NumberToText(Plus(ListLength<Text4_text_sort>(#formals), 1))⟩<MapTerm, †⟨
+  → Cons(text⟦Closure†⟨NumberToText(Plus(ListLength(#formals), 1))⟩<MapTerm, †⟨
        TextFold(Cons(#formal, #formals), text⟦, ⟧) /* JFormal params */⟩>⟧, Nil)
 
   rule SortToTypes2(csort⟦ data ##csort ⟧, #formals)
@@ -652,7 +653,7 @@ func SortToTypes2(Core_csort_sort, List<Text4_text_sort> /* formal params */) ->
 
 /* Same as above, expect ignore syntactic variables */
 func SortToType(Core_csort_sort) -> Text4_text_sort
-rule SortToType(#csort) → Last<Text4_text_sort>(SortToTypes(#csort)) // TODO: could optimize
+rule SortToType(#csort) → Last(SortToTypes(#csort)) // TODO: could optimize
 
 /* Same as above, expect maybe get a sort */
 func MaybeSortToType(Option<Core_csort_sort>) -> Text4_text_sort
@@ -666,8 +667,7 @@ rule MaybeSortToTypeD(SOME(#csort), #default) → Last(SortToTypes(#csort)) // T
 
 /* Sort qualifier to type */
 func SortQualifierToType(Core_csortqualifier_sort) -> Text4_text_sort
-rule SortQualifierToType(csortqualifier⟦ ##csort ::⟧)
-→ SortToType(#csort)
+rule SortQualifierToType(csortqualifier⟦ ##csort :: ⟧) → SortToType(#csort)
 
 //-------------- Translate functions and rules
 
@@ -707,7 +707,7 @@ rule ThunkMakerSigHelper(#) → text⟦, ThunkMaker<⟨STRING: #⟩> tm⟨STRING
 /* Associated function generating thunk maker argument */
 func ThunkMakerArg(List<Core_csortvars_sort>) -> Text4_text_sort
 rule ThunkMakerArg(csortvars?⟦             ⟧) → text⟦⟧
-rule ThunkMakerArg(csortvars?⟦ ∀ ##VARIABLE+ . ⟧) → TextFold(Map<String Text4_text_sort>((x)->ThunkMakerArgHelper(x), #VARIABLE+), text⟦⟧)
+rule ThunkMakerArg(csortvars?⟦ ∀ ##VARIABLE+ . ⟧) → TextFold(Map((x)->ThunkMakerArgHelper(x), #VARIABLE+), text⟦⟧)
 
 func ThunkMakerArgHelper(String) -> Text4_text_sort
 rule ThunkMakerArgHelper(#) → text⟦, tm⟨STRING: #⟩⟧
@@ -760,17 +760,17 @@ func JavaSigArg({String : JEnvEntry}, Core_csort_sort, Bool /* data? */,
                 List<Text4_text_sort> /* formal parameters */, List<Core_csort_sort>, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
 
  // Monomorphic sort
-   rule JavaSigArg(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #data, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #data, (#type,), #csort*, #rules)
    → text⟦, †⟨#type⟩ ⟨STRING: value:String⟩†⟨
        JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: value⟩⟧, csort⟦ ##CONSTRUCTOR ##csorts? ⟧), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
 
    // Sort variable
-   rule JavaSigArg(#env, csort⟦ ##VARIABLE ⟧, #data, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ ##VARIABLE ⟧, #data, (#type,), #csort*, #rules)
    → text⟦, †⟨#type⟩ ⟨STRING: value:String⟩†⟨
        JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: value⟩⟧, csort⟦ ##VARIABLE ⟧), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
 
    // Syntactic variable sort
-   rule JavaSigArg(#env, csort⟦ [ ##csort ] ##csort2 ⟧, #data, Cons(#type:Text4_text_sort, #types:List<Text4_text_sort>), #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ [ ##csort ] ##csort2 ⟧, #data, (#type, #types...), #csort*, #rules)
    → text⟦, †⟨#type⟩ ⟨STRING: var:String⟩†⟨
        JavaSigArg(JAddThunk(JAddParam(#env, text⟦⟨STRING: var⟩⟧, #csort), text⟦⟨STRING: var⟩⟧), #csort2, #data, #types, #csort*, #rules)⟩⟧
 
@@ -778,7 +778,7 @@ func JavaSigArg({String : JEnvEntry}, Core_csort_sort, Bool /* data? */,
    rule JavaSigArg(#env, csort⟦ ( ##csort ) ##csort2 ⟧, #data, #types, #csort*, #rules)
    → JavaSigArg(#env, #csort2, #data, #types, #csort*, #rules)
 
-   rule JavaSigArg(#env, csort⟦ { ##cmapsort* } ⟧, #data, Cons(#type:Text4_text_sort, List<Text4_text_sort>::Nil), #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ { ##cmapsort* } ⟧, #data, (#type,), #csort*, #rules)
    → text⟦, †⟨#type⟩ ⟨STRING: map:String⟩†⟨
        JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: map⟩⟧, csort⟦ { ##cmapsort* } ⟧), text⟦⟨STRING: map⟩⟧), #csort*, #rules)⟩⟧
 
@@ -799,48 +799,48 @@ func JavaBody({String : JEnvEntry}, Option<List<Core_cdecl_sort>>) -> Text4_text
       }⟧
 
   // At least one rule: not external
-  rule JavaBody(#env, SOME(#rules:List<Core_cdecl_sort>))
+  rule JavaBody(#env, SOME(#rules))
   → text⟦
     ) {
-        †⟨TextMapFoldES((x) -> JavaBodyRule(#env, x), #rules)⟩
+        †⟨TextMapFoldES((rule) -> Debug(PrintTerm("", rule), ()->JavaBodyRule(JSetDiscard(#env, ()), rule)), #rules)⟩
         †⟨FallbackThunk(#env, HasAnnotation("Fallback", GetFnAnno(#env)))⟩
       }⟧
 
 /* Generate fallback thunk (or error) if function is not complete */
 func FallbackThunk({String : JEnvEntry}, Bool) -> Text4_text_sort
 rule FallbackThunk(#env, TRUE)  → text⟦⟧
-rule FallbackThunk(#env, FALSE)→ text⟦throw new RuntimeException("Missing case");⟧
+rule FallbackThunk(#env, FALSE) → text⟦throw new RuntimeException("Missing case");⟧ // TODO: better error message.
 
 // --- Start method body
 
 func JavaBodyRule({String : JEnvEntry}, Core_cdecl_sort) -> Text4_text_sort
 
-  rule JavaBodyRule(#env, cdecl⟦ rule ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##csortanno? → ##cterm ⟧)
+  rule JavaBodyRule(#env, cdecl⟦ ##canno* rule ##canno*2 ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##csortanno? → ##cterm ⟧)
   → JavaContractum(#env, #cterm)
 
-  rule JavaBodyRule(#env, cdecl⟦ rule ##csortqualifier* ##CONSTRUCTOR ##csortargs? ( ##cterm* ) ##csortanno? → ##cterm2 ⟧)
-  → JavaPattern(#env, #cterm*, #cterm2)
+  rule JavaBodyRule(#env, cdecl⟦ ##canno* rule ##canno*2 ##csortqualifier* ##CONSTRUCTOR ##csortargs? ( ##cterm* ) ##csortanno? → ##cterm ⟧)
+  → JavaPattern(#env, #cterm*, #canno*, #cterm)
 
 // --- Pattern matching
 
-func JavaPattern({String : JEnvEntry}, List<Core_cterm_sort>, Core_cterm_sort) -> Text4_text_sort
+func JavaPattern({String : JEnvEntry}, List<Core_cterm_sort>, List<Core_canno_sort>, Core_cterm_sort) -> Text4_text_sort
 
 // TODO: case where there is only one rule.
-rule JavaPattern(#env, #cterms, #contractum)
-→ text⟦⟨STRING: label:String⟩:{†⟨JavaCasePattern(JSetLabel(#env, text⟦⟨STRING: label⟩⟧), #cterms, #contractum)⟩
+rule JavaPattern(#env, #cterms, #ruleanno*, #contractum)
+→ text⟦⟨STRING: label:String⟩:{†⟨JavaCasePattern(JSetLabel(#env, text⟦⟨STRING: label⟩⟧), #cterms, #ruleanno*, #contractum)⟩
 }⟧
 
 // Data sort helper indicating whether the current term is a method parameter, or an argument (local variable).
 enum Storage | PARAMETER | ARGUMENT
 
 // Iterate over top-level pattern arguments
-func JavaCasePattern({String : JEnvEntry}, List<Core_cterm_sort>, Core_cterm_sort) -> Text4_text_sort
+func JavaCasePattern({String : JEnvEntry}, List<Core_cterm_sort>, List<Core_canno_sort>, Core_cterm_sort) -> Text4_text_sort
 
-rule JavaCasePattern(#env, cterm*⟦ ⟧, #contractum)
+rule JavaCasePattern(#env, cterm*⟦ ⟧, #ruleanno*, #contractum)
 → JavaContractum(#env, #contractum)
 
-rule JavaCasePattern(#env, cterm*⟦ ##cterm ##cterm* ⟧, #contractum)
-→ JavaPatternTerm(JNextParam(#env), #cterm, JCurrentParam(#env), SOME(JCurrentParamSort(#env)), PARAMETER, (env) -> JavaCasePattern(env, #cterm*, #contractum))
+rule JavaCasePattern(#env, cterm*⟦ ##cterm ##cterm* ⟧, #ruleanno*, #contractum)
+→ JavaPatternTerm(JavaNextParam(JavaMayDiscard(#env, #cterm, #ruleanno*)), #cterm, JavaCurrentParam(#env), SOME(JavaCurrentParamSort(#env)), PARAMETER, (env) -> JavaCasePattern(env, #cterm*, #ruleanno*, #contractum))
 
 // --- Term pattern matching
 
@@ -856,33 +856,33 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
       JavaPatternMaybeSubs(#env, #cterms?, text⟦⟨STRING: value⟩⟧, MaybeFindFormI(JGetDataSorts(#env), #csort, #CONSTRUCTOR), #cont)⟩⟧
 
   // TODO: check literal
-  rule JavaPatternTerm(#env, cterm⟦ ##cliteral ⟧, #term, #csort, #storage, #cont)
+  rule JavaPatternTerm(#env, cterm⟦ ##canno* ##cliteral ⟧, #term, #csort, #storage, #cont)
   → #cont(#env)
 
   // REVISIT: bound variable reordering, ie. (x)(y)#(y, x)
   // For now only accepts patterns of the form (x)...(y)#(x, ... y)
-  rule JavaPatternTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #term, #csort, #storage, #cont)
-  → text⟦†⟨JavaPatternMaybeMetaArgs(#env, #METAVAR, #csubst?, #term, #csort, #cont)⟩⟧
+  rule JavaPatternTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #term, #csort, #storage, #cont)
+  → text⟦†⟨JavaPatternMaybeMetaArgs(#env, #canno*, #METAVAR, #csubst?, #term, #csort, #storage, #cont)⟩⟧
 
-  rule JavaPatternTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #term, #csort, #storage, #cont)
+  rule JavaPatternTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧, #term, #csort, #storage, #cont)
   → JavaPatternVariable(JGetVarO(#env, #VARIABLE), #env, #VARIABLE, MaybeSortAnnoToSort(#csortanno?), #term, #cont)
 
-  rule JavaPatternTerm(#env, cterm⟦ [ v ##csortanno?[] ] ##cterm[v] ⟧, #term, #csort, PARAMETER, #cont)
-  → JavaPatternTerm(JNextParam(JAddVar(#env, var:String, JBound(#term, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], JCurrentParam(#env), SOME(JCurrentParamSort(#env)), PARAMETER, #cont)
+  rule JavaPatternTerm(#env, cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ⟧, #term, #csort, PARAMETER, #cont)
+  → JavaPatternTerm(JavaNextParam(JAddVar(#env, var:String, JBound(#term, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], JavaCurrentParam(#env), SOME(JavaCurrentParamSort(#env)), PARAMETER, #cont)
 
-  rule JavaPatternTerm(#env, cterm⟦ [ v ##csortanno? ] ##cterm[v] ⟧, #term, #csort, ARGUMENT, #cont)
+  rule JavaPatternTerm(#env, cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ⟧, #term, #csort, ARGUMENT, #cont)
   → text⟦
       Variable ⟨STRING: boundvar:String⟩ = †⟨GetParent(#env)⟩.getVar†⟨NumberToText(GetSubIndex(#env))⟩_†⟨NumberToText(GetSubBinderIndex(#env))⟩();†⟨
       JavaPatternTerm(IncSubBinderIndex(JAddVar(#env, var:String, JBound(text⟦⟨STRING: boundvar⟩⟧, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], #term, #csort, ARGUMENT, #cont)⟩⟧
 
-  rule JavaPatternTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #term, #csort, #storage, #cont)
+  rule JavaPatternTerm(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧, #term, #csort, #storage, #cont)
   → JavaPatternTerm(#env, #cterm[var:String], #term, #csort, #storage, #cont)
 
-  rule JavaPatternTerm(#env, cterm⟦ { ##cmapentries? } : { ##cmapsort } ⟧, #term, #csort, #storage, #cont)
+  rule JavaPatternTerm(#env, cterm⟦ ##canno* { ##cmapentries? } : { ##cmapsort } ⟧, #term, #csort, #storage, #cont)
   → JavaPatternMap(#env, #cmapentries?, #term, #cmapsort, #cont)
 
-  rule JavaPatternTerm(#env, cterm⟦ ##METAVAR ##csortanno? = ##cterm ⟧, #term, #csort, #storage, #cont)
-  → JavaPatternNamedTerm(#env, #METAVAR, #cterm, #term, #csort, #storage, #cont)
+  rule JavaPatternTerm(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧, #term, #csort, #storage, #cont)
+  → JavaPatternNamedTerm(#env, #canno*, #METAVAR, #cterm, #term, #csort, #storage, #cont)
 
   rule JavaPatternTerm(#env, #cterm, #term, #csort, #storage, #cont)
   → Error(ConcatString("Internal Error: could not handle pattern ", PrintTerm("", #cterm)))
@@ -941,15 +941,17 @@ func JavaPatternVariable(Option<JVarEntry>, {String : JEnvEntry}, String, Option
 // --- pattern matching inside meta
 
 // Iterate over meta arguments and find corresponding bound variables, and update environment
-func JavaPatternMaybeMetaArgs({String : JEnvEntry}, String, List<Core_csubst_sort>, Text4_text_sort /* Current term */, Option<Core_csort_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+func JavaPatternMaybeMetaArgs({String : JEnvEntry}, List<Core_canno_sort>, String, List<Core_csubst_sort>,
+                              Text4_text_sort /* Current term */, Option<Core_csort_sort>, Storage,
+                              ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   // No arg meta-variable. This might unlock delayed properties
-  rule JavaPatternMaybeMetaArgs(#env, #metavar, csubst?⟦⟧, #term, #csort, #cont)
-  → JApplyDelayEntries(JAddMeta(#env, #metavar, #term, ()), #metavar, #cont)
+  rule JavaPatternMaybeMetaArgs(#env, #canno*, #metavar, csubst?⟦⟧, #term, #csort, #storage, #cont)
+  → JApplyDelayEntries(JAddMeta(#env, #metavar, #term, (), #storage), #metavar, #cont)
 
   // meta substitution
-  rule JavaPatternMaybeMetaArgs(#env, #metavar, csubst?⟦ [ ##cterm* ] ⟧, #term, #csort, #cont)
-  → #cont(JAddMeta(#env, #metavar, #term, Map((x) -> JavaFindJBoundVar(#env, x), #cterm*)))
+  rule JavaPatternMaybeMetaArgs(#env, #canno*, #metavar, csubst?⟦ [ ##cterm* ] ⟧, #term, #csort, #storage, #cont)
+  → #cont(JAddMeta(#env, #metavar, #term, Map((x) -> JavaFindJBoundVar(#env, x), #cterm*), #storage))
 
 func JavaFindJBoundVar({String : JEnvEntry}, Core_cterm_sort) -> Text4_text_sort
 
@@ -979,7 +981,7 @@ func JavaPatternMapEntries({String : JEnvEntry}, List<Core_cmapentry_sort>, Text
 func JavaPatternMapEntry({String : JEnvEntry}, Core_cmapentry_sort, Text4_text_sort, Core_cmapsort_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   rule JavaPatternMapEntry(#env, cmapentry⟦ : ##METAVAR ⟧, #term, #cmapsort, #cont)
-  → #cont(JAddMeta(#env, #METAVAR, #term, ()))
+  → #cont(JAddMeta(#env, #METAVAR, #term, (), ARGUMENT)) // TODO: ARGUMENT should be safe but no sure.
 
   rule JavaPatternMapEntry(#env, cmapentry⟦  ¬ ##METAVAR ⟧, #term, #cmapsort, #cont)
   → IfPresent(JGetMetaVarO(#env, #METAVAR),
@@ -1056,9 +1058,10 @@ rule JApplyDelayEntriesAux(#env, Nil                                            
 
 // --- Named term
 
-func JavaPatternNamedTerm(#env: {String : JEnvEntry}, #metavar: String, #cterm: Core_cterm_sort, #term: Text4_text_sort,
+func JavaPatternNamedTerm(#env: {String : JEnvEntry}, #canno*: List<Core_canno_sort>, #metavar: String, #cterm: Core_cterm_sort, #term: Text4_text_sort,
                          #csort: Option<Core_csort_sort>, #storage: Storage, #cont: ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
-→ JavaPatternMaybeMetaArgs(#env, #metavar, csubst?⟦⟧, #term, #csort, (env)->JavaPatternTerm(env, #cterm, #term, #csort, #storage, #cont))
+→ JavaPatternMaybeMetaArgs(#env, #canno*, #metavar, csubst?⟦⟧, #term, #csort, #storage, (env)->
+  JavaPatternTerm(env, #cterm, #term, #csort, #storage, #cont))
 
 //  --------- Helper function for pattern matching
 
@@ -1095,35 +1098,33 @@ func SubSortFromTerm({String : JEnvEntry}, Core_cterm_sort) -> Option<Core_csort
   rule SubSortFromTerm(#env, cterm⟦ ##canno* ##csort :: ##csortqualifier* ##CONSTRUCTOR ##csortargs?  ##cterms? ##csortanno? ⟧)
   → SOME(#csort)
 
-  rule SubSortFromTerm(#env, cterm⟦ ##CONSTRUCTOR ##csortargs?  ##cterms? ##csortanno? ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* ##CONSTRUCTOR ##csortargs?  ##cterms? ##csortanno? ⟧)
   → NONE
 
-  rule SubSortFromTerm(#env, cterm⟦ ##STRING ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* ##STRING ⟧)
   → SOME(csort⟦ String ⟧)
 
-  rule SubSortFromTerm(#env, cterm⟦ ##NUMBER ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* ##NUMBER ⟧)
   → SOME(csort⟦ Numeric⟧)
 
-  rule SubSortFromTerm(#env, cterm⟦ ##VARIABLE : ##csort ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* ##VARIABLE : ##csort ⟧)
   → SOME(#csort)
 
-  rule SubSortFromTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧)
   → JSubSortFromVar(JGetVarO(#env, #VARIABLE), #VARIABLE)
 
-  rule SubSortFromTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)
   → MaybeSortAnnoToSort(#csortanno?)
 
-  rule SubSortFromTerm(#env, cterm⟦ { ##cmapentries? } ##csortanno? ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* { ##cmapentries? } ##csortanno? ⟧)
   → MaybeSortAnnoToSort(#csortanno?)
 
   // TODO: maybe error?
-  rule SubSortFromTerm(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧)
-  //rule SubSortFromTerm(#env, Core_cterm_A6(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x] : Core_cterm_sort))
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* [ x ##csortanno?[] ] ##cterm[x] ⟧)
   → SubSortFromTerm(#env, #cterm[var:String])
 
   // TODO: maybe error?
-  rule SubSortFromTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧)
-  //rule SubSortFromTerm(#env, Core_cterm_A7(#csortanno?:List<Core_csortanno_sort>, [x] -> #cterm[x] : Core_cterm_sort))
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧)
   → SubSortFromTerm(#env, #cterm[var:String])
 
 func JSubSortFromVar(Option<JVarEntry>, String) -> Option<Core_csort_sort>
@@ -1131,13 +1132,35 @@ func JSubSortFromVar(Option<JVarEntry>, String) -> Option<Core_csort_sort>
   rule JSubSortFromVar(NONE, #var)
   → NONE
 
-  rule JSubSortFromVar(SOME(#varEntry:JVarEntry), #var)
+  rule JSubSortFromVar(SOME(#varEntry), #var)
   → UnJVarSort(#varEntry)
+
+// ---- Reference counting
+
+/* Determine whether the current parameter must be kept or not. */
+func JavaMayDiscard({String : JEnvEntry}, Core_cterm_sort, List<Core_canno_sort>) -> {String : JEnvEntry}
+
+  rule JavaMayDiscard(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #canno*)
+  → JavaMayDiscardMeta(#env, #METAVAR,  IfPresent(GetAnnotation("KeepAll", #canno*), (anno)->GetAnnotationArgs(anno), ()->()))
+
+  rule JavaMayDiscard(#env, #cterm, #canno*)
+  → JAddDiscard(#env, JavaCurrentParam(#env))
+
+func JavaMayDiscardMeta(#env: {String : JEnvEntry}, #meta: String, #keep: List<Core_cterm_sort>) -> {String : JEnvEntry}
+→ If(JavaKeep(#keep, #meta), ()->#env, ()->JAddDiscard(#env, JavaCurrentParam(#env)))
+
+
+/* Discard term parameters not used in the contraction */
+func JavaDiscard(#env: {String : JEnvEntry}) -> Text4_text_sort
+→ TextMapFoldES((param)->text⟦¶†⟨param⟩.release();⟧, JGetDiscard(#env))
+
+func JavaKeep(#keep: List<Core_cterm_sort>, #meta:String) -> Bool
+→ HasOption(PickFirst(#keep, (term)->IsNamedMeta(term, #meta)))
 
 // ----- Contraction
 
 func JavaContractum(#env: {String : JEnvEntry}, #term: Core_cterm_sort) -> Text4_text_sort
-→ JavaStatementTerm(#env, #term)
+→ text⟦†⟨JavaDiscard(#env)⟩ †⟨JavaStatementTerm(#env, #term)⟩⟧
 
 func JavaStatementTerm(#env: {String : JEnvEntry}, #cterm:Core_cterm_sort) -> Text4_text_sort
 → text⟦†⟨JavaJFreshesTerm(JSetCounter(JSetFreshCounter(#env, 0), 0), #cterm, (env) ->
@@ -1150,25 +1173,25 @@ func JavaJFreshesTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntr
   rule JavaJFreshesTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #cont)
   → JavaJFreshesMaybeTerms(#env, #cterms?, #cont)
 
-  rule JavaJFreshesTerm(#env, cterm⟦ ##cliteral ⟧, #cont)
+  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* ##cliteral ⟧, #cont)
   → #cont(#env)
 
-  rule JavaJFreshesTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #cont)
+  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧, #cont)
   → JavaJFreshesVariable(#env, JGetVarO(#env, #VARIABLE), #VARIABLE, #csortanno?, TRUE, #cont)
 
-  rule JavaJFreshesTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
+  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
   → JavaJFreshesMaybeTerms(#env, #cterms?, (env) -> JavaJFreshesMaybeSubst(env, #csubst?, #cont))
 
-  rule JavaJFreshesTerm(#env, cterm⟦ [ x ##csortanno? ] ##cterm[x] ⟧, #cont)
+  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* [ x ##csortanno? ] ##cterm[x] ⟧, #cont)
   → JavaJFreshesVariable(#env, NONE, var, #csortanno?, FALSE, (env) -> JavaJFreshesTerm(env, #cterm[var], #cont))
 
-  rule JavaJFreshesTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
+  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
   → JavaJFreshesTerm(JAddVar(#env, var, JFormal(text⟦ dummy ⟧, NONE)), #cterm[var], #cont)
 
-  rule JavaJFreshesTerm(#env, cterm⟦ { ##cmapentries? } ##csortanno? ⟧, #cont)
+  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* { ##cmapentries? } ##csortanno? ⟧, #cont)
   → Error("Internal Error: map expression must no occur in the contraction.")
 
-  rule JavaJFreshesTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)
+  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #cont)
   → JavaJFreshesTerm(#env, #cterm, #cont)
 
 func JavaJFreshesMaybeTerms({String : JEnvEntry}, List<Core_cterms_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
@@ -1220,24 +1243,24 @@ func JavaExprTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) 
   rule JavaExprTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #cont)
   → JavaExprConstruction(#env, #canno*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #cont)
 
-  rule JavaExprTerm(#env, cterm⟦ ##cliteral ⟧, #cont)
+  rule JavaExprTerm(#env, cterm⟦ ##canno* ##cliteral ⟧, #cont)
   → text⟦
       †⟨Literal(#cliteral)⟩†⟨#cont(#env)⟩⟧
 
-  rule JavaExprTerm(#env, cterm⟦ ##VARIABLE ##csortanno? ⟧, #cont)
+  rule JavaExprTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧, #cont)
   → JavaExprMaybeVar(#env, JGetVarO(#env, #VARIABLE), #VARIABLE, #cont)
 
-  rule JavaExprTerm(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
-  → JavaExprMeta(#env, #METAVAR, #cterms?, #csubst?, #cont)
+  rule JavaExprTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
+  → JavaExprMeta(#env, #canno*, #METAVAR, #cterms?, #csubst?, #cont)
 
-  rule JavaExprTerm(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧, #cont)
+  rule JavaExprTerm(#env, cterm⟦ ##canno* [ x ##csortanno?[] ] ##cterm[x] ⟧, #cont)
   → text⟦
       bound†⟨NumberToText(JGetCounter(#env))⟩, †⟨JavaExprTerm(JAddVar(JIncCounter(#env), var, JBound(text⟦bound†⟨NumberToText(JGetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
 
-  rule JavaExprTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
+  rule JavaExprTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
   → text⟦newClosure((†⟨GetContext(NewContext(#env))⟩†⟨JavaExprLambda(NewContext(#env), cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)⟩⟧
 
-  rule JavaExprTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)
+  rule JavaExprTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #cont)
   → text⟦newClosure(†⟨GetContext(NewContext(#env))⟩ -> ⟨JavaExprTerm(NewContext(#env), #cterm, (env) -> text⟦)⟨#cont(env)⟩⟧)⟩⟧
 
 // ---- construction expression
@@ -1284,8 +1307,8 @@ rule JavaIfExpr(#env, cterms?⟦ ( ##cterm1, ##cterm2, ##cterm3 ) ⟧, #cont)
         : (†⟨JavaExprTerm(env, JavaIfBranch(#cterm3), (env)->text⟦)†⟨#cont(env)⟩⟧)⟩⟧)⟩⟧)⟩⟧
 
 func JavaIfBranch(Core_cterm_sort) -> Core_cterm_sort
-rule JavaIfBranch(cterm⟦ ##METAVAR ##csortanno? ⟧) → cterm⟦ ##METAVAR () ⟧ // metavariable must be a closure (checked by infer)
-rule JavaIfBranch(#cterm                ) → StripThunk(#cterm)
+rule JavaIfBranch(cterm⟦ ##canno* ##METAVAR ##csortanno? ⟧) → cterm⟦ ##METAVAR () ⟧ // metavariable must be a closure (checked by infer)
+rule JavaIfBranch(#cterm                                  ) → StripThunk(#cterm)
 
 // --- Variable
 
@@ -1300,27 +1323,28 @@ func JavaExprMaybeVar({String : JEnvEntry}, Option<JVarEntry>, String, ({String 
 
 // ----  metavar expression
 
-func JavaExprMeta({String : JEnvEntry}, String, List<Core_cterms_sort>, List<Core_csubst_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
-
-   // TODO: check that metavar is defined
+func JavaExprMeta({String : JEnvEntry}, List<Core_canno_sort>, String, List<Core_cterms_sort>, List<Core_csubst_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   // No arguments -> just return the metavariable.
-  rule JavaExprMeta(#env, #metavar, cterms?⟦⟧, csubst?⟦⟧, #cont)
-  → text⟦†⟨JGetMetaVar(#env, #metavar)⟩†⟨#cont(#env)⟩⟧
+  rule JavaExprMeta(#env, #canno*, #metavar, cterms?⟦⟧, csubst?⟦⟧, #cont)
+  → text⟦†⟨JavaExprRefMeta(#env, #canno*, #metavar)⟩†⟨#cont(#env)⟩⟧
 
   // No arguments in parenthesis -> call lambda with no param.
-  rule JavaExprMeta(#env, #metavar, cterms?⟦ () ⟧, csubst?⟦⟧, #cont)
-  → text⟦†⟨JGetMetaVar(#env, #metavar)⟩.eval(context)†⟨#cont(#env)⟩⟧
+  rule JavaExprMeta(#env, #canno*, #metavar, cterms?⟦ () ⟧, csubst?⟦⟧, #cont)
+  → text⟦†⟨JavaExprRefMeta(#env, #canno*, #metavar)⟩.eval(context)†⟨#cont(#env)⟩⟧
 
   // Apply arguments -> call lambda
-  rule JavaExprMeta(#env, #metavar, cterms?⟦ ( ##cterm* ) ⟧, csubst?⟦⟧, #cont)
-  → text⟦†⟨JGetMetaVar(#env, #metavar)⟩.eval(context†⟨JavaExprTerms(#env, #cterm*, #cont)⟩⟧
+  rule JavaExprMeta(#env, #canno*, #metavar, cterms?⟦ ( ##cterm* ) ⟧, csubst?⟦⟧, #cont)
+  → text⟦†⟨JavaExprRefMeta(#env, #canno*, #metavar)⟩.eval(context†⟨JavaExprTerms(#env, #cterm*, #cont)⟩⟧
 
   // Substitution
-  rule JavaExprMeta(#env, #metavar, #cterms?, csubst?⟦ [ ##cterm* ] ⟧, #cont)
-  → text⟦subst(context, †⟨JGetMetaVar(#env, #metavar)⟩†⟨JavaExprMetaArgs(#env, JGetMetaArgs(#env, #metavar), #cterm*, #cont)⟩⟧
+  rule JavaExprMeta(#env, #canno*, #metavar, #cterms?, csubst?⟦ [ ##cterm* ] ⟧, #cont)
+  → text⟦subst(context, †⟨JavaExprRefMeta(#env, #canno*, #metavar)⟩†⟨JavaExprMetaArgs(#env, JGetMetaArgs(#env, #metavar), #cterm*, #cont)⟩⟧
 
   // TODO: call and substitution
+
+func JavaExprRefMeta(#env: {String : JEnvEntry}, #canno*: List<Core_canno_sort>, #metavar: String) -> Text4_text_sort
+→ If(HasAnnotation("Keep", #canno*), ()->text⟦ref(†⟨JGetMetaVar(#env, #metavar)⟩)⟧, ()->text⟦†⟨JGetMetaVar(#env, #metavar)⟩⟧)
 
 func JavaExprMetaArgs({String : JEnvEntry}, List<Text4_text_sort> /* pattern args */, List<Core_cterm_sort> /* contraction args */,
                      ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
@@ -1328,14 +1352,14 @@ func JavaExprMetaArgs({String : JEnvEntry}, List<Text4_text_sort> /* pattern arg
   rule JavaExprMetaArgs(#env, (), #args,  #cont)
   → text⟦)†⟨#cont(#env)⟩⟧
 
-  rule JavaExprMetaArgs(#env, Cons(#binder:Text4_text_sort,  #binders: List<Text4_text_sort>), Cons(#arg:Core_cterm_sort, #args:List<Core_cterm_sort>), #cont)
+  rule JavaExprMetaArgs(#env, (#binder,  #binders...), (#arg, #args...), #cont)
   → text⟦,†⟨#binder⟩,†⟨JavaExprTerm(#env, #arg, (env) -> JavaExprMetaArgs(env, #binders, #args, #cont))⟩⟧
 
 // ---- lambda expression
 
 func JavaExprLambda({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaExprLambda(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
+  rule JavaExprLambda(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
   → text⟦, p†⟨NumberToText(JGetParamCounter(#env))⟩†⟨JavaExprLambda(JAddVar(JIncParamCounter(#env), var, JFormal(text⟦p†⟨NumberToText(JGetParamCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
 
   // fallback
@@ -1442,7 +1466,8 @@ enum JVarEntry
   | JFormal(Text4_text_sort /* Java var */, Option<Core_csort_sort>)
 
 enum JMetaEntry | JMetaVar(Text4_text_sort,       /* Java variable associated with the meta variable*/
-                         List<Text4_text_sort>) /* Java variables associated to the meta variable bound variables */
+                           List<Text4_text_sort>, /* Java variables associated to the meta variable bound variables */
+                           Storage)               /* How the metavar is represented (function parameter or local variable) */
 
 enum JMapEntry | JMapEntry(Core_cmapentry_sort, Text4_text_sort, Core_cmapsort_sort)
 
@@ -1475,7 +1500,7 @@ func JNewEnv -> {String : JEnvEntry}
 
 func JGetValue<a>({String : JEnvEntry}, String, (JEnvEntry) -> a) -> a
 rule JGetValue(#env, #key, #unwrap)
-→ #unwrap(UnSOME<JEnvEntry>(MapGet<String JEnvEntry>(#env, #key)))
+→ #unwrap(UnSOME(MapGet(#env, #key)))
 
 func JSetValue({String : JEnvEntry}, String, JEnvEntry) -> {String : JEnvEntry}
 rule JSetValue(#env, #key, #value)
@@ -1518,10 +1543,13 @@ rule UnJVarSort(JFresh(#1, #2)) → #2
 rule UnJVarSort(JFormal(#1, #2)) → #2
 
 func UnJMetaVar(JMetaEntry) -> Text4_text_sort
-rule UnJMetaVar(JMetaVar(#1, #2)) → #1
+rule UnJMetaVar(JMetaVar(#1, #2, #3)) → #1
 
 func UnJMetaArgs(JMetaEntry) -> List<Text4_text_sort>
-rule UnJMetaArgs(JMetaVar(#1, #2)) → #2
+rule UnJMetaArgs(JMetaVar(#1, #2, #3)) → #2
+
+func UnJMetaStorage(JMetaEntry) -> Storage
+rule UnJMetaStorage(JMetaVar(#1, #2, #3)) → #3
 
 func UnJContext(JEnvEntry) -> Text4_text_sort
 rule UnJContext(JContext(#1, #2)) → #1
@@ -1578,16 +1606,16 @@ func JAddParam({String : JEnvEntry}, Text4_text_sort, Core_csort_sort) -> {Strin
 rule JAddParam(#env, #param, #csort) → JSetValue(#env, "params", JParams(Append(PairCons(#param, #csort), JGetParams(#env))))
 
 // Move to the next parameter
-func JNextParam({String : JEnvEntry}) -> {String : JEnvEntry}
-rule JNextParam(#env) → JSetParams(#env, Tail(JGetParams(#env)))
+func JavaNextParam({String : JEnvEntry}) -> {String : JEnvEntry}
+rule JavaNextParam(#env) → JSetParams(#env, Tail(JGetParams(#env)))
 
 // Get the current parameter text
-func JCurrentParam({String : JEnvEntry}) -> Text4_text_sort
-rule JCurrentParam(#env) → Fst<Text4_text_sort Core_csort_sort>(Head(JGetParams(#env)))
+func JavaCurrentParam({String : JEnvEntry}) -> Text4_text_sort
+rule JavaCurrentParam(#env) → Fst<Text4_text_sort Core_csort_sort>(Head(JGetParams(#env)))
 
 // Get the current parameter text
-func JCurrentParamSort({String : JEnvEntry}) -> Core_csort_sort
-rule JCurrentParamSort(#env) → Snd<Text4_text_sort Core_csort_sort>(Head(JGetParams(#env)))
+func JavaCurrentParamSort({String : JEnvEntry}) -> Core_csort_sort
+rule JavaCurrentParamSort(#env) → Snd<Text4_text_sort Core_csort_sort>(Head(JGetParams(#env)))
 
 // --- Current method name
 
@@ -1627,20 +1655,21 @@ rule JSetLabel(#env, #label) → JSetValue(#env, "label", JText(#label))
 // --- Meta
 
 func JGetMetas({String : JEnvEntry}) -> {String : JMetaEntry}
-rule JGetMetas(#env) → JGetValue<{String:JMetaEntry}>(#env, "meta", (x) -> UnJMapMeta(x))
+rule JGetMetas(#env) → JGetValue(#env, "meta", (x) -> UnJMapMeta(x))
 
 func JGetMetaVar({String : JEnvEntry}, String) -> Text4_text_sort
-rule JGetMetaVar(#env, #metavar) → UnJMetaVar(UnSOME<JMetaEntry>(MapGet<String JMetaEntry>(JGetMetas(#env), #metavar)))
+rule JGetMetaVar(#env, #metavar) → UnJMetaVar(UnSOME(MapGet(JGetMetas(#env), #metavar)))
 
 /* @return the Java variable associated to the given `#metavar`, or `NONE` when no such association exists */
 func JGetMetaVarO(#env: {String : JEnvEntry}, #metavar: String) -> Option<Text4_text_sort>
 → Maybe((entry)->UnJMetaVar(entry), MapGet(JGetMetas(#env), #metavar))
 
 func JGetMetaArgs({String : JEnvEntry}, String) -> List<Text4_text_sort>
-rule JGetMetaArgs(#env, #metavar) → UnJMetaArgs(UnSOME<JMetaEntry>(MapGet<String JMetaEntry>(JGetMetas(#env), #metavar)))
+rule JGetMetaArgs(#env, #metavar) → UnJMetaArgs(UnSOME(MapGet(JGetMetas(#env), #metavar)))
 
-func JAddMeta(#env: {String : JEnvEntry}, #metavar:String, #term: Text4_text_sort, #boundvars: List<Text4_text_sort>) -> {String : JEnvEntry}
-→ JSetValue(#env,  "meta", JMapMeta(MapPut<String JMetaEntry>(JGetMetas(#env), #metavar, JMetaVar(#term, #boundvars))))
+func JAddMeta(#env: {String : JEnvEntry}, #metavar:String, #term: Text4_text_sort, #boundvars: List<Text4_text_sort>,
+                #storage: Storage) -> {String : JEnvEntry}
+→ JSetValue(#env,  "meta", JMapMeta(MapPut(JGetMetas(#env), #metavar, JMetaVar(#term, #boundvars, #storage))))
 
 // --- Variable
 
@@ -1720,7 +1749,6 @@ func JSetParamCounter(#env: {String : JEnvEntry}, #index:Numeric) -> {String : J
 func JIncParamCounter(#env: {String : JEnvEntry}) -> {String : JEnvEntry}
 → JSetValue(#env, "pcounter", JNum(Plus(JGetParamCounter(#env), 1)))
 
-
 // --- Context
 
 func GetContext({String : JEnvEntry}) -> Text4_text_sort
@@ -1739,10 +1767,21 @@ rule NewContext(#env)
 // --- function annotation
 
 func GetFnAnno({String : JEnvEntry}) -> List<Core_canno_sort>
-rule GetFnAnno(#env) → JGetValue<List>(#env, "fnanno", (x) -> UnJFnAnno(x))
+rule GetFnAnno(#env) → JGetValue(#env, "fnanno", (x) -> UnJFnAnno(x))
 
 func SetFnAnno({String : JEnvEntry}, List<Core_canno_sort>) -> {String : JEnvEntry}
 rule SetFnAnno(#env, #anno*) → JSetValue(#env, "fnanno", JFnAnno(#anno*))
+
+// --- List of top-level terms to release before contraction
+
+func JGetDiscard(#env: {String : JEnvEntry}) -> List<Text4_text_sort>
+→ JGetValue(#env, "discard", (x) -> UnJTexts(x))
+
+func JSetDiscard(#env: {String : JEnvEntry}, #terms: List<Text4_text_sort>) -> {String : JEnvEntry}
+→ JSetValue(#env, "discard", JTexts(#terms))
+
+func JAddDiscard(#env: {String : JEnvEntry}, #term:Text4_text_sort) -> {String : JEnvEntry}
+→ JSetDiscard(#env, (#term, JGetDiscard(#env)...))
 
 // --- Delayed map entries
 

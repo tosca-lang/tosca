@@ -124,8 +124,6 @@ func NoAliasMaybeSortArgs(TSystem, List<Core_csortargs_sort>) -> List<Core_csort
 rule NoAliasMaybeSortArgs(#system, csortargs?⟦            ⟧) → csortargs?⟦⟧
 rule NoAliasMaybeSortArgs(#system, csortargs?⟦< ##csort* >⟧) → csortargs?⟦ < ⟨csort*: NoAliasSorts(#system, #csort*)⟩ > ⟧
 
-
-
 // --- Data sorts
 
 func NoAliasDataSorts(#system: TSystem, #sorts: {String : Core_cdecl_sort}) -> {String : Core_cdecl_sort}

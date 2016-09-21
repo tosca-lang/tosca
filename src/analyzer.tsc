@@ -26,7 +26,7 @@ func AnalyzeM(#env: TSystem, #module: Module) -> Module
 /* Module content analysis */
 func AnalyzeC(Content) -> Content
 rule AnalyzeC(Content(#imports, #rules, #datasorts, #alias, #funcsorts))
-→ Content(#imports, #rules/*AnalyzeRules(#rules)*/, #datasorts, #alias, 
+→ Content(#imports, AnalyzeRules(#rules), #datasorts, #alias,
             FoldlP((name sorts) -> AnalyzeFallbackFunc(sorts, UnSOME(MapGet(#funcsorts, name)), HasFallback(MapGet(#rules, name))), #funcsorts, MapKeys(#funcsorts)))
 
 // --- Fallback analysis
@@ -60,26 +60,28 @@ func IsFallbackRule(Core_cdecl_sort) -> Bool
   → Not(HasOption(PickFirst(#cterm*, (term) -> Not(IsMeta(term)))))
 
 
-/*// --- Lifetime analysis (bottom up tree traversal)
+// --- Lifetime analysis (bottom up tree traversal)
 
 func AnalyzeRules(#rules: {String:List<Core_cdecl_sort>}) -> {String:List<Core_cdecl_sort>}
 → FoldlP((key rules)->MapPut(rules, key, Map((rule)->AnalyzeRule(rule), UnSOME(MapGet(#rules, key)))), #rules, MapKeys(#rules))
 
 func AnalyzeRule(Core_cdecl_sort) -> Core_cdecl_sort
 rule AnalyzeRule(cdecl⟦ ##canno* rule ##cterm1 → ##cterm2 ⟧)
-→ UnPair(AnalyzeMetaUse(LEnvNew, #cterm2), (env term)->cdecl⟦ ⟨canno*: AnalyzeRuleAnno(env, #canno*)⟩ rule #cterm1 → ⟨cterm: term⟩ ⟧)
+→ UnPair(AnalyzeMetaUse(LEnvNew, #cterm2), (env term)->cdecl⟦ ⟨canno*: AnalyzeRuleAnno(env, #canno*)⟩ rule ##cterm1 → ⟨cterm: term⟩ ⟧)
 
 // -- Analyze rule contraction: annotate metavariable and record their use in the environment
 
 func AnalyzeMetaUse(LEnv, Core_cterm_sort) -> PPair<LEnv Core_cterm_sort>
 
   rule AnalyzeMetaUse(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧)
-  → UnPair(AnalyzeMetaUseMaybeTerms(#env, #cterms?), (env terms)->cterm⟦ ##canno* ##cqconstructor ##csortargs? ⟨cterms?: terms⟩ ##csortanno? ⟧)
+  → UnPair(AnalyzeMetaUseMaybeTerms(#env, #cterms?), (env terms)->PairCons(env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ⟨cterms?: terms⟩ ##csortanno? ⟧))
 
   rule AnalyzeMetaUse(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? : ##csort ⟧)
-  → UnPair(AnalyzeMetaUseMaybeSubst(env, #csubst?), (env substs)->
+  → AnalyzeMetaUseMeta(#canno*, #METAVAR, #cterms?, AnalyzeMetaUseMaybeSubst(#env, #csubst?), #csort)
+// Eclipse does not like this:
+  /*→ UnPair(AnalyzeMetaUseMaybeSubst(#env, #csubst?), (env substs)->
       UnPair(AnalyzeMetaUseMaybeTerms(env, #cterms?), (env terms)->
-        PairCons(env, cterm⟦ ⟨canno*: AnalyzeMayKeep(LEnvGetMetaCount(env, #METAVAR), #canno*)⟩ ##METAVAR ⟨cterms?: terms⟩ ⟨csubst?: substs⟩ : ##csort ⟧)))
+        PairCons(env, cterm⟦ ⟨canno*: AnalyzeMayKeep(LEnvGetMetaCount(env, #METAVAR), #canno*)⟩ ##METAVAR ⟨cterms?: terms⟩ ⟨csubst?: substs⟩ : ##csort ⟧)))*/
 
   rule AnalyzeMetaUse(#env, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧)
   → AnalyzeMetaUseBound(#canno*, [x]->AnalyzeMetaUse(#env, #cterm[x]), #csort)
@@ -109,12 +111,19 @@ func AnalyzeMetaUseMaybeTerms(LEnv, List<Core_cterms_sort>) -> PPair<LEnv List<C
 func AnalyzeMetaUseTerms(LEnv, List<Core_cterm_sort>) -> PPair<LEnv List<Core_cterm_sort>>
 
   rule AnalyzeMetaUseTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧)
-  → UnPair(AnalyzeMetaUseTerms(#env, #cterm*), (env terms)->
+  → AnalyzeMetaUseTerms2(#cterm, AnalyzeMetaUseTerms(#env, #cterm*))
+
+  // Eclise does not like this
+  /*→ UnPair(AnalyzeMetaUseTerms(#env, #cterm*), (env terms)->
       UnPair(AnalyzeMetaUse(env, #cterm), (env term)->
-        PairCons(env, cterm*⟦ ⟨cterm: term⟩ ⟨cterm*: terms⟩ ⟧)))
+        PairCons(env, cterm*⟦ ⟨cterm: term⟩ ⟨cterm*: terms⟩ ⟧)))*/
 
   rule AnalyzeMetaUseTerms(#env, #cterm*)
   → PairCons(#env, #cterm*)
+
+func AnalyzeMetaUseTerms2(Core_cterm_sort, PPair<LEnv List<Core_cterm_sort>>) -> PPair<LEnv List<Core_cterm_sort>>
+rule AnalyzeMetaUseTerms2(#cterm, PairCons(#env, #cterm*))
+→ UnPair(AnalyzeMetaUse(#env, #cterm), (env term)->PairCons(env, cterm*⟦ ⟨cterm: term⟩ ##cterm* ⟧))
 
 func AnalyzeMetaUseMaybeSubst(LEnv, List<Core_csubst_sort>) -> PPair<LEnv List<Core_csubst_sort>>
 
@@ -123,6 +132,14 @@ func AnalyzeMetaUseMaybeSubst(LEnv, List<Core_csubst_sort>) -> PPair<LEnv List<C
 
   rule AnalyzeMetaUseMaybeSubst(#env, #csubst?)
   → PairCons(#env, #csubst?)
+
+func AnalyzeMetaUseMeta(List<Core_canno_sort>, String, List<Core_cterms_sort>, PPair<LEnv List<Core_csubst_sort>>, Core_csort_sort) -> PPair<LEnv Core_cterm_sort>
+rule AnalyzeMetaUseMeta(#canno*, #METAVAR, #cterms?, PairCons(#env, #csubst?), #csort)
+→  AnalyzeMetaUseMeta2(#canno*, #METAVAR, AnalyzeMetaUseMaybeTerms(#env, #cterms?), #csubst?, #csort)
+
+func AnalyzeMetaUseMeta2(List<Core_canno_sort>, String, PPair<LEnv List<Core_cterms_sort>>, List<Core_csubst_sort>, Core_csort_sort) -> PPair<LEnv Core_cterm_sort>
+rule AnalyzeMetaUseMeta2(#canno*, #METAVAR, PairCons(#env, #cterms?), #csubst?, #csort)
+→  PairCons(LEnvIncMetaCount(#env, #METAVAR), cterm⟦ ⟨canno*: AnalyzeMayKeep(LEnvGetMetaCount(#env, #METAVAR), #canno*)⟩ ##METAVAR ##cterms? ##csubst? : ##csort ⟧)
 
 func AnalyzeMetaUseBound(List<Core_canno_sort>, [String]->PPair<LEnv Core_cterm_sort>, Core_csort_sort) -> PPair<LEnv Core_cterm_sort>
 rule AnalyzeMetaUseBound(#canno*, [x]->PairCons(#env, #cterm[x]), #csort) → PairCons(#env, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧)
@@ -143,14 +160,15 @@ func AnalyzeMayKeep(Option<Numeric>, List<Core_canno_sort>) -> List<Core_canno_s
       ()->#canno*)
 
 // Add @KeepAll(#...) annotation for metavars occuring more than once.
-func AnalyzeMayKeepAll(LEnv, List<String>, List<Core_canno_sort>) -> List<Core_canno_sort>
+func AnalyzeMayKeepAll(#env: LEnv, #metas: List<String>, #canno*: List<Core_canno_sort>) -> List<Core_canno_sort>
+→ AnalyzeKeepAllFiltered(Map((meta)->cterm⟦ ⟨METAVAR: meta⟩ ⟧, AnalyzeFilterMeta(#env, #metas)), #canno*)
 
-  rule AnalyzeMayKeepAll(#env, (), #canno*)
-  → #canno*
+func AnalyzeKeepAllFiltered(List<Core_cterm_sort>, List<Core_canno_sort>) -> List<Core_canno_sort>
+rule AnalyzeKeepAllFiltered(cterm*⟦⟧, #canno*) → #canno*
+rule AnalyzeKeepAllFiltered(#cterm*, #canno*) → canno*⟦ @KeepAll( ##cterm* ) ##canno* ⟧
 
-  rule AnalyzeMayKeepAll(#env, #metas, #canno*)
-  → canno*⟦ @KeepAll( ⟨cterm*: Map((meta)->cterm⟦ ⟨METAVAR: meta⟩ ⟧,
-                                     Filter((meta)->IfPresent(MapGet(#env, meta), (count)->Equal(count, 1), ()->TRUE), #metas))⟩ ) ##canno* ⟧
+func AnalyzeFilterMeta(#env: LEnv, #metas: List<String>) -> List<String>
+→ Filter((meta)->IfPresent(MapGet(#env, meta), (count)->Equal(count, 1), ()->TRUE), #metas)
 
 // Account for captured metavars `#ienv`
 func AnalyzeCaptured(#env: LEnv, #ienv:LEnv) -> LEnv
@@ -159,7 +177,7 @@ func AnalyzeCaptured(#env: LEnv, #ienv:LEnv) -> LEnv
 // Annotate rule with metavariables used in the contraction
 
 func AnalyzeRuleAnno(#env: LEnv, #canno*: List<Core_canno_sort>) -> List<Core_canno_sort>
-→  canno*⟦ @KeepAll( ⟨cterm*: Map((meta)->cterm⟦ ⟨METAVAR: meta⟩ ⟧, MapKeys(#env))⟩ ) ##canno* ⟧
+→ AnalyzeKeepAllFiltered(Map((meta)->cterm⟦ ⟨METAVAR: meta⟩ ⟧, MapKeys(#env)), #canno*)
 
 // --- Lifetime analysis environment
 
@@ -171,4 +189,4 @@ func LEnvGetMetaCount(#env: LEnv, #metavar: String) -> Option<Numeric>
 → MapGet(#env, #metavar)
 
 func LEnvIncMetaCount(#env: LEnv, #metavar: String) -> LEnv
-→ MapPut(#env, #metavar, IfPresent(LEnvGetMetaCount(#env, #metavar), (count)->Plus(count, 1), ()->1))*/
+→ MapPut(#env, #metavar, IfPresent(LEnvGetMetaCount(#env, #metavar), (count)->Plus(count, 1), ()->1))
