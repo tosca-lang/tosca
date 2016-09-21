@@ -36,7 +36,7 @@ rule NoAliasRule(#system, cdecl⟦ ##canno* rule ##cterm1 → ##cterm2 ⟧) → 
 func NoAliasTerm(TSystem, Core_cterm_sort) -> Core_cterm_sort
 
   rule NoAliasTerm(#system, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧)
-  → cterm⟦ ##canno* ##cqconstructor ##csortargs? ⟨cterms?: NoAliasMaybeTerms(#system, #cterms?)⟩ ⟨csortanno?: NoAliasMaybeSortAnno(#system, #csortanno?)⟩ ⟧
+  → cterm⟦ ##canno* ##cqconstructor ⟨csortargs?: NoAliasMaybeSortArgs(#system, #csortargs?)⟩ ⟨cterms?: NoAliasMaybeTerms(#system, #cterms?)⟩ ⟨csortanno?: NoAliasMaybeSortAnno(#system, #csortanno?)⟩ ⟧
 
   rule NoAliasTerm(#system, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? : ##csort ⟧)
   → cterm⟦ ##canno* ##METAVAR ⟨cterms?: NoAliasMaybeTerms(#system, #cterms?)⟩  ⟨csubst?: NoAliasMaybeSubst(#system, #csubst?)⟩  : ⟨csort: NoAliasSort(#system, #csort)⟩ ⟧
@@ -107,8 +107,11 @@ func NoAliasSortConstructor(Option<Core_cdecl_sort>, TSystem, String, List<Core_
   → Error("Polymorphic sort aliases not supported yet")
 
 func NoAliasMaybeSorts(TSystem, List<Core_csorts_sort>) -> List<Core_csorts_sort>
-rule NoAliasMaybeSorts(#system, csorts?⟦             ⟧) → csorts?⟦⟧
-rule NoAliasMaybeSorts(#system, csorts?⟦ ( ##csort* )⟧) → csorts?⟦ ( ⟨csort*: Map((sort)->NoAliasSort(#system, sort), #csort*)⟩ ) ⟧
+rule NoAliasMaybeSorts(#system, csorts?⟦              ⟧) → csorts?⟦⟧
+rule NoAliasMaybeSorts(#system, csorts?⟦ ( ##csort* ) ⟧) → csorts?⟦ ( ⟨csort*: NoAliasSorts(#system, #csort*)⟩ ) ⟧
+
+func NoAliasSorts(#system: TSystem, #csort*: List<Core_csort_sort>) -> List<Core_csort_sort>
+→ Map((sort)->NoAliasSort(#system, sort), #csort*)
 
 func NoAliasMapSorts(TSystem, List<Core_cmapsort_sort>) -> List<Core_cmapsort_sort>
 rule NoAliasMapSorts(#system, cmapsort*⟦                        ⟧) → cmapsort*⟦⟧
@@ -116,6 +119,12 @@ rule NoAliasMapSorts(#system, cmapsort*⟦ ##cmapsort ##cmapsort* ⟧) → cmaps
 
 func NoAliasMapSort(TSystem, Core_cmapsort_sort) -> Core_cmapsort_sort
 rule NoAliasMapSort(#system, cmapsort⟦ ##csort1 : ##csort2 ⟧) → cmapsort⟦ ⟨csort: NoAliasSort(#system, #csort1)⟩ : ⟨csort: NoAliasSort(#system, #csort2)⟩ ⟧
+
+func NoAliasMaybeSortArgs(TSystem, List<Core_csortargs_sort>) -> List<Core_csortargs_sort>
+rule NoAliasMaybeSortArgs(#system, csortargs?⟦            ⟧) → csortargs?⟦⟧
+rule NoAliasMaybeSortArgs(#system, csortargs?⟦< ##csort* >⟧) → csortargs?⟦ < ⟨csort*: NoAliasSorts(#system, #csort*)⟩ > ⟧
+
+
 
 // --- Data sorts
 

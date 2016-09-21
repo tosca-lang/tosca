@@ -277,7 +277,7 @@ rule UnZipS(Cons(PPair<a b>::PairCons(#F: a, #S: b), #XS:List<PPair<a b>>)) → 
     @return a list of values associated to the `#Key` in `#KeyValueList` and returns the empty list, if `#Key` was not found
 */
 func LookUp<a b>(a, eager List<PPair<a b>>) -> List<b>
-rule LookUp(#Key, #KeyValueList) → Map<Pair b>((x) -> Snd<a b>(x), Filter<Pair>((pair) -> Equal(#Key, Fst<a b>(pair)), #KeyValueList))
+rule LookUp(#Key, #KeyValueList) → Map((x) -> Snd(x), Filter((pair) -> Equal(#Key, Fst(pair)), #KeyValueList))
 
 /* `LookUpVar( #Key, #KeyValueList)`
     @param `#Key`          a variable
@@ -294,7 +294,7 @@ rule LookUpVar(#Key, #KeyValueList) → Map((x) -> Snd(x), Filter((pair) -> Same
    @return a list of `#KeyValueList`, where all entries with `#Key` are deleted
  */
 func DelEntry<a b>(a, List<PPair<a b>>) -> List<PPair<a b>>
-rule DelEntry(#Key, #KeyValueList) → Filter<Pair>((pair) -> Not(Equal(Fst(pair), #Key)), #KeyValueList)
+rule DelEntry(#Key, #KeyValueList) → Filter((pair) -> Not(Equal(Fst(pair), #Key)), #KeyValueList)
 
 /* `Partition((x) ->#C(x), #XS)`
     @param `(x) ->#C(x)` a condition to partition
@@ -350,7 +350,7 @@ rule MapM3(PairCons(#nstate:a, #r:c), #, #s, #rs) → MapM2<a b c>(#, #nstate, #
     @return a list, where with only those `#X` in `#XS` where condition `#C(#X)` evaluates to `TRUE`
 */
 func Filter<a>((a) -> Bool, List<a>) -> List<a>
-rule Filter(#C, #XS) → Foldr<a List>((x y) -> ConditionalInsert<a>(#C(x), x, y) , (), #XS)
+rule Filter(#C, #XS) → Foldr((x y) -> ConditionalInsert(#C(x), x, y) , (), #XS)
 
 /*
  * Folds
@@ -363,8 +363,8 @@ rule Filter(#C, #XS) → Foldr<a List>((x y) -> ConditionalInsert<a>(#C(x), x, y
     @return a value, where the the function `#F` is applied left associatively to all `#X` in `#XS` starting from the accumulator `#Z`
 */
 func Foldl<a b>((a b) -> b, b, List<a>) -> b
-rule Foldl(#F, #Z, (                    )) → #Z
-rule Foldl(#F, #Z, Cons(#H:a, #T:List<a>)) → Foldl<a b>(#F, #F(#H,#Z), #T)
+rule Foldl(#F, #Z, (         )) → #Z
+rule Foldl(#F, #Z, (#H, #T...)) → Foldl(#F, #F(#H,#Z), #T)
 
 /*
   @note `InterpreterWrap` for `FoldP` enforcing computation of argument list `#XS`
