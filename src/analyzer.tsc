@@ -87,13 +87,14 @@ func AnalyzeMetaUse(LEnv, Core_cterm_sort) -> PPair<LEnv Core_cterm_sort>
   → AnalyzeMetaUseBound(#canno*, [x]->AnalyzeMetaUse(#env, #cterm[x]), #csort)
 
   rule AnalyzeMetaUse(#env, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧)
-  → AnalyzeMetaUseFormal(#env, #canno*, [f]->AnalyzeMetaUse(LEnvNew, #cterm[f]), #csort)
+  → AnalyzeMetaUseFormal(#env, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧)
 
   rule AnalyzeMetaUse(#env, cterm⟦ ##canno* { ##cmapentries? } : ##csort ⟧)
   → Error("Internal Error: Map cannot occur in contraction. See normalizer.")
 
   rule AnalyzeMetaUse(#env, cterm⟦ ##canno* thunk ##cterm ⟧)
-  → UnPair(AnalyzeMetaUse(#env, #cterm), (env term)->PairCons(env, cterm⟦ ##canno* thunk ⟨cterm: term⟩ ⟧))
+  //→ UnPair(AnalyzeMetaUse(#env, #cterm), (env term)->PairCons(env, cterm⟦ ##canno* thunk ⟨cterm: term⟩ ⟧))
+  → AnalyzeMetaUseThunk(#env, #canno*, AnalyzeMetaUse(LEnvNew, #cterm))
 
   rule AnalyzeMetaUse(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧)
   → Error("Internal Error: Named terms cannot occur in contraction")
@@ -144,9 +145,25 @@ rule AnalyzeMetaUseMeta2(#canno*, #METAVAR, PairCons(#env, #cterms?), #csubst?, 
 func AnalyzeMetaUseBound(List<Core_canno_sort>, [String]->PPair<LEnv Core_cterm_sort>, Core_csort_sort) -> PPair<LEnv Core_cterm_sort>
 rule AnalyzeMetaUseBound(#canno*, [x]->PairCons(#env, #cterm[x]), #csort) → PairCons(#env, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧)
 
-func AnalyzeMetaUseFormal(LEnv, List<Core_canno_sort>, [String]->PPair<LEnv Core_cterm_sort>, Core_csort_sort) -> PPair<LEnv Core_cterm_sort>
-rule AnalyzeMetaUseFormal(#env, #canno*, [x]->PairCons(#ienv, #cterm[x]), #csort)
-→ PairCons(AnalyzeCaptured(#env, #ienv), cterm⟦ ⟨canno*: AnalyzeMayKeepAll(#env, MapKeys(#ienv), #canno*)⟩ ( f : ##csort ) ##cterm[f] ⟧)
+func AnalyzeMetaUseFormal(LEnv, Core_cterm_sort) -> PPair<LEnv Core_cterm_sort>
+
+  rule AnalyzeMetaUseFormal(#env, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧)
+  → AnalyzeMetaUseFormalUp(#canno*, [f]->AnalyzeMetaUseFormal(#env, #cterm[f]), #csort)
+
+  rule AnalyzeMetaUseFormal(#env, #cterm)
+  → AnalyzeMetaUseFormalUp2(#env, AnalyzeMetaUse(LEnvNew, #cterm))
+
+func AnalyzeMetaUseFormalUp(List<Core_canno_sort>, [String]->PPair<LEnv Core_cterm_sort>, Core_csort_sort) -> PPair<LEnv Core_cterm_sort>
+rule AnalyzeMetaUseFormalUp(#canno*, [x]->PairCons(#env, #cterm[x]), #csort)
+→ PairCons(#env, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧)
+
+func AnalyzeMetaUseFormalUp2(LEnv, PPair<LEnv Core_cterm_sort>) -> PPair<LEnv Core_cterm_sort>
+rule AnalyzeMetaUseFormalUp2(#env, PairCons(#ienv, #cterm))
+→ PairCons(AnalyzeCaptured(#env, #ienv), AnnotateTerm(#cterm, AnalyzeMayKeepAll(#env, MapKeys(#ienv), ())))
+
+func AnalyzeMetaUseThunk(LEnv, List<Core_canno_sort>, PPair<LEnv Core_cterm_sort>) -> PPair<LEnv Core_cterm_sort>
+rule AnalyzeMetaUseThunk(#env, #canno*, PairCons(#ienv, #cterm))
+→ PairCons(AnalyzeCaptured(#env, #ienv), cterm⟦ ⟨canno*: AnalyzeMayKeepAll(#env, MapKeys(#ienv), #canno*)⟩ thunk ##cterm ⟧)
 
 // Add @Keep annotation only when metavar occurs more than once.
 func AnalyzeMayKeep(Option<Numeric>, List<Core_canno_sort>) -> List<Core_canno_sort>
@@ -155,13 +172,13 @@ func AnalyzeMayKeep(Option<Numeric>, List<Core_canno_sort>) -> List<Core_canno_s
   → #canno*
 
   rule AnalyzeMayKeep(SOME(#count), #canno*)
-  → If(GreaterThan(#count, 1),
+  → If(GreaterThanOrEqual(#count, 1),
       ()->canno*⟦ @Keep ##canno* ⟧,
       ()->#canno*)
 
 // Add @KeepAll(#...) annotation for metavars occuring more than once.
 func AnalyzeMayKeepAll(#env: LEnv, #metas: List<String>, #canno*: List<Core_canno_sort>) -> List<Core_canno_sort>
-→ AnalyzeKeepAllFiltered(Map((meta)->cterm⟦ ⟨METAVAR: meta⟩ ⟧, AnalyzeFilterMeta(#env, #metas)), #canno*)
+→ AnalyzeKeepAllFiltered(Map((meta)->cterm⟦ ⟨canno*: AnalyzeMayKeep(LEnvGetMetaCount(#env, meta), ())⟩ ⟨METAVAR: meta⟩ ⟧, AnalyzeFilterMeta(#env, #metas)), #canno*)
 
 func AnalyzeKeepAllFiltered(List<Core_cterm_sort>, List<Core_canno_sort>) -> List<Core_canno_sort>
 rule AnalyzeKeepAllFiltered(cterm*⟦⟧, #canno*) → #canno*

@@ -47,7 +47,7 @@ public abstract class RefImpl implements Ref
 	 * 
 	 * @return A new reference (itself)
 	 */
-	public RefImpl ref()
+	public Ref ref()
 	{
 		assert refcount > 0 : "Cannot create reference from a freed reference.";
 		

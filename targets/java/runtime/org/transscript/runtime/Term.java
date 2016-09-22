@@ -155,7 +155,7 @@ public interface Term extends Ref
 	 * The reference to this term is consumed.
 	 * 
 	 * @param context
-	 * @return A new reference to the evaluated term. It might still be a thunk if the evaluation has been interrupted
+	 * @return A new reference to the evaluated term. (deprecated: It might still be a thunk if the evaluation has been interrupted)
 	 */
 	default Term eval(Context context)
 	{

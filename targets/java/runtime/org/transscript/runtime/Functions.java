@@ -42,8 +42,11 @@ public class Functions
 
 	static public class Closure0<R extends Term> implements Term
 	{
+		// The lambda.
 		Function0<R> function;
-		Term[] captures; // For reference counting
+		
+		// Captured terms for reference counting
+		Term[] captures; 
 
 		public Closure0(Function0<R> function, Term[] captures)
 		{
@@ -53,6 +56,13 @@ public class Functions
 
 		public R eval(Context context)
 		{
+			// Consume one reference to this term.
+			
+			// Captured term references are consumed by the lambda
+			// so we need to make sure we keep a reference for each if this closure is not the last one.
+			//if (ref)
+			
+			
 			return function.apply(context);
 		}
 
@@ -62,6 +72,20 @@ public class Functions
 			// TODO Auto-generated method stub
 			return null;
 		}
+
+		@Override
+		public void release()
+		{
+			if (captures != null ) // && refcount() == 1
+			{
+				// Has captures and this closure hasn't been evaluated
+					
+			}
+			// TODO Auto-generated method stub
+			Term.super.release();
+		}
+		
+		
 	}
 
 	static public class Closure1<R extends Term, P1 extends Term> implements Term

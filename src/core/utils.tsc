@@ -4,6 +4,7 @@
  */
 import std::core
 import std::listdef
+import std::pairdef
 import std::string
 import std::language
 import std::text::Text4
@@ -11,17 +12,26 @@ import core::Core
 
 /* @return `TRUE` if the term is a meta-variable. Ignore binders and formal parameters  */
 func IsMeta(Core_cterm_sort) -> Bool
-rule IsMeta(cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧) → TRUE
-rule IsMeta(cterm⟦ { : ##METAVAR  } ##csortanno? ⟧)              → TRUE  // Equivalent to just #METAVAR.
-rule IsMeta(cterm⟦ [ v ##csortanno? ] ##cterm[v] ⟧)              → IsMeta(#cterm[var:String])
-rule IsMeta(cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧)              → IsMeta(#cterm[var:String])
-rule IsMeta(cterm⟦ thunk ##cterm ⟧)                              → IsMeta(#cterm)
+rule IsMeta(cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧) → TRUE
+rule IsMeta(cterm⟦ ##canno* { : ##METAVAR  } ##csortanno? ⟧)              → TRUE  // Equivalent to just #METAVAR.
+rule IsMeta(cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ⟧)              → IsMeta(#cterm[var:String])
+rule IsMeta(cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧)              → IsMeta(#cterm[var:String])
+rule IsMeta(cterm⟦ ##canno* thunk ##cterm ⟧)                              → IsMeta(#cterm)
 rule IsMeta(#term)                                               → FALSE
 
 /* @return `TRUE` if the given `#term` is a meta variable of the given `#name`  */
 func IsNamedMeta(Core_cterm_sort, String) -> Bool
 rule IsNamedMeta(cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #name) → StringEqual(#METAVAR, #name)
 rule IsNamedMeta(#term, #name)                                               → FALSE
+
+// Extract meta variables, associated with their annotations, out of the given list of `#terms`.
+func GetMetaVariables(List<Core_cterm_sort>) -> List<PPair<List<Core_canno_sort> String>>
+rule GetMetaVariables(cterm*⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ##cterm* ⟧) → (PairCons(#canno*, #METAVAR), GetMetaVariables(#cterm*)...)
+rule GetMetaVariables(cterm*⟦ ##canno* { : ##METAVAR  } ##csortanno? ##cterm* ⟧) → (PairCons(#canno*, #METAVAR), GetMetaVariables(#cterm*)...)
+rule GetMetaVariables(cterm*⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ##cterm* ⟧) → GetMetaVariables((#cterm[v], #cterm*...))
+rule GetMetaVariables(cterm*⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ##cterm* ⟧) → GetMetaVariables((#cterm[f], #cterm*...))
+rule GetMetaVariables(cterm*⟦ ##cterm ##cterm* ⟧                               ) → GetMetaVariables(#cterm*)
+rule GetMetaVariables(cterm*⟦ ⟧                                                ) → ()
 
 /* @return the given term without 'thunk' */
 func StripThunk(Core_cterm_sort) -> Core_cterm_sort
@@ -53,7 +63,49 @@ rule RemoveAnnotation(#anno, (#anno2, #annos...)) → If(EqualAnno(#anno, #anno2
 /* Get the annotation arguments */
 func GetAnnotationArgs(Core_canno_sort) -> List<Core_cterm_sort>
 rule GetAnnotationArgs(canno⟦ @ ##CONSTRUCTOR ( ##cterm* ) ⟧) → #cterm*
-rule GetAnnotationArgs(#canno                               ) → () 
+rule GetAnnotationArgs(#canno                               ) → ()
+
+/* Extract the annotations list from the given `#term` */
+func GetAnnotations(Core_cterm_sort) -> List<Core_canno_sort>
+rule GetAnnotations(cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧) → #canno*
+rule GetAnnotations(cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno?          ⟧) → #canno*
+rule GetAnnotations(cterm⟦ ##canno* ##cliteral                                          ⟧) → #canno*
+rule GetAnnotations(cterm⟦ ##canno* ##cvariable ##csortanno?                            ⟧) → #canno*
+rule GetAnnotations(cterm⟦ ##canno* { ##cmapentries?  } ##csortanno?                    ⟧) → #canno*
+rule GetAnnotations(cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v]                       ⟧) → #canno*
+rule GetAnnotations(cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f]                       ⟧) → #canno*
+rule GetAnnotations(cterm⟦ ##canno* thunk ##cterm                                       ⟧) → #canno*
+rule GetAnnotations(cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm                    ⟧) → #canno*
+
+/* Annotate the given `#term`. Existing annotations are preserved. Does not check for duplicate. */
+func AnnotateTerm(Core_cterm_sort, List<Core_canno_sort>) -> Core_cterm_sort
+
+  rule AnnotateTerm(cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧, #canno*2)
+  → cterm⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧
+
+  rule AnnotateTerm(cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno?          ⟧, #canno*2)
+  → cterm⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ ##METAVAR ##cterms? ##csubst? ##csortanno?          ⟧
+
+  rule AnnotateTerm(cterm⟦ ##canno* ##cliteral                                          ⟧, #canno*2)
+  → cterm⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ ##cliteral                                          ⟧
+
+  rule AnnotateTerm(cterm⟦ ##canno* ##cvariable ##csortanno?                            ⟧, #canno*2)
+  → cterm⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ ##cvariable ##csortanno?                            ⟧
+
+  rule AnnotateTerm(cterm⟦ ##canno* { ##cmapentries?  } ##csortanno?                    ⟧, #canno*2)
+  → cterm⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ { ##cmapentries?  } ##csortanno?                    ⟧
+
+  rule AnnotateTerm(cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v]                       ⟧, #canno*2)
+  → cterm⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ [ v ##csortanno? ] ##cterm[v]                       ⟧
+
+  rule AnnotateTerm(cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f]                       ⟧, #canno*2)
+  → cterm⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ ( f ##csortanno? ) ##cterm[f]                       ⟧
+
+  rule AnnotateTerm(cterm⟦ ##canno* thunk ##cterm                                       ⟧, #canno*2)
+  → cterm⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ thunk ##cterm                                       ⟧
+
+  rule AnnotateTerm(cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm                    ⟧, #canno*2)
+  → cterm⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ ##METAVAR ##csortanno? = ##cterm                    ⟧
 
 
 /* @return the string concatenation represeting the given `#qualifiedIdentifier` */

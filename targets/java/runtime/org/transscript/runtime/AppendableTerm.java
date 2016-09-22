@@ -46,7 +46,7 @@ public interface AppendableTerm extends Term
 		return (AppendableTerm) Term.super.eval(c);
 	}
 
-	/** @return the variable if this term is a variable use, othewise null */
+	/** @return the variable if this term is a variable use, otherwise null */
 	default VarAppendableTerm variable()
 	{
 		return null;
