@@ -109,7 +109,6 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	 */
 	public boolean containsKey(K key);
 
-
 	/**
 	 * @return true when this map contains an entry for the given key, including variables.
 	 */
@@ -120,10 +119,18 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	 * @param <K>
 	 * @param <V>
 	 */
-	static class _MapTerm<K extends Term, V extends Term> extends HashMap<K, V> implements MapTerm<K, V>
+	static class _MapTerm<K extends Term, V extends Term> extends RefTerm implements MapTerm<K, V>
 	{
-		private static final long serialVersionUID = -9134352548915946315L;
-		
+		//private static final long serialVersionUID = -9134352548915946315L;
+
+		// The boxed map.
+		protected HashMap<K, V> map;
+
+		public _MapTerm()
+		{
+			map = new HashMap<>();
+		}
+
 		@Override
 		public String symbol()
 		{
@@ -141,7 +148,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		{
 			_MapTerm<K, V> copy = new _MapTerm<>();
 
-			for (Map.Entry<K, V> entry : entrySet())
+			for (Map.Entry<K, V> entry : map.entrySet())
 				copy.putValue(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
 			return copy;
 		}
@@ -149,7 +156,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		@Override
 		public void putValue(K key, V value)
 		{
-			Term old = super.put(key, value);
+			Term old = map.put(key, value);
 			if (old != null)
 				old.release();
 		}
@@ -159,7 +166,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		{
 			_MapTerm<K, V> _map = (_MapTerm<K, V>) map;
 
-			for (Map.Entry<K, V> entry : _map.entrySet())
+			for (Map.Entry<K, V> entry : _map.map.entrySet())
 				putValue(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
 		}
 
@@ -167,7 +174,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		@Override
 		public Option<V> getValue(Context context, K key)
 		{
-			Term value = get(key);
+			Term value = map.get(key);
 
 			return value == null ? Core.NONE(context) : (Option<V>) Core.SOME(context, value.ref());
 		}
@@ -176,7 +183,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		{
 			Listdef.List<V> c = Listdef.Nil(context);
 
-			for (V term : values())
+			for (V term : map.values())
 			{
 				Listdef.List<V> nc = Listdef.Cons(context, Ref.ref(term), c);
 				c = nc;
@@ -190,7 +197,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		{
 			Listdef.List<K> c = Listdef.Nil(context);
 
-			for (K term : keySet())
+			for (K term : map.keySet())
 			{
 				Listdef.List<K> nc = Listdef.Cons(context, Ref.ref(term), c);
 				c = nc;
@@ -202,13 +209,13 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		@Override
 		public boolean isEmpty()
 		{
-			return super.isEmpty();
+			return map.isEmpty();
 		}
 
 		@Override
 		public boolean containsKey(K key)
 		{
-			return super.containsKey(key);
+			return map.containsKey(key);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -223,9 +230,19 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		public Term substitute(Context ctx, Object... substitutes)
 		{
 			MapTerm<K, V> copy = copy(ctx);
-			for (K key : keySet())
-				copy.putValue(key, (V) get(key).ref().substitute(ctx, substitutes));
+			for (K key : map.keySet())
+				copy.putValue(key, (V) map.get(key).ref().substitute(ctx, substitutes));
 			return copy;
+		}
+
+		@Override
+		protected void free()
+		{
+			for (K key : map.keySet())
+			{
+				map.get(key).release();
+				key.release();
+			}
 		}
 
 	}
@@ -284,8 +301,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		{
 			throw new RuntimeException("Fatal error: cannot query unevaluated map.");
 		}
- 
- 
+
 		@Override
 		public void putAll(MapTerm<K, V> map)
 		{

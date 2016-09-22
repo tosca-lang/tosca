@@ -52,7 +52,7 @@ public interface DoubleTerm extends Term
 		return DoubleTerm::lazyDoubleTerm;
 	}
 
-	static class DoubleValue implements DoubleTerm
+	static class DoubleValue extends RefTerm implements DoubleTerm
 	{
 		// State
 

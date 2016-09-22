@@ -55,7 +55,7 @@ public interface AppendableTerm extends Term
 	/**
 	 * The actual string term.
 	 */
-	static class _AppendableTerm implements AppendableTerm
+	static class _AppendableTerm extends RefTerm implements AppendableTerm
 	{
 		// State
 

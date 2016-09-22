@@ -305,17 +305,17 @@ rule DelEntry(#Key, #KeyValueList) → Filter((pair) -> Not(Equal(Fst(pair), #Ke
 */
 
 func Partition<a>((a) -> Bool, List<a>) -> PPair<List<a> List<a>>
-rule Partition(#C, #XS) → Foldr<a Pair>((x res) -> MatchPartition<a>(#C(x), x, res), PairCons((),()), #XS)
+rule Partition(#C, #XS) → Foldr((x res) -> MatchPartition(#C(x), x, res), PairCons((),()), #XS)
 
 func MatchPartition<a>(Bool, a, PPair<List<a> List<a>>) -> PPair<List<a> List<a>>
-rule MatchPartition(TRUE,  #X, PairCons(#TS:List<a>, #FS:List<a>)) → PairCons(Insert<a>(#X,#TS), #FS)
-rule MatchPartition(FALSE, #X, PairCons(#TS:List<a>, #FS:List<a>)) → PairCons(#TS, Insert<a>(#X,#FS))
+rule MatchPartition(TRUE,  #X, PairCons(#TS, #FS)) → PairCons(Insert<a>(#X,#TS), #FS)
+rule MatchPartition(FALSE, #X, PairCons(#TS, #FS)) → PairCons(#TS, Insert(#X,#FS))
 
 /* Apply each item in list to function
  */
 func Map<a b>((a) -> b, List<a>) -> List<b>
-rule Map(#, (                    )) → ()
-rule Map(#, Cons(#1:a, #s:List<a>)) → Cons(#(#1), Map<a b>(#, #s))
+rule Map(#, (         )) → ()
+rule Map(#, (#1, #s...)) → (#(#1), Map(#, #s)...)
 
 /* `Map2((x) ->#F(x), #XS)`
    @param   `(x) ->#F(x)` a function which takes one element of the list as input
@@ -324,7 +324,7 @@ rule Map(#, Cons(#1:a, #s:List<a>)) → Cons(#(#1), Map<a b>(#, #s))
    @note    alternative implementation to `Map` based on `Foldr`
 */
 func Map2<a b>((a) -> b, List<a>) -> List<b>
-rule Map2(#F, #XS) → Foldr<a List>((y ys) -> Insert<b>(#F(y), ys), (), #XS)
+rule Map2(#F, #XS) → Foldr((y ys) -> Insert(#F(y), ys), (), #XS)
 
 /* Monadic map. Apply each item in list to the function taking a state and an element,
    evaluating to a new state and a value. Apply the next element with the new state.

@@ -76,7 +76,7 @@ public interface StringTerm extends Term
 	/**
 	 * The actual string term.
 	 */
-	static class _StringTerm implements StringTerm
+	static class _StringTerm extends RefTerm implements StringTerm
 	{
 		// State
 

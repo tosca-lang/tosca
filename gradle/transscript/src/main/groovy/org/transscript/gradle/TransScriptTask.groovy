@@ -101,7 +101,7 @@ class TransScriptTask extends DefaultTask {
 				main      = "org.transscript.Tool"
 				classpath = project.files(project.configurations.transscript.files)
 				args      = jargs
-				jvmArgs   = ['-ea', '-Xss8192K']
+				jvmArgs   = ['-Xss8192K']
 			}
 		//}
 		}

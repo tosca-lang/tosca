@@ -11,7 +11,7 @@ import java.util.Map;
  * 
  * @author Lionel Villard
  */
-public class VariableUse implements Term
+public class VariableUse extends RefTerm implements Term
 {
 
 	/** The variable being used */

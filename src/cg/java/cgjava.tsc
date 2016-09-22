@@ -791,6 +791,7 @@ func JavaSigArg({String : JEnvEntry}, Core_csort_sort, Bool /* data? */,
 
 // --- Generate method body
 
+
 func JavaBody({String : JEnvEntry}, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
 
   // No rules: it must be an external function (not yet checked but should)
@@ -803,7 +804,10 @@ func JavaBody({String : JEnvEntry}, Option<List<Core_cdecl_sort>>) -> Text4_text
   rule JavaBody(#env, SOME(#rules))
   → text⟦
     ) {
-        †⟨TextMapFoldES((rule) -> /* Debug(PrintTerm("", rule), ()-> */ JavaBodyRule(JSetDiscard(#env, ()), rule) /* ) */, #rules)⟩
+        †⟨
+        //TextMapFoldES((rule) -> Debug(PrintTerm("", rule), ()-> JavaBodyRule(JSetDiscard(#env, ()), rule) ), #rules)
+        TextMapFoldES((rule) -> JavaBodyRule(JSetDiscard(#env, ()), rule), #rules)
+        ⟩
         †⟨FallbackThunk(#env, HasAnnotation("Fallback", GetFnAnno(#env)))⟩
       }⟧
 
@@ -1143,6 +1147,9 @@ func JavaMayDiscard({String : JEnvEntry}, Core_cterm_sort, List<Core_canno_sort>
 
   rule JavaMayDiscard(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #canno*)
   → JavaMayDiscardMeta(#env, #METAVAR,  IfPresent(GetAnnotation("KeepAll", #canno*), (anno)->GetAnnotationArgs(anno), ()->()))
+
+  rule JavaMayDiscard(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #canno*2)
+  → #env
 
   rule JavaMayDiscard(#env, #cterm, #canno*)
   → JAddDiscard(#env, JavaCurrentParam(#env))

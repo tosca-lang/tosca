@@ -12,7 +12,7 @@ import java.util.function.Function;
  * @author Lionel Villard
  * @param <T>
  */
-public class LazyTerm<T extends Term> implements Term
+public class LazyTerm<T extends Term> extends RefTerm implements Term
 {
  
 	public static <T extends Term>  T lazyTerm(Function<Context, T> f)
