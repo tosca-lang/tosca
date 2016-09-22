@@ -317,6 +317,7 @@ func Map<a b>((a) -> b, List<a>) -> List<b>
 rule Map(#, (         )) → ()
 rule Map(#, (#1, #s...)) → (#(#1), Map(#, #s)...)
 
+
 /* `Map2((x) ->#F(x), #XS)`
    @param   `(x) ->#F(x)` a function which takes one element of the list as input
    @param   `#XS`     a list of elements

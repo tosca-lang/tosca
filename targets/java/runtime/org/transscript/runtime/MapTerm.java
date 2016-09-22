@@ -81,7 +81,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 
 	/**
 	 * Put all entries in the given map into this map
-	 * @param map
+	 * @param map. Consume the reference.
 	 */
 	public void putAll(MapTerm<K, V> map);
 
@@ -150,6 +150,8 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 
 			for (Map.Entry<K, V> entry : map.entrySet())
 				copy.putValue(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
+			
+			release();
 			return copy;
 		}
 
@@ -162,12 +164,14 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		}
 
 		@Override
-		public void putAll(MapTerm<K, V> map)
+		public void putAll(MapTerm<K, V> othermap)
 		{
-			_MapTerm<K, V> _map = (_MapTerm<K, V>) map;
+			_MapTerm<K, V> _map = (_MapTerm<K, V>) othermap;
 
 			for (Map.Entry<K, V> entry : _map.map.entrySet())
 				putValue(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
+			
+			othermap.release();
 		}
 
 		@SuppressWarnings("unchecked")

@@ -73,6 +73,19 @@ public class Functions
 		return null;
 	}
 
+	// Assert got proper capture terms. 
+	static boolean assertRefs(Term[] captures)
+	{
+		if (captures != null)
+		{
+			for (int i = 0; i < captures.length; i++)
+				if (captures[i].refcount() <= 0)
+					return false;
+
+		}
+		return true;
+	}
+
 	static public class Closure0<R extends Term> extends RefTerm implements Term
 	{
 		// The lambda.
@@ -83,6 +96,7 @@ public class Functions
 
 		public Closure0(Function0<R> function, Term[] captures)
 		{
+			assert assertRefs(captures);
 			this.function = function;
 			this.captures = captures;
 		}
@@ -116,6 +130,7 @@ public class Functions
 
 		public Closure1(Function1<R, P1> function, Term[] captures)
 		{
+			assert assertRefs(captures);
 			this.function = function;
 			this.captures = captures;
 		}
@@ -149,6 +164,7 @@ public class Functions
 
 		public Closure2(Function2<R, P1, P2> function, Term[] captures)
 		{
+			assert assertRefs(captures);
 			this.function = function;
 			this.captures = captures;
 		}
@@ -182,6 +198,7 @@ public class Functions
 
 		public Closure3(Function3<R, P1, P2, P3> function, Term[] captures)
 		{
+			assert assertRefs(captures);
 			this.function = function;
 			this.captures = captures;
 		}
@@ -217,6 +234,7 @@ public class Functions
 
 		public Closure4(Function4<R, P1, P2, P3, P4> function, Term[] captures)
 		{
+			assert assertRefs(captures);
 			this.function = function;
 			this.captures = captures;
 		}

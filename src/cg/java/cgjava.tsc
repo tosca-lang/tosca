@@ -1145,13 +1145,16 @@ func JSubSortFromVar(Option<JVarEntry>, String) -> Option<Core_csort_sort>
 /* Determine whether the current parameter must be kept or not. */
 func JavaMayDiscard({String : JEnvEntry}, Core_cterm_sort, List<Core_canno_sort>) -> {String : JEnvEntry}
 
-  rule JavaMayDiscard(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #canno*)
-  → JavaMayDiscardMeta(#env, #METAVAR,  IfPresent(GetAnnotation("KeepAll", #canno*), (anno)->GetAnnotationArgs(anno), ()->()))
+  rule JavaMayDiscard(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #ruleanno*)
+  → JavaMayDiscardMeta(#env, #METAVAR, IfPresent(GetAnnotation("KeepAll", #ruleanno*), (anno)->GetAnnotationArgs(anno), ()->()))
 
-  rule JavaMayDiscard(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #canno*2)
+  rule JavaMayDiscard(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm  ⟧, #ruleanno*)
+  → JavaMayDiscardMeta(#env, #METAVAR, IfPresent(GetAnnotation("KeepAll", #ruleanno*), (anno)->GetAnnotationArgs(anno), ()->()))
+
+  rule JavaMayDiscard(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #ruleanno*)
   → #env
 
-  rule JavaMayDiscard(#env, #cterm, #canno*)
+  rule JavaMayDiscard(#env, #cterm, #ruleanno*)
   → JAddDiscard(#env, JavaCurrentParam(#env))
 
 func JavaMayDiscardMeta(#env: {String : JEnvEntry}, #meta: String, #keep: List<Core_cterm_sort>) -> {String : JEnvEntry}
@@ -1393,7 +1396,7 @@ func JavaExprLambda({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}
   → text⟦) -> †⟨JavaExprTerm(#env, #cterm, (env) -> text⟦†⟨JavaLambdaCaptures(#env, GetAnnotations(#cterm))⟩)†⟨#cont(env)⟩⟧)⟩⟧
 
 func JavaLambdaCaptures(#env: {String : JEnvEntry}, #anno*: List<Core_canno_sort>) -> Text4_text_sort
-→ IfPresent(GetAnnotation("KeepAll", #anno*),
+→ IfPresent(GetAnnotation("Captured", #anno*),
     (anno)->TextMapFoldES((annometa)->text⟦, †⟨JavaExprRefMeta(#env, Fst(annometa), Snd(annometa))⟩⟧,
                            GetMetaVariables(GetAnnotationArgs(anno))),
     ()->text⟦⟧)

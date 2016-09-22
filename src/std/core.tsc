@@ -8,6 +8,10 @@ type Keep = Bool
 /* Tell the compiler to keep a reference to all meta-variables. */
 type KeepAll = List<String>
 
+/* Tell the compiler which meta-variables are captured within a lambda. */
+type Captured = List<String>
+
+
 /* Indicate whether the value of the type with this annotation is retained at runtime, when used as an annotation */
 //type Extern = Bool
 

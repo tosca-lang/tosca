@@ -1,6 +1,8 @@
 // Copyright (c) 2014 IBM Corporation.
 package org.transscript.runtime;
 
+import org.transscript.compiler.Systemdef;
+
 /**
  * Represent a reference to an instance (this object itself).
  * 
@@ -74,7 +76,7 @@ public abstract class RefImpl implements Ref
 	 */
 	protected void free()
 	{
-		assert refcount == 0;
+		assert refcount == 0;	
 		refcount = RELEASED;
 	}
 

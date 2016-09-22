@@ -145,6 +145,8 @@ rule AnalyzeMetaUseMeta2(#canno*, #METAVAR, PairCons(#env, #cterms?), #csubst?, 
 func AnalyzeMetaUseBound(List<Core_canno_sort>, [String]->PPair<LEnv Core_cterm_sort>, Core_csort_sort) -> PPair<LEnv Core_cterm_sort>
 rule AnalyzeMetaUseBound(#canno*, [x]->PairCons(#env, #cterm[x]), #csort) → PairCons(#env, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧)
 
+// Skip formal parameters. Then analyze the lambda expression using a fresh new environment
+// and consolidate the 2 environment on the way up
 func AnalyzeMetaUseFormal(LEnv, Core_cterm_sort) -> PPair<LEnv Core_cterm_sort>
 
   rule AnalyzeMetaUseFormal(#env, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧)
@@ -159,11 +161,11 @@ rule AnalyzeMetaUseFormalUp(#canno*, [x]->PairCons(#env, #cterm[x]), #csort)
 
 func AnalyzeMetaUseFormalUp2(LEnv, PPair<LEnv Core_cterm_sort>) -> PPair<LEnv Core_cterm_sort>
 rule AnalyzeMetaUseFormalUp2(#env, PairCons(#ienv, #cterm))
-→ PairCons(AnalyzeCaptured(#env, #ienv), AnnotateTerm(#cterm, AnalyzeMayKeepAll(#env, MapKeys(#ienv), ())))
+→ PairCons(AnalyzeCaptured(#env, #ienv), AnnotateTerm(#cterm, AnalyzeCapturedAll(#env, MapKeys(#ienv), ())))
 
 func AnalyzeMetaUseThunk(LEnv, List<Core_canno_sort>, PPair<LEnv Core_cterm_sort>) -> PPair<LEnv Core_cterm_sort>
 rule AnalyzeMetaUseThunk(#env, #canno*, PairCons(#ienv, #cterm))
-→ PairCons(AnalyzeCaptured(#env, #ienv), cterm⟦ ⟨canno*: AnalyzeMayKeepAll(#env, MapKeys(#ienv), #canno*)⟩ thunk ##cterm ⟧)
+→ PairCons(AnalyzeCaptured(#env, #ienv), cterm⟦ ⟨canno*: AnalyzeCapturedAll(#env, MapKeys(#ienv), #canno*)⟩ thunk ##cterm ⟧)
 
 // Add @Keep annotation only when metavar occurs more than once.
 func AnalyzeMayKeep(Option<Numeric>, List<Core_canno_sort>) -> List<Core_canno_sort>
@@ -186,6 +188,17 @@ rule AnalyzeKeepAllFiltered(#cterm*, #canno*) → canno*⟦ @KeepAll( ##cterm* )
 
 func AnalyzeFilterMeta(#env: LEnv, #metas: List<String>) -> List<String>
 → Filter((meta)->IfPresent(MapGet(#env, meta), (count)->Equal(count, 1), ()->TRUE), #metas)
+
+// Add @Captured(#...) annotation for metavars occuring inside a lambda
+func AnalyzeCapturedAll(LEnv, List<String>, List<Core_canno_sort>) -> List<Core_canno_sort>
+
+  rule AnalyzeCapturedAll(#env, (), #canno*)
+  → #canno*
+
+  rule AnalyzeCapturedAll(#env, #metas, #canno*)
+  → canno*⟦ @Captured( ⟨cterm*: Map((meta)->
+                 cterm⟦ ⟨canno*: AnalyzeMayKeep(LEnvGetMetaCount(#env, meta), ())⟩ ⟨METAVAR: meta⟩ ⟧, #metas)⟩ ) ##canno* ⟧
+
 
 // Account for captured metavars `#ienv`
 func AnalyzeCaptured(#env: LEnv, #ienv:LEnv) -> LEnv

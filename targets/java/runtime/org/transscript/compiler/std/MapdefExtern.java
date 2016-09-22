@@ -52,7 +52,6 @@ public class MapdefExtern
 	{
 		MapTerm<a, b> xmap = map1.extend();
 		xmap.putAll(map2);
-		map2.release();
 		return xmap;
 	}
 
