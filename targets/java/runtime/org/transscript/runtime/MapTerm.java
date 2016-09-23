@@ -146,6 +146,9 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		@Override
 		public MapTerm<K, V> extend()
 		{
+			if (refcount() == 1)
+				return this;
+			
 			_MapTerm<K, V> copy = new _MapTerm<>();
 
 			for (Map.Entry<K, V> entry : map.entrySet())

@@ -1274,7 +1274,7 @@ func JavaExprTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) 
       †⟨Literal(#cliteral)⟩†⟨#cont(#env)⟩⟧
 
   rule JavaExprTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧, #cont)
-  → JavaExprMaybeVar(#env, JGetVarO(#env, #VARIABLE), #VARIABLE, #cont)
+  → JavaExprMaybeVar(#env, #canno*, JGetVarO(#env, #VARIABLE), #VARIABLE, #cont)
 
   rule JavaExprTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
   → JavaExprMeta(#env, #canno*, #METAVAR, #cterms?, #csubst?, #cont)
@@ -1341,14 +1341,17 @@ rule JavaIfBranch(#cterm                                  ) → StripThunk(#cter
 
 // --- Variable
 
-func JavaExprMaybeVar({String : JEnvEntry}, Option<JVarEntry>, String, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+func JavaExprMaybeVar({String : JEnvEntry}, List<Core_canno_sort>, Option<JVarEntry>, String, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaExprMaybeVar(#env, SOME(JFormal(#var, #type)), #svar, #cont)
-  → text⟦†⟨#var⟩†⟨#cont(#env)⟩⟧
+  rule JavaExprMaybeVar(#env, #canno*, SOME(JFormal(#var, #type)), #svar, #cont)
+  → text⟦†⟨JavaExprRefVar(#canno*, #var)⟩†⟨#cont(#env)⟩⟧
 
   // fallback
-  rule JavaExprMaybeVar(#env, SOME(#varEntry), #svar, #cont)
+  rule JavaExprMaybeVar(#env, #canno*, SOME(#varEntry), #svar, #cont)
   → text⟦†⟨UnJVarVar(#varEntry)⟩.use()†⟨#cont(#env)⟩⟧
+
+func JavaExprRefVar(#canno*: List<Core_canno_sort>, #var: Text4_text_sort) -> Text4_text_sort
+→ If(HasAnnotation("Keep", #canno*), ()->text⟦ref(†⟨#var⟩)⟧, ()->#var)
 
 // ----  metavar expression
 
@@ -1397,9 +1400,15 @@ func JavaExprLambda({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}
 
 func JavaLambdaCaptures(#env: {String : JEnvEntry}, #anno*: List<Core_canno_sort>) -> Text4_text_sort
 → IfPresent(GetAnnotation("Captured", #anno*),
-    (anno)->TextMapFoldES((annometa)->text⟦, †⟨JavaExprRefMeta(#env, Fst(annometa), Snd(annometa))⟩⟧,
+    (anno)->TextMapFoldES((annovar)->text⟦, †⟨JavaExprRefMetaOrVar(#env, Fst(annovar), Snd(annovar))⟩⟧,
                            GetMetaVariables(GetAnnotationArgs(anno))),
     ()->text⟦⟧)
+
+func JavaExprRefMetaOrVar(#env: {String : JEnvEntry}, #canno*: List<Core_canno_sort>, #var: String) -> Text4_text_sort
+→ If(HasAnnotation("Keep", #canno*), ()->text⟦ref(†⟨JGetMetaVarOrVar(#env, #var)⟩)⟧, ()->text⟦†⟨JGetMetaVarOrVar(#env, #var)⟩⟧)
+
+func JGetMetaVarOrVar(#env: {String : JEnvEntry}, #var: String) -> Text4_text_sort
+→ IfPresent(JGetMetaVarO(#env, #var), (metavar)->metavar, ()->JGetVar(#env, #var))
 
 // ----- initModule
 
