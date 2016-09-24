@@ -623,7 +623,7 @@ rule ISubstTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧)    
 rule ISubstTerm(#env, cterm⟦ ##canno* { ##cmapentries? } ##csortanno? ⟧)                     → cterm⟦ ##canno* { ⟨cmapentries?: ISubstMaybeMapEntries(#env, #cmapentries?)⟩ } ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
 rule ISubstTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧)                                       → cterm⟦ ##canno* thunk ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟧
 rule ISubstTerm(#env, cterm⟦ ##canno* ##METAVAR = ##cterm ⟧)                                 → cterm⟦ ##canno* ##METAVAR = ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟧
-rule ISubstTerm(#env, cterm⟦ ##canno* let ##METAVAR = ##cterm ##cterm2 ⟧)                    → cterm⟦ ##canno* let ##METAVAR = ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟨cterm: ISubstTerm(#env, #cterm2)⟩ ⟧
+//rule ISubstTerm(#env, cterm⟦ ##canno* let ##METAVAR = ##cterm ##cterm2 ⟧)                    → cterm⟦ ##canno* let ##METAVAR = ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟨cterm: ISubstTerm(#env, #cterm2)⟩ ⟧
 rule ISubstTerm(#env, #cterm)                                                               → #cterm
 
 func ISubstQCons({String:IEnvEntry}, Core_cqconstructor_sort) -> Core_cqconstructor_sort

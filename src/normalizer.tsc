@@ -309,11 +309,11 @@ func NATerm(List<Core_canno_sort>, TransScript_aterm_sort, Bool) -> Core_cterm_s
   rule NATerm(#canno*, aterm⟦ { ##optkvs* } ##sortAnno? ⟧, FALSE)
   → cterm⟦ ##canno* ⟨CONSTRUCTOR: NMultiMapWrapper(ListLength(#optkvs*))⟩ (⟨cterm*: Map((optkvs)->NOptKVSContract(optkvs), #optkvs*)⟩ ) ⟧
 
-  rule NATerm(#canno*, aterm⟦ let ##METAVAR ##sortAnno? = ##term ##term2 ⟧, FALSE)
-  → cterm⟦ ##canno* let ##METAVAR ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ = ⟨cterm: NTerm(#term, FALSE)⟩ ⟨cterm: NTerm(#term2, FALSE)⟩ ⟧
+  /*rule NATerm(#canno*, aterm⟦ let ##METAVAR ##sortAnno? = ##term ##term2 ⟧, FALSE)
+  → cterm⟦ ##canno* let ##METAVAR ⟨csortanno?: NMaybeSortAnno(#sortAnno?)⟩ = ⟨cterm: NTerm(#term, FALSE)⟩ ⟨cterm: NTerm(#term2, FALSE)⟩ ⟧*/
 
-  rule NATerm(#canno*, #aterm = aterm⟦ let ##METAVAR ##sortAnno? = ##term ##term2 ⟧, TRUE)
-  → Error(ConcatString("Error:invalid let expression in pattern", PrintTerm("", #aterm)))
+  /*rule NATerm(#canno*, #aterm = aterm⟦ let ##METAVAR ##sortAnno? = ##term ##term2 ⟧, TRUE)
+  → Error(ConcatString("Error:invalid let expression in pattern", PrintTerm("", #aterm)))*/
 
   // Assertion error
   rule NATerm(#canno*, #aterm, #inpattern) → Error(ConcatString("Internal error: could not handle ", PrintTerm("", #aterm)))

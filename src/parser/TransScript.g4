@@ -256,7 +256,7 @@ concrete
     ;
 
 let
-    : LET METAVAR sortAnno? EQ term term
+    : LET variable<boundvar=x> sortAnno? EQ term term<bound=x>
     ;
 
 map

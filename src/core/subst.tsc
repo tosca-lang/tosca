@@ -25,7 +25,7 @@ rule Substitute(cterm⟦ ##canno* [ x ##csortanno? ] ##cterm[x]                 
 rule Substitute(cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f]                       ⟧, #subst) → cterm⟦ ##canno* ( f ##csortanno? ) ⟨cterm: Substitute(#cterm[f], #subst)⟩ ⟧
 rule Substitute(cterm⟦ ##canno* thunk ##cterm                                       ⟧, #subst) → cterm⟦ ##canno* thunk ⟨cterm: Substitute(#cterm, #subst)⟩ ⟧
 rule Substitute(cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm                    ⟧, #subst) → cterm⟦ ##canno* ⟨METAVAR: SubstMetaVar(#METAVAR, #subst)⟩ ##csortanno? = ⟨cterm: Substitute(#cterm, #subst)⟩ ⟧
-rule Substitute(cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2       ⟧, #subst) → cterm⟦ ##canno* let ⟨METAVAR: SubstMetaVar(#METAVAR, #subst)⟩ ##csortanno? = ⟨cterm: Substitute(#cterm, #subst)⟩  ⟨cterm: Substitute(#cterm2, #subst)⟩ ⟧
+//rule Substitute(cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2       ⟧, #subst) → cterm⟦ ##canno* let ⟨METAVAR: SubstMetaVar(#METAVAR, #subst)⟩ ##csortanno? = ⟨cterm: Substitute(#cterm, #subst)⟩  ⟨cterm: Substitute(#cterm2, #subst)⟩ ⟧
 
 func SubstMaybeTerms(List<Core_cterms_sort>, {String : Core_cterm_sort}) -> List<Core_cterms_sort>
 rule SubstMaybeTerms(cterms?⟦              ⟧, #subst) → cterms?⟦ ⟧
