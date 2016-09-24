@@ -255,8 +255,8 @@ concrete
     : CONCRETE
     ;
 
-let 
-    : LET METAVAR sortAnno? EQ term
+let
+    : LET METAVAR sortAnno? EQ term term
     ;
 
 map

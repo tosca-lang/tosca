@@ -76,6 +76,7 @@ rule GetAnnotations(cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v]             
 rule GetAnnotations(cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f]                       ⟧) → #canno*
 rule GetAnnotations(cterm⟦ ##canno* thunk ##cterm                                       ⟧) → #canno*
 rule GetAnnotations(cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm                    ⟧) → #canno*
+rule GetAnnotations(cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2       ⟧) → #canno*
 
 /* Annotate the given `#term`. Existing annotations are preserved. Does not check for duplicate. */
 func AnnotateTerm(Core_cterm_sort, List<Core_canno_sort>) -> Core_cterm_sort
@@ -106,6 +107,9 @@ func AnnotateTerm(Core_cterm_sort, List<Core_canno_sort>) -> Core_cterm_sort
 
   rule AnnotateTerm(cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm                    ⟧, #canno*2)
   → cterm⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ ##METAVAR ##csortanno? = ##cterm                    ⟧
+
+  rule AnnotateTerm(cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧, #canno*2)
+  → cterm⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧
 
 
 /* @return the string concatenation represeting the given `#qualifiedIdentifier` */
@@ -232,7 +236,9 @@ rule TermSort(cterm⟦ { ##cmapentries } : ##csort ⟧)                         
 rule TermSort(cterm⟦ [ x ##csortanno? ] ##cterm[x] ⟧)                             → TermSort(#cterm[x])
 rule TermSort(cterm⟦ ( x ##csortanno? ) ##cterm[x] ⟧)                             → TermSort(#cterm[x])
 rule TermSort(cterm⟦ thunk ##cterm ⟧)                                             → TermSort(#cterm) // FIXME
-rule TermSort(#)                                                                  → NONE
+rule TermSort(cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧)                 → TermSort(#cterm)
+rule TermSort(cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)    → TermSort(#cterm2)
+rule TermSort(#)                                                                 → NONE
 
 /* Create higher-order sort */
 func HOSort(List<Core_csort_sort>, List<Core_csort_sort>, Core_csort_sort) -> Core_csort_sort

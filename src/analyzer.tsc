@@ -104,6 +104,9 @@ func AnalyzeVarUse(LEnv, Core_cterm_sort) -> PPair<LEnv Core_cterm_sort>
   rule AnalyzeVarUse(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧)
   → Error("Internal Error: Named terms cannot occur in contraction")
 
+  /*rule AnalyzeVarUse(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
+  → AnalyzeVarUseLet(#canno*, #METAVAR, #csortanno?, AnalyzeVarUse(#env, #cterm))*/
+
   rule AnalyzeVarUse(#env, #cterm) → PairCons(#env, #cterm)
 
 func AnalyzeVarUseMaybeTerms(LEnv, List<Core_cterms_sort>) -> PPair<LEnv List<Core_cterms_sort>>
@@ -171,6 +174,10 @@ rule AnalyzeVarUseFormalUp2(#env, PairCons(#ienv, #cterm), #params)
 func AnalyzeVarUseThunk(LEnv, List<Core_canno_sort>, PPair<LEnv Core_cterm_sort>) -> PPair<LEnv Core_cterm_sort>
 rule AnalyzeVarUseThunk(#env, #canno*, PairCons(#ienv, #cterm))
 → PairCons(AnalyzeCaptured(#env, #ienv, ()), cterm⟦ ⟨canno*: AnalyzeCapturedAll(#env, LEnvMetaKeys(#ienv), LEnvVarKeys(#ienv), #canno*)⟩ thunk ##cterm ⟧)
+/*
+func AnalyzeVarUseLet(List<Core_canno_sort>, String, List<Core_csortanno_sort>, PPair<LEnv Core_cterm_sort>) -> PPair<LEnv Core_cterm_sort>
+rule AnalyzeVarUseLet(#canno*, #METAVAR, #csortanno?, PairCons(#env, #cterm))
+→ PairCons(LEnvRemoveMeta(#env, #METAVAR), cterm⟦ ⟨canno*: AnalyzeMayKeep(LEnvGetMetaCount(#env, #METAVAR), #canno*)⟩ let ##METAVAR ##csortanno? = ##cterm ⟧)*/
 
 // Add @Keep annotation only when a metavariable or variable occurs more than once.
 func AnalyzeMayKeep(Option<Numeric>, List<Core_canno_sort>) -> List<Core_canno_sort>
@@ -250,6 +257,10 @@ rule LEnvVarKeys(LEnv(#metas, #vars)) → MapKeys(#vars)
 
 func LEnvGetMetaCount(#env: LEnv, #metavar: String) -> Option<Numeric>
 → MapGet(LEnvMetas(#env), #metavar)
+
+func LEnvRemoveMeta(LEnv, String) -> LEnv
+rule LEnvRemoveMeta(LEnv(#metas, #vars), #metavar: String)
+→ LEnv(MapRemove(#metas, #metavar), #vars)
 
 func LEnvIncMetaCount(#env: LEnv, #metavar: String) -> LEnv
 → LEnv(MapPut(LEnvMetas(#env), #metavar, IfPresent(LEnvGetMetaCount(#env, #metavar), (count)->Plus(count, 1), ()->1)), LEnvVars(#env))

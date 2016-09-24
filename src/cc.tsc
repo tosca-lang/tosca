@@ -123,6 +123,7 @@ rule CCTerm(#env, cterm⟦ [ x ##csortanno? ] ##cterm[x] ⟧)                   
 rule CCTerm(#env, cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧)                                → CCFormal(CCEnvResetParams(#env), cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧)
 rule CCTerm(#env, cterm⟦ thunk ##cterm ⟧)                                                → CCThunkUp(CCThunk(CCEnvResetParams(#env), #cterm))
 rule CCTerm(#env, cterm⟦ ##METAVAR ##csortanno? = ##cterm ⟧)                             → Error("Internal Error: named terms cannot occur in contraction.")
+rule CCTerm(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)       → CCLetExpr(#canno*, #METAVAR,  #csortanno?, CCTerm(#env, #cterm), #cterm2)
 rule CCTerm(#env, #cterm)                                                                → PairCons(#env, #cterm) // literal, variable and map (since only occur in pattern) don't need to be lifted!
 
 /* Traverses terms */
@@ -311,6 +312,14 @@ rule CCMaybeTermsUp(PairCons(#env, #cterm*)) → PairCons(#env, cterms?⟦ ( ##c
 
 func CCTermsUp(PPair<CCEnv Core_cterm_sort>, List<Core_cterm_sort>) -> PPair<CCEnv List<Core_cterm_sort>>
 rule CCTermsUp(PairCons(#env, #cterm), #cterm*) → UnPair(CCTerms(#env, #cterm*), (env cterms) -> PairCons(env, cterm*⟦ ##cterm ⟨cterm*: cterms⟩ ⟧))
+
+func CCLetExpr(List<Core_canno_sort>, String, List<Core_csortanno_sort>, PPair<CCEnv Core_cterm_sort>, Core_cterm_sort) ->PPair<CCEnv Core_cterm_sort>
+rule CCLetExpr(#canno*, #METAVAR,  #csortanno?, PairCons(#env, #cterm), #cterm2)
+→ CCLetUp(#canno*, #METAVAR, #csortanno?, #cterm, CCTerm(#env, #cterm2))
+
+func CCLetUp(List<Core_canno_sort>, String, List<Core_csortanno_sort>, Core_cterm_sort, PPair<CCEnv Core_cterm_sort>) ->PPair<CCEnv Core_cterm_sort>
+rule CCLetUp(#canno*, #METAVAR,  #csortanno?, #cterm, PairCons(#env, #cterm2))
+→ PairCons(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
 
 // -- Test whether closure convertion is needed or not
 
