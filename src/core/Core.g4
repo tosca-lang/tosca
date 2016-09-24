@@ -42,6 +42,7 @@ cterm
     | canno* LPAR cvariable<boundvar=x> csortanno? RPAR cterm<bound=x>       /* Formal parameter */
     | canno* THUNK cterm                                                     /* Unvaluated term */
     | canno* METAVAR csortanno? EQ cterm                                     /* Named term */
+    | canno* LET METAVAR csortanno? EQ cterm                                 /* Let expression */
     ;
 
 /* TODO: inline when antlr-based meta parser generator support (()*)? */
@@ -185,7 +186,7 @@ cqconstructor
 
 cvariable options { type="string"; }
     : VARIABLE
-    | DATA | FUNC | RULE | ALLOWS_VARIABLE | MODULE | IMPORT | GRAMMAR |  EXTERN | THUNK | ALIAS
+    | DATA | FUNC | RULE | ALLOWS_VARIABLE | MODULE | IMPORT | GRAMMAR |  EXTERN | THUNK | ALIAS | LET
     ;
 
 
@@ -205,6 +206,7 @@ GRAMMAR         : 'grammar';
 EXTERN          : 'extern';
 THUNK           : 'thunk';
 ALIAS           : 'alias';
+LET             : 'let';
 COLON           : ':';
 COLONCOLON      : '::';
 ARROW           : '→';

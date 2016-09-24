@@ -173,7 +173,8 @@ aterm
     | metapp                                                         /* Meta variable/Function call/Substitution */
     | dispatch                                                       /* Dispatch expression */
     | concrete                                                       /* Concrete syntax */
-    | named term                                                     /* named term */
+    | named term                                                     /* Named term */
+    | let                                                            /* Let expression */
     ;
 
 // Next term
@@ -254,6 +255,10 @@ concrete
     : CONCRETE
     ;
 
+let 
+    : LET METAVAR sortAnno? EQ term
+    ;
+
 map
     : LCURLY optkvs (AND optkvs)* RCURLY sortAnno?    // PG bug: (kvs?)* maps to List<kvs> instead of List<List<kvs>>
     ;
@@ -310,6 +315,7 @@ operator
 variable options { type="string"; }
    : VARIABLE
    | MODULE | IMPORT | GRAMMAR | FUNC | ENUM | STRUCT | DISPATCH |  RULE | VAR | FIXITY | TYPE | EXTERN | EAGER
+   | LET
    ;
 
 // Lexer rules
@@ -327,7 +333,8 @@ EAGER           : 'eager'; // deprecate
 EXTERN          : 'extern'; // deprecate
 RULE            : 'rule';
 VAR             : 'allows-variable' | 'variable';
-TYPE           : 'type';
+TYPE            : 'type';
+LET             : 'let';
 COMMA           : ',';
 LPAR            : '(';
 RPAR            : ')';
