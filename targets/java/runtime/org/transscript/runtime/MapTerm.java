@@ -80,6 +80,12 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 	public Option<V> getValue(Context context, K key);
 
 	/**
+	 * Remove value corresponding to given key
+	 * @param key
+	 */
+	public void removeValue(Context context, K key);
+
+	/**
 	 * Put all entries in the given map into this map
 	 * @param map. Consume the reference.
 	 */
@@ -148,12 +154,15 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		{
 			if (refcount() == 1)
 				return this;
-			
+
+			if (map.size() > 200)
+				System.out.println("copy map:" + map.size());
+
 			_MapTerm<K, V> copy = new _MapTerm<>();
 
 			for (Map.Entry<K, V> entry : map.entrySet())
 				copy.putValue(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
-			
+
 			release();
 			return copy;
 		}
@@ -163,7 +172,10 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		{
 			Term old = map.put(key, value);
 			if (old != null)
+			{
 				old.release();
+				key.release();
+			}
 		}
 
 		@Override
@@ -173,7 +185,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 
 			for (Map.Entry<K, V> entry : _map.map.entrySet())
 				putValue(Ref.ref(entry.getKey()), Ref.ref(entry.getValue()));
-			
+
 			othermap.release();
 		}
 
@@ -184,6 +196,17 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 			Term value = map.get(key);
 
 			return value == null ? Core.NONE(context) : (Option<V>) Core.SOME(context, value.ref());
+		}
+
+		public void removeValue(Context context, K key)
+		{
+			V value = map.remove(key);
+			if (value != null)
+			{
+				value.release();
+
+				// TODO: release the key in the map
+			}
 		}
 
 		public List<V> values(Context context)
@@ -329,6 +352,12 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 
 		@Override
 		public boolean contains(Term key)
+		{
+			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
+		}
+
+		@Override
+		public void removeValue(Context context, K key)
 		{
 			throw new RuntimeException("Fatal error: cannot modify unevaluated map.");
 		}

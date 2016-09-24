@@ -28,7 +28,11 @@ rule NoAliasC(#system, Content(#imports, #rules, #datasorts, #aliases, #funcsort
 // --- Rules
 
 func NoAliasRules(#system: TSystem, #rules: {String : List<Core_cdecl_sort>}) -> {String : List<Core_cdecl_sort>}
-→ FoldlP((key rules)->MapPut(rules, key, Map((rule)->NoAliasRule(#system, rule), UnSOME(MapGet(#rules, key)))), #rules, MapKeys(#rules))
+//→ FoldlP((key rules)->MapPut(rules, key, Map((rule)->NoAliasRule(#system, rule), UnSOME(MapGet(#rules, key)))), {}, MapKeys(#rules))
+→ FoldlP((key rules)->NoAliasRulesForKey(#system, key, rules, #rules), {}, MapKeys(#rules))
+
+func NoAliasRulesForKey(#system: TSystem, #key: String, #rules: {String : List<Core_cdecl_sort>}, #orules: {String : List<Core_cdecl_sort>}) -> {String : List<Core_cdecl_sort>}
+→ MapPut(#rules, #key, Map((rule)->NoAliasRule(#system, rule), UnSOME(MapGet(#orules, #key))))
 
 func NoAliasRule(TSystem, Core_cdecl_sort) -> Core_cdecl_sort
 rule NoAliasRule(#system, cdecl⟦ ##canno* rule ##cterm1 → ##cterm2 ⟧) → cdecl⟦ ##canno* rule ⟨cterm: NoAliasTerm(#system, #cterm1)⟩ → ⟨cterm: NoAliasTerm(#system, #cterm2)⟩ ⟧
@@ -44,19 +48,19 @@ func NoAliasTerm(TSystem, Core_cterm_sort) -> Core_cterm_sort
   rule NoAliasTerm(#system, cterm⟦ ##canno* ##VARIABLE : ##csort ⟧)
   → cterm⟦ ##canno* ##VARIABLE : ⟨csort: NoAliasSort(#system, #csort)⟩ ⟧
 
-  rule NoAliasTerm(#system, cterm⟦ [ x : ##csort ] ##cterm[x] ⟧)
+  rule NoAliasTerm(#system, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧)
   → cterm⟦ [ x : ⟨csort: NoAliasSort(#system, #csort)⟩] ⟨cterm: NoAliasTerm(#system, #cterm[x])⟩ ⟧
 
-  rule NoAliasTerm(#system, cterm⟦ ( f : ##csort ) ##cterm[f] ⟧)
+  rule NoAliasTerm(#system, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧)
   → cterm⟦ ( f : ⟨csort: NoAliasSort(#system, #csort)⟩ ) ⟨cterm: NoAliasTerm(#system, #cterm[f])⟩ ⟧
 
-  rule NoAliasTerm(#system, cterm⟦ { ##cmapentries? } : { ##cmapsort } ⟧)
+  rule NoAliasTerm(#system, cterm⟦ ##canno* { ##cmapentries? } : { ##cmapsort } ⟧)
   → cterm⟦ { ⟨cmapentries?: NoAliasMaybeMapEntries(#system, #cmapentries?)⟩ } : { ⟨cmapsort: NoAliasMapSort(#system, #cmapsort)⟩ } ⟧
 
-  rule NoAliasTerm(#system, cterm⟦ thunk ##cterm ⟧)
+  rule NoAliasTerm(#system, cterm⟦ ##canno* thunk ##cterm ⟧)
   → cterm⟦ thunk ⟨cterm: NoAliasTerm(#system, #cterm)⟩ ⟧
 
-  rule NoAliasTerm(#system, cterm⟦ ##METAVAR ##csortanno? = ##cterm ⟧)
+  rule NoAliasTerm(#system, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧)
   → cterm⟦ ##METAVAR ⟨csortanno?: NoAliasMaybeSortAnno(#system, #csortanno?)⟩ = ⟨cterm: NoAliasTerm(#system, #cterm)⟩ ⟧
 
   rule NoAliasTerm(#system, #cterm) → #cterm
@@ -127,7 +131,7 @@ rule NoAliasMaybeSortArgs(#system, csortargs?⟦< ##csort* >⟧) → csortargs?�
 // --- Data sorts
 
 func NoAliasDataSorts(#system: TSystem, #sorts: {String : Core_cdecl_sort}) -> {String : Core_cdecl_sort}
-→ FoldlP((key sorts)->MapPut(sorts, key, NoAliasDataSort(#system, UnSOME(MapGet(#sorts, key)))), #sorts, MapKeys(#sorts))
+→ FoldlP((key sorts)->MapPut(sorts, key, NoAliasDataSort(#system, UnSOME(MapGet(#sorts, key)))), {}, MapKeys(#sorts))
 
 func NoAliasDataSort(TSystem, Core_cdecl_sort) -> Core_cdecl_sort
 rule NoAliasDataSort(#system, cdecl⟦ ##canno* data ##csortvars? ##cidentifierqualifier* ##CONSTRUCTOR ( ##cform* ) ⟧)
@@ -147,7 +151,7 @@ rule NoAliasSortDefault(#system, csortdefault⟦ ##csort ##cdefaultvalue? ⟧) �
 // --- Func sorts
 
 func NoAliasFuncSorts(#system: TSystem, #sorts: {String : Core_cdecl_sort}) -> {String : Core_cdecl_sort}
-→ FoldlP((key sorts)->MapPut(sorts, key, NoAliasFuncSort(#system, UnSOME(MapGet(#sorts, key)))), #sorts, MapKeys(#sorts))
+→ FoldlP((key sorts)->MapPut(sorts, key, NoAliasFuncSort(#system, UnSOME(MapGet(#sorts, key)))), {}, MapKeys(#sorts))
 
 func NoAliasFuncSort(TSystem, Core_cdecl_sort) -> Core_cdecl_sort
 rule NoAliasFuncSort(#system, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)

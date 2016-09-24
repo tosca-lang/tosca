@@ -241,6 +241,8 @@ public class Functions
 
 		public R eval(Context context, P1 p1, P2 p2, P3 p3, P4 p4)
 		{
+			captures = refCaptured(this, captures);
+			release();
 			return function.apply(context, p1, p2, p3, p4);
 		}
 
@@ -248,6 +250,13 @@ public class Functions
 		public Term copy(Context c)
 		{
 			throw new RuntimeException("No implemented yet");
+		}
+
+		@Override
+		protected void free()
+		{
+			captures = freeCaptured(captures);
+			super.free();
 		}
 
 	}

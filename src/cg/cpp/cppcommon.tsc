@@ -544,10 +544,10 @@ func CppBody({String : EnvEntry}, Option<List<Core_cdecl_sort>>) -> Text4_text_s
 
 func CppBodyRule({String : EnvEntry}, Core_cdecl_sort) -> Text4_text_sort
 
-  rule CppBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR → ##cterm ⟧)
+  rule CppBodyRule(#env, cdecl⟦ ##canno* rule ##CONSTRUCTOR → ##cterm ⟧)
   → CppContractum(#env, #cterm)
 
-  rule CppBodyRule(#env, cdecl⟦ rule ##CONSTRUCTOR ( ##cterm* ) → ##cterm2 ⟧)
+  rule CppBodyRule(#env, cdecl⟦ ##canno* rule ##CONSTRUCTOR ( ##cterm* ) → ##cterm2 ⟧)
   → CppPattern(#env, #cterm*, #cterm2)
 
 // --- Pattern matching
@@ -582,7 +582,7 @@ func CppPatternTerm({String : EnvEntry}, Core_cterm_sort, Text4_text_sort /* Cur
       }⟧
 
   // TODO: check literal
-  rule CppPatternTerm(#env, cterm⟦ ##cliteral ⟧, #term, #csort, #storage, #cont)
+  rule CppPatternTerm(#env, cterm⟦ ##canno* ##cliteral ⟧, #term, #csort, #storage, #cont)
   → #cont(#env)
 
   // REVISIT: bound variable reordering, ie. (x)(y)#(y, x)
@@ -593,21 +593,21 @@ func CppPatternTerm({String : EnvEntry}, Core_cterm_sort, Text4_text_sort /* Cur
   rule CppPatternTerm(#env, cterm⟦ ##canno* ##VARIABLE  ##csortanno? ⟧, #term, #csort, #storage, #cont)
   → CppPatternVariable(MaybeGetVar(#env, #VARIABLE), #env, #VARIABLE, MaybeSortAnnoToSort(#csortanno?), #term, #cont)
 
-  rule CppPatternTerm(#env, cterm⟦ { ##cmapentries? } : { ##cmapsort } ⟧, #term, #csort, #storage, #cont)
+  rule CppPatternTerm(#env, cterm⟦ ##canno* { ##cmapentries? } : { ##cmapsort } ⟧, #term, #csort, #storage, #cont)
   → CppPatternMap(#env, #cmapentries?, #term, #cmapsort, #cont)
 
-  rule CppPatternTerm(#env, cterm⟦ [ v ##csortanno?[] ] ##cterm[v] ⟧, #term, #csort, PARAMETER, #cont)
+  rule CppPatternTerm(#env, cterm⟦ ##canno* [ v ##csortanno?[] ] ##cterm[v] ⟧, #term, #csort, PARAMETER, #cont)
   → CppPatternTerm(NextParam(AddVar(#env, var, Bound(#term, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], CurrentParam(#env), SOME(CurrentParamSort(#env)), PARAMETER, #cont)
 
-  rule CppPatternTerm(#env, cterm⟦ [ v : ##csort ] ##cterm[v] ⟧, #term, #sort, ARGUMENT, #cont)
+  rule CppPatternTerm(#env, cterm⟦ ##canno* [ v : ##csort ] ##cterm[v] ⟧, #term, #sort, ARGUMENT, #cont)
   → text⟦
       C†⟨CppType(#csort)⟩Var& ⟨STRING: boundvar:String⟩ = †⟨GetParent(#env)⟩.value().getVar†⟨NumberToText(GetSubIndex(#env))⟩_†⟨NumberToText(GetSubBinderIndex(#env))⟩();†⟨
       CppPatternTerm(IncSubBinderIndex(AddVar(#env, var, Bound(text⟦⟨STRING: boundvar⟩⟧, SOME(#csort)))), #cterm[var], #term, #sort, ARGUMENT, #cont)⟩⟧
 
-  rule CppPatternTerm(#env, cterm⟦ ( f  ##csortanno? ) ##cterm[f] ⟧, #term, #csort, #storage, #cont)
+  rule CppPatternTerm(#env, cterm⟦ ##canno* ( f  ##csortanno? ) ##cterm[f] ⟧, #term, #csort, #storage, #cont)
   → CppPatternTerm(#env, #cterm[var:String], #term, #csort, #storage, #cont)
 
-  rule CppPatternTerm(#env, cterm⟦ ##METAVAR ##csortanno? = ##cterm ⟧, #term, #csort, #storage, #cont)
+  rule CppPatternTerm(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧, #term, #csort, #storage, #cont)
   → CppPatternNamedTerm(#env, #METAVAR, #cterm, #term, #csort, #storage, #cont)
 
 
@@ -676,7 +676,7 @@ func CppPatternMaybeMetaArgs({String : EnvEntry}, String, List<Core_csubst_sort>
 
   func CppFindBoundVar( {String : EnvEntry},Core_cterm_sort) -> Text4_text_sort
 
-  rule CppFindBoundVar(#env, cterm⟦ ##VARIABLE ⟧)
+  rule CppFindBoundVar(#env, cterm⟦ ##canno* ##VARIABLE ⟧)
   → GetVar(#env, #VARIABLE)
 
   rule CppFindBoundVar(#env, #cterm)
@@ -824,10 +824,10 @@ func SubSortFromTerm({String : EnvEntry}, Core_cterm_sort) -> Option<Core_csort_
   rule SubSortFromTerm(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? : ##csort ⟧)
   → SOME(#csort)
 
-  rule SubSortFromTerm(#env, cterm⟦ ##STRING ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* ##STRING ⟧)
   → SOME(csort⟦ String ⟧)
 
-  rule SubSortFromTerm(#env, cterm⟦ ##NUMBER ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* ##NUMBER ⟧)
   → SOME(csort⟦ Numeric⟧)
 
   rule SubSortFromTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧)
@@ -836,15 +836,15 @@ func SubSortFromTerm({String : EnvEntry}, Core_cterm_sort) -> Option<Core_csort_
   rule SubSortFromTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)
   → MaybeSortAnnoToSort(#csortanno?)
 
-  rule SubSortFromTerm(#env, cterm⟦ { ##cmapentries? } ##csortanno? ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* { ##cmapentries? } ##csortanno? ⟧)
   → MaybeSortAnnoToSort(#csortanno?)
 
   // TODO: maybe error?
-  rule SubSortFromTerm(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* [ x ##csortanno?[] ] ##cterm[x] ⟧)
   → SubSortFromTerm(#env, #cterm[var:String])
 
   // TODO: maybe error?
-  rule SubSortFromTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧)
   → SubSortFromTerm(#env, #cterm[var:String])
 
 func SubSortFromVar(Option<VarEntry>, String) -> Option<Core_csort_sort>
@@ -872,26 +872,26 @@ func CppFreshesTerm({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) 
   rule CppFreshesTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #cont)
   → CppFreshesMaybeTerms(#env, #cterms?, #cont)
 
+  rule CppFreshesTerm(#env, cterm⟦ ##canno* ##cliteral ⟧, #cont)
+  → #cont(#env)
+
   rule CppFreshesTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧, #cont)
   → CppFreshesVariable(#env, MaybeGetVar(#env, #VARIABLE), #VARIABLE, #csortanno?, TRUE, #cont)
 
   rule CppFreshesTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
   → CppFreshesMaybeTerms(#env, #cterms?, (env) -> CppFreshesMaybeSubst(env, #csubst?, #cont))
 
-  rule CppFreshesTerm(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧, #cont)
+  rule CppFreshesTerm(#env, cterm⟦ ##canno* [ x ##csortanno?[] ] ##cterm[x] ⟧, #cont)
   → CppFreshesVariable(#env, NONE, var, #csortanno?, FALSE, (env) -> CppFreshesTerm(env, #cterm[var], #cont))
 
-  rule CppFreshesTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
+  rule CppFreshesTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
   → CppFreshesTerm(AddVar(#env, var, Formal(text⟦ dummy ⟧, NONE)), #cterm[var], #cont)
 
-  rule CppFreshesTerm(#env, cterm⟦ { ##cmapentries? } ##csortanno? ⟧, #cont)
+  rule CppFreshesTerm(#env, cterm⟦ ##canno* { ##cmapentries? } ##csortanno? ⟧, #cont)
   → Error("Internal Error: map expression must no occur in the contraction.")
 
-  rule CppFreshesTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)
+  rule CppFreshesTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #cont)
   → CppFreshesTerm(#env, #cterm, #cont)
-
-  rule CppFreshesTerm(#env, cterm⟦ ##cliteral ⟧, #cont)
-  → #cont(#env)
 
 func CppFreshesMaybeTerms({String : EnvEntry}, List<Core_cterms_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 rule CppFreshesMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, #cont) → CppFreshesTerms(#env, #cterm*, #cont)
@@ -934,7 +934,7 @@ func CppExprTerm({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) -> 
  rule CppExprTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #cont)
  → CppExprConstruction(#env, #canno*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #cont)
 
- rule CppExprTerm(#env, cterm⟦ ##cliteral ⟧, #cont)
+ rule CppExprTerm(#env, cterm⟦ ##canno* ##cliteral ⟧, #cont)
  → text⟦
      †⟨CppExprLiteral(#cliteral)⟩†⟨#cont(#env)⟩⟧
 
@@ -944,14 +944,14 @@ func CppExprTerm({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) -> 
  rule CppExprTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
  → CppExprMeta(#env, #METAVAR, #cterms?, #csubst?, #cont)
 
- rule CppExprTerm(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧, #cont)
+ rule CppExprTerm(#env, cterm⟦ ##canno* [ x ##csortanno?[] ] ##cterm[x] ⟧, #cont)
  → text⟦
      bound†⟨NumberToText(GetCounter(#env))⟩, †⟨CppExprTerm(AddVar(IncCounter(#env), var, Bound(text⟦bound†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
 
- rule CppExprTerm(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
+ rule CppExprTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
  → text⟦closure†⟨CppLambdaTypeArgs(#cterm[dummy])⟩(†⟨CppExprLambda(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, 0, #cont)⟩⟧
 
- rule CppExprTerm(#env, cterm⟦ thunk ##cterm ⟧, #cont)
+ rule CppExprTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #cont)
  → text⟦thunk†⟨CppLambdaTypeArgs(#cterm)⟩(†⟨CppExprLambda(#env, #cterm, 0, #cont)⟩⟧
 
 // ---- construction expression
@@ -1029,7 +1029,7 @@ func CppExprMetaArgs({String : EnvEntry}, List<Core_cterm_sort> /* contraction a
 
 func CppExprLambda({String : EnvEntry}, Core_cterm_sort, Numeric, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
- rule CppExprLambda(#env, cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧, #arity, #cont)
+ rule CppExprLambda(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧, #arity, #cont)
  → CppExprLambda(AddVar(#env, var, Formal(text⟦⟨STRING: var⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], Plus(#arity, 1), #cont)
 
  rule CppExprLambda(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #arity, #cont)
@@ -1041,7 +1041,7 @@ func CppExprLambda({String : EnvEntry}, Core_cterm_sort, Numeric, ({String : Env
 // Generate closure function type arguments. Not needed if the called function is not parameterized, C++ is callable of deducing types.
 func CppLambdaTypeArgs(Core_cterm_sort) -> Text4_text_sort
 
-  rule CppLambdaTypeArgs(cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧)
+  rule CppLambdaTypeArgs(cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧)
   → CppLambdaTypeArgs(#cterm[dummy])
 
   rule CppLambdaTypeArgs(cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs ##cterms? : ##csort ⟧)

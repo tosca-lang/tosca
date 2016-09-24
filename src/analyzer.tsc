@@ -4,6 +4,7 @@ import std::core
 import std::listdef
 import std::mapdef
 import std::pairdef
+import std::string
 import std::num
 
 import systemdef
@@ -20,8 +21,9 @@ import core::utils
    - Add @Keep and @Discard annotation on metavariables
    - TODO: Add @Reuse annotation on binders.
  */
-func AnalyzeM(#env: TSystem, #module: Module) -> Module
-→ SetModuleContent(#module, AnalyzeC(GetModuleContent(#module)))
+func AnalyzeM(#system: TSystem, #module: Module) -> Module
+→ Debug(ConcatString("Analyze ", GetModuleURL(#module)),
+         ()->SetModuleContent(#module, AnalyzeC(GetModuleContent(#module))))
 
 /* Module content analysis */
 func AnalyzeC(Content) -> Content

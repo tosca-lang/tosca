@@ -6,6 +6,7 @@ import org.transscript.compiler.std.Core.Bool;
 import org.transscript.compiler.std.Core.Option;
 import org.transscript.compiler.std.Listdef.List;
 import org.transscript.runtime.Context;
+import org.transscript.runtime.Functions.Closure2;
 import org.transscript.runtime.Functions.ThunkMaker;
 import org.transscript.runtime.MapTerm;
 import org.transscript.runtime.Term;
@@ -32,7 +33,6 @@ public class MapdefExtern
 	 */
 	public static <a extends Term, b extends Term> MapTerm<a, b> MapPut(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map, a key, b value)
 	{
-		// TODO extends only when refcount > 1
 		MapTerm<a, b> xmap = map.extend();
 		xmap.putValue(key, value);
 
@@ -40,7 +40,7 @@ public class MapdefExtern
 	}
 
 	/**
-	 * Add all entried from map2 into map1. Entries in map1 existing in map2 are shadowed.
+	 * Add all map2 entries into map1. Existing map1 entries shadow map2 entries.
 	 * @param context
 	 * @param tma
 	 * @param tmb
@@ -69,6 +69,14 @@ public class MapdefExtern
 		Option<b> result = map.getValue(context, key);
 		map.release();
 		return result;
+	}
+
+	public static <a extends Term, b extends Term> MapTerm<a, b> MapRemove(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, MapTerm<a, b> map, a key)
+	{
+		MapTerm<a, b> xmap = map.extend();
+		xmap.removeValue(context, key);
+		key.release();
+		return xmap;
 	}
 
 	/**

@@ -2,6 +2,9 @@
 
 package org.transscript.runtime;
 
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+
 /**
  * Represent a reference
  * 
@@ -37,9 +40,18 @@ public interface Ref
 
 	default void release()
 	{}
-	
+
 	/**
 	 * @return the number of references
 	 */
 	public int refcount();
+
+	// Method helping debugging reference counting
+	static HashSet<Ref> refs = new HashSet<>();
+
+	public static void track(Ref ref)
+	{
+		refs.add(ref);
+	}
+	
 }

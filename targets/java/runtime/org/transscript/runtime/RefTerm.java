@@ -13,6 +13,20 @@ public abstract class RefTerm extends RefImpl implements Term
 	public RefTerm ref()
 	{
 		return (RefTerm) super.ref();
-	}	
-
+	}
+	
+	@Override
+	protected void free()
+	{
+		int i = 0;
+		while (true)
+		{
+			Term sub = sub(i); // Take a peek at sub.
+			if (sub == null)
+				break;
+			sub.release();
+			i++;
+		}
+		super.free();
+	}
 }

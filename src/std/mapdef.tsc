@@ -19,6 +19,11 @@ import std::pairdef
  */
 @Extern func MapGet<a b>({a : b} /* map */,  a /* key */) -> Option<b>
 
+/* Remove entry for given key.
+   @return the map without the entry
+ */
+@Extern func MapRemove<a b>({a : b} /* map */,  a /* key */) -> {a:b}
+
 /* Lookup entry for given key.
  @return the value of type b or the default value if not in the map
 */

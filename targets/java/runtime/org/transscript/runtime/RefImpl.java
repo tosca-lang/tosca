@@ -1,4 +1,5 @@
 // Copyright (c) 2014 IBM Corporation.
+
 package org.transscript.runtime;
 
 import org.transscript.compiler.Systemdef;
@@ -24,20 +25,20 @@ import org.transscript.compiler.Systemdef;
 public abstract class RefImpl implements Ref
 {
 	// Special value indicating the reference as been released and shouldn't be used anymore
-	final public static int RELEASED = Integer.MIN_VALUE; 
-	
+	final public static int RELEASED = Integer.MIN_VALUE;
+
 	/** Safe reference counting: check for null value */
 	@SuppressWarnings("unchecked")
 	final public static <T extends RefImpl> T safeRef(T ref)
 	{
 		return ref == null ? null : (T) ref.ref();
 	}
-	
+
 	/**
 	 * Number of references to this instance.
 	 */
 	protected int refcount;
-	
+
 	/** Create one reference */
 	protected RefImpl()
 	{
@@ -52,8 +53,10 @@ public abstract class RefImpl implements Ref
 	public Ref ref()
 	{
 		assert refcount > 0 : "Cannot create reference from a freed reference.";
-		
-		refcount ++;
+		if (refs.contains(this))
+			System.out.println("Reference " + ((Object) this).toString());
+
+		refcount++;
 		return this;
 	}
 
@@ -63,7 +66,9 @@ public abstract class RefImpl implements Ref
 	final public void release()
 	{
 		assert refcount > 0 : "Too many calls to Release.";
-			
+		if (refs.contains(this))
+			System.out.println("Release " + ((Object) this).toString());
+
 		refcount--;
 		if (refcount == 0)
 			free();
@@ -76,7 +81,7 @@ public abstract class RefImpl implements Ref
 	 */
 	protected void free()
 	{
-		assert refcount == 0;	
+		assert refcount == 0;
 		refcount = RELEASED;
 	}
 

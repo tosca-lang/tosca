@@ -66,6 +66,10 @@ rule GetModules(TSystem(#url, #modules, #config)) → #modules
 func LookupModule(#system: TSystem, #url: String /* url */) -> Option<Module>
 → MapGet(GetModules(#system), #url)
 
+/* Removes module of the given url. */
+func RemoveModule(#system: TSystem, #url: String /* url */) -> TSystem
+rule RemoveModule(TSystem(#mainurl, #modules, #config), #url) → TSystem(#mainurl, MapRemove(#modules, #url), #config)
+
 /* Whether the module located at `#url` is already in the system.
   @return `TRUE` if in the system, `FALSE` otherwise
  */
@@ -77,6 +81,12 @@ func HasModule(#system: TSystem, #url: String) -> Bool
  */
 func LookupOrCreateModule(#system: TSystem, #url: String /* url */) -> Module
 → IfPresent(LookupModule(#system, #url), (mod)->mod, ()->Module(#url, Content((), {}, {}, {}, {}), FALSE))
+
+/* Gets module for given url.
+  @return An existing module or a new one.
+ */
+func ExtractOrCreateModule(#system: TSystem, #url: String /* url */) -> PPair<TSystem Module>
+→ IfPresent(LookupModule(#system, #url), (mod)->PairCons(RemoveModule(#system, #url), mod), ()->PairCons(#system, Module(#url, Content((), {}, {}, {}, {}), FALSE)))
 
 /* Get import declarations for the module at given `#url` */
 func GetImportsS(#system: TSystem, #url: String) -> List<Core_cqidentifier_sort>
@@ -120,15 +130,27 @@ func AddImportS(#system: TSystem, #url: String, #identifier: Core_cqidentifier_s
 /*  Add the given data sort `#declaration` to the given module at `#url` in the given ``#system` .
     Fail if the given data sort already exists and `#extends` is set to `FALSE`. */
 func PutDataSortS(#system: TSystem, #url: String, #decl: Core_cdecl_sort, #extends: Bool) -> TSystem
-→ PutModule(#system, #url, PutDataSortM(LookupOrCreateModule(#system, #url), #decl, #extends))
+→ PutDataSortS2(ExtractOrCreateModule(#system, #url), #url, #decl, #extends)
+
+func PutDataSortS2(PPair<TSystem Module>, String, Core_cdecl_sort, Bool) -> TSystem
+rule PutDataSortS2(PairCons(#system, #module), #url, #decl, #extends)
+→ PutModule(#system, #url, PutDataSortM(#module, #decl, #extends))
 
 /* Append the given `#rule` to the given module at `#url` in the given ``#system` .
    @return the updated system */
 func PutRuleS(#system: TSystem, #url: String, #rule: Core_cdecl_sort) -> TSystem
-→ PutModule(#system, #url, PutRuleM(LookupOrCreateModule(#system, #url), #rule))
+→ PutRuleS2(ExtractOrCreateModule(#system, #url), #url, #rule)
+
+func PutRuleS2(PPair<TSystem Module>, String, Core_cdecl_sort) -> TSystem
+rule PutRuleS2(PairCons(#system, #module), #url, #rule)
+→ PutModule(#system, #url, PutRuleM(#module, #rule))
 
 func PutFuncSortS(#system: TSystem, #url: String, #funcsort: Core_cdecl_sort, #overwrite: Bool) -> TSystem
-→ PutModule(#system, #url, PutFuncSortM(LookupOrCreateModule(#system, #url), #funcsort, #overwrite))
+→ PutFuncSortS2(ExtractOrCreateModule(#system, #url), #url, #funcsort, #overwrite)
+
+func PutFuncSortS2(PPair<TSystem Module>, String, Core_cdecl_sort, Bool) -> TSystem
+rule PutFuncSortS2(PairCons(#system, #module), #url, #funcsort, #overwrite)
+→ PutModule(#system, #url, PutFuncSortM(#module, #funcsort, #overwrite))
 
 func PutAliasS(#system: TSystem, #url: String, #alias: Core_cdecl_sort) -> TSystem
 → PutModule(#system, #url, PutAliasM(LookupOrCreateModule(#system, #url), #alias))
@@ -196,16 +218,19 @@ func AddImportM(#module: Module, #identifier: Core_cqidentifier_sort) -> Module
 
 /*  Add the given data sort `#declaration` to the given `#module`.
     Fail if the given data sort already exists and `#extends` is set to `FALSE`. */
-func PutDataSortM(#module: Module, #decl: Core_cdecl_sort, #extends: Bool) -> Module
-→ SetModuleContent(#module, PutDataSortC(GetModuleContent(#module), #decl, #extends))
+func PutDataSortM(Module, Core_cdecl_sort, Bool) -> Module
+rule PutDataSortM(Module(#url, #content, #compiled), #decl, #extends)
+→ Module(#url, PutDataSortC(#content, #decl, #extends), #compiled)
 
 /* Append the given `#rule` to the given `#module`.
    @return the updated module */
 func PutRuleM(#module: Module, #rule: Core_cdecl_sort) -> Module
-→ SetModuleContent(#module, PutRuleC(GetModuleContent(#module), #rule))
+rule PutRuleM(Module(#url, #content, #compiled), #rule)
+→ Module(#url, PutRuleC(#content, #rule), #compiled)
 
 func PutFuncSortM(#module: Module, #funcsort: Core_cdecl_sort, #overwrite: Bool) -> Module
-→ SetModuleContent(#module, PutFuncSortC(GetModuleContent(#module), #funcsort, #overwrite))
+rule PutFuncSortM(Module(#url, #content, #compiled), #funcsort, #overwrite)
+→ Module(#url, PutFuncSortC(#content, #funcsort, #overwrite), #compiled)
 
 func PutAliasM(#module: Module, #alias: Core_cdecl_sort) -> Module
 → SetModuleContent(#module, PutAliasC(GetModuleContent(#module), #alias))

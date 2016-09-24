@@ -168,6 +168,8 @@ public interface Term extends Ref
 		return (T) term.substitute(c, substitutes);
 	}
 
+	
+
 	/**
 	* Apply substitution on this term
 	* 
