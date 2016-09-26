@@ -119,9 +119,9 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
   // TODO: check name is unique
   rule InferTerm(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧, #esort)
   → InferNamedUp(#METAVAR, #esort, InferTerm(AddIMetaVar(#env, #METAVAR, #esort), #cterm, #esort))
-/*
+
   rule InferTerm(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧, #esort)
-  → InferLetUp(#METAVAR, #esort, InferTerm(AddIMetaVar(#env, #METAVAR, #esort), #cterm, #esort))*/
+  → InferLet(#METAVAR, csort⟦ ⟨VARIABLE: INewSortVar(#env)⟩ ⟧, InferTerm(IIncCounter(#env), #cterm, csort⟦ ⟨VARIABLE: INewSortVar(#env)⟩ ⟧), #cterm2, #esort)
 
 /* Traverse terms */
 func InferMaybeTerms({String:IEnvEntry}, String, List<Core_cterms_sort>, List<Core_csort_sort>, List<Core_canno_sort>, List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterms_sort>>
@@ -414,9 +414,14 @@ func InferNamedUp(String, Core_csort_sort, PPair<{String:IEnvEntry} Core_cterm_s
 rule InferNamedUp(#METAVAR, #csort, PairCons(#env, #cterm)) → PairCons(#env, cterm⟦ ##METAVAR : ##csort = ##cterm ⟧)
 
 //--- Synthesize let expression
-/*
-func InferLetUp(String, Core_csort_sort, PPair<{String:IEnvEntry} Core_cterm_sort>) -> PPair<{String:IEnvEntry} Core_cterm_sort>
-rule InferLetUp(#METAVAR, #csort, PairCons(#env, #cterm)) → PairCons(#env, cterm⟦ let ##METAVAR : ##csort = ##cterm ⟧)*/
+
+func InferLet(String, Core_csort_sort, PPair<{String:IEnvEntry} Core_cterm_sort>, Core_cterm_sort, Core_csort_sort) -> PPair<{String:IEnvEntry} Core_cterm_sort>
+rule InferLet(#METAVAR, #csort, PairCons(#env, #cterm), #cterm2, #esort)
+→ InferLetUp(#METAVAR, #csort, #cterm, InferTerm(AddIMetaVar(#env, #METAVAR, #csort), #cterm2, #esort))
+
+func InferLetUp(String, Core_csort_sort, Core_cterm_sort, PPair<{String:IEnvEntry} Core_cterm_sort>) -> PPair<{String:IEnvEntry} Core_cterm_sort>
+rule InferLetUp(#METAVAR, #csort, #cterm, PairCons(#env, #cterm2))
+→ PairCons(IRemoveMetaVar(#env, #METAVAR), cterm⟦ let ##METAVAR : ##csort = ##cterm ##cterm2 ⟧)
 
 /* Synthesize sort variables.
 
@@ -623,7 +628,7 @@ rule ISubstTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧)    
 rule ISubstTerm(#env, cterm⟦ ##canno* { ##cmapentries? } ##csortanno? ⟧)                     → cterm⟦ ##canno* { ⟨cmapentries?: ISubstMaybeMapEntries(#env, #cmapentries?)⟩ } ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
 rule ISubstTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧)                                       → cterm⟦ ##canno* thunk ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟧
 rule ISubstTerm(#env, cterm⟦ ##canno* ##METAVAR = ##cterm ⟧)                                 → cterm⟦ ##canno* ##METAVAR = ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟧
-//rule ISubstTerm(#env, cterm⟦ ##canno* let ##METAVAR = ##cterm ##cterm2 ⟧)                    → cterm⟦ ##canno* let ##METAVAR = ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟨cterm: ISubstTerm(#env, #cterm2)⟩ ⟧
+rule ISubstTerm(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)       → cterm⟦ ##canno* let ##METAVAR ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ = ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟨cterm: ISubstTerm(#env, #cterm2)⟩ ⟧
 rule ISubstTerm(#env, #cterm)                                                               → #cterm
 
 func ISubstQCons({String:IEnvEntry}, Core_cqconstructor_sort) -> Core_cqconstructor_sort

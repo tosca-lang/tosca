@@ -104,8 +104,8 @@ func AnalyzeVarUse(LEnv, Core_cterm_sort) -> PPair<LEnv Core_cterm_sort>
   rule AnalyzeVarUse(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧)
   → Error("Internal Error: Named terms cannot occur in contraction")
 
-  /*rule AnalyzeVarUse(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
-  → AnalyzeVarUseLet(#canno*, #METAVAR, #csortanno?, #cterm, AnalyzeVarUse(LEnvRemoveMeta(#env, #METAVAR), #cterm2), LEnvGetMetaCount(#env, #METAVAR))*/
+  rule AnalyzeVarUse(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
+  → AnalyzeVarUseLet(#canno*, #METAVAR, #csortanno?, #cterm, AnalyzeVarUse(LEnvRemoveMeta(#env, #METAVAR), #cterm2), LEnvGetMetaCount(#env, #METAVAR))
 
   rule AnalyzeVarUse(#env, #cterm) → PairCons(#env, #cterm)
 
@@ -175,7 +175,7 @@ func AnalyzeVarUseThunk(LEnv, List<Core_canno_sort>, PPair<LEnv Core_cterm_sort>
 rule AnalyzeVarUseThunk(#env, #canno*, PairCons(#ienv, #cterm))
 → PairCons(AnalyzeCaptured(#env, #ienv, ()), cterm⟦ ⟨canno*: AnalyzeCapturedAll(#env, LEnvMetaKeys(#ienv), LEnvVarKeys(#ienv), #canno*)⟩ thunk ##cterm ⟧)
 
-/*func AnalyzeVarUseLet(List<Core_canno_sort>, String, List<Core_csortanno_sort>, Core_cterm_sort, PPair<LEnv Core_cterm_sort>, Option<Numeric>) -> PPair<LEnv Core_cterm_sort>
+func AnalyzeVarUseLet(List<Core_canno_sort>, String, List<Core_csortanno_sort>, Core_cterm_sort, PPair<LEnv Core_cterm_sort>, Option<Numeric>) -> PPair<LEnv Core_cterm_sort>
 rule AnalyzeVarUseLet(#canno*, #METAVAR, #csortanno?, #cterm, PairCons(#env, #cterm2), #shadowed)
 → If(HasOption(LEnvGetMetaCount(#env, #METAVAR)), // Check let variable is used.
     ()->AnalyzeVarUseLet2(#canno*, #METAVAR, #csortanno?, AnalyzeVarUse(LEnvSetMetaCountO(#env, #METAVAR, #shadowed), #cterm), #cterm2),
@@ -183,8 +183,7 @@ rule AnalyzeVarUseLet(#canno*, #METAVAR, #csortanno?, #cterm, PairCons(#env, #ct
 
 func AnalyzeVarUseLet2(List<Core_canno_sort>, String, List<Core_csortanno_sort>, PPair<LEnv Core_cterm_sort>, Core_cterm_sort) -> PPair<LEnv Core_cterm_sort>
 rule AnalyzeVarUseLet2(#canno*, #METAVAR, #csortanno?, PairCons(#env, #cterm), #cterm2)
-→ PairCons(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)*/
-
+→ PairCons(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
 
 // Add @Keep annotation only when a metavariable or variable occurs more than once.
 func AnalyzeMayKeep(Option<Numeric>, List<Core_canno_sort>) -> List<Core_canno_sort>

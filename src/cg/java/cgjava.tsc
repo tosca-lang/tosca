@@ -1121,8 +1121,8 @@ func SubSortFromTerm({String : JEnvEntry}, Core_cterm_sort) -> Option<Core_csort
   rule SubSortFromTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)
   → MaybeSortAnnoToSort(#csortanno?)
 
-  /*rule SubSortFromTerm(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
-  → SubSortFromTerm(#env, #cterm2)*/
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
+  → SubSortFromTerm(#env, #cterm2)
 
   rule SubSortFromTerm(#env, cterm⟦ ##canno* { ##cmapentries? } ##csortanno? ⟧)
   → MaybeSortAnnoToSort(#csortanno?)
@@ -1186,50 +1186,61 @@ func JavaIsArgument(Storage) -> Bool
 rule JavaIsArgument(ARGUMENT) → TRUE
 rule JavaIsArgument(PARAMETER) → FALSE
 
+
 // ----- Contraction
 
 func JavaContractum(#env: {String : JEnvEntry}, #ruleanno*: List<Core_canno_sort>, #term: Core_cterm_sort) -> Text4_text_sort
-→ text⟦†⟨JavaKeepSub(#env, #ruleanno*)⟩†⟨JavaDiscard(#env)⟩†⟨JavaStatementTerm(#env, #term)⟩⟧
+→ text⟦†⟨JavaKeepSub(#env, #ruleanno*)⟩†⟨
+        JavaDiscard(#env)⟩†⟨
+        JavaFreshesTerm(JSetCounter(JSetFreshCounter(#env, 0), 0), #term, (env)->
+          JavaStatementTerm(JSetCounter(JSetParamCounter(env, 0), 0), #term, (env)->text⟦⟧))⟩ ⟧
 
-func JavaStatementTerm(#env: {String : JEnvEntry}, #cterm:Core_cterm_sort) -> Text4_text_sort
-→ text⟦†⟨JavaJFreshesTerm(JSetCounter(JSetFreshCounter(#env, 0), 0), #cterm, (env) ->
-     text⟦return †⟨JavaExprTerm(JSetCounter(JSetParamCounter(env, 0), 0), #cterm, (env) -> text⟦⟧)⟩;⟧)⟩⟧
+// ---- Generate term code -Java statement mode
+
+func JavaStatementTerm(#env: {String : JEnvEntry}, #cterm:Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  rule JavaStatementTerm(#env, cterm⟦ ##canno* let ##METAVAR : ##csort = ##cterm ##cterm2 ⟧, #cont)
+  → text⟦¶†⟨SortToType(#csort)⟩ ⟨STRING: Mangle(#METAVAR)⟩ = †⟨JavaExprTerm(#env, #cterm, (env)->text⟦; †⟨
+          JavaStatementTerm(JAddMeta(env, #METAVAR, text⟦⟨STRING: Mangle(#METAVAR)⟩⟧, (), ARGUMENT), #cterm2, #cont)⟩⟧)⟩⟧
+
+  rule JavaStatementTerm(#env, #cterm, #cont)
+  → text⟦return †⟨JavaExprTerm(#env, #cterm, #cont)⟩;⟧
 
 // ---- Generate fresh variable - Only in Java statement mode
 
-func JavaJFreshesTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+func JavaFreshesTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #cont)
+  rule JavaFreshesTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #cont)
   → JavaJFreshesMaybeTerms(#env, #cterms?, #cont)
 
-  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* ##cliteral ⟧, #cont)
+  rule JavaFreshesTerm(#env, cterm⟦ ##canno* ##cliteral ⟧, #cont)
   → #cont(#env)
 
-  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧, #cont)
+  rule JavaFreshesTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧, #cont)
   → JavaJFreshesVariable(#env, JGetVarO(#env, #VARIABLE), #VARIABLE, #csortanno?, TRUE, #cont)
 
-  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
+  rule JavaFreshesTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
   → JavaJFreshesMaybeTerms(#env, #cterms?, (env) -> JavaJFreshesMaybeSubst(env, #csubst?, #cont))
 
-  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* [ x ##csortanno? ] ##cterm[x] ⟧, #cont)
-  → JavaJFreshesVariable(#env, NONE, var, #csortanno?, FALSE, (env) -> JavaJFreshesTerm(env, #cterm[var], #cont))
+  rule JavaFreshesTerm(#env, cterm⟦ ##canno* [ x ##csortanno? ] ##cterm[x] ⟧, #cont)
+  → JavaJFreshesVariable(#env, NONE, var, #csortanno?, FALSE, (env) -> JavaFreshesTerm(env, #cterm[var], #cont))
 
-  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
-  → JavaJFreshesTerm(JAddVar(#env, var, JFormal(text⟦ dummy ⟧, NONE)), #cterm[var], #cont)
+  rule JavaFreshesTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
+  → JavaFreshesTerm(JAddVar(#env, var, JFormal(text⟦ dummy ⟧, NONE)), #cterm[var], #cont)
 
-  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #cont)
-  → JavaJFreshesTerm(#env, #cterm, #cont)
+  rule JavaFreshesTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #cont)
+  → JavaFreshesTerm(#env, #cterm, #cont)
 
-  /*rule JavaJFreshesTerm(#env, cterm⟦ ##canno* let ##METAVAR = ##cterm ##cterm2 ⟧, #cont)
-  → JavaJFreshesTerm(#env, #cterm, (env)->JavaJFreshesTerm(env, #cterm2))*/
+  rule JavaFreshesTerm(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧, #cont)
+  → JavaFreshesTerm(#env, #cterm, (env)->JavaFreshesTerm(env, #cterm2, #cont))
 
-  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* ##METAVAR = ##cterm ⟧, #cont)
+  rule JavaFreshesTerm(#env, cterm⟦ ##canno* ##METAVAR = ##cterm ⟧, #cont)
   → Error("Internal Error: named expression cannot occur in contraction.")
 
-  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* { ##cmapentries? } ##csortanno? ⟧, #cont)
+  rule JavaFreshesTerm(#env, cterm⟦ ##canno* { ##cmapentries? } ##csortanno? ⟧, #cont)
   → Error("Internal Error: map expression cannot occur in contraction.")
 
-  rule JavaJFreshesTerm(#env, cterm⟦ ##canno* ##METAVAR = ##cterm ⟧, #cont)
+  rule JavaFreshesTerm(#env, cterm⟦ ##canno* ##METAVAR = ##cterm ⟧, #cont)
   → Error("Internal Error: named expression cannot occur in contraction.")
 
 func JavaJFreshesMaybeTerms({String : JEnvEntry}, List<Core_cterms_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
@@ -1241,22 +1252,22 @@ func JavaJFreshesMaybeTerms({String : JEnvEntry}, List<Core_cterms_sort>, ({Stri
   → #cont(#env)
 
   rule JavaJFreshesMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, #cont)
-  → JavaJFreshesTerms(#env, #cterm*, #cont)
+  → JavaFreshesTerms(#env, #cterm*, #cont)
 
-func JavaJFreshesTerms({String : JEnvEntry}, List<Core_cterm_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+func JavaFreshesTerms({String : JEnvEntry}, List<Core_cterm_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaJFreshesTerms(#env, cterm*⟦⟧, #cont)
+  rule JavaFreshesTerms(#env, cterm*⟦⟧, #cont)
   → #cont(#env)
 
-  rule JavaJFreshesTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, #cont)
-  → JavaJFreshesTerm(#env, #cterm, (env) -> JavaJFreshesTerms(env, #cterm*, #cont))
+  rule JavaFreshesTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧, #cont)
+  → JavaFreshesTerm(#env, #cterm, (env) -> JavaFreshesTerms(env, #cterm*, #cont))
 
 func JavaJFreshesMaybeSubst({String : JEnvEntry}, List<Core_csubst_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
   rule JavaJFreshesMaybeSubst(#env, csubst?⟦⟧, #cont)
   → #cont(#env)
 
   rule JavaJFreshesMaybeSubst(#env, csubst?⟦ [ ##cterm* ] ⟧, #cont)
-  → JavaJFreshesTerms(#env, #cterm*, #cont)
+  → JavaFreshesTerms(#env, #cterm*, #cont)
 
 func JavaJFreshesVariable({String : JEnvEntry}, Option<JVarEntry>, String, List<Core_csortanno_sort>, Bool, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
@@ -1291,20 +1302,19 @@ func JavaExprTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) 
   rule JavaExprTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
   → JavaExprMeta(#env, #canno*, #METAVAR, #cterms?, #csubst?, #cont)
 
-  /*rule JavaExprTerm(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧, #cont)
-  → text⟦
-      bound†⟨NumberToText(JGetCounter(#env))⟩, †⟨JavaExprTerm(JAddVar(JIncCounter(#env), var, JBound(text⟦bound†⟨NumberToText(JGetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧*/
-
   rule JavaExprTerm(#env, cterm⟦ ##canno* [ x ##csortanno?[] ] ##cterm[x] ⟧, #cont)
-  → //let counter = NumberToText(JGetCounter(#env))
+  → let #counter = NumberToText(JGetCounter(#env))
     text⟦
-       bound†⟨NumberToText(JGetCounter(#env))⟩, †⟨JavaExprTerm(JAddVar(JIncCounter(#env), var, JBound(text⟦bound†⟨NumberToText(JGetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
+       bound†⟨#counter⟩, †⟨JavaExprTerm(JAddVar(JIncCounter(#env), var, JBound(text⟦bound†⟨NumberToText(JGetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
 
   rule JavaExprTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
   → text⟦newClosure((†⟨GetContext(NewContext(#env))⟩†⟨JavaExprLambda(NewContext(#env), cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)⟩⟧
 
   rule JavaExprTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #cont)
   → text⟦newClosure(†⟨GetContext(NewContext(#env))⟩ -> ⟨JavaExprTerm(NewContext(#env), #cterm, (env) -> text⟦†⟨JavaLambdaCaptures(#env, #canno*)⟩)⟨#cont(env)⟩⟧)⟩⟧
+
+  rule JavaExprTerm(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧, #cont)
+  → Error("Error: Let expression cannot occur within another expression: it must be a the top-level expression.")
 
 // ---- construction expression
 

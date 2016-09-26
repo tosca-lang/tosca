@@ -63,8 +63,8 @@ func NoAliasTerm(TSystem, Core_cterm_sort) -> Core_cterm_sort
   rule NoAliasTerm(#system, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧)
   → cterm⟦ ##canno* ##METAVAR ⟨csortanno?: NoAliasMaybeSortAnno(#system, #csortanno?)⟩ = ⟨cterm: NoAliasTerm(#system, #cterm)⟩ ⟧
 
-  /*rule NoAliasTerm(#system, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
-  → cterm⟦ ##canno* let ##METAVAR ⟨csortanno?: NoAliasMaybeSortAnno(#system, #csortanno?)⟩ = ⟨cterm: NoAliasTerm(#system, #cterm)⟩ ⟨cterm: NoAliasTerm(#system, #cterm2)⟩ ⟧*/
+  rule NoAliasTerm(#system, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
+  → cterm⟦ ##canno* let ##METAVAR ⟨csortanno?: NoAliasMaybeSortAnno(#system, #csortanno?)⟩ = ⟨cterm: NoAliasTerm(#system, #cterm)⟩ ⟨cterm: NoAliasTerm(#system, #cterm2)⟩ ⟧
 
   rule NoAliasTerm(#system, #cterm) → #cterm
 
