@@ -1200,8 +1200,9 @@ func JavaContractum(#env: {String : JEnvEntry}, #ruleanno*: List<Core_canno_sort
 func JavaStatementTerm(#env: {String : JEnvEntry}, #cterm:Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   rule JavaStatementTerm(#env, cterm⟦ ##canno* let ##METAVAR : ##csort = ##cterm ##cterm2 ⟧, #cont)
-  → text⟦¶†⟨SortToType(#csort)⟩ ⟨STRING: Mangle(#METAVAR)⟩ = †⟨JavaExprTerm(#env, #cterm, (env)->text⟦; †⟨
-          JavaStatementTerm(JAddMeta(env, #METAVAR, text⟦⟨STRING: Mangle(#METAVAR)⟩⟧, (), ARGUMENT), #cterm2, #cont)⟩⟧)⟩⟧
+  → let #javavar = text⟦⟨STRING: Mangle(RemoveFirstChar(#METAVAR))⟩⟧
+      text⟦¶†⟨SortToType(#csort)⟩ †⟨#javavar⟩ = †⟨JavaExprTerm(#env, #cterm, (env)->text⟦; †⟨
+          JavaStatementTerm(JAddMeta(env, #METAVAR, #javavar, (), ARGUMENT), #cterm2, #cont)⟩⟧)⟩⟧
 
   rule JavaStatementTerm(#env, #cterm, #cont)
   → text⟦return †⟨JavaExprTerm(#env, #cterm, #cont)⟩;⟧

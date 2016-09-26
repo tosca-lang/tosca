@@ -23,12 +23,14 @@ func NoAliasM(#system: TSystem, #module: Module) -> Module
 
 func NoAliasC(TSystem, Content) -> Content
 rule NoAliasC(#system, Content(#imports, #rules, #datasorts, #aliases, #funcsorts))
-→ Content(#imports, NoAliasRules(#system, #rules), NoAliasDataSorts(#system, #datasorts), {}, NoAliasFuncSorts(#system, #funcsorts))
+→ let #rules     = NoAliasRules(#system, #rules)
+  let #datasorts = NoAliasDataSorts(#system, #datasorts)
+  let #funcsorts = NoAliasFuncSorts(#system, #funcsorts)
+    Content(#imports, #rules, #datasorts, {}, #funcsorts)
 
 // --- Rules
 
 func NoAliasRules(#system: TSystem, #rules: {String : List<Core_cdecl_sort>}) -> {String : List<Core_cdecl_sort>}
-//→ FoldlP((key rules)->MapPut(rules, key, Map((rule)->NoAliasRule(#system, rule), UnSOME(MapGet(#rules, key)))), {}, MapKeys(#rules))
 → FoldlP((key rules)->NoAliasRulesForKey(#system, key, rules, #rules), {}, MapKeys(#rules))
 
 func NoAliasRulesForKey(#system: TSystem, #key: String, #rules: {String : List<Core_cdecl_sort>}, #orules: {String : List<Core_cdecl_sort>}) -> {String : List<Core_cdecl_sort>}

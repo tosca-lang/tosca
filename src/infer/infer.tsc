@@ -29,12 +29,16 @@ import systemdef
 /* Infer sorts of given `#module` */
 func InferM(#system: TSystem, #module: Module) -> Module
 → IfConfigDef(#system, "infer",
-    (v) -> SetModuleContent(#module, Debug(ConcatString("Type check ", GetModuleURL(#module)), ()->InferContent(GetModuleContent(#module), #system))),
+    (v) -> InferM2(#system, #module),
     ( ) -> #module)
+
+func InferM2(TSystem, Module) -> Module
+rule InferM2(#system,  Module(#url, #content, #compiled))
+→ Debug(ConcatString("Type check ", #url), ()->Module(#url, InferContent(#system, #content), #compiled))
 
 // -- Content
 
-func InferContent(#content: Content, #system: TSystem) -> Content
+func InferContent(#system: TSystem, #content: Content) -> Content
 → FoldlP((key content) -> InferRules(key, UnSOME(GetRulesForKeyC(content, key)), content, #system),
            #content,
            MapKeys(GetRules(#content)))
@@ -48,12 +52,14 @@ func InferRules(#key: String, #rules: List<Core_cdecl_sort>, #content: Content, 
 
 func InferRule({String:IEnvEntry}, Core_cdecl_sort) -> Core_cdecl_sort
 rule InferRule(#env, cdecl⟦ ##canno* rule ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? → ##cterm ⟧)
-→ Debug(ConcatString("Infer rule ", #CONSTRUCTOR), ()->InferRuleAux(#env, FindFuncSortS(GetSystem(#env), #CONSTRUCTOR), #CONSTRUCTOR, #cterms?, #cterm))
+→ Debug(ConcatString("Infer rule ", #CONSTRUCTOR), ()->InferRuleAux(#env, FindFuncSortS(IGetSystem(#env), #CONSTRUCTOR), #CONSTRUCTOR, #cterms?, #cterm))
 
 func InferRuleAux({String:IEnvEntry}, Option<Core_cdecl_sort>, String, List<Core_cterms_sort>, Core_cterm_sort) -> Core_cdecl_sort
 
   rule InferRuleAux(#env, SOME(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧), #funcname, #cterms?, #contractum)
-  → InferPatternUp(#CONSTRUCTOR, InferMaybeTerms(IAddDummySorts(#env, #csortvars?), #CONSTRUCTOR, #cterms?, MaybeSortsToSorts(#csorts?), (), ()), #csort, #contractum)
+  → let #sorts = MaybeSortsToSorts(#csorts?)
+    let #iterms? = InferMaybeTerms(IAddDummySorts(#env, #csortvars?), #CONSTRUCTOR, #cterms?, #sorts, (), ())
+      InferPatternUp(#CONSTRUCTOR, #iterms?, #csort, #contractum)
 
   rule InferRuleAux(#env, NONE,  #funcname, cterms?⟦⟧, #contractum)
   → Error(ConcatString("Error: undeclared function named ", #funcname))
@@ -76,7 +82,7 @@ rule InferRuleUp(#cterm1, PairCons(#env, #cterm2)) → ISubstRule(OptimizeSorts(
 func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected sort */) -> PPair<{String:IEnvEntry} Core_cterm_sort>
 
   rule InferTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #esort)
-  → InferCons(#env, GetInPattern(#env), IsDataS(GetSystem(#env), #CONSTRUCTOR), #canno*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #esort)
+  → InferCons(#env, GetInPattern(#env), IsDataS(IGetSystem(#env), #CONSTRUCTOR), #canno*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #esort)
 
   rule InferTerm(#env, cterm⟦ ##STRING ⟧, #esort)
   → PairCons(UnifySort(#env, #esort, csort⟦ String ⟧), cterm⟦ ##STRING ⟧)
@@ -111,7 +117,7 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
 
   // Could be an alias...
   rule InferTerm(#env, cterm⟦ ##canno* { ##cmapentries? } ⟧, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧)
-  → InferMapAlias(#env, FindAliasS(GetSystem(#env), #CONSTRUCTOR), cterm⟦ { ##cmapentries? } ⟧, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧)
+  → InferMapAlias(#env, FindAliasS(IGetSystem(#env), #CONSTRUCTOR), cterm⟦ { ##cmapentries? } ⟧, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧)
 
   rule InferTerm(#env, cterm⟦ ##canno* thunk ##cterm              ⟧, csort⟦ ##canno* thunk ##csort ⟧)
   → UnPair(InferTerm(#env, #cterm, #csort), (env term)->PairCons(env, cterm⟦ thunk ⟨cterm: term⟩ ⟧))
@@ -152,7 +158,8 @@ rule InferTerms(#env, #constructor, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦   
 /* Reconstruct terms */
 func InferTermsUp(PPair<{String:IEnvEntry} Core_cterm_sort>, String, List<Core_cterm_sort>, List<Core_csort_sort>, List<Core_canno_sort>, List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterm_sort>>
 rule InferTermsUp(PairCons(#env, #cterm), #constructor, #cterm*, #csort*, #canno*, #dvs)
-→ UnPair(InferTerms(IResetBinderSorts(#env), #constructor, #cterm*, #csort*, #canno*, #dvs), (env cterms) -> PairCons(env, cterm*⟦ ##cterm ⟨cterm*: cterms⟩⟧))
+→ UnPair(InferTerms(IResetBinderSorts(#env), #constructor, #cterm*, #csort*, #canno*, #dvs), (env cterms) ->
+  PairCons(env, cterm*⟦ ##cterm ⟨cterm*: cterms⟩⟧))
 
 //
 func InferMapAlias({String:IEnvEntry}, Option<Core_cdecl_sort>, Core_cterm_sort, Core_csort_sort) -> PPair<{String:IEnvEntry} Core_cterm_sort>
@@ -202,7 +209,8 @@ func InferDefaultValues({String:IEnvEntry}, String, List<Core_csort_sort>, List<
   // If in pattern, currently match all.
   rule InferDefaultValues(#env, #constructor, csort*⟦ ##csort ##csort* ⟧, #canno*, ((cdefaultvalue⟦ = ##cterm ⟧,), #dvs...))
   → If(GetInPattern(#env),
-      ()->InferTermsUp(InferTerm(IIncMetaCounter(#env), cterm⟦ ⟨METAVAR: ConcatString("#$", FormatInteger(IGetMetaCounter(#env)))⟩ ⟧, #csort), #constructor, cterm*⟦⟧, #csort*, #canno*, #dvs),
+  //()->InferTermsUp(InferTerm(IIncMetaCounter(#env), cterm⟦ ⟨METAVAR: ConcatString("#$", FormatInteger(IGetMetaCounter(#env)))⟩ ⟧, #csort), #constructor, cterm*⟦⟧, #csort*, #canno*, #dvs),
+      ()->InferDefaultValuesPattern(#env, #constructor, #csort, #csort*, #canno*, #dvs),
       ()->InferTermsUp(InferTerm(#env, #cterm, #csort), #constructor, cterm*⟦⟧, #csort*, #canno*, #dvs))
 
   rule InferDefaultValues(#env, #constructor, csort*⟦                  ⟧, #canno*, ())
@@ -211,13 +219,18 @@ func InferDefaultValues({String:IEnvEntry}, String, List<Core_csort_sort>, List<
   rule InferDefaultValues(#env, #constructor, csort*⟦ ##csort ##csort* ⟧, #canno*, #dvs)
   → Error(ConcatString("Error: missing argument(s) in ", #constructor))
 
+func InferDefaultValuesPattern(#env: {String:IEnvEntry}, #constructor: String, #csort: Core_csort_sort, #csort*: List<Core_csort_sort>,
+                               #canno*:List<Core_canno_sort>, #dvs: List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterm_sort>>
+→ let #METAVAR = ConcatString("#$", FormatInteger(IGetMetaCounter(#env)))
+    InferTermsUp(InferTerm(IIncMetaCounter(#env), cterm⟦ ##METAVAR ⟧, #csort), #constructor, cterm*⟦⟧, #csort*, #canno*, #dvs)
+
 // --- Synthesize construction sort
 
 func InferCons({String:IEnvEntry}, Bool, Bool, List<Core_canno_sort>, String, List<Core_csortargs_sort>, List<Core_cterms_sort>, List<Core_csortanno_sort>, Core_csort_sort) -> PPair<{String:IEnvEntry} Core_cterm_sort>
 
   // Data construction: search for the data sort declaration defining `#CONSTRUCTOR`
   rule InferCons(#env, #inpattern, TRUE, #canno*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #esort)
-  → InferData(#env, #canno*, #CONSTRUCTOR, #csortargs?, #cterms?, FindFormS(GetSystem(#env), #esort, #CONSTRUCTOR), #esort)
+  → InferData(#env, #canno*, #CONSTRUCTOR, #csortargs?, #cterms?, FindFormS(IGetSystem(#env), #esort, #CONSTRUCTOR), #esort)
 
   rule InferCons(#env, FALSE, FALSE, #canno*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #esort)
   → InferFunc(#env, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, SOME(#esort))
@@ -228,7 +241,7 @@ func InferCons({String:IEnvEntry}, Bool, Bool, List<Core_canno_sort>, String, Li
 /* Synthesize function  */
 func InferFunc(#env: {String:IEnvEntry}, #CONSTRUCTOR: String, #csortargs?: List<Core_csortargs_sort>, #cterms?: List<Core_cterms_sort>,
                   #csortanno?: List<Core_csortanno_sort>, #esort: Option<Core_csort_sort>) -> PPair<{String:IEnvEntry} Core_cterm_sort>
-→ InferFuncAux(#env, FindFuncSortS(GetSystem(#env), #CONSTRUCTOR), #csortargs?, #cterms?, #CONSTRUCTOR, #esort)
+→ InferFuncAux(#env, FindFuncSortS(IGetSystem(#env), #CONSTRUCTOR), #csortargs?, #cterms?, #CONSTRUCTOR, #esort)
 
 func InferFuncAux({String:IEnvEntry}, Option<Core_cdecl_sort>, List<Core_csortargs_sort>, List<Core_cterms_sort>, String, Option<Core_csort_sort>) -> PPair<{String:IEnvEntry} Core_cterm_sort>
 
@@ -257,9 +270,11 @@ func InferSubs(#env: {String:IEnvEntry}, #canno*: List<Core_canno_sort>, #CONSTR
 func InferSubsAux(#env: {String:IEnvEntry}, #canno*: List<Core_canno_sort>, #CONSTRUCTOR: String, #data: Bool,
                   #cterms?: List<Core_cterms_sort>, #dsort*: List<Core_csort_sort> /* in decl domain */, #default: List<List<Core_cdefaultvalue_sort>>,
                   #edsort: Core_csort_sort, #esort: Option<Core_csort_sort>) -> PPair<{String:IEnvEntry} Core_cterm_sort>
-→ InferConsUp(#CONSTRUCTOR, #data, GetSortArgs(#env),
-                InferMaybeTerms(UnifySort(#env, SubstSort(#edsort, GetSortArgsMap(#env)), UnSOME(#esort)),
-                                 #CONSTRUCTOR, #cterms?, SubstSortSorts(#dsort*, GetSortArgsMap(#env)), #canno*, #default), SubstSort(#edsort, GetSortArgsMap(#env)))
+→ let #sortArgsMap = GetSortArgsMap(#env)
+  let #edsort = SubstSort(#edsort, #sortArgsMap)
+    InferConsUp(#CONSTRUCTOR, #data, GetSortArgs(#env),
+                InferMaybeTerms(UnifySort(#env, #edsort, UnSOME(#esort)),
+                                 #CONSTRUCTOR, #cterms?, SubstSortSorts(#dsort*, #sortArgsMap), #canno*, #default), #edsort)
 
 /* Reconstruct construction. Add @Data annotation if constructor is a data symbol */
 func InferConsUp(String, Bool, List<Core_csortargs_sort>, PPair<{String:IEnvEntry} List<Core_cterms_sort>>, Core_csort_sort) -> PPair<{String:IEnvEntry} Core_cterm_sort>
@@ -439,7 +454,9 @@ func InferSortArgsAux({String:IEnvEntry}, List<String>, List<Core_csort_sort>, L
 
   // Common case: no sort argument. Create one and update mapping.
   rule InferSortArgsAux(#env, (#sortvar, #sortvars...), csort*⟦⟧, #mapping)
-  → InferSortArgsAux(IIncCounter(#env), #sortvars, csort*⟦⟧, Append(PairCons(#sortvar, csort⟦ ⟨VARIABLE: INewSortVar(#env)⟩ ⟧), #mapping))
+  → let #sortVar = csort⟦ ⟨VARIABLE: INewSortVar(#env)⟩ ⟧
+    let #nenv = IIncCounter(#env)
+      InferSortArgsAux(#nenv, #sortvars, csort*⟦⟧, Append(PairCons(#sortvar, #sortVar), #mapping))
 
   // Less comman case: there is a sort argument. Just reuse it.
   rule InferSortArgsAux(#env, (#sortvar, #sortvars...), csort*⟦ ##csort ##csort* ⟧, #mapping)
@@ -502,10 +519,10 @@ func UnifySort({String:IEnvEntry}, Core_csort_sort, Core_csort_sort) -> {String:
 
   // Handle aliases
   rule UnifySort(#env, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #csort)
-  → UnifyMaybeAlias(#env, FindAliasS(GetSystem(#env), #CONSTRUCTOR), csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #csort)
+  → UnifyMaybeAlias(#env, FindAliasS(IGetSystem(#env), #CONSTRUCTOR), csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #csort)
 
   rule UnifySort(#env, #csort, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧)
-  → UnifyMaybeAlias(#env, FindAliasS(GetSystem(#env), #CONSTRUCTOR), csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #csort)
+  → UnifyMaybeAlias(#env, FindAliasS(IGetSystem(#env), #CONSTRUCTOR), csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #csort)
 
   rule UnifySort(#env, #csort1, #csort2)
   → Error(ConcatString("Error: type ", ConcatString(PrintSort(#csort2), ConcatString(" is not an instance of type ", PrintSort(#csort1)))))
@@ -583,10 +600,11 @@ func UnifyMaybeAlias({String:IEnvEntry}, Option<Core_cdecl_sort>, Core_csort_sor
 
 /* Optimize the sort environment by computing its transitive closure. */
 func OptimizeSorts(#env: {String : IEnvEntry}) -> {String : IEnvEntry}
-→ Debug("OptimizeSorts", ()->SetSorts(#env, FoldlP(
-                     (key sorts) -> OptimizeSort(sorts, (key,), MapGet(sorts, key), NONE),
-                     GetSorts(#env),
-                     MapKeys(GetSorts(#env)))))
+→ let #sorts = GetSorts(#env)
+  let #nenv = IRemoveSorts(#env)
+    Debug("OptimizeSorts", ()->SetSorts(#nenv, FoldlP((key sorts) -> OptimizeSort(sorts, (key,), MapGet(sorts, key), NONE),
+                                                      #sorts,
+                                                      MapKeys(#sorts))))
 
 func OptimizeSort({String : Core_csort_sort}, List<String>, Option<Core_csort_sort>, Option<Core_csort_sort> /* previous sort */) -> {String : Core_csort_sort}
 
