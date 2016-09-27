@@ -821,36 +821,41 @@ rule FallbackThunk(#env, FALSE) → text⟦throw new RuntimeException("Missing c
 func JavaBodyRule({String : JEnvEntry}, Core_cdecl_sort) -> Text4_text_sort
 
   rule JavaBodyRule(#env, cdecl⟦ ##canno* rule ##canno*2 ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##csortanno? → ##cterm ⟧)
-  → JavaContractum(#env, #canno*, #cterm)
+  → JavaContractum(SetRuleAnno(#env, #canno*), #cterm)
 
   rule JavaBodyRule(#env, cdecl⟦ ##canno* rule ##canno*2 ##csortqualifier* ##CONSTRUCTOR ##csortargs? ( ##cterm* ) ##csortanno? → ##cterm ⟧)
-  → JavaPattern(#env, #cterm*, #canno*, #cterm)
+  → JavaPattern(SetRuleAnno(#env, #canno*), #cterm*, #cterm)
 
 // --- Pattern matching
 
-func JavaPattern({String : JEnvEntry}, List<Core_cterm_sort>, List<Core_canno_sort>, Core_cterm_sort) -> Text4_text_sort
+func JavaPattern({String : JEnvEntry}, List<Core_cterm_sort>, Core_cterm_sort) -> Text4_text_sort
 
 // TODO: case where there is only one rule.
-rule JavaPattern(#env, #cterms, #ruleanno*, #contractum)
-→ text⟦⟨STRING: label:String⟩:{†⟨JavaCasePattern(JSetLabel(#env, text⟦⟨STRING: label⟩⟧), #cterms, #ruleanno*, #contractum)⟩
+rule JavaPattern(#env, #cterms, #contractum)
+→ text⟦⟨STRING: label:String⟩:{†⟨JavaCasePattern(JSetLabel(#env, text⟦⟨STRING: label⟩⟧), #cterms, #contractum)⟩
 }⟧
 
 // Data sort helper indicating whether the current term is a method parameter, or an argument (local variable).
 enum Storage | PARAMETER | ARGUMENT
 
 // Iterate over top-level pattern arguments
-func JavaCasePattern({String : JEnvEntry}, List<Core_cterm_sort>, List<Core_canno_sort>, Core_cterm_sort) -> Text4_text_sort
+func JavaCasePattern({String : JEnvEntry}, List<Core_cterm_sort>, Core_cterm_sort) -> Text4_text_sort
 
-rule JavaCasePattern(#env, cterm*⟦ ⟧, #ruleanno*, #contractum)
-→ JavaContractum(#env, #ruleanno*, #contractum)
+rule JavaCasePattern(#env, cterm*⟦ ⟧, #contractum)
+→ JavaContractum(#env,  #contractum)
 
-rule JavaCasePattern(#env, cterm*⟦ ##cterm ##cterm* ⟧, #ruleanno*, #contractum)
-→ JavaPatternTerm(JavaNextParam(JavaMayDiscard(#env, #cterm, #ruleanno*)), #cterm, JavaCurrentParam(#env), SOME(JavaCurrentParamSort(#env)), PARAMETER, (env) -> JavaCasePattern(env, #cterm*, #ruleanno*, #contractum))
+rule JavaCasePattern(#env, cterm*⟦ ##cterm ##cterm* ⟧, #contractum)
+→ let #currentParam = JavaCurrentParam(#env)
+  let #currentSort = SOME(JavaCurrentParamSort(#env))
+  let #nextParam = JavaNextParam(JavaMayDiscard(#env, #cterm, GetRuleAnno(#env)))
+    JavaPatternTerm(#nextParam, #cterm, #currentParam, #currentSort, PARAMETER, (env) ->
+    JavaCasePattern(env, #cterm*, #contractum))
 
 // --- Term pattern matching
 
 func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* Current term */,
-                     Option<Core_csort_sort> /* Sort when known */, Storage, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+                     Option<Core_csort_sort> /* Sort when known */, Storage,
+                     ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   rule JavaPatternTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #term, #csort, #storage, #cont)
   → text⟦
@@ -873,7 +878,9 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
   → JavaPatternVariable(JGetVarO(#env, #VARIABLE), #env, #VARIABLE, MaybeSortAnnoToSort(#csortanno?), #term, #cont)
 
   rule JavaPatternTerm(#env, cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ⟧, #term, #csort, PARAMETER, #cont)
-  → JavaPatternTerm(JavaNextParam(JAddVar(#env, var:String, JBound(#term, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], JavaCurrentParam(#env), SOME(JavaCurrentParamSort(#env)), PARAMETER, #cont)
+  → let #currentParam = JavaCurrentParam(#env)
+    let #nextParam = JavaNextParam(JAddVar(JavaMayDiscard(#env, #cterm[var:String], GetRuleAnno(#env)), var:String, JBound(#term, MaybeSortAnnoToSort(#csortanno?))))
+      JavaPatternTerm(#nextParam, #cterm[var], #currentParam, SOME(JavaCurrentParamSort(#env)), PARAMETER, #cont)
 
   rule JavaPatternTerm(#env, cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ⟧, #term, #csort, ARGUMENT, #cont)
   → text⟦
@@ -1189,8 +1196,8 @@ rule JavaIsArgument(PARAMETER) → FALSE
 
 // ----- Contraction
 
-func JavaContractum(#env: {String : JEnvEntry}, #ruleanno*: List<Core_canno_sort>, #term: Core_cterm_sort) -> Text4_text_sort
-→ text⟦†⟨JavaKeepSub(#env, #ruleanno*)⟩†⟨
+func JavaContractum(#env: {String : JEnvEntry}, #term: Core_cterm_sort) -> Text4_text_sort
+→ text⟦†⟨JavaKeepSub(#env, GetRuleAnno(#env))⟩†⟨
         JavaDiscard(#env)⟩†⟨
         JavaFreshesTerm(JSetCounter(JSetFreshCounter(#env, 0), 0), #term, (env)->
           JavaStatementTerm(JSetCounter(JSetParamCounter(env, 0), 0), #term, (env)->text⟦⟧))⟩ ⟧
@@ -1549,7 +1556,7 @@ enum JEnvEntry | JNum(Numeric) |  JText(Text4_text_sort) | JTexts(List<Text4_tex
                   | JMapVar({ String : JVarEntry }) | JMapDecl({ String : Core_cdecl_sort })
                   | JParams(List<PPair<Text4_text_sort Core_csort_sort>>)
                   | JContext(Text4_text_sort /* context java variable */, Numeric /* Counter */)
-                  | JFnAnno(List<Core_canno_sort>)
+                  | JAnno(List<Core_canno_sort>)
                   | JMapEntries({String /* (meta)var */: List<JMapEntry>}) /* Delayed map entries */
 
 // Nested MapPut increases Java compilation exponentially.
@@ -1629,8 +1636,8 @@ rule UnJContext(JContext(#1, #2)) → #1
 func UnJContextCount(JEnvEntry) -> Numeric
 rule UnJContextCount(JContext(#1, #2)) → #2
 
-func UnJFnAnno(JEnvEntry) -> List<Core_canno_sort>
-rule UnJFnAnno(JFnAnno(#1)) → #1
+func UnJAnno(JEnvEntry) -> List<Core_canno_sort>
+rule UnJAnno(JAnno(#1)) → #1
 
 func UnJMapEntries(JEnvEntry) -> {String /* metavar */: List<JMapEntry>}
 rule UnJMapEntries(JMapEntries(#1)) → #1
@@ -1839,13 +1846,21 @@ func NewContext({String : JEnvEntry}) -> {String : JEnvEntry}
 rule NewContext(#env)
 → SetContext(#env, text⟦c†⟨NumberToText(GetContextCount(#env))⟩⟧, Plus(GetContextCount(#env), 1))
 
-// --- function annotation
+// --- function annotations
 
 func GetFnAnno({String : JEnvEntry}) -> List<Core_canno_sort>
-rule GetFnAnno(#env) → JGetValue(#env, "fnanno", (x) -> UnJFnAnno(x))
+rule GetFnAnno(#env) → JGetValue(#env, "fnanno", (x) -> UnJAnno(x))
 
 func SetFnAnno({String : JEnvEntry}, List<Core_canno_sort>) -> {String : JEnvEntry}
-rule SetFnAnno(#env, #anno*) → JSetValue(#env, "fnanno", JFnAnno(#anno*))
+rule SetFnAnno(#env, #anno*) → JSetValue(#env, "fnanno", JAnno(#anno*))
+
+// --- rule annotations
+
+func GetRuleAnno({String : JEnvEntry}) -> List<Core_canno_sort>
+rule GetRuleAnno(#env) → JGetValue(#env, "ruleanno", (x) -> UnJAnno(x))
+
+func SetRuleAnno({String : JEnvEntry}, List<Core_canno_sort>) -> {String : JEnvEntry}
+rule SetRuleAnno(#env, #anno*) → JSetValue(#env, "ruleanno", JAnno(#anno*))
 
 // --- List of top-level terms to release before contraction
 

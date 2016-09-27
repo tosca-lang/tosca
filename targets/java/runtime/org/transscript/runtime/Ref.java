@@ -5,6 +5,8 @@ package org.transscript.runtime;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 
+import org.transscript.compiler.infer.Env.IEnvEntry;
+
 /**
  * Represent a reference
  * 
