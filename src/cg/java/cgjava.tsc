@@ -1316,7 +1316,7 @@ func JavaExprTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) 
        bound†⟨#counter⟩, †⟨JavaExprTerm(JAddVar(JIncCounter(#env), var, JBound(text⟦bound†⟨NumberToText(JGetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
 
   rule JavaExprTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
-  → text⟦newClosure((†⟨GetContext(NewContext(#env))⟩†⟨JavaExprLambda(NewContext(#env), cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)⟩⟧
+  → JavaExprLambda(HasAnnotation("Reuse", #canno*), #env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
 
   rule JavaExprTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #cont)
   → text⟦newClosure(†⟨GetContext(NewContext(#env))⟩ -> ⟨JavaExprTerm(NewContext(#env), #cterm, (env) -> text⟦†⟨JavaLambdaCaptures(#env, #canno*)⟩)⟨#cont(env)⟩⟧)⟩⟧
@@ -1372,7 +1372,7 @@ rule JavaIfExpr(#env, cterms?⟦ ( ##cterm1, ##cterm2, ##cterm3 ) ⟧, #cont)
 
 func JavaIfBranch(Core_cterm_sort) -> Core_cterm_sort
 rule JavaIfBranch(cterm⟦ ##canno* ##METAVAR ##csortanno? ⟧) → cterm⟦ ##METAVAR () ⟧ // metavariable must be a closure (checked by infer)
-rule JavaIfBranch(#cterm                                  ) → StripThunk(#cterm)
+rule JavaIfBranch(#cterm                                  ) → StripBinders(#cterm)
 
 // --- Variable
 
@@ -1424,13 +1424,23 @@ func JavaExprMetaArgs({String : JEnvEntry}, List<Text4_text_sort> /* pattern arg
 
 // ---- lambda expression
 
-func JavaExprLambda({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+func JavaExprLambda(Bool /* Reuse? */, {String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaExprLambda(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
-  → text⟦, p†⟨NumberToText(JGetParamCounter(#env))⟩†⟨JavaExprLambda(JAddVar(JIncParamCounter(#env), var, JFormal(text⟦p†⟨NumberToText(JGetParamCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
+  // Can be reuse: skip the formal arguments
+  rule JavaExprLambda(TRUE, #env, #cterm, #cont)
+  → JavaExprLambdaReuse(#env, StripBinders(#cterm), #cont)
+
+  rule JavaExprLambda(FALSE, #env, #cterm, #cont)
+  → let #ncontext = NewContext(#env)
+      text⟦newClosure((†⟨GetContext(#ncontext)⟩†⟨JavaExprLambdaNew(#ncontext, #cterm, #cont)⟩⟧
+
+func JavaExprLambdaNew({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  rule JavaExprLambdaNew(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
+  → text⟦, p†⟨NumberToText(JGetParamCounter(#env))⟩†⟨JavaExprLambdaNew(JAddVar(JIncParamCounter(#env), var, JFormal(text⟦p†⟨NumberToText(JGetParamCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
 
   // Done with formal parameters.
-  rule JavaExprLambda(#env, #cterm, #cont)
+  rule JavaExprLambdaNew(#env, #cterm, #cont)
   → text⟦) -> †⟨JavaExprTerm(#env, #cterm, (env) -> text⟦†⟨JavaLambdaCaptures(#env, GetAnnotations(#cterm))⟩)†⟨#cont(env)⟩⟧)⟩⟧
 
 func JavaLambdaCaptures(#env: {String : JEnvEntry}, #anno*: List<Core_canno_sort>) -> Text4_text_sort
@@ -1444,6 +1454,18 @@ func JavaExprRefMetaOrVar(#env: {String : JEnvEntry}, #canno*: List<Core_canno_s
 
 func JGetMetaVarOrVar(#env: {String : JEnvEntry}, #var: String) -> Text4_text_sort
 → IfPresent(JGetMetaVarO(#env, #var), (metavar)->metavar, ()->JGetVar(#env, #var))
+
+func JavaExprLambdaReuse({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  // Lambda can be reuse. Extract metavar annotation inside the capture term list to know
+  // if the metavar needs to be referenced or not
+  rule JavaExprLambdaReuse(#env, cterm⟦ ##canno*2 ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
+  → let #metavars = GetMetaVariables(GetAnnotationArgs(UnSOME(GetAnnotation("Captured", #canno*2))))
+    let #canno* = Fst(UnSOME(PickFirst(#metavars, (annovar)->Equal(Snd(annovar), #METAVAR))))
+      JavaExprMeta(#env, #canno*, #METAVAR, cterms?⟦⟧, csubst?⟦⟧, #cont)
+
+  rule JavaExprLambdaReuse(#env, #cterm, #cont)
+  → Error("Internal Error: Cannot reuse a lambda expression that is not bound to a metavariable.")
 
 // ----- initModule
 

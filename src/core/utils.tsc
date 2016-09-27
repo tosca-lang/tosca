@@ -19,6 +19,7 @@ rule IsMeta(cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧)              �
 rule IsMeta(cterm⟦ ##canno* thunk ##cterm ⟧)                              → IsMeta(#cterm)
 rule IsMeta(#term)                                               → FALSE
 
+
 /* @return `TRUE` if the given `#term` is a meta variable of the given `#name`  */
 func IsNamedMeta(Core_cterm_sort, String) -> Bool
 rule IsNamedMeta(cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #name) → StringEqual(#METAVAR, #name)
@@ -33,10 +34,12 @@ rule GetMetaVariables(cterm*⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ##cterm* 
 rule GetMetaVariables(cterm*⟦ ##cterm ##cterm* ⟧                               ) → GetMetaVariables(#cterm*)
 rule GetMetaVariables(cterm*⟦ ⟧                                                ) → ()
 
-/* @return the given term without 'thunk' */
-func StripThunk(Core_cterm_sort) -> Core_cterm_sort
-rule StripThunk(cterm⟦ thunk ##cterm ⟧)  → #cterm
-rule StripThunk(#cterm                )  → #cterm
+/* @return the given `#term` without any binders, including thunk. */
+func StripBinders(Core_cterm_sort) -> Core_cterm_sort
+rule StripBinders(cterm⟦ ##canno* thunk ##cterm                 ⟧) → #cterm
+rule StripBinders(cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧) → StripBinders(#cterm[f])
+rule StripBinders(cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ⟧) → StripBinders(#cterm[v])
+rule StripBinders(#cterm                                        ) → #cterm
 
 /* Check whether the given annotation is in the given list */
 func HasAnnotation(#anno: String, #anno*: List<Core_canno_sort>) -> Bool
@@ -275,6 +278,11 @@ func TermsToMaybeSubst(List<Core_cterm_sort>) -> List<Core_csubst_sort>
 rule TermsToMaybeSubst(cterm*⟦⟧) → csubst?⟦⟧
 rule TermsToMaybeSubst(#cterm* ) → csubst?⟦ [ ##cterm* ] ⟧
 
+/* @return `cmapentry*` from `cmapentries?` */
+func MaybeMapEntriestToMapEntries(List<Core_cmapentries_sort>) -> List<Core_cmapentry_sort>
+rule MaybeMapEntriestToMapEntries(cmapentries?⟦              ⟧) → ()
+rule MaybeMapEntriestToMapEntries(cmapentries?⟦ ##cmapentry* ⟧) → #cmapentry*
+
 
 func GetFormalParamSorts(Core_csort_sort) -> List<Core_csort_sort>
 rule GetFormalParamSorts(csort⟦ ##canno* ( ##csort1 ) ##csort2 ⟧)  → Cons(#csort1, GetFormalParamSorts(#csort2))
@@ -350,6 +358,13 @@ func IsAllowsVarForms(#cforms:List<Core_cform_sort>) -> Bool
 func IsAllowsVar(Core_cform_sort) -> Bool
 rule IsAllowsVar(cform⟦ allows-variable ⟧) → TRUE
 rule IsAllowsVar(#cform                  ) → FALSE
+
+/* @return `TRUE` if the two given lists have the same size and contains the same variables. */
+func CheckSameVariables(List<String>, List<Core_cterm_sort>) -> Bool
+rule CheckSameVariables((          ), cterm*⟦                                           ⟧) → TRUE
+rule CheckSameVariables((#x, #xs...), cterm*⟦ ##canno* ##VARIABLE ##csortanno? ##cterm* ⟧) → If(SameVariable(#x, #VARIABLE), ()->CheckSameVariables(#xs, #cterm*), ()->FALSE)
+rule CheckSameVariables(#vars       , #cterm*                                           ) → FALSE
+
 
 // --- Print utilities
 

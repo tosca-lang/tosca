@@ -376,23 +376,15 @@ func CCConvertCaptured(List<Core_cterm_sort>) -> Bool
 func CCConvertBound(List<String>, Core_cterm_sort) -> Bool
 
   rule CCConvertBound(#bound, cterm⟦ [ x ##csortanno?[] ] ##cterm[x]               ⟧) → CCConvertBound(Append(x, #bound), #cterm[x])
-  rule CCConvertBound(#bound, cterm⟦  ##canno* ##METAVAR [ ##cterm* ] ##csortanno? ⟧) → Not(CCCheckSameVariables(#bound, #cterm*))
+  rule CCConvertBound(#bound, cterm⟦  ##canno* ##METAVAR [ ##cterm* ] ##csortanno? ⟧) → Not(CheckSameVariables(#bound, #cterm*))
   rule CCConvertBound(#bound, #cterm)                                                → TRUE
 
 
 func CCConvertFormal(List<String>, Core_cterm_sort) -> Bool
 
   rule CCConvertFormal(#formal, cterm⟦ ( f ##csortanno?[] ) ##cterm[f]               ⟧) → CCConvertFormal(Append(x, #formal), #cterm[x])
-  rule CCConvertFormal(#formal, cterm⟦  ##canno* ##METAVAR ( ##cterm* ) ##csortanno? ⟧) → Not(CCCheckSameVariables(#formal, #cterm*))
+  rule CCConvertFormal(#formal, cterm⟦  ##canno* ##METAVAR ( ##cterm* ) ##csortanno? ⟧) → Not(CheckSameVariables(#formal, #cterm*))
   rule CCConvertFormal(#formal, #cterm)                                                → TRUE
-
-/* @return `TRUE` if the two given lists have the same size and contains the same variables. */
-func CCCheckSameVariables(List<String>, List<Core_cterm_sort>) -> Bool
-
-  rule CCCheckSameVariables((          ), cterm*⟦                                           ⟧) → TRUE
-  rule CCCheckSameVariables((#x, #xs...), cterm*⟦ ##canno* ##VARIABLE ##csortanno? ##cterm* ⟧) → If(SameVariable(#x, #VARIABLE), ()->CCCheckSameVariables(#xs, #cterm*), ()->FALSE)
-  rule CCCheckSameVariables(#vars       , #cterm*                                           ) → FALSE
-
 
 // -- Formal and bound
 
