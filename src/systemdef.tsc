@@ -116,6 +116,11 @@ func FindFormS(#system: TSystem, #datasort: Core_csort_sort, #formname: String) 
 func FindAliasS(#system: TSystem, #constructor: String) -> Option<Core_cdecl_sort>
 → PickFirstO(Map((mod) -> FindAliasM(mod, #constructor), MapValues(GetModules(#system))))
 
+/* Create a global type alias index for the given system  */
+func IndexAliasS(#system: TSystem) -> DeclIndex
+→ let #modules = MapValues(GetModules(#system))
+  FoldlP((mod index)->IndexAliasM(mod, index), {}, #modules)
+
 // --- System mutation functions. Convention: function name is suffixed by S
 
 /* Put the given `#module` for given `#url` into the given `#system`. */
@@ -191,6 +196,10 @@ func FindFuncSortM(#module: Module, #constructor: String) -> Option<Core_cdecl_s
    @return An alias or `NONE` */
 func FindAliasM(#module: Module, #constructor: String) -> Option<Core_cdecl_sort>
 → GetAliasC(GetModuleContent(#module), #constructor)
+
+/* Create a global type alias index for the given `#module`  */
+func IndexAliasM(#module: Module, #index: DeclIndex) -> DeclIndex
+→ IndexAliasC(GetModuleContent(#module), #index)
 
 /* @return `TRUE` if `#sort` is a data sort in the given `#module` */
 func IsDataSortM(#module: Module, #sort: Core_csort_sort) -> Bool
@@ -278,13 +287,16 @@ func GetFuncSortCE(#content: Content, #key: String) -> Core_cdecl_sort
     (decl) -> decl,
     ()->Error(ConcatString("Error: missing function declaration ", #key)))
 
-
 func GetAliasesC(Content) -> {String: Core_cdecl_sort}
 rule GetAliasesC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts)) → #aliases
 
 /* @return the alias declaration for the given `#constructor` in the given module `#content`, or `NONE` */
 func GetAliasC(#content: Content, #constructor: String) -> Option<Core_cdecl_sort>
 → MapGet(GetAliasesC(#content), #constructor)
+
+/* Create a global type alias index for the given `#content`  */
+func IndexAliasC(#content: Content, #index: DeclIndex) -> DeclIndex
+→ MapAddAll(#index, GetAliasesC(#content))
 
 // --- Content mutation functions. Convention: function name is suffixed by C
 

@@ -198,7 +198,7 @@ public class ToSinkListener implements ParseTreeListener
 	/** In scope bound variables. */
 	private Scoping bounds;
 
-	/** In scope fresh variables. */
+	/** In scope free/fresh variables. */
 	private Scoping freshes;
 
 	/** Current token sort */

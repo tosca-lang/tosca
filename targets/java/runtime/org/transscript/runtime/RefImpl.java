@@ -53,8 +53,8 @@ public abstract class RefImpl implements Ref
 	public Ref ref()
 	{
 		assert refcount > 0 : "Cannot create reference from a freed reference.";
-		if (refs.contains(this))
-			System.out.println("Reference " + ((Object) this).toString());
+//		if (refs.contains(this))
+//			System.out.println("Reference " + ((Object) this).toString());
 
 		refcount++;
 		return this;
@@ -66,8 +66,8 @@ public abstract class RefImpl implements Ref
 	final public void release()
 	{
 		assert refcount > 0 : "Too many calls to Release.";
-		if (refs.contains(this))
-			System.out.println("Release " + ((Object) this).toString());
+//		if (refs.contains(this))
+//			System.out.println("Release " + ((Object) this).toString());
 
 		refcount--;
 		if (refcount == 0)

@@ -154,8 +154,8 @@ rule Append(#x, (#1, #s...)) → (#1, Append(#x, #s)...)
    @return an element or NONE
 */
 func PickFirst<a>(List<a>,  (a) -> Bool) -> Option<a>
-rule PickFirst((         ), #) → NONE
 rule PickFirst((#1, #s...), #) → PickFirst1(#(#1), #1, #s, #)
+rule PickFirst((         ), #) → NONE
 
 func PickFirst1<a>(Bool, a, List<a>, (a) -> Bool) -> Option<a>
 rule PickFirst1(FALSE, #1, #s, #) → PickFirst(#s, #)

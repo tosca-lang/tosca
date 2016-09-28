@@ -820,11 +820,11 @@ rule FallbackThunk(#env, FALSE) → text⟦throw new RuntimeException("Missing c
 
 func JavaBodyRule({String : JEnvEntry}, Core_cdecl_sort) -> Text4_text_sort
 
-  rule JavaBodyRule(#env, cdecl⟦ ##canno* rule ##canno*2 ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##csortanno? → ##cterm ⟧)
-  → JavaContractum(SetRuleAnno(#env, #canno*), #cterm)
-
   rule JavaBodyRule(#env, cdecl⟦ ##canno* rule ##canno*2 ##csortqualifier* ##CONSTRUCTOR ##csortargs? ( ##cterm* ) ##csortanno? → ##cterm ⟧)
   → JavaPattern(SetRuleAnno(#env, #canno*), #cterm*, #cterm)
+
+  rule JavaBodyRule(#env, cdecl⟦ ##canno* rule ##canno*2 ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##csortanno? → ##cterm ⟧)
+  → JavaContractum(SetRuleAnno(#env, #canno*), #cterm)
 
 // --- Pattern matching
 
