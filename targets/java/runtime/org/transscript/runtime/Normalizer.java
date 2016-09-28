@@ -47,16 +47,16 @@ public class Normalizer
 	 */
 	public static Term force(Context context, Term term)
 	{
-		while (!term.data())
-		{
-			term = term.eval(context);
-			if (context.sd <= 1)
-			{
-				// Could't make progress -> missing cases....
-				break;
-			}
-			context.sd = 0;
-		}
+//		while (!term.data())
+//		{
+//			term = term.eval(context);
+//			if (context.sd <= 1)
+//			{
+//				// Could't make progress -> missing cases....
+//				break;
+//			}
+//			context.sd = 0;
+//		}
 		return term;
 	}
 	
