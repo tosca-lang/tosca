@@ -248,7 +248,6 @@ rule HOSort(Cons(#csort: Core_csort_sort, #csort*: List<Core_csort_sort>), #bvso
 rule HOSort((), Cons(#csort: Core_csort_sort, #csort*: List<Core_csort_sort>), #sort)       → csort⟦ [ ##csort ] ⟨csort: HOSort((), #csort*, #sort)⟩ ⟧
 rule HOSort((), (), #csort)                         → #csort
 
-
 /* @return the convertion of the given optional sort to an optional sort annotation */
 func MaybeSortToMaybeSortAnno(Option<Core_csort_sort>) -> List<Core_csortanno_sort>
 rule MaybeSortToMaybeSortAnno(SOME(#csort)) → csortanno?⟦ : ##csort ⟧
@@ -282,7 +281,6 @@ rule TermsToMaybeSubst(#cterm* ) → csubst?⟦ [ ##cterm* ] ⟧
 func MaybeMapEntriestToMapEntries(List<Core_cmapentries_sort>) -> List<Core_cmapentry_sort>
 rule MaybeMapEntriestToMapEntries(cmapentries?⟦              ⟧) → ()
 rule MaybeMapEntriestToMapEntries(cmapentries?⟦ ##cmapentry* ⟧) → #cmapentry*
-
 
 func GetFormalParamSorts(Core_csort_sort) -> List<Core_csort_sort>
 rule GetFormalParamSorts(csort⟦ ##canno* ( ##csort1 ) ##csort2 ⟧)  → Cons(#csort1, GetFormalParamSorts(#csort2))
@@ -361,10 +359,15 @@ rule IsAllowsVar(#cform                  ) → FALSE
 
 /* @return `TRUE` if the two given lists have the same size and contains the same variables. */
 func CheckSameVariables(List<String>, List<Core_cterm_sort>) -> Bool
-rule CheckSameVariables((          ), cterm*⟦                                           ⟧) → TRUE
 rule CheckSameVariables((#x, #xs...), cterm*⟦ ##canno* ##VARIABLE ##csortanno? ##cterm* ⟧) → If(SameVariable(#x, #VARIABLE), ()->CheckSameVariables(#xs, #cterm*), ()->FALSE)
+rule CheckSameVariables((          ), cterm*⟦                                           ⟧) → TRUE
 rule CheckSameVariables(#vars       , #cterm*                                           ) → FALSE
 
+/* @return `TRUE` if the two given list of `#terms` contains only variables. */
+func AllVariables(List<Core_cterm_sort>) -> Bool
+rule AllVariables(cterm*⟦                                           ⟧) → TRUE
+rule AllVariables(cterm*⟦ ##canno* ##VARIABLE ##csortanno? ##cterm* ⟧) → AllVariables(#cterm*)
+rule AllVariables(#cterm*                                           ) → FALSE
 
 // --- Print utilities
 

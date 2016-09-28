@@ -13,9 +13,9 @@ import std::text::Text4
 import std::test::unit  // not used but keep it so it gets compiled.
 import std::text::printer  // not used but keep it so it gets compiled.
 
+import analyzer
 import systemdef
 import normalizer
-import analyzer
 import cc
 import noalias
 import noanno

@@ -881,7 +881,7 @@ func CppFreshesTerm({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) 
   rule CppFreshesTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
   → CppFreshesMaybeTerms(#env, #cterms?, (env) -> CppFreshesMaybeSubst(env, #csubst?, #cont))
 
-  rule CppFreshesTerm(#env, cterm⟦ ##canno* [ x ##csortanno?[] ] ##cterm[x] ⟧, #cont)
+  rule CppFreshesTerm(#env, cterm⟦ ##canno* [ x ##csortanno? ] ##cterm[x] ⟧, #cont)
   → CppFreshesVariable(#env, NONE, var, #csortanno?, FALSE, (env) -> CppFreshesTerm(env, #cterm[var], #cont))
 
   rule CppFreshesTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
@@ -949,7 +949,7 @@ func CppExprTerm({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) -> 
      bound†⟨NumberToText(GetCounter(#env))⟩, †⟨CppExprTerm(AddVar(IncCounter(#env), var, Bound(text⟦bound†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
 
  rule CppExprTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
- → text⟦closure†⟨CppLambdaTypeArgs(#cterm[dummy])⟩(†⟨CppExprLambda(#env, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, 0, #cont)⟩⟧
+ → text⟦closure†⟨CppLambdaTypeArgs(#cterm[dummy])⟩(†⟨CppExprLambda(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, 0, #cont)⟩⟧
 
  rule CppExprTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #cont)
  → text⟦thunk†⟨CppLambdaTypeArgs(#cterm)⟩(†⟨CppExprLambda(#env, #cterm, 0, #cont)⟩⟧

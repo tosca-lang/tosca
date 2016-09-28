@@ -11,6 +11,15 @@ type KeepAll = List<String>
 /* Tell the compiler which meta-variables are captured within a lambda. */
 type Captured = List<String>
 
+/* Tell the compiler to not create a lambda expression. */
+type NoLambda = Bool
+
+/* Tell the compiler to not perform substitution. */
+type NoSubst = Bool
+
+/* Tell the compiler to reuse a matched binder */
+type Reuse = PPair<String /* meta-variable name */ Numeric /* binder position in meta arguments */>
+
 /* Indicate whether the value of the type with this annotation is retained at runtime, when used as an annotation */
 //type Extern = Bool
 

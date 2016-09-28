@@ -30,6 +30,7 @@ func GreaterThanOrEqual(#left: Numeric, #right:Numeric) -> Bool
 @Extern func FormatInteger(Numeric) -> String
 @Extern func FormatDecimal(Numeric) -> String
 @Extern func Hex(String) -> Numeric
+@Extern func ToInteger(String) -> Numeric
 
 /* Apply `#true` if number is zero, otherwise `#false` */
 func IfZero<a>(#value: Numeric, #true: ()->a, #false: ()->a) -> a

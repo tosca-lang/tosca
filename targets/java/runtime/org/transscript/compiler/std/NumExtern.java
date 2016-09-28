@@ -3,6 +3,7 @@
 package org.transscript.compiler.std;
 
 import static org.transscript.runtime.StringTerm.stringTerm;
+import static org.transscript.runtime.DoubleTerm.doubleTerm;
 import static org.transscript.runtime.Term.force;
 
 import org.transscript.compiler.std.Core.Bool;
@@ -93,6 +94,13 @@ public class NumExtern
 	{
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public static DoubleTerm ToInteger(Context context, StringTerm string)
+	{
+		DoubleTerm d = doubleTerm(Integer.parseInt(string.unbox()));
+		string.release();
+		return d;
 	}
 
 }

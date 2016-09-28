@@ -67,7 +67,7 @@ public interface StringTerm extends Term
 		return (StringTerm) Term.super.eval(c);
 	}
 
-	/** @return the variable if this term is a variable use, othewise null */
+	/** @return the variable if this term is a variable use, otherwise null */
 	default VarStringTerm variable()
 	{
 		return null;

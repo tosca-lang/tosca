@@ -884,7 +884,7 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
 
   rule JavaPatternTerm(#env, cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ⟧, #term, #csort, ARGUMENT, #cont)
   → text⟦
-      Variable ⟨STRING: boundvar:String⟩ = †⟨GetParent(#env)⟩.getVar†⟨NumberToText(GetSubIndex(#env))⟩_†⟨NumberToText(GetSubBinderIndex(#env))⟩();†⟨
+      Var†⟨MaybeSortAnnoToType(#csortanno?)⟩ ⟨STRING: boundvar:String⟩ = †⟨GetParent(#env)⟩.getVar†⟨NumberToText(GetSubIndex(#env))⟩_†⟨NumberToText(GetSubBinderIndex(#env))⟩();†⟨
       JavaPatternTerm(IncSubBinderIndex(JAddVar(#env, var:String, JBound(text⟦⟨STRING: boundvar⟩⟧, MaybeSortAnnoToSort(#csortanno?)))), #cterm[var], #term, #csort, ARGUMENT, #cont)⟩⟧
 
   rule JavaPatternTerm(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧, #term, #csort, #storage, #cont)
@@ -946,9 +946,9 @@ func JavaPatternVariable(Option<JVarEntry>, {String : JEnvEntry}, String, Option
   // TODO: release acquired references.
   rule JavaPatternVariable(SOME(JBound(#javavar, #sort)), #env, #variable, #csort, #term, #cont)
   → text⟦
-      if (!isVariableUse(†⟨#term⟩) || †⟨#javavar⟩ != †⟨#term⟩.variable()) {
+      if (†⟨#javavar⟩ != †⟨#term⟩.variable())
         break †⟨JGetLabel(#env)⟩;
-      }†⟨#cont(#env)⟩⟧
+      †⟨#cont(#env)⟩⟧
 
 // --- pattern matching inside meta
 
@@ -1161,7 +1161,11 @@ func JavaMayDiscard({String : JEnvEntry}, Core_cterm_sort, List<Core_canno_sort>
   rule JavaMayDiscard(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm  ⟧, #ruleanno*)
   → JavaMayDiscardMeta(#env, #METAVAR, IfPresent(GetAnnotation("KeepAll", #ruleanno*), (anno)->GetAnnotationArgs(anno), ()->()))
 
-  rule JavaMayDiscard(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #ruleanno*)
+  // TODO: check for binder reuse. If not, release!
+  rule JavaMayDiscard(#env, cterm⟦ ##canno* [ x ##csortanno? ] ##cterm[x] ⟧, #ruleanno*)
+  → #env
+
+  rule JavaMayDiscard(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧, #ruleanno*)
   → #env
 
   rule JavaMayDiscard(#env, #cterm, #ruleanno*)
@@ -1216,6 +1220,8 @@ func JavaStatementTerm(#env: {String : JEnvEntry}, #cterm:Core_cterm_sort, ({Str
 
 // ---- Generate fresh variable - Only in Java statement mode
 
+// TODO: should clean up the environment by removing bound variable
+
 func JavaFreshesTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   rule JavaFreshesTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #cont)
@@ -1225,13 +1231,13 @@ func JavaFreshesTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry
   → #cont(#env)
 
   rule JavaFreshesTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧, #cont)
-  → JavaJFreshesVariable(#env, JGetVarO(#env, #VARIABLE), #VARIABLE, #csortanno?, TRUE, #cont)
+  → JavaJFreshesVariable(#env, GetAnnotation("Reuse", #canno*), JGetVarO(#env, #VARIABLE), #VARIABLE, #csortanno?, TRUE, #cont)
 
   rule JavaFreshesTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
   → JavaJFreshesMaybeTerms(#env, #cterms?, (env) -> JavaJFreshesMaybeSubst(env, #csubst?, #cont))
 
   rule JavaFreshesTerm(#env, cterm⟦ ##canno* [ x ##csortanno? ] ##cterm[x] ⟧, #cont)
-  → JavaJFreshesVariable(#env, NONE, var, #csortanno?, FALSE, (env) -> JavaFreshesTerm(env, #cterm[var], #cont))
+  → JavaJFreshesVariable(#env, GetAnnotation("Reuse", #canno*), NONE, var, #csortanno?, FALSE, (env) -> JavaFreshesTerm(env, #cterm[var], #cont))
 
   rule JavaFreshesTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
   → JavaFreshesTerm(JAddVar(#env, var, JFormal(text⟦ dummy ⟧, NONE)), #cterm[var], #cont)
@@ -1277,20 +1283,32 @@ func JavaJFreshesMaybeSubst({String : JEnvEntry}, List<Core_csubst_sort>, ({Stri
   rule JavaJFreshesMaybeSubst(#env, csubst?⟦ [ ##cterm* ] ⟧, #cont)
   → JavaFreshesTerms(#env, #cterm*, #cont)
 
-func JavaJFreshesVariable({String : JEnvEntry}, Option<JVarEntry>, String, List<Core_csortanno_sort>, Bool, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+func JavaJFreshesVariable({String : JEnvEntry}, Option<Core_canno_sort>, Option<JVarEntry>, String, List<Core_csortanno_sort>,
+                           Bool, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaJFreshesVariable(#env, NONE, #var, csortanno?⟦ : ##csort ⟧, TRUE, #cont)
+  // Fresh variable, no reuse
+  rule JavaJFreshesVariable(#env, NONE, NONE, #var, csortanno?⟦ : ##csort ⟧, TRUE, #cont)
   → text⟦
       Var†⟨SortToType(#csort)⟩ fresh†⟨NumberToText(JGetFreshCounter(#env))⟩ = var†⟨SortToType(#csort)⟩(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show(#var))⟩);⟨
         #cont(JIncFreshCounter(JAddVar(#env, #var, JFresh(text⟦fresh†⟨NumberToText(JGetFreshCounter(#env))⟩⟧, SOME(#csort)))))⟩⟧
 
-  rule JavaJFreshesVariable(#env, NONE, #var, csortanno?⟦ : ##csort ⟧, FALSE, #cont)
+  // New bound variable, no reuse
+  rule JavaJFreshesVariable(#env, NONE, NONE, #var, csortanno?⟦ : ##csort ⟧, FALSE, #cont)
   → text⟦
       Var†⟨SortToType(#csort)⟩ bound†⟨NumberToText(JGetCounter(#env))⟩ = var†⟨SortToType(#csort)⟩(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show(#var))⟩);⟨
-        #cont(JIncCounter(JAddVar(#env, #var, JFresh(text⟦fresh†⟨NumberToText(JGetCounter(#env))⟩⟧, SOME(#csort)))))⟩⟧
+        #cont(JIncCounter(JAddVar(#env, #var, JBound(text⟦bound†⟨NumberToText(JGetCounter(#env))⟩⟧, SOME(#csort)))))⟩⟧
+
+  // Fresh variable, reuse binder.
+  rule JavaJFreshesVariable(#env, SOME(canno⟦ @Reuse( ##METAVAR, ##NUMBER ) ⟧), NONE, #var, csortanno?⟦ : ##csort ⟧, TRUE, #cont)
+  → #cont(JAddVar(#env, #var, JFresh(JGetMetaArgsAt(#env, #METAVAR, ToInteger(#NUMBER)), SOME(#csort))))
+
+  // New bound variable, reuse binder.
+  rule JavaJFreshesVariable(#env, SOME(canno⟦ @Reuse( ##METAVAR, ##NUMBER ) ⟧), NONE, #var, csortanno?⟦ : ##csort ⟧, FALSE, #cont)
+  //→ #cont(JAddVar(#env, #var, JBound(JGetMetaArgsAt(#env, #METAVAR, ToInteger(#NUMBER)), SOME(#csort))))
+  → #cont(JAddVar(#env, #var, JBound(text⟦dummy⟧, SOME(#csort))))
 
   // Variable already exists
-  rule JavaJFreshesVariable(#env, SOME(#), #var, #csortanno?, #fresh, #cont)
+  rule JavaJFreshesVariable(#env, #canno, SOME(#), #var, #csortanno?, #fresh, #cont)
   → #cont(#env)
 
 // ---- Generate term code - Java expression mode
@@ -1311,12 +1329,10 @@ func JavaExprTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) 
   → JavaExprMeta(#env, #canno*, #METAVAR, #cterms?, #csubst?, #cont)
 
   rule JavaExprTerm(#env, cterm⟦ ##canno* [ x ##csortanno?[] ] ##cterm[x] ⟧, #cont)
-  → let #counter = NumberToText(JGetCounter(#env))
-    text⟦
-       bound†⟨#counter⟩, †⟨JavaExprTerm(JAddVar(JIncCounter(#env), var, JBound(text⟦bound†⟨NumberToText(JGetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
+  → JavaExprBoundVar(#env, GetAnnotation("Reuse", #canno*), #csortanno?, [x]->#cterm[x], #cont)
 
   rule JavaExprTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
-  → JavaExprLambda(HasAnnotation("Reuse", #canno*), #env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
+  → JavaExprLambda(HasAnnotation("NoLambda", #canno*), #env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
 
   rule JavaExprTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #cont)
   → text⟦newClosure(†⟨GetContext(NewContext(#env))⟩ -> ⟨JavaExprTerm(NewContext(#env), #cterm, (env) -> text⟦†⟨JavaLambdaCaptures(#env, #canno*)⟩)⟨#cont(env)⟩⟧)⟩⟧
@@ -1404,11 +1420,11 @@ func JavaExprMeta({String : JEnvEntry}, List<Core_canno_sort>, String, List<Core
   rule JavaExprMeta(#env, #canno*, #metavar, cterms?⟦ ( ##cterm* ) ⟧, csubst?⟦⟧, #cont)
   → text⟦†⟨JavaExprRefMeta(#env, #canno*, #metavar)⟩.eval(context†⟨JavaExprTerms(#env, #cterm*, #cont)⟩⟧
 
-  // Substitution
+  // Maybe Substitution
   rule JavaExprMeta(#env, #canno*, #metavar, #cterms?, csubst?⟦ [ ##cterm* ] ⟧, #cont)
-  → text⟦subst(context, †⟨JavaExprRefMeta(#env, #canno*, #metavar)⟩†⟨JavaExprMetaArgs(#env, JGetMetaArgs(#env, #metavar), #cterm*, #cont)⟩⟧
-
-  // TODO: call and substitution
+  → If(HasAnnotation("NoSubst", #canno*),
+      ()->text⟦†⟨JavaExprRefMeta(#env, #canno*, #metavar)⟩†⟨#cont(#env)⟩⟧, // No need to substitute.
+      ()->text⟦subst(context, †⟨JavaExprRefMeta(#env, #canno*, #metavar)⟩†⟨JavaExprMetaArgs(#env, JGetMetaArgs(#env, #metavar), #cterm*, #cont)⟩⟧)
 
 func JavaExprRefMeta(#env: {String : JEnvEntry}, #canno*: List<Core_canno_sort>, #metavar: String) -> Text4_text_sort
 → If(HasAnnotation("Keep", #canno*), ()->text⟦ref(†⟨JGetMetaVar(#env, #metavar)⟩)⟧, ()->text⟦†⟨JGetMetaVar(#env, #metavar)⟩⟧)
@@ -1421,6 +1437,23 @@ func JavaExprMetaArgs({String : JEnvEntry}, List<Text4_text_sort> /* pattern arg
 
   rule JavaExprMetaArgs(#env, (#binder,  #binders...), (#arg, #args...), #cont)
   → text⟦,†⟨#binder⟩,†⟨JavaExprTerm(#env, #arg, (env) -> JavaExprMetaArgs(env, #binders, #args, #cont))⟩⟧
+
+// --- bound variable
+
+func JavaExprBoundVar({String : JEnvEntry}, Option<Core_canno_sort>, List<Core_csortanno_sort>, [String]->Core_cterm_sort,
+                       ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  // Binder is not reused. Create a new one then.
+  rule JavaExprBoundVar(#env, NONE, #csortanno?, [x]->#cterm[x], #cont)
+  → let #counter = NumberToText(JGetCounter(#env))
+    let #boundvar = text⟦bound†⟨#counter⟩⟧
+      text⟦†⟨#boundvar⟩, †⟨JavaExprTerm(JAddVar(JIncCounter(#env), var, JBound(#boundvar, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
+
+  // Binder is reused.
+  rule JavaExprBoundVar(#env, SOME(canno⟦ @Reuse( ##METAVAR, ##NUMBER ) ⟧), #csortanno?, [x]->#cterm[x], #cont)
+  → let #reusejvar = JGetMetaArgsAt(#env, #METAVAR, ToInteger(#NUMBER))
+      text⟦†⟨#reusejvar⟩,†⟨JavaExprTerm(JAddVar(#env, var, JBound(#reusejvar, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
+
 
 // ---- lambda expression
 
@@ -1767,6 +1800,11 @@ func JGetMetaVarO(#env: {String : JEnvEntry}, #metavar: String) -> Option<Text4_
 
 func JGetMetaArgs({String : JEnvEntry}, String) -> List<Text4_text_sort>
 rule JGetMetaArgs(#env, #metavar) → UnJMetaArgs(UnSOME(MapGet(JGetMetas(#env), #metavar)))
+
+func JGetMetaArgsAt(#env: {String : JEnvEntry}, #metavar: String, #index: Numeric) -> Text4_text_sort
+→ IfPresent(At(JGetMetaArgs(#env, #metavar), #index),
+    (jvar)->jvar,
+    ()->Error("Internal Error: index out of bound"))
 
 func JGetMetaStorage({String : JEnvEntry}, String) -> Storage
 rule JGetMetaStorage(#env, #metavar) → UnJMetaStorage(UnSOME(MapGet(JGetMetas(#env), #metavar)))
