@@ -131,6 +131,16 @@ Bool& StartsWith(Context& ctx, StringTerm& str, StringTerm& prefix)
     str.Release();
     prefix.Release();
     return result;
-
 }
 
+
+Bool& EndsWith(tosca::Context& ctx, tosca::StringTerm& str, tosca::StringTerm& suffix)
+{
+    const std::string& ustr = str.Unbox();
+    const std::string& usuffix = suffix.Unbox();
+    Bool& result = (ustr.size() >= usuffix.size()
+                    && !ustr.compare(ustr.size() - usuffix.size(), usuffix.size(), usuffix)) ? newTRUE(ctx) : newFALSE(ctx);
+    str.Release();
+    suffix.Release();
+    return result;
+}

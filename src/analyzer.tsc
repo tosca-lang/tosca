@@ -70,7 +70,7 @@ func AnalyzeRules(#rules: {String:List<Core_cdecl_sort>}) -> {String:List<Core_c
 
 func AnalyzeRule(Core_cdecl_sort) -> Core_cdecl_sort
 rule AnalyzeRule(cdecl⟦ ##canno* rule ##cterm1 → ##cterm2 ⟧)
-→ UnPair(AnalyzeVar(AnalyzePattern(LEnvNew({}), #cterm1), #cterm2), (env term)->cdecl⟦ ⟨canno*: AnalyzeRuleAnno(env, #canno*)⟩ rule ##cterm1 → ⟨cterm: term⟩ ⟧)
+→ UnPair(AnalyzeVar(AnalyzePattern(LEnvNew({},{}), #cterm1), #cterm2), (env term)->cdecl⟦ ⟨canno*: AnalyzeRuleAnno(env, #canno*)⟩ rule ##cterm1 → ⟨cterm: term⟩ ⟧)
 
 // -- Analyze rule pattern: record metavariable arguments and free variables.
 
@@ -149,7 +149,7 @@ func AnalyzeVar(LEnv, Core_cterm_sort) -> PPair<LEnv Core_cterm_sort>
 
   rule AnalyzeVar(#env, cterm⟦ ##canno* thunk ##cterm ⟧)
   //→ UnPair(AnalyzeVar(#env, #cterm), (env term)->PairCons(env, cterm⟦ ##canno* thunk ⟨cterm: term⟩ ⟧))
-  → AnalyzeVarThunk(#env, #canno*, AnalyzeVar(LEnvNew(LEnvFreeVars(#env)), #cterm))
+  → AnalyzeVarThunk(#env, #canno*, AnalyzeVar(LEnvNew(LEnvFreeVars(#env), LEnvArgs(#env)), #cterm))
 
   rule AnalyzeVar(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
   → AnalyzeVarLet(#canno*, #METAVAR, #csortanno?, #cterm, AnalyzeVar(LEnvRemoveMeta(#env, #METAVAR), #cterm2), LEnvGetMetaCount(#env, #METAVAR))
@@ -232,7 +232,7 @@ func AnalyzeVarFormal(LEnv, Core_cterm_sort, List<String>) -> PPair<LEnv Core_ct
   → AnalyzeVarFormalUp(#canno*, [f]->PairCons(f, AnalyzeVarFormal(#env, #cterm[f], (f, #params...))), #csort)
 
   rule AnalyzeVarFormal(#env, #cterm, #params)
-  → AnalyzeVarFormalUp2(#env, AnalyzeVar(LEnvNew(LEnvFreeVars(#env)), #cterm), #params)
+  → AnalyzeVarFormalUp2(#env, AnalyzeVar(LEnvNew(LEnvFreeVars(#env), LEnvArgs(#env)), #cterm), #params)
 
 func AnalyzeVarFormalUp(List<Core_canno_sort>, [String]->PPair<String PPair<LEnv Core_cterm_sort>>, Core_csort_sort) -> PPair<LEnv Core_cterm_sort>
 rule AnalyzeVarFormalUp(#canno*, [f]->PairCons(#f, PairCons(#env, #cterm[f])), #csort)
@@ -397,13 +397,13 @@ enum LEnvVarEntry | LFREE | LBOUND(Option<Core_canno_sort>) | LFORMAL | LFRESH(O
 
 enum LEnv | LEnv({String:Numeric},      // meta-variable name associated to the number of times they are being used
                  {String:Numeric},      // variable name associated to the number of times they are being used.
-                 {String:LArguments},   // Meta-variable parameters and bound variables
+                 {String:LArguments},   // Meta-variable parameters and bound variables (in pattern)
                  {String:Bool},         // Indicate whether all binders have been used for the associated meta-variable
                  {String:LEnvVarEntry}, // In-scope variables, excluding free and fresh
                  {String:LEnvVarEntry}) // Free and fresh variable
 
 /* Create new environment */
-func LEnvNew(#fvars: {String:LEnvVarEntry}) -> LEnv → LEnv({},{},{},{},{}, #fvars)
+func LEnvNew(#fvars: {String:LEnvVarEntry}, #args: {String:LArguments}) -> LEnv → LEnv({},{},#args,{},{}, #fvars)
 
 // -- meta variable count
 

@@ -12,8 +12,8 @@ import org.transscript.runtime.Variable;
 import org.transscript.runtime.VariableUse;
 
 /**
- * Simple term printer using Java reflection API.
- * 
+ * Simple term printer
+ *
  * @author Lionel Villard
  */
 public class TermPrinter

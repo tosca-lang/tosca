@@ -528,6 +528,7 @@ func CppMaybeBody({String : EnvEntry}, String, Bool /* generate body? */) -> Tex
 rule CppMaybeBody(#env, #key, FALSE) → text⟦);⟧
 rule CppMaybeBody(#env, #key, TRUE)  → text⟦) †⟨CppBody(#env, GetRulesForKeyC(GetContent(#env), #key))⟩⟧
 
+
 func CppBody({String : EnvEntry}, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
 
 // No rules: it must be an external function (not yet checked but should)
@@ -949,10 +950,11 @@ func CppExprTerm({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) -> 
      bound†⟨NumberToText(GetCounter(#env))⟩, †⟨CppExprTerm(AddVar(IncCounter(#env), var, Bound(text⟦bound†⟨NumberToText(GetCounter(#env))⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], #cont)⟩⟧
 
  rule CppExprTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
- → text⟦closure†⟨CppLambdaTypeArgs(#cterm[dummy])⟩(†⟨CppExprLambda(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, 0, #cont)⟩⟧
+ → CppExprLambda(HasAnnotation("NoLambda", #canno*), #env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧, #cont)
 
+// TODO: reuse thunk
  rule CppExprTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #cont)
- → text⟦thunk†⟨CppLambdaTypeArgs(#cterm)⟩(†⟨CppExprLambda(#env, #cterm, 0, #cont)⟩⟧
+ → text⟦thunk†⟨CppLambdaTypeArgs(#cterm)⟩(†⟨CppExprLambdaNew(#env, #cterm, 0, #cont)⟩⟧
 
 // ---- construction expression
 
@@ -1027,31 +1029,57 @@ func CppExprMetaArgs({String : EnvEntry}, List<Core_cterm_sort> /* contraction a
 
 // ---- lambda expression
 
-func CppExprLambda({String : EnvEntry}, Core_cterm_sort, Numeric, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+func CppExprLambda(Bool /* Reuse? */, {String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
- rule CppExprLambda(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧, #arity, #cont)
- → CppExprLambda(AddVar(#env, var, Formal(text⟦⟨STRING: var⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], Plus(#arity, 1), #cont)
+  // Can be reuse: skip the formal arguments
+  rule CppExprLambda(TRUE, #env, #cterm, #cont)
+  → CppExprLambdaReuse(#env, StripBinders(#cterm), #cont)
 
- rule CppExprLambda(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #arity, #cont)
+  // Can't reuse it, so create...
+  rule CppExprLambda(FALSE, #env, #cterm, #cont)
+  → text⟦closure†⟨CppLambdaTypeArgs(#cterm)⟩(†⟨CppExprLambdaNew(#env, #cterm, 0, #cont)⟩⟧
+
+func CppExprLambdaNew({String : EnvEntry}, Core_cterm_sort, Numeric, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+ rule CppExprLambdaNew(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧, #arity, #cont)
+ → CppExprLambdaNew(AddVar(#env, var, Formal(text⟦⟨STRING: var⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], Plus(#arity, 1), #cont)
+
+ rule CppExprLambdaNew(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #arity, #cont)
  → text⟦&†⟨CppConsMethodName(#CONSTRUCTOR, HasAnnotation("Data", #canno*))⟩†⟨CppExprTerms(#env, SubList(MaybeTermsToTerms(#cterms?), #arity), #cont)⟩⟧
 
-  rule CppExprLambda(#env, #cterm, #arity, #cont)
+  rule CppExprLambdaNew(#env, #cterm, #arity, #cont)
   → Error("Internal Error: Invalid lambda expression. Lambda must be of the form (x .. y) -> C(x .. y, #1 .. #n)")
 
-// Generate closure function type arguments. Not needed if the called function is not parameterized, C++ is callable of deducing types.
+// Generate closure function type arguments. Not needed if the called function is not parameterized, C++ is capable of deducing types.
 func CppLambdaTypeArgs(Core_cterm_sort) -> Text4_text_sort
 
-  rule CppLambdaTypeArgs(cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧)
+  rule CppLambdaTypeArgs(cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧)
   → CppLambdaTypeArgs(#cterm[dummy])
 
+  // Generate type arguments.
   rule CppLambdaTypeArgs(cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs ##cterms? : ##csort ⟧)
   → text⟦<†⟨TextFold((CppType(#csort), CppGetSortsMaybeTerms(#cterms?)...), text⟦, ⟧)⟩>⟧
 
+  // No type arguments
   rule CppLambdaTypeArgs(cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##cterms? ##csortanno? ⟧)
   → text⟦⟧
 
   rule CppLambdaTypeArgs(#cterm)
   → Error("Internal Error: Invalid lambda expression. Lambda must be of the form (x .. y) -> C(x .. y, #1 .. #n)")
+
+func CppExprLambdaReuse({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  // Lambda can be reuse. Extract metavar annotation inside the capture term list to know
+  // if the metavar needs to be referenced or not
+  rule CppExprLambdaReuse(#env, cterm⟦ ##canno*2 ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
+  → //let #metavars = GetMetaVariables(GetAnnotationArgs(UnSOME(GetAnnotation("Captured", #canno*2))))
+    //let #canno* = Fst(UnSOME(PickFirst(#metavars, (annovar)->Equal(Snd(annovar), #METAVAR))))
+      CppExprMeta(#env, /*#canno*,*/ #METAVAR, cterms?⟦⟧, csubst?⟦⟧, #cont)
+
+  rule CppExprLambdaReuse(#env, #cterm, #cont)
+  → Error("Internal Error: Cannot reuse a lambda expression that is not bound to a metavariable.")
+
+
 
 // --- Literal
 
@@ -1214,6 +1242,13 @@ rule CppGetSortsMaybeTerms(#cterms?               ) → ()
 
 func CppGetSortsTerms(#terms: List<Core_cterm_sort>) -> List<Text4_text_sort>
 → Map((term) -> IfPresent(TermSort(term), (sort)->CppType(sort), ()->Error("Internal Error: missing sort.")), #terms)
+/*
+rule U-format (  ( f_113 : String ) #error ( f_113 )  : String ,  @ DataList ( String )  :: Cons < String >  ( #1 : String , #s : List ( String )  )  : List ( String )   , #msg1 : String  , #msg2 : String  , #format : String  , #args : List ( String )  )
+
+
+U-format < a >  (  ( f_116 : String )  U-formatCC1 < a >  ( f_116 : String ,  ( x_117 : String )  #error ( x_117 )  : String )  : String
+                 , #s : List ( String )   ,  #msg1 : String  ,  #msg2 : String  ,
+                 ConcatString (  #format : String ,  %s )  : String  ,  #args : List ( String )  )  : a*/
 
 
 // --- Basic conversion functions

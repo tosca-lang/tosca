@@ -13,6 +13,7 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ConsoleErrorListener;
+import org.antlr.v4.runtime.DiagnosticErrorListener;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
@@ -20,6 +21,7 @@ import org.antlr.v4.runtime.TokenSource;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.ATN;
 import org.antlr.v4.runtime.atn.ATNConfigSet;
+import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.transscript.runtime.Parser;
 import org.transscript.runtime.Sink;
@@ -258,44 +260,19 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 		addErrorListener(errorListener);
 		//addErrorListener(new DiagnosticErrorListener(false));
 
+		// Not faster for Tosca since the grammar needs full context
+		//getInterpreter().setPredictionMode(PredictionMode.SLL);
+		
 		// Retrieve method to call.
+		
 		realParse(rcategory);
-
+		
 		if (errorListener.error)
 			Utils.fatal("Error(s) while parsing " + unit + ". Exiting.", null);
 
 		return sink;
 	}
-
-	public Sink parseTerm(Sink sink, Reader reader, String unit, int line, int column, Scoping bounds, Scoping freshes, String prefix, String metachar)
-	{
-		try
-		{
-			setupInput(reader, line, column);
-		}
-		catch (IOException e)
-		{
-			throw new RuntimeException(e);
-		}
-
-		initLexerState("term");
-
-		ToSinkListener listener = new ToSinkListener(sink, prefix, metachar, this, bounds, freshes);
-		addParseListener(listener);
-
-		TSAntlrErrorListener errorListener = new TSAntlrErrorListener();
-		addErrorListener(errorListener);
-		//addErrorListener(new DiagnosticErrorListener(false));
-
-		// Retrieve method to call.
-		realParse("term");
-
-		if (errorListener.error)
-			Utils.fatal("Error(s) while parsing " + unit + ". Exiting.", null);
-
-		return sink;
-	}
-
+ 
 	@Override
 	public void setParserVerbose(boolean verbose)
 	{

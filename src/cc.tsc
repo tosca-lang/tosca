@@ -131,12 +131,6 @@ func CCMaybeTerms(CCEnv, List<Core_cterms_sort>) -> PPair<CCEnv List<Core_cterms
 rule CCMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧) → CCMaybeTermsUp(CCTerms(#env, #cterm*))
 rule CCMaybeTerms(#env, #cterms?              ) → PairCons(#env, #cterms?)
 
-/*
-func CCMaybeSubst(CCEnv, List<Core_csubst_sort>) -> PPair<CCEnv List>
-rule CCMaybeSubst(#env, csubst?⟦              ⟧) → PairCons(#env, csubst?⟦⟧)
-rule CCMaybeSubst(#env, csubst?⟦ [ ##cterm* ] ⟧) → CCMaybeSubstUp(CCTerms(#env, #cterm*))
-*/
-
 func CCTerms(CCEnv, List<Core_cterm_sort>) -> PPair<CCEnv List<Core_cterm_sort>>
 rule CCTerms(#env, cterm*⟦                  ⟧) → PairCons(#env, cterm*⟦⟧)
 rule CCTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧) → CCTermsUp(CCTerm(#env, #cterm), #cterm*)
@@ -216,7 +210,8 @@ func CCUsedSortVars(#sorts: List<Core_csort_sort>) -> List<Core_csortvars_sort>
 // -- Generate rule for the lifted function.
 
 func CCLiftedRule(#env: CCEnv, #name: String, #lambda: Core_cterm_sort, #captures: {String : Core_cterm_sort}) -> Core_cdecl_sort
-→  cdecl⟦ rule ⟨CONSTRUCTOR: #name⟩ ⟨cterms?: TermsToMaybeTerms(Concat(CCLiftedPattern(#name, 0, CCEnvParams(#env)), MapValues(#captures)))⟩ → ⟨cterm: CCLiftedContractum(#name, #lambda, 0, {})⟩ ⟧
+→ let #cterms? = TermsToMaybeTerms(Concat(CCLiftedPattern(#name, 0, CCEnvParams(#env)), MapValues(#captures)))
+  cdecl⟦ rule ⟨CONSTRUCTOR: #name⟩ ##cterms? → ⟨cterm: CCLiftedContractum(#name, #lambda, 0, {})⟩ ⟧
 
 func CCLiftedPattern(String, Numeric, List<PPair<String Core_csort_sort>>) -> List<Core_cterm_sort>
 
@@ -273,7 +268,7 @@ func CCCaptureMaybeSubst(CCEnv, List<Core_csubst_sort>, {String : Core_cterm_sor
 func CCCaptureMeta(#env: CCEnv, #METAVAR: String, #varentry: CCVarEntry, #cptrs: {String : Core_cterm_sort}) -> {String : Core_cterm_sort}
 → IfPresent(MapGet(#cptrs, #METAVAR),
     (term)->#cptrs, // already captured.
-    ()->MapPut(#cptrs, #METAVAR, CCBoundTerm(GetBoundVarSorts(CCGetSort(#varentry)), #METAVAR, cterm*⟦⟧, CCGetSort(#varentry))))
+    ()->MapPut(#cptrs, #METAVAR, CCBoundTerm(GetBoundVarSorts(CCGetSort(#varentry)), GetFormalParamSorts(CCGetSort(#varentry)), #METAVAR, cterm*⟦⟧, GetFOSort(CCGetSort(#varentry)))))
 
 func CCCaptureVar(#env: CCEnv, #VARIABLE: String, #cptrs:{String : Core_cterm_sort}) -> {String : Core_cterm_sort}
 → IfPresent(MapGetVar(#cptrs, #VARIABLE),
@@ -286,9 +281,13 @@ func CCCaptureVar2(#env: CCEnv, #VARIABLE: String, #cptrs:{String : Core_cterm_s
     ()-> #cptrs) // a bound variable. Not tracked.
 
 /* Bound the given `#cterm` with bound variables of the given `#csorts` */
-func CCBoundTerm(List<Core_csort_sort>, String, List<Core_cterm_sort>, Core_csort_sort) -> Core_cterm_sort
-rule CCBoundTerm(csort*⟦                  ⟧, #METAVAR, #csubst*, #csort ) → cterm⟦ ##METAVAR ⟨csubst?:TermsToMaybeSubst(#csubst*)⟩ : ##csort ⟧
-rule CCBoundTerm(csort*⟦ ##csort ##csort* ⟧, #METAVAR, #csubst*, #csort2) → cterm⟦ [ x : ##csort ] ⟨cterm: CCBoundTerm(#csort*, #METAVAR, Append(cterm⟦ x ⟧, #csubst*), #csort2)⟩ ⟧
+func CCBoundTerm(List<Core_csort_sort>, List<Core_csort_sort>, String, List<Core_cterm_sort>, Core_csort_sort) -> Core_cterm_sort
+rule CCBoundTerm(csort*⟦                  ⟧, #paramSorts, #METAVAR, #csubst*, #csort ) → CCBoundTerm2(#paramSorts, #METAVAR, TermsToMaybeSubst(#csubst*), cterm*⟦⟧, #csort)
+rule CCBoundTerm(csort*⟦ ##csort ##csort* ⟧, #paramSorts, #METAVAR, #csubst*, #csort2) → cterm⟦ [ x : ##csort ] ⟨cterm: CCBoundTerm(#csort*, #paramSorts, #METAVAR, Append(cterm⟦ x ⟧, #csubst*), #csort2)⟩ ⟧
+
+func CCBoundTerm2(List<Core_csort_sort>, String, List<Core_csubst_sort>, List<Core_cterm_sort>, Core_csort_sort) -> Core_cterm_sort
+rule CCBoundTerm2(csort*⟦                  ⟧, #METAVAR, #csubst?, #cterm*, #csort ) → cterm⟦ ##METAVAR ⟨cterms?: TermsToMaybeTerms(#cterm*)⟩ ##csubst? : ##csort ⟧
+rule CCBoundTerm2(csort*⟦ ##csort ##csort* ⟧, #METAVAR, #csubst?, #cterm*, #csort2) → cterm⟦ ( x : ##csort ) ⟨cterm: CCBoundTerm2(#csort*, #METAVAR, #csubst?, Append(cterm⟦ x ⟧, #cterm*), #csort2)⟩ ⟧
 
 // --- Post traversal handlers
 

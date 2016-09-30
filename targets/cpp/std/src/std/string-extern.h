@@ -39,7 +39,10 @@ extern tosca::StringTerm& Substring2(tosca::Context&, tosca::StringTerm&, tosca:
 extern Bool& MatchRegex(tosca::Context&, tosca::StringTerm&, tosca::StringTerm&);
 
 
-/* Tests if the beginning of the given string starts with the specified prefix. */
+/* Tests if the given string starts with the specified prefix. */
 extern Bool& StartsWith(tosca::Context&, tosca::StringTerm& str, tosca::StringTerm& prefix);
+
+/* Tests if the given string ends with the specified suffix. */
+extern Bool& EndsWith(tosca::Context&, tosca::StringTerm& str, tosca::StringTerm& suffix);
 
 #endif

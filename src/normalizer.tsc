@@ -69,7 +69,7 @@ func NDecl(TransScript_decl_sort) -> List<Core_cdecl_sort>
 
 // ---- Enumeration
 
-func NVariants(List<TransScript_variant_sort>) -> List<Core_cform_sort>
+func NVariants(List<TransScript_variant_sort>)  -> List<Core_cform_sort>
 
   rule NVariants(variant+⟦   ⟧)
   → cform*⟦ ⟧
