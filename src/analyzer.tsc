@@ -344,10 +344,11 @@ rule AnalyzeMetaArgsReuse(#metavar, PairCons(#env, #terms))
 /*  */
 func AnalyzeReuseArgs(LEnv, String, List<Core_cterm_sort>, List<Core_cterm_sort>, Numeric) -> PPair<LEnv List<Core_cterm_sort>>
 
+  // TODO: rewrite for better performance. (no Append)
   rule AnalyzeReuseArgs(#env, #METAVAR, cterm*⟦ ##canno* ##VARIABLE ##csortanno? ##cterm* ⟧, #cterm*2, #index)
   → let #canno = canno⟦ @Reuse(##METAVAR, ⟨NUMBER: FormatInteger(#index)⟩) ⟧
       AnalyzeReuseArgs(LEnvReuseVar(#env, #VARIABLE, #canno), #METAVAR, #cterm*,
-                        cterm*⟦ ##canno ##canno* ##VARIABLE ##csortanno? ##cterm*2 ⟧, Plus(#index, 1))
+                        Append(cterm⟦ ##canno ##canno* ##VARIABLE ##csortanno? ⟧, #cterm*2), Plus(#index, 1))
 
   rule AnalyzeReuseArgs(#env, #METAVAR, #cterm*, #cterm*2, #index)
   → PairCons(#env, #cterm*2)

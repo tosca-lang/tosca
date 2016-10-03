@@ -379,7 +379,6 @@ func CppGetBinder(Bool, Numeric, Numeric) -> Text4_text_sort
             switch (subi)
             {
               †⟨CppSetSubBinders(MaybeSortsToSorts(#csorts?), 1)⟩
-              break;
               default: assert(false);
             }
          }⟧, ()->text⟦;⟧)⟩
@@ -400,6 +399,7 @@ func CppGetBinder(Bool, Numeric, Numeric) -> Text4_text_sort
                   †⟨CppClassField(CppTypes(#csort), #index, 1, (isvar type index subindex)->CppSetBinder(isvar, type, index, subindex))⟩
                   default: assert(false);
                 }
+                break;
               }⟧,
              ()->text⟦⟧)⟩
         †⟨CppSetSubBinders(#csort*, Plus(#index, 1))⟩⟧
@@ -1079,8 +1079,6 @@ func CppExprLambdaReuse({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntr
   rule CppExprLambdaReuse(#env, #cterm, #cont)
   → Error("Internal Error: Cannot reuse a lambda expression that is not bound to a metavariable.")
 
-
-
 // --- Literal
 
 func CppExprLiteral(Core_cliteral_sort) -> Text4_text_sort
@@ -1242,14 +1240,6 @@ rule CppGetSortsMaybeTerms(#cterms?               ) → ()
 
 func CppGetSortsTerms(#terms: List<Core_cterm_sort>) -> List<Text4_text_sort>
 → Map((term) -> IfPresent(TermSort(term), (sort)->CppType(sort), ()->Error("Internal Error: missing sort.")), #terms)
-/*
-rule U-format (  ( f_113 : String ) #error ( f_113 )  : String ,  @ DataList ( String )  :: Cons < String >  ( #1 : String , #s : List ( String )  )  : List ( String )   , #msg1 : String  , #msg2 : String  , #format : String  , #args : List ( String )  )
-
-
-U-format < a >  (  ( f_116 : String )  U-formatCC1 < a >  ( f_116 : String ,  ( x_117 : String )  #error ( x_117 )  : String )  : String
-                 , #s : List ( String )   ,  #msg1 : String  ,  #msg2 : String  ,
-                 ConcatString (  #format : String ,  %s )  : String  ,  #args : List ( String )  )  : a*/
-
 
 // --- Basic conversion functions
 
