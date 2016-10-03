@@ -62,9 +62,11 @@ func CCPatternTerm(CCEnv, Core_cterm_sort, CCBinders, (CCEnv)-> PPair<CCEnv Core
   rule CCPatternTerm(#env, cterm⟦ ##canno* ##VARIABLE ⟧, #binders, #cont)
   → #cont(#env)
 
+  // Record binder sort that might bind a meta-variable
   rule CCPatternTerm(#env, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧, #binders, #cont)
   → CCPatternTerm(#env, #cterm[x], CCBinderAdd(#binders, PairCons(x, #csort)), #cont)
 
+    // Record binder sort that might bind a meta-variable
   rule CCPatternTerm(#env, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧, #binders, #cont)
   → CCPatternTerm(#env, #cterm[f], CCBinderAdd(#binders, PairCons(f, #csort)), #cont)
 
@@ -124,7 +126,7 @@ func CCTerm(CCEnv, Core_cterm_sort) -> PPair<CCEnv Core_cterm_sort>
 rule CCTerm(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧) → CCConsUp(#canno*, #cqconstructor, #csortargs?, CCMaybeTerms(#env, #cterms?), #csortanno?)
 rule CCTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)          → CCMetaUp(#METAVAR, CCMaybeTerms(#env, #cterms?), #csubst?, #csortanno?)
 rule CCTerm(#env, cterm⟦ ##canno* ##VARIABLE : ##csort ⟧)                                → PairCons(CCEnvAddVar(#env, #VARIABLE, CCVar(#VARIABLE, #csort)), cterm⟦ ##canno* ##VARIABLE : ##csort ⟧)
-rule CCTerm(#env, cterm⟦ ##canno* [ x ##csortanno? ] ##cterm[x] ⟧)                       → CCBinderUp(#csortanno?, [x] -> CCTerm(#env, #cterm[x]))
+rule CCTerm(#env, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧)                          → CCBinderUp(#csort, [x] -> PairCons(x, CCTerm(CCEnvBind(#env, x, #csort), #cterm[x])))
 rule CCTerm(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧)                       → CCFormal(CCEnvResetParams(#env), cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧)
 rule CCTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧)                                       → CCThunkUp(CCThunk(CCEnvResetParams(#env), #cterm))
 rule CCTerm(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧)                    → Error("Internal Error: named terms cannot occur in contraction.")
@@ -286,7 +288,12 @@ func CCCaptureVar(#env: CCEnv, #VARIABLE: String, #cptrs:{String : Core_cterm_so
 func CCCaptureVar2(#env: CCEnv, #VARIABLE: String, #cptrs:{String : Core_cterm_sort}) -> {String : Core_cterm_sort}
 → IfPresent(CCEnvGetVar(#env, #VARIABLE),
     (entry)->MapPutVar(#cptrs, #VARIABLE, cterm⟦ ##VARIABLE : ⟨csort: CCGetSort(entry)⟩ ⟧),
-    ()-> #cptrs) // a bound variable. Not tracked.
+    ()-> CCCaptureBoundVar(#env, CCEnvGetBVar(#env, #VARIABLE), #VARIABLE, #cptrs))
+
+func CCCaptureBoundVar(#env: CCEnv, #ocsort: Option<Core_csort_sort>, #VARIABLE: String, #cptrs:{String : Core_cterm_sort}) -> {String : Core_cterm_sort}
+→ IfPresent(#ocsort,
+    (csort)->MapPutVar(#cptrs, #VARIABLE,  cterm⟦ ##VARIABLE : ⟨csort: csort⟩ ⟧), // override entry if already there. fine.
+    ()->#cptrs) // bound variable or fresh variable inside lambda. No need to capture.
 
 /* Bound the given `#cterm` with bound variables of the given `#csorts` */
 func CCBoundTerm(List<Core_csort_sort>, List<Core_csort_sort>, String, List<Core_cterm_sort>, Core_csort_sort) -> Core_cterm_sort
@@ -305,8 +312,9 @@ rule CCConsUp(#canno*, #cqconstructor, #csortargs?, PairCons(#env, #cterms?), #c
 func CCMetaUp(String, PPair<CCEnv List<Core_cterms_sort>>, List<Core_csubst_sort>, List<Core_csortanno_sort>) -> PPair<CCEnv Core_cterm_sort>
 rule CCMetaUp(#METAVAR, PairCons(#env, #cterms?), #csubst?, #csortanno?) → PairCons(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)
 
-func CCBinderUp(List<Core_csortanno_sort>, [String] -> PPair<CCEnv Core_cterm_sort>) -> PPair<CCEnv Core_cterm_sort>
-rule CCBinderUp(#csortanno?, [x] -> PairCons(#env, #cterm[x])) → PairCons(#env, cterm⟦ [ x ##csortanno?[] ] ##cterm[x] ⟧ )
+func CCBinderUp(Core_csort_sort, [String] -> PPair<String PPair<CCEnv Core_cterm_sort>>) -> PPair<CCEnv Core_cterm_sort>
+rule CCBinderUp(#csort, [x] -> PairCons(#x, PairCons(#env, #cterm[x])))
+→ PairCons(CCEnvUnBind(#env, #x), cterm⟦ [ x : ##csort ] ##cterm[x] ⟧ )
 
 func CCFormalUp(Core_csort_sort, [String] -> PPair<CCEnv Core_cterm_sort>) -> PPair<CCEnv Core_cterm_sort>
 rule CCFormalUp(#csort, [f] -> PairCons(#env, #cterm[f])) → PairCons(#env, cterm⟦ ( f : ##csort[] ) ##cterm[f] ⟧)
@@ -419,6 +427,7 @@ func CCFindSort(Core_cterm_sort, List<PPair<String Core_csort_sort>>) -> Core_cs
 // -- Environment
 
 enum CCVarEntry | CCMeta(String, Core_csort_sort) | CCVar(String, Core_csort_sort)
+//enum CCBoundVarEntry | CCBoundVar(Core_csort_sort)
 
 func CCGetSort(CCVarEntry) -> Core_csort_sort
 rule CCGetSort(CCMeta(#, #csort)) → #csort
@@ -430,57 +439,81 @@ enum CCEnv | CCEnv(
                  List<Core_cdecl_sort>,                // List of converted rules
                  List<PPair<String Core_csort_sort>>,  // List of formal parameters with sorts
                  Numeric,                              // A counter
-                 {String:CCVarEntry}                   // Free, fresh and meta variables
+                 {String:CCVarEntry},                  // Free, fresh and meta variables
+                 {String:Core_csort_sort}              // In-scope bound variables
              )
 
 
 func CCEnvNew(#name: String, #content: Content) -> CCEnv
-→ CCEnv(#name, #content, (), (), 1, {})
+→ CCEnv(#name, #content, (), (), 1, {}, {})
+
+// --- Function name
 
 func CCEnvName(CCEnv) -> String
-rule CCEnvName(CCEnv(#name, #content, #rules, #params, #counter, #vars)) → #name
+rule CCEnvName(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars)) → #name
+
+// --- Module content
 
 func CCEnvContent(CCEnv) -> Content
-rule CCEnvContent(CCEnv(#name, #content, #rules, #params, #counter, #vars)) → #content
-
-func CCEnvRules(CCEnv) -> List<Core_cdecl_sort>
-rule CCEnvRules(CCEnv(#name, #content, #rules, #params, #counter, #vars)) → #rules
-
-func CCEnvAddRule(CCEnv, Core_cdecl_sort) -> CCEnv
-rule CCEnvAddRule(CCEnv(#name, #content, #rules, #params, #counter, #vars), #rule) → CCEnv(#name, #content, Append(#rule, #rules), #params, #counter, #vars)
-
-func CCEnvParams(CCEnv) -> List<PPair<String  Core_csort_sort>>
-rule CCEnvParams(CCEnv(#name, #content, #rules, #params, #counter, #vars)) → #params
-
-func CCEnvResetParams(CCEnv) -> CCEnv
-rule CCEnvResetParams(CCEnv(#name, #content, #rules, #params, #counter, #vars)) → CCEnv(#name, #content, #rules, (), #counter, #vars)
-
-func CCEnvAddParam(CCEnv, String, Core_csort_sort) -> CCEnv
-rule CCEnvAddParam(CCEnv(#name, #content, #rules, #params, #counter, #vars), #param, #sort) → CCEnv(#name, #content, #rules, Append(PairCons(#param, #sort), #params), #counter, #vars)
-
-func CCEnvGetParams(CCEnv) -> List<PPair<String Core_csort_sort>>
-rule CCEnvGetParams(CCEnv(#name, #content, #rules, #params, #counter, #vars)) → #params
-
-func CCEnvCounter(CCEnv) -> Numeric
-rule CCEnvCounter(CCEnv(#name, #content, #rules, #params, #counter, #vars)) → #counter
+rule CCEnvContent(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars)) → #content
 
 func CCEnvSetContent(CCEnv, Content) -> CCEnv
-rule CCEnvSetContent(CCEnv(#name, #content, #rules, #params, #counter, #vars), #newcontent) → CCEnv(#name, #newcontent, #rules, #params, #counter, #vars)
+rule CCEnvSetContent(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars), #newcontent) → CCEnv(#name, #newcontent, #rules, #params, #counter, #vars, #bvars)
+
+// --- List of converted rules
+
+func CCEnvRules(CCEnv) -> List<Core_cdecl_sort>
+rule CCEnvRules(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars)) → #rules
+
+func CCEnvAddRule(CCEnv, Core_cdecl_sort) -> CCEnv
+rule CCEnvAddRule(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars), #rule) → CCEnv(#name, #content, Append(#rule, #rules), #params, #counter, #vars, #bvars)
+
+// ---  List of formal parameters with sorts
+
+func CCEnvParams(CCEnv) -> List<PPair<String  Core_csort_sort>>
+rule CCEnvParams(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars)) → #params
+
+func CCEnvResetParams(CCEnv) -> CCEnv
+rule CCEnvResetParams(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars)) → CCEnv(#name, #content, #rules, (), #counter, #vars, #bvars)
+
+func CCEnvAddParam(CCEnv, String, Core_csort_sort) -> CCEnv
+rule CCEnvAddParam(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars), #param, #sort) → CCEnv(#name, #content, #rules, Append(PairCons(#param, #sort), #params), #counter, #vars, #bvars)
+
+func CCEnvGetParams(CCEnv) -> List<PPair<String Core_csort_sort>>
+rule CCEnvGetParams(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars)) → #params
+
+// --- CC counter
+
+func CCEnvCounter(CCEnv) -> Numeric
+rule CCEnvCounter(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars)) → #counter
 
 func CCEnvIncCounter(CCEnv) -> CCEnv
-rule CCEnvIncCounter(CCEnv(#name, #content, #rules, #params, #counter, #vars)) → CCEnv(#name, #content, #rules, #params, Plus(#counter, 1), #vars)
+rule CCEnvIncCounter(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars)) → CCEnv(#name, #content, #rules, #params, Plus(#counter, 1), #vars, #bvars)
+
+// --- Free, fresh and meta variables
 
 func CCEnvVars(CCEnv) -> {String:CCVarEntry}
-rule CCEnvVars(CCEnv(#name, #content, #rules, #params, #counter, #vars)) → #vars
+rule CCEnvVars(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars)) → #vars
 
 func CCEnvAddVar(CCEnv, String, CCVarEntry) -> CCEnv
-rule CCEnvAddVar(CCEnv(#name, #content, #rules, #params, #counter, #vars), #var, #entry) → CCEnv(#name, #content, #rules, #params, #counter, MapPutVar(#vars, #var, #entry))
+rule CCEnvAddVar(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars), #var, #entry) → CCEnv(#name, #content, #rules, #params, #counter, MapPutVar(#vars, #var, #entry), #bvars)
 
 func CCEnvGetVar(CCEnv, String) -> Option<CCVarEntry>
-rule CCEnvGetVar(CCEnv(#name, #content, #rules, #params, #counter, #vars), #var) → MapGetVar(#vars, #var)
+rule CCEnvGetVar(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars), #var) → MapGetVar(#vars, #var)
 
 func CCEnvAddMetaVar(CCEnv, String, CCVarEntry) -> CCEnv
-rule CCEnvAddMetaVar(CCEnv(#name, #content, #rules, #params, #counter, #vars), #metavar, #entry) → CCEnv(#name, #content, #rules, #params, #counter, MapPut(#vars, #metavar, #entry))
+rule CCEnvAddMetaVar(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars), #metavar, #entry) → CCEnv(#name, #content, #rules, #params, #counter, MapPut(#vars, #metavar, #entry), #bvars)
 
 func CCEnvGetMetaVar(CCEnv, String) -> Option<CCVarEntry>
-rule CCEnvGetMetaVar(CCEnv(#name, #content, #rules, #params, #counter, #vars), #meta) → MapGet(#vars, #meta)
+rule CCEnvGetMetaVar(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars), #meta) → MapGet(#vars, #meta)
+
+// --- Bound variables
+
+func CCEnvBind(CCEnv, String, Core_csort_sort) -> CCEnv
+rule CCEnvBind(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars), #bvar, #csort) → CCEnv(#name, #content, #rules, #params, #counter, #vars, MapPutVar(#bvars, #bvar, #csort))
+
+func CCEnvGetBVar(CCEnv, String) -> Option<Core_csort_sort>
+rule CCEnvGetBVar(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars), #bvar) → MapGetVar(#bvars, #bvar)
+
+func CCEnvUnBind(CCEnv, String) -> CCEnv
+rule CCEnvUnBind(CCEnv(#name, #content, #rules, #params, #counter, #vars, #bvars), #bvar) → CCEnv(#name, #content, #rules, #params, #counter, #vars, MapRemove(#bvars, #bvar))

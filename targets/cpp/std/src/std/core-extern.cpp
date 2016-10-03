@@ -20,21 +20,41 @@ StringTerm& GetEnv(Context& ctx, StringTerm& key, StringTerm& def)
 
 Bool& BitSubSetEq(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 {
-    throw new std::runtime_error("unimplemented");
+    long lleft = left.Unbox();
+    long lright = right.Unbox();
+    Bool& result = ((lleft & (~lright)) == 0) ? newTRUE(ctx) : newFALSE(ctx);
+    left.Release();
+    right.Release();
+    return result;
 }
 
 DoubleTerm& BitMinus(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 {
-    throw new std::runtime_error("unimplemented");
+    long lleft = left.Unbox();
+    long lright = right.Unbox();
+    DoubleTerm& result = newDoubleTerm(lleft & ~lright);
+    left.Release();
+    right.Release();
+    return result;
 }
 
 DoubleTerm& BitOr(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 {
-    throw new std::runtime_error("unimplemented");
+    long lleft = left.Unbox();
+    long lright = right.Unbox();
+    DoubleTerm& result = newDoubleTerm(lleft | lright);
+    left.Release();
+    right.Release();
+    return result;
 }
 
 DoubleTerm& BitAnd(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 {
-    throw new std::runtime_error("unimplemented");
+    long lleft = left.Unbox();
+    long lright = right.Unbox();
+    DoubleTerm& result = newDoubleTerm(lleft & lright);
+    left.Release();
+    right.Release();
+    return result;
 }
 

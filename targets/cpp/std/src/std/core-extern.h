@@ -63,7 +63,15 @@ List<b>* FreeVariablesImpl(tosca::Context& ctx, tosca::Term& term, List<b>* resu
         tosca::Variable& v = ovar.value();
         auto search = bound.find(&v);
         if (search == bound.end())
-            return &newCons<b>(ctx, dynamic_cast<b&>(v.GUse()), *result);
+        {
+            // Make sure the variable is of the same type as the expected type.
+            tosca::Term& guse = v.GUse();
+            b* vuse = dynamic_cast<b*>(&guse);
+            if (vuse)
+                return &newCons<b>(ctx, *vuse, *result);
+            
+            guse.Release();
+        }
         
         return result;
     }
@@ -127,10 +135,24 @@ List<a>& IntersectVariables(tosca::Context& ctx, List<a>& value_116, List<a>& va
     throw new std::runtime_error("unimplemented");
 }
 
+/* @return true when the two given terms are variables, and they are equal (same identity). */
 template<typename a, typename b>
-Bool& SameVariable(tosca::Context& ctx, a& value_114, b& value_115)
+Bool& SameVariable(tosca::Context& ctx, a& var1, b& var2)
 {
-    throw new std::runtime_error("unimplemented");
+    Bool* result = 0;
+    Optional<tosca::Variable> ov1 = var1.GetGVariable();
+    if (ov1)
+    {
+        Optional<tosca::Variable> ov2 = var2.GetGVariable();
+        if (ov2)
+          result = &(&ov1.value() == &ov2.value() ? newTRUE(ctx) : newFALSE(ctx));
+    }
+    if (!result)
+        result = &newFALSE(ctx);
+    
+    var1.Release();
+    var2.Release();
+    return *result;
 }
 
 template<typename a, typename b>
@@ -142,10 +164,17 @@ b& VariableNameIs(tosca::Context& ctx, a& var, tosca::StringTerm& name, b& resul
 
 // --- Bit manipulation
 
-Bool& BitSubSetEq(tosca::Context& ctx, tosca::DoubleTerm& value_120, tosca::DoubleTerm& value_121);
-tosca::DoubleTerm& BitMinus(tosca::Context& ctx, tosca::DoubleTerm& value_125, tosca::DoubleTerm& value_126);
-tosca::DoubleTerm& BitOr(tosca::Context& ctx, tosca::DoubleTerm& value_136, tosca::DoubleTerm& value_137);
-tosca::DoubleTerm& BitAnd(tosca::Context& ctx, tosca::DoubleTerm& value_159, tosca::DoubleTerm& value_160);
+/* @return true when all bits in left are also in right. */
+Bool& BitSubSetEq(tosca::Context& ctx, tosca::DoubleTerm& left, tosca::DoubleTerm& right);
+
+/* @return the integer with the bits in left which are not in right.  */
+tosca::DoubleTerm& BitMinus(tosca::Context& ctx, tosca::DoubleTerm& left, tosca::DoubleTerm& right);
+
+/* @return the integer with the bits in either left and/or right */
+tosca::DoubleTerm& BitOr(tosca::Context& ctx, tosca::DoubleTerm& left, tosca::DoubleTerm& right);
+
+/* @return the integer with the bits in both left and right */
+tosca::DoubleTerm& BitAnd(tosca::Context& ctx, tosca::DoubleTerm& left, tosca::DoubleTerm& right);
 
 // --- Error
 
