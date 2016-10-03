@@ -1,5 +1,6 @@
 // Copyright (c) 2016 IBM Corporation.
 #include "ts.h"
+#include <iostream>
 
 namespace tosca {
 
@@ -39,6 +40,10 @@ namespace tosca {
             name += hint;
         name += "_";
         name += std::to_string(++ts);
+        
+        if ("prefix_8888" ==  name)
+            std::cout << "got it";
+        
         return name;
     }
 
