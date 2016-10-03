@@ -84,6 +84,7 @@ func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Tex
       {
       public:
         †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), FALSE)⟩
+        const std::string Symbol() const { return †⟨Text-QuoteEscape(#CONSTRUCTOR)⟩; }
         †⟨CppFormMethodMake(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), FALSE)⟩
         †⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩
         †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩

@@ -122,6 +122,14 @@ namespace tosca {
           //  throw new std::runtime_error("NOT IMPLEMENTED: substitution in map");
             return *this;
         }
+        
+        // Overrides
+        
+        const std::string Symbol() const
+        {
+            // TODO:
+            return "{}";
+        }
 
     };
     

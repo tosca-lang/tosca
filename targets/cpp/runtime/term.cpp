@@ -41,14 +41,13 @@ namespace tosca {
 
     Term::~Term(){}
 
-    const std::string& Term::Symbol() const
+    const std::string Term::Symbol() const
     {
        auto v = this->GetGVariable();
        if (v)
          return v.value().Symbol();
 
-        // TODO: LEAK!
-       return *(new std::string(""));
+       return "";
     }
 
     Term& Term::Copy(Context& ctx)
@@ -199,9 +198,9 @@ namespace tosca {
         throw std::runtime_error("Internal Error: cannot create untyped variable use.");
     }
 
-    const std::string& Variable::Symbol() const
+    const std::string Variable::Symbol() const
     {
-        return name;
+        return name; // copy.
     }
     
     Variable& Variable::Copy(Context& ctx) const
@@ -218,6 +217,11 @@ namespace tosca {
     
     StringTerm::~StringTerm()
     {
+    }
+    
+    const std::string StringTerm::Symbol() const
+    {
+        return "\"" + Unbox() + "\"";
     }
     
     const std::string& StringTerm::Unbox()  const
@@ -269,6 +273,10 @@ namespace tosca {
     {
     }
     
+    const std::string DoubleTerm::Symbol() const
+    {
+        return std::to_string(Unbox());
+    }
 
     CDoubleTermVarUse::CDoubleTermVarUse(CDoubleTermVar& v) : VariableUse::VariableUse(v)
     {

@@ -26,9 +26,11 @@ namespace tosca {
         Optional<Term> osub = term.Sub(i);
         if (osub)
         {
+            out << "(";
             while (osub)
             {
-                out << (i == 0 ? "(" : ",");
+                if (i > 0)
+                  out << ",";
                 
                 int j = 0;
                 Optional<Variable> obinder = term.Binder(i, j);
@@ -45,8 +47,9 @@ namespace tosca {
                 Print(osub.value(), out, count + 2);
                 osub = term.Sub(++i);
             }
+            out << ")";
         }
-        out << ")";
+        
         term.Release();
     }
     

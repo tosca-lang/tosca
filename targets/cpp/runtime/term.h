@@ -42,7 +42,6 @@ namespace tosca {
 
     };
 
-
     /*
      * Base class for terms
      */
@@ -57,7 +56,7 @@ namespace tosca {
          * Get this term symbol.
          * TODO: document what's a symbol
          */
-        const std::string& Symbol() const;
+        virtual const std::string Symbol() const;
 
         /**
          * @return A shallow copy of this term. Subs are not initialized.
@@ -193,7 +192,7 @@ namespace tosca {
         }
 
         /* @return the name of this variable */
-        const std::string& Symbol() const;
+        const std::string Symbol() const;
 
         /**
          * Make a new variable of the same type as this one.
@@ -238,6 +237,8 @@ namespace tosca {
         StringTerm();
         virtual ~StringTerm();
 
+        const std::string Symbol() const;
+        
         /** Peek at native string value */
         virtual const std::string& Unbox() const;
 
@@ -296,6 +297,8 @@ namespace tosca {
     {
     public:
         virtual ~DoubleTerm();
+
+        const std::string Symbol() const;
 
         /** Peek at native double value */
         virtual double Unbox() const
