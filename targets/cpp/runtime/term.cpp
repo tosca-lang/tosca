@@ -70,7 +70,7 @@ namespace tosca {
         assert(false);
     }
 
-    Optional<Variable> Term::Binder(int i, int j)
+    Optional<Variable> Term::Binder(int i, int j) const
     {
         return Optional<Variable>::nullopt;
     }
@@ -90,8 +90,63 @@ namespace tosca {
         return static_cast<const Term*>(this)->GetGVariable();
     }
     
-    bool Term::operator==(const Term& rhs) {
-        std::cout << "DEEP EQUAL NOT IMPLEMENTED";
+    bool Term::DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const
+    {
+        if (Symbol() != rhs.Symbol())
+            return false;
+        
+        int i = 0;
+        while (true)
+        {
+            Optional<Term> osub1 = Sub(i);
+            Optional<Term> osub2 = rhs.Sub(i);
+            
+            // no more subs?
+            if (!osub1 && !osub2)
+                return true;
+            
+            if (osub1 && !osub2)
+                return false;
+            
+            if (!osub1 && osub2)
+                return false;
+            
+            // Update variable map if any binders
+            int j = 0;
+            while (true)
+            {
+                Optional<Variable> obinder1 = Binder(i, j);
+                Optional<Variable> obinder2 = rhs.Binder(i, j);
+                
+                if (!obinder1 && !obinder2)
+                    break; // no more binders. Move on.
+                if (obinder1 && !obinder2)
+                    return false;
+                if (!obinder1 && obinder2)
+                    return false;
+                
+                varmap.insert({&obinder1.value(), &obinder2.value()});
+                j++;
+            }
+            // deep equal on subs
+            if (!osub1.value().DeepEquals(osub2.value(), varmap))
+                return false;
+            
+            // Remove binders.
+            j = 0;
+            while (true)
+            {
+                Optional<Variable> obinder1 = Binder(i, j);
+                Optional<Variable> obinder2 = rhs.Binder(i, j);
+                
+                if (!obinder1 && !obinder2)
+                    break; // no more binders. Move on.
+                
+                varmap.erase(&obinder1.value());
+                j++;
+            }
+            i++;
+        }
         return true;
     }
 
@@ -207,8 +262,20 @@ namespace tosca {
     {
         throw new std::runtime_error("Internal error: cannot create untyped variable");
     }
-
-
+    
+    // --- Variable Use
+    
+    bool VariableUse::DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const
+    {
+        Optional<Variable> ovar2 = rhs.GetGVariable();
+        if (ovar2)
+        {
+            auto search = varmap.find(&var);
+            return search == varmap.end() ? &ovar2.value() == &var : search->second == &var;
+        }
+        return false;
+    }
+    
     // --- String
 
     StringTerm::StringTerm()

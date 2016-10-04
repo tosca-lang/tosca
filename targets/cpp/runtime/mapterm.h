@@ -19,6 +19,9 @@ template<typename a> ::List<a>& newNil(tosca::Context& ctx);
 
 namespace tosca {
 
+    // Forward declarations
+    template<typename K, typename V> class MapTerm;
+    template<typename K, typename V> MapTerm<K, V>& newMapTerm();
     
     // MapTerm type definition
     template<typename K, typename V>
@@ -116,13 +119,6 @@ namespace tosca {
             throw new std::runtime_error("");
         }
         
-        Term& Substitute(tosca::Context& c, std::unordered_map<Variable*, Term*>& substitutes)
-        {
-            //std::cout << "WARNING: MAP SUBSTITUTION NOT IMPLEMENTED!" << "\n";
-          //  throw new std::runtime_error("NOT IMPLEMENTED: substitution in map");
-            return *this;
-        }
-        
         // Overrides
         
         const std::string Symbol() const
@@ -133,8 +129,6 @@ namespace tosca {
 
     };
     
-    // Forward declarations
-    template<typename K, typename V> MapTerm<K, V>& newMapTerm();
     
     // MapTerm value
     template<typename K, typename V>
@@ -208,6 +202,34 @@ namespace tosca {
         {
             throw new std::runtime_error("");
         }
+        
+        bool DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const
+        {
+            std::cout<< "MapTerm deep equality not implemented";
+            return true;
+        }
+
+        
+        Term& Substitute(tosca::Context& ctx, std::unordered_map<Variable*, Term*>& substitutes)
+        {
+            MapTerm<K, V>& copy = newMapTerm<K, V>();
+            CMapTerm<K, V>& cmap = *this;
+            while (true)
+            {
+                for (auto it = cmap.map.begin(); it != cmap.map.end(); it ++)
+                {
+                    it->first->AddRef();
+                    it->second->AddRef();
+                    copy.putValue(*it->first, dynamic_cast<V&>(it->second->Substitute(ctx, substitutes)));
+                }
+                if (!cmap.parent)
+                    break;
+                
+                 cmap = cmap.parent.value();
+            }
+            return copy;
+        }
+        
     protected:
         std::unordered_map<K*, V*> map;
 

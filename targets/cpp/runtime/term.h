@@ -88,7 +88,7 @@ namespace tosca {
          * @param index
          * @return a binder, or null.
          */
-        virtual Optional<Variable> Binder(int i, int j);
+        virtual Optional<Variable> Binder(int i, int j) const;
 
         /**
          * Set jth binder of the ith subterm.
@@ -99,9 +99,22 @@ namespace tosca {
         virtual void SetBinder(int i, int j, Variable& var);
 
         /**
-         * Deep term equality
+         * Deep term equality operator
          */
-        bool operator==(const Term& rhs);
+        inline bool operator==(const Term& rhs) const
+        {
+            std::unordered_map<Variable*, Variable*> varmap;
+            return DeepEquals(rhs, varmap);
+        }
+        
+        /**
+         * Deep term non-equality operator
+         */
+        inline bool operator!=(const Term& rhs) const
+        {
+            std::unordered_map<Variable*, Variable*> varmap;
+            return !DeepEquals(rhs, varmap);
+        }
 
         /* @return The variable when this term is a variable use, otherwise nullopt */
         virtual Optional<Variable> GetGVariable() const;
@@ -124,7 +137,11 @@ namespace tosca {
          */
         virtual Term& Substitute(tosca::Context& c, std::unordered_map<Variable*, Term*>& substitutes);
 
-        
+        /**
+         * Deep term equality
+         */
+        virtual bool DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const;
+
     protected:
 
         friend struct std::hash<std::reference_wrapper<tosca::Term>>;
@@ -220,8 +237,11 @@ namespace tosca {
     public:
         VariableUse(Variable& v) : var(v) {}
 
-        Optional<Variable> GetGVariable() const;
+        //-- Overrides
         
+        Optional<Variable> GetGVariable() const;
+        bool DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const;
+
     protected:
         // the used variable
         Variable& var;
@@ -251,6 +271,7 @@ namespace tosca {
         {
             return !(*this == rhs);
         }
+    
     };
 
     /**

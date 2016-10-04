@@ -330,7 +330,7 @@ func CppSetSub(Bool, Text4_text_sort, Numeric) -> Text4_text_sort
 func CppFormGetBinder(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
 → TextIf(HasBindersSorts(MaybeSortsToSorts(#csorts?)), ()->text⟦
      †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-     Optional<tosca::Variable> †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Binder(int subi, int binderi)†⟨
+     Optional<tosca::Variable> †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Binder(int subi, int binderi) const†⟨
      If(#def, ()->text⟦
        {
           switch (subi)
