@@ -71,7 +71,10 @@ rule InferPatternUp(#CONSTRUCTOR, PairCons(#env, #cterms?), #esort, #contractum)
     InferRuleUp(cterm⟦ ##CONSTRUCTOR ##cterms? ⟧, Debug("Infer contractum", ()->InferTerm(#nenv, #contractum, #esort)))
 
 func InferRuleUp(Core_cterm_sort, PPair<{String:IEnvEntry} Core_cterm_sort>) -> Core_cdecl_sort
-rule InferRuleUp(#cterm1, PairCons(#env, #cterm2)) → ISubstRule(OptimizeSorts(#env), #cterm1, #cterm2)
+rule InferRuleUp(#cterm1, PairCons(#env, #cterm2))
+→ let #decl = ISubstRule(OptimizeSorts(#env), #cterm1, #cterm2)
+  #decl
+  //Debug(PrintTerm("", #decl), ()->#decl)
 
 // ---- Synthesize sorts
 
@@ -449,11 +452,12 @@ rule InferNamedUp(#METAVAR, #csort, PairCons(#env, #cterm)) → PairCons(#env, c
 
 func InferLet(String, Core_csort_sort, PPair<{String:IEnvEntry} Core_cterm_sort>, Core_cterm_sort, Core_csort_sort) -> PPair<{String:IEnvEntry} Core_cterm_sort>
 rule InferLet(#METAVAR, #csort, PairCons(#env, #cterm), #cterm2, #esort)
-→ InferLetUp(#METAVAR, #csort, #cterm, InferTerm(AddIMetaVar(#env, #METAVAR, #csort), #cterm2, #esort))
+→ let #shadowed = GetIMetaVar(#env, #METAVAR)
+  InferLetUp(#METAVAR, #csort, #cterm, InferTerm(AddIMetaVar(#env, #METAVAR, #csort), #cterm2, #esort), #shadowed)
 
-func InferLetUp(String, Core_csort_sort, Core_cterm_sort, PPair<{String:IEnvEntry} Core_cterm_sort>) -> PPair<{String:IEnvEntry} Core_cterm_sort>
-rule InferLetUp(#METAVAR, #csort, #cterm, PairCons(#env, #cterm2))
-→ PairCons(IRemoveMetaVar(#env, #METAVAR), cterm⟦ let ##METAVAR : ##csort = ##cterm ##cterm2 ⟧)
+func InferLetUp(String, Core_csort_sort, Core_cterm_sort, PPair<{String:IEnvEntry} Core_cterm_sort>, Option<Core_csort_sort>) -> PPair<{String:IEnvEntry} Core_cterm_sort>
+rule InferLetUp(#METAVAR, #csort, #cterm, PairCons(#env, #cterm2), #shadowed)
+→ PairCons(AddIMetaVarO(IRemoveMetaVar(#env, #METAVAR), #METAVAR, #shadowed), cterm⟦ let ##METAVAR : ##csort = ##cterm ##cterm2 ⟧)
 
 /* Synthesize sort variables.
 

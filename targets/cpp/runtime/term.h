@@ -7,6 +7,7 @@
 #include <string>
 #include <functional>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "compat.h"
 
@@ -62,7 +63,7 @@ namespace tosca {
          * @return A shallow copy of this term. Subs are not initialized.
          */
         virtual Term& Copy(Context& ctx);
-        
+
         /** @return true when this term is data */
         virtual bool Data() const;
 
@@ -106,7 +107,7 @@ namespace tosca {
             std::unordered_map<Variable*, Variable*> varmap;
             return DeepEquals(rhs, varmap);
         }
-        
+
         /**
          * Deep term non-equality operator
          */
@@ -121,7 +122,7 @@ namespace tosca {
 
         /* @return The variable when this term is a variable use, otherwise nullopt */
         Optional<Variable> GetGVariable();
-        
+
         /**
          * Apply substitution on this term
          *
@@ -132,20 +133,31 @@ namespace tosca {
          * When this method is called, it owns a reference to itself.
          *
          * @param c.
-         * @param substitutes 
-         * @return 
+         * @param substitutes
+         * @return
          */
         virtual Term& Substitute(tosca::Context& c, std::unordered_map<Variable*, Term*>& substitutes);
 
         /**
-         * Deep term equality
+         * Deep term equality, modulo bound variables and map
          */
         virtual bool DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const;
+
+        /**
+         * Compute term hash code
+         */
+        virtual size_t HashCode();
+
+        /**
+         * Compute term hash code, modulo bound variables and map
+         */
+        virtual size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn);
 
     protected:
 
         friend struct std::hash<std::reference_wrapper<tosca::Term>>;
         friend struct std::equal_to<std::reference_wrapper<tosca::Term>>;
+
     };
     // Term
 
@@ -215,10 +227,10 @@ namespace tosca {
          * Make a new variable of the same type as this one.
          */
         virtual Variable& Copy(Context& ctx) const;
-        
+
         /* @Brief Create an new use of this variable */
         virtual Term& GUse();
-        
+
     protected:
         /* Globally unique variable name */
         std::string& name;
@@ -238,13 +250,20 @@ namespace tosca {
         VariableUse(Variable& v) : var(v) {}
 
         //-- Overrides
-        
+
         Optional<Variable> GetGVariable() const;
         bool DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const;
+        virtual size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn);
+
+        inline size_t HashCode()
+        {
+            return Term::HashCode();
+        };
 
     protected:
         // the used variable
         Variable& var;
+
     };
 
 
@@ -257,8 +276,6 @@ namespace tosca {
         StringTerm();
         virtual ~StringTerm();
 
-        const std::string Symbol() const;
-        
         /** Peek at native string value */
         virtual const std::string& Unbox() const;
 
@@ -271,7 +288,11 @@ namespace tosca {
         {
             return !(*this == rhs);
         }
-    
+
+        // Overrides
+        size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn);
+        const std::string Symbol() const;
+
     };
 
     /**
@@ -287,9 +308,10 @@ namespace tosca {
         CStringTerm(const std::string& value);
         ~CStringTerm();
 
+        // -- Overrides
+
         Term& Copy(Context& ctx);
         const std::string& Unbox() const;
-
     };
 
     class CStringTermVar;
@@ -301,12 +323,17 @@ namespace tosca {
     {
     public:
         CStringTermVarUse(CStringTermVar& v);
+
+        // Overrides
+        const std::string& Unbox() const;
     };
 
     class CStringTermVar: public Variable
     {
     public:
         CStringTermVar(std::string& name);
+
+        // --- Overrides
         StringTerm& Use();
         Term& GUse();
     };
@@ -319,13 +346,13 @@ namespace tosca {
     public:
         virtual ~DoubleTerm();
 
-        const std::string Symbol() const;
-
         /** Peek at native double value */
         virtual double Unbox() const
         {
             throw std::runtime_error("Fatal error: cannot access unevaluated numeric value.");
         }
+
+        // Overrides
 
         inline bool operator==(const DoubleTerm& rhs)
         {
@@ -336,6 +363,8 @@ namespace tosca {
         {
             return !(*this == rhs);
         }
+
+        size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn);
     };
 
     /**
@@ -350,8 +379,11 @@ namespace tosca {
     public:
         CDoubleTerm(double value);
 
+        // -- Overrides
+
         Term& Copy(Context& ctx);
         double Unbox() const;
+        const std::string Symbol() const;
 
     };
 
@@ -400,9 +432,9 @@ T& Subst(tosca::Context& c, T& term, std::initializer_list<tosca::Variable*> bin
     }
     if (var != binders.end() || subst != substitutes.end())
         throw new std::runtime_error("Internal error: mismatch number of binders and substitutes");
-    
+
     tosca::Term& result = term.Substitute(c, map);
-    
+
     subst = substitutes.begin();
     for (; subst != substitutes.end(); subst++)
     {
@@ -483,7 +515,7 @@ namespace std
 // but does not work because of T used in a non-deduced context (on the left of ::)
 // Meanwhile use a macro.
 
-#define STD_HASH_EQUAL_TO_TERM(T)                                                             \
+#define STD_HASH_EQUAL_TO_TERM(T)                                                                 \
     namespace std {                                                                               \
         template<>                                                                                \
         struct hash<T*>                                                                           \
@@ -494,7 +526,7 @@ namespace std
                 Optional<tosca::Variable> v = t->GetGVariable();                                  \
                 if (v)                                                                            \
                     return std::hash<void*>{}(&v.value());                                        \
-                throw runtime_error("Term hashing not supported yet.");                           \
+                return t->HashCode();                                                             \
             }                                                                                     \
         };                                                                                        \
                                                                                                   \
@@ -508,7 +540,7 @@ namespace std
                 Optional<tosca::Variable> vrhs = rhs->GetGVariable();                             \
                 if (vlhs && vrhs)                                                                 \
                     return &vlhs.value() == &vrhs.value();                                        \
-                throw runtime_error("Term equality not supported yet.");                          \
+                return lhs == rhs;                                                                \
             }                                                                                     \
         };                                                                                        \
     }

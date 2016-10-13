@@ -11,8 +11,12 @@ namespace tosca {
      * Print term to console
      * @param term to print. Consume reference.
      */
-    void Print(Term& term);
-    
+    void Print(Term& term, bool indent);
+ 
+    /*
+     * Print term to string
+     */
+    std::string PrintToString(Term& term, bool indent);
 }
 
 #endif

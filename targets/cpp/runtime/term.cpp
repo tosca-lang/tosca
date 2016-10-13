@@ -89,59 +89,59 @@ namespace tosca {
     {
         return static_cast<const Term*>(this)->GetGVariable();
     }
-    
+
     bool Term::DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const
     {
         if (Symbol() != rhs.Symbol())
             return false;
-        
+
         int i = 0;
         while (true)
         {
             Optional<Term> osub1 = Sub(i);
             Optional<Term> osub2 = rhs.Sub(i);
-            
+
             // no more subs?
             if (!osub1 && !osub2)
                 return true;
-            
+
             if (osub1 && !osub2)
                 return false;
-            
+
             if (!osub1 && osub2)
                 return false;
-            
+
             // Update variable map if any binders
             int j = 0;
             while (true)
             {
                 Optional<Variable> obinder1 = Binder(i, j);
                 Optional<Variable> obinder2 = rhs.Binder(i, j);
-                
+
                 if (!obinder1 && !obinder2)
                     break; // no more binders. Move on.
                 if (obinder1 && !obinder2)
                     return false;
                 if (!obinder1 && obinder2)
                     return false;
-                
+
                 varmap.insert({&obinder1.value(), &obinder2.value()});
                 j++;
             }
             // deep equal on subs
             if (!osub1.value().DeepEquals(osub2.value(), varmap))
                 return false;
-            
+
             // Remove binders.
             j = 0;
             while (true)
             {
                 Optional<Variable> obinder1 = Binder(i, j);
                 Optional<Variable> obinder2 = rhs.Binder(i, j);
-                
+
                 if (!obinder1 && !obinder2)
                     break; // no more binders. Move on.
-                
+
                 varmap.erase(&obinder1.value());
                 j++;
             }
@@ -156,7 +156,7 @@ namespace tosca {
         if (ovariable)
         {
             // Substitute variable
-        
+
             auto substitute = substitutes.find(&ovariable.value());
             if (substitute != substitutes.end())
             {
@@ -164,10 +164,10 @@ namespace tosca {
                 substitute->second->AddRef();
                 return *substitute->second;
             }
-        
+
             return *this; // Transfer reference
         }
-        
+
         // Substitute construction.
         Term& copy = Copy(ctx);
         int i = 0;
@@ -176,7 +176,7 @@ namespace tosca {
             Optional<Term> osub = Sub(i); // peek at sub
             if (!osub)
                 break;
-            
+
             Optional<Variable> obinder = Binder(i, 0);
             if (!obinder)
             {
@@ -205,19 +205,19 @@ namespace tosca {
                     Optional<Variable> ooldbinder = Binder(i, j);
                     if (!ooldbinder)
                         break;
-                    
+
                     Variable& oldbinder = ooldbinder.value();
                     Variable& subbinder = oldbinder.Copy(ctx);
-                    
+
                     substitutes.insert({&oldbinder, &subbinder.GUse()});
                     copy.SetBinder(i, j, subbinder);
                     j++;
                 }
-                
+
                 Term& sub = osub.value();
                 sub.AddRef();
                 copy.SetSub(i, sub.Substitute(ctx, substitutes));
-                
+
                 // Cleanup
                 j = 0;
                 while (true)
@@ -225,7 +225,7 @@ namespace tosca {
                     Optional<Variable> ooldbinder = Binder(i, j);
                     if (!ooldbinder)
                         break;
-                    
+
                     substitutes.erase(&ooldbinder.value());
                     j++;
                 }
@@ -234,7 +234,62 @@ namespace tosca {
         }
         return copy;
     }
-    
+
+    size_t Term::HashCode()
+    {
+        std::unordered_set<tosca::Variable*> var;
+        return Hash(0, var);
+    }
+
+    size_t Term::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn)
+    {
+        Optional<Variable> ovar = GetGVariable();
+        if (ovar)
+        {
+            auto search = deBruijn.find(&ovar.value());
+            if (search != deBruijn.end())
+                return code * 19ll;
+
+            return code ^ std::hash<void*>{}(this);
+        }
+
+        int i = 0;
+        while (true)
+        {
+            Optional<Term> osub = Sub(i); // peek at sub
+            if (!osub)
+                break;
+
+            int j = 0;
+            while (true)
+            {
+                Optional<Variable> obinder = Binder(i, j);
+                if (!obinder)
+                    break;
+
+                deBruijn.insert(&obinder.value());
+                j++;
+            }
+
+            code ^= osub.value().Hash(code, deBruijn) ^ (1<<i);
+
+            j = 0;
+            while (true)
+            {
+                Optional<Variable> obinder = Binder(i, j);
+                if (!obinder)
+                    break;
+
+                deBruijn.erase(&obinder.value());
+                j++;
+            }
+            i++;
+        }
+
+        return code ^ std::hash<std::string>{}(Symbol());
+
+    }
+
     // --- Variable Use
 
     Optional<Variable> VariableUse::GetGVariable() const
@@ -257,14 +312,14 @@ namespace tosca {
     {
         return name; // copy.
     }
-    
+
     Variable& Variable::Copy(Context& ctx) const
     {
         throw new std::runtime_error("Internal error: cannot create untyped variable");
     }
-    
+
     // --- Variable Use
-    
+
     bool VariableUse::DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const
     {
         Optional<Variable> ovar2 = rhs.GetGVariable();
@@ -275,25 +330,40 @@ namespace tosca {
         }
         return false;
     }
-    
+
+    size_t VariableUse::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn)
+    {
+        auto search = deBruijn.find(&var);
+        if (search != deBruijn.end())
+            return code * 19ll;
+
+        return code ^ std::hash<void*>{}(this); // Free variable.
+
+    }
+
     // --- String
 
     StringTerm::StringTerm()
     {
     }
-    
+
     StringTerm::~StringTerm()
     {
     }
-    
-    const std::string StringTerm::Symbol() const
-    {
-        return "\"" + Unbox() + "\"";
-    }
-    
+
     const std::string& StringTerm::Unbox()  const
     {
        throw std::runtime_error("Fatal error: cannot access unevaluated string value.");
+    }
+
+    const std::string StringTerm::Symbol() const
+    {
+        return Unbox();
+    }
+
+    size_t StringTerm::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn)
+    {
+        return std::hash<std::string>{}(Unbox());
     }
 
     CStringTermVar::CStringTermVar(std::string& name) : Variable(name)
@@ -314,6 +384,11 @@ namespace tosca {
     {
     }
 
+    const std::string& CStringTermVarUse::Unbox() const
+    {
+      return var.Symbol();
+    }
+
     CStringTerm::CStringTerm(const std::string& val) : value(*new std::string(val))
     {
     }
@@ -322,6 +397,7 @@ namespace tosca {
     {
         // delete &value;
     }
+
 
     Term& CStringTerm::Copy(Context& ctx)
     {
@@ -335,14 +411,14 @@ namespace tosca {
     }
 
     // --- Numeric
-    
+
     DoubleTerm::~DoubleTerm()
     {
     }
-    
-    const std::string DoubleTerm::Symbol() const
+
+    size_t DoubleTerm::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn)
     {
-        return std::to_string(Unbox());
+        return std::hash<std::string>{}(Symbol());
     }
 
     CDoubleTermVarUse::CDoubleTermVarUse(CDoubleTermVar& v) : VariableUse::VariableUse(v)
@@ -377,6 +453,11 @@ namespace tosca {
     double CDoubleTerm::Unbox() const
     {
         return value;
+    }
+
+    const std::string CDoubleTerm::Symbol() const
+    {
+        return std::to_string((long double) Unbox());
     }
 
 }

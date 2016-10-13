@@ -27,7 +27,10 @@ func CppSigs(#module: Module) -> Text4_text_sort
 
 using tosca::StringTerm;
 using tosca::CStringTerm;
+using tosca::CStringTermVar;
 using tosca::DoubleTerm;
+using tosca::CDoubleTerm;
+using tosca::CDoubleTermVar;
 using tosca::MapTerm;
 
 // Enumeration declarations
@@ -118,6 +121,7 @@ func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Tex
           †⟨CppVarConstructorUse(#sortname, #csortvars?, FALSE)⟩
           †⟨CppVarMethodGetVariable(#sortname, #csortvars?, FALSE)⟩
           †⟨CppVarMethodGetGVariable(#sortname, #csortvars?, FALSE)⟩
+          size_t HashCode() {  return VariableUse::HashCode(); }
       };
       †⟨TextIf(IsEmpty(MaybeSortVarsToSorts(#csortvars?)), ()->text⟦STD_HASH_EQUAL_TO_TERM(†⟨FormCppClassName(#sortname)⟩Use)⟧)⟩⟧
 

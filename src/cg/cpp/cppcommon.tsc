@@ -837,6 +837,9 @@ func SubSortFromTerm({String : EnvEntry}, Core_cterm_sort) -> Option<Core_csort_
   rule SubSortFromTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)
   → MaybeSortAnnoToSort(#csortanno?)
 
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
+  → SubSortFromTerm(#env, #cterm2)
+
   rule SubSortFromTerm(#env, cterm⟦ ##canno* { ##cmapentries? } ##csortanno? ⟧)
   → MaybeSortAnnoToSort(#csortanno?)
 
@@ -855,16 +858,25 @@ rule SubSortFromVar(SOME(#varEntry), #var)  → UnVarSort(#varEntry)
 // ----- Contraction
 
 func CppContractum(#env: {String : EnvEntry}, #term: Core_cterm_sort) -> Text4_text_sort
-→ CppStatementTerm(SetTail(#env, TRUE), #term)
+→ CppFreshesTerm(SetCounter(SetFreshCounter(#env, 0), 0), #term, (env)->
+  CppStatementTerm(SetCounter(env, 0), #term, (env) -> text⟦⟧))
 
 /* Generate the contraction code. Two passes are performed:
    - the first pass generates statements initializing fresh and bound variables. Variable names are deterministic using an internal counter
    - the second pass generates a single expression. Bound variables names are determinically recomputed
     */
 
-func CppStatementTerm(#env: {String : EnvEntry}, #cterm: Core_cterm_sort) -> Text4_text_sort
-→ text⟦†⟨CppFreshesTerm(SetCounter(SetFreshCounter(#env, 0), 0), #cterm, (env) ->
-     text⟦†⟨TextIf(GetTail(env), ()->text⟦return ⟧)⟩†⟨CppExprTerm(SetCounter(env, 0), #cterm, (env) -> text⟦⟧)⟩;⟧)⟩⟧
+// ---- Generate term code - Cpp statement mode
+
+func CppStatementTerm({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+rule CppStatementTerm(#env, cterm⟦ ##canno* let ##METAVAR : ##csort = ##cterm ##cterm2 ⟧, #cont)
+→ let #cppvar = text⟦⟨STRING: Mangle(RemoveFirstChar(#METAVAR))⟩⟧
+    text⟦¶†⟨CppType(#csort)⟩& †⟨#cppvar⟩ = †⟨CppExprTerm(#env, #cterm, (env)->text⟦; †⟨
+        CppStatementTerm(AddMeta(env, #METAVAR, #cppvar, ()), #cterm2, #cont)⟩⟧)⟩⟧
+
+rule CppStatementTerm(#env, #cterm, #cont)
+→ text⟦return †⟨CppExprTerm(#env, #cterm, #cont)⟩;⟧
 
 // ---- Generate fresh variable - Only in Cpp statement mode
 
@@ -893,6 +905,9 @@ func CppFreshesTerm({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) 
 
   rule CppFreshesTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #cont)
   → CppFreshesTerm(#env, #cterm, #cont)
+
+  rule CppFreshesTerm(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧, #cont)
+  → CppFreshesTerm(#env, #cterm, (env)->CppFreshesTerm(env, #cterm2, #cont))
 
 func CppFreshesMaybeTerms({String : EnvEntry}, List<Core_cterms_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 rule CppFreshesMaybeTerms(#env, cterms?⟦ ( ##cterm* ) ⟧, #cont) → CppFreshesTerms(#env, #cterm*, #cont)
@@ -955,6 +970,9 @@ func CppExprTerm({String : EnvEntry}, Core_cterm_sort, ({String : EnvEntry}) -> 
 // TODO: reuse thunk
  rule CppExprTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #cont)
  → text⟦thunk†⟨CppLambdaTypeArgs(#cterm)⟩(†⟨CppExprLambdaNew(#env, #cterm, 0, #cont)⟩⟧
+
+ rule CppExprTerm(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧, #cont)
+ → Error("Error: Let expression cannot occur within another expression: it must be a the top-level expression.")
 
 // ---- construction expression
 

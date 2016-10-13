@@ -854,7 +854,6 @@ public class ToSinkListener implements ParseTreeListener
 			}
 			else
 			{
-				System.out.println(text);
 				// Regular term parsing. 
 				BufferSink buffer = new TermBufferSink(sink.context());
 				((TSParser) innerParser.parser()).parse(buffer, "term", reader, null, line, column, bounds, freshes);

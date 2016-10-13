@@ -1,6 +1,7 @@
 // Copyright (c) 2016 IBM Corporation.
 
 #include <ostream>
+#include <sstream>
 #include "termprinter.h"
 #include "ts.h"
 
@@ -9,16 +10,19 @@
 
 namespace tosca {
     
-    static void indent(int count, std::ostream& out)
+    static void Indent(int count, std::ostream& out, bool indent)
     {
-        while (count-- > 0)
-            out << ' ';
+        if (indent)
+        {
+            while (count-- > 0)
+                out << ' ';
+        }
     }
     
-    static void Print(Term& term, std::ostream& out, int count)
+    static void Print(Term& term, std::ostream& out, int count, bool indent)
     {
         out << '\n';
-        indent(count, out);
+        Indent(count, out, indent);
         out << term.Symbol();
         
         // Print subs
@@ -44,7 +48,7 @@ namespace tosca {
                 if (term.Binder(i, 0))
                     out << "]->";
                 
-                Print(osub.value(), out, count + 2);
+                Print(osub.value(), out, count + 2, indent);
                 osub = term.Sub(++i);
             }
             out << ")";
@@ -53,15 +57,22 @@ namespace tosca {
         term.Release();
     }
     
-    static void Print(Term& term, std::ostream& out)
+    static void Print(Term& term, std::ostream& out, bool indent)
     {
-        Print(term, out, 0);
+        Print(term, out, 0, indent);
     }
     
     
-    void Print(Term& term)
+    void Print(Term& term, bool indent)
     {
-        Print(term, std::cout);
+        Print(term, std::cout, indent);
+    }
+    
+    std::string PrintToString(Term& term, bool indent)
+    {
+        std::stringstream stream;
+        Print(term, stream, indent);
+        return stream.str();
     }
     
 }

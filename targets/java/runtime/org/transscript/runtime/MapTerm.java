@@ -140,7 +140,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 		@Override
 		public String symbol()
 		{
-			return super.toString();
+			return map.toString();
 		}
 
 		@Override
@@ -274,7 +274,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 				key.release();
 			}
 		}
-
+ 
 	}
 
 	/**
