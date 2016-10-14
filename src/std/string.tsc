@@ -22,56 +22,55 @@ import std::listdef
 /* Tests if the ending of the given string finishes with the specified suffix. */
 @Extern func EndsWith(String /* string */, String /* suffix */) -> Bool
 
-/* @return TRUE if and only if the given strings are equals. */
+/* @return `TRUE` if and only if the given strings are equals. */
 @Extern func StringEqual(String /* string */, String /* other string */) -> Bool
 
-@Extern func MatchRegex(String, String) -> Bool
+/* @return `TRUE` if the given `#string` matches the given `#pattern` */
+@Extern func MatchRegex(#pattern: String, #string: String) -> Bool
 
 /* If string empty, then apply `#true`, otherwise apply `#false` */
 func IfEmptyString<a>(#string: String, #true: ()->a, #false: ()->a) -> a
 → If(NumberEqual(Length(#string), 0), #true, #false)
 
-
 // --- Mutation
 
+/* @return the concatenation of the two given string */
 @Extern func ConcatString(String, String) -> String
 
 @Extern func Rescape(String) -> String
-@Extern func DownCase(String) -> String
 
-@Extern func Substring(String, Numeric, Numeric) -> String
-@Extern func Substring2(String, Numeric) -> String
+/* Converts all of the characters of the given string to lower case */
+@Extern func DownCase(String) -> String
 
 /* Converts all of the characters of the given string to upper case */
 @Extern func UpCase(String) -> String
 
-/* @return the given string for which he first character is upper case
- */
-func UpCaseFirst(String) -> String
-rule UpCaseFirst(#string)
-→ If<String>(StringEqual(#string, ""),
-    ()->"",
-    ()->ConcatString(UpCase(Substring(#string, 0, 1)), Substring(#string, 1, Length(#string))))
+@Extern func Substring(String, Numeric, Numeric) -> String
+
+@Extern func Substring2(String, Numeric) -> String
+/* @return the given string for which he first character is upper case */
+func UpCaseFirst(#string: String) -> String
+→ if StringEqual(#string, "")
+    ""
+  else
+    ConcatString(UpCase(Substring(#string, 0, 1)), Substring(#string, 1, Length(#string)))
 
 /* @return the given string for which the first character is lower case
  */
-func DownCaseFirst(String) ->String
-rule DownCaseFirst(#string)
-→ If<String>(StringEqual(#string, ""),
-    ()->"",
-    ()->ConcatString(DownCase(Substring(#string, 0, 1)), Substring(#string, 1, Length(#string))))
+func DownCaseFirst(#string: String) -> String
+→ if StringEqual(#string, "")
+    ""
+  else
+    ConcatString(DownCase(Substring(#string, 0, 1)), Substring(#string, 1, Length(#string)))
 
-/*
- * Returns given string without its first character
- */
-func RemoveFirstChar(String) -> String
-rule RemoveFirstChar(#string) → Substring(#string, 1, Length(#string))
+/* Returns given string without its first character */
+func RemoveFirstChar(#string: String) -> String
+→ let #length = Length(#string)
+  Substring(#string, 1, #length)
 
-/*
- * Returns given string without its last character
- */
-func RemoveLastChar(String) -> String
-rule RemoveLastChar(#string) → Substring(#string, 0, Minus(Length(#string), 1))
+/* Returns given string without its last character */
+func RemoveLastChar(#string: String) -> String
+→ Substring(#string, 0, Minus(Length(#string), 1))
 
 /* Trim leading and trailing spaces */
 @Extern func Trim(String) -> String
@@ -79,10 +78,11 @@ rule RemoveLastChar(#string) → Substring(#string, 0, Minus(Length(#string), 1)
 @Extern func Replace(String, String, String) -> String
 
 /* @return the string after the first occurrence of the given first string, or
-          the empty string if there is no such occurrences
-*/
+           the empty string if there is no such occurrences */
 @Extern func AfterFirst(String, String) -> String
 
+/* @return the string before the first occurrence of the given first string, or
+           the original string if there is no such occurrences */
 @Extern func BeforeFirst(String, String) -> String
 
 @Extern func Escape(String) -> String

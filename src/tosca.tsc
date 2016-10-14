@@ -44,10 +44,11 @@ func CompileS(#system: TSystem) -> Result
 
 /* Compile module (if not part of the standard library). */
 func CompileM(#system: TSystem, #module: Module) -> Result
-→ If(IsModuleCompiled(#module),
-    ()->Success(()),
-    ()->Debug(ConcatString("Compile", GetModuleURL(#module)),
-          ()->CodeGenerateM(#system, AnalyzeM(#system, NoAliasM(#system, ClosureConvertM(#system, InferM(#system, #module)))))))
+→ if IsModuleCompiled(#module)
+    Success(())
+  else
+    Debug(ConcatString("Compile", GetModuleURL(#module)),
+            ()->CodeGenerateM(#system, AnalyzeM(#system, NoAliasM(#system, ClosureConvertM(#system, InferM(#system, #module))))))
 
 func CodeGenerateM(#system: TSystem, #module: Module) -> Result
 → IfConfigDef(#system, "cpp", (v)->ToCppM(#system, #module), ()->ToJavaM(#system, #module))
@@ -72,11 +73,14 @@ func LoadImport(#system: TSystem, #url:String, #import: Core_cqidentifier_sort) 
 
 /* Load module content and update system */
 func LoadModuleS(#system: TSystem, #url: String, #standard:Bool) -> TSystem
-→ If(HasModule(#system, #url),
-     ()->#system,
-     ()->LoadModuleAux(LoadCore(#system, #url, If(EndsWith(#url, ".tscc"),
-                                                 ()->ParseResource("ccrsx", #url),
-                                                 ()->ToCore(#url, ParseResource("transscript", Debug(#url, ()->#url)))), #standard), #url))
+→ if HasModule(#system, #url)
+     #system
+  else
+    let #core = if EndsWith(#url, ".tscc")
+                  ParseResource("ccrsx", #url)
+                else
+                  ToCore(#url, ParseResource("transscript", Debug(#url, ()->#url)))
+    LoadModuleAux(LoadCore(#system, #url, #core, #standard), #url)
 
 func LoadModuleAux(#system: TSystem, #url: String) -> TSystem
 → LoadImportedModules(#system, #url, GetImportsS(#system, #url))

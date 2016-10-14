@@ -11,4 +11,7 @@ namespace tosca {
 /* Convert UTF-8 chars to external escaped string form. */
 extern std::string& makeEscaped(tosca::Context& context, const char *src);
 
+/* Mangle the given name to be a valid Java/C/C++ identifier */
+extern std::string& makeMangle(tosca::Context&, const std::string& src);
+
 #endif

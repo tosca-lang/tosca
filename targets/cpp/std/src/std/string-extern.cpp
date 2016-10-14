@@ -4,6 +4,7 @@
 
 #include "std/core.h"
 #include "strutils.h"
+#include <regex>
 
 using namespace tosca;
 
@@ -65,20 +66,37 @@ DoubleTerm& Length(Context& ctx, StringTerm& str)
 
 StringTerm& Mangle(Context& ctx, StringTerm& str)
 {
-    throw new std::runtime_error("");
-
+    StringTerm& result =  newStringTerm(makeMangle(ctx, str.Unbox()));
+    str.Release();
+    return result;
 }
 
 StringTerm& UpCase(Context& ctx, StringTerm& str)
 {
-    throw new std::runtime_error("");
-
+    std::string& upper = *(new std::string(str.Unbox()));
+    for (std::string::iterator it= upper.begin(); it != upper.end(); ++it)
+        *it = toupper(*it);
+    str.Release();
+    return newStringTerm(upper);
 }
 
-StringTerm& Replace(Context& ctx, StringTerm& str, StringTerm&, StringTerm&)
+StringTerm& DownCase(Context& ctx, StringTerm& str)
 {
-    throw new std::runtime_error("");
+    std::string& lower = *(new std::string(str.Unbox()));
+    for (std::string::iterator it= lower.begin(); it != lower.end(); ++it)
+        *it = tolower(*it);
+    str.Release();
+    return newStringTerm(lower);
+}
 
+StringTerm& Replace(Context& ctx, StringTerm& str, StringTerm& oldStr, StringTerm& newStr)
+{
+//    std::string& replaced = *(new std::string());
+//    for (std::string::iterator it= lower.begin(); it != lower.end(); ++it)
+//        *it = tolower(*it);
+//    str.Release();
+//    return newStringTerm(lower);
+    return newStringTerm("");
 }
 
 Bool& Contains(Context& ctx, StringTerm& str1, StringTerm& str2)
@@ -91,10 +109,6 @@ Bool& Contains(Context& ctx, StringTerm& str1, StringTerm& str2)
     return result;
 }
 
-StringTerm& DownCase(Context& ctx, StringTerm& str)
-{
-    throw new std::runtime_error("");
-}
 
 StringTerm& Substring(Context& ctx, StringTerm& str, DoubleTerm& from, DoubleTerm& to)
 {
@@ -118,10 +132,19 @@ StringTerm& Substring2(Context& ctx, StringTerm& str, DoubleTerm& from)
     return result;
 }
 
-Bool& MatchRegex(Context& ctx, StringTerm&, StringTerm&)
+// std::regex only available starting gcc 4.9.0
+
+/*
+Bool& MatchRegex(Context& ctx, StringTerm& pattern, StringTerm& str)
 {
-    throw new std::runtime_error("");
+    std::regex regex(pattern.Unbox());
+    Bool& result = std::regex_match(str.Unbox(), regex) ? newTRUE(ctx) : newFALSE(ctx);
+    pattern.Release();
+    str.Release();
+    return result;
+ 
 }
+*/
 
 Bool& StartsWith(Context& ctx, StringTerm& str, StringTerm& prefix)
 {
@@ -132,7 +155,6 @@ Bool& StartsWith(Context& ctx, StringTerm& str, StringTerm& prefix)
     prefix.Release();
     return result;
 }
-
 
 Bool& EndsWith(tosca::Context& ctx, tosca::StringTerm& str, tosca::StringTerm& suffix)
 {

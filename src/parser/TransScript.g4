@@ -176,6 +176,7 @@ aterm
     | named term                                                     /* Named term */
     | let                                                            /* Let expression */
     | ifterm                                                         /* If expression */
+    | forterm                                                        /* For expression */
     ;
 
 // Next term
@@ -264,6 +265,10 @@ ifterm
     : IF term term ELSE term
     ;
 
+forterm
+    : FOR METAVAR IN term term
+    ;
+
 map
     : LCURLY optkvs (AND optkvs)* RCURLY sortAnno?    // PG bug: (kvs?)* maps to List<kvs> instead of List<List<kvs>>
     ;
@@ -320,7 +325,7 @@ operator
 variable options { type="string"; }
    : VARIABLE
    | MODULE | IMPORT | GRAMMAR | FUNC | ENUM | STRUCT | DISPATCH |  RULE | VAR | FIXITY | TYPE | EXTERN | EAGER
-   | LET | IF | ELSE
+   | LET | IF | ELSE | FOR | IN
    ;
 
 // Lexer rules
@@ -342,6 +347,8 @@ TYPE            : 'type';
 LET             : 'let';
 IF              : 'if';
 ELSE            : 'else';
+FOR             : 'for';
+IN              : 'in';
 COMMA           : ',';
 LPAR            : '(';
 RPAR            : ')';

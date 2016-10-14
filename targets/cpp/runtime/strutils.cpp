@@ -76,7 +76,7 @@ static void escape(char **sourcep, char **targetp, char *endsource, char *endtar
     unsigned char *t = (unsigned char *)*targetp;
     for (; *s && s < (unsigned char *)endsource && t < (unsigned char *)endtarget-5; ++s)
     {
-         unsigned int c = *s;
+        unsigned int c = *s;
         switch (c)
         {
         case '\"' : *(t++) = '\\'; *(t++) = '\"'; break;
@@ -115,6 +115,9 @@ static void escape(char **sourcep, char **targetp, char *endsource, char *endtar
     *targetp = (char*)t;
 }
 
+/**
+ *  Convert UTF-8 chars to external escaped string form.
+ */
 std::string& makeEscaped(tosca::Context& context, const char *src)
 {
     size_t src_length = strlen(src);
@@ -127,4 +130,19 @@ std::string& makeEscaped(tosca::Context& context, const char *src)
     *(t++) = '"';
     *(t++) = '\0';
     return *(new std::string(tmp));
+}
+
+/**
+ * Mangle the given name to be a valid Java/C/C++ identifier
+ */
+std::string& makeMangle(tosca::Context& context, const std::string& src)
+{
+    std::string::size_type length = src.size();
+    std::string& mangled = *(new std::string(src));
+    for (std::string::size_type i = 0; i < length; ++i)
+    {
+        char c = src[i];
+        mangled[i] = (c == '/' ? '_' : c);
+    }
+    return mangled;
 }

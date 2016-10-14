@@ -315,7 +315,7 @@ func NATerm(List<Core_canno_sort>, TransScript_aterm_sort, Bool) -> Core_cterm_s
   rule NATerm(#canno*, #aterm = aterm⟦ let ##METAVAR ##sortAnno? = ##term ##term2 ⟧, TRUE)
   → Error(ConcatString("Error:invalid let expression in pattern", PrintTerm("", #aterm)))
 
-  rule NATerm(#canno*, aterm⟦ if ##term1 ##term2 else ##term3⟧, FALSE)
+  rule NATerm(#canno*, aterm⟦ if ##term1 ##term2 else ##term3 ⟧, FALSE)
   → cterm⟦ ##canno* If( ⟨cterm: NTerm(#term1, FALSE)⟩, thunk ⟨cterm: NTerm(#term2, FALSE)⟩, thunk ⟨cterm: NTerm(#term3, FALSE)⟩ ) ⟧
 
   // Assertion error
