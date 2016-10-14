@@ -9,6 +9,7 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -871,7 +872,7 @@ public class ToSinkListener implements ParseTreeListener
 	{
 		return "#" + trimMetaArgs(metavar.substring(metachar.length()));
 	}
-
+	
 	private String trimMetaArgs(String metavar)
 	{
 		int si = metavar.indexOf("[");

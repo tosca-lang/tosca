@@ -1,0 +1,79 @@
+// Copyright (c) 2016 IBM Corporation.
+import std::core
+import std::listdef
+import std::text
+import std::pairdef
+import std::text::Text4
+import core::utils
+import core::Core
+
+//--- Helper functions related to captured meta-variable lifetime in 'if' expression
+
+/**
+ Determine the lifetime of the given meta-variable within an if expression
+ when using native (Java or C++) conditional statement/expression
+
+ In a 'if' expresion, a meta-variable can be:
+ - captured in zero, one or both branches
+ - kept in zero, one or both branches. If kept, it must also be captured.
+*/
+func IfBranchLifetime(Core_cterm_sort, Core_cterm_sort, List<Core_cterm_sort>, List<Core_cterm_sort>,
+                       (String)->Text4_text_sort, (String)->Text4_text_sort, Bool) -> Text4_text_sort
+
+  rule IfBranchLifetime(#true, cterm⟦ ##canno* ##METAVAR ##csortanno? ⟧, #cptrstrue, #cptrsfalse, #addref, #relref, TRUE)
+  → If(HasAnnotation("Ref", #canno*), ()->text⟦⟧, ()->#relref(#METAVAR))
+
+  rule IfBranchLifetime(cterm⟦ ##canno* ##METAVAR ##csortanno? ⟧, #false, #cptrstrue, #cptrsfalse, #addref, #relref, FALSE)
+  → If(HasAnnotation("Ref", #canno*), ()->text⟦⟧, ()->#relref(#METAVAR))
+
+  rule IfBranchLifetime(#true, #false, #cptrstrue, #cptrsfalse, #addref, #relref, #istrue)
+  → IfBranchReleaseOrRef(If(#istrue, ()->#true, ()->#false), #cptrstrue, #cptrsfalse, #addref, #relref, #istrue)
+
+
+func IfBranchReleaseOrRef(#term: Core_cterm_sort, #cptrstrue: List<Core_cterm_sort>, #cptrsfalse: List<Core_cterm_sort>,
+                          #addref: (String)->Text4_text_sort, #relref: (String)->Text4_text_sort, #istrue: Bool) -> Text4_text_sort
+→ let #metastrue  = GetMetaVariables(#cptrstrue)
+  let #metasfalse = GetMetaVariables(#cptrsfalse)
+  TextMapFoldES((metavar)->IfAddOrRelease(metavar, IfLifetime(metavar, #cptrstrue, #cptrsfalse), #addref, #relref, #istrue),
+                RemoveDuplicates(Concat(#metastrue, #metasfalse)))
+
+enum IfLifetime | IFRELEASE_FALSE // Release in the 'false' branch
+                | IFRELEASE_TRUE  // Release in the 'true' branch
+                | IFREF_TRUE      // Reference in the 'true' branch
+                | IFREF_FALSE     // Reference in the 'false' branch
+                | IFREF           // Reference in both branches
+                | IFNOOP          // Nothing to do
+
+func IfLifetime(#metavar: String, #cptrstrue: List<Core_cterm_sort>, #cptrsfalse: List<Core_cterm_sort>) -> IfLifetime
+→ IfLifetime2(PickFirst(GetAnnoMetaVariables(#cptrstrue) , (pair)->Equal(#metavar, Snd(pair))),
+              PickFirst(GetAnnoMetaVariables(#cptrsfalse), (pair)->Equal(#metavar, Snd(pair))))
+
+func IfLifetime2(Option<PPair<List<Core_canno_sort> String>>, Option<PPair<List<Core_canno_sort> String>>) -> IfLifetime
+
+  // Captured in the true branch, not captured in the false branch.
+  rule IfLifetime2(SOME(PairCons(#canno*, #metavar)), NONE)
+  → If(HasAnnotation("Keep", #canno*),
+      ()->IFREF_TRUE,
+      ()->IFRELEASE_FALSE)
+
+  // Captured in the false branch, not captured in the true branch.
+  rule IfLifetime2(NONE, SOME(PairCons(#canno*, #metavar)))
+  → If(HasAnnotation("Keep", #canno*),
+      ()->IFREF_FALSE,
+      ()->IFRELEASE_TRUE)
+
+  // Captured in both branches.
+  rule IfLifetime2(SOME(PairCons(#canno*1, #metavar1)), SOME(PairCons(#canno*2, #metavar2)))
+  → If(And(HasAnnotation("Keep", #canno*1), HasAnnotation("Keep", #canno*2)),
+      ()->IFREF,
+      ()->IFNOOP)
+
+  rule IfLifetime2(#1, #2) → IFNOOP
+
+func IfAddOrRelease(String, IfLifetime, (String)->Text4_text_sort, (String)->Text4_text_sort, Bool) -> Text4_text_sort
+rule IfAddOrRelease(#metavar, IFRELEASE_FALSE, #addref, #relref, FALSE  ) → text⟦†⟨#relref(#metavar)⟩⟧
+rule IfAddOrRelease(#metavar, IFRELEASE_TRUE , #addref, #relref, TRUE   ) → text⟦†⟨#relref(#metavar)⟩⟧
+rule IfAddOrRelease(#metavar, IFREF_TRUE     , #addref, #relref, TRUE   ) → text⟦†⟨#addref(#metavar)⟩⟧
+rule IfAddOrRelease(#metavar, IFREF_FALSE    , #addref, #relref, FALSE  ) → text⟦†⟨#addref(#metavar)⟩⟧
+rule IfAddOrRelease(#metavar, IFREF          , #addref, #relref, #branch) → text⟦†⟨#addref(#metavar)⟩⟧
+rule IfAddOrRelease(#metavar, #lifetime      , #addref, #relref, #branch) → text⟦⟧

@@ -22,7 +22,7 @@ namespace tosca {
     // Forward declarations
     template<typename K, typename V> class MapTerm;
     template<typename K, typename V> MapTerm<K, V>& newMapTerm();
-    
+
     // MapTerm type definition
     template<typename K, typename V>
     class MapTerm: public Term
@@ -118,9 +118,9 @@ namespace tosca {
         {
             throw new std::runtime_error("");
         }
-        
+
         // Overrides
-        
+
         const std::string Symbol() const
         {
             // TODO:
@@ -128,8 +128,8 @@ namespace tosca {
         }
 
     };
-    
-    
+
+
     // MapTerm value
     template<typename K, typename V>
     class CMapTerm: public MapTerm<K, V>
@@ -143,7 +143,7 @@ namespace tosca {
         {
           std::cout << "destroy map";
         }
-        
+
         Term& Copy(Context& ctx)
         {
             return newMapTerm<K, V>();
@@ -202,14 +202,14 @@ namespace tosca {
         {
             throw new std::runtime_error("");
         }
-        
+
         bool DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const
         {
-            std::cout<< "MapTerm deep equality not implemented";
+        //    std::cout<< "MapTerm deep equality not implemented";
             return true;
         }
 
-        
+
         Term& Substitute(tosca::Context& ctx, std::unordered_map<Variable*, Term*>& substitutes)
         {
             MapTerm<K, V>& copy = newMapTerm<K, V>();
@@ -224,12 +224,12 @@ namespace tosca {
                 }
                 if (!cmap.parent)
                     break;
-                
+
                  cmap = cmap.parent.value();
             }
             return copy;
         }
-        
+
     protected:
         std::unordered_map<K*, V*> map;
 

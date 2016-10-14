@@ -42,7 +42,7 @@ cterm
     | canno* LPAR cvariable<boundvar=x> csortanno? RPAR cterm<bound=x>       /* Formal parameter */
     | canno* THUNK cterm                                                     /* Unvaluated term */
     | canno* METAVAR csortanno? EQ cterm                                     /* Named term */
-    | canno* LET METAVAR csortanno? EQ cterm cterm                           /* Let expression */
+    | canno* LET METAVAR csortanno? EQ cterm cterm                           /* Let expression (syntactic sugar) */
     ;
 
 /* TODO: inline when antlr-based meta parser generator support (()*)? */

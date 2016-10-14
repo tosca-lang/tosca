@@ -34,9 +34,8 @@ rule AnalyzeC(Content(#imports, #rules, #datasorts, #alias, #funcsorts))
 
 // --- Fallback analysis
 
-func AnalyzeFallbackFunc(#funcsorts: {String:Core_cdecl_sort},  #sort: Core_cdecl_sort, #fallback: Bool) -> {String:Core_cdecl_sort}
-rule AnalyzeFallbackFunc(#funcsorts,
-                        cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #fallback)
+func AnalyzeFallbackFunc({String:Core_cdecl_sort}, Core_cdecl_sort, Bool) -> {String:Core_cdecl_sort}
+rule AnalyzeFallbackFunc(#funcsorts, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #fallback)
 → PutFuncSort(#funcsorts, cdecl⟦ ⟨canno*: AnalyzeFallbackAnno(#canno*, #fallback, HasAnnotation("Fallback", #canno*))⟩ ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, TRUE)
 
 func AnalyzeFallbackAnno(List<Core_canno_sort>, Bool /* Fallback */, Bool /* Has Fallback */) -> List<Core_canno_sort>
@@ -267,7 +266,7 @@ func AnalyzeMayKeep(Option<Numeric>, List<Core_canno_sort>) -> List<Core_canno_s
       ()->canno*⟦ @Keep ##canno* ⟧,
       ()->#canno*)
 
-// Add @Captured(#...) annotation for meta-variables and variables occuring inside a lambda
+// Add @Captured(#...) annotation for meta-variables and variables occuring inside a lambda (and thunk)
 func AnalyzeCapturedAll(LEnv, List<String>, List<String>, List<Core_canno_sort>) -> List<Core_canno_sort>
 
   rule AnalyzeCapturedAll(#env, (), (), #canno*)
@@ -288,7 +287,7 @@ func AnalyzeCapturedAllVar(#env: LEnv, #vars: List<String>) -> List<Core_cterm_s
 func AnalyzeCapturedAllVar2(#canno*: List<Core_canno_sort>, #VARIABLE: String) -> Core_cterm_sort
 → cterm⟦ ##canno* ##VARIABLE ⟧
 
-// Account for captured metavars and free variables in `#ienv`
+// Update environment to account for captured metavars and free variables in `#ienv`
 // Skip parameters as they go out of scope.
 func AnalyzeCaptured(#env: LEnv, #ienv: LEnv, #params: List<String>) -> LEnv
 → FoldlP((meta env)->LEnvIncMetaCount(env, meta),

@@ -175,6 +175,7 @@ aterm
     | concrete                                                       /* Concrete syntax */
     | named term                                                     /* Named term */
     | let                                                            /* Let expression */
+    | ifterm                                                         /* If expression */
     ;
 
 // Next term
@@ -259,6 +260,10 @@ let
     : LET METAVAR sortAnno? EQ term term
     ;
 
+ifterm
+    : IF term term ELSE term
+    ;
+
 map
     : LCURLY optkvs (AND optkvs)* RCURLY sortAnno?    // PG bug: (kvs?)* maps to List<kvs> instead of List<List<kvs>>
     ;
@@ -315,7 +320,7 @@ operator
 variable options { type="string"; }
    : VARIABLE
    | MODULE | IMPORT | GRAMMAR | FUNC | ENUM | STRUCT | DISPATCH |  RULE | VAR | FIXITY | TYPE | EXTERN | EAGER
-   | LET
+   | LET | IF | ELSE
    ;
 
 // Lexer rules
@@ -335,6 +340,8 @@ RULE            : 'rule';
 VAR             : 'allows-variable' | 'variable';
 TYPE            : 'type';
 LET             : 'let';
+IF              : 'if';
+ELSE            : 'else';
 COMMA           : ',';
 LPAR            : '(';
 RPAR            : ')';

@@ -15,6 +15,7 @@ import std::text::Text4
 import core::Core
 import core::utils
 import systemdef
+import cg::lifetime
 
 // ===== API
 
@@ -838,6 +839,10 @@ rule JavaPattern(#env, #cterms, #contractum)
 // Data sort helper indicating whether the current term is a method parameter, or an argument (local variable).
 enum Storage | PARAMETER | ARGUMENT
 
+func JavaIsArgument(Storage) -> Bool
+rule JavaIsArgument(ARGUMENT) → TRUE
+rule JavaIsArgument(PARAMETER) → FALSE
+
 // Iterate over top-level pattern arguments
 func JavaCasePattern({String : JEnvEntry}, List<Core_cterm_sort>, Core_cterm_sort) -> Text4_text_sort
 
@@ -1191,13 +1196,7 @@ func JavaKeepSub2(#env: {String : JEnvEntry}, #keep: List<Core_cterm_sort>) -> T
                   If(JavaIsArgument(JGetMetaStorage(#env, Snd(annometa))),
                     ()->text⟦¶†⟨JGetMetaVar(#env, Snd(annometa))⟩.ref();⟧,
                     ()->text⟦⟧),
-                GetMetaVariables(#keep))
-
-func JavaIsArgument(Storage) -> Bool
-rule JavaIsArgument(ARGUMENT) → TRUE
-rule JavaIsArgument(PARAMETER) → FALSE
-
-
+                GetAnnoMetaVariables(#keep))
 // ----- Contraction
 
 func JavaContractum(#env: {String : JEnvEntry}, #term: Core_cterm_sort) -> Text4_text_sort
@@ -1206,9 +1205,14 @@ func JavaContractum(#env: {String : JEnvEntry}, #term: Core_cterm_sort) -> Text4
         JavaFreshesTerm(JSetCounter(JSetFreshCounter(#env, 0), 0), #term, (env)->
           JavaStatementTerm(JSetCounter(JSetParamCounter(env, 0), 0), #term, (env)->text⟦⟧))⟩ ⟧
 
-// ---- Generate term code -Java statement mode
+// ---- Generate term code - Java statement mode
 
 func JavaStatementTerm(#env: {String : JEnvEntry}, #cterm:Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+
+  rule JavaStatementTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ( ##cterm1, ##cterm2, ##cterm3 ) ##csortanno? ⟧, #cont)
+  → If(Equal(#CONSTRUCTOR, "If"),
+       ()->JavaIfStatement(#env, #cterm1, GetTermAnnotationArgs("Captured", #cterm2), #cterm2, GetTermAnnotationArgs("Captured", #cterm3), #cterm3, #cont),
+       ()->text⟦return †⟨JavaExprTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ( ##cterm1, ##cterm2, ##cterm3 ) ##csortanno? ⟧,  (env)->text⟦;†⟨#cont(env)⟩⟧)⟩⟧)
 
   rule JavaStatementTerm(#env, cterm⟦ ##canno* let ##METAVAR : ##csort = ##cterm ##cterm2 ⟧, #cont)
   → let #javavar = text⟦⟨STRING: Mangle(RemoveFirstChar(#METAVAR))⟩⟧
@@ -1216,7 +1220,27 @@ func JavaStatementTerm(#env: {String : JEnvEntry}, #cterm:Core_cterm_sort, ({Str
           JavaStatementTerm(JAddMeta(env, #METAVAR, #javavar, (), ARGUMENT), #cterm2, #cont)⟩⟧)⟩⟧
 
   rule JavaStatementTerm(#env, #cterm, #cont)
-  → text⟦return †⟨JavaExprTerm(#env, #cterm, #cont)⟩;⟧
+  → text⟦return †⟨JavaExprTerm(#env, #cterm, (env)->text⟦;†⟨#cont(env)⟩⟧)⟩⟧
+
+func JavaIfStatement({String : JEnvEntry}, Core_cterm_sort, List<Core_cterm_sort>, Core_cterm_sort, List<Core_cterm_sort>, Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+rule JavaIfStatement(#env, #cond, #cptrstrue, #true, #cptrsfalse, #false, #cont)
+→ text⟦
+    if (unbox(context, †⟨JavaExprTerm(#env, #cond, (env)->text⟦))
+      †⟨JavaBranchStatement(env, #cptrstrue, #cptrsfalse, #true, #false, TRUE, (env)->text⟦
+    else
+      †⟨JavaBranchStatement(env, #cptrstrue, #cptrsfalse, #true, #false, FALSE, #cont)⟩⟧)⟩⟧)⟩⟧
+
+func JavaBranchStatement(#env: {String : JEnvEntry}, #cptrstrue: List<Core_cterm_sort>, #cptrsfalse: List<Core_cterm_sort>,
+                         #true: Core_cterm_sort, #false: Core_cterm_sort, #istrue: Bool, #cont: ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+→ let #refmngt = IfBranchLifetime(#true, #false, #cptrstrue, #cptrsfalse,
+                   (metavar)->JavaStatementAddRefMeta(#env, metavar),
+                   (metavar)->JavaStatementRemoveRefMeta(#env, metavar), #istrue)
+  text⟦{†⟨#refmngt⟩†⟨JavaStatementTerm(#env, JavaApplyIfTerm(If(#istrue, ()->#true, ()->#false)), (env)->text⟦}†⟨#cont(env)⟩⟧)⟩⟧
+
+// Evaluate terms in conditional branches, when using native 'if' statement/expression.
+func JavaApplyIfTerm(Core_cterm_sort) -> Core_cterm_sort
+rule JavaApplyIfTerm(cterm⟦ ##canno* ##METAVAR ##csortanno? ⟧) → cterm⟦ ##METAVAR () ⟧ // metavariable must be a closure (checked by infer)
+rule JavaApplyIfTerm(#cterm                                  ) → StripBinders(#cterm)
 
 // ---- Generate fresh variable - Only in Java statement mode
 
@@ -1380,15 +1404,12 @@ rule JavaExprThunkArg(csort⟦ ##csort    ⟧) → text⟦, †⟨ThunkMaker(#cs
 
 // --- If
 
+// TODO: UPDATE LIFETIME
 func JavaIfExpr({String : JEnvEntry}, List<Core_cterms_sort>, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 rule JavaIfExpr(#env, cterms?⟦ ( ##cterm1, ##cterm2, ##cterm3 ) ⟧, #cont)
 → text⟦ (unbox(context, †⟨JavaExprTerm(#env, #cterm1, (env)->text⟦)) ?
-          (†⟨JavaExprTerm(env, JavaIfBranch(#cterm2), (env)->text⟦)
-        : (†⟨JavaExprTerm(env, JavaIfBranch(#cterm3), (env)->text⟦)†⟨#cont(env)⟩⟧)⟩⟧)⟩⟧)⟩⟧
-
-func JavaIfBranch(Core_cterm_sort) -> Core_cterm_sort
-rule JavaIfBranch(cterm⟦ ##canno* ##METAVAR ##csortanno? ⟧) → cterm⟦ ##METAVAR () ⟧ // metavariable must be a closure (checked by infer)
-rule JavaIfBranch(#cterm                                  ) → StripBinders(#cterm)
+          (†⟨JavaExprTerm(env, JavaApplyIfTerm(#cterm2), (env)->text⟦)
+        : (†⟨JavaExprTerm(env, JavaApplyIfTerm(#cterm3), (env)->text⟦)†⟨#cont(env)⟩⟧)⟩⟧)⟩⟧)⟩⟧
 
 // --- Variable
 
@@ -1479,7 +1500,7 @@ func JavaExprLambdaNew({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEnt
 func JavaLambdaCaptures(#env: {String : JEnvEntry}, #anno*: List<Core_canno_sort>) -> Text4_text_sort
 → IfPresent(GetAnnotation("Captured", #anno*),
     (anno)->TextMapFoldES((annovar)->text⟦, †⟨JavaExprRefMetaOrVar(#env, Fst(annovar), Snd(annovar))⟩⟧,
-                           GetMetaVariables(GetAnnotationArgs(anno))),
+                           GetAnnoMetaVariables(GetAnnotationArgs(anno))),
     ()->text⟦⟧)
 
 func JavaExprRefMetaOrVar(#env: {String : JEnvEntry}, #canno*: List<Core_canno_sort>, #var: String) -> Text4_text_sort
@@ -1493,12 +1514,24 @@ func JavaExprLambdaReuse({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvE
   // Lambda can be reuse. Extract metavar annotation inside the capture term list to know
   // if the metavar needs to be referenced or not
   rule JavaExprLambdaReuse(#env, cterm⟦ ##canno*2 ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #cont)
-  → let #metavars = GetMetaVariables(GetAnnotationArgs(UnSOME(GetAnnotation("Captured", #canno*2))))
+  → let #metavars = GetAnnoMetaVariables(GetAnnotationArgs(UnSOME(GetAnnotation("Captured", #canno*2))))
     let #canno* = Fst(UnSOME(PickFirst(#metavars, (annovar)->Equal(Snd(annovar), #METAVAR))))
       JavaExprMeta(#env, #canno*, #METAVAR, cterms?⟦⟧, csubst?⟦⟧, #cont)
 
   rule JavaExprLambdaReuse(#env, #cterm, #cont)
   → Error("Internal Error: Cannot reuse a lambda expression that is not bound to a metavariable.")
+
+// Helper
+
+/* Generate Java statement adding a reference to the given `#metavar` */
+func JavaStatementAddRefMeta(#env: {String : JEnvEntry}, #metavar: String) -> Text4_text_sort
+→ text⟦†⟨JGetMetaVar(#env, #metavar)⟩.ref();⟧
+
+
+/* Generate Java statement removing a reference to the given `#metavar` */
+func JavaStatementRemoveRefMeta(#env: {String : JEnvEntry}, #metavar: String) -> Text4_text_sort
+→ text⟦†⟨JGetMetaVar(#env, #metavar)⟩.release();⟧
+
 
 // ----- initModule
 

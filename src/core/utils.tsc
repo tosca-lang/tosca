@@ -26,13 +26,16 @@ rule IsNamedMeta(cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #name)
 rule IsNamedMeta(#term, #name)                                               → FALSE
 
 // Extract meta variables, associated with their annotations, out of the given list of `#terms`.
-func GetMetaVariables(List<Core_cterm_sort>) -> List<PPair<List<Core_canno_sort> String>>
-rule GetMetaVariables(cterm*⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ##cterm* ⟧) → (PairCons(#canno*, #METAVAR), GetMetaVariables(#cterm*)...)
-rule GetMetaVariables(cterm*⟦ ##canno* { : ##METAVAR  } ##csortanno? ##cterm* ⟧) → (PairCons(#canno*, #METAVAR), GetMetaVariables(#cterm*)...)
-rule GetMetaVariables(cterm*⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ##cterm* ⟧) → GetMetaVariables((#cterm[v], #cterm*...))
-rule GetMetaVariables(cterm*⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ##cterm* ⟧) → GetMetaVariables((#cterm[f], #cterm*...))
-rule GetMetaVariables(cterm*⟦ ##cterm ##cterm* ⟧                               ) → GetMetaVariables(#cterm*)
-rule GetMetaVariables(cterm*⟦ ⟧                                                ) → ()
+func GetAnnoMetaVariables(List<Core_cterm_sort>) -> List<PPair<List<Core_canno_sort> String>>
+rule GetAnnoMetaVariables(cterm*⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ##cterm* ⟧) → (PairCons(#canno*, #METAVAR), GetAnnoMetaVariables(#cterm*)...)
+rule GetAnnoMetaVariables(cterm*⟦ ##cterm ##cterm* ⟧                                            ) → GetAnnoMetaVariables(#cterm*)
+rule GetAnnoMetaVariables(cterm*⟦ ⟧                                                             ) → ()
+
+// Extract meta variables of the given list of `#terms`.
+func GetMetaVariables(List<Core_cterm_sort>) -> List<String>
+rule GetMetaVariables(cterm*⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ##cterm* ⟧) → (#METAVAR, GetMetaVariables(#cterm*)...)
+rule GetMetaVariables(cterm*⟦ ##cterm ##cterm* ⟧                                            ) → GetMetaVariables(#cterm*)
+rule GetMetaVariables(cterm*⟦ ⟧                                                             ) → ()
 
 /* @return the given `#term` without any binders, including thunk. */
 func StripBinders(Core_cterm_sort) -> Core_cterm_sort
@@ -48,6 +51,10 @@ func HasAnnotation(#anno: String, #anno*: List<Core_canno_sort>) -> Bool
 /* Get the first annotation of the given `#name` in the given `#list` */
 func GetAnnotation(#anno: String, #anno*: List<Core_canno_sort>) -> Option<Core_canno_sort>
 → PickFirst(#anno*, (anno) -> EqualAnno(#anno, anno))
+
+/* Get the first annotation arguments of the given `#name` in the given `#term` */
+func GetTermAnnotationArgs(#anno: String, #term: Core_cterm_sort) -> List<Core_cterm_sort>
+→ GetOAnnotationArgs(GetAnnotation(#anno, GetAnnotations(#term)))
 
 /* Whether the 2 annotations are equals */
 func EqualAnno(String, Core_canno_sort) -> Bool
@@ -67,6 +74,11 @@ rule RemoveAnnotation(#anno, (#anno2, #annos...)) → If(EqualAnno(#anno, #anno2
 func GetAnnotationArgs(Core_canno_sort) -> List<Core_cterm_sort>
 rule GetAnnotationArgs(canno⟦ @ ##CONSTRUCTOR ( ##cterm* ) ⟧) → #cterm*
 rule GetAnnotationArgs(#canno                               ) → ()
+
+/* Get the optional annotation arguments */
+func GetOAnnotationArgs(Option<Core_canno_sort>) -> List<Core_cterm_sort>
+rule GetOAnnotationArgs(SOME(canno⟦ @ ##CONSTRUCTOR ( ##cterm* ) ⟧)) → #cterm*
+rule GetOAnnotationArgs(#canno                                     ) → ()
 
 /* Extract the annotations list from the given `#term` */
 func GetAnnotations(Core_cterm_sort) -> List<Core_canno_sort>

@@ -5,10 +5,13 @@
 /* Tell the compiler to keep a reference to the annotated term. */
 type Keep = Bool
 
-/* Tell the compiler to keep a reference to all meta-variables. */
+/* Tell the compiler to keep a reference to all the specified (meta-)variables. */
 type KeepAll = List<String>
 
-/* Tell the compiler which meta-variables are captured within a lambda. */
+/* Tell the compiler to discard all the specified (meta-)variables. */
+type DiscardAll = List<String>
+
+/* Tell the compiler which (meta-)variables are captured within a lambda. */
 type Captured = List<String>
 
 /* Tell the compiler to not create a lambda expression. */
