@@ -98,7 +98,6 @@ func Not(Bool) -> Bool
 rule Not(TRUE)  → FALSE
 rule Not(FALSE) → TRUE
 
-
 /* String comparison of the two given values */
 @Extern func Equal<a>(a, a) -> Bool
 

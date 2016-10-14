@@ -132,11 +132,11 @@ rule Insert(#X, #XS) → Cons(#X, #XS)
    @param  `#TO`
    @return a new list of number from #FROM to #TO *all inclusive
 */
-func Range(Numeric, Numeric) -> List<Numeric>
-rule Range(#from, #to)
-→ If<List>(LessThan(#from, #to),
-    ()->Cons(#from, Range(Plus(#from, 1), #to)),
-    ()->Cons(#to, Nil))
+func Range(#from: Numeric, #to: Numeric) -> List<Numeric>
+→ if LessThan(#from, #to)
+    (#from, Range(Plus(#from, 1), #to)...)
+  else
+    (#to,)
 
 /*
    Append element to list.
@@ -311,12 +311,10 @@ func MatchPartition<a>(Bool, a, PPair<List<a> List<a>>) -> PPair<List<a> List<a>
 rule MatchPartition(TRUE,  #X, PairCons(#TS, #FS)) → PairCons(Insert<a>(#X,#TS), #FS)
 rule MatchPartition(FALSE, #X, PairCons(#TS, #FS)) → PairCons(#TS, Insert(#X,#FS))
 
-/* Apply each item in list to function
- */
-func Map<a b>((a) -> b, List<a>) -> List<b>
-rule Map(#, (         )) → ()
+/* Apply each item in list to function */
+func Map<a b>((a)->b, List<a>) -> List<b>
 rule Map(#, (#1, #s...)) → (#(#1), Map(#, #s)...)
-
+rule Map(#, (         )) → ()
 
 /* `Map2((x) ->#F(x), #XS)`
    @param   `(x) ->#F(x)` a function which takes one element of the list as input

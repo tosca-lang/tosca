@@ -1210,9 +1210,10 @@ func JavaContractum(#env: {String : JEnvEntry}, #term: Core_cterm_sort) -> Text4
 func JavaStatementTerm(#env: {String : JEnvEntry}, #cterm:Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
   rule JavaStatementTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ( ##cterm1, ##cterm2, ##cterm3 ) ##csortanno? ⟧, #cont)
-  → If(Equal(#CONSTRUCTOR, "If"),
-       ()->JavaIfStatement(#env, #cterm1, GetTermAnnotationArgs("Captured", #cterm2), #cterm2, GetTermAnnotationArgs("Captured", #cterm3), #cterm3, #cont),
-       ()->text⟦return †⟨JavaExprTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ( ##cterm1, ##cterm2, ##cterm3 ) ##csortanno? ⟧,  (env)->text⟦;†⟨#cont(env)⟩⟧)⟩⟧)
+  → if Equal(#CONSTRUCTOR, "If")
+      JavaIfStatement(#env, #cterm1, GetTermAnnotationArgs("Captured", #cterm2), #cterm2, GetTermAnnotationArgs("Captured", #cterm3), #cterm3, #cont)
+    else
+      text⟦return †⟨JavaExprTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ( ##cterm1, ##cterm2, ##cterm3 ) ##csortanno? ⟧,  (env)->text⟦;†⟨#cont(env)⟩⟧)⟩⟧
 
   rule JavaStatementTerm(#env, cterm⟦ ##canno* let ##METAVAR : ##csort = ##cterm ##cterm2 ⟧, #cont)
   → let #javavar = text⟦⟨STRING: Mangle(RemoveFirstChar(#METAVAR))⟩⟧
@@ -1221,6 +1222,8 @@ func JavaStatementTerm(#env: {String : JEnvEntry}, #cterm:Core_cterm_sort, ({Str
 
   rule JavaStatementTerm(#env, #cterm, #cont)
   → text⟦return †⟨JavaExprTerm(#env, #cterm, (env)->text⟦;†⟨#cont(env)⟩⟧)⟩⟧
+
+// -- If
 
 func JavaIfStatement({String : JEnvEntry}, Core_cterm_sort, List<Core_cterm_sort>, Core_cterm_sort, List<Core_cterm_sort>, Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 rule JavaIfStatement(#env, #cond, #cptrstrue, #true, #cptrsfalse, #false, #cont)
