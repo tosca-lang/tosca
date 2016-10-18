@@ -152,6 +152,7 @@ using tosca::Ref;
                                                                                                 \
     R& Eval(tosca::Context& ctx PARAM(free) )                                                   \
     {                                                                                           \
+      assert(this->refcount > 0);                                                               \
       if (this->refcount > 1)                                                                   \
       {                                                                                         \
         CPTREF(capture)                                                                         \
@@ -160,8 +161,9 @@ using tosca::Ref;
       {                                                                                         \
         freeCptrs = false;                                                                      \
       }                                                                                         \
+      R& result = function(ctx ARG(free) CPTREVALARG(capture) );                                \
       this->Release();                                                                          \
-      return function(ctx ARG(free) CPTREVALARG(capture) );                                     \
+      return result;                                                                            \
     }                                                                                           \
                                                                                                 \
     private:                                                                                    \

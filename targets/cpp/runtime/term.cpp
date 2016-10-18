@@ -15,8 +15,8 @@ namespace tosca {
 
     Ref::~Ref()
     {
-        std::cout << "delete ref\n";
-        // assert(refcount == 0);
+        //std::cout << "delete ref\n";
+        assert(refcount == 0);
     }
 
     void Ref::AddRef()
@@ -29,8 +29,8 @@ namespace tosca {
     {
         assert(refcount > 0);
         refcount--;
-        //if (refcount == 0)
-        //  delete this;
+        if (refcount == 0)
+          delete this;
     }
 
     // --- Term
@@ -38,7 +38,7 @@ namespace tosca {
 
     Term::Term() : Ref() {}
 
-    Term::~Term(){}
+    Term::~Term() {}
 
     const std::string Term::Symbol() const
     {

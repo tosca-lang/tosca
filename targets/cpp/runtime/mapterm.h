@@ -142,7 +142,14 @@ namespace tosca {
 
         virtual ~CMapTerm()
         {
-          std::cout << "destroy map";
+            if (parent)
+                parent.value().Release();
+            
+            for (const auto& iter : map)
+            {
+                iter.first->Release();
+                iter.second->Release();
+            }
         }
 
         Term& Copy(Context& ctx)

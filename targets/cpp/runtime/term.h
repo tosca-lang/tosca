@@ -44,7 +44,7 @@ namespace tosca {
     /*
      * Base class for terms
      */
-    class Term: public Ref
+    class Term: public virtual Ref
     {
     public:
         Term();
