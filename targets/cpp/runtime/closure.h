@@ -3,6 +3,9 @@
 #define _CLOSURE_H
 
 #include "term.h"
+#include "ts.h"
+
+using tosca::Ref;
 
 // Provide commonly used closure signatures.
 // Really ugly. Rely on macro expansion. Might be feasible to use c++ metaprogramming.
@@ -13,6 +16,8 @@
 #define EMPTY()
 #define LPAR() (
 #define RPAR() )
+#define ADDREF() .AddRef();
+#define RELEASE() .Release();
 
 #define REPEAT0(oc, a, lp, b, os)
 #define REPEAT1(oc, a, lp, b, os) REPEAT0(oc, a, lp, b, os) oc() a lp() b ## 1 os()
@@ -108,7 +113,9 @@
 #define ARG(a) REPEAT ## a(COMMA,,EMPTY, p,EMPTY)
 #define CPTR(a) REPEAT ## a(COMMA,Ref&,EMPTY, c,EMPTY)
 #define CPTRARG(a) REPEAT ## a(COMMA,,EMPTY, c,EMPTY)
-#define CPTREF(a) REPEAT ## a(COMMA, NewRef, LPAR, cptr, RPAR)
+#define CPTREVALARG(a) REPEAT ## a(COMMA,,EMPTY, cptr,EMPTY)
+#define CPTREF(a) REPEAT ## a(EMPTY,, EMPTY,cptr,ADDREF)
+#define CPTRFREE(a) REPEAT ## a(EMPTY,, EMPTY,cptr,RELEASE)
 
 #define PARAM(a) REPEAT2_ ## a(COMMA,, P, &,EMPTY, p, EMPTY)
 #define CPARAM(a) REPEAT2_ ## a(COMMA,, C, &,EMPTY, c, EMPTY)
@@ -132,20 +139,34 @@
    public:                                                                                      \
      typedef R& (*ftype)(tosca::Context& TYPEARGREF(free) CTYPEARGREF(capture));                \
      Closure ## free ## C  ## capture (ftype f CPARAM(capture) ) :                              \
-        function(f) INITCPTR(capture)               \
+        function(f), freeCptrs(true) INITCPTR(capture)                                          \
       {}                                                                                        \
                                                                                                 \
      ~Closure ## free ## C ## capture ()                                                        \
-     {}                                                                                         \
-                                                                                                \
+     {                                                                                          \
+       if (freeCptrs)                                                                           \
+       {                                                                                        \
+            CPTRFREE(capture)                                                                   \
+       }                                                                                        \
+     }                                                                                          \
                                                                                                 \
     R& Eval(tosca::Context& ctx PARAM(free) )                                                   \
     {                                                                                           \
-          return function(ctx ARG(free) CPTREF(capture) );                                      \
+      if (this->refcount > 1)                                                                   \
+      {                                                                                         \
+        CPTREF(capture)                                                                         \
+      }                                                                                         \
+      else                                                                                      \
+      {                                                                                         \
+        freeCptrs = false;                                                                      \
+      }                                                                                         \
+      this->Release();                                                                          \
+      return function(ctx ARG(free) CPTREVALARG(capture) );                                     \
     }                                                                                           \
                                                                                                 \
     private:                                                                                    \
-      ftype function; \
+      ftype function;                                                                           \
+      bool freeCptrs;                                                                           \
       DEFCPTR(capture)                                                                          \
   };                                                                                            \
                                                                                                 \

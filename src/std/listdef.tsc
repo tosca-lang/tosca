@@ -137,7 +137,6 @@ func Range(#from: Numeric, #to: Numeric) -> List<Numeric>
     (#from, Range(Plus(#from, 1), #to)...)
   else
     (#to,)
-
 /*
    Append element to list.
    @param  `a` element

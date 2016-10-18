@@ -132,9 +132,7 @@ StringTerm& Substring2(Context& ctx, StringTerm& str, DoubleTerm& from)
     return result;
 }
 
-// std::regex only available starting gcc 4.9.0
-
-/*
+#ifdef STD_REGEX
 Bool& MatchRegex(Context& ctx, StringTerm& pattern, StringTerm& str)
 {
     std::regex regex(pattern.Unbox());
@@ -142,9 +140,8 @@ Bool& MatchRegex(Context& ctx, StringTerm& pattern, StringTerm& str)
     pattern.Release();
     str.Release();
     return result;
- 
 }
-*/
+#endif
 
 Bool& StartsWith(Context& ctx, StringTerm& str, StringTerm& prefix)
 {

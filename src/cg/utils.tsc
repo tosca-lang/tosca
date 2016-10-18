@@ -1,0 +1,10 @@
+// Copyright (c) 2016 IBM Corporation.
+
+// Code generation utility functions.
+
+// Indicate whether the current term is a method parameter, or an argument (local variable).
+enum Storage | PARAMETER | ARGUMENT
+
+func CgIsArgument(Storage) -> Bool
+rule CgIsArgument(ARGUMENT) → TRUE
+rule CgIsArgument(PARAMETER) → FALSE

@@ -32,12 +32,13 @@ func CCRulesUp(#key: String, #env: CCEnv) -> Content
 → PutRulesC(CCEnvContent(#env), #key, CCEnvRules(#env))
 
 func CCRule(CCEnv, Core_cdecl_sort) -> CCEnv
-rule CCRule(#env, cdecl⟦ ##canno* rule ##cterm1 → ##cterm2 ⟧) → CCRuleUp(#canno*, #cterm1, CCPatternTerm(#env, #cterm1, CCNewBinderStack, (env)->CCTerm(env, #cterm2)))
+rule CCRule(#env, cdecl⟦ ##canno* rule ##cterm1 → ##cterm2 ⟧)
+→ CCRuleUp(#canno*, #cterm1, CCPatternTerm(#env, #cterm1, CCNewBinderStack, (env)->CCTerm(env, #cterm2)))
 
 func CCRuleUp(List<Core_canno_sort>, Core_cterm_sort, PPair<CCEnv Core_cterm_sort>) -> CCEnv
 rule CCRuleUp(#canno*, #cterm1, PairCons(#env, #cterm2))
 → let #rule = cdecl⟦ ##canno* rule ##cterm1 → ##cterm2 ⟧
-    CCEnvAddRule(#env, #rule)
+  CCEnvAddRule(#env, #rule)
 
 // --- Pattern traversal: record variable and meta-variable sorts
 
@@ -147,13 +148,23 @@ rule CCTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧) → CCTermsUp(CCTerm(#env, #c
 func CCFormal(CCEnv, Core_cterm_sort, Core_cterm_sort /* original lambda term */) -> PPair<CCEnv Core_cterm_sort>
 rule CCFormal(#env, cterm⟦ ##canno* ( f : ##csort[] ) ##cterm[f] ⟧, #lambda) → CCFormalUp(#csort, [f] -> CCFormal(CCEnvAddParam(#env, f, #csort), #cterm[f], #lambda))
 rule CCFormal(#env, cterm⟦ ##canno* ( f             ) ##cterm[f] ⟧, #lambda) → Error("Fatal error: missing formal parameter type in lambda (needed by closure converter)")
-rule CCFormal(#env, #cterm, #lambda)                                → CCFormal2(#env, #cterm, #lambda)
+rule CCFormal(#env, #cterm, #lambda)                                        → CCFormal2(#env, #cterm, #lambda)
 
-// Helper due to issue #15
-func CCFormal2(#env: CCEnv, #cterm: Core_cterm_sort, #lambda : Core_cterm_sort) -> PPair<CCEnv Core_cterm_sort>
-→ If(CCMustConvert(#env, #cterm),
-    ()->CCLift(#env, #cterm, #lambda, CCCapture(#env, #cterm, {})),
-    ()->CCTerm(#env, #cterm))
+func CCFormal2(CCEnv, Core_cterm_sort, Core_cterm_sort) -> PPair<CCEnv Core_cterm_sort>
+
+  // Don't lift if of the form (x)(y)->#(x, y)
+  rule CCFormal2(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csortanno? ⟧, #lambda)
+  → let #cterm =  cterm⟦ ##canno* ##METAVAR ##cterms? ##csortanno? ⟧
+    if CCMustConvertMaybeTerms(CCEnvGetParams(#env), #cterms?)
+      CCLift(#env, #cterm, #lambda, CCCapture(#env, #cterm, {}))
+    else
+      CCTerm(#env, #cterm)
+
+  rule CCFormal2(#env, #cterm, #lambda)
+  → if CCMustConvert(#env, #cterm)
+      CCLift(#env, #cterm, #lambda, CCCapture(#env, #cterm, {}))
+    else
+      CCTerm(#env, #cterm)
 
 // --- Process thunk.
 
@@ -378,26 +389,26 @@ func CCMustConvertTerms(List<PPair<String Core_csort_sort>>, List<Core_cterm_sor
 func CCConvertCaptured(List<Core_cterm_sort>) -> Bool
 
   rule CCConvertCaptured(cterm*⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ##cterm* ⟧) → TRUE
-  rule CCConvertCaptured(cterm*⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno?          ##cterm* ⟧) → CCConvertCaptured(#cterm*)
+  rule CCConvertCaptured(cterm*⟦ ##canno* ##METAVAR                     ##csortanno?          ##cterm* ⟧) → CCConvertCaptured(#cterm*)
+  rule CCConvertCaptured(cterm*⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno?          ##cterm* ⟧) → TRUE
   rule CCConvertCaptured(cterm*⟦ ##canno* ##cliteral                                          ##cterm* ⟧) → TRUE   // We could decide not to convert for literal.
   rule CCConvertCaptured(cterm*⟦ ##canno* ##VARIABLE ##csortanno?                             ##cterm* ⟧) → CCConvertCaptured(#cterm*)
   rule CCConvertCaptured(cterm*⟦ ##canno* { ##cmapentries? } ##csortanno?                     ##cterm* ⟧) → TRUE
-  rule CCConvertCaptured(cterm*⟦ ##canno* [ x ##csortanno?[] ] ##cterm[x]                     ##cterm* ⟧) → Or(CCConvertBound((x,), #cterm[x]), CCConvertCaptured(#cterm*))
-  rule CCConvertCaptured(cterm*⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f]                     ##cterm* ⟧) → Or(CCConvertFormal((f,), #cterm[f]), CCConvertCaptured(#cterm*))
+  rule CCConvertCaptured(cterm*⟦ ##canno* [ x ##csortanno? ] ##cterm[x]                       ##cterm* ⟧) → Or(CCConvertBound((x,), #cterm[x]), CCConvertCaptured(#cterm*))
+  rule CCConvertCaptured(cterm*⟦ ##canno* ( f ##csortanno? ) ##cterm[f]                       ##cterm* ⟧) → Or(CCConvertFormal((f,), #cterm[f]), CCConvertCaptured(#cterm*))
   rule CCConvertCaptured(cterm*⟦ ##canno* thunk ##cterm                                       ##cterm* ⟧) → TRUE
   rule CCConvertCaptured(cterm*⟦ ##METAVAR ##csortanno? = ##cterm                             ##cterm* ⟧) → Error("Internal Error: named terms cannot occur in contraction.")
   rule CCConvertCaptured(cterm*⟦                                                                       ⟧) → FALSE
 
 func CCConvertBound(List<String>, Core_cterm_sort) -> Bool
 
-  rule CCConvertBound(#bound, cterm⟦ ##canno* [ x ##csortanno?[] ] ##cterm[x]     ⟧) → CCConvertBound(Append(x, #bound), #cterm[x])
+  rule CCConvertBound(#bound, cterm⟦ ##canno* [ x ##csortanno? ] ##cterm[x]     ⟧)   → CCConvertBound(Append(x, #bound), #cterm[x])
   rule CCConvertBound(#bound, cterm⟦ ##canno* ##METAVAR [ ##cterm* ] ##csortanno? ⟧) → Not(CheckSameVariables(#bound, #cterm*))
   rule CCConvertBound(#bound, #cterm)                                                → TRUE
 
-
 func CCConvertFormal(List<String>, Core_cterm_sort) -> Bool
 
-  rule CCConvertFormal(#formal, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f]               ⟧) → CCConvertFormal(Append(x, #formal), #cterm[x])
+  rule CCConvertFormal(#formal, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f]       ⟧) → CCConvertFormal(Append(x, #formal), #cterm[x])
   rule CCConvertFormal(#formal, cterm⟦ ##canno* ##METAVAR ( ##cterm* ) ##csortanno? ⟧) → Not(CheckSameVariables(#formal, #cterm*))
   rule CCConvertFormal(#formal, #cterm)                                                → TRUE
 

@@ -62,6 +62,23 @@ namespace tosca {
         // global counter.
         unsigned long long ts;
     };
+    
+    /** Add new reference to the given term */
+    template<typename T>
+    T& Ref(T& term)
+    {
+        term.AddRef();
+        return term;
+    }
+    
+    /** Add new reference to the given term */
+    template<typename T>
+    inline T& NewRef(T& ref)
+    {
+        ref.AddRef();
+        return ref;
+    }
+
 }
 
 template<typename T>

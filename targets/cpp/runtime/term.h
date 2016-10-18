@@ -31,7 +31,6 @@ namespace tosca {
          */
         unsigned long refcount;
 
-    public:
         Ref();
         virtual ~Ref();
 
@@ -40,7 +39,6 @@ namespace tosca {
 
         /** Release ref */
         void Release();
-
     };
 
     /*
@@ -406,14 +404,6 @@ namespace tosca {
         virtual Term& GUse();
     };
 
-}
-
-/* Just a convenient function for the user code to look nicer */
-template<typename T>
-inline T& NewRef(T& ref)
-{
-    ref.AddRef();
-    return ref;
 }
 
 // -- Substitution

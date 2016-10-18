@@ -12,6 +12,7 @@ import std::text::Text4
 
 import core::Core
 import systemdef
+import cg::utils
 
 /* Variable entry */
 enum VarEntry
@@ -21,8 +22,8 @@ enum VarEntry
   | Formal(Text4_text_sort /*  var */, Option<Core_csort_sort>)
 
 enum MetaEntry | MetaVar(Text4_text_sort,       /* variable associated with the meta variable*/
-                         List<Text4_text_sort>) /* variables associated to the meta variable bound variables */
-
+                         List<Text4_text_sort>, /* variables associated to the meta variable bound variables */
+                         Storage)               /* How the metavar is represented (function parameter or local variable) */
 
 enum MapEntry | MapEntry(Core_cmapentry_sort, Text4_text_sort, Core_cmapsort_sort)
 
@@ -36,7 +37,9 @@ enum EnvEntry | EContent(Content)
               | EContext(Text4_text_sort /* context variable */, Numeric /* Counter */)
               | EMapMeta({String : MetaEntry})
               | EText(Text4_text_sort)
+              | ETexts(List<Text4_text_sort>)
               | EMapEntries({String /* (meta)var */: List<MapEntry>}) /* Delayed map entries */
+              | Anno(List<Core_canno_sort>)
 
 /* Corresponding unwrappers */
 func UnContent(EnvEntry) -> Content
@@ -79,201 +82,242 @@ func UnMapMeta(EnvEntry) -> {String : MetaEntry}
 rule UnMapMeta(EMapMeta(#)) → #
 
 func UnMetaVar(MetaEntry) -> Text4_text_sort
-rule UnMetaVar(MetaVar(#1, #2)) → #1
+rule UnMetaVar(MetaVar(#1, #2, #3)) → #1
 
 func UnMetaArgs(MetaEntry) -> List<Text4_text_sort>
-rule UnMetaArgs(MetaVar(#1, #2)) → #2
+rule UnMetaArgs(MetaVar(#1, #2, #3)) → #2
+
+func UnMetaStorage(MetaEntry) -> Storage
+rule UnMetaStorage(MetaVar(#1, #2, #3)) → #3
 
 func UnText(EnvEntry) -> Text4_text_sort
 rule UnText(EText(#)) → #
 
+func UnTexts(EnvEntry) -> List<Text4_text_sort>
+rule UnTexts(ETexts(#)) → #
+
 func UnMapEntries(EnvEntry) -> {String /* metavar */: List<MapEntry>}
 rule UnMapEntries(EMapEntries(#1)) → #1
 
+func UnAnno(EnvEntry) -> List<Core_canno_sort>
+rule UnAnno(Anno(#1)) → #1
+
+
 /* Create a new empty environment */
-func CppNewEnv -> {String : EnvEntry}
+func CppNewEnv -> {String: EnvEntry}
 → MapNew
 
 // --- Module content
 
-func SetContent(#env: {String : EnvEntry}, #content: Content) -> {String : EnvEntry}
+func SetContent(#env: {String: EnvEntry}, #content: Content) -> {String: EnvEntry}
 → SetValue(#env, "content", EContent(#content))
 
-func GetContent(#env: {String : EnvEntry}) -> Content
+func GetContent(#env: {String: EnvEntry}) -> Content
 → UnContent(GetValue(#env, "content"))
 
 // --- Method arguments
 
-func NewParams(#env: {String : EnvEntry}) -> {String : EnvEntry}
+func NewParams(#env: {String: EnvEntry}) -> {String: EnvEntry}
 → SetValue(#env, "params", EParams(()))
 
-func GetParams(#env: {String : EnvEntry}) -> List<PPair<Text4_text_sort Core_csort_sort>>
+func GetParams(#env: {String: EnvEntry}) -> List<PPair<Text4_text_sort Core_csort_sort>>
 → UnParams(GetValue(#env, "params"))
 
-func SetParams(#env: {String : EnvEntry}, #params: List<PPair<Text4_text_sort Core_csort_sort>>) -> {String : EnvEntry}
+func SetParams(#env: {String: EnvEntry}, #params: List<PPair<Text4_text_sort Core_csort_sort>>) -> {String: EnvEntry}
 → SetValue(#env, "params",  EParams(#params))
 
-func AddParam(#env: {String : EnvEntry}, #param: Text4_text_sort, #csort: Core_csort_sort) -> {String : EnvEntry}
+func AddParam(#env: {String: EnvEntry}, #param: Text4_text_sort, #csort: Core_csort_sort) -> {String: EnvEntry}
 → SetValue(#env, "params", EParams(Append(PairCons(#param, #csort), GetParams(#env))))
 
 // Move to the next parameter
-func NextParam(#env: {String : EnvEntry}) -> {String : EnvEntry}
+func NextParam(#env: {String: EnvEntry}) -> {String: EnvEntry}
 → SetParams(#env, Tail(GetParams(#env)))
 
 // Get the current parameter name
-func CurrentParam(#env: {String : EnvEntry}) -> Text4_text_sort
+func CurrentParam(#env: {String: EnvEntry}) -> Text4_text_sort
 → Fst(Head(GetParams(#env)))
 
 // Get the current parameter sort
-func CurrentParamSort(#env: {String : EnvEntry}) -> Core_csort_sort
+func CurrentParamSort(#env: {String: EnvEntry}) -> Core_csort_sort
 → Snd(Head(GetParams(#env)))
 
 // --- Variable
 
-func NewVars(#env: {String : EnvEntry}) -> { String : EnvEntry }
+func NewVars(#env: {String: EnvEntry}) -> {String: EnvEntry}
 → SetValue(#env, "vars", EMapVar(MapNew))
 
-func GetVars(#env: {String : EnvEntry}) -> { String : VarEntry }
+func GetVars(#env: {String: EnvEntry}) -> {String: VarEntry}
 → UnMapVar(GetValue(#env, "vars"))
 
-func GetVar(#env: {String : EnvEntry}, #var: String) -> Text4_text_sort
+func GetVar(#env: {String: EnvEntry}, #var: String) -> Text4_text_sort
 → UnVarVar(UnSOME(MapGetVar(GetVars(#env), #var)))
 
-func GetVarO(#env: {String : EnvEntry}, #var: String) -> Option<VarEntry>
+func GetVarO(#env: {String: EnvEntry}, #var: String) -> Option<VarEntry>
 → MapGetVar(GetVars(#env), #var)
 
-func MaybeGetVar(#env: {String : EnvEntry}, #var: String) -> Option<VarEntry>
+func MaybeGetVar(#env: {String: EnvEntry}, #var: String) -> Option<VarEntry>
 → MapGetVar(GetVars(#env), #var)
 
-func AddVar(#env: {String : EnvEntry}, #var: String /* TODO: Core_cterm_sort */, #entry: VarEntry) -> {String : EnvEntry}
+func AddVar(#env: {String: EnvEntry}, #var: String /* TODO: Core_cterm_sort */, #entry: VarEntry) -> {String: EnvEntry}
 → SetValue(#env, "vars", EMapVar(MapPutVar(GetVars(#env), #var, #entry)))
 
 // --- Tail mode.
 
-func GetTail(#env: {String : EnvEntry}) -> Bool
+func GetTail(#env: {String: EnvEntry}) -> Bool
 → UnBool(GetValue(#env, "tail"))
 
-func SetTail(#env: {String : EnvEntry}, #bool: Bool) -> {String : EnvEntry}
+func SetTail(#env: {String: EnvEntry}, #bool: Bool) -> {String: EnvEntry}
 → SetValue(#env, "tail", EBool(#bool))
 
 // --- Bound variable counter
 
-func GetCounter(#env: {String : EnvEntry}) -> Numeric
+func GetCounter(#env: {String: EnvEntry}) -> Numeric
 → UnNum(GetValue(#env, "counter"))
 
-func SetCounter(#env: {String : EnvEntry}, #num: Numeric) -> {String : EnvEntry}
+func SetCounter(#env: {String: EnvEntry}, #num: Numeric) -> {String: EnvEntry}
 → SetValue(#env, "counter", ENum(#num))
 
-func IncCounter(#env: {String : EnvEntry}) -> {String : EnvEntry}
+func IncCounter(#env: {String: EnvEntry}) -> {String: EnvEntry}
 → SetValue(#env, "counter", ENum(Plus(GetCounter(#env), 1)))
 
 // --- Fresh variable counter
 
-func GetFreshCounter(#env: {String : EnvEntry}) -> Numeric
+func GetFreshCounter(#env: {String: EnvEntry}) -> Numeric
 → UnNum(GetValue(#env, "fcounter"))
 
-func SetFreshCounter(#env: {String : EnvEntry}, #num: Numeric) -> {String : EnvEntry}
+func SetFreshCounter(#env: {String: EnvEntry}, #num: Numeric) -> {String: EnvEntry}
 → SetValue(#env, "fcounter", ENum(#num))
 
-func IncFreshCounter(#env: {String : EnvEntry}) -> {String : EnvEntry}
+func IncFreshCounter(#env: {String: EnvEntry}) -> {String: EnvEntry}
 → SetValue(#env, "fcounter", ENum(Plus(GetFreshCounter(#env), 1)))
 
 // --- function annotation
 
-func GetFnAnno(#env: {String : EnvEntry}) -> List<Core_canno_sort>
+func GetFnAnno(#env: {String: EnvEntry}) -> List<Core_canno_sort>
 → UnFnAnno(GetValue(#env, "fnanno"))
 
-func SetFnAnno(#env: {String : EnvEntry}, #anno*: List<Core_canno_sort>) -> {String : EnvEntry}
+func SetFnAnno(#env: {String: EnvEntry}, #anno*: List<Core_canno_sort>) -> {String: EnvEntry}
 → SetValue(#env, "fnanno", EFnAnno(#anno*))
 
 // --- Meta variables
 
-func NewMetas(#env: {String : EnvEntry}) -> {String : EnvEntry}
-→ SetValue(#env,  "meta", EMapMeta(MapNew<String MetaEntry>))
+func NewMetas(#env: {String: EnvEntry}) -> {String: EnvEntry}
+→ SetValue(#env, "meta", EMapMeta(MapNew))
 
-func GetMetas(#env: {String : EnvEntry}) -> {String : MetaEntry}
+func GetMetas(#env: {String: EnvEntry}) -> {String : MetaEntry}
 → UnMapMeta(GetValue(#env, "meta"))
 
-func GetMetaVar(#env: {String : EnvEntry}, #metavar: String) -> Text4_text_sort
+func GetMetaVar(#env: {String: EnvEntry}, #metavar: String) -> Text4_text_sort
 → UnMetaVar(UnSOME(MapGet(GetMetas(#env), #metavar)))
 
 /* @return the C++ variable associated to the given `#metavar`, or `NONE` when no such association exists */
-func GetMetaVarO(#env: {String : EnvEntry}, #metavar: String) -> Option<Text4_text_sort>
+func GetMetaVarO(#env: {String: EnvEntry}, #metavar: String) -> Option<Text4_text_sort>
 → Maybe((entry)->UnMetaVar(entry), MapGet(GetMetas(#env), #metavar))
 
-func GetMetaArgs(#env: {String : EnvEntry}, #metavar: String) -> List<Text4_text_sort>
+func GetMetaArgs(#env: {String: EnvEntry}, #metavar: String) -> List<Text4_text_sort>
 → UnMetaArgs(UnSOME(MapGet(GetMetas(#env), #metavar)))
 
-func AddMeta(#env: {String : EnvEntry}, #metavar: String, #term: Text4_text_sort, #boundvars: List<Text4_text_sort>) -> {String : EnvEntry}
-→ SetValue(#env,  "meta", EMapMeta(MapPut(GetMetas(#env), #metavar, MetaVar(#term, #boundvars))))
+func GetMetaArgsAt(#env: {String: EnvEntry}, #metavar: String, #index: Numeric) -> Text4_text_sort
+→ IfPresent(At(GetMetaArgs(#env, #metavar), #index),
+    (cppvar)->cppvar,
+    ()->Error("Internal Error: index out of bound"))
+
+func GetMetaStorage(#env: {String: EnvEntry}, #metavar:String) -> Storage
+→ UnMetaStorage(UnSOME(MapGet(GetMetas(#env), #metavar)))
+
+func AddMeta(#env: {String: EnvEntry}, #metavar: String, #term: Text4_text_sort, #boundvars: List<Text4_text_sort>,
+             #storage: Storage) -> {String: EnvEntry}
+→ SetValue(#env, "meta", EMapMeta(MapPut(GetMetas(#env), #metavar, MetaVar(#term, #boundvars, #storage))))
+
+func GetMetaVarOrVar(#env: {String: EnvEntry}, #var: String) -> Text4_text_sort
+→ IfPresent(GetMetaVarO(#env, #var), (metavar)->metavar, ()->GetVar(#env, #var))
 
 // --- Context
 
-func GetContext(#env: {String : EnvEntry}) -> Text4_text_sort
+func GetContext(#env: {String: EnvEntry}) -> Text4_text_sort
 → UnContext(GetValue(#env, "context"))
 
-func GetContextCount(#env: {String : EnvEntry}) -> Numeric
+func GetContextCount(#env: {String: EnvEntry}) -> Numeric
 → UnContextCount(GetValue(#env, "context"))
 
-func SetContext(#env: {String : EnvEntry}, #context: Text4_text_sort, #count: Numeric) -> {String : EnvEntry}
+func SetContext(#env: {String: EnvEntry}, #context: Text4_text_sort, #count: Numeric) -> {String: EnvEntry}
 → SetValue(#env, "context", EContext(#context, #count))
 
-func NewContext(#env: {String : EnvEntry}) -> {String : EnvEntry}
+func NewContext(#env: {String: EnvEntry}) -> {String: EnvEntry}
 → SetContext(#env, text⟦c†⟨NumberToText(GetContextCount(#env))⟩⟧, Plus(GetContextCount(#env), 1))
 
 // --- Rule case label
 
-func GetLabel(#env: {String : EnvEntry}) -> Text4_text_sort
+func GetLabel(#env: {String: EnvEntry}) -> Text4_text_sort
 → UnText(GetValue(#env, "label"))
 
-func SetLabel(#env: {String : EnvEntry}, #label: Text4_text_sort) -> {String : EnvEntry}
+func SetLabel(#env: {String: EnvEntry}, #label: Text4_text_sort) -> {String: EnvEntry}
 → SetValue(#env, "label", EText(#label))
 
 // --- Parent term
 
-func GetParent(#env: {String : EnvEntry}) -> Text4_text_sort
+func GetParent(#env: {String: EnvEntry}) -> Text4_text_sort
 → UnText(GetValue(#env, "parent"))
 
-func SetParent(#env: {String : EnvEntry}, #parent: Text4_text_sort) -> {String : EnvEntry}
+func SetParent(#env: {String: EnvEntry}, #parent: Text4_text_sort) -> {String: EnvEntry}
 → SetValue(#env, "parent",  EText(#parent))
 
 // --- sub index
 
-func GetSubIndex(#env: {String : EnvEntry}) -> Numeric
+func GetSubIndex(#env: {String: EnvEntry}) -> Numeric
 → UnNum(GetValue(#env, "subindex"))
 
-func SetSubIndex(#env: {String : EnvEntry}, #index: Numeric) -> {String : EnvEntry}
+func SetSubIndex(#env: {String: EnvEntry}, #index: Numeric) -> {String: EnvEntry}
 → SetValue(#env, "subindex", ENum(#index))
 
 // --- sub binder index
 
-func GetSubBinderIndex(#env: {String : EnvEntry}) -> Numeric
+func GetSubBinderIndex(#env: {String: EnvEntry}) -> Numeric
 → UnNum(GetValue(#env, "binderindex"))
 
-func SetSubBinderIndex(#env: {String : EnvEntry}, #index: Numeric) -> {String : EnvEntry}
+func SetSubBinderIndex(#env: {String: EnvEntry}, #index: Numeric) -> {String: EnvEntry}
 → SetValue(#env, "binderindex", ENum(#index))
 
-func IncSubBinderIndex(#env: {String : EnvEntry}) -> {String : EnvEntry}
+func IncSubBinderIndex(#env: {String: EnvEntry}) -> {String: EnvEntry}
 → SetValue(#env, "binderindex", ENum(Plus(GetSubBinderIndex(#env), 1)))
 
 // --- Delayed map entries
 
-func GetDelayEntries(#env: {String : EnvEntry}) -> {String:List<MapEntry>}
+func GetDelayEntries(#env: {String: EnvEntry}) -> {String:List<MapEntry>}
 → UnMapEntries(GetValue(#env, "delay"))
 
-func SetDelayEntries(#env: {String : EnvEntry}, #entries: {String:List<MapEntry>}) -> {String : EnvEntry}
+func SetDelayEntries(#env: {String: EnvEntry}, #entries: {String:List<MapEntry>}) -> {String: EnvEntry}
 → SetValue(#env, "delay", EMapEntries(#entries))
 
-func GetDelayEntriesForVar(#env: {String : EnvEntry}, #var: String) -> List<MapEntry>
+func GetDelayEntriesForVar(#env: {String: EnvEntry}, #var: String) -> List<MapEntry>
 → IfPresent(MapGet(GetDelayEntries(#env), #var), (entries)->entries, ()->())
 
-func DelayMapEntry(#env: {String : EnvEntry}, #var: String, #entry: MapEntry) -> {String : EnvEntry}
+func DelayMapEntry(#env: {String: EnvEntry}, #var: String, #entry: MapEntry) -> {String: EnvEntry}
 → SetDelayEntries(#env, MapPut(GetDelayEntries(#env), #var, Cons(#entry, GetDelayEntriesForVar(#env, #var))))
+
+// --- rule annotations
+
+func GetRuleAnno(#env: {String: EnvEntry}) -> List<Core_canno_sort>
+→ UnAnno(GetValue(#env, "ruleanno"))
+
+func SetRuleAnno(#env: {String: EnvEntry}, #anno*: List<Core_canno_sort>) -> {String: EnvEntry}
+→ SetValue(#env, "ruleanno", Anno(#anno*))
+
+// --- List of top-level terms to release before contraction
+
+func GetDiscard(#env: {String : EnvEntry}) -> List<Text4_text_sort>
+→ UnTexts(GetValue(#env, "discard"))
+
+func SetDiscard(#env: {String : EnvEntry}, #terms: List<Text4_text_sort>) -> {String : EnvEntry}
+→ SetValue(#env, "discard", ETexts(#terms))
+
+func AddDiscard(#env: {String : EnvEntry}, #term:Text4_text_sort) -> {String : EnvEntry}
+→ SetDiscard(#env, (#term, GetDiscard(#env)...))
 
 // --- Some generic helper functions
 
-func GetValue(#env: {String : EnvEntry}, #key: String) -> EnvEntry
+func GetValue(#env: {String: EnvEntry}, #key: String) -> EnvEntry
 → UnSOME(MapGet(#env, #key))
 
-func SetValue(#env: {String : EnvEntry}, #key: String, #value: EnvEntry) -> {String : EnvEntry}
+func SetValue(#env: {String: EnvEntry}, #key: String, #value: EnvEntry) -> {String: EnvEntry}
 → MapPut(#env, #key, #value)

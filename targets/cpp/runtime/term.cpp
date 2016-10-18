@@ -9,8 +9,7 @@ namespace tosca {
 
     // --- Ref
 
-    Ref::Ref() :
-    refcount(1)
+    Ref::Ref(): refcount(1)
     {
     }
 
@@ -22,13 +21,13 @@ namespace tosca {
 
     void Ref::AddRef()
     {
-        // assert(refcount > 0);
+        assert(refcount > 0);
         refcount++;
     }
 
     void Ref::Release()
     {
-        //assert(refcount > 0);
+        assert(refcount > 0);
         refcount--;
         //if (refcount == 0)
         //  delete this;

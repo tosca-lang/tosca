@@ -22,6 +22,7 @@ namespace tosca {
     // Forward declarations
     template<typename K, typename V> class MapTerm;
     template<typename K, typename V> MapTerm<K, V>& newMapTerm();
+    template<typename T> T& NewRef(T&);
 
     // MapTerm type definition
     template<typename K, typename V>
@@ -51,7 +52,7 @@ namespace tosca {
          * @param key term. The reference is used.
          * @param value the associated term value. The reference is used.
          */
-        virtual void putValue(K& key, V& value)
+        virtual void putValue(Context& ctx, K& key, V& value)
         {
             throw new std::runtime_error("");
         }
@@ -151,13 +152,21 @@ namespace tosca {
 
         MapTerm<K, V>& extend()
         {
+            this->AddRef();
             CMapTerm<K, V>& extended = *(new CMapTerm<K, V>(*this));
             return extended;
         }
 
-        void putValue(K& key, V& value)
+        void putValue(Context& ctx, K& key, V& value)
         {
+            auto search = map.find(&key);
             map.insert({&key, &value});
+            if (search != map.end())
+            {
+                // Entry has been replaced so release references to previous entry
+                search->first->Release();
+                search->second->Release();
+            }
         }
 
         Option<V>& getValue(Context& ctx, K& key)
@@ -170,7 +179,7 @@ namespace tosca {
 
                 return newNONE<V>(ctx);
             }
-            return newSOME<V>(ctx, *search->second);
+            return newSOME<V>(ctx, tosca::NewRef(*search->second));
         }
 
         void putAll(MapTerm<K, V> map)
@@ -205,10 +214,9 @@ namespace tosca {
 
         bool DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const
         {
-        //    std::cout<< "MapTerm deep equality not implemented";
+            // implement equality modulo variable and map.
             return true;
         }
-
 
         Term& Substitute(tosca::Context& ctx, std::unordered_map<Variable*, Term*>& substitutes)
         {
@@ -220,7 +228,7 @@ namespace tosca {
                 {
                     it->first->AddRef();
                     it->second->AddRef();
-                    copy.putValue(*it->first, dynamic_cast<V&>(it->second->Substitute(ctx, substitutes)));
+                    copy.putValue(ctx, *it->first, dynamic_cast<V&>(it->second->Substitute(ctx, substitutes)));
                 }
                 if (!cmap.parent)
                     break;
@@ -236,11 +244,8 @@ namespace tosca {
         // Extended map
         Optional<CMapTerm> parent;
 
-        CMapTerm(CMapTerm& parent) :
-        parent(make_optional<CMapTerm>(parent))
-        {
-            parent.AddRef();
-        }
+        CMapTerm(CMapTerm& parent): parent(make_optional<CMapTerm>(parent))
+        {}
     };
 
     // Construction

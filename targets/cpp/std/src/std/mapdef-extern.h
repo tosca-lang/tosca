@@ -20,14 +20,8 @@ class Bool;
 template<typename a, typename b>
 tosca::MapTerm<a, b>& MapPut(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key, b& value)
 {
-    tosca::MapTerm<a, b>& emap = force(ctx, map);
-    a& ekey = force(ctx, key);
-    b& evalue = force(ctx, value);
-
-    // TODO extends only when refcount > 1
-    tosca::MapTerm<a, b>& xmap = emap.extend();
-    xmap.putValue(ekey, evalue);
-
+    tosca::MapTerm<a, b>& xmap = map.extend();
+    xmap.putValue(ctx, key, value);
     return xmap;
 }
 
@@ -41,11 +35,8 @@ tosca::MapTerm<a, b>& MapPut(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& 
 template<typename a, typename b>
 tosca::MapTerm<a, b>& MapAddAll(tosca::Context& ctx, tosca::MapTerm<a, b>& map1, tosca::MapTerm<a, b>& map2)
 {
-    tosca::MapTerm<a, b>& emap1 = force(ctx, map1);
-    tosca::MapTerm<a, b>& emap2 = force(ctx, map2);
-
-    tosca::MapTerm<a, b>& xmap = emap1.extend();
-    xmap.putAll(emap2);
+    tosca::MapTerm<a, b>& xmap = map1.extend();
+    xmap.putAll(map2);
     return xmap;
 }
 
@@ -59,12 +50,9 @@ tosca::MapTerm<a, b>& MapAddAll(tosca::Context& ctx, tosca::MapTerm<a, b>& map1,
 template<typename a, typename b>
 Option<b>& MapGet(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
 {
-    tosca::MapTerm<a, b>& emap = force(ctx, map);
-    a& ekey = force(ctx, key);
-
-    Option<b>& result = emap.getValue(ctx, ekey);
-   // emap.release();
-    return result;
+   Option<b>& result = map.getValue(ctx, key);
+   map.Release();
+   return result;
 }
 
 /**
@@ -79,35 +67,19 @@ Option<b>& MapGet(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
 template<typename a, typename b>
 tosca::MapTerm<a, b>& MapPutVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key, b& value)
 {
-    tosca::MapTerm<a, b>& emap = force(ctx, map);
-    a& ekey = force(ctx, key);
-    b& evalue = force(ctx, value);
-
-    auto v = ekey.variable();
+    auto v = key.variable();
     if (v)
-    {
-        // TODO extends only when refcount > 1
-        tosca::MapTerm<a, b>& xmap = emap.extend();
-        xmap.putValue(ekey, evalue);
-        return xmap;
-    }
-
+        return MapPut(ctx, map, key, value);
+    
     throw std::runtime_error("Invalid MapPutVar key. Excepted a variable use, but instead got :"); //+ key.toString()
 }
 
 template<typename a, typename b>
 Option<b>& MapGetVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
 {
-    tosca::MapTerm<a, b>& emap = force(ctx, map);
-    a& ekey = force(ctx, key);
-
-    auto v = ekey.GetVariable();
+    auto v = key.GetVariable();
     if (v)
-    {
-        Option<b>& result = emap.getValue(ctx, v.value().Use());
-        //emap.release();.
-        return result;
-    }
+        return MapGet(ctx, map, key);
 
     throw std::runtime_error("Invalid MapPutVar key. Excepted a variable use, but instead got :"); // + key.toString()
 }
@@ -123,18 +95,16 @@ Option<b>& MapGetVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
 template<typename a, typename b>
 List<a>& MapKeys(tosca::Context& ctx, tosca::MapTerm<a, b>& map)
 {
-    tosca::MapTerm<a, b>& emap = force(ctx, map);
-    List<a>& keys = emap.keys(ctx);
-    //emap.release();
+    List<a>& keys = map.keys(ctx);
+    map.Release();
     return keys;
 }
 
 template<typename a, typename b, typename c>
 List<c>& MapVarKeys(tosca::Context& ctx, tosca::MapTerm<a, b>& map)
 {
-    tosca::MapTerm<a, b>& emap = force(ctx, map);
-    List<c>& keys = emap.varKeys(ctx);
-    //emap.release();
+    List<c>& keys = map.varKeys(ctx);
+    map.Release();
     return keys;
 }
 
@@ -162,10 +132,8 @@ tosca::MapTerm<a, b>& MapNew(tosca::Context& ctx)
 template<typename a, typename b>
 List<b>& MapValues(tosca::Context& ctx, tosca::MapTerm<a, b>& map)
 {
-    tosca::MapTerm<a, b>& emap = force(ctx, map);
-
-    List<b>& values = emap.values(ctx);
-    emap.release();
+    List<b>& values = map.values(ctx);
+    map.Release();
     return values;
 }
 
@@ -180,10 +148,8 @@ List<b>& MapValues(tosca::Context& ctx, tosca::MapTerm<a, b>& map)
 template<typename a, typename b>
 List<b>& MapVarValues(tosca::Context& ctx, tosca::MapTerm<a, b>& map)
 {
-    tosca::MapTerm<a, b>& emap = force(ctx, map);
-
-    List<b>& values = emap.varValues(ctx);
-    emap.release();
+    List<b>& values = map.varValues(ctx);
+    map.Release();
     return values;
 }
 
