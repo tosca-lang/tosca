@@ -116,8 +116,8 @@ func BeforeLast-Helper(#before: String, #sep: String, #after: String) -> String
 
 /* Returns a new String joining the given list of strings together with the specified separator.*/
 func Join(List<String>, String) -> String
-rule Join((                                   ), #sep) → ""
-rule Join(Cons(#str:String, #strs:List<String>), #sep) → FoldlP<String String>((str r) -> ConcatString(r, ConcatString(#sep, str)), #str, #strs)
+rule Join((#str, #strs...), #sep) → FoldlP((str r) -> ConcatString(r, ConcatString(#sep, str)), #str, #strs)
+rule Join((              ), #sep) → ""
 
 /* Splits the string around the given separator string */
 @Extern func Split(String, String) -> List<String>

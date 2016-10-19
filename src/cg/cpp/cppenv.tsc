@@ -314,6 +314,17 @@ func SetDiscard(#env: {String : EnvEntry}, #terms: List<Text4_text_sort>) -> {St
 func AddDiscard(#env: {String : EnvEntry}, #term:Text4_text_sort) -> {String : EnvEntry}
 → SetDiscard(#env, (#term, GetDiscard(#env)...))
 
+// --- Whether to inline expression or to create an intermediary variable storing the expression evaluation.
+
+func SetInline(#env: {String: EnvEntry}) -> {String: EnvEntry}
+→ SetValue(#env, "inline", EBool(TRUE))
+
+func UnsetInline(#env: {String: EnvEntry}) -> {String: EnvEntry}
+→ SetValue(#env, "inline", EBool(FALSE))
+
+func IsInline(#env: {String: EnvEntry}) -> Bool
+→ UnBool(GetValue(#env, "inline"))
+
 // --- Some generic helper functions
 
 func GetValue(#env: {String: EnvEntry}, #key: String) -> EnvEntry

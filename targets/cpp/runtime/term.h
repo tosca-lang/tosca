@@ -39,6 +39,13 @@ namespace tosca {
 
         /** Release ref */
         void Release();
+
+        inline void Track()
+        {
+          track = true;
+        }
+    protected:
+        bool track;
     };
 
     /*

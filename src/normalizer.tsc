@@ -240,7 +240,7 @@ rule NMaybePatternArgs(fnParamDecls?⟦ ( ##fnParam* ) ⟧)  → cterms?⟦ ( �
 
 func NPatternArg(TransScript_fnParam_sort) -> Core_cterm_sort
 rule NPatternArg(fnParam⟦ ##METAVAR : ##sort ⟧) → cterm⟦ ##METAVAR ⟧
-rule NPatternArg(fnParam⟦ ##sort ⟧)             → Error("Missing function parameter meta variable.") // TODO
+rule NPatternArg(fnParam⟦ ##sort ⟧)             → Error("Missing function parameter name.") // TODO
 
 // ---- Terms
 

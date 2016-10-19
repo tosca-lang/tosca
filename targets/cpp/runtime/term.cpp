@@ -5,11 +5,13 @@
 #include "compat.h"
 #include "ts.h"
 
+
+
 namespace tosca {
 
     // --- Ref
 
-    Ref::Ref(): refcount(1)
+    Ref::Ref(): refcount(1), track(false)
     {
     }
 
@@ -23,12 +25,17 @@ namespace tosca {
     {
         assert(refcount > 0);
         refcount++;
+        if (track)
+          std::cout << ((void*) this) << " add ref " << refcount;
     }
 
     void Ref::Release()
     {
         assert(refcount > 0);
         refcount--;
+
+        if (track)
+          std::cout << ((void*) this) << " released " << refcount;
         if (refcount == 0)
           delete this;
     }

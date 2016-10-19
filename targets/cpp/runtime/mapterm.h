@@ -144,11 +144,11 @@ namespace tosca {
         {
             if (parent)
                 parent.value().Release();
-            
-            for (const auto& iter : map)
+
+            for (auto iter = map.begin(); iter != map.end(); iter ++)
             {
-                iter.first->Release();
-                iter.second->Release();
+                iter->first->Release();
+                iter->second->Release();
             }
         }
 
