@@ -103,23 +103,8 @@ rule NMaybeDefaultValue(defaultValue?⟦ = ##term  ⟧) → cdefaultvalue?⟦ = 
 
 // ---- Sort
 
-
 func NSort(TransScript_sort_sort) -> Core_csort_sort
 rule NSort(sort⟦ ##anno* ##sortScope? ##paramSort ⟧) → NMaybeSortScope(NAnnos(#anno*), #sortScope?, #paramSort)
-
-  /*rule NSort(sort⟦ ##sortScope? ##constructor ##sortArgs? ⟧)
-  → NMaybeSortScope(#sortScope?, NParamSort(#constructor, #sortArgs?))
-
-  rule NSort(sort⟦ ##sortScope? ##VARIABLE ⟧)
-  → NMaybeSortScope(#sortScope?, csort⟦ ##VARIABLE ⟧)
-
-  // Single map
-  rule NSort(sort⟦ { ##sort1 : ##sort2 } ⟧)
-  → csort⟦ { ⟨csort: NSort(#sort1)⟩ : ⟨csort: NSort(#sort2)⟩ } ⟧
-
-  // Multi-maps
-  rule NSort(sort⟦ { ##sortMap* } ⟧)
-  → csort⟦ ⟨CONSTRUCTOR: NMultiMapWrapper(ListLength(#sortMap*))⟩ ( ⟨csort*:Flatten(Map((sortMap)->NSortMap(sortMap), #sortMap*))⟩ ) ⟧*/
 
 func NMaybeSortScope(List<Core_canno_sort>, List<TransScript_sortScope_sort>, TransScript_paramSort_sort) -> Core_csort_sort
 
@@ -215,15 +200,24 @@ rule NAnno(anno⟦ @ ##METAVAR ⟧) → canno⟦ @ ##METAVAR ⟧
 func NMaybeParamDecls(List<TransScript_fnParamDecls_sort>) -> List<Core_csorts_sort>
 rule NMaybeParamDecls(fnParamDecls?⟦                ⟧) → csorts?⟦⟧
 rule NMaybeParamDecls(fnParamDecls?⟦ (            ) ⟧) → csorts?⟦⟧
-rule NMaybeParamDecls(fnParamDecls?⟦ ( ##fnParam* ) ⟧) → csorts?⟦ ( ⟨csort*: Map((x)->NParam(x), #fnParam*)⟩ ) ⟧
+rule NMaybeParamDecls(fnParamDecls?⟦ ( ##fnParam* ) ⟧) → csorts?⟦ ( ⟨csort*: NParams(#fnParam*)⟩ ) ⟧
+
+func NParams(List<TransScript_fnParam_sort>) -> List<Core_csort_sort>
+rule NParams(fnParam*⟦ ##METAVAR : ##sort ... ⟧) → csort*⟦ ⟨csort: AnnotateSort(NSort(#sort), canno*⟦ @Variadic ⟧)⟩ ⟧
+rule NParams(fnParam*⟦             ##sort ... ⟧) → csort*⟦ ⟨csort: AnnotateSort(NSort(#sort), canno*⟦ @Variadic ⟧)⟩ ⟧
+rule NParams(fnParam*⟦ ##fnParam ##fnParam*   ⟧) → csort*⟦ ⟨csort: NParam(#fnParam)⟩ ⟨csort*: NParams(#fnParam*)⟩ ⟧
+rule NParams(fnParam*⟦                        ⟧) → csort*⟦⟧
 
 func NParam(TransScript_fnParam_sort) -> Core_csort_sort
 rule NParam(fnParam⟦ ##METAVAR : ##sort ⟧) → NSort(#sort)
-rule NParam(fnParam⟦ ##sort             ⟧) → NSort(#sort)
+rule NParam(fnParam⟦ ##sort ⟧) → NSort(#sort)
 
 // deprecated
 rule NParam(fnParam⟦ ##METAVAR : eager ##sort ⟧) → csort⟦ data ⟨csort: NSort(#sort)⟩ ⟧
 rule NParam(fnParam⟦ eager ##sort             ⟧) → csort⟦ data ⟨csort: NSort(#sort)⟩ ⟧
+
+rule NParam(fnParam⟦ ##METAVAR : ##sort ... ⟧) → Error("Error: variadic parameter must occur last")
+rule NParam(fnParam⟦ ##sort ...             ⟧) → Error("Error: variadic parameter must occur last")
 
 func NMaybeBody(List<TransScript_fnBody_sort>, TransScript_constructor_sort, List<TransScript_fnParamDecls_sort>) -> List<Core_cdecl_sort>
 
@@ -239,7 +233,7 @@ rule NMaybePatternArgs(fnParamDecls?⟦ (            ) ⟧)  → cterms?⟦⟧
 rule NMaybePatternArgs(fnParamDecls?⟦ ( ##fnParam* ) ⟧)  → cterms?⟦ ( ⟨cterm*: Map((x)->NPatternArg(x), #fnParam*)⟩) ⟧
 
 func NPatternArg(TransScript_fnParam_sort) -> Core_cterm_sort
-rule NPatternArg(fnParam⟦ ##METAVAR : ##sort ⟧) → cterm⟦ ##METAVAR ⟧
+rule NPatternArg(fnParam⟦ ##METAVAR : ##sort ##variadic ⟧) → cterm⟦ ##METAVAR ⟧
 rule NPatternArg(fnParam⟦ ##sort ⟧)             → Error("Missing function parameter name.") // TODO
 
 // ---- Terms

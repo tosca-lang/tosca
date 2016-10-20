@@ -97,7 +97,7 @@ rule NoAliasMapEntry(#aliases, #cmapentry                       ) → #cmapentry
 // --- Sorts
 
 func NoAliasSort(DeclIndex, Core_csort_sort) -> Core_csort_sort
-rule NoAliasSort(#aliases, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧) → NoAliasSortConstructor(MapGet(#aliases, #CONSTRUCTOR), #aliases, #CONSTRUCTOR, #csorts?)
+rule NoAliasSort(#aliases, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧) → NoAliasSortConstructor(#canno*, MapGet(#aliases, #CONSTRUCTOR), #aliases, #CONSTRUCTOR, #csorts?)
 rule NoAliasSort(#aliases, csort⟦ ##canno* ##VARIABLE              ⟧) → csort⟦ ##canno* ##VARIABLE ⟧
 rule NoAliasSort(#aliases, csort⟦ ##canno* [ ##csort1 ] ##csort2   ⟧) → csort⟦ ##canno* [ ⟨csort: NoAliasSort(#aliases, #csort1)⟩ ] ⟨csort: NoAliasSort(#aliases, #csort2)⟩ ⟧
 rule NoAliasSort(#aliases, csort⟦ ##canno* ( ##csort1 ) ##csort2   ⟧) → csort⟦ ##canno* ( ⟨csort: NoAliasSort(#aliases, #csort1)⟩ ) ⟨csort: NoAliasSort(#aliases, #csort2)⟩ ⟧
@@ -105,15 +105,16 @@ rule NoAliasSort(#aliases, csort⟦ ##canno* { ##cmapsort* }         ⟧) → cs
 rule NoAliasSort(#aliases, csort⟦ ##canno* thunk ##csort           ⟧) → csort⟦ ##canno* thunk ⟨csort: NoAliasSort(#aliases, #csort)⟩ ⟧
 rule NoAliasSort(#aliases, csort⟦ ##canno* data ##csort            ⟧) → csort⟦ ##canno* data ⟨csort: NoAliasSort(#aliases, #csort)⟩ ⟧
 
-func NoAliasSortConstructor(Option<Core_cdecl_sort>, DeclIndex, String, List<Core_csorts_sort>) -> Core_csort_sort
+func NoAliasSortConstructor(List<Core_canno_sort>, Option<Core_cdecl_sort>, DeclIndex, String, List<Core_csorts_sort>) -> Core_csort_sort
 
-  rule NoAliasSortConstructor(NONE, #aliases, #CONSTRUCTOR, #csorts?)
-  → csort⟦ ##CONSTRUCTOR ⟨csorts?: NoAliasMaybeSorts(#aliases, #csorts?)⟩ ⟧
+  rule NoAliasSortConstructor(#canno*, NONE, #aliases, #CONSTRUCTOR, #csorts?)
+  → csort⟦ ##canno* ##CONSTRUCTOR ⟨csorts?: NoAliasMaybeSorts(#aliases, #csorts?)⟩ ⟧
 
-  rule NoAliasSortConstructor(SOME(cdecl⟦ ##canno* alias ##CONSTRUCTOR1 ##csort ⟧), #aliases, #CONSTRUCTOR, csorts?⟦⟧)
+  // TODO: consider propagating annotations.
+  rule NoAliasSortConstructor(#canno*, SOME(cdecl⟦ ##canno* alias ##CONSTRUCTOR1 ##csort ⟧), #aliases, #CONSTRUCTOR, csorts?⟦⟧)
   → NoAliasSort(#aliases, #csort)
 
-  rule NoAliasSortConstructor(SOME(#cdecl), #aliases, #CONSTRUCTOR, #csorts?)
+  rule NoAliasSortConstructor(#canno*, SOME(#cdecl), #aliases, #CONSTRUCTOR, #csorts?)
   → Error("Polymorphic sort aliases not supported yet")
 
 func NoAliasMaybeSorts(DeclIndex, List<Core_csorts_sort>) -> List<Core_csorts_sort>

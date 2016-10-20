@@ -2,6 +2,9 @@
 #ifndef _STRING_EXTERN
 #define _STRING_EXTERN
 
+#include <string>
+#include "term.h"
+
 // Forward declarations
 
 namespace tosca {
@@ -24,8 +27,31 @@ extern tosca::StringTerm& BeforeFirst(tosca::Context&, tosca::StringTerm&, tosca
 /* @return `TRUE` if and only if the given strings are equals. */
 extern Bool& StringEqual(tosca::Context&, tosca::StringTerm&, tosca::StringTerm&);
 
-/* @return the concatenation of the two given string */
-extern tosca::StringTerm& ConcatString(tosca::Context&, tosca::StringTerm&, tosca::StringTerm&);
+/* @return the concatenation of the given strings */
+template <typename T1>
+tosca::StringTerm& ConcatString(tosca::Context&)
+{
+    return newStringTerm("");
+}
+
+template <typename T1>
+tosca::StringTerm& ConcatString(tosca::Context&, T1& str)
+{
+    return static_cast<tosca::StringTerm&>(str);
+}
+
+
+template <typename T1, typename ... Ts>
+tosca::StringTerm& ConcatString(tosca::Context& ctx, T1 str, Ts... strs)
+{
+    tosca::StringTerm& s1 = static_cast<tosca::StringTerm&>(str);
+    tosca::StringTerm& s2 = ConcatString(ctx, strs...);
+    tosca::StringTerm& result = newStringTerm(s1.Unbox() + s2.Unbox());
+    s1.Release();
+    s2.Release();
+    return result;
+}
+
 
 extern tosca::StringTerm& Escape(tosca::Context&, tosca::StringTerm&);
 

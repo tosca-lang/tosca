@@ -124,7 +124,7 @@ anno
     ;
 
 fnParamDecls
-     : LPAR fnParams? RPAR
+     : LPAR fnParams? variadic RPAR
      ;
 
 fnParams
@@ -132,11 +132,16 @@ fnParams
     ;
 
 fnParam
-    : fnParamName? eager? sort
+    : fnParamName? eager? sort variadic
     ;
 
 eager
     : EAGER
+    ;
+
+variadic
+    : TAIL
+    |
     ;
 
 fnParamName

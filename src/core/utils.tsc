@@ -126,6 +126,37 @@ func AnnotateTerm(Core_cterm_sort, List<Core_canno_sort>) -> Core_cterm_sort
   rule AnnotateTerm(cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧, #canno*2)
   → cterm⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧
 
+/* Annotate the given `#sort`. Existing annotations are preserved. Does not check for duplicate. */
+func AnnotateSort(Core_csort_sort, List<Core_canno_sort>) -> Core_csort_sort
+rule AnnotateSort(csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #canno*2) → csort⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ ##CONSTRUCTOR ##csorts? ⟧
+rule AnnotateSort(csort⟦ ##canno* ##VARIABLE              ⟧, #canno*2) → csort⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ ##VARIABLE              ⟧
+rule AnnotateSort(csort⟦ ##canno* [ ##csort ] ##csort2    ⟧, #canno*2) → csort⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ [ ##csort ] ##csort2    ⟧
+rule AnnotateSort(csort⟦ ##canno* ( ##csort ) ##csort2    ⟧, #canno*2) → csort⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ ( ##csort ) ##csort2    ⟧
+rule AnnotateSort(csort⟦ ##canno* { ##cmapsort }          ⟧, #canno*2) → csort⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ { ##cmapsort }          ⟧
+rule AnnotateSort(csort⟦ ##canno* data ##csort            ⟧, #canno*2) → csort⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ data ##csort            ⟧
+rule AnnotateSort(csort⟦ ##canno* thunk ##csort           ⟧, #canno*2) → csort⟦ ⟨canno*: Concat(#canno*, #canno*2)⟩ thunk ##csort           ⟧
+
+/* Extract the annotations list from the given `#sort` */
+func GetSortAnnotations(Core_csort_sort) -> List<Core_canno_sort>
+rule GetSortAnnotations(csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧) → #canno*
+rule GetSortAnnotations(csort⟦ ##canno* ##VARIABLE              ⟧) → #canno*
+rule GetSortAnnotations(csort⟦ ##canno* [ ##csort ] ##csort2    ⟧) → #canno*
+rule GetSortAnnotations(csort⟦ ##canno* ( ##csort ) ##csort2    ⟧) → #canno*
+rule GetSortAnnotations(csort⟦ ##canno* { ##cmapsort }          ⟧) → #canno*
+rule GetSortAnnotations(csort⟦ ##canno* data ##csort            ⟧) → #canno*
+rule GetSortAnnotations(csort⟦ ##canno* thunk ##csort           ⟧) → #canno*
+
+/* Remove the given `#anno` from the annotations on the given sort */
+func RemoveSortAnnotation(String, Core_csort_sort) -> Core_csort_sort
+rule RemoveSortAnnotation(#anno, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧) → csort⟦ ⟨canno*: RemoveAnnotation(#anno, #canno*)⟩ ##CONSTRUCTOR ##csorts? ⟧
+rule RemoveSortAnnotation(#anno, csort⟦ ##canno* ##VARIABLE              ⟧) → csort⟦ ⟨canno*: RemoveAnnotation(#anno, #canno*)⟩ ##VARIABLE              ⟧
+rule RemoveSortAnnotation(#anno, csort⟦ ##canno* [ ##csort ] ##csort2    ⟧) → csort⟦ ⟨canno*: RemoveAnnotation(#anno, #canno*)⟩ [ ##csort ] ##csort2    ⟧
+rule RemoveSortAnnotation(#anno, csort⟦ ##canno* ( ##csort ) ##csort2    ⟧) → csort⟦ ⟨canno*: RemoveAnnotation(#anno, #canno*)⟩ ( ##csort ) ##csort2    ⟧
+rule RemoveSortAnnotation(#anno, csort⟦ ##canno* { ##cmapsort }          ⟧) → csort⟦ ⟨canno*: RemoveAnnotation(#anno, #canno*)⟩ { ##cmapsort }          ⟧
+rule RemoveSortAnnotation(#anno, csort⟦ ##canno* data ##csort            ⟧) → csort⟦ ⟨canno*: RemoveAnnotation(#anno, #canno*)⟩ data ##csort            ⟧
+rule RemoveSortAnnotation(#anno, csort⟦ ##canno* thunk ##csort           ⟧) → csort⟦ ⟨canno*: RemoveAnnotation(#anno, #canno*)⟩ thunk ##csort           ⟧
+
+
 /* @return the string concatenation represeting the given `#qualifiedIdentifier` */
 func JoinQIdentifier(#cqiden: Core_cqidentifier_sort, #sep: String, #mangle:Bool) -> String
 → Join(QIdentifierList(#cqiden, #mangle), #sep)

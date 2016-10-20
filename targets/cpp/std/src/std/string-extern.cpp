@@ -42,14 +42,6 @@ Bool& StringEqual(Context& ctx, StringTerm& str1, StringTerm& str2)
     return result;
 }
 
-StringTerm& ConcatString(Context& ctx, StringTerm& str1, StringTerm& str2)
-{
-    StringTerm& result = newStringTerm(str1.Unbox() + str2.Unbox());
-    str1.Release();
-    str2.Release();
-    return result;
-}
-
 StringTerm& Escape(Context& ctx, StringTerm& str)
 {
     StringTerm& result = newStringTerm(makeEscaped(ctx, str.Unbox().c_str()));

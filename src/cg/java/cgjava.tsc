@@ -620,20 +620,20 @@ rule SortToTypes(#csort) → SortToTypes2(#csort, ())
 
 func SortToTypes2(Core_csort_sort, List<Text4_text_sort> /* formal params */) -> List<Text4_text_sort>
 
-  rule SortToTypes2(csort⟦ ##CONSTRUCTOR ##csorts? ⟧, ())
-  → Cons(text⟦⟨STRING: Mangle(FixupPrimitiveType(#CONSTRUCTOR))⟩†⟨MaybeSortsToTypeParams(#csorts?)⟩⟧, Nil)
+  rule SortToTypes2(csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, ())
+  → (text⟦⟨STRING: Mangle(FixupPrimitiveType(#CONSTRUCTOR))⟩†⟨MaybeSortsToTypeParams(#csorts?)⟩⟧, )
 
-  rule SortToTypes2(csort⟦ ##CONSTRUCTOR ##csorts? ⟧, Cons(#formal:Text4_text_sort, #formals:List<Text4_text_sort>))
-  → Cons(text⟦Closure†⟨NumberToText(Plus(ListLength<Text4_text_sort>(#formals), 1))⟩<⟨STRING:
+  rule SortToTypes2(csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, (#formal, #formals...))
+  → (text⟦Closure†⟨NumberToText(Plus(ListLength(#formals), 1))⟩<⟨STRING:
        Mangle(FixupPrimitiveType(#CONSTRUCTOR))⟩†⟨MaybeSortsToTypeParams(#csorts?) /* Return type */⟩, †⟨
-       TextFold(Cons(#formal, #formals), text⟦, ⟧) /* JFormal params */⟩>⟧, Nil)
+       TextFold((#formal, #formals...), text⟦, ⟧) /* JFormal params */⟩>⟧,)
 
-  rule SortToTypes2(csort⟦ ##VARIABLE ⟧, ())
-  → Cons(text⟦⟨STRING: Mangle(#VARIABLE)⟩⟧, Nil)
+  rule SortToTypes2(csort⟦ ##canno* ##VARIABLE ⟧, ())
+  → (text⟦⟨STRING: Mangle(#VARIABLE)⟩⟧,)
 
-  rule SortToTypes2(csort⟦ ##VARIABLE ⟧, Cons(#formal:Text4_text_sort, #formals:List<Text4_text_sort>))
-  → Cons(text⟦Closure†⟨NumberToText(Plus(ListLength(#formals), 1))⟩<⟨STRING: #VARIABLE /* Return type */⟩, †⟨
-       TextFold(Cons(#formal, #formals), text⟦, ⟧) /* JFormal params */⟩>⟧, Nil)
+  rule SortToTypes2(csort⟦ ##canno* ##VARIABLE ⟧, (#formal, #formals...))
+  → (text⟦Closure†⟨NumberToText(Plus(ListLength(#formals), 1))⟩<⟨STRING: #VARIABLE /* Return type */⟩, †⟨
+       TextFold((#formal, #formals...), text⟦, ⟧) /* JFormal params */⟩>⟧,)
 
   rule SortToTypes2(csort⟦ [ ##csort ] ##csort2 ⟧, #formals)
   → Cons(text⟦Var†⟨SortToType(#csort)⟩⟧, SortToTypes2(#csort2, #formals))
@@ -671,6 +671,12 @@ rule MaybeSortToTypeD(SOME(#csort), #default) → Last(SortToTypes(#csort)) // T
 /* Sort qualifier to type */
 func SortQualifierToType(Core_csortqualifier_sort) -> Text4_text_sort
 rule SortQualifierToType(csortqualifier⟦ ##csort :: ⟧) → SortToType(#csort)
+
+func JavaVariadic(#canno*: List<Core_canno_sort>) -> Text4_text_sort
+→ if HasAnnotation("Variadic", #canno*)
+    text⟦...⟧
+  else
+    text⟦⟧
 
 //-------------- Translate functions and rules
 
@@ -719,26 +725,26 @@ rule ThunkMakerArgHelper(#) → text⟦, tm⟨STRING: #⟩⟧
 
 func ThunkMaker(Core_csort_sort) -> Text4_text_sort
 
-  rule ThunkMaker(csort⟦ ##CONSTRUCTOR ##csorts? ⟧)
+  rule ThunkMaker(csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧)
   → text⟦lazy⟨STRING: Mangle(FixupPrimitiveType(#CONSTRUCTOR))⟩⟧
 
-  rule ThunkMaker(csort⟦ ##VARIABLE ⟧) // polymorphic return type.
+  rule ThunkMaker(csort⟦ ##canno*  ##VARIABLE ⟧) // polymorphic return type.
   → text⟦tm⟨STRING: #VARIABLE⟩.apply⟧
 
-  rule ThunkMaker(csort⟦ [ ##csort ] ##csort2 ⟧)
+  rule ThunkMaker(csort⟦ ##canno* [ ##csort ] ##csort2 ⟧)
   → Error<Text4_text_sort>("Internal error: a function cannot return scoped values")
 
-  rule ThunkMaker(csort⟦ ( ##csort ) ##csort2 ⟧)
+  rule ThunkMaker(csort⟦ ##canno* ( ##csort ) ##csort2 ⟧)
   → Error<Text4_text_sort>("Internal error: a function cannot return another function")
 
   // Java infers map types.
-  rule ThunkMaker(csort⟦ { ##cmapsort } ⟧)
+  rule ThunkMaker(csort⟦ ##canno* { ##cmapsort } ⟧)
   → text⟦lazyMapTerm⟧
 
-  rule ThunkMaker(csort⟦ data ##csort ⟧)
+  rule ThunkMaker(csort⟦ ##canno* data ##csort ⟧)
   → ThunkMaker(#csort)
 
-  rule ThunkMaker(csort⟦ thunk ##csort ⟧)
+  rule ThunkMaker(csort⟦ ##canno* thunk ##csort ⟧)
   → ThunkMaker(#csort)
 
 // --- Generate method signature
@@ -763,32 +769,32 @@ func JavaSigArg({String : JEnvEntry}, Core_csort_sort, Bool /* data? */,
                 List<Text4_text_sort> /* formal parameters */, List<Core_csort_sort>, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
 
  // Monomorphic sort
-   rule JavaSigArg(#env, csort⟦ ##CONSTRUCTOR ##csorts? ⟧, #data, (#type,), #csort*, #rules)
-   → text⟦, †⟨#type⟩ ⟨STRING: value:String⟩†⟨
+   rule JavaSigArg(#env, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #data, (#type,), #csort*, #rules)
+   → text⟦, †⟨#type⟩†⟨JavaVariadic(#canno*)⟩ ⟨STRING: value:String⟩†⟨
        JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: value⟩⟧, csort⟦ ##CONSTRUCTOR ##csorts? ⟧), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
 
    // Sort variable
-   rule JavaSigArg(#env, csort⟦ ##VARIABLE ⟧, #data, (#type,), #csort*, #rules)
-   → text⟦, †⟨#type⟩ ⟨STRING: value:String⟩†⟨
+   rule JavaSigArg(#env, csort⟦ ##canno* ##VARIABLE ⟧, #data, (#type,), #csort*, #rules)
+   → text⟦, †⟨#type⟩†⟨JavaVariadic(#canno*)⟩ ⟨STRING: value:String⟩†⟨
        JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: value⟩⟧, csort⟦ ##VARIABLE ⟧), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
 
    // Syntactic variable sort
-   rule JavaSigArg(#env, csort⟦ [ ##csort ] ##csort2 ⟧, #data, (#type, #types...), #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ ##canno* [ ##csort ] ##csort2 ⟧, #data, (#type, #types...), #csort*, #rules)
    → text⟦, †⟨#type⟩ ⟨STRING: var:String⟩†⟨
        JavaSigArg(JAddThunk(JAddParam(#env, text⟦⟨STRING: var⟩⟧, #csort), text⟦⟨STRING: var⟩⟧), #csort2, #data, #types, #csort*, #rules)⟩⟧
 
    // Formal parameter sort
-   rule JavaSigArg(#env, csort⟦ ( ##csort ) ##csort2 ⟧, #data, #types, #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ ##canno* ( ##csort ) ##csort2 ⟧, #data, #types, #csort*, #rules)
    → JavaSigArg(#env, #csort2, #data, #types, #csort*, #rules)
 
-   rule JavaSigArg(#env, csort⟦ { ##cmapsort* } ⟧, #data, (#type,), #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ ##canno* { ##cmapsort* } ⟧, #data, (#type,), #csort*, #rules)
    → text⟦, †⟨#type⟩ ⟨STRING: map:String⟩†⟨
        JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: map⟩⟧, csort⟦ { ##cmapsort* } ⟧), text⟦⟨STRING: map⟩⟧), #csort*, #rules)⟩⟧
 
-   rule JavaSigArg(#env, csort⟦ data ##csort ⟧, #data, #types, #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ ##canno* data ##csort ⟧, #data, #types, #csort*, #rules)
    → JavaSigArg(#env, #csort, TRUE, #types, #csort*, #rules)
 
-   rule JavaSigArg(#env, csort⟦ thunk ##csort ⟧, #data, #types, #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ ##canno* thunk ##csort ⟧, #data, #types, #csort*, #rules)
    → JavaSigArg(#env, #csort, #data, #types, #csort*, #rules)
 
 // --- Generate method body
@@ -1219,6 +1225,9 @@ func JavaStatementTerm(#env: {String : JEnvEntry}, #cterm:Core_cterm_sort, ({Str
   → text⟦return †⟨JavaExprTerm(#env, #cterm, (env)->text⟦;†⟨#cont(env)⟩⟧)⟩⟧
 
 // -- If
+
+// TODO: LIFETIME IS NOT YET WORKING PROPERLY.
+// EXAMPLE: BeforeLast
 
 func JavaIfStatement({String : JEnvEntry}, Core_cterm_sort, List<Core_cterm_sort>, Core_cterm_sort, List<Core_cterm_sort>, Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 rule JavaIfStatement(#env, #cond, #cptrstrue, #true, #cptrsfalse, #false, #cont)

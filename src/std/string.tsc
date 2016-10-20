@@ -34,8 +34,8 @@ func IfEmptyString<a>(#string: String, #true: ()->a, #false: ()->a) -> a
 
 // --- Mutation
 
-/* @return the concatenation of the two given string */
-@Extern func ConcatString(String, String) -> String
+/* @return the concatenation of the given strings */
+@Extern func ConcatString(String...) -> String
 
 @Extern func Rescape(String) -> String
 
@@ -90,24 +90,22 @@ func RemoveLastChar(#string: String) -> String
 /* @return the string converted to a valid Java/C/C++ identifier */
 @Extern func Mangle(String) -> String
 
+
 func AfterLast(String, String) -> String
 
   rule AfterLast(#string, #sep)
-  → If<String>(Contains(#string, #sep),
-      ()->AfterLast2(AfterFirst(#string, #sep), #sep),
-      ()->#string)
-
-// Internal helper.
-func AfterLast2(String, String) -> String
-rule AfterLast2(#string, #sep) → AfterLast(#string, #sep)
-
+  → if Contains(#string, #sep)
+      AfterLast(AfterFirst(#string, #sep), #sep)
+    else
+      #string
 
 /* @return the string before the last given `#sep` string.
    If `#sep` is not found in `#string`, return the empty string */
 func BeforeLast(#string: String, #sep:String) -> String
-→ If(Contains(#string, #sep),
-    ()->BeforeLast-Helper(BeforeFirst(#string, #sep), #sep, BeforeLast(AfterFirst(#string, #sep), #sep)),
-    ()->"")
+→ if Contains(#string, #sep)
+    BeforeLast-Helper(BeforeFirst(#string, #sep), #sep, BeforeLast(AfterFirst(#string, #sep), #sep))
+  else
+    ""
 
 func BeforeLast-Helper(#before: String, #sep: String, #after: String) -> String
 → If(StringEqual(#after, ""),
@@ -116,7 +114,7 @@ func BeforeLast-Helper(#before: String, #sep: String, #after: String) -> String
 
 /* Returns a new String joining the given list of strings together with the specified separator.*/
 func Join(List<String>, String) -> String
-rule Join((#str, #strs...), #sep) → FoldlP((str r) -> ConcatString(r, ConcatString(#sep, str)), #str, #strs)
+rule Join((#str, #strs...), #sep) → FoldlP((str r) -> ConcatString(r, #sep, str), #str, #strs)
 rule Join((              ), #sep) → ""
 
 /* Splits the string around the given separator string */

@@ -133,7 +133,7 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
 
   rule InferTerm(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧, #esort)
   → let #varsort = csort⟦ ⟨VARIABLE: INewSortVar(#env)⟩ ⟧
-      InferLet(#METAVAR, #varsort, InferTerm(IIncCounter(#env), #cterm, #varsort), #cterm2, #esort)
+    InferLet(#METAVAR, #varsort, InferTerm(IIncCounter(#env), #cterm, #varsort), #cterm2, #esort)
 
 /* Traverse terms */
 func InferMaybeTerms({String:IEnvEntry}, String, List<Core_cterms_sort>, List<Core_csort_sort>, List<Core_canno_sort>, List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterms_sort>>
@@ -158,16 +158,37 @@ rule InferMaybeSubst(#env, #constructor, csubst?⟦              ⟧, #csort*)  
 
 /* Traverse terms */
 func InferTerms({String:IEnvEntry}, String, List<Core_cterm_sort>, List<Core_csort_sort>, List<Core_canno_sort>, List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterm_sort>>
-rule InferTerms(#env, #constructor, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦ ##csort ##csort* ⟧, #canno*, #dvs)           → InferTermsUp(InferTerm(#env, #cterm, #csort), #constructor, #cterm*, #csort*, #canno*, TailNE(#dvs))
-rule InferTerms(#env, #constructor, cterm*⟦                  ⟧, csort*⟦                  ⟧, #canno*, ())             → PairCons(#env, cterm*⟦⟧) // TODO: check no runtime annotations
-rule InferTerms(#env, #constructor, cterm*⟦                  ⟧, csort*⟦ ##csort ##csort* ⟧, #canno*, #dvs)           → InferAnnos(#env, #constructor, csort*⟦ ##csort ##csort* ⟧, #canno*, #dvs)
-rule InferTerms(#env, #constructor, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦                  ⟧, #canno*, #dvs)           → Error(ConcatString("Error: extra argument(s) in ", #constructor))
+
+  rule InferTerms(#env, #constructor, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦ ##csort ##csort* ⟧, #canno*, #dvs)
+  → InferTermsUp(InferTerm(#env, #cterm, RemoveSortAnnotation("Variadic", #csort)), #constructor, #cterm*, #csort, #csort*, #canno*, TailNE(#dvs))
+
+  rule InferTerms(#env, #constructor, cterm*⟦⟧, csort*⟦⟧, #canno*, ())
+  → PairCons(#env, cterm*⟦⟧) // TODO: check no runtime annotations
+
+  rule InferTerms(#env, #constructor, cterm*⟦⟧, csort*⟦ ##csort ##csort* ⟧, #canno*, #dvs)
+  → let #sortAnno = GetSortAnnotations(#csort)
+    let #isVariadic = HasAnnotation("Variadic", #sortAnno)
+    if #isVariadic
+       PairCons(#env, cterm*⟦⟧) // TODO: check no annotations, no default values
+    else
+      InferAnnos(#env, #constructor, csort*⟦ ##csort ##csort* ⟧, #canno*, #dvs)
+
+  rule InferTerms(#env, #constructor, cterm*⟦ ##cterm ##cterm* ⟧, csort*⟦⟧, #canno*, #dvs)
+  → Error(ConcatString("Error: extra argument(s) in ", #constructor))
 
 /* Reconstruct terms */
-func InferTermsUp(PPair<{String:IEnvEntry} Core_cterm_sort>, String, List<Core_cterm_sort>, List<Core_csort_sort>, List<Core_canno_sort>, List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterm_sort>>
-rule InferTermsUp(PairCons(#env, #cterm), #constructor, #cterm*, #csort*, #canno*, #dvs)
-→ UnPair(InferTerms(IResetBinderSorts(#env), #constructor, #cterm*, #csort*, #canno*, #dvs), (env cterms) ->
-  PairCons(env, cterm*⟦ ##cterm ⟨cterm*: cterms⟩⟧))
+func InferTermsUp(PPair<{String:IEnvEntry} Core_cterm_sort>, String, List<Core_cterm_sort>, Core_csort_sort, List<Core_csort_sort>, List<Core_canno_sort>, List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterm_sort>>
+
+  // TODO: should check that when the last sort is variadic, no annotation are allowed.
+  rule InferTermsUp(PairCons(#env, #cterm), #constructor, #cterm*, #csort, csort*⟦⟧, #canno*, #dvs)
+  → let #sortAnno = GetSortAnnotations(#csort)
+    let #isVariadic = HasAnnotation("Variadic", #sortAnno)
+    UnPair(InferTerms(IResetBinderSorts(#env), #constructor, #cterm*, If(#isVariadic, ()->csort*⟦ ##csort ⟧, ()->csort*⟦⟧), #canno*, #dvs), (env cterms) ->
+    PairCons(env, cterm*⟦ ##cterm ⟨cterm*: cterms⟩⟧))
+
+  rule InferTermsUp(PairCons(#env, #cterm), #constructor, #cterm*, #previousSort, #csort*, #canno*, #dvs)
+  → UnPair(InferTerms(IResetBinderSorts(#env), #constructor, #cterm*, #csort*, #canno*, #dvs), (env cterms) ->
+    PairCons(env, cterm*⟦ ##cterm ⟨cterm*: cterms⟩⟧))
 
 //
 func InferMapAlias({String:IEnvEntry}, Option<Core_cdecl_sort>, Core_cterm_sort, Core_csort_sort) -> PPair<{String:IEnvEntry} Core_cterm_sort>
@@ -176,7 +197,7 @@ func InferMapAlias({String:IEnvEntry}, Option<Core_cdecl_sort>, Core_cterm_sort,
   → Error(ConcatString( "Type error: map does not match type ", PrintTerm("", #csort)))
 
   rule InferMapAlias(#env, SOME(cdecl⟦ ##canno* alias ##CONSTRUCTOR ##csort ⟧), #cterm, #csort2)
-→ InferTerm(#env, #cterm, #csort) // TODO: should keep the original sort.
+  → InferTerm(#env, #cterm, #csort) // TODO: should keep the original sort.
 
 /* Process annotations
    For each missing argument, look for an annotation matching the sort name. Only works for non-polymorphic sort name.
@@ -200,11 +221,11 @@ func InferAnnos2({String:IEnvEntry}, Option<Core_canno_sort>, String, List<Core_
 
   // Meta annotation. Cool, use it
   rule InferAnnos2(#env, SOME(canno⟦ @ ##METAVAR ⟧), #constructor, csort*⟦ ##csort ##csort* ⟧, #anno, #canno*, #dvs)
-  → InferTermsUp(InferTerm(#env, cterm⟦ ##METAVAR ⟧, #csort), #constructor, cterm*⟦⟧, #csort*, RemoveAnnotation(#anno, #canno*), TailNE(#dvs))
+  → InferTermsUp(InferTerm(#env, cterm⟦ ##METAVAR ⟧, #csort), #constructor, cterm*⟦⟧, #csort, #csort*, RemoveAnnotation(#anno, #canno*), TailNE(#dvs))
 
   // Regular annotation. Cool, use it too!
   rule InferAnnos2(#env, SOME(canno⟦ @ ##CONSTRUCTOR ( ##cterm ) ⟧), #constructor, csort*⟦ ##csort ##csort* ⟧, #anno, #canno*, #dvs)
-  → InferTermsUp(InferTerm(#env, #cterm, #csort), #constructor, cterm*⟦⟧, #csort*, RemoveAnnotation(#anno, #canno*), TailNE(#dvs))
+  → InferTermsUp(InferTerm(#env, #cterm, #csort), #constructor, cterm*⟦⟧, #csort, #csort*, RemoveAnnotation(#anno, #canno*), TailNE(#dvs))
 
   // Regular annotation but with wrong parameter. Error
   rule InferAnnos2(#env, SOME(#canno), #constructor, #csort*, #anno, #canno*, #dvs)
@@ -216,9 +237,10 @@ func InferDefaultValues({String:IEnvEntry}, String, List<Core_csort_sort>, List<
   // There is a default value provided for the missing argument
   // If in pattern, currently match all.
   rule InferDefaultValues(#env, #constructor, csort*⟦ ##csort ##csort* ⟧, #canno*, ((cdefaultvalue⟦ = ##cterm ⟧,), #dvs...))
-  → If(GetInPattern(#env),
-      ()->InferDefaultValuesPattern(#env, #constructor, #csort, #csort*, #canno*, #dvs),
-      ()->InferTermsUp(InferTerm(#env, #cterm, #csort), #constructor, cterm*⟦⟧, #csort*, #canno*, #dvs))
+  → if GetInPattern(#env)
+      InferDefaultValuesPattern(#env, #constructor, #csort, #csort*, #canno*, #dvs)
+    else
+      InferTermsUp(InferTerm(#env, #cterm, #csort), #constructor, cterm*⟦⟧, #csort, #csort*, #canno*, #dvs)
 
   rule InferDefaultValues(#env, #constructor, csort*⟦                  ⟧, #canno*, ())
   → PairCons(#env, cterm*⟦⟧)
@@ -229,7 +251,7 @@ func InferDefaultValues({String:IEnvEntry}, String, List<Core_csort_sort>, List<
 func InferDefaultValuesPattern(#env: {String:IEnvEntry}, #constructor: String, #csort: Core_csort_sort, #csort*: List<Core_csort_sort>,
                                #canno*:List<Core_canno_sort>, #dvs: List<List<Core_cdefaultvalue_sort>>) -> PPair<{String:IEnvEntry} List<Core_cterm_sort>>
 → let #METAVAR = ConcatString("#$", FormatInteger(IGetMetaCounter(#env)))
-    InferTermsUp(InferTerm(IIncMetaCounter(#env), cterm⟦ ##METAVAR ⟧, #csort), #constructor, cterm*⟦⟧, #csort*, #canno*, #dvs)
+    InferTermsUp(InferTerm(IIncMetaCounter(#env), cterm⟦ ##METAVAR ⟧, #csort), #constructor, cterm*⟦⟧, #csort, #csort*, #canno*, #dvs)
 
 // --- Synthesize construction sort
 

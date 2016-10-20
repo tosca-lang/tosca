@@ -273,15 +273,20 @@ public class StringExtern
 	 * @param str2
 	 * @return
 	 */
-	public static StringTerm ConcatString(Context context, StringTerm str1, StringTerm str2)
+	public static StringTerm ConcatString(Context context, StringTerm... strs)
 	{
-		final StringTerm estr1 = force(context, str1);
-		final StringTerm estr2 = force(context, str2);
-
-		StringTerm result = stringTerm(estr1.unbox() + estr2.unbox());
-		estr1.release();
-		estr2.release();
-		return result;
+		if (strs.length == 0)
+			return stringTerm("");
+		if (strs.length == 1)
+			return strs[0];
+			
+		StringBuilder concat = new StringBuilder();
+		for (int i = 0; i < strs.length; i++)
+		{
+			concat.append(strs[i].unbox());
+			strs[i].release();
+		}
+		return stringTerm(concat.toString());
 	}
 
 	/**
