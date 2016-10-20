@@ -44,4 +44,21 @@ namespace tosca {
         return name;
     }
 
+    /**
+     * Add user-defined properties
+     */
+    void Context::PutProperty(const std::string& key, void* value)
+    {
+        properties[key] = value;
+    }
+    
+    /**
+     * Add user-defined properties
+     */
+    void* Context::GetProperty(const std::string& key)
+    {
+        auto search = properties.find(key);
+        return search == properties.end() ? 0 : search->second;
+    }
+
 }

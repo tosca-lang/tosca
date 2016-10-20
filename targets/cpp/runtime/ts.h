@@ -3,6 +3,7 @@
 #define _TS_H
 
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
 
 #include "closure.h"
@@ -50,6 +51,16 @@ namespace tosca {
          * @return A new unique name
          */
         std::string& MakeGlobalName(const std::string& hint);
+        
+        /** 
+         * Add user-defined properties 
+         */
+        void PutProperty(const std::string& key, void* value);
+        
+        /**
+         * Add user-defined properties
+         */
+        void* GetProperty(const std::string& key);
 
     private:
 
@@ -59,6 +70,10 @@ namespace tosca {
         // The variable factories
         std::unordered_map<const StringTerm*, VarFactory> varFactories;
 
+        // User-defined properties
+        std::unordered_map<std::string, void*> properties;
+
+        
         // global counter.
         unsigned long long ts;
     };

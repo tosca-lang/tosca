@@ -40,9 +40,8 @@ tosca::StringTerm& ConcatString(tosca::Context&, T1& str)
     return static_cast<tosca::StringTerm&>(str);
 }
 
-
 template <typename T1, typename ... Ts>
-tosca::StringTerm& ConcatString(tosca::Context& ctx, T1 str, Ts... strs)
+tosca::StringTerm& ConcatString(tosca::Context& ctx, T1& str, Ts&... strs)
 {
     tosca::StringTerm& s1 = static_cast<tosca::StringTerm&>(str);
     tosca::StringTerm& s2 = ConcatString(ctx, strs...);
