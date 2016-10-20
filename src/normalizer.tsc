@@ -63,7 +63,7 @@ func NDecl(TransScript_decl_sort) -> List<Core_cdecl_sort>
                  ⟨cdecl+: NMaybeBody(#fnBody?, #constructor, #fnParamDecls?)⟩ ⟧
 
   /* Convert rule */
-  rule NDecl(decl⟦ ##anno* rule ##constructor ##args? → ##term* ⟧)
+  rule NDecl(decl⟦ ##anno* rule ##constructor ##args? ##bodySep ##term* ⟧)
   → cdecl+⟦ ⟨canno*: NAnnos(#anno*)⟩
              rule ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨cterms?: NMaybeArgs(#args?, TRUE)⟩ → ⟨cterm: NTerms(#term*, FALSE)⟩ ⟧
 
@@ -224,7 +224,7 @@ func NMaybeBody(List<TransScript_fnBody_sort>, TransScript_constructor_sort, Lis
   rule NMaybeBody(fnBody?⟦           ⟧, #constructor, #paramDecls?)
   → cdecl+⟦⟧
 
-  rule NMaybeBody(fnBody?⟦ → ##term* ⟧, #constructor, #paramDecls?)
+  rule NMaybeBody(fnBody?⟦ ##bodySep ##term* ⟧, #constructor, #paramDecls?)
   → cdecl+⟦ rule ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨cterms?: NMaybePatternArgs(#paramDecls?)⟩ → ⟨cterm: NTerms(#term*, FALSE)⟩ ⟧
 
 func NMaybePatternArgs(List<TransScript_fnParamDecls_sort>) -> List<Core_cterms_sort>

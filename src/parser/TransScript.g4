@@ -106,7 +106,12 @@ sortQualifier
 // Rule Declaration
 
 ruleDecl
-    : anno* RULE anno* constructor args? ARROW terms                 /* Rewrite rule  */
+    : anno* RULE anno* constructor args? bodySep terms               /* Rewrite rule  */
+    ;
+
+bodySep
+    : ARROW
+    | EQ
     ;
 
 // Function declaration, signature and optional body
@@ -150,7 +155,7 @@ fnParamName
 
 
 fnBody
-    : ARROW terms
+    : bodySep terms
     ;
 
 // Term
@@ -329,7 +334,7 @@ operator
 
 variable options { type="string"; }
    : VARIABLE
-   | MODULE | IMPORT | GRAMMAR | FUNC | ENUM | STRUCT | DISPATCH |  RULE | VAR | FIXITY | TYPE | EXTERN | EAGER
+   | MODULE | IMPORT | GRAMMAR | FUNC | ENUM | STRUCT | DISPATCH |  RULE | VAR | TYPE | EXTERN | EAGER
    | LET | IF | ELSE | FOR | IN
    ;
 
@@ -375,8 +380,6 @@ NOT             : '¬';
 AT              : '@';
 EQ              : '=';
 TAIL            : '...';
-
-FIXITY          : 'infix' | 'infixr' | 'infixl' | 'postfix' | 'prefix';
 
 BLOCK_COMMENT    : '/*' (BLOCK_COMMENT|.)*? ('*/' | EOF)    -> channel(HIDDEN);
 LINE_COMMENT     : '//' ~[\r\n]*            -> channel(HIDDEN);

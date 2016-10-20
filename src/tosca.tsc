@@ -34,46 +34,48 @@ import parser::TransScript
    @return a result
  */
 func Compile(#url: String, #config: {String:String}) -> Result
-→ CompileS(NoAnnoS(LoadModuleS(InitSystem(#url, #config), #url, FALSE)))
+= let #system = InitSystem(#url, #config)
+  let #loaded = LoadModuleS(#system, #url, FALSE)
+  CompileS(NoAnnoS(#loaded))
 
 // --- Compilation
 
 /* Compile system. */
 func CompileS(#system: TSystem) -> Result
-→ FoldResults(Map( (mod)->CompileM(#system, mod), MapValues(GetModules(#system)) ))
+= FoldResults(Map((mod)->CompileM(#system, mod), MapValues(GetModules(#system))))
 
 /* Compile module (if not part of the standard library). */
 func CompileM(#system: TSystem, #module: Module) -> Result
-→ if IsModuleCompiled(#module)
+= if IsModuleCompiled(#module)
     Success(())
   else
     Debug(ConcatString("Compile", GetModuleURL(#module)),
             ()->CodeGenerateM(#system, AnalyzeM(#system, NoAliasM(#system, ClosureConvertM(#system, InferM(#system, #module))))))
 
 func CodeGenerateM(#system: TSystem, #module: Module) -> Result
-→ IfConfigDef(#system, "cpp", (v)->ToCppM(#system, #module), ()->ToJavaM(#system, #module))
+= IfConfigDef(#system, "cpp", (v)->ToCppM(#system, #module), ()->ToJavaM(#system, #module))
 
 /* Merge all results */
 func FoldResults(#results: List<Result>) -> Result
-→ FoldlP((r rs)->FoldResult(r, rs), Success(()), #results)
+= FoldlP((r rs)->FoldResult(r, rs), Success(()), #results)
 
 func FoldResult(Result, Result) -> Result
-rule FoldResult(Success(#1), Success(#2)) → Success(Concat(#1, #2))
-rule FoldResult(#1, #2) → FAILURE
+rule FoldResult(Success(#1), Success(#2)) = Success(Concat(#1, #2))
+rule FoldResult(#1, #2) = FAILURE
 
 // --- Module loading.
 
 /* Load imported modules into the system, recursively */
 func LoadImportedModules(#system: TSystem, #url:String, #imports: List<Core_cqidentifier_sort>) -> TSystem
-→ FoldlP((imp system)->LoadImport(system, #url, imp), #system, #imports)
+= FoldlP((imp system)->LoadImport(system, #url, imp), #system, #imports)
 
 /* Load imported module into the system */
 func LoadImport(#system: TSystem, #url:String, #import: Core_cqidentifier_sort) -> TSystem
-→ LoadModuleS(#system, ResolveImport(#system, #url, #import), IsStandardImport(#system, #import))
+= LoadModuleS(#system, ResolveImport(#system, #url, #import), IsStandardImport(#system, #import))
 
 /* Load module content and update system */
 func LoadModuleS(#system: TSystem, #url: String, #standard:Bool) -> TSystem
-→ if HasModule(#system, #url)
+= if HasModule(#system, #url)
      #system
   else
     let #core = if EndsWith(#url, ".tscc")
@@ -83,4 +85,4 @@ func LoadModuleS(#system: TSystem, #url: String, #standard:Bool) -> TSystem
     LoadModuleAux(LoadCore(#system, #url, #core, #standard), #url)
 
 func LoadModuleAux(#system: TSystem, #url: String) -> TSystem
-→ LoadImportedModules(#system, #url, GetImportsS(#system, #url))
+= LoadImportedModules(#system, #url, GetImportsS(#system, #url))
