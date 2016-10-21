@@ -105,7 +105,7 @@ namespace tosca {
         virtual void SetBinder(int i, int j, Variable& var);
 
         /**
-         * Deep term equality operator
+         * Deep term equality operator, modulo variable and maps.
          */
         inline bool operator==(const Term& rhs) const
         {
@@ -114,7 +114,7 @@ namespace tosca {
         }
 
         /**
-         * Deep term non-equality operator
+         * Deep term non-equality operator, modulo variable and maps.
          */
         inline bool operator!=(const Term& rhs) const
         {
@@ -270,7 +270,6 @@ namespace tosca {
         Variable& var;
 
     };
-
 
     // ----- String Term
 

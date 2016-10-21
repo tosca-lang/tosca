@@ -18,7 +18,7 @@ namespace tosca {
     Ref::~Ref()
     {
         //std::cout << "delete ref\n";
-        assert(refcount == 0);
+        //assert(refcount == 0); // refcount not zero when term allocated on stack
     }
 
     void Ref::AddRef()

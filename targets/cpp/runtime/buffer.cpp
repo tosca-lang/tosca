@@ -90,8 +90,6 @@ namespace tosca {
         return *this;
     }
     
-   
-    
     Sink& BufferSink::EndMap()
     {
         return *this;

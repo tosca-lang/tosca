@@ -110,20 +110,18 @@ func CppDefGlobalDataForm(String, Core_cform_sort) -> Text4_text_sort
 
 /* Generate code initializing a module. */
 func CppInitModule(#name: String, #imports: List<Core_cqidentifier_sort>, #data: {String : Core_cdecl_sort}) -> Text4_text_sort
-→ text⟦
-  static bool initialized = false;
-  void InitModule_⟨STRING: #name⟩(tosca::Context& context)
-  {
-    if (!initialized) {
-      initialized = true;
-      †⟨TextFoldES(Map((sort )->CppRegisterDataSort(sort), MapValues(#data)))⟩
-      †⟨TextFoldES(Map((qcons)->CppRegisterImport(qcons),  #imports))⟩
-    }
-}⟧
+→ let #fnname = text⟦InitModule_⟨STRING: #name⟩⟧
+  text⟦
+void †⟨#fnname⟩(tosca::Context& context)
+{→
+if (!context.GetProperty("†⟨#fnname⟩"))
+{→
+    context.PutProperty("†⟨#fnname⟩", reinterpret_cast<void*>(1));†⟨TextFoldES(Map((sort )->CppRegisterDataSort(sort), MapValues(#data)))⟩†⟨TextFoldES(Map((qcons)->CppRegisterImport(qcons),  #imports))⟩
+←}
+←}⟧
 
 func CppRegisterImport(#name: Core_cqidentifier_sort) -> Text4_text_sort
-→ text⟦
-    InitModule_⟨STRING: Mangle(PathFileStem(JoinQIdentifier(#name, "/", TRUE)))⟩(context);⟧
+→ text⟦¶InitModule_⟨STRING: Mangle(PathFileStem(JoinQIdentifier(#name, "/", TRUE)))⟩(context);⟧
 
 func CppRegisterDataSort(Core_cdecl_sort) -> Text4_text_sort
 
@@ -137,9 +135,7 @@ func CppRegisterDataSort(Core_cdecl_sort) -> Text4_text_sort
 func CppRegisterDataForm(String, Core_cform_sort) -> Text4_text_sort
 
   rule CppRegisterDataForm(#sortname, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧)
-  → text⟦
-       context.Register(newStringTerm(†⟨Text-QuoteEscape(#CONSTRUCTOR)⟩), †⟨CppFormQualifier(#CONSTRUCTOR, (), CFC_CONS, TRUE)⟩Make);⟧
+  → text⟦¶context.Register(newStringTerm(†⟨Text-QuoteEscape(#CONSTRUCTOR)⟩), †⟨CppFormQualifier(#CONSTRUCTOR, (), CFC_CONS, TRUE)⟩Make);⟧
 
   rule CppRegisterDataForm(#sortname, cform⟦ allows-variable ⟧)
-  → text⟦
-       context.RegisterVariable(newStringTerm(†⟨Text-QuoteEscape(#sortname)⟩), reinterpret_cast<const VarFactory>(†⟨CppFnName(ConcatString("var", #sortname))⟩));⟧
+  → text⟦¶context.RegisterVariable(newStringTerm(†⟨Text-QuoteEscape(#sortname)⟩), reinterpret_cast<const VarFactory>(†⟨CppFnName(ConcatString("var", #sortname))⟩));⟧

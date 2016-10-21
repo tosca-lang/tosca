@@ -26,7 +26,7 @@ namespace tosca {
          * @return A term, or an exception when symbol hasn't been registered
          */
         Term& MakeConstructor(const StringTerm& symbol);
-
+        
         /**
          * Register symbol
          *
@@ -34,7 +34,6 @@ namespace tosca {
          * @param factory
          */
         void Register(const StringTerm& symbol, const TermFactory factory);
-
 
         /**
          * Register factory for the specified variable type.

@@ -21,6 +21,8 @@ namespace tosca {
 
     static void Print(Term& term, std::ostream& out, int count, bool indent)
     {
+        // TODO: support for UTF-8
+        
         out << '\n';
         Indent(count, out, indent);
         out << term.Symbol();

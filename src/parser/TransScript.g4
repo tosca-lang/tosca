@@ -393,7 +393,7 @@ OPERATOR          : OpHead Operator*
 CONCRETE          : Lower (Alpha | Digit | '-' | '_')* Ebnf? '\u27e6' (CONCRETE|'\u27e7\u27e7'|'\\\u27e7'|~'\u27e7')*? '\u27e7';   // category⟦ ⟧
 
 
-CONSTRUCTOR       : ConsHead ConsChar*  Ebnf?;     // '$' is for internal use only.
+CONSTRUCTOR       : ConsHead ConsChar* Ebnf?;     // '$' is for internal use only.
 
 VARIABLE          : Lower (Alpha | Digit | '-' | '_')*;
 
