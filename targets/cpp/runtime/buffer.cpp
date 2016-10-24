@@ -130,7 +130,7 @@ namespace tosca {
         }
         Term& t = *(terms.back());
         int subindex = subIndex.back();
-        return t.MakeTerm(GetContext(), subindex, symbol);
+        return t.MakeSubTerm(GetContext(), subindex, symbol);
     }
     
 } // namespace tosca

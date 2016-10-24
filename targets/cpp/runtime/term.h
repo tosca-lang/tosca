@@ -184,7 +184,7 @@ namespace tosca {
          * @param symbol the term symbol
          * @return a new uninitialized constructor or a std::out_of_range exception
          */
-        virtual Term& MakeTerm(Context& ctx, int i, std::string& symbol);
+        virtual Term& MakeSubTerm(Context& ctx, int i, std::string& symbol);
         
         /*
          * Default fallback method for term not allowing making new variables

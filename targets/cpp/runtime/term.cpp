@@ -306,7 +306,7 @@ namespace tosca {
         throw std::out_of_range("Internal Error: index out of range.");
     }
     
-    Term& Term::MakeTerm(Context& ctx, int i, std::string& symbol)
+    Term& Term::MakeSubTerm(Context& ctx, int i, std::string& symbol)
     {
         throw std::out_of_range("Internal Error: index out of range.");
     }

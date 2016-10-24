@@ -443,7 +443,7 @@ rule CppMakeVariable(FALSE, #type, #index) → text⟦¶case †⟨NumberToText(
 /* Generate the MakeTerm method for the given `#formname` */
 func CppFormMakeTerm(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
 → TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-tosca::Term& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩MakeTerm(tosca::Context& ctx, int subi, std::string& symbol)†⟨
+tosca::Term& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩MakeSubTerm(tosca::Context& ctx, int subi, std::string& symbol)†⟨
 If(#def, ()->text⟦¶{→
 switch (subi)
 {→†⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppMakeTerm(isvar, type, index))⟩

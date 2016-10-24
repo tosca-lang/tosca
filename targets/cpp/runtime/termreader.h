@@ -106,9 +106,9 @@ namespace tosca
         /* Read current character without consuming it. */
         inline char CurrentChar()
         {
-            if (pos >= sizeof(buffer))
+            if (pos >= static_cast<ssize_t>(sizeof(buffer)))
                 FillBuffer();
-            if (pos == loaded || pos == -1)
+            if (pos == static_cast<ssize_t>(loaded) || pos == -1)
             {
                 pos = -1;
                 return '\0';
