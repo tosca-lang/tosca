@@ -20,6 +20,11 @@ class BufferSink: public Sink
 public:
     BufferSink(Context& context);
     
+    /* @return the constructed term */
+    Term& GetTerm();
+    
+    // --- Overrides
+    
     Sink& Start(const StringTerm& symbol);
     Sink& Start(Term& term);
     Sink& End();
@@ -32,13 +37,13 @@ public:
     {
         AddSub(newMapTerm<K, V>());
         return *this;
-        
     }
+   
     Sink& EndMap();
     
-    /* @return the constructed term */
-    Term& GetTerm();
-    
+    Variable& MakeFree(std::string& name);
+    Variable& MakeBound(std::string& name);
+    Term& MakeTerm(std::string& symbol);
 protected:
     /** Constructed term */
     Term* term;

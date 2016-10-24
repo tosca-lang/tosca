@@ -11,6 +11,7 @@
 
 #include "compat.h"
 
+
 namespace tosca {
 
     // Forward declarations
@@ -21,7 +22,8 @@ namespace tosca {
     class VariableUse;
     class Variable;
     class Term;
-
+    class Maker;
+    
     // Reference counting base facility.
     class Ref
     {
@@ -76,10 +78,10 @@ namespace tosca {
          * Peek at the ith subterm.
          *
          * @param i the sub index
-         * @return a subterm or null if none at the given index. does not create a new reference.
+         * @return a subterm or null if none at the given index. Does not create a new reference.
          */
         virtual Optional<Term> Sub(int i) const;
-
+  
         /**
          * Replace the ith sub term
          *
@@ -157,7 +159,43 @@ namespace tosca {
          * Compute term hash code, modulo bound variables and map
          */
         virtual size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn);
-
+        
+        /**
+         * Make free variable compatible with the ith subterm.
+         *
+         * @param i the sub index
+         * @return a new variable or a std::out_of_range exception
+         */
+        virtual Variable& MakeFree(Context& ctx, int i, std::string& name);
+      
+        /**
+         * Make bound variable compatible with the jth binder on the ith subterm.
+         *
+         * @param i the sub index
+         * @param j the sub binder index
+         * @return a new variable or a std::out_of_range exception
+         */
+        virtual Variable& MakeBound(Context& ctx, int i, int j, std::string& name);
+        
+        /**
+         * Make term compatible with the ith subterm.
+         *
+         * @param i the sub index
+         * @param symbol the term symbol
+         * @return a new uninitialized constructor or a std::out_of_range exception
+         */
+        virtual Term& MakeTerm(Context& ctx, int i, std::string& symbol);
+        
+        /*
+         * Default fallback method for term not allowing making new variables
+         */
+        static Variable& MakeVariable(Context& ctx, std::string& name);
+        
+        /*
+         * Default fallback method for term not allowing making new subterms
+         */
+        static Term& MakeTerm(Context& ctx, std::string& symbol);
+        
     protected:
 
         friend struct std::hash<std::reference_wrapper<tosca::Term>>;
@@ -200,8 +238,7 @@ namespace tosca {
         // the evaluated value.
         Optional<T> value;
 
-        _LazyTerm(T value) :
-        function(0)
+        _LazyTerm(T value): function(0)
         {
             value = make_optional(value);
         }
@@ -293,6 +330,12 @@ namespace tosca {
             return !(*this == rhs);
         }
 
+        /* Make Variable of type String */
+        static Variable& MakeVariable(Context& ctx, std::string& hint);
+      
+        /* Make a new value string  */
+        static Term& MakeTerm(Context& ctx, std::string& symbol);
+        
         // Overrides
         size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn);
         const std::string Symbol() const;
@@ -356,6 +399,12 @@ namespace tosca {
             throw std::runtime_error("Fatal error: cannot access unevaluated numeric value.");
         }
 
+        /* Make Variable of type Double */
+        static Variable& MakeVariable(Context& ctx, std::string& hint);
+        
+        /* Make a new value of type double  */
+        static Term& MakeTerm(Context& ctx, std::string& symbol);
+
         // Overrides
 
         inline bool operator==(const DoubleTerm& rhs)
@@ -367,7 +416,7 @@ namespace tosca {
         {
             return !(*this == rhs);
         }
-
+        
         size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn);
     };
 

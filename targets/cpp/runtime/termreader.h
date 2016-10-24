@@ -11,28 +11,34 @@
         | VARIABLE
         | STRING
         | NUMBER
+        | [ binderr* ] -> term
  
    args : ( terms? )
         |
  
    terms: term (, term)*
  
+   binders : VARIABLE*
  */
 
 #include <stdio.h>
 #include <ostream>
 #include <string>
 #include <unordered_map>
+#include <vector>
+#include <tuple>
 
 namespace tosca
 {
     class Sink;
     class Variable;
+    class Context;
+    class Term;
     
     class TermLexer
     {
     public:
-        enum Token { CONSTRUCTOR, VARIABLE, STRING, NUMBER, LPAR, RPAR, COMMA, EEOF, INVALID };
+        enum Token { CONSTRUCTOR, VARIABLE, STRING, NUMBER, LPAR, RPAR, LSQUARE, RSQUARE, ARROW, COMMA, EEOF, INVALID };
         
         /* Create lexer with C style input */
         TermLexer(FILE* in);
@@ -46,6 +52,12 @@ namespace tosca
         
         /* Consume the current token and read the next one. */
         void ConsumeToken();
+        
+        /* 
+         * Check current token matches the given token and consume it
+         * Throw runtime_error if the token does not match
+         */
+        void Match(Token token);
         
         /* Current token text. Read-only. */
         const std::string& GetText()
@@ -62,7 +74,7 @@ namespace tosca
         std::istream* stream;
         
         /* Input buffer */
-        char buffer[8182];
+        char buffer[2];
         
         /* Number of loaded characters */
         size_t loaded;
@@ -125,16 +137,31 @@ namespace tosca
         TermParser(FILE* input);
         TermParser(std::istream* input);
         
-        bool ParseTerm(Sink& sink);
+        /*
+         * Parses term and send result to the given sink 
+         */
+        void ParseTerm(Sink& sink);
+        
+        /*
+         * Parses term and return the produced term
+         */
+        Term& ParseTerm(Context& ctx);
+        
     private:
         /* The term lexer */
         TermLexer lexer;
         
         /* Free variables */
-        std::unordered_map<std::string, tosca::Variable*> free;
+        std::unordered_map<const std::string*, tosca::Variable*> free;
         
-        bool ParseArgs(Sink& sink);
-        bool ParseTerms(Sink& sink);
+        /* Bound variables */
+        std::unordered_map<const std::string*, tosca::Variable*> bound;
+        
+        void ParseArgs(Sink& sink);
+        void ParseTerms(Sink& sink);
+        void ParseBinders(Sink& sink, std::vector<std::tuple<const std::string*, Variable*>>& shadowed);
+        
+        Variable* FindVariable(const std::string& name);
     };
 }
 

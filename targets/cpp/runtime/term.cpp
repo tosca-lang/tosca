@@ -70,7 +70,7 @@ namespace tosca {
     {
         return Optional<Term>::nullopt;
     }
-
+    
     void Term::SetSub(int i, Term& sub)
     {
         assert(false);
@@ -296,6 +296,31 @@ namespace tosca {
 
     }
 
+    Variable& Term::MakeFree(Context& ctx, int i, std::string& name)
+    {
+        throw std::out_of_range("Internal Error: index out of range.");
+    }
+    
+    Variable& Term::MakeBound(Context& ctx, int i, int j, std::string& name)
+    {
+        throw std::out_of_range("Internal Error: index out of range.");
+    }
+    
+    Term& Term::MakeTerm(Context& ctx, int i, std::string& symbol)
+    {
+        throw std::out_of_range("Internal Error: index out of range.");
+    }
+    
+    Variable& Term::MakeVariable(Context& ctx, std::string& name)
+    {
+        throw std::runtime_error("Internal error: enumeration does not allow variables.");
+    }
+    
+    Term& Term::MakeTerm(Context& ctx, std::string& symbol)
+    {
+        throw std::runtime_error("Internal error: enumeration does not allow associated values.");
+    }
+    
     // --- Variable Use
 
     Optional<Variable> VariableUse::GetGVariable() const
@@ -366,7 +391,17 @@ namespace tosca {
     {
         return Unbox();
     }
+    
+    Variable& StringTerm::MakeVariable(Context& ctx, std::string& hint)
+    {
+        return varStringTerm(ctx, hint);
+    }
 
+    Term& StringTerm::MakeTerm(Context& ctx, std::string& symbol)
+    {
+        return newStringTerm(symbol);
+    }
+    
     size_t StringTerm::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn)
     {
         return std::hash<std::string>{}(Unbox());
@@ -427,10 +462,21 @@ namespace tosca {
         return std::hash<std::string>{}(Symbol());
     }
 
+    Variable& DoubleTerm::MakeVariable(Context& ctx, std::string& hint)
+    {
+        return varDoubleTerm(ctx, hint);
+    }
+    
+    
+    Term& DoubleTerm::MakeTerm(Context& ctx, std::string& symbol)
+    {
+        double value = std::stod(symbol);
+        return newDoubleTerm(value);
+    }
+    
     CDoubleTermVarUse::CDoubleTermVarUse(CDoubleTermVar& v) : VariableUse::VariableUse(v)
     {
     }
-
 
     CDoubleTermVar::CDoubleTermVar(std::string& name) : Variable(name)
     {
@@ -484,7 +530,6 @@ CStringTermVar& varStringTerm(tosca::Context& ctx, const std::string& hint)
 {
     return *(new CStringTermVar(ctx.MakeGlobalName(hint)));
 }
-
 
 DoubleTerm& newDoubleTerm(double val)
 {

@@ -57,11 +57,10 @@ namespace tosca {
         }
     }
 
-    static void Print(Term& term, std::ostream& out, bool indent)
+    void Print(Term& term, std::ostream& out, bool indent)
     {
         Print(term, out, 0, indent);
     }
-
 
     void Print(Term& term, bool indent)
     {

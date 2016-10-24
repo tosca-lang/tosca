@@ -101,5 +101,36 @@ namespace tosca {
         AddSub(term);
         return *this;
     }
+    
+    Variable& BufferSink::MakeFree(std::string& name)
+    {
+        if (terms.empty())
+            throw std::runtime_error("Invalid top-level call to MakeFree.");
+        Term& t = *(terms.back());
+        int subindex = subIndex.back();
+        return t.MakeFree(GetContext(), subindex, name);
+    }
+    
+    Variable& BufferSink::MakeBound(std::string& name)
+    {
+        if (terms.empty())
+            throw std::runtime_error("Invalid top-level call to MakeBound.");
+        Term& t = *(terms.back());
+        int bindex = binderIndex.back();
+        int subindex = subIndex.back();
+        return t.MakeBound(GetContext(), subindex, bindex, name);
+    }
 
+    Term& BufferSink::MakeTerm(std::string& symbol)
+    {
+        if (terms.empty())
+        {
+            CStringTerm st(symbol);
+            return GetContext().MakeConstructor(st);
+        }
+        Term& t = *(terms.back());
+        int subindex = subIndex.back();
+        return t.MakeTerm(GetContext(), subindex, symbol);
+    }
+    
 } // namespace tosca

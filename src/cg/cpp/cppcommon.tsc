@@ -64,20 +64,20 @@ class †⟨ParamFormCppClassName(#sortname, (), CFC_VARUSE)⟩;⟧
 func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Text4_text_sort
 
   rule CppMethodNew(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧, #def)
-  → text⟦
-†⟨CppTemplatePrefix(#csortvars?)⟩
+  → text⟦†⟨CppTemplatePrefix(#csortvars?)⟩
 †⟨CppTypeRefName(#csortvars?, #sortname)⟩ †⟨CppNewMethodName(#CONSTRUCTOR)⟩(tosca::Context& ctx†⟨MaybeCppFormalParams(MaybeSortsDefaultToMaybeSorts(#csortsdefault?), text⟦, ⟧, FALSE)⟩)†⟨
-      If(#def, ()->text⟦{
-       return (*new †⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩(†⟨MaybeCppFormalParams(MaybeSortsDefaultToMaybeSorts(#csortsdefault?), text⟦⟧, TRUE)⟩));
-      }⟧, ()->text⟦;⟧)⟩⟧
+      If(#def, ()->text⟦
+{→
+return (*new †⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩(†⟨MaybeCppFormalParams(MaybeSortsDefaultToMaybeSorts(#csortsdefault?), text⟦⟧, TRUE)⟩));←
+}⟧, ()->text⟦;⟧)⟩⟧
 
   rule CppMethodNew(#sortname, #csortvars?, cform⟦ allows-variable ⟧, #def)
-  → text⟦
-†⟨CppTemplatePrefix(#csortvars?)⟩
+  → text⟦†⟨CppTemplatePrefix(#csortvars?)⟩
 †⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VAR)⟩& †⟨CppFnName(ConcatString("var", #sortname))⟩(tosca::Context& ctx, const std::string& hint)†⟨
-      If(#def, ()->text⟦{
-        return *(new †⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VAR)⟩(ctx.MakeGlobalName(hint)));
-      }⟧, ()->text⟦;⟧)⟩⟧
+      If(#def, ()->text⟦
+{→
+return *(new †⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VAR)⟩(ctx.MakeGlobalName(hint)));←
+}⟧, ()->text⟦;⟧)⟩⟧
 
 /* Generate base lookup method (the 'as' method) for the given form.
    @param `#sortname`
@@ -87,12 +87,12 @@ func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> T
 func CppMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Text4_text_sort
 
   rule CppMethodAs(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧, #def)
-  → text⟦
-†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-†⟨TextIf(Not(#def), ()->text⟦virtual⟧)⟩ Optional<†⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩> †⟨CppQualifier(#sortname, #csortvars?, #def)⟩†⟨CppAsMethodName(#CONSTRUCTOR)⟩(tosca::Context& ctx)†⟨
-    If(#def, ()->text⟦{
-       return Optional<†⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩>::nullopt;
-    }⟧, ()->text⟦;⟧)⟩⟧
+  → text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+†⟨TextIf(Not(#def), ()->text⟦virtual ⟧)⟩Optional<†⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩> †⟨CppQualifier(#sortname, #csortvars?, #def)⟩†⟨CppAsMethodName(#CONSTRUCTOR)⟩(tosca::Context& ctx)†⟨
+    If(#def, ()->text⟦
+{→
+return Optional<†⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩>::nullopt;←
+}⟧, ()->text⟦;⟧)⟩⟧
 
 
   rule CppMethodAs(#sortname, #csortvars?, cform⟦ allows-variable ⟧, #def)
@@ -100,27 +100,23 @@ func CppMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Te
 
 /* Generate typed use method. */
 func CppVarMethodUse(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
-→ text⟦
-†⟨CppTemplatePrefix(#csortvars?)⟩
+→ text⟦†⟨CppTemplatePrefix(#csortvars?)⟩
 †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩& †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩Use()†⟨
-      If(#def, ()->text⟦{
-       return (*new †⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VARUSE)⟩(*this));
-      }⟧, ()->text⟦;⟧)⟩⟧
+      If(#def, ()->text⟦
+{→
+return (*new †⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VARUSE)⟩(*this));←
+}⟧, ()->text⟦;⟧)⟩⟧
 
 /* Generate untyped use method. */
 func CppVarMethodGUse(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
-→ text⟦
-†⟨CppTemplatePrefix(#csortvars?)⟩
+→ text⟦†⟨CppTemplatePrefix(#csortvars?)⟩
 tosca::Term& †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩GUse()†⟨
-      If(#def, ()->text⟦{
-       return Use();
-      }⟧, ()->text⟦;⟧)⟩⟧
+      If(#def, ()->text⟦ { return Use(); }⟧, ()->text⟦;⟧)⟩⟧
 
 /* Generate class constructor corresponding to the given `#formname`. */
 func CppFormConstructor(#sortname: String, #csortvars?: List<Core_csortvars_sort>, #formname: String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
-→ text⟦
-    †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-    †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩†⟨FormCppClassName(#formname)⟩(†⟨MaybeCppFormalParams(#csorts?, text⟦⟧, FALSE)⟩)†⟨
+→ text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+†⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩†⟨FormCppClassName(#formname)⟩(†⟨MaybeCppFormalParams(#csorts?, text⟦⟧, FALSE)⟩)†⟨
     If(#def,
       ()->text⟦†⟨TextIf(HasSorts(#csorts?),
         ()->text⟦: †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppInitField(isvar, type, index, subindex))⟩⟧)⟩{}⟧,
@@ -128,45 +124,66 @@ func CppFormConstructor(#sortname: String, #csortvars?: List<Core_csortvars_sort
 
 /* Generate default class constructor corresponding to the given `#formname`. Only if not a constant, since otherwise it has already been generated. */
 func CppFormDefaultConstructor(#sortname: String, #csortvars?: List<Core_csortvars_sort>, #formname: String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
-→ TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦
-    †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-    †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩†⟨FormCppClassName(#formname)⟩()†⟨
+→ TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+†⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩†⟨FormCppClassName(#formname)⟩()†⟨
     If(#def,
       ()->text⟦†⟨TextIf(HasSorts(#csorts?),
         ()->text⟦: †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppNullifyField(isvar, type, index, subindex))⟩⟧)⟩{}⟧,
       ()->text⟦;⟧)⟩⟧)
 
-
 /* Generate static Make function corresponding to the given `#formname`.*/
 func CppFormMethodMake(#sortname: String, #csortvars?: List<Core_csortvars_sort>, #formname: String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
-→ text⟦
-    †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-    †⟨TextIf(Not(#def), ()->text⟦static ⟧)⟩tosca::Term& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Make(tosca::Context& ctx)†⟨
+→ text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+†⟨TextIf(Not(#def), ()->text⟦static ⟧)⟩tosca::Term& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Make(tosca::Context& ctx)†⟨
     If(#def,
-      ()->text⟦{ return *(new †⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩()); }⟧,
+      ()->text⟦¶{ return *(new †⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩()); }⟧,
       ()->text⟦;⟧)⟩⟧
 
 /* Generate method Use corresponding to the given `#sortname`. */
 func CppVarConstructorUse(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
-→ text⟦
-   †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-   †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩†⟨FormCppClassName(#sortname)⟩Use(†⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VAR)⟩& v)†⟨
+→ text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩†⟨FormCppClassName(#sortname)⟩Use(†⟨ParamFormCppClassName(#sortname, #csortvars?, CFC_VAR)⟩& v)†⟨
    If(#def,
      ()->text⟦: tosca::VariableUse::VariableUse(v) {}⟧,
-     ()->text⟦;⟧)⟩
-  ⟧
+     ()->text⟦;⟧)⟩⟧
 
 /* Generate base method GetVariable corresponding to the given `#sortname`. */
 func CppMethodGetVariable(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
-→ text⟦
-   †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-   †⟨TextIf(Not(#def), ()->text⟦virtual⟧)⟩ Optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩> †⟨CppQualifier(#sortname, #csortvars?, #def)⟩GetVariable() const†⟨
+→ text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+†⟨TextIf(Not(#def), ()->text⟦virtual ⟧)⟩Optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩> †⟨CppQualifier(#sortname, #csortvars?, #def)⟩GetVariable() const†⟨
    If(#def,
-     ()->text⟦{
-         return Optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩>::nullopt;
-       }⟧,
-     ()->text⟦;⟧)⟩
-  ⟧
+     ()->text⟦¶{→
+return Optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩>::nullopt;←
+}⟧, ()->text⟦;⟧)⟩⟧
+
+/* Generate static method MakeVariable corresponding to the given `#sortname`. */
+func CppMethodMakeVariable(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #allowvar: Bool, #def: Bool) -> Text4_text_sort
+→ text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+†⟨TextIf(Not(#def), ()->text⟦static ⟧)⟩tosca::Variable& †⟨CppQualifier(#sortname, #csortvars?, #def)⟩MakeVariable(tosca::Context ctx, std::string& name)†⟨
+   If(#def,
+     ()->If(#allowvar,
+       ()->text⟦¶{→
+return *(new †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩(name));←
+}⟧,    ()->text⟦¶{ return Term::MakeVariable(ctx, name); }⟧),
+     ()->text⟦;⟧)⟩⟧
+
+/* Generate static method MakeTerm corresponding to the given `#sortname`. */
+func CppMethodMakeTerm(#sortname: String, #csortvars?: List<Core_csortvars_sort>, #cform*: List<Core_cform_sort>, #def: Bool) -> Text4_text_sort
+→ text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+†⟨TextIf(Not(#def), ()->text⟦static ⟧)⟩tosca::Term& †⟨CppQualifier(#sortname, #csortvars?, #def)⟩MakeTerm(tosca::Context& ctx, std::string& symbol)†⟨
+  If(#def,
+    ()->text⟦¶{→†⟨TextMapFoldES((cform)->CppMakeForm(#csortvars?, cform), #cform*)⟩
+throw std::invalid_argument(symbol);←¶}⟧,
+    ()->text⟦;⟧)⟩⟧
+
+func CppMakeForm(List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
+
+  rule CppMakeForm(#csortvars?, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧)
+  → text⟦¶if (symbol == †⟨Text-QuoteEscape(#CONSTRUCTOR)⟩)→
+return †⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩::Make(ctx);←⟧
+
+    rule CppMakeForm(#csortvars?, #cform)
+    → text⟦⟧
 
 /* Generate method GetVariable corresponding to the given `#sortname`. */
 func CppVarMethodGetVariable(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
@@ -177,146 +194,122 @@ func CppVarMethodGetVariable(#sortname: String, #csortvars?:List<Core_csortvars_
      ()->text⟦{
          return make_optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩>(dynamic_cast<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩&>(VariableUse::GetGVariable().value()));
        }⟧,
-     ()->text⟦;⟧)⟩
-  ⟧
+     ()->text⟦;⟧)⟩⟧
 
 /* Generate method GetGVariable corresponding to the given `#sortname`. Needed to resolve multiple inheritance ambiguity. */
 func CppVarMethodGetGVariable(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
-→ text⟦
-   †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+→ text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
    Optional<tosca::Variable> †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩GetGVariable() const†⟨
    If(#def,
-     ()->text⟦{
-         return VariableUse::GetGVariable();
-       }⟧,
-     ()->text⟦;⟧)⟩
-  ⟧
+     ()->text⟦ { return VariableUse::GetGVariable(); }⟧,
+     ()->text⟦;⟧)⟩⟧
 
 /* Generate the variable class constructor for the given `#sortname`. */
 func CppVarConstructorVar(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
-→ text⟦
-   †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+→ text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
    †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩(std::string& name)†⟨
    If(#def,
      ()->text⟦: tosca::Variable(name) {}⟧,
-     ()->text⟦;⟧)⟩
-  ⟧
+     ()->text⟦;⟧)⟩⟧
 
 /* Generate the Symbol method for the given `#formname`. */
 func CppFormMethodSymbol(String, List<Core_csortvars_sort>, String, Bool) -> Text4_text_sort
 rule CppFormMethodSymbol(#sortname, #csortvars?, #formname, #def)
-→ text⟦
-  †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-  †⟨TextIf(Not(#def), ()->text⟦virtual ⟧)⟩std::string& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Symbol() const†⟨
-  If(#def, ()->text⟦{
-     return *(new std::string(†⟨Text-QuoteEscape(#formname)⟩));
-  }⟧, ()->text⟦;⟧)⟩⟧
+→ text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+†⟨TextIf(Not(#def), ()->text⟦virtual ⟧)⟩std::string& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Symbol() const†⟨
+  If(#def, ()->text⟦ { return *(new std::string(†⟨Text-QuoteEscape(#formname)⟩)); }⟧, ()->text⟦;⟧)⟩⟧
 
   /* Generate the Symbol method for the given `#sortname`. */
   func CppVarMethodSymbol(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
-  → text⟦
-    †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-    †⟨TextIf(Not(#def), ()->text⟦virtual ⟧)⟩std::string& †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩Symbol() const†⟨
-    If(#def, ()->text⟦{
-       return VariableUse::Symbol();
-    }⟧, ()->text⟦;⟧)⟩⟧
+  → text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+  †⟨TextIf(Not(#def), ()->text⟦virtual ⟧)⟩std::string& †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩Symbol() const†⟨
+    If(#def, ()->text⟦ { return VariableUse::Symbol(); }⟧, ()->text⟦;⟧)⟩⟧
 
 /* Generate overridden lookup method (the 'as' method) for the given `formname`. */
 func CppFormMethodAs(String, List<Core_csortvars_sort>, String, Bool) -> Text4_text_sort
 rule CppFormMethodAs(#sortname, #csortvars?, #formname, #def)
-→ text⟦
-  †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-  Optional<†⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩> †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩†⟨CppAsMethodName(#formname)⟩(tosca::Context& ctx)†⟨
-  If(#def, ()->text⟦{
-     return make_optional<†⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩>(*this);
-  }⟧, ()->text⟦;⟧)⟩⟧
+→ text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+Optional<†⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩> †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩†⟨CppAsMethodName(#formname)⟩(tosca::Context& ctx)†⟨
+  If(#def, ()->text⟦
+{→
+return make_optional<†⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩>(*this);←
+}⟧, ()->text⟦;⟧)⟩⟧
 
 /* Generate overridden Copy method for the given form.*/
 func CppFormMethodCopy(String, List<Core_csortvars_sort>, String, Bool) -> Text4_text_sort
 rule CppFormMethodCopy(#sortname, #csortvars?, #formname, #def)
-→ text⟦
-  †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-  tosca::Term& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Copy(tosca::Context& ctx)†⟨
-  If(#def, ()->text⟦{
-     return Make(ctx);
-  }⟧, ()->text⟦;⟧)⟩⟧
+→ text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+tosca::Term& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Copy(tosca::Context& ctx)†⟨
+  If(#def, ()->text⟦¶{ return Make(ctx); }⟧, ()->text⟦;⟧)⟩⟧
 
 /* Generate overridden variable Copy method for the given `#sortname`.  */
 func CppVarMethodCopy(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
-→ text⟦
-  †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-  tosca::Variable& †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩Copy(tosca::Context& ctx) const†⟨
-  If(#def, ()->text⟦{
-     return †⟨CppFnName(ConcatString("var", #sortname))⟩(ctx, Symbol());
-  }⟧, ()->text⟦;⟧)⟩⟧
+→ text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+tosca::Variable& †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩Copy(tosca::Context& ctx) const†⟨
+  If(#def, ()->text⟦¶{ return †⟨CppFnName(ConcatString("var", #sortname))⟩(ctx, Symbol()); }⟧, ()->text⟦;⟧)⟩⟧
 
 /* Generate getValue method for the given `formname`. */
 func CppFormGetValue(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
 → MaybeCppClassFields(#csorts?, (isvar type index subindex)->
-     CppGetValue(isvar, type, index, subindex, #def, TextIf(#def, ()->CppTemplatePrefix(#csortvars?)), CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)))
+     CppGetValue(isvar, type, index, subindex, #def, TextIf(#def, ()->text⟦†⟨CppTemplatePrefix(#csortvars?)⟩¶⟧), CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)))
 
 /* Generate GetValueXX for each form parameters */
 func CppGetValue(Bool, Text4_text_sort, Numeric, Numeric, Bool, Text4_text_sort, Text4_text_sort) -> Text4_text_sort
 
   rule CppGetValue(FALSE, #type, #index, #subindex, #def, #prefix, #qualifier)
   → text⟦†⟨#prefix⟩†⟨#type⟩& †⟨#qualifier⟩getValue†⟨NumberToText(#index)⟩(tosca::Context& ctx, bool mustforce)†⟨
-      If(#def, ()->text⟦{
-        return *†⟨FieldName(#index)⟩;
-      }⟧, ()->text⟦;⟧)⟩⟧
+      If(#def, ()->text⟦
+{→
+return *†⟨FieldName(#index)⟩;←
+}⟧, ()->text⟦;⟧)⟩⟧
 
   rule CppGetValue(TRUE, #type, #index, #subindex, #def, #prefix, #qualifier)
   → text⟦†⟨#prefix⟩†⟨#type⟩& †⟨#qualifier⟩getVar†⟨NumberToText(#index)⟩_†⟨NumberToText(#subindex)⟩()†⟨
-      If(#def, ()->text⟦{
-        return *†⟨VarFieldName(#index, #subindex)⟩;
-      }⟧, ()->text⟦;⟧)⟩⟧
+      If(#def, ()->text⟦
+{→
+return *†⟨VarFieldName(#index, #subindex)⟩;←
+}⟧, ()->text⟦;⟧)⟩⟧
 
 /* Generate the generic Sub function for the given `#form` */
 func CppFormGetSub(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
-→ TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦
-     †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-     Optional<tosca::Term> †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Sub(int subi) const†⟨
-     If(#def, ()->text⟦
-       {
-          switch (subi)
-          {
-            †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppGetSub(isvar, index))⟩
-            default: return Optional<tosca::Term>::nullopt;
-          }
-       }⟧, ()->text⟦;⟧)⟩
-   ⟧)
+→ TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+Optional<tosca::Term> †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Sub(int subi) const†⟨
+    If(#def, ()->text⟦
+{→
+switch (subi)
+{→†⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppGetSub(isvar, index))⟩
+default: return Optional<tosca::Term>::nullopt;←
+}←
+}⟧, ()->text⟦;⟧)⟩⟧)
 
 func CppGetSub(Bool, Numeric) -> Text4_text_sort
 
   rule CppGetSub(FALSE, #index)
-  → text⟦case ⟨STRING: FormatInteger(Minus(#index, 1))⟩: return make_optional<tosca::Term>(*†⟨FieldName(#index)⟩);⟧
+  → text⟦¶case ⟨STRING: FormatInteger(Minus(#index, 1))⟩: return make_optional<tosca::Term>(*†⟨FieldName(#index)⟩);⟧
 
   rule CppGetSub(TRUE, #index) // this is a scoped variable, not a sub. Skip.
   → text⟦⟧
 
 /* Generate the generic SetSub function for the given `#form` */
 func CppFormSetSub(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
-→ TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦
-†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+→ TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
 void †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩SetSub(int subi, tosca::Term& sub)†⟨
-     If(#def, ()->text⟦
-       {
-          assert(sub.refcount > 0);
-          switch (subi)
-          {
-            †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppSetSub(isvar, type, index))⟩
-            default: assert(false);
-          }
-       }⟧, ()->text⟦;⟧)⟩
-   ⟧)
+     If(#def, ()->text⟦¶{→
+assert(sub.refcount > 0);
+switch (subi)
+{→†⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppSetSub(isvar, type, index))⟩
+default: assert(false);←
+}←
+}⟧, ()->text⟦;⟧)⟩⟧)
 
 func CppSetSub(Bool, Text4_text_sort, Numeric) -> Text4_text_sort
 
   rule CppSetSub(FALSE, #type, #index)
-  → text⟦case †⟨NumberToText(Minus(#index, 1))⟩:
-           if (†⟨FieldName(#index)⟩)
-             †⟨FieldName(#index)⟩->Release();
-           †⟨FieldName(#index)⟩ = &dynamic_cast<†⟨#type⟩&>(sub);
-           break;⟧
+  → text⟦
+case †⟨NumberToText(Minus(#index, 1))⟩:→
+if (†⟨FieldName(#index)⟩)→¶†⟨FieldName(#index)⟩->Release();←
+†⟨FieldName(#index)⟩ = &dynamic_cast<†⟨#type⟩&>(sub);
+break;←⟧
 
   rule CppSetSub(TRUE, #type, #index) // this is a scoped variable, not a sub. Skip.
   → text⟦⟧
@@ -325,16 +318,14 @@ func CppSetSub(Bool, Text4_text_sort, Numeric) -> Text4_text_sort
 func CppFormGetBinder(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
 → TextIf(HasBindersSorts(MaybeSortsToSorts(#csorts?)), ()->text⟦
      †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-     Optional<tosca::Variable> †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Binder(int subi, int binderi) const†⟨
-     If(#def, ()->text⟦
-       {
-          switch (subi)
-          {
-            †⟨CppGetSubBinders(MaybeSortsToSorts(#csorts?), 1)⟩
-            default: return Optional<tosca::Variable>::nullopt;
-          }
-       }⟧, ()->text⟦;⟧)⟩
-   ⟧)
+Optional<tosca::Variable> †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Binder(int subi, int binderi) const†⟨
+If(#def, ()->text⟦
+{→
+switch (subi)
+{→†⟨CppGetSubBinders(MaybeSortsToSorts(#csorts?), 1)⟩
+default: return Optional<tosca::Variable>::nullopt;←
+}←
+}⟧, ()->text⟦;⟧)⟩⟧)
 
 func CppGetSubBinders(List<Core_csort_sort>, Numeric) -> Text4_text_sort
 
@@ -342,16 +333,15 @@ func CppGetSubBinders(List<Core_csort_sort>, Numeric) -> Text4_text_sort
   → text⟦⟧
 
   rule CppGetSubBinders(csort*⟦ ##csort ##csort* ⟧, #index)
-  → text⟦
-      †⟨If(HasBindersSort(#csort),
+  → text⟦†⟨If(HasBindersSort(#csort),
           ()->text⟦
-            case †⟨NumberToText(Minus(#index, 1))⟩:
-            {
-              switch (binderi) {
-                †⟨CppClassField(CppTypes(#csort), #index, 1, (isvar type index subindex)->CppGetBinder(isvar, index, subindex))⟩
-                default: return Optional<Variable>::nullopt;
-              }
-            }⟧,
+case †⟨NumberToText(Minus(#index, 1))⟩:
+{→
+switch (binderi)
+{→†⟨CppClassField(CppTypes(#csort), #index, 1, (isvar type index subindex)->CppGetBinder(isvar, index, subindex))⟩
+default: return Optional<Variable>::nullopt;←
+}←
+}⟧,
            ()->text⟦⟧)⟩
       †⟨CppGetSubBinders(#csort*, Plus(#index, 1))⟩⟧
 
@@ -361,23 +351,19 @@ func CppGetBinder(Bool, Numeric, Numeric) -> Text4_text_sort
   → text⟦⟧
 
   rule CppGetBinder(TRUE, #index, #subindex)
-  → text⟦
-      case †⟨NumberToText(Minus(#subindex, 1))⟩: return *†⟨VarFieldName(#index, #subindex)⟩;⟧
+  → text⟦¶case †⟨NumberToText(Minus(#subindex, 1))⟩: return *†⟨VarFieldName(#index, #subindex)⟩;⟧
 
   /* Generate the generic SetBinder function for the given `#form` */
   func CppFormSetBinder(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
-  → TextIf(HasBindersSorts(MaybeSortsToSorts(#csorts?)), ()->text⟦
-       †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-       void †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩SetBinder(int subi, int binderi, tosca::Variable& var)†⟨
-       If(#def, ()->text⟦
-         {
-            switch (subi)
-            {
-              †⟨CppSetSubBinders(MaybeSortsToSorts(#csorts?), 1)⟩
-              default: assert(false);
-            }
-         }⟧, ()->text⟦;⟧)⟩
-     ⟧)
+  → TextIf(HasBindersSorts(MaybeSortsToSorts(#csorts?)), ()->text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+void †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩SetBinder(int i, int j, tosca::Variable& var)†⟨
+      If(#def, ()->text⟦
+{→
+switch (i)
+{→†⟨CppSetSubBinders(MaybeSortsToSorts(#csorts?), 1)⟩
+default: assert(false);←
+}←
+}⟧, ()->text⟦;⟧)⟩⟧)
 
   func CppSetSubBinders(List<Core_csort_sort>, Numeric) -> Text4_text_sort
 
@@ -385,19 +371,17 @@ func CppGetBinder(Bool, Numeric, Numeric) -> Text4_text_sort
     → text⟦⟧
 
     rule CppSetSubBinders(csort*⟦ ##csort ##csort* ⟧, #index)
-    → text⟦
-        †⟨If(HasBindersSort(#csort),
+    → text⟦†⟨If(HasBindersSort(#csort),
             ()->text⟦
-              case †⟨NumberToText(Minus(#index, 1))⟩:
-              {
-                switch (binderi) {
-                  †⟨CppClassField(CppTypes(#csort), #index, 1, (isvar type index subindex)->CppSetBinder(isvar, type, index, subindex))⟩
-                  default: assert(false);
-                }
-                break;
-              }⟧,
-             ()->text⟦⟧)⟩
-        †⟨CppSetSubBinders(#csort*, Plus(#index, 1))⟩⟧
+case †⟨NumberToText(Minus(#index, 1))⟩:
+{→
+switch (j)
+{→†⟨CppClassField(CppTypes(#csort), #index, 1, (isvar type index subindex)->CppSetBinder(isvar, type, index, subindex))⟩
+default: assert(false);←
+}
+break;←
+}⟧,
+             ()->text⟦⟧)⟩†⟨CppSetSubBinders(#csort*, Plus(#index, 1))⟩⟧
 
   func CppSetBinder(Bool, Text4_text_sort, Numeric, Numeric) -> Text4_text_sort
 
@@ -406,12 +390,71 @@ func CppGetBinder(Bool, Numeric, Numeric) -> Text4_text_sort
 
     rule CppSetBinder(TRUE, #type, #index, #subindex)
     → text⟦
-        case †⟨NumberToText(Minus(#subindex, 1))⟩:
-          if (†⟨VarFieldName(#index, #subindex)⟩)
-            †⟨VarFieldName(#index, #subindex)⟩->Release();
-          †⟨VarFieldName(#index, #subindex)⟩ = &dynamic_cast<†⟨#type⟩&>(var);
-          break;⟧
+case †⟨NumberToText(Minus(#subindex, 1))⟩:→
+if (†⟨VarFieldName(#index, #subindex)⟩) †⟨VarFieldName(#index, #subindex)⟩->Release();
+†⟨VarFieldName(#index, #subindex)⟩ = &dynamic_cast<†⟨#type⟩&>(var);
+break;←⟧
 
+/* Generate the MakeFree method for the given `#formname` */
+func CppFormMakeFree(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
+→ TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+tosca::Variable& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩MakeFree(tosca::Context& ctx, int subi, std::string& name)†⟨
+If(#def, ()->text⟦¶{→
+switch (subi)
+{→†⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppMakeVariable(isvar, type, index))⟩
+default: assert(false);←
+}←
+}⟧, ()->text⟦;⟧)⟩⟧)
+
+/* Generate the MakeBound method for the given `#formname` */
+func CppFormMakeBound(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
+→ TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+tosca::Variable& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩MakeBound(tosca::Context& ctx, int subi, int binderi, std::string& name)†⟨
+If(#def, ()->text⟦¶{→
+switch (subi)
+{→†⟨CppMakeBoundBinders(MaybeSortsToSorts(#csorts?), 1)⟩
+default: assert(false);←
+}←
+}⟧, ()->text⟦;⟧)⟩⟧)
+
+func CppMakeBoundBinders(List<Core_csort_sort>, Numeric) -> Text4_text_sort
+
+  rule CppMakeBoundBinders(csort*⟦⟧, #index)
+  → text⟦⟧
+
+  rule CppMakeBoundBinders(csort*⟦ ##csort ##csort* ⟧, #index)
+  → text⟦†⟨If(HasBindersSort(#csort),
+          ()->text⟦
+case †⟨NumberToText(Minus(#index, 1))⟩:
+{→
+switch (binderi)
+{→†⟨CppClassField(CppTypes(#csort), #index, 1, (isvar type index subindex)->CppMakeVariable(isvar, type, subindex))⟩
+default: assert(false);←
+}
+break;←
+}⟧,
+           ()->text⟦⟧)⟩†⟨CppMakeBoundBinders(#csort*, Plus(#index, 1))⟩⟧
+
+
+func CppMakeVariable(Bool, Text4_text_sort, Numeric) -> Text4_text_sort
+rule CppMakeVariable(TRUE, #type, #index)  → text⟦⟧
+rule CppMakeVariable(FALSE, #type, #index) → text⟦¶case †⟨NumberToText(Minus(#index, 1))⟩: return †⟨#type⟩::MakeVariable(ctx, name);⟧
+
+/* Generate the MakeTerm method for the given `#formname` */
+func CppFormMakeTerm(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
+→ TextIf(Not(IsEmpty(MaybeSortsToSorts(#csorts?))), ()->text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+tosca::Term& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩MakeTerm(tosca::Context& ctx, int subi, std::string& symbol)†⟨
+If(#def, ()->text⟦¶{→
+switch (subi)
+{→†⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppMakeTerm(isvar, type, index))⟩
+default: assert(false);←
+}←
+}⟧, ()->text⟦;⟧)⟩⟧)
+
+
+func CppMakeTerm(Bool, Text4_text_sort, Numeric) -> Text4_text_sort
+rule CppMakeTerm(TRUE, #type, #index)  → text⟦⟧
+rule CppMakeTerm(FALSE, #type, #index) → text⟦¶case †⟨NumberToText(Minus(#index, 1))⟩: return †⟨#type⟩::MakeTerm(ctx, symbol);⟧
 
 // --- Generate code for class field declarations, initialization, lookup, and update.
 
@@ -1176,7 +1219,7 @@ func CppTemplatePrefix(List<Core_csortvars_sort>) -> Text4_text_sort
   rule CppTemplatePrefix(csortvars?⟦⟧) → text⟦⟧
 
   rule CppTemplatePrefix(csortvars?⟦ ∀ ##VARIABLE+ . ⟧)
-  → text⟦template <†⟨CppTypeParameters(#VARIABLE+)⟩>⟧
+  → text⟦¶template <†⟨CppTypeParameters(#VARIABLE+)⟩>⟧
 
 /* Generate comma-seperated list of type parameters */
 func CppTypeParameters(#vars: List<String>) -> Text4_text_sort

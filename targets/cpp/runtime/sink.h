@@ -77,7 +77,7 @@ public:
      * @return this sink
      */
     virtual Sink& Use(Variable& variable) = 0;
-    
+   
     /**
      * Insert string literal subterm.
      *
@@ -94,7 +94,9 @@ public:
      * @return this sink
      */
     template <typename K, typename V>
-    Sink& StartMap() { return *this;
+    Sink& StartMap()
+    {
+        return *this;
     }
     
     /**
@@ -103,7 +105,6 @@ public:
      * @return this sink
      */
     virtual Sink& EndMap() = 0;
-    
     
     /**
      * Copy given term. Reference is consumed.
@@ -115,6 +116,26 @@ public:
      * @return the context
      */
     inline Context& GetContext() { return context; };
+    
+    /*
+     * Make new free variable compatible with the pending subterm
+     * Throw runtime_exception when there is no pending subterm.
+     */
+    virtual Variable& MakeFree(std::string& name) = 0;
+    
+    /*
+     * Make new bound variable compatible with the pending subbinder
+     * Throw runtime_exception when there is no pending subterm.
+     */
+    virtual Variable& MakeBound(std::string& name) = 0;
+    
+    /*
+     * Make new term compatible with the pending subterm.
+     * For top level constructor, return a term instance registered for the given symbol.
+     * Throw runtime_exception of the symbol is not registered (for instance if the symbol 
+     * would have correspond to a polypmorphic term).
+     */
+    virtual Term& MakeTerm(std::string& symbol) = 0;
     
 private:
     // The context

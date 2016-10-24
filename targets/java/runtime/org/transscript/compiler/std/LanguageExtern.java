@@ -16,6 +16,7 @@ import org.transscript.runtime.Functions.ThunkMaker;
 import org.transscript.runtime.Parser;
 import org.transscript.runtime.StringTerm;
 import org.transscript.runtime.Term;
+import org.transscript.runtime.MapTerm;
 import org.transscript.runtime.utils.Scoping;
 import org.transscript.runtime.utils.StringUtils;
 import org.transscript.tool.Utils;
@@ -78,7 +79,7 @@ public class LanguageExtern
 	 * @param result
 	 * @return result.
 	 */
-	public static <a extends Term, b extends Term> b SaveResource(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, StringTerm category, StringTerm filename, a term, b result)
+	public static <a extends Term, b extends Term> b Save(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, StringTerm category, StringTerm filename, a term, MapTerm props, b result)
 	{
 		StringTerm ecategory = force(context, category);
 		StringTerm efilename = force(context, filename);
@@ -113,7 +114,7 @@ public class LanguageExtern
 	}
 
 	/**
-	 * 
+	 *
 	 * @param context
 	 * @param str
 	 * @return
@@ -133,7 +134,7 @@ public class LanguageExtern
 	}
 
 	/**
-	 * 
+	 *
 	 * @param context
 	 * @param str
 	 * @return
@@ -144,7 +145,7 @@ public class LanguageExtern
 	}
 
 	/**
-	 * 
+	 *
 	 * @param context
 	 * @param str
 	 * @return

@@ -1,8 +1,6 @@
 /* Copyright (c) 2016 IBM Corporation. */
-
-/*
- * Collection of utility functions related to languages.
- */
+import std::mapdef
+/* Collection of utility functions related to input/ouput . */
 
 // --- Parsing
 
@@ -20,10 +18,14 @@ func ParseTerm<a>(#filename: String /* file location */) -> a
 // --- Serialization
 
 /* Save term to external resource using serializer identified by the given category */
-@Extern func SaveResource<a b>(String /* category */, String /* filename */, a /* term */, b /* result */) -> b
+@Extern func Save<a b>(#category: String, #filename: String, #term: a, #props: {String:String}, #result: b) -> b
+
+/* Save term to external resource using serializer identified by the given category */
+func SaveResource<a b>(#category: String, #filename: String, #term: a, #result: b) -> b
+→ Save(#category, #filename, #term, {}, #result)
 
 /* Save term to external resource using term serializer */
-func SaveTerm<a b>(#filename: String, #term:a, #result:b) -> b
+func SaveTerm<a b>(#filename: String, #term: a, #result: b) -> b
 → SaveResource("term", #filename, #term, #result)
 
 /* Convert term to `String` using serializer identified by the given category */

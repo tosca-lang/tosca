@@ -7,6 +7,11 @@ namespace tosca {
     
     class Term;
  
+    /**
+     * Print term to the given output file
+     */
+    void Print(Term& term, std::ostream& out, bool indent);
+    
     /* 
      * Print term to console
      * @param term to print. Consume reference.

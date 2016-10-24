@@ -56,11 +56,13 @@ func CppMethodDefs(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
 func CppMethodDef(Core_cdecl_sort) -> Text4_text_sort
 
   rule CppMethodDef(cdecl⟦ data ##csortvars ##CONSTRUCTOR ( ##cform* ) ⟧)
-  → text⟦
-    †⟨TextMapFoldES((cform) -> CppMethodNew(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, cform, TRUE), #cform*)⟩
-    †⟨TextMapFoldES((cform) -> CppMethodAs(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, cform, TRUE), #cform*)⟩
-    †⟨TextIf(IsAllowsVarForms(#cform*), ()->CppMethodGetVariable(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, TRUE))⟩
-    †⟨TextMapFoldES((cform) -> CppFormMethod(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, cform), #cform*)⟩⟧
+  → let #allowvar = IsAllowsVarForms(#cform*)
+    text⟦†⟨TextMapFoldES((cform) -> CppMethodNew(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, cform, TRUE), #cform*)⟩
+†⟨TextMapFoldES((cform) -> CppMethodAs(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, cform, TRUE), #cform*)⟩
+†⟨CppMethodMakeVariable(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, #allowvar, TRUE) /* TODO: consider generating only when allow variables */ ⟩
+†⟨TextIf(#allowvar, ()->CppMethodGetVariable(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, TRUE))⟩
+†⟨CppMethodMakeTerm(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, #cform*, TRUE)⟩
+†⟨TextMapFoldES((cform) -> CppFormMethod(#CONSTRUCTOR, csortvars?⟦ ⟨csortvars: #csortvars⟩ ⟧, cform), #cform*)⟩⟧
 
   rule CppMethodDef(#cdecl)
   → text⟦⟧
@@ -69,27 +71,29 @@ func CppMethodDef(Core_cdecl_sort) -> Text4_text_sort
 func CppFormMethod(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
 
   rule CppFormMethod(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧)
-  → text⟦
-      †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩
-      †⟨CppFormDefaultConstructor(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩
-      †⟨CppFormMethodMake(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩
-      †⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
-      †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
-      †⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩
-      †⟨CppFormGetSub(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩
-      †⟨CppFormSetSub(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩
-      †⟨CppFormGetBinder(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩
-      †⟨CppFormSetBinder(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), TRUE)⟩⟧
+  → let #sorts? = MaybeSortsDefaultToMaybeSorts(#csortsdefault?)
+    text⟦†⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormDefaultConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormMethodMake(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
+†⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
+†⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormGetSub(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormSetSub(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormGetBinder(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormSetBinder(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormMakeFree(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormMakeBound(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormMakeTerm(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩⟧
 
   rule CppFormMethod(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
-  → text⟦
-      †⟨CppVarConstructorVar(#sortname, #csortvars?, TRUE)⟩
-      †⟨CppVarMethodUse(#sortname, #csortvars?, TRUE)⟩
-      †⟨CppVarMethodGUse(#sortname, #csortvars?, TRUE)⟩
-      †⟨CppVarMethodCopy(#sortname, #csortvars?, TRUE)⟩
-      †⟨CppVarConstructorUse(#sortname, #csortvars?, TRUE)⟩
-      †⟨CppVarMethodGetVariable(#sortname, #csortvars?, TRUE)⟩
-      †⟨CppVarMethodGetGVariable(#sortname, #csortvars?, TRUE)⟩⟧
+  → text⟦†⟨CppVarConstructorVar(#sortname, #csortvars?, TRUE)⟩
+†⟨CppVarMethodUse(#sortname, #csortvars?, TRUE)⟩
+†⟨CppVarMethodGUse(#sortname, #csortvars?, TRUE)⟩
+†⟨CppVarMethodCopy(#sortname, #csortvars?, TRUE)⟩
+†⟨CppVarConstructorUse(#sortname, #csortvars?, TRUE)⟩
+†⟨CppVarMethodGetVariable(#sortname, #csortvars?, TRUE)⟩
+†⟨CppVarMethodGetGVariable(#sortname, #csortvars?, TRUE)⟩⟧
 
 // --------- Templated function definitions
 

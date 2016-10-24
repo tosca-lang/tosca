@@ -20,7 +20,7 @@ namespace tosca {
         Context();
 
         /**
-         * Make new construction for the given symbol
+         * Make new construction for the given external symbol
          *
          * @param symbol
          * @return A term, or an exception when symbol hasn't been registered

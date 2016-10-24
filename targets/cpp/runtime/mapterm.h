@@ -120,6 +120,14 @@ namespace tosca {
             throw new std::runtime_error("");
         }
 
+        /*
+         * Make new map term.
+         */
+        static Term& MakeTerm(Context& ctx, std::string& symbol)
+        {
+            return newMapTerm<K, V>();
+        }
+        
         // Overrides
 
         const std::string Symbol() const

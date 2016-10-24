@@ -61,18 +61,20 @@ func CppClassDecls(#datasorts: List<Core_cdecl_sort>) -> Text4_text_sort
 func CppClassDecl(Core_cdecl_sort) -> Text4_text_sort
 
   rule CppClassDecl(cdecl⟦ data ##csortvars? ##CONSTRUCTOR ( ##cform* ) ⟧)
-  → text⟦
-    †⟨TextMapFoldES((cform) -> CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, FALSE), #cform*)⟩
-    †⟨CppTemplatePrefix(#csortvars?)⟩
-    class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩ : public tosca::Term
-    {
-    public:
-      †⟨TextMapFoldES((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, FALSE), #cform*)⟩
-      †⟨TextIf(IsAllowsVarForms(#cform*), ()->CppMethodGetVariable(#CONSTRUCTOR, #csortvars?, FALSE))⟩
-    };
-    †⟨TextMapFoldES((cform) -> CppFormClassDecl(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩
+  → let #allowvar = IsAllowsVarForms(#cform*)
+    text⟦†⟨TextMapFoldES((cform) -> CppMethodNew(#CONSTRUCTOR, #csortvars?, cform, FALSE), #cform*)⟩
+†⟨CppTemplatePrefix(#csortvars?)⟩
+class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩ : public tosca::Term
+{
+public:→
+†⟨TextMapFoldES((cform) -> CppMethodAs(#CONSTRUCTOR, #csortvars?, cform, FALSE), #cform*)⟩
+†⟨CppMethodMakeVariable(#CONSTRUCTOR, #csortvars?, #allowvar, FALSE) /* TODO: consider generating only when allow variables */⟩
+†⟨CppMethodMakeTerm(#CONSTRUCTOR, #csortvars?, #cform*, FALSE)⟩
+†⟨TextIf(#allowvar, ()->CppMethodGetVariable(#CONSTRUCTOR, #csortvars?, FALSE))⟩←
+};
+†⟨TextMapFoldES((cform) -> CppFormClassDecl(#CONSTRUCTOR, #csortvars?, cform), #cform*)⟩
 
-    †⟨TextIf(IsEmpty(MaybeSortVarsToSorts(#csortvars?)), ()->text⟦STD_HASH_EQUAL_TO_TERM(†⟨SortNameToCppClassName(#CONSTRUCTOR)⟩)⟧)⟩⟧
+†⟨TextIf(IsEmpty(MaybeSortVarsToSorts(#csortvars?)), ()->text⟦¶STD_HASH_EQUAL_TO_TERM(†⟨SortNameToCppClassName(#CONSTRUCTOR)⟩)⟧)⟩⟧
 
   rule CppClassDecl(#cdecl)
   → text⟦⟧
@@ -81,49 +83,51 @@ func CppClassDecl(Core_cdecl_sort) -> Text4_text_sort
 func CppFormClassDecl(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_text_sort
 
   rule CppFormClassDecl(#sortname, #csortvars?, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧)
-  → text⟦
-      †⟨CppTemplatePrefix(#csortvars?)⟩
-      class †⟨FormCppClassName(#CONSTRUCTOR)⟩: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩
-      {
-      public:
-        †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), FALSE)⟩
-        const std::string Symbol() const { return †⟨Text-QuoteEscape(#CONSTRUCTOR)⟩; }
-        †⟨CppFormMethodMake(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), FALSE)⟩
-        †⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩
-        †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩
-        †⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), FALSE)⟩
-        †⟨CppFormGetSub(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), FALSE)⟩
-        †⟨CppFormSetSub(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), FALSE)⟩
-        †⟨CppFormGetBinder(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), FALSE)⟩
-        †⟨CppFormSetBinder(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), FALSE)⟩
-
-      protected:
-        †⟨MaybeCppClassFields(MaybeSortsDefaultToMaybeSorts(#csortsdefault?), (isvar type index subindex)->CppDeclField(isvar, type, index, subindex))⟩
-        †⟨CppFormDefaultConstructor(#sortname, #csortvars?, #CONSTRUCTOR, MaybeSortsDefaultToMaybeSorts(#csortsdefault?), FALSE)⟩
-      };⟧
+  → let #sorts? = MaybeSortsDefaultToMaybeSorts(#csortsdefault?)
+    text⟦
+†⟨CppTemplatePrefix(#csortvars?)⟩
+class †⟨FormCppClassName(#CONSTRUCTOR)⟩: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩
+{
+public:→
+†⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
+const std::string Symbol() const { return †⟨Text-QuoteEscape(#CONSTRUCTOR)⟩; }
+†⟨CppFormMethodMake(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
+†⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩
+†⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩
+†⟨CppFormGetValue(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
+†⟨CppFormGetSub(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
+†⟨CppFormSetSub(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
+†⟨CppFormGetBinder(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
+†⟨CppFormSetBinder(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
+†⟨CppFormMakeFree(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
+†⟨CppFormMakeBound(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
+†⟨CppFormMakeTerm(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
+←protected:→
+†⟨MaybeCppClassFields(#sorts?, (isvar type index subindex)->CppDeclField(isvar, type, index, subindex))⟩
+†⟨CppFormDefaultConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩←
+};⟧
 
   rule CppFormClassDecl(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
-  → text⟦
-      †⟨CppTemplatePrefix(#csortvars?)⟩
-      class †⟨FormCppClassName(#sortname)⟩Var: public tosca::Variable
-      {
-        public:
-          †⟨CppVarConstructorVar(#sortname, #csortvars?, FALSE)⟩
-          †⟨CppVarMethodUse(#sortname, #csortvars?, FALSE)⟩
-          †⟨CppVarMethodGUse(#sortname, #csortvars?, FALSE)⟩
-          †⟨CppVarMethodCopy(#sortname, #csortvars?, FALSE)⟩
-      };
+  → text⟦†⟨CppTemplatePrefix(#csortvars?)⟩
+class †⟨FormCppClassName(#sortname)⟩Var: public tosca::Variable
+{
+public:→
+†⟨CppVarConstructorVar(#sortname, #csortvars?, FALSE)⟩
+†⟨CppVarMethodUse(#sortname, #csortvars?, FALSE)⟩
+†⟨CppVarMethodGUse(#sortname, #csortvars?, FALSE)⟩
+†⟨CppVarMethodCopy(#sortname, #csortvars?, FALSE)⟩←
+};
 
-      †⟨CppTemplatePrefix(#csortvars?)⟩
-      class †⟨FormCppClassName(#sortname)⟩Use: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩, public tosca::VariableUse
-      {
-        public:
-          †⟨CppVarConstructorUse(#sortname, #csortvars?, FALSE)⟩
-          †⟨CppVarMethodGetVariable(#sortname, #csortvars?, FALSE)⟩
-          †⟨CppVarMethodGetGVariable(#sortname, #csortvars?, FALSE)⟩
-          size_t HashCode() {  return VariableUse::HashCode(); }
-      };
-      †⟨TextIf(IsEmpty(MaybeSortVarsToSorts(#csortvars?)), ()->text⟦STD_HASH_EQUAL_TO_TERM(†⟨FormCppClassName(#sortname)⟩Use)⟧)⟩⟧
+†⟨CppTemplatePrefix(#csortvars?)⟩
+class †⟨FormCppClassName(#sortname)⟩Use: public †⟨SortNameToCppClassName(#sortname)⟩†⟨MaybeCppTypeArguments(#csortvars?)⟩, public tosca::VariableUse
+{
+public:→
+†⟨CppVarConstructorUse(#sortname, #csortvars?, FALSE)⟩
+†⟨CppVarMethodGetVariable(#sortname, #csortvars?, FALSE)⟩
+†⟨CppVarMethodGetGVariable(#sortname, #csortvars?, FALSE)⟩
+size_t HashCode() { return VariableUse::HashCode(); }←
+};
+†⟨TextIf(IsEmpty(MaybeSortVarsToSorts(#csortvars?)), ()->text⟦¶STD_HASH_EQUAL_TO_TERM(†⟨FormCppClassName(#sortname)⟩Use)⟧)⟩⟧
 
 // --------- Form to class fields
 

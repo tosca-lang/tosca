@@ -2,6 +2,7 @@
 
 #include "termreader.h"
 #include "sink.h"
+#include "buffer.h"
 #include "term.h"
 #include "ts.h"
 
@@ -42,6 +43,12 @@ namespace tosca
         return token;
     }
     
+    void TermLexer::Match(Token token)
+    {
+        if (token != CurrentToken())
+            throw std::runtime_error("Parse error.");
+    }
+    
     void TermLexer::ConsumeToken()
     {
         text.clear();
@@ -69,6 +76,14 @@ namespace tosca
                     ReadChar();
                     token = COMMA;
                     return;
+                case '[':
+                    ReadChar();
+                    token = LSQUARE;
+                    return;
+                case ']':
+                    ReadChar();
+                    token = RSQUARE;
+                    return;
                 case '0':
                 case '1':
                 case '2':
@@ -88,6 +103,7 @@ namespace tosca
                 case '\n':
                 case '\r':
                 case '\b':
+                    ReadChar();
                     break; // skip whitespace
                     
                 default:
@@ -105,7 +121,7 @@ namespace tosca
     TermLexer::Token TermLexer::ReadString()
     {
         //  '"' ('\\"'|'""'|~'"')*? '"';
-        text += ReadChar();
+        ReadChar();
         while (true)
         {
             char c = CurrentChar();
@@ -116,11 +132,11 @@ namespace tosca
                     
                 case '\"':
                 {
-                    text += c;
                     ReadChar();
                     char nc = CurrentChar();
                     if (nc == '\"') // ""
                     {
+                        text += c;
                         ReadChar();
                     }
                     else
@@ -246,39 +262,72 @@ namespace tosca
     TermParser::TermParser(std::istream* input) : lexer(input)
     {}
     
-    bool TermParser::ParseTerm(Sink& sink)
+    Term& TermParser::ParseTerm(Context& ctx)
+    {
+        BufferSink buffer(ctx);
+        ParseTerm(buffer);
+        return buffer.GetTerm();
+    }
+    
+    void TermParser::ParseTerm(Sink& sink)
     {
         TermLexer::Token token = lexer.CurrentToken();
         switch (token)
         {
             case TermLexer::CONSTRUCTOR:
             {
-                CStringTerm symbol(lexer.GetText());
+                std::string st(lexer.GetText());
+                Term& sub = sink.MakeTerm(st);
                 lexer.ConsumeToken();
-                sink.Start(symbol);
-                if (ParseArgs(sink))
-                    sink.End();
-                return true;
+                sink.Start(sub);
+                ParseArgs(sink);
+                sink.End();
+                break;
             }
             case TermLexer::VARIABLE:
             {
-                // TODO: 
-                return true;
+                Variable* var = FindVariable(lexer.GetText());
+                if (var == 0)
+                {
+                    std::string& name = *(new std::string(lexer.GetText()));
+                    var = &sink.MakeFree(name);
+                    free.insert({&name, var});
+                }
+                
+                sink.Use(*var);
+                lexer.ConsumeToken();
+                break;
             }
             case TermLexer::NUMBER:
             case TermLexer::STRING:
             {
                 sink.Literal(lexer.GetText());
                 lexer.ConsumeToken();
-                return true;
             }
+            case TermLexer::LSQUARE:
+            {
+                std::vector<std::tuple<const std::string*, Variable*>> shadowed;
+                lexer.ConsumeToken();
+                ParseBinders(sink, shadowed);
+                lexer.Match(TermLexer::ARROW);
+                ParseTerm(sink);
+                
+                for (auto iter = shadowed.begin(); iter != shadowed.end(); iter++)
+                    bound.insert({std::get<0>(*iter), std::get<1>(*iter)});
+                
+                break;
+            }
+            case TermLexer::COMMA:
+            case TermLexer::RPAR:
+            case TermLexer::EEOF:
+                break;
+                
             default:
-                // Syntax error
-                return false;
+                throw std::runtime_error("Parse error.");
         }
     }
 
-    bool TermParser::ParseArgs(Sink& sink)
+    void TermParser::ParseArgs(Sink& sink)
     {
         TermLexer::Token token = lexer.CurrentToken();
         switch (token)
@@ -292,51 +341,85 @@ namespace tosca
                     case TermLexer::RPAR:
                     {
                         lexer.ConsumeToken();
-                        return true;
+                        return;
                     }
                     default:
-                        if (ParseTerms(sink))
-                        {
-                            if (lexer.CurrentToken() == TermLexer::RPAR)
-                            {
-                                lexer.ConsumeToken();
-                                return true;
-                            }
-                        }
+                        ParseTerm(sink);
+                        ParseTerms(sink);
+                        
+                        lexer.Match(TermLexer::RPAR);
+                        return;
                 }
-                return false;
             }
             case TermLexer::COMMA:
             case TermLexer::EEOF:
-                return true;
+                return;
             
             default:
-                return false;
+               throw std::runtime_error("Parse error.");
         }
     }
     
-    bool TermParser::ParseTerms(Sink& sink)
+    void TermParser::ParseTerms(Sink& sink)
     {
         while (true)
         {
-            if (ParseTerm(sink))
+            ParseTerm(sink);
+            
+            TermLexer::Token token = lexer.CurrentToken();
+            switch (token)
             {
-                TermLexer::Token token = lexer.CurrentToken();
-                switch (token)
-                {
-                    case TermLexer::COMMA:
-                        lexer.ConsumeToken();
-                        break; // Read next term
-                    case TermLexer::RPAR:
-                        lexer.ConsumeToken();
-                        return true;
-                    default:
-                        return false;
-                }
+                case TermLexer::COMMA:
+                    lexer.ConsumeToken();
+                    break; // move on to next term.
+                case TermLexer::RPAR:
+                    return; // done
+                default:
+                     throw std::runtime_error("Parse error.");
             }
-            else
-                return false;
         }
+    }
+   
+    void TermParser::ParseBinders(Sink& sink, std::vector<std::tuple<const std::string*, Variable*>>& shadowed)
+    {
+        while (true)
+        {
+            TermLexer::Token token = lexer.CurrentToken();
+            switch (token)
+            {
+                case TermLexer::VARIABLE:
+                {
+                    // Save shadowed bound variables.
+                    auto search = bound.find(&lexer.GetText());
+                    if (search != bound.end())
+                        shadowed.push_back(std::tuple<const std::string*, Variable*>{search->first, search->second});
+                    
+                    std::string& name = *(new std::string(lexer.GetText()));
+                    Variable& binder = sink.MakeBound(name);
+                    bound.insert({&name, &binder});
+                    sink.Bind(binder);
+                    lexer.ConsumeToken();
+                    break;
+                }
+                case TermLexer::RSQUARE:
+                    return;
+                default:
+                    throw std::runtime_error("Parse error.");
+            }
+        }
+    }
+    
+    
+    Variable* TermParser::FindVariable(const std::string& name)
+    {
+        auto search1 = bound.find(&name);
+        if (search1 != bound.end())
+            return search1->second;
+        
+        auto search2 = free.find(&name);
+        if (search2 != free.end())
+            return search2->second;
+        return 0;
     }
     
 }
