@@ -2,77 +2,43 @@
 
 #include <ostream>
 #include <sstream>
+#include <fstream>
 #include "termprinter.h"
 #include "ts.h"
+#include "iowrapper.h"
 
 // Simple term printer
 
 
 namespace tosca {
-
-    static void Indent(int count, std::ostream& out, bool indent)
+   
+    void Print(Term& term, FILE* out, bool indent)
     {
-        if (indent)
-        {
-            while (count-- > 0)
-                out << ' ';
-        }
+        IOFILEWrapper wrapper(out);
+        Print(term, wrapper, indent);
     }
-
-    static void Print(Term& term, std::ostream& out, int count, bool indent)
-    {
-        // TODO: support for UTF-8
-        
-        out << '\n';
-        Indent(count, out, indent);
-        out << term.Symbol();
-
-        // Print subs
-        int i = 0;
-        Optional<Term> osub = term.Sub(i);
-        if (osub)
-        {
-            out << "(";
-            while (osub)
-            {
-                if (i > 0)
-                  out << ",";
-
-                int j = 0;
-                Optional<Variable> obinder = term.Binder(i, j);
-                while (obinder)
-                {
-                    out << (j == 0 ? '[' : ' ');
-                    out << obinder.value().Symbol();
-                    obinder = term.Binder(i, ++j);
-
-                }
-                if (term.Binder(i, 0))
-                    out << "]->";
-
-                Print(osub.value(), out, count + 2, indent);
-                osub = term.Sub(++i);
-            }
-            out << ")";
-        }
-    }
-
+    
     void Print(Term& term, std::ostream& out, bool indent)
     {
-        Print(term, out, 0, indent);
+        IOStreamWrapper wrapper(out);
+        Print(term, wrapper, indent);
+    }
+    
+    void Print(Term& term, IOWrapper& out, bool indent)
+    {
+        term.Print(out, 0, indent);
+        term.Release();
     }
 
     void Print(Term& term, bool indent)
     {
         Print(term, std::cout, indent);
-        term.Release();
     }
 
     std::string PrintToString(Term& term, bool indent)
     {
         std::stringstream stream;
         Print(term, stream, indent);
-        term.Release();
         return stream.str();
     }
 

@@ -401,7 +401,7 @@ func CppFormMakeFree(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #
 tosca::Variable& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩MakeFree(tosca::Context& ctx, int subi, std::string& name)†⟨
 If(#def, ()->text⟦¶{→
 switch (subi)
-{→†⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppMakeVariable(isvar, type, index))⟩
+{→†⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppMakeFreeVariable(isvar, type, index))⟩
 default: assert(false);←
 }←
 }⟧, ()->text⟦;⟧)⟩⟧)
@@ -428,7 +428,7 @@ func CppMakeBoundBinders(List<Core_csort_sort>, Numeric) -> Text4_text_sort
 case †⟨NumberToText(Minus(#index, 1))⟩:
 {→
 switch (binderi)
-{→†⟨CppClassField(CppTypes(#csort), #index, 1, (isvar type index subindex)->CppMakeVariable(isvar, type, subindex))⟩
+{→†⟨CppClassField(CppTypes(#csort), #index, 1, (isvar type index subindex)->CppMakeBoundVariable(isvar, type, subindex))⟩
 default: assert(false);←
 }
 break;←
@@ -436,9 +436,14 @@ break;←
            ()->text⟦⟧)⟩†⟨CppMakeBoundBinders(#csort*, Plus(#index, 1))⟩⟧
 
 
-func CppMakeVariable(Bool, Text4_text_sort, Numeric) -> Text4_text_sort
-rule CppMakeVariable(TRUE, #type, #index)  → text⟦⟧
-rule CppMakeVariable(FALSE, #type, #index) → text⟦¶case †⟨NumberToText(Minus(#index, 1))⟩: return †⟨#type⟩::MakeVariable(ctx, name);⟧
+func CppMakeFreeVariable(Bool, Text4_text_sort, Numeric) -> Text4_text_sort
+rule CppMakeFreeVariable(TRUE, #type, #index)  → text⟦⟧
+rule CppMakeFreeVariable(FALSE, #type, #index) → text⟦¶case †⟨NumberToText(Minus(#index, 1))⟩: return †⟨#type⟩::MakeVariable(ctx, name);⟧
+
+func CppMakeBoundVariable(Bool, Text4_text_sort, Numeric) -> Text4_text_sort
+rule CppMakeBoundVariable(FALSE, #type, #index)  → text⟦⟧
+rule CppMakeBoundVariable(TRUE, #type, #index) → text⟦¶case †⟨NumberToText(Minus(#index, 1))⟩: return *(new †⟨#type⟩::†⟨#type⟩(name));⟧
+
 
 /* Generate the MakeTerm method for the given `#formname` */
 func CppFormMakeTerm(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort

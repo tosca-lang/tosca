@@ -84,6 +84,29 @@ namespace tosca
                     ReadChar();
                     token = RSQUARE;
                     return;
+                case '{':
+                    ReadChar();
+                    token = LCURLY;
+                    return;
+                case '}':
+                    ReadChar();
+                    token = RCURLY;
+                    return;
+                case '-':
+                {
+                    char first = ReadChar();
+                    switch (CurrentChar())
+                    {
+                        case '>':
+                            ReadChar();
+                            token = ARROW;
+                            break;
+                        default:
+                            token = ReadNumber(first);
+                            break;
+                    }
+                    return;
+                }
                 case '0':
                 case '1':
                 case '2':
@@ -94,8 +117,7 @@ namespace tosca
                 case '7':
                 case '8':
                 case '9':
-                case '-':
-                    token = ReadNumber();
+                    token = ReadNumber(ReadChar());
                     return;
                 case ' ' :
                 case '\t':
@@ -117,6 +139,7 @@ namespace tosca
             }
         }
     }
+    
     
     TermLexer::Token TermLexer::ReadString()
     {
@@ -169,6 +192,17 @@ namespace tosca
         }
     }
     
+    
+    inline static bool isAlpha(char c)
+    {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+    }
+    
+    inline static bool isDigit(char c)
+    {
+        return (c >= '0' && c <= '9');
+    }
+    
     TermLexer::Token TermLexer::ReadVariable()
     {
         // Lower (Alpha | Digit | '-' | '_')*;
@@ -176,54 +210,32 @@ namespace tosca
         while (true)
         {
             char c = CurrentChar();
-            switch (c)
+            if (isAlpha(c) || isDigit(c) || c == '-' || c == '_')
             {
-                case ' ' :
-                case '\t':
-                case '\f':
-                case '\n':
-                case '\r':
-                case '\b':
-                case '\0':
-                case ',':
-                case ')':
-                    return VARIABLE;
-                    
-                default:
-                    // TODO: check syntax
-                    ReadChar();
-                    text += c;
-                    break;
+                ReadChar();
+                text += c;
             }
+            else
+                return VARIABLE;
         }
     }
     
-    TermLexer::Token TermLexer::ReadNumber()
+    TermLexer::Token TermLexer::ReadNumber(char first)
     {
         //'-'? [0-9]+ ('.' [0-9]+)? | '.' [0-9]+;
-        text += ReadChar();
+        text += first;
         while (true)
         {
             char c = CurrentChar();
-            switch (c)
+            // Approximation.
+            
+            if (isDigit(c) || c == '.')
             {
-                case ' ' :
-                case '\t':
-                case '\f':
-                case '\n':
-                case '\r':
-                case '\b':
-                case '\0':
-                case ',':
-                case ')':
-                    return NUMBER;
-                    
-                default:
-                    // TODO: check syntax
-                    ReadChar();
-                    text += c;
-                    break;
+                ReadChar();
+                text += c;
             }
+            else
+                return NUMBER;
         }
     }
     
@@ -262,6 +274,17 @@ namespace tosca
     TermParser::TermParser(std::istream* input) : lexer(input)
     {}
     
+    TermParser::~TermParser()
+    {
+        // Release bound (in case of error) and free variables
+        for (auto iter = bound.begin(); iter != bound.end(); iter++)
+            iter->second->Release();
+        
+        for (auto iter = free.begin(); iter != free.end(); iter++)
+            iter->second->Release();
+        
+    }
+    
     Term& TermParser::ParseTerm(Context& ctx)
     {
         BufferSink buffer(ctx);
@@ -291,9 +314,9 @@ namespace tosca
                 {
                     std::string& name = *(new std::string(lexer.GetText()));
                     var = &sink.MakeFree(name);
-                    free.insert({&name, var});
+                    free.insert({name, var}); // Keep one var ref
                 }
-                
+                var->AddRef();
                 sink.Use(*var);
                 lexer.ConsumeToken();
                 break;
@@ -303,18 +326,36 @@ namespace tosca
             {
                 sink.Literal(lexer.GetText());
                 lexer.ConsumeToken();
+                break;
             }
             case TermLexer::LSQUARE:
             {
-                std::vector<std::tuple<const std::string*, Variable*>> shadowed;
+                std::vector<std::tuple<const std::string*, Variable*>> local;
                 lexer.ConsumeToken();
-                ParseBinders(sink, shadowed);
+                ParseBinders(sink, local);
+                lexer.Match(TermLexer::RSQUARE);
+                lexer.ConsumeToken();
                 lexer.Match(TermLexer::ARROW);
+                lexer.ConsumeToken();
                 ParseTerm(sink);
                 
-                for (auto iter = shadowed.begin(); iter != shadowed.end(); iter++)
-                    bound.insert({std::get<0>(*iter), std::get<1>(*iter)});
+                for (auto iter = local.begin(); iter != local.end(); iter++)
+                {
+                    bound.erase(*std::get<0>(*iter));
+                    std::get<1>(*iter)->Release();
+                }
                 
+                break;
+            }
+            case TermLexer::LCURLY:
+            {
+                lexer.ConsumeToken();
+                std::string empty("");
+                Term& sub = sink.MakeTerm(empty);
+                sink.Start(sub);
+                lexer.Match(TermLexer::RCURLY);
+                lexer.ConsumeToken();
+                sink.End();
                 break;
             }
             case TermLexer::COMMA:
@@ -348,10 +389,12 @@ namespace tosca
                         ParseTerms(sink);
                         
                         lexer.Match(TermLexer::RPAR);
+                        lexer.ConsumeToken();
                         return;
                 }
             }
             case TermLexer::COMMA:
+            case TermLexer::RPAR:
             case TermLexer::EEOF:
                 return;
             
@@ -380,7 +423,7 @@ namespace tosca
         }
     }
    
-    void TermParser::ParseBinders(Sink& sink, std::vector<std::tuple<const std::string*, Variable*>>& shadowed)
+    void TermParser::ParseBinders(Sink& sink, std::vector<std::tuple<const std::string*, Variable*>>& local)
     {
         while (true)
         {
@@ -389,14 +432,11 @@ namespace tosca
             {
                 case TermLexer::VARIABLE:
                 {
-                    // Save shadowed bound variables.
-                    auto search = bound.find(&lexer.GetText());
-                    if (search != bound.end())
-                        shadowed.push_back(std::tuple<const std::string*, Variable*>{search->first, search->second});
-                    
                     std::string& name = *(new std::string(lexer.GetText()));
                     Variable& binder = sink.MakeBound(name);
-                    bound.insert({&name, &binder});
+                    bound[name] = &binder; // Keep one ref. See ParseTerm for Release
+                    local.push_back(std::tuple<const std::string*, Variable*>{&name, &binder});
+                    binder.AddRef();
                     sink.Bind(binder);
                     lexer.ConsumeToken();
                     break;
@@ -412,11 +452,11 @@ namespace tosca
     
     Variable* TermParser::FindVariable(const std::string& name)
     {
-        auto search1 = bound.find(&name);
+        auto search1 = bound.find(name);
         if (search1 != bound.end())
             return search1->second;
         
-        auto search2 = free.find(&name);
+        auto search2 = free.find(name);
         if (search2 != free.end())
             return search2->second;
         return 0;

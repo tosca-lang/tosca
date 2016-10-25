@@ -23,6 +23,7 @@ namespace tosca {
     class Variable;
     class Term;
     class Maker;
+    class IOWrapper;
     
     // Reference counting base facility.
     class Ref
@@ -196,6 +197,11 @@ namespace tosca {
          */
         static Term& MakeTerm(Context& ctx, std::string& symbol);
         
+        /**
+         * Print this term.
+         */
+        virtual void Print(IOWrapper& out, int count, bool indent);
+        
     protected:
 
         friend struct std::hash<std::reference_wrapper<tosca::Term>>;
@@ -339,6 +345,7 @@ namespace tosca {
         // Overrides
         size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn);
         const std::string Symbol() const;
+        void Print(IOWrapper& out, int count, bool indent);
 
     };
 
@@ -417,7 +424,10 @@ namespace tosca {
             return !(*this == rhs);
         }
         
+        // Overrides
         size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn);
+        void Print(IOWrapper& out, int count, bool indent);
+
     };
 
     /**
@@ -552,6 +562,7 @@ namespace std
             return lhs->Unbox() == rhs->Unbox();
         }
     };
+    
 }
 
 // Macro specializing both std::hash and std::equal_to for term.

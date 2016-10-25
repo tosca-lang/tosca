@@ -11,7 +11,8 @@
         | VARIABLE
         | STRING
         | NUMBER
-        | [ binderr* ] -> term
+        | [ binder ] -> term
+        | {}
  
    args : ( terms? )
         |
@@ -38,7 +39,8 @@ namespace tosca
     class TermLexer
     {
     public:
-        enum Token { CONSTRUCTOR, VARIABLE, STRING, NUMBER, LPAR, RPAR, LSQUARE, RSQUARE, ARROW, COMMA, EEOF, INVALID };
+        enum Token { CONSTRUCTOR, VARIABLE, STRING, NUMBER, LPAR, RPAR, LSQUARE, RSQUARE, ARROW, COMMA,
+            LCURLY, RCURLY, EEOF, INVALID };
         
         /* Create lexer with C style input */
         TermLexer(FILE* in);
@@ -74,7 +76,7 @@ namespace tosca
         std::istream* stream;
         
         /* Input buffer */
-        char buffer[2];
+        char buffer[8192];
         
         /* Number of loaded characters */
         size_t loaded;
@@ -95,7 +97,7 @@ namespace tosca
         Token ReadVariable();
         
         /* Read number token */
-        Token ReadNumber();
+        Token ReadNumber(char first);
         
         /* Read constructor token */
         Token ReadConstructor();
@@ -136,6 +138,7 @@ namespace tosca
     public:
         TermParser(FILE* input);
         TermParser(std::istream* input);
+        ~TermParser();
         
         /*
          * Parses term and send result to the given sink 
@@ -152,17 +155,21 @@ namespace tosca
         TermLexer lexer;
         
         /* Free variables */
-        std::unordered_map<const std::string*, tosca::Variable*> free;
+        std::unordered_map<std::string, tosca::Variable*> free;
         
         /* Bound variables */
-        std::unordered_map<const std::string*, tosca::Variable*> bound;
+        std::unordered_map<std::string, tosca::Variable*> bound;
         
         void ParseArgs(Sink& sink);
         void ParseTerms(Sink& sink);
-        void ParseBinders(Sink& sink, std::vector<std::tuple<const std::string*, Variable*>>& shadowed);
+        void ParseBinders(Sink& sink, std::vector<std::tuple<const std::string*, Variable*>>& localbound);
         
         Variable* FindVariable(const std::string& name);
     };
 }
+
+
+
+
 
 #endif

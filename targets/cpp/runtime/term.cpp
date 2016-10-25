@@ -4,8 +4,7 @@
 #include "term.h"
 #include "compat.h"
 #include "ts.h"
-
-
+#include "iowrapper.h"
 
 namespace tosca {
 
@@ -215,7 +214,7 @@ namespace tosca {
                     Variable& oldbinder = ooldbinder.value();
                     Variable& subbinder = oldbinder.Copy(ctx);
 
-                    substitutes.insert({&oldbinder, &subbinder.GUse()});
+                    substitutes[&oldbinder] = &subbinder.GUse();
                     copy.SetBinder(i, j, subbinder);
                     j++;
                 }
@@ -321,6 +320,44 @@ namespace tosca {
         throw std::runtime_error("Internal error: enumeration does not allow associated values.");
     }
     
+    void Term::Print(IOWrapper& out, int count, bool indent)
+    {
+        // TODO: support for UTF-8
+        out.Write('\n');
+        if (indent)
+            out.Indent(count);
+        out.Write(Symbol());
+        
+        // Print subs
+        int i = 0;
+        Optional<Term> osub = Sub(i);
+        if (osub)
+        {
+            out.Write('(');
+            while (osub)
+            {
+                if (i > 0)
+                    out.Write(',');
+                
+                int j = 0;
+                Optional<Variable> obinder = Binder(i, j);
+                while (obinder)
+                {
+                    out.Write((j == 0 ? '[' : ' '));
+                    out.Write(obinder.value().Symbol());
+                    obinder = Binder(i, ++j);
+                    
+                }
+                if (Binder(i, 0))
+                    out.Write("]->");
+                
+                osub.value().Print(out, count + 2, indent);
+                osub = Sub(++i);
+            }
+            out.Write(")");
+        }
+    }
+    
     // --- Variable Use
 
     Optional<Variable> VariableUse::GetGVariable() const
@@ -407,6 +444,13 @@ namespace tosca {
         return std::hash<std::string>{}(Unbox());
     }
 
+    void StringTerm::Print(IOWrapper& out, int count, bool indent)
+    {
+        out.Write("\"");
+        out.Write(Unbox());
+        out.Write("\"");
+    }
+    
     CStringTermVar::CStringTermVar(std::string& name) : Variable(name)
     {
     }
@@ -472,6 +516,11 @@ namespace tosca {
     {
         double value = std::stod(symbol);
         return newDoubleTerm(value);
+    }
+    
+    void DoubleTerm::Print(IOWrapper& out, int count, bool indent)
+    {
+        out.Write(Symbol());
     }
     
     CDoubleTermVarUse::CDoubleTermVarUse(CDoubleTermVar& v) : VariableUse::VariableUse(v)
