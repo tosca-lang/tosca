@@ -1106,13 +1106,14 @@ func CppExprMeta({String : EnvEntry}, List<Core_canno_sort>, String, List<Core_c
  → if HasAnnotation("NoSubst", #canno*)
      CppExprRefMeta(#env, #canno*, #metavar, text⟦⟧, #cont) // No need to substitute.
    else
-     CppExprMetaSubst(#env, #metavar, #cterm*, #cont)
+     CppExprMetaSubst(#env, #canno*, #metavar, #cterm*, #cont)
 
 // Meta-application with Substitution
-func CppExprMetaSubst(#env: {String : EnvEntry}, #metavar: String, #cterm*: List<Core_cterm_sort>, #cont: ({String : EnvEntry} Text4_text_sort)->Text4_text_sort) -> Text4_text_sort
+func CppExprMetaSubst(#env: {String : EnvEntry}, #canno*: List<Core_canno_sort>, #metavar: String, #cterm*: List<Core_cterm_sort>, #cont: ({String : EnvEntry} Text4_text_sort)->Text4_text_sort) -> Text4_text_sort
 → CppExprMetaArgs(#env, #cterm*, text⟦⟧, (env terms)->
-  text⟦¶auto& ⟨STRING: var:String⟩ = Subst(ctx, †⟨GetMetaVar(#env, #metavar)⟩, { †⟨TextMapFold((b)->text⟦&†⟨b⟩⟧, GetMetaArgs(#env, #metavar), text⟦, ⟧)⟩ }, { †⟨terms⟩ });†⟨
-    #cont(env, text⟦⟨STRING: var⟩⟧)⟩⟧)
+  CppExprRefMeta(#env, #canno*, #metavar, text⟦⟧, (env cppvar)->
+  text⟦¶auto& ⟨STRING: var:String⟩ = Subst(ctx, †⟨cppvar⟩, { †⟨TextMapFold((b)->text⟦&†⟨b⟩⟧, GetMetaArgs(#env, #metavar), text⟦, ⟧)⟩ }, { †⟨terms⟩ });†⟨
+    #cont(env, text⟦⟨STRING: var⟩⟧)⟩⟧))
 
 func CppExprMetaArgs({String : EnvEntry}, List<Core_cterm_sort> /* contraction args */, Text4_text_sort, ({String : EnvEntry} Text4_text_sort)->Text4_text_sort) -> Text4_text_sort
 

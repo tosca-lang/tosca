@@ -41,24 +41,26 @@ namespace tosca {
         name += "_";
         name += std::to_string(++ts);
         
+        if (name == track)
+            std::cout << name << " created\n";
+        
         return name;
     }
 
-    /**
-     * Add user-defined properties
-     */
     void Context::PutProperty(const std::string& key, void* value)
     {
         properties[key] = value;
     }
     
-    /**
-     * Add user-defined properties
-     */
     void* Context::GetProperty(const std::string& key)
     {
         auto search = properties.find(key);
         return search == properties.end() ? 0 : search->second;
     }
 
+    void Context::Track(std::string&& str)
+    {
+        track = str;
+    }
+    
 }

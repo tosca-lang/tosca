@@ -47,6 +47,9 @@ namespace tosca {
         {
           track = true;
         }
+        
+        static void Track(int id);
+        
     protected:
         bool track;
     };
@@ -165,6 +168,7 @@ namespace tosca {
          * Make free variable compatible with the ith subterm.
          *
          * @param i the sub index
+         * @param name of the variable.
          * @return a new variable or a std::out_of_range exception
          */
         virtual Variable& MakeFree(Context& ctx, int i, std::string& name);
@@ -174,6 +178,7 @@ namespace tosca {
          *
          * @param i the sub index
          * @param j the sub binder index
+         * @param name of the variable.
          * @return a new variable or a std::out_of_range exception
          */
         virtual Variable& MakeBound(Context& ctx, int i, int j, std::string& name);

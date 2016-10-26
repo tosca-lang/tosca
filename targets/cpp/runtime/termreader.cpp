@@ -316,8 +316,7 @@ namespace tosca
                     var = &sink.MakeFree(name);
                     free.insert({name, var}); // Keep one var ref
                 }
-                var->AddRef();
-                sink.Use(*var);
+                sink.Use(Ref(*var));
                 lexer.ConsumeToken();
                 break;
             }

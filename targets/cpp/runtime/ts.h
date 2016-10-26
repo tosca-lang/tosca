@@ -60,6 +60,9 @@ namespace tosca {
          * Add user-defined properties
          */
         void* GetProperty(const std::string& key);
+        
+        /** Track global name */
+        void Track(std::string&& name);
 
     private:
 
@@ -71,10 +74,13 @@ namespace tosca {
 
         // User-defined properties
         std::unordered_map<std::string, void*> properties;
-
         
         // global counter.
         unsigned long long ts;
+        
+        // Name to track
+        std::string track;
+        
     };
     
     /** Add new reference to the given term */

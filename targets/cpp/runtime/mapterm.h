@@ -127,7 +127,7 @@ namespace tosca {
         {
             return newMapTerm<K, V>();
         }
-        
+
         // Overrides
 
         const std::string Symbol() const
@@ -175,7 +175,7 @@ namespace tosca {
         void putValue(Context& ctx, K& key, V& value)
         {
             auto search = map.find(&key);
-            map.insert({&key, &value});
+            map[&key] = &value;
             if (search != map.end())
             {
                 // Entry has been replaced so release references to previous entry

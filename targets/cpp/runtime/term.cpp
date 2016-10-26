@@ -8,10 +8,28 @@
 
 namespace tosca {
 
+    static int allocated_count = 0;
+    static std::unordered_map<class Ref*, int> allocated;
+    static int track_allocated = -1;
+    
+    static bool Alive(class Ref* ref)
+    {
+        if (ref->refcount <= 0)
+        {
+            std::cerr << "Invalid use of freed reference ";
+            std::cerr << allocated[ref] << "\n";
+            return false;
+        }
+        return true;
+    }
+    
     // --- Ref
 
     Ref::Ref(): refcount(1), track(false)
     {
+        allocated[this] = allocated_count ++;
+        if (track_allocated == allocated[this])
+          std::cout << "\n[" << allocated[this] << "] created ";
     }
 
     Ref::~Ref()
@@ -22,21 +40,27 @@ namespace tosca {
 
     void Ref::AddRef()
     {
-        assert(refcount > 0);
+        assert(Alive(this));
+        
         refcount++;
-        if (track)
-          std::cout << ((void*) this) << " add ref " << refcount;
+        if (track || track_allocated == allocated[this])
+          std::cout << "\n[" << allocated[this] << "] add ref " << refcount ;
     }
 
     void Ref::Release()
     {
-        assert(refcount > 0);
+        assert(Alive(this));
         refcount--;
 
-        if (track)
-          std::cout << ((void*) this) << " released " << refcount;
-        if (refcount == 0)
-          delete this;
+        if (track || track_allocated == allocated[this])
+          std::cout << "\n[" << allocated[this] << "] released " << refcount;
+        //if (refcount == 0)
+        //  delete this;
+    }
+    
+    void Ref::Track(int id)
+    {
+        track_allocated = id;
     }
 
     // --- Term
@@ -69,7 +93,7 @@ namespace tosca {
     {
         return Optional<Term>::nullopt;
     }
-    
+
     void Term::SetSub(int i, Term& sub)
     {
         assert(false);
@@ -214,7 +238,7 @@ namespace tosca {
                     Variable& oldbinder = ooldbinder.value();
                     Variable& subbinder = oldbinder.Copy(ctx);
 
-                    substitutes[&oldbinder] = &subbinder.GUse();
+                    substitutes[&oldbinder] = &subbinder.GUse(); // Acquire bound varuse reference
                     copy.SetBinder(i, j, subbinder);
                     j++;
                 }
@@ -230,13 +254,17 @@ namespace tosca {
                     Optional<Variable> ooldbinder = Binder(i, j);
                     if (!ooldbinder)
                         break;
-
-                    substitutes.erase(&ooldbinder.value());
+                    
+                    Variable& oldbinder = ooldbinder.value();
+                    Term* olduse = substitutes[&oldbinder];
+                    substitutes.erase(&oldbinder);
+                    olduse->Release(); // Release bound varuse reference
                     j++;
                 }
             }
             i ++;
         }
+        Release();
         return copy;
     }
 
@@ -299,27 +327,27 @@ namespace tosca {
     {
         throw std::out_of_range("Internal Error: index out of range.");
     }
-    
+
     Variable& Term::MakeBound(Context& ctx, int i, int j, std::string& name)
     {
         throw std::out_of_range("Internal Error: index out of range.");
     }
-    
+
     Term& Term::MakeSubTerm(Context& ctx, int i, std::string& symbol)
     {
         throw std::out_of_range("Internal Error: index out of range.");
     }
-    
+
     Variable& Term::MakeVariable(Context& ctx, std::string& name)
     {
         throw std::runtime_error("Internal error: enumeration does not allow variables.");
     }
-    
+
     Term& Term::MakeTerm(Context& ctx, std::string& symbol)
     {
         throw std::runtime_error("Internal error: enumeration does not allow associated values.");
     }
-    
+
     void Term::Print(IOWrapper& out, int count, bool indent)
     {
         // TODO: support for UTF-8
@@ -327,7 +355,7 @@ namespace tosca {
         if (indent)
             out.Indent(count);
         out.Write(Symbol());
-        
+
         // Print subs
         int i = 0;
         Optional<Term> osub = Sub(i);
@@ -338,7 +366,7 @@ namespace tosca {
             {
                 if (i > 0)
                     out.Write(',');
-                
+
                 int j = 0;
                 Optional<Variable> obinder = Binder(i, j);
                 while (obinder)
@@ -346,18 +374,18 @@ namespace tosca {
                     out.Write((j == 0 ? '[' : ' '));
                     out.Write(obinder.value().Symbol());
                     obinder = Binder(i, ++j);
-                    
+
                 }
                 if (Binder(i, 0))
                     out.Write("]->");
-                
+
                 osub.value().Print(out, count + 2, indent);
                 osub = Sub(++i);
             }
             out.Write(")");
         }
     }
-    
+
     // --- Variable Use
 
     Optional<Variable> VariableUse::GetGVariable() const
@@ -428,7 +456,7 @@ namespace tosca {
     {
         return Unbox();
     }
-    
+
     Variable& StringTerm::MakeVariable(Context& ctx, std::string& hint)
     {
         return varStringTerm(ctx, hint);
@@ -438,7 +466,7 @@ namespace tosca {
     {
         return newStringTerm(symbol);
     }
-    
+
     size_t StringTerm::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn)
     {
         return std::hash<std::string>{}(Unbox());
@@ -450,7 +478,7 @@ namespace tosca {
         out.Write(Unbox());
         out.Write("\"");
     }
-    
+
     CStringTermVar::CStringTermVar(std::string& name) : Variable(name)
     {
     }
@@ -510,19 +538,19 @@ namespace tosca {
     {
         return varDoubleTerm(ctx, hint);
     }
-    
-    
+
+
     Term& DoubleTerm::MakeTerm(Context& ctx, std::string& symbol)
     {
         double value = std::stod(symbol);
         return newDoubleTerm(value);
     }
-    
+
     void DoubleTerm::Print(IOWrapper& out, int count, bool indent)
     {
         out.Write(Symbol());
     }
-    
+
     CDoubleTermVarUse::CDoubleTermVarUse(CDoubleTermVar& v) : VariableUse::VariableUse(v)
     {
     }

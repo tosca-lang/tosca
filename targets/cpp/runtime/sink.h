@@ -81,7 +81,7 @@ public:
     /**
      * Insert string literal subterm.
      *
-     * @param literal to add
+     * @param literal to add. 
      * @return this sink
      */
     virtual Sink& Literal(const std::string& literal) = 0;
@@ -120,6 +120,7 @@ public:
     /*
      * Make new free variable compatible with the pending subterm
      * Throw runtime_exception when there is no pending subterm.
+     * @param name 
      */
     virtual Variable& MakeFree(std::string& name) = 0;
     
