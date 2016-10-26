@@ -137,7 +137,7 @@ func Range(#from: Numeric, #to: Numeric) -> List<Numeric>
     (#from, Range(Plus(#from, 1), #to)...)
   else
     (#to,)
-    
+
 /*
    Append element to list.
    @param  `a` element
@@ -229,7 +229,7 @@ rule Intersect(#XS, #YS) → Foldr((x zs) -> ConditionalInsert(Elem(x,#YS), x, z
    @return the union of `#XS` and `#YS`, in particular the duplicates are removed
 */
 func Union<a>(List<a>, List<a>) -> List<a>
-rule Union(#XS, #YS) → RemoveDuplicates<a>(Concat<a>(#XS,#YS))
+rule Union(#XS, #YS) → RemoveDuplicates(Concat(#XS,#YS))
 
 /* `Reverse(#XS)`
    @param  `#XS` list

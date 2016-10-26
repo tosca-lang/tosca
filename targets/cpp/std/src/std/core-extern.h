@@ -46,16 +46,19 @@ Bool& Equal(tosca::Context& ctx, a& val1, b& val2)
 }
 
 template<typename a>
-Bool& DeepEqual(tosca::Context& ctx, a& value_147, a& value_148)
+Bool& DeepEqual(tosca::Context& ctx, a& lhs, a& rhs)
 {
-    throw new std::runtime_error("unimplemented");
+    std::unordered_map<tosca::Variable*, tosca::Variable*> varmap;
+    Bool& result = lhs.DeepEquals(rhs, varmap) ? newTRUE(ctx) : newFALSE(ctx);
+    lhs.Release();
+    rhs.Release();
+    return result;
 }
 
 // --- Syntactic Variable
 
-
 template <typename b>
-List<b>* FreeVariablesImpl(tosca::Context& ctx, tosca::Term& term, List<b>* result, std::unordered_set<tosca::Variable*>& bound)
+List<b>* FreeVariablesImpl(tosca::Context& ctx, const tosca::Term& term, List<b>* result, std::unordered_set<tosca::Variable*>& bound)
 {
     Optional<tosca::Variable> ovar = term.GetGVariable();
     if (ovar)
@@ -120,19 +123,89 @@ template<typename a, typename b>
 List<b>& FreeVariables(tosca::Context& ctx, a& term)
 {
     std::unordered_set<tosca::Variable*> bound;
-    return *FreeVariablesImpl(ctx, term, &newNil<b>(ctx), bound);
+    List<b>& fvs = *FreeVariablesImpl(ctx, term, &newNil<b>(ctx), bound);
+    term.Release();
+    return fvs;
+}
+
+
+template<typename a>
+void IndexVariables(tosca::Context& ctx, List<a>& list, std::unordered_set<tosca::Variable*>& index)
+{
+    List<a>* c = &list;
+    while (true)
+    {
+        auto ocons = c->asCons(ctx);
+        if (!ocons)
+            break;
+        
+        auto& cons = ocons.value();
+        auto ovar = cons.getValue1(ctx, true).GetGVariable();
+        if (ovar)
+            index.insert(&ovar.value());
+        
+        c = &cons.getValue2(ctx, true);
+    }
+}
+
+
+template<typename a>
+List<a>& ExceptVariables(tosca::Context& ctx, List<a>& lhs, List<a>& rhs)
+{
+    std::unordered_set<tosca::Variable*> index;
+    IndexVariables(ctx, rhs, index);
+    
+    List<a>* result = &newNil<a>(ctx);
+    List<a>* c = &lhs;
+    while (true)
+    {
+        auto ocons = c->asCons(ctx);
+        if (!ocons)
+            break;
+        
+        auto& cons = ocons.value();
+        auto ovar = cons.getValue1(ctx, true).GetGVariable();
+        if (ovar)
+        {
+            tosca::Variable& v = ovar.value();
+            if (index.find(&v) == index.end())
+                c = &newCons<a>(ctx, *dynamic_cast<a*>(&v.GUse()), *c);
+        }
+    }
+    // TODO: inline release for efficiency.
+    lhs.Release();
+    rhs.Release();
+    return *result;
 }
 
 template<typename a>
-List<a>& ExceptVariables(tosca::Context& ctx, List<a>& value_112, List<a>& value_113)
+List<a>& IntersectVariables(tosca::Context& ctx, List<a>& lhs, List<a>& rhs)
 {
-    throw new std::runtime_error("unimplemented");
-}
+    std::unordered_set<tosca::Variable*> index;
+    IndexVariables(ctx, rhs, index);
+    
+    List<a>* result = &newNil<a>(ctx);
+    List<a>* c = &lhs;
+    while (true)
+    {
+        auto ocons = c->asCons(ctx);
+        if (!ocons)
+            break;
+        
+        auto& cons = ocons.value();
+        auto ovar = cons.getValue1(ctx, true).GetGVariable();
+        if (ovar)
+        {
+            tosca::Variable& v = ovar.value();
+            if (index.find(&v) != index.end())
+                c = &newCons<a>(ctx, *dynamic_cast<a*>(&v.GUse()), *c);
+        }
+    }
+    // TODO: inline release for efficiency.
+    lhs.Release();
+    rhs.Release();
+    return *result;
 
-template<typename a>
-List<a>& IntersectVariables(tosca::Context& ctx, List<a>& value_116, List<a>& value_117)
-{
-    throw new std::runtime_error("unimplemented");
 }
 
 /* @return true when the two given terms are variables, and they are equal (same identity). */

@@ -151,6 +151,7 @@ namespace tosca {
 
         /**
          * Deep term equality, modulo bound variables and map
+         * Do not consume any references.
          */
         virtual bool DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const;
 

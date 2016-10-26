@@ -3,6 +3,7 @@
 
 #include  <cstdlib>
 #include "core.h"
+#include "listdef.h"
 
 using namespace tosca;
 
@@ -57,4 +58,3 @@ DoubleTerm& BitAnd(Context& ctx, DoubleTerm& left, DoubleTerm& right)
     right.Release();
     return result;
 }
-
