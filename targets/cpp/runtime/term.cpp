@@ -55,8 +55,9 @@ namespace tosca {
 
         if (track || track_allocated == allocated[this])
           std::cout << "\n[" << allocated[this] << "] released " << refcount;
-        //if (refcount == 0)
-        //  delete this;
+        
+        if (refcount == 0)
+          delete this;
     }
     
     void Ref::Track(int id)

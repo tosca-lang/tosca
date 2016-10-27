@@ -169,8 +169,9 @@ List<a>& ExceptVariables(tosca::Context& ctx, List<a>& lhs, List<a>& rhs)
         {
             tosca::Variable& v = ovar.value();
             if (index.find(&v) == index.end())
-                c = &newCons<a>(ctx, *dynamic_cast<a*>(&v.GUse()), *c);
+                result = &newCons<a>(ctx, *dynamic_cast<a*>(&v.GUse()), *result);
         }
+        c = &cons.getValue2(ctx, true);
     }
     // TODO: inline release for efficiency.
     lhs.Release();
@@ -198,8 +199,9 @@ List<a>& IntersectVariables(tosca::Context& ctx, List<a>& lhs, List<a>& rhs)
         {
             tosca::Variable& v = ovar.value();
             if (index.find(&v) != index.end())
-                c = &newCons<a>(ctx, *dynamic_cast<a*>(&v.GUse()), *c);
+                result = &newCons<a>(ctx, *dynamic_cast<a*>(&v.GUse()), *result);
         }
+        c = &cons.getValue2(ctx, true);
     }
     // TODO: inline release for efficiency.
     lhs.Release();
