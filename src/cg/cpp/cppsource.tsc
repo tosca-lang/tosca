@@ -64,6 +64,7 @@ func CppFormDefs(String, Core_cform_sort) -> Text4_text_sort
     text⟦
  †⟨CppFormConstructor(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
  †⟨CppFormDefaultConstructor(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
+ †⟨CppFormMethodSymbol(#sortname, (), #CONSTRUCTOR, TRUE)⟩
  †⟨CppFormMethodMake(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
  †⟨CppFormMethodCopy(#sortname, (), #CONSTRUCTOR, TRUE)⟩
  †⟨CppFormMethodAs(#sortname, (), #CONSTRUCTOR, TRUE)⟩
@@ -123,9 +124,9 @@ void †⟨#fnname⟩(tosca::Context& context)
 {→
 if (!context.GetProperty("†⟨#fnname⟩"))
 {→
-    context.PutProperty("†⟨#fnname⟩", reinterpret_cast<void*>(1));†⟨TextFoldES(Map((sort )->CppRegisterDataSort(sort), MapValues(#data)))⟩†⟨TextFoldES(Map((qcons)->CppRegisterImport(qcons),  #imports))⟩
-←}
-←}⟧
+context.PutProperty("†⟨#fnname⟩", reinterpret_cast<void*>(1));†⟨TextFoldES(Map((sort )->CppRegisterDataSort(sort), MapValues(#data)))⟩†⟨TextFoldES(Map((qcons)->CppRegisterImport(qcons),  #imports))⟩←
+}←
+}⟧
 
 func CppRegisterImport(#name: Core_cqidentifier_sort) -> Text4_text_sort
 → text⟦¶InitModule_⟨STRING: Mangle(PathFileStem(JoinQIdentifier(#name, "/", TRUE)))⟩(context);⟧

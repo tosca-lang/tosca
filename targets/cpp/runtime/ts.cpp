@@ -30,9 +30,9 @@ namespace tosca {
         varFactories[&type] = factory;
     }
 
-    std::string& Context::MakeGlobalName(const std::string& hint)
+    std::string Context::MakeGlobalName(const std::string& hint)
     {
-        std::string& name = *(new std::string());
+        std::string name;
         std::string::size_type idx = hint.find("_");
         if (idx != std::string::npos)
             name += hint.substr(0, idx);

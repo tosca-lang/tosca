@@ -58,18 +58,18 @@ DoubleTerm& Length(Context& ctx, StringTerm& str)
 
 StringTerm& Mangle(Context& ctx, StringTerm& str)
 {
-    StringTerm& result =  newStringTerm(makeMangle(ctx, str.Unbox()));
+    StringTerm& result = newStringTerm(makeMangle(ctx, str.Unbox()));
     str.Release();
     return result;
 }
 
 StringTerm& UpCase(Context& ctx, StringTerm& str)
 {
-    std::string& upper = *(new std::string(str.Unbox()));
+    std::string upper(str.Unbox());
     for (std::string::iterator it= upper.begin(); it != upper.end(); ++it)
         *it = toupper(*it);
     str.Release();
-    return newStringTerm(upper);
+    return newStringTerm(std::move(upper));
 }
 
 StringTerm& DownCase(Context& ctx, StringTerm& str)

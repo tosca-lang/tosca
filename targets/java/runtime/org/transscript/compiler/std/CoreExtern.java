@@ -17,27 +17,27 @@ import org.transscript.runtime.VariableUse;
 
 /**
  * Standard library core functions.
- * 
+ *
  * @author Lionel Villard
  */
 public class CoreExtern
 {
 
-	public static <a extends Term, b extends Term> Bool SameVariable(Context ctx, ThunkMaker<a> tma, ThunkMaker<b> tmb, a var1, b var2)
+	public static <a extends Term> Bool SameVariable(Context ctx, ThunkMaker<a> tma, a var1, a var2)
 	{
-		a evar1 = Term.force(ctx, var1);
-		b evar2 = Term.force(ctx, var2);
-		Bool result;
-		if (evar1 instanceof VariableUse && evar2 instanceof VariableUse)
-			result = ((VariableUse) evar1).variable().equals(((VariableUse) evar2).variable()) ? Core.TRUE(ctx) : Core.FALSE(ctx);
+    Bool result;
+		if (var1 instanceof VariableUse && var2 instanceof VariableUse)
+			result = ((VariableUse) var1).variable().equals(((VariableUse) var2).variable()) ? Core.TRUE(ctx) : Core.FALSE(ctx);
 		else
 			result = Core.FALSE(ctx);
 
+    var1.release();
+    var2.release();
 		return result;
 	}
 
 	/**
-	 * 
+	 *
 	 * @param ctx
 	 * @param term1
 	 * @param term2
@@ -110,7 +110,7 @@ public class CoreExtern
 		return notdef.eval(ctx);
 	}
 
-	/** 
+	/**
 	 * Print the given message to the console and return result
 	 */
 	public static <a extends Term> a Trace(Context context, ThunkMaker<a> tma, StringTerm msg, LazyTerm<a> result)

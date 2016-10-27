@@ -90,7 +90,7 @@ class †⟨FormCppClassName(#CONSTRUCTOR)⟩: public †⟨SortNameToCppClassNa
 {
 public:→
 †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
-const std::string Symbol() const { return †⟨Text-QuoteEscape(#CONSTRUCTOR)⟩; }
+†⟨CppFormMethodSymbol(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩
 †⟨CppFormMethodMake(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
 †⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩
 †⟨CppFormMethodAs(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩

@@ -123,17 +123,18 @@ namespace tosca {
         /*
          * Make new map term.
          */
-        static Term& MakeTerm(Context& ctx, std::string& symbol)
+        static Term& MakeTerm(Context& ctx, const std::string& symbol)
         {
             return newMapTerm<K, V>();
         }
 
         // Overrides
 
-        const std::string Symbol() const
+        const std::string& Symbol() const
         {
-            // TODO:
-            return "{}";
+            // TODO: map have no symbol.
+            static const std::string emptymap("{}");
+            return emptymap;
         }
 
     };

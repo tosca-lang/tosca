@@ -8,6 +8,7 @@
 
 namespace tosca {
 
+    // Temporary debugging helpers.
     static int allocated_count = 0;
     static std::unordered_map<class Ref*, int> allocated;
     static int track_allocated = -1;
@@ -70,13 +71,15 @@ namespace tosca {
 
     Term::~Term() {}
 
-    const std::string Term::Symbol() const
+    
+    const std::string& Term::Symbol() const
     {
-       auto v = this->GetGVariable();
-       if (v)
-         return v.value().Symbol();
-
-       return "";
+        auto v = this->GetGVariable();
+        if (v)
+            return v.value().Symbol();
+    
+        static const std::string empty;
+        return empty;
     }
 
     Term& Term::Copy(Context& ctx)
@@ -323,27 +326,27 @@ namespace tosca {
 
     }
 
-    Variable& Term::MakeFree(Context& ctx, int i, std::string& name)
+    Variable& Term::MakeFree(Context& ctx, int i, const std::string& hint)
     {
         throw std::out_of_range("Internal Error: index out of range.");
     }
 
-    Variable& Term::MakeBound(Context& ctx, int i, int j, std::string& name)
+    Variable& Term::MakeBound(Context& ctx, int i, int j,  const std::string& hint)
     {
         throw std::out_of_range("Internal Error: index out of range.");
     }
 
-    Term& Term::MakeSubTerm(Context& ctx, int i, std::string& symbol)
+    Term& Term::MakeSubTerm(Context& ctx, int i, const std::string& symbol)
     {
         throw std::out_of_range("Internal Error: index out of range.");
     }
 
-    Variable& Term::MakeVariable(Context& ctx, std::string& name)
+    Variable& Term::MakeVariable(Context& ctx,  const std::string& hint)
     {
         throw std::runtime_error("Internal error: enumeration does not allow variables.");
     }
 
-    Term& Term::MakeTerm(Context& ctx, std::string& symbol)
+    Term& Term::MakeTerm(Context& ctx, const std::string& symbol)
     {
         throw std::runtime_error("Internal error: enumeration does not allow associated values.");
     }
@@ -395,7 +398,7 @@ namespace tosca {
 
     // --- Variable
 
-    Variable::Variable(std::string& n) : name(*new std::string(n)), uses(1)
+    Variable::Variable(std::string n) : name(std::move(n)), uses(1)
     {
     }
 
@@ -404,9 +407,9 @@ namespace tosca {
         throw std::runtime_error("Internal Error: cannot create untyped variable use.");
     }
 
-    const std::string Variable::Symbol() const
+    const std::string& Variable::Symbol() const
     {
-        return name; // copy.
+        return name;
     }
 
     Variable& Variable::Copy(Context& ctx) const
@@ -452,17 +455,17 @@ namespace tosca {
        throw std::runtime_error("Fatal error: cannot access unevaluated string value.");
     }
 
-    const std::string StringTerm::Symbol() const
+    const std::string& StringTerm::Symbol() const
     {
         return Unbox();
     }
 
-    Variable& StringTerm::MakeVariable(Context& ctx, std::string& hint)
+    Variable& StringTerm::MakeVariable(Context& ctx, const std::string& hint)
     {
         return varStringTerm(ctx, hint);
     }
 
-    Term& StringTerm::MakeTerm(Context& ctx, std::string& symbol)
+    Term& StringTerm::MakeTerm(Context& ctx, const std::string& symbol)
     {
         return newStringTerm(symbol);
     }
@@ -479,7 +482,7 @@ namespace tosca {
         out.Write("\"");
     }
 
-    CStringTermVar::CStringTermVar(std::string& name) : Variable(name)
+    CStringTermVar::CStringTermVar(std::string name) : Variable(name)
     {
     }
 
@@ -499,17 +502,19 @@ namespace tosca {
 
     const std::string& CStringTermVarUse::Unbox() const
     {
-      return var.Symbol();
+        return var.Symbol();
     }
-
-    CStringTerm::CStringTerm(const std::string& val) : value(*new std::string(val))
+    
+    CStringTerm::CStringTerm(const std::string&& val) : value(val)
+    {
+    }
+    
+    CStringTerm::CStringTerm(const std::string& val) : value(val)
     {
     }
 
     CStringTerm::~CStringTerm()
-    {
-        // delete &value;
-    }
+    {}
 
 
     Term& CStringTerm::Copy(Context& ctx)
@@ -534,13 +539,13 @@ namespace tosca {
         return std::hash<std::string>{}(Symbol());
     }
 
-    Variable& DoubleTerm::MakeVariable(Context& ctx, std::string& hint)
+    Variable& DoubleTerm::MakeVariable(Context& ctx, const std::string& hint)
     {
         return varDoubleTerm(ctx, hint);
     }
 
 
-    Term& DoubleTerm::MakeTerm(Context& ctx, std::string& symbol)
+    Term& DoubleTerm::MakeTerm(Context& ctx, const std::string& symbol)
     {
         double value = std::stod(symbol);
         return newDoubleTerm(value);
@@ -555,7 +560,7 @@ namespace tosca {
     {
     }
 
-    CDoubleTermVar::CDoubleTermVar(std::string& name) : Variable(name)
+    CDoubleTermVar::CDoubleTermVar(std::string name) : Variable(std::move(name))
     {
     }
 
@@ -569,7 +574,7 @@ namespace tosca {
         return Use();
     }
 
-    CDoubleTerm::CDoubleTerm(double val) : value(val)
+    CDoubleTerm::CDoubleTerm(double val) : value(val), str(std::to_string((long double) val))
     {
     }
 
@@ -584,18 +589,17 @@ namespace tosca {
         return value;
     }
 
-    const std::string CDoubleTerm::Symbol() const
+    const std::string& CDoubleTerm::Symbol() const
     {
-        return std::to_string((long double) Unbox());
+        return str;
     }
-
 }
 
 using namespace tosca;
 
 StringTerm& newStringTerm(std::string&& val)
 {
-    return *(new CStringTerm(*(new std::string(val))));
+    return *(new CStringTerm(val));
 }
 
 StringTerm& newStringTerm(const std::string& val)

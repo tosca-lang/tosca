@@ -49,7 +49,7 @@ namespace tosca {
          * @param hint
          * @return A new unique name
          */
-        std::string& MakeGlobalName(const std::string& hint);
+        std::string MakeGlobalName(const std::string& hint);
         
         /** 
          * Add user-defined properties 

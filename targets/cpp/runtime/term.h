@@ -65,10 +65,9 @@ namespace tosca {
         virtual ~Term();
 
         /**
-         * Get this term symbol.
-         * TODO: document what's a symbol
+         * Get the construction symbol or the empty string this is is not a construction.
          */
-        virtual const std::string Symbol() const;
+        virtual const std::string& Symbol() const;
 
         /**
          * @return A shallow copy of this term. Subs are not initialized.
@@ -172,7 +171,7 @@ namespace tosca {
          * @param name of the variable.
          * @return a new variable or a std::out_of_range exception
          */
-        virtual Variable& MakeFree(Context& ctx, int i, std::string& name);
+        virtual Variable& MakeFree(Context& ctx, int i, const std::string& hint);
       
         /**
          * Make bound variable compatible with the jth binder on the ith subterm.
@@ -182,7 +181,7 @@ namespace tosca {
          * @param name of the variable.
          * @return a new variable or a std::out_of_range exception
          */
-        virtual Variable& MakeBound(Context& ctx, int i, int j, std::string& name);
+        virtual Variable& MakeBound(Context& ctx, int i, int j, const std::string& hint);
         
         /**
          * Make term compatible with the ith subterm.
@@ -191,17 +190,17 @@ namespace tosca {
          * @param symbol the term symbol
          * @return a new uninitialized constructor or a std::out_of_range exception
          */
-        virtual Term& MakeSubTerm(Context& ctx, int i, std::string& symbol);
+        virtual Term& MakeSubTerm(Context& ctx, int i, const std::string& symbol);
         
         /*
          * Default fallback method for term not allowing making new variables
          */
-        static Variable& MakeVariable(Context& ctx, std::string& name);
+        static Variable& MakeVariable(Context& ctx, const std::string& hint);
         
         /*
          * Default fallback method for term not allowing making new subterms
          */
-        static Term& MakeTerm(Context& ctx, std::string& symbol);
+        static Term& MakeTerm(Context& ctx, const std::string& symbol);
         
         /**
          * Print this term.
@@ -262,7 +261,7 @@ namespace tosca {
     {
 
     public:
-        Variable(std::string& name);
+        Variable(std::string name);
 
         bool operator==(const Variable& other) const
         {
@@ -275,7 +274,7 @@ namespace tosca {
         }
 
         /* @return the name of this variable */
-        const std::string Symbol() const;
+        const std::string& Symbol() const;
 
         /**
          * Make a new variable of the same type as this one.
@@ -286,14 +285,12 @@ namespace tosca {
         virtual Term& GUse();
 
     protected:
-        /* Globally unique variable name */
-        std::string& name;
+        /* Globally unique variable name. Allowed to be changed. */
+        std::string name;
 
         /* Count the number of variable use (in the term tree) */
         unsigned long uses;
 
-       // friend class BufferSink;
-       // friend Term& Term::Substitute(tosca::Context& c, std::unordered_map<Variable*, Term*>& substitutes);
     };
 
 
@@ -343,14 +340,14 @@ namespace tosca {
         }
 
         /* Make Variable of type String */
-        static Variable& MakeVariable(Context& ctx, std::string& hint);
+        static Variable& MakeVariable(Context& ctx, const std::string& hint);
       
         /* Make a new value string  */
-        static Term& MakeTerm(Context& ctx, std::string& symbol);
+        static Term& MakeTerm(Context& ctx, const std::string& symbol);
         
         // Overrides
         size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn);
-        const std::string Symbol() const;
+        const std::string& Symbol() const;
         void Print(IOWrapper& out, int count, bool indent);
 
     };
@@ -360,11 +357,8 @@ namespace tosca {
      */
     class CStringTerm: public StringTerm
     {
-    protected:
-        /** The string value. A reference so that we can unbox it. */
-        const std::string& value;
-
     public:
+        CStringTerm(const std::string&& value);
         CStringTerm(const std::string& value);
         ~CStringTerm();
 
@@ -372,6 +366,10 @@ namespace tosca {
 
         Term& Copy(Context& ctx);
         const std::string& Unbox() const;
+        
+    protected:
+        /** The string value. */
+        const std::string value;
     };
 
     class CStringTermVar;
@@ -391,7 +389,7 @@ namespace tosca {
     class CStringTermVar: public Variable
     {
     public:
-        CStringTermVar(std::string& name);
+        CStringTermVar(std::string name);
 
         // --- Overrides
         StringTerm& Use();
@@ -413,10 +411,10 @@ namespace tosca {
         }
 
         /* Make Variable of type Double */
-        static Variable& MakeVariable(Context& ctx, std::string& hint);
+        static Variable& MakeVariable(Context& ctx, const std::string& hint);
         
         /* Make a new value of type double  */
-        static Term& MakeTerm(Context& ctx, std::string& symbol);
+        static Term& MakeTerm(Context& ctx, const std::string& symbol);
 
         // Overrides
 
@@ -441,10 +439,6 @@ namespace tosca {
      */
     class CDoubleTerm: public DoubleTerm
     {
-    protected:
-        /** The double value. */
-        double value;
-
     public:
         CDoubleTerm(double value);
 
@@ -452,7 +446,13 @@ namespace tosca {
 
         Term& Copy(Context& ctx);
         double Unbox() const;
-        const std::string Symbol() const;
+        const std::string& Symbol() const;
+    protected:
+        /** The double value. */
+        double value;
+        
+        /** The original double value as string. */
+        const std::string str;
 
     };
 
@@ -470,7 +470,7 @@ namespace tosca {
     class CDoubleTermVar: public Variable
     {
     public:
-        CDoubleTermVar(std::string& name);
+        CDoubleTermVar(std::string name);
         virtual DoubleTerm& Use();
         virtual Term& GUse();
     };
