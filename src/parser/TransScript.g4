@@ -93,7 +93,11 @@ sortArgs
 
 sortMap
     : sort COLON sort
-    | STRING COLON sort
+    | mapEntrySort (COMMA mapEntrySort)*
+    ;
+
+mapEntrySort
+    : STRING COLON sort
     ;
 
 sortAnno

@@ -154,17 +154,14 @@ func NParamSort(List<Core_canno_sort>, TransScript_paramSort_sort) -> Core_csort
   rule NParamSort(#canno*, paramSort⟦ { ##sort1 : ##sort2 } ⟧)
   → csort⟦ ##canno* { ⟨csort: NSort(#sort1)⟩ : ⟨csort: NSort(#sort2)⟩ } ⟧
 
+  // 1-tuple of named entries.
+  // "TEMPORARY" HACK: For now replaced by @Mixed { String : Any } .
+  rule NParamSort(#canno*, paramSort⟦ { ##mapEntrySort* } ⟧)
+  → csort⟦ @ Mixed ##canno* { String  : Any } ⟧
+
   // N-tuple.
-  // "TEMPORARY" HACK: For now filter out named-sort and replaced by @Mixed { ... } .
   rule NParamSort(#canno*, paramSort⟦ { ##sortMap* } ⟧)
-  → if (NHasNamedSort(#sortMap*))
-      let #filtered = Filter((sortMap)->Not(NIsNamedSort(sortMap)), #sortMap*)
-      if IsEmpty(#filtered)
-        NParamSort(AddAnnotation("Mixed", #canno*), paramSort⟦ { String : Any } ⟧)
-      else
-        NParamSort(AddAnnotation("Mixed", #canno*), paramSort⟦ { ⟨sortMap*: #filtered⟩ } ⟧)
-    else
-      csort⟦ ##canno* ⟨CONSTRUCTOR: NMultiMapWrapper(ListLength(#sortMap*))⟩ ( ⟨csort*:Flatten(Map((sortMap)->NSortMap(sortMap), #sortMap*))⟩ ) ⟧
+  → csort⟦ ##canno* ⟨CONSTRUCTOR: NMultiMapWrapper(ListLength(#sortMap*))⟩ ( ⟨csort*:Flatten(Map((sortMap)->NSortMap(sortMap), #sortMap*))⟩ ) ⟧
 
 func NMaybeSorts(List<TransScript_sortArgs_sort>) -> List<Core_csorts_sort>
 rule NMaybeSorts(sortArgs?⟦           ⟧) → csorts?⟦⟧
@@ -193,15 +190,7 @@ rule NSortMap(sortMap⟦ ##STRING : ##sort2 ⟧) → csort*⟦⟧ // TODO: prope
 /* Generate wrapper construtor for given multimaps arity */
 func NMultiMapWrapper(#arity: Numeric) -> String
 → ConcatString("MMap", FormatInteger(#arity))
-
-/* Tells whether the given `#sortMap` contains named sorts */
-func NHasNamedSort(#sortMap*: List<TransScript_sortMap_sort>) -> Bool
-→ HasOption(PickFirst(#sortMap*, (sortMap)-> NIsNamedSort(sortMap)))
-
-func NIsNamedSort(TransScript_sortMap_sort) -> Bool
-rule NIsNamedSort(sortMap⟦ ##STRING : ##sort2 ⟧) → TRUE
-rule NIsNamedSort(#sortMap                    ) → FALSE
-
+ 
 // ---- Annotation
 
 func NAnnos(#anno*: List<TransScript_anno_sort>) -> List<Core_canno_sort>
