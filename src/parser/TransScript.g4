@@ -93,6 +93,7 @@ sortArgs
 
 sortMap
     : sort COLON sort
+    | STRING COLON sort
     ;
 
 sortAnno

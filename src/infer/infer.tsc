@@ -96,7 +96,7 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
   → PairCons(UnifySort(#env, #esort, csort⟦ Numeric ⟧), cterm⟦ ##NUMBER ⟧)
 
   // Desugar matching higher-order function without specifying formal parameters
-  rule InferTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, csort⟦ ##canno* ( ##csort1 ) ##csort ⟧)
+  rule InferTerm(#env, cterm⟦ ##canno*1 ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, csort⟦ ##canno*2 ( ##csort1 ) ##csort ⟧)
   → InferFormalUp([f] -> InferTerm(IAddFormalSort(#env, f, #csort1), cterm⟦ ##METAVAR ⟨cterms?: AppendTerm(cterm⟦ f ⟧, #cterms?)⟩ ##csubst? ##csortanno? ⟧, #csort), #csort1)
 
   rule InferTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #esort)
@@ -105,19 +105,19 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
   rule InferTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧, #esort)
   → InferVar(#env, GetInPattern(#env), #VARIABLE, IGetVarSort(#env, #VARIABLE), MaybeSortAnnoToSort(#csortanno?), #esort)
 
-  rule InferTerm(#env, cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ⟧, csort⟦ ##canno* [ ##csort1 ] ##csort ⟧)
+  rule InferTerm(#env, cterm⟦ ##canno*1 [ v ##csortanno? ] ##cterm[v] ⟧, csort⟦ ##canno*2 [ ##csort1 ] ##csort ⟧)
   → InferBinderUp([v] -> InferTerm(IAddBoundVarSort(#env, v, #csort1), #cterm[v], #csort), #csort1)
 
   rule InferTerm(#env, cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ⟧, #esort)
   → Error("Type error") // TODO:
 
-  rule InferTerm(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧, csort⟦ ##canno* ( ##csort1 ) ##csort ⟧)
+  rule InferTerm(#env, cterm⟦ ##canno*1 ( f ##csortanno? ) ##cterm[f] ⟧, csort⟦ ##canno*2 ( ##csort1 ) ##csort ⟧)
   → InferFormalUp([f] -> InferTerm(IAddFormalSort(#env, f, #csort1), #cterm[f], #csort), #csort1)
 
   rule InferTerm(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧, #esort)
   → Error("Type error") // TODO:
 
-  rule InferTerm(#env, cterm⟦ ##canno* { ##cmapentries? } ⟧, csort⟦ ##canno* { ##cmapsort } ⟧)
+  rule InferTerm(#env, cterm⟦ ##canno*1 { ##cmapentries? } ⟧, csort⟦ ##canno*2 { ##cmapsort } ⟧)
   → InferMapUp(InferMap(#env, #cmapentries?, #cmapsort), #cmapsort)
 
   // Could be an alias...
@@ -193,11 +193,11 @@ func InferTermsUp(PPair<{String:IEnvEntry} Core_cterm_sort>, String, List<Core_c
 //
 func InferMapAlias({String:IEnvEntry}, Option<Core_cdecl_sort>, Core_cterm_sort, Core_csort_sort) -> PPair<{String:IEnvEntry} Core_cterm_sort>
 
-  rule InferMapAlias(#env, NONE, #cterm, #csort)
-  → Error(ConcatString( "Type error: map does not match type ", PrintTerm("", #csort)))
-
   rule InferMapAlias(#env, SOME(cdecl⟦ ##canno* alias ##CONSTRUCTOR ##csort ⟧), #cterm, #csort2)
   → InferTerm(#env, #cterm, #csort) // TODO: should keep the original sort.
+
+  rule InferMapAlias(#env, NONE, #cterm, #csort)
+  → Error(ConcatString( "Type error: map does not match type ", PrintTerm("", #csort)))
 
 /* Process annotations
    For each missing argument, look for an annotation matching the sort name. Only works for non-polymorphic sort name.
