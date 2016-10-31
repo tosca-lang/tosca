@@ -63,7 +63,7 @@ rule EqualAnno(#anno, canno⟦ @ ##METAVAR               ⟧) → StringEqual(#M
 
 /* Add annotation to list. Does not check if already there. */
 func AddAnnotation(#CONSTRUCTOR: String, #anno*: List<Core_canno_sort>) ->  List<Core_canno_sort>
-→ (canno⟦ @ #CONSTRUCTOR ⟧, #anno*...)
+→ (canno⟦ @ ##CONSTRUCTOR ⟧, #anno*...)
 
 /* Remove the given annotation from the list. Only remove the first found annotation. */
 func RemoveAnnotation(String, List<Core_canno_sort>) ->  List<Core_canno_sort>

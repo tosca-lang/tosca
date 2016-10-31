@@ -67,7 +67,7 @@ func CCPatternTerm(CCEnv, Core_cterm_sort, CCBinders, (CCEnv)-> PPair<CCEnv Core
   rule CCPatternTerm(#env, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧, #binders, #cont)
   → CCPatternTerm(#env, #cterm[x], CCBinderAdd(#binders, PairCons(x, #csort)), #cont)
 
-    // Record binder sort that might bind a meta-variable
+  // Record binder sort that might bind a meta-variable
   rule CCPatternTerm(#env, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧, #binders, #cont)
   → CCPatternTerm(#env, #cterm[f], CCBinderAdd(#binders, PairCons(f, #csort)), #cont)
 
@@ -155,13 +155,13 @@ func CCFormal2(CCEnv, Core_cterm_sort, Core_cterm_sort) -> PPair<CCEnv Core_cter
   // Don't lift if of the form (x)(y)->#(x, y)
   rule CCFormal2(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csortanno? ⟧, #lambda)
   → let #cterm =  cterm⟦ ##canno* ##METAVAR ##cterms? ##csortanno? ⟧
-    if CCMustConvertMaybeTerms(CCEnvGetParams(#env), #cterms?)
+    if CCMustConvertMaybeTerms(CCEnvGetParams(#env), #cterms?, FALSE)
       CCLift(#env, #cterm, #lambda, CCCapture(#env, #cterm, {}))
     else
       CCTerm(#env, #cterm)
 
   rule CCFormal2(#env, #cterm, #lambda)
-  → if CCMustConvert(#env, #cterm)
+  → if CCMustConvert(#env, #cterm, TRUE)
       CCLift(#env, #cterm, #lambda, CCCapture(#env, #cterm, {}))
     else
       CCTerm(#env, #cterm)
@@ -169,9 +169,10 @@ func CCFormal2(CCEnv, Core_cterm_sort, Core_cterm_sort) -> PPair<CCEnv Core_cter
 // --- Process thunk.
 
 func CCThunk(#env: CCEnv, #cterm: Core_cterm_sort) -> PPair<CCEnv Core_cterm_sort>
-→ If(CCMustConvert(#env, #cterm),
-    ()->CCLift(#env, #cterm, cterm⟦ thunk ##cterm ⟧, CCCapture(#env, #cterm, {})),
-    ()->CCTerm(#env, #cterm))
+→ if CCMustConvert(#env, #cterm, TRUE)
+    CCLift(#env, #cterm, cterm⟦ thunk ##cterm ⟧, CCCapture(#env, #cterm, {}))
+  else
+    CCTerm(#env, #cterm)
 
 // --- Closure conversion happens here
 
@@ -349,41 +350,46 @@ rule CCLetUp(#canno*, #METAVAR,  #csortanno?, #cterm, PairCons(#env, #cterm2))
 
 // -- Test whether closure convertion is needed or not
 
-/* @return TRUE if term is a closure not of the form (x1 .. xn) -> F(x1 .. xn, #1 .. #M)
-   where #F is a function and #1 .. #M are captured variables and meta-variables.
- */
-func CCMustConvert(CCEnv, Core_cterm_sort) -> Bool
+/* @return `TRUE` when:
+   - the given `#term` is a lambda not of the form (x1) .. (xn) -> F(x1 .. xn, #1 .. #M)
+   where F is a function and #1 .. #M are captured variables and meta-variables.
+   - the given `#term` is a lambda not the form (x1) .. (xn) -> #(x1 .. xn). Triggered when `#allowsCaptured` is `FALSE`
+*/
+func CCMustConvert(CCEnv, Core_cterm_sort, Bool) -> Bool
 
-  rule CCMustConvert(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧)
-  → CCMustConvertMaybeTerms(CCEnvGetParams(#env), #cterms?)
+  rule CCMustConvert(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧, #allowsCaptured)
+  → CCMustConvertMaybeTerms(CCEnvGetParams(#env), #cterms?, #allowsCaptured)
 
-  rule CCMustConvert(#env, #cterm)
+  rule CCMustConvert(#env, #cterm, #allowsCaptured)
   → TRUE
 
-func CCMustConvertMaybeTerms(List<PPair<String Core_csort_sort>>, List<Core_cterms_sort>) -> Bool
+func CCMustConvertMaybeTerms(List<PPair<String Core_csort_sort>>, List<Core_cterms_sort>, Bool) -> Bool
 
-  rule CCMustConvertMaybeTerms(()     , cterms?⟦              ⟧) → FALSE
-  rule CCMustConvertMaybeTerms(()     , cterms?⟦ (          ) ⟧) → FALSE
-  rule CCMustConvertMaybeTerms(#params, cterms?⟦              ⟧) → TRUE
-  rule CCMustConvertMaybeTerms(#params, cterms?⟦ (          ) ⟧) → TRUE
-  rule CCMustConvertMaybeTerms(#params, cterms?⟦ ( ##cterm* ) ⟧) → CCMustConvertTerms(#params, #cterm*)
+  rule CCMustConvertMaybeTerms(()     , cterms?⟦              ⟧, #allowsCaptured) → FALSE
+  rule CCMustConvertMaybeTerms(()     , cterms?⟦ (          ) ⟧, #allowsCaptured) → FALSE
+  rule CCMustConvertMaybeTerms(#params, cterms?⟦              ⟧, #allowsCaptured) → TRUE
+  rule CCMustConvertMaybeTerms(#params, cterms?⟦ (          ) ⟧, #allowsCaptured) → TRUE
+  rule CCMustConvertMaybeTerms(#params, cterms?⟦ ( ##cterm* ) ⟧, #allowsCaptured) → CCMustConvertTerms(#params, #cterm*, #allowsCaptured)
 
-func CCMustConvertTerms(List<PPair<String Core_csort_sort>>, List<Core_cterm_sort>) -> Bool
+func CCMustConvertTerms(List<PPair<String Core_csort_sort>>, List<Core_cterm_sort>, Bool) -> Bool
 
-  rule CCMustConvertTerms((), cterm*⟦⟧)
+  rule CCMustConvertTerms((), cterm*⟦⟧, #allowsCaptured)
   → FALSE
 
-  rule CCMustConvertTerms((), cterm*⟦ ##cterm ##cterm* ⟧)
-  → CCConvertCaptured(cterm*⟦ ##cterm ##cterm* ⟧)
+  rule CCMustConvertTerms((), cterm*⟦ ##cterm ##cterm* ⟧, #allowsCaptured)
+  → if #allowsCaptured
+      CCConvertCaptured(cterm*⟦ ##cterm ##cterm* ⟧)
+    else
+      TRUE
 
-  rule CCMustConvertTerms((PairCons(var, #sort), #params...), cterm*⟦ ##canno* ##VARIABLE ##csortanno? ##cterm*  ⟧)
-  → If(SameVariable(var, #VARIABLE),
-      ()->CCMustConvertTerms(#params, #cterm*),
-      ()->TRUE)
+  rule CCMustConvertTerms((PairCons(var, #sort), #params...), cterm*⟦ ##canno* ##VARIABLE ##csortanno? ##cterm*  ⟧, #allowsCaptured)
+  → if SameVariable(var, #VARIABLE)
+      CCMustConvertTerms(#params, #cterm*, #allowsCaptured)
+    else
+      TRUE
 
-  rule CCMustConvertTerms(#params, #cterm*)
+  rule CCMustConvertTerms(#params, #cterm*, #allowsCaptured)
   → TRUE
-
 
 // Check the rest of the arguments are all valid captured arguments.
 func CCConvertCaptured(List<Core_cterm_sort>) -> Bool
@@ -428,17 +434,17 @@ rule CCGetBinderSorts(#cterm*, CCBinders(#binders)) → Map((term)->CCFindSort(t
 func CCFindSort(Core_cterm_sort, List<PPair<String Core_csort_sort>>) -> Core_csort_sort
 
   rule CCFindSort(cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧, (PairCons(#var, #sort), #binders...))
-  → If(SameVariable(#VARIABLE, #var),
-      ()->#sort,
-      ()->CCFindSort(cterm⟦ ##VARIABLE ⟧, #binders))
+  → if SameVariable(#VARIABLE, #var)
+      #sort
+    else
+      CCFindSort(cterm⟦ ##VARIABLE ⟧, #binders)
 
   rule CCFindSort(cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧, ())
   → Error("Internal Error: undefined binder.")
 
 // -- Environment
 
-enum CCVarEntry | CCMeta(String, Core_csort_sort) | CCVar(String, Core_csort_sort)
-//enum CCBoundVarEntry | CCBoundVar(Core_csort_sort)
+enum CCVarEntry | CCMeta(String, Core_csort_sort /* Higher-order sort */) | CCVar(String, Core_csort_sort)
 
 func CCGetSort(CCVarEntry) -> Core_csort_sort
 rule CCGetSort(CCMeta(#, #csort)) → #csort
