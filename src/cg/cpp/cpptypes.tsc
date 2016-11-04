@@ -9,7 +9,8 @@ import std::text
 import std::text::Text4
 import core::Core
 import cg::cpp::cppcommon
-import Systemdef
+import systemdef
+
 
 func CppTypes(#module: Module) -> Text4_text_sort
 → text⟦

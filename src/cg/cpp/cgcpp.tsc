@@ -10,7 +10,7 @@ import std::text
 import std::path
 import std::string
 import std::language
-import std::text::text4
+import std::text::Text4
 
 import systemdef
 import cg::cpp::cpptypes

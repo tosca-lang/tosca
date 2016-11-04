@@ -15,7 +15,7 @@ import core::utils
 import cg::cpp::cppcommon
 import cg::cpp::cppenv
 
-import Systemdef
+import systemdef
 
 /* Generate C++ header file for module */
 func CppHeader(#module: Module) -> Text4_text_sort
