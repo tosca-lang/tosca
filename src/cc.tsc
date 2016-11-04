@@ -77,8 +77,8 @@ func CCPatternTerm(CCEnv, Core_cterm_sort, CCBinders, (CCEnv)-> PPair<CCEnv Core
   rule CCPatternTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #binders, #cont)
   → CCPatternTerm(#env, #cterm, #binders, #cont)
 
-  rule CCPatternTerm(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧, #binders, #cont)
-  → CCPatternTerm(#env, #cterm, #binders, #cont)
+  rule CCPatternTerm(#env, cterm⟦ ##canno* ##METAVAR : ##csort = ##cterm ⟧, #binders, #cont)
+  → CCPatternTerm(CCEnvAddMetaVar(#env, #METAVAR, CCMeta(#METAVAR, #csort)), #cterm, #binders, #cont)
 
   rule CCPatternTerm(#env, #cterm, #binders, #cont) → Error(ConcatString("Internal Error: missing sort annotation\n", PrintTerm("", #cterm)))
 
@@ -216,7 +216,8 @@ func CCLiftedFunSort(#env : CCEnv, #name: String, #cterm: Core_cterm_sort, #capt
 → CCLiftedFunSort2(#env, #cterm, Concat(UnZipS(CCEnvParams(#env)), CCCaptureSorts(MapValues(#captures))))
 
 func CCLiftedFunSort2(#env : CCEnv, #cterm: Core_cterm_sort, #sorts: List<Core_csort_sort>) -> Core_cdecl_sort
-→ cdecl⟦ func ⟨csortvars?: CCUsedSortVars(#sorts)⟩ ⟨csort: CCReturnSort(TermSort(#cterm))⟩ ⟨CONSTRUCTOR: CCName(#env)⟩ ⟨csorts?: SortsToMaybeSorts(#sorts)⟩ ⟧
+→ let #csort = CCReturnSort(TermSort(#cterm))
+  cdecl⟦ func ⟨csortvars?: CCUsedSortVars((#csort, #sorts...))⟩ ##csort ⟨CONSTRUCTOR: CCName(#env)⟩ ⟨csorts?: SortsToMaybeSorts(#sorts)⟩ ⟧
 
 func CCReturnSort(Option<Core_csort_sort>) -> Core_csort_sort
 rule CCReturnSort(NONE)         → Error("Fatal error: missing term sort annotation (needed by closure converter)")
@@ -225,7 +226,7 @@ rule CCReturnSort(SOME(#csort)) → GetFOSort(#csort)
 func CCCaptureSorts(#terms: List<Core_cterm_sort>) -> List<Core_csort_sort>
 → Map((term)->UnSOME(TermSort(term)), #terms)
 
-/* Gets the list of sort variables used in the given list of `#sorts` */
+/* Gets the list of sort variables used in the given list of `#sorts`, recursively */
 func CCUsedSortVars(#sorts: List<Core_csort_sort>) -> List<Core_csortvars_sort>
 → VarsToMaybeSortVars(SortVarsSorts(#sorts, ()))
 

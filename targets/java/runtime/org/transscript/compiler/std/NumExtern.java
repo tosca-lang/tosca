@@ -103,4 +103,28 @@ public class NumExtern
 		return d;
 	}
 
+	public static DoubleTerm Times(Context context, DoubleTerm value_16555, DoubleTerm value_16556)
+	{
+		// FIXME
+		return null;
+	}
+
+	public static DoubleTerm Divide(Context context, DoubleTerm value_16564, DoubleTerm value_16565)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static DoubleTerm Modulo(Context context, DoubleTerm value_16574, DoubleTerm value_16575)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static DoubleTerm ToDecimal(Context context, StringTerm value_16572)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

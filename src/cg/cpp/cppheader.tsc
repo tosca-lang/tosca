@@ -31,6 +31,7 @@ func CppHeader(#module: Module) -> Text4_text_sort
 using tosca::StringTerm;
 using tosca::DoubleTerm;
 using tosca::MapTerm;
+using tosca::Term;
 
 // Templated method definitions
 †⟨CppMethodDefs(MapValues(GetDataSortsC(GetModuleContent(#module))))⟩

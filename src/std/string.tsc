@@ -16,6 +16,9 @@ import std::listdef
 /* @return the length of the given string */
 @Extern func Length(String) -> Numeric
 
+/* @return the index of the first occurrence of `#pattern` in `#string`. */
+@Extern func Index(#string: String, #pattern: String) -> Numeric
+
 /* Tests if the beginning of the given string starts with the specified prefix. */
 @Extern func StartsWith(String /* string */, String /* prefix */) -> Bool
 
@@ -31,6 +34,9 @@ import std::listdef
 /* If string empty, then apply `#true`, otherwise apply `#false` */
 func IfEmptyString<a>(#string: String, #true: ()->a, #false: ()->a) -> a
 → If(NumberEqual(Length(#string), 0), #true, #false)
+
+/* Splits the string around the given separator string */
+@Extern func Split(String, String) -> List<String>
 
 // --- Mutation
 
@@ -117,5 +123,5 @@ func Join(List<String>, String) -> String
 rule Join((#str, #strs...), #sep) → FoldlP((str r) -> ConcatString(r, #sep, str), #str, #strs)
 rule Join((              ), #sep) → ""
 
-/* Splits the string around the given separator string */
-@Extern func Split(String, String) -> List<String>
+/* @return `#string` with all occurrences of white space collapsed to single ordinary spaces */
+@Extern func Squash(#string: String) -> String

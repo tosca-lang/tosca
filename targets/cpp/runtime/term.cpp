@@ -460,6 +460,11 @@ namespace tosca {
     {
         return Unbox();
     }
+    
+    Optional<CStringTermVar> StringTerm::GetVariable() const
+    {
+        return Optional<CStringTermVar::CStringTermVar>::nullopt;
+    }
 
     Variable& StringTerm::MakeVariable(Context& ctx, const std::string& hint)
     {
@@ -500,6 +505,11 @@ namespace tosca {
     CStringTermVarUse::CStringTermVarUse(CStringTermVar& v) : VariableUse::VariableUse(v)
     {
     }
+    
+    Optional<CStringTermVar> CStringTermVarUse::GetVariable() const
+    {
+        return make_optional<CStringTermVar>(dynamic_cast<CStringTermVar&>(VariableUse::GetGVariable().value()));
+    }
 
     const std::string& CStringTermVarUse::Unbox() const
     {
@@ -539,6 +549,11 @@ namespace tosca {
     {
         return std::hash<std::string>{}(Symbol());
     }
+    
+    Optional<CDoubleTermVar> DoubleTerm::GetVariable() const
+    {
+        return Optional<CDoubleTermVar::CDoubleTermVar>::nullopt;
+    }
 
     Variable& DoubleTerm::MakeVariable(Context& ctx, const std::string& hint)
     {
@@ -561,6 +576,11 @@ namespace tosca {
     {
     }
 
+    Optional<CDoubleTermVar> CDoubleTermVarUse::GetVariable() const
+    {
+        return make_optional<CDoubleTermVar>(dynamic_cast<CDoubleTermVar&>(VariableUse::GetGVariable().value()));
+    }
+    
     CDoubleTermVar::CDoubleTermVar(std::string name) : Variable(std::move(name))
     {
     }

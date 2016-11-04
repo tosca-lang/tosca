@@ -336,4 +336,17 @@ public class StringExtern
 		return null;
 	}
 
+	public static DoubleTerm Index(Context context, StringTerm value_12051, StringTerm value_12052)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public static StringTerm Squash(Context context, StringTerm value_12051)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

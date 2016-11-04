@@ -155,9 +155,9 @@ func NParamSort(List<Core_canno_sort>, TransScript_paramSort_sort) -> Core_csort
   → csort⟦ ##canno* { ⟨csort: NSort(#sort1)⟩ : ⟨csort: NSort(#sort2)⟩ } ⟧
 
   // 1-tuple of named entries.
-  // "TEMPORARY" HACK: For now replaced by @Mixed { String : Any } .
+  // "TEMPORARY" HACK: For now replaced by @Mixed { String : Term } .
   rule NParamSort(#canno*, paramSort⟦ { ##mapEntrySort* } ⟧)
-  → csort⟦ @ Mixed ##canno* { String  : Any } ⟧
+  → csort⟦ @ Mixed ##canno* { String  : Term } ⟧
 
   // N-tuple.
   rule NParamSort(#canno*, paramSort⟦ { ##sortMap* } ⟧)
@@ -190,7 +190,7 @@ rule NSortMap(sortMap⟦ ##STRING : ##sort2 ⟧) → csort*⟦⟧ // TODO: prope
 /* Generate wrapper construtor for given multimaps arity */
 func NMultiMapWrapper(#arity: Numeric) -> String
 → ConcatString("MMap", FormatInteger(#arity))
- 
+
 // ---- Annotation
 
 func NAnnos(#anno*: List<TransScript_anno_sort>) -> List<Core_canno_sort>
@@ -422,11 +422,11 @@ rule NOptKVSContract(optkvs⟦ ##kv* ⟧) → FoldlP((entry map)->NKVContract(en
 
 func NKVContract(TransScript_kv_sort, Core_cterm_sort) -> Core_cterm_sort
 rule NKVContract(kv⟦ ##METAVAR           ⟧, #map) → cterm⟦ MapAddAll(⟨cterm: #map⟩, ##METAVAR) ⟧
-rule NKVContract(kv⟦ ¬ ##METAVAR         ⟧, #map) → Error("Fatal error: testing for non-occurrence of a key in map not allowed in contraction.")
+rule NKVContract(kv⟦ ¬ ##METAVAR         ⟧, #map) → Error(ConcatString("Fatal error: testing for non-occurrence of a key in map not allowed in contraction (", #METAVAR, ")"))
 rule NKVContract(kv⟦ ##METAVAR : ##term  ⟧, #map) → cterm⟦ MapPut(⟨cterm: #map⟩, ##METAVAR, ⟨cterm: NTerm(#term, FALSE)⟩) ⟧
 rule NKVContract(kv⟦ ##VARIABLE          ⟧, #map) → Error("Fatal error: testing for variable occurrence in map not allowed in contraction.")
 rule NKVContract(kv⟦ ¬ ##VARIABLE        ⟧, #map) → Error("Fatal error: testing for non-occurrence of a variable in map not allowed in contraction.")
 rule NKVContract(kv⟦ ##VARIABLE : ##term ⟧, #map) → cterm⟦ MapPut(⟨cterm: #map⟩, ##VARIABLE, ⟨cterm: NTerm(#term, FALSE)⟩) ⟧
-rule NKVContract(kv⟦ ##STRING            ⟧, #map) → Error("Fatal error: testing for occurrence of a key in map not allowed in contraction.")
+rule NKVContract(kv⟦ ##STRING            ⟧, #map) → Error(ConcatString("Fatal error: testing for occurrence of a key in map not allowed in contraction. (", #STRING, ")"))
 rule NKVContract(kv⟦ ¬ ##STRING          ⟧, #map) → Error("Fatal error: testing for non-occurrence of a key in map not allowed in contraction.")
 rule NKVContract(kv⟦ ##STRING : ##term   ⟧, #map) → cterm⟦ MapPut(⟨cterm: #map⟩, ##STRING, ⟨cterm: NTerm(#term, FALSE)⟩) ⟧

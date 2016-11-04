@@ -4,6 +4,8 @@ package org.transscript.runtime;
 
 import java.util.function.Function;
 
+import org.transscript.runtime.Functions.ThunkMaker;
+
 /**
  * Unevaluated function (a thunk). 
  * 
@@ -23,6 +25,11 @@ public class LazyTerm<T extends Term> extends RefTerm implements Term
 	public static <T extends Term> LazyTerm<T> thunk(Function<Context, T> f)
 	{
 		return new LazyTerm<T>(f);
+	}
+	
+	public static ThunkMaker<Term> lazyTermMaker()
+	{
+		return LazyTerm::lazyTerm;
 	}
 	
 	// the unevaluated value.

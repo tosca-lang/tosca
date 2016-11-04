@@ -155,4 +155,10 @@ public class LanguageExtern
 		return ToJavaClassName(context, str);
 	}
 
+	public static <a extends Term> a ParseText(Context context, ThunkMaker<a> tma, StringTerm value_13144, StringTerm value_13145)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

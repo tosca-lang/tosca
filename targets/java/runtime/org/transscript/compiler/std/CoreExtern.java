@@ -145,12 +145,14 @@ public class CoreExtern
 		return null;
 	}
 
-	public static <a extends Term> a EventualError(Context context, ThunkMaker<a> tma, StringTerm value_1872)
+
+	public static <a extends Term> a EventualError(Context context, ThunkMaker<a> tma, StringTerm value_12785, List<StringTerm> value_12786, Closure0<a> value_12787)
 	{
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	
 	public static <a extends Term> a ForgivableError(Context context, ThunkMaker<a> tma, StringTerm value_1675, StringTerm value_1676, StringTerm value_1677, StringTerm value_1678, StringTerm value_1679, StringTerm value_1680, Closure0<a> value_1681)
 	{
 		// TODO Auto-generated method stub
@@ -212,6 +214,22 @@ public class CoreExtern
 	{
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public static <a extends Term> a CI_Exit(Context context, ThunkMaker<a> tma, DoubleTerm id, Closure0<a> result)
+	{
+		return result.eval(context);
+	}
+
+	public static <a extends Term> a CI_Enter(Context context, ThunkMaker<a> tma, DoubleTerm id, StringTerm name, Closure0<a> result)
+	{
+		return result.eval(context);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static  <a extends Term, b extends Term> b As(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, a value)
+	{
+		return (b) value;
 	}
 
 }

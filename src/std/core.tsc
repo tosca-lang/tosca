@@ -35,11 +35,19 @@ type Region = {String:String}
 
 // --- Evaluation
 
+/* Dummy sort with just a single constant to block evaluation.
+   @deprecated
+ */
+enum OK_SORT  | OK
+
 /**
  * Evaluate the input
  */
 func Eval<a>(a) -> a
 rule Eval(#) → #
+
+/* Dynamic cast of value of type `a` to value of type 'b' */
+@Extern func As<a b>(a) -> b 
 
 // --- External Environment
 
@@ -136,14 +144,35 @@ func NotEqual<a>(#1: a, #2: a) -> Bool
 
 @Extern func Location<a b>(a) -> b
 
+// --- Exception handling
+
+enum TryResult<a> | TrySuccess(a) | TryFailure(a)
+
 // --- Debugging
 
 @Extern func Debug<a>(#msg : String, #result: ()->a) -> a
 
 @Extern func Show<a>(a) -> String
 
+// --- Profiling
+
+/* Enter new profiling scope */
+@Extern func CI-Enter<a>(#id: Numeric, #name: String, #result: ()->a) -> a
+
+/* Enter new profiling scope */
+func CI-ThenEnter<a>(#ok: OK_SORT, #id: Numeric, #name: String, #result: (OK_SORT)->a) -> a
+rule CI-ThenEnter(OK, #id, #name, #result) → #result(OK)
+
+
+/* Exit profiling scope */
+@Extern func CI-Exit<a>(#id: Numeric, #result: ()-> a) -> a
+
+/* Exit profiling scope */
+func CI-ThenExit<a>(#ok: OK_SORT, #id: Numeric, #result: (OK_SORT)-> a) -> a
+rule CI-ThenExit(OK, #id, #result) → #result(OK)
+
 // -- Error
 
 @Extern func Error<a>(String) -> a
-@Extern func EventualError<a>(String) -> a
+@Extern func EventualError<a>(String, List<String>, ()->a) -> a
 @Extern func ForgivableError<a>(String, String, String, String, String, String, ()->a) -> a

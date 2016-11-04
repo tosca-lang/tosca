@@ -318,6 +318,8 @@ namespace tosca {
     };
 
     // ----- String Term
+    
+    class CStringTermVar;
 
     // Base type
     class StringTerm: public Term
@@ -338,6 +340,9 @@ namespace tosca {
         {
             return !(*this == rhs);
         }
+
+        /* @return this as a Variable or nullopt */
+        Optional<CStringTermVar> GetVariable() const;
 
         /* Make Variable of type String */
         static Variable& MakeVariable(Context& ctx, const std::string& hint);
@@ -372,8 +377,6 @@ namespace tosca {
         const std::string value;
     };
 
-    class CStringTermVar;
-
     /**
      * Variable use of type String
      */
@@ -384,6 +387,7 @@ namespace tosca {
 
         // Overrides
         const std::string& Unbox() const;
+        Optional<CStringTermVar> GetVariable() const;
     };
 
     class CStringTermVar: public Variable
@@ -398,6 +402,8 @@ namespace tosca {
 
 
     // --- Numeric type (double)
+    
+    class CDoubleTermVar;
 
     class DoubleTerm: public Term
     {
@@ -409,6 +415,9 @@ namespace tosca {
         {
             throw std::runtime_error("Fatal error: cannot access unevaluated numeric value.");
         }
+        
+        /* @return this as a Variable or nullopt */
+        Optional<CDoubleTermVar> GetVariable() const;
 
         /* Make Variable of type Double */
         static Variable& MakeVariable(Context& ctx, const std::string& hint);
@@ -433,7 +442,7 @@ namespace tosca {
         void Print(IOWrapper& out, int count, bool indent);
 
     };
-
+   
     /**
      * Double term value
      */
@@ -441,7 +450,7 @@ namespace tosca {
     {
     public:
         CDoubleTerm(double value);
-
+       
         // -- Overrides
 
         Term& Copy(Context& ctx);
@@ -456,8 +465,6 @@ namespace tosca {
 
     };
 
-    class CDoubleTermVar;
-
     /*
      * Variable Use of type Numeric
      */
@@ -465,6 +472,10 @@ namespace tosca {
     {
     public:
         CDoubleTermVarUse(CDoubleTermVar& v);
+        
+        // Overrides
+        Optional<CDoubleTermVar> GetVariable() const;
+        
     };
 
     class CDoubleTermVar: public Variable

@@ -87,7 +87,7 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
 
   rule InferTerm(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #esort)
   → let #isdata = IsDataS(IGetSystem(#env), #CONSTRUCTOR)
-      InferCons(#env, GetInPattern(#env), #isdata, #canno*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #esort)
+    InferCons(#env, GetInPattern(#env), #isdata, #canno*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?, #esort)
 
   rule InferTerm(#env, cterm⟦ ##STRING ⟧, #esort)
   → PairCons(UnifySort(#env, #esort, csort⟦ String ⟧), cterm⟦ ##STRING ⟧)

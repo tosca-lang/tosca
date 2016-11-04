@@ -3,6 +3,7 @@
 #include "string-extern.h"
 
 #include "std/core.h"
+#include "std/listdef.h"
 #include "strutils.h"
 #include <regex>
 
@@ -155,3 +156,74 @@ Bool& EndsWith(tosca::Context& ctx, tosca::StringTerm& str, tosca::StringTerm& s
     suffix.Release();
     return result;
 }
+
+tosca::StringTerm& Trim(tosca::Context&, tosca::StringTerm& str)
+{
+    const std::string& ustr = str.Unbox();
+    std::string::size_type first = ustr.find_first_not_of(" \t\f\n\r\b");
+    size_t last = ustr.find_last_not_of(" \t\f\n\r\b");
+    StringTerm& result = newStringTerm(ustr.substr(first, (last-first+1)));
+    str.Release();
+    return result;
+}
+
+List<tosca::StringTerm>& Split(tosca::Context& ctx, tosca::StringTerm& str, tosca::StringTerm& sep)
+{
+    std::cout << "Split not tested\n";
+    const std::string& ustr = str.Unbox();
+    const std::string& usep = sep.Unbox();
+    List<tosca::StringTerm>* result = 0;
+    
+    std::string::size_type spos = 0;
+    std::string::size_type pos = 0;
+    while ((pos = ustr.find(usep, spos)) != std::string::npos)
+    {
+        List<tosca::StringTerm>& cons = dynamic_cast<List<tosca::StringTerm>&>(CCons<tosca::StringTerm>::Make(ctx));
+        cons.SetSub(0, newStringTerm(ustr.substr(spos, pos)));
+        if (result)
+            result->SetSub(1, cons);
+        
+        spos = pos + usep.length();
+    }
+    result->SetSub(1, newNil<tosca::StringTerm>(ctx));
+    str.Release();
+    sep.Release();
+    return *result;
+}
+
+tosca::StringTerm& Squash(tosca::Context& ctx, tosca::StringTerm& str)
+{
+    std::cout << "Squash not tested\n";
+    
+    std::string squashed;
+    bool wasspace = false;
+    
+    for (auto iter = str.Unbox().begin(); iter != str.Unbox().end(); iter++)
+    {
+        if (isspace(*iter))
+        {
+            if (!wasspace)
+            {
+                wasspace=true;
+                squashed += ' ';
+            }
+        }
+        else
+        {
+            squashed += *iter;
+            wasspace = false;
+        }
+    }
+    str.Release();
+    return newStringTerm(squashed);
+}
+
+tosca::DoubleTerm& Index(tosca::Context& ctx, tosca::StringTerm& string, tosca::StringTerm& pattern)
+{
+    auto search = string.Unbox().find(pattern.Unbox());
+    tosca::DoubleTerm& result = newDoubleTerm(search == std::string::npos ? -1 : search);
+    string.Release();
+    pattern.Release();
+    return result;
+}
+

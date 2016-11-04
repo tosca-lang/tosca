@@ -9,6 +9,12 @@ import std::mapdef
  */
 @Extern func ParseResource<a>(String /* category */, String /* filename */) -> a
 
+/* Parse `#content` using parser identified by the given `#category`
+ * @return a parsed term.
+ */
+@Extern func ParseText<a>(#category: String, #content: String) -> a
+
+
 /* Parse external resource as term file format.
  * @return a parsed term.
  */

@@ -238,6 +238,12 @@ rule Union(#XS, #YS) → RemoveDuplicates(Concat(#XS,#YS))
 func Reverse<a>(List<a>) -> List<a>
 rule Reverse(#XS) → Foldl<a List>((x xs) -> Insert<a>(x, xs), (), #XS)
 
+/* @return the element at the `#index`'th member of the reverse of the given `#list` (starting from 0). */
+// TODO: Optimize!
+func ReversePick<a>(#index: Numeric, #list: List<a>) -> a
+→ UnSOME(At(Reverse(#list), #index))
+
+
 /*
  * Zip
  */

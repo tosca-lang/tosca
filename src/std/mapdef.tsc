@@ -7,6 +7,7 @@
 import std::core
 import std::listdef
 import std::pairdef
+import std::string
 
 /* Extend the given map with the given key-value pair.
    If a entry for the given key already exists in the map, it is shadowed.
@@ -29,6 +30,12 @@ import std::pairdef
 */
 func MapGetD<a b>(#map: {a : b}, #key: a, #default: b) -> b
 → IfPresent(MapGet(#map, #key), (v)->v, ()->#default)
+
+/* Lookup entry for given key.
+  @return the value of type b or raised an error if not in the map
+*/
+func MapGetE<a b>(#map: {a : b}, #key: a) -> b
+→ IfPresent(MapGet(#map, #key), (v)->v, ()->Error(ConcatString(Show(#key), " not found.")))
 
 /* Extend the given map with the given key-value pair, where key is a syntactic variable
    If a entry for the given key already exists in the map, it is shadowed.

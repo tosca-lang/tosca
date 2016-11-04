@@ -5,6 +5,7 @@
 
 #include <unordered_set>
 #include "ts.h"
+#include "listdef_sigs.h"
 
 // Forward declarations
 
@@ -15,6 +16,14 @@ class Bool;
 
 extern Bool& newTRUE(tosca::Context& ctx);
 extern Bool& newFALSE(tosca::Context& ctx);
+
+// --- Evaluation
+
+template<typename a, typename b>
+b& As(tosca::Context& ctx, a& value)
+{
+    return dynamic_cast<b&>(value);
+}
 
 // --- External environment
 
@@ -251,6 +260,25 @@ tosca::DoubleTerm& BitOr(tosca::Context& ctx, tosca::DoubleTerm& left, tosca::Do
 /* @return the integer with the bits in both left and right */
 tosca::DoubleTerm& BitAnd(tosca::Context& ctx, tosca::DoubleTerm& left, tosca::DoubleTerm& right);
 
+// --- Profiling
+
+
+template<typename a>
+a& CI_Enter(tosca::Context& ctx, tosca::DoubleTerm& mid, tosca::StringTerm& name,  Closure0<a>& result)
+{
+    mid.Release();
+    name.Release();
+    return result.Eval(ctx);
+}
+
+template<typename a>
+a& CI_Exit(tosca::Context& ctx, tosca::DoubleTerm& mid, Closure0<a>& result)
+{
+    mid.Release();
+    return result.Eval(ctx);
+}
+
+
 // --- Error
 
 template<typename a>
@@ -267,9 +295,12 @@ a& ForgivableError(tosca::Context& ctx, tosca::StringTerm& value, tosca::StringT
 }
 
 template<typename a>
-a& EventualError(tosca::Context& ctx, tosca::StringTerm& msg)
+a& EventualError(tosca::Context& ctx, tosca::StringTerm& format, List<tosca::StringTerm>& arg, Closure0<a>& result)
 {
-    throw new std::runtime_error(msg.Unbox());
+    format.Release();
+    arg.Release();
+    return result.Eval(ctx);
+
 }
 
 // --- Debugging

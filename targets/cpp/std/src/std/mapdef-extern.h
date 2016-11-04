@@ -4,6 +4,7 @@
 
 #include "ts.h"
 #include "std/core.h"
+#include "std/mapdef_sigs.h"
 
 template<typename a> class Option;
 class Bool;
@@ -181,5 +182,37 @@ template<typename a, typename b, typename c> c& MapReplace(tosca::Context& ctx, 
 {
     throw new std::runtime_error("");
 }
+
+// --- Overload.
+
+template <typename a, typename b>
+b& MapGetD(tosca::Context& ctx, MapTerm<a,tosca::Term>& map, a& key, b& dvalue)
+{
+    auto& ovalue = MapGet<a, tosca::Term>(ctx, map, key);
+    Optional<CSOME<tosca::Term>> osome = ovalue.asSOME(ctx);
+    if (osome)
+    {
+        dvalue.Release();
+        tosca::Term& result = osome.value().getValue1(ctx, true);
+        return dynamic_cast<b&>(result);
+    }
+    ovalue.Release();
+    return dvalue;
+}
+
+template <typename a, typename b>
+b& MapGetE(tosca::Context& ctx, MapTerm<a,tosca::Term>& map, a& key)
+{
+    auto& ovalue = MapGet<a, tosca::Term>(ctx, map, key);
+    Optional<CSOME<tosca::Term>> osome = ovalue.asSOME(ctx);
+    if (osome)
+    {
+        tosca::Term& result = osome.value().getValue1(ctx, true);
+        return dynamic_cast<b&>(result);
+    }
+    throw new std::runtime_error(key.Symbol() + " not found.");
+}
+
+
 
 #endif

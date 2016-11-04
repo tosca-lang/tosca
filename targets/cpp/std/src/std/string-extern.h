@@ -4,6 +4,7 @@
 
 #include <string>
 #include "term.h"
+#include "std/listdef_types.h"
 
 // Forward declarations
 
@@ -79,5 +80,18 @@ extern Bool& StartsWith(tosca::Context&, tosca::StringTerm& str, tosca::StringTe
 
 /* Tests if the given string ends with the specified suffix. */
 extern Bool& EndsWith(tosca::Context&, tosca::StringTerm& str, tosca::StringTerm& suffix);
+
+/* Trim leading and trailing spaces */
+extern tosca::StringTerm& Trim(tosca::Context&, tosca::StringTerm& str);
+
+/* Splits the string around the given separator string */
+extern List<tosca::StringTerm>& Split(tosca::Context& ctx, tosca::StringTerm& str, tosca::StringTerm& sep);
+
+/* @return the given string with all occurrences of white space collapsed to single ordinary spaces */
+extern tosca::StringTerm& Squash(tosca::Context& ctx, tosca::StringTerm& str);
+
+/* @return the index of the first occurrence of `#pattern` in `#string`. */
+extern tosca::DoubleTerm& Index(tosca::Context& ctx, tosca::StringTerm& string, tosca::StringTerm& pattern);
+
 
 #endif

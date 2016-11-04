@@ -7,6 +7,9 @@ import std::core
 
 @Extern func Plus(Numeric, Numeric) -> Numeric
 @Extern func Minus(Numeric, Numeric) -> Numeric
+@Extern func Times(Numeric, Numeric) -> Numeric
+@Extern func Modulo(Numeric, Numeric) -> Numeric
+@Extern func Divide(Numeric, Numeric) -> Numeric
 
 // Compare the 2 numeric values
 func NumberEqual(#left: Numeric, #right: Numeric) -> Bool
@@ -23,6 +26,10 @@ func NumberMinus(#1: Numeric, #2: Numeric) -> Numeric
 func GreaterThanOrEqual(#left: Numeric, #right:Numeric) -> Bool
 → Or(GreaterThan(#left, #right), Equal(#left, #right))
 
+
+func LessThanOrEqual(#left:Numeric, #right: Numeric) -> Bool
+→ Or(LessThan(#left, #right), Equal(#left, #right))
+
 // LessThan
 @Extern func LessThan(Numeric, Numeric) -> Bool
 @Extern func GreaterThan(Numeric, Numeric) -> Bool
@@ -31,6 +38,7 @@ func GreaterThanOrEqual(#left: Numeric, #right:Numeric) -> Bool
 @Extern func FormatDecimal(Numeric) -> String
 @Extern func Hex(String) -> Numeric
 @Extern func ToInteger(String) -> Numeric
+@Extern func ToDecimal(String) -> Numeric
 
 /* Apply `#true` if number is zero, otherwise `#false` */
 func IfZero<a>(#value: Numeric, #true: ()->a, #false: ()->a) -> a

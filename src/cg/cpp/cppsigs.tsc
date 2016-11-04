@@ -32,6 +32,7 @@ using tosca::DoubleTerm;
 using tosca::CDoubleTerm;
 using tosca::CDoubleTermVar;
 using tosca::MapTerm;
+using tosca::Term;
 
 // Enumeration declarations
 †⟨CppClassDecls(MapValues(GetDataSortsM(#module)))⟩

@@ -60,9 +60,10 @@ func ToJavaAux(#system: TSystem, #module: Module, #source: String) -> Result
       import static org.transscript.runtime.MapTerm.lazyMapTermMaker;
       import static org.transscript.runtime.AppendableTerm.appendableTerm;
       import static org.transscript.runtime.LazyTerm.thunk;
+      import static org.transscript.runtime.LazyTerm.lazyTermMaker;
 
       †⟨JavaUnit(GetModuleURL(#module), GetImportsM(#module), GetRulesM(#module), GetDataSortsM(#module), GetFuncSortsM(#module), HasOption(GetConfig(#system, "bootstrap")))⟩
-    ⟧, 
+    ⟧,
     Success((#source,)))
 
 // --- Translate module
