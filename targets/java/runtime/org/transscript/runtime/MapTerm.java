@@ -155,8 +155,7 @@ public interface MapTerm<K extends Term, V extends Term> extends Term
 			if (refcount() == 1)
 				return this;
 			
-			if (map.size() > 10000)
-				System.out.println("copy map:" + map.size());
+			//System.out.println("copy map:" + map.size());
 
 			_MapTerm<K, V> copy = new _MapTerm<>();
 

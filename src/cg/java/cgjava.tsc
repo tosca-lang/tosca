@@ -64,7 +64,7 @@ func ToJavaAux(#system: TSystem, #module: Module, #source: String) -> Result
 
       †⟨JavaUnit(GetModuleURL(#module), GetImportsM(#module), GetRulesM(#module), GetDataSortsM(#module), GetFuncSortsM(#module), HasOption(GetConfig(#system, "bootstrap")))⟩
     ⟧,
-    Success((#source,)))
+    ()->Success((#source,)))
 
 // --- Translate module
 
@@ -930,7 +930,7 @@ func JavaPatternSubs({String : JEnvEntry}, List<Core_cterm_sort>,
   rule JavaPatternSubs(#env, cterm*⟦ ##cterm ##cterm* ⟧, #term, #index, #csort*, #cont)
   → text⟦
       †⟨MaybeSortToType(SubSort(#env, #cterm, #csort*))⟩ ⟨STRING: sub:String⟩ = †⟨#term⟩.getField†⟨FieldSuffix(#index)⟩(†⟨GetContext(#env)⟩, true);†⟨
-      JavaPatternTerm(SetSubBinderIndex(SetParent(SetSubIndex(#env, #index), #term), 1),
+      JavaPatternTerm(JavaSetSubBinderIndex(SetParent(SetSubIndex(#env, #index), #term), 1),
                   #cterm, text⟦⟨STRING: sub⟩⟧, SubSort(#env, #cterm, #csort*), ARGUMENT,
                   (x) -> JavaPatternSubs(x, #cterm*, #term, NumberPlus(#index, 1), Maybe((x)->Tail(x), #csort*), #cont))⟩⟧
 
@@ -1892,8 +1892,8 @@ rule SetSubIndex(#env, #index)
 func GetSubBinderIndex({String : JEnvEntry}) -> Numeric
 rule GetSubBinderIndex(#env) → JGetValue<Numeric>(#env, "binderindex", (x) -> UnJNum(x))
 
-func SetSubBinderIndex({String : JEnvEntry}, Numeric) -> {String : JEnvEntry}
-rule SetSubBinderIndex(#env, #index)
+func JavaSetSubBinderIndex({String : JEnvEntry}, Numeric) -> {String : JEnvEntry}
+rule JavaSetSubBinderIndex(#env, #index)
 → JSetValue(#env, "binderindex", JNum(#index))
 
 func IncSubBinderIndex({String : JEnvEntry}) -> {String : JEnvEntry}

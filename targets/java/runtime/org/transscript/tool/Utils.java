@@ -41,20 +41,23 @@ import org.transscript.runtime.utils.StringUtils;
 public class Utils
 {
 
-	/** Save term to file of the given name */
-	public static void saveTerm(Context context, String category, Term result, String filename)
+	/** 
+	 * Save term to file of the given name 
+	 * @param term to save. Reference is consumed. 
+	 */
+	public static void saveTerm(Context context, String category, Term term, String filename)
 	{
-    System.out.print("save term..");
+		System.out.print("save term..");
 		try (Writer writer = new FileWriter(filename))
 		{
-			printTerm(context, category, result, filename, writer);
+			printTerm(context, category, term, filename, writer);
 		}
 		catch (IOException e)
 		{
 			fatal("Error while saving term to file " + filename, e);
 		}
 
-    System.out.println("done.");
+		System.out.println("done.");
 	}
 
 	/** print term to console. Try using known serializer */

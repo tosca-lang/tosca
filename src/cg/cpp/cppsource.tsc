@@ -18,7 +18,7 @@ import systemdef
 
 /* Generate C++ source file for module */
 func CppSource(#module: Module) -> Text4_text_sort
-→ text⟦#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩.h"
+→ Debug("Generate C++ source file", ()->text⟦#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩.h"
 
 // Include template definitions
 †⟨CppIncludeDefs(GetImportsM(#module))⟩
@@ -28,7 +28,7 @@ using namespace tosca;
 †⟨CppClassDefs(MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
 †⟨CppFunctionDefs(SetContent(CppNewEnv, GetModuleContent(#module)))⟩
 
-†⟨CppInitModule(Mangle(PathFileStem(GetModuleURL(#module))), GetImportsM(#module), GetDataSortsM(#module))⟩⟧
+†⟨CppInitModule(Mangle(PathFileStem(GetModuleURL(#module))), GetImportsM(#module), GetDataSortsM(#module))⟩⟧)
 
 /* Generate C++ header inclusion declarations */
 func CppIncludeDefs(#imports: List<Core_cqidentifier_sort>) -> Text4_text_sort

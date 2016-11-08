@@ -12,6 +12,7 @@ import java.io.Reader;
 
 import org.transscript.runtime.BufferSink;
 import org.transscript.runtime.Context;
+import org.transscript.runtime.Functions.Closure0;
 import org.transscript.runtime.Functions.ThunkMaker;
 import org.transscript.runtime.Parser;
 import org.transscript.runtime.StringTerm;
@@ -75,22 +76,17 @@ public class LanguageExtern
 	 * @param tmb
 	 * @param category
 	 * @param filename
-	 * @param term
 	 * @param result
 	 * @return result.
 	 */
-	public static <a extends Term, b extends Term> b Save(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, StringTerm category, StringTerm filename, a term, MapTerm props, b result)
+	public static <a extends Term, b extends Term> b Save(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, StringTerm category, StringTerm filename, a value, MapTerm<StringTerm, StringTerm> props, Closure0<b> result)
 	{
-		StringTerm ecategory = force(context, category);
-		StringTerm efilename = force(context, filename);
-		a eterm = force(context, term);
+		Utils.saveTerm(context, category.unbox(), value, filename.unbox());
 
-		Utils.saveTerm(context, ecategory.unbox(), eterm, efilename.unbox());
+		category.release();
+		filename.release();
 
-		ecategory.release();
-		efilename.release();
-
-		return result;
+		return result.eval(context);
 	}
 
 	/**

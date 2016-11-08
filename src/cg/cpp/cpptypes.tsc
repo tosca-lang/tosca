@@ -13,11 +13,11 @@ import systemdef
 
 
 func CppTypes(#module: Module) -> Text4_text_sort
-→ text⟦
+→ Debug("Generate C++ types file", ()->text⟦
 #ifndef †⟨HeaderTypesGuard(GetModuleURL(#module))⟩
 #define †⟨HeaderTypesGuard(GetModuleURL(#module))⟩
 †⟨CppForwardDecls (MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
-#endif⟧
+#endif⟧)
 
 /* Generate C++ header guard */
 func HeaderTypesGuard(#url: String) -> Text4_text_sort

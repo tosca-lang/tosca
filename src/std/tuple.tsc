@@ -1,0 +1,16 @@
+/* Copyright (c) 2016 IBM Corporation. */
+
+enum Tuple2<a b>
+  | Tuple2(a, b)
+
+enum Tuple3<a b c>
+  | Tuple3(a, b, c)
+
+func First3<a b c>(Tuple3<a b c>) -> a
+rule First3(Tuple3(#1, #2, #3)) → #1
+
+func Second3<a b c>(Tuple3<a b c>) -> b
+rule Second3(Tuple3(#1, #2, #3)) → #2
+
+func Third3<a b c>(Tuple3<a b c>) -> c
+rule Third3(Tuple3(#1, #2, #3)) → #3

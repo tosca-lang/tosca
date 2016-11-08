@@ -15,7 +15,7 @@ import systemdef
 
 /* Generate C++ header file for module */
 func CppSigs(#module: Module) -> Text4_text_sort
-→ text⟦
+→ Debug("Generate C++ signatures file", ()->text⟦
 #ifndef †⟨HeaderSigsGuard(GetModuleURL(#module))⟩
 #define †⟨HeaderSigsGuard(GetModuleURL(#module))⟩
 #include "ts.h"
@@ -42,7 +42,7 @@ using tosca::Term;
 
 /* @Brief Initialize module. Register data symbols and variable types */
 void InitModule_⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩(tosca::Context& context);
-#endif⟧
+#endif⟧)
 
 /* Generate C++ header guard */
 func HeaderSigsGuard(#url: String) -> Text4_text_sort

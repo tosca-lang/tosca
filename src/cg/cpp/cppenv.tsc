@@ -102,7 +102,6 @@ rule UnMapEntries(EMapEntries(#1)) → #1
 func UnAnno(EnvEntry) -> List<Core_canno_sort>
 rule UnAnno(Anno(#1)) → #1
 
-
 /* Create a new empty environment */
 func CppNewEnv -> {String: EnvEntry}
 → MapNew
@@ -159,7 +158,9 @@ func MaybeGetVar(#env: {String: EnvEntry}, #var: String) -> Option<VarEntry>
 → MapGetVar(GetVars(#env), #var)
 
 func AddVar(#env: {String: EnvEntry}, #var: String /* TODO: Core_cterm_sort */, #entry: VarEntry) -> {String: EnvEntry}
-→ SetValue(#env, "vars", EMapVar(MapPutVar(GetVars(#env), #var, #entry)))
+→ let #vars = GetVars(#env)
+  let #nenv = MapRemove(#env, "vars") // to make sure #vars is only referenced once
+  SetValue(#nenv, "vars", EMapVar(MapPutVar(#vars, #var, #entry)))
 
 // --- Tail mode.
 
@@ -227,7 +228,9 @@ func GetMetaStorage(#env: {String: EnvEntry}, #metavar:String) -> Storage
 
 func AddMeta(#env: {String: EnvEntry}, #metavar: String, #term: Text4_text_sort, #boundvars: List<Text4_text_sort>,
              #storage: Storage) -> {String: EnvEntry}
-→ SetValue(#env, "meta", EMapMeta(MapPut(GetMetas(#env), #metavar, MetaVar(#term, #boundvars, #storage))))
+→ let #metas = GetMetas(#env)
+  let #nenv = MapRemove(#env, "meta")
+  SetValue(#nenv, "meta", EMapMeta(MapPut(#metas, #metavar, MetaVar(#term, #boundvars, #storage))))
 
 func GetMetaVarOrVar(#env: {String: EnvEntry}, #var: String) -> Text4_text_sort
 → IfPresent(GetMetaVarO(#env, #var), (metavar)->metavar, ()->GetVar(#env, #var))
@@ -244,7 +247,8 @@ func SetContext(#env: {String: EnvEntry}, #context: Text4_text_sort, #count: Num
 → SetValue(#env, "context", EContext(#context, #count))
 
 func NewContext(#env: {String: EnvEntry}) -> {String: EnvEntry}
-→ SetContext(#env, text⟦c†⟨NumberToText(GetContextCount(#env))⟩⟧, Plus(GetContextCount(#env), 1))
+→ let #count = GetContextCount(#env)
+  SetContext(#env, text⟦c†⟨NumberToText(#count)⟩⟧, Plus(#count, 1))
 
 // --- Rule case label
 
@@ -293,7 +297,9 @@ func GetDelayEntriesForVar(#env: {String: EnvEntry}, #var: String) -> List<MapEn
 → IfPresent(MapGet(GetDelayEntries(#env), #var), (entries)->entries, ()->())
 
 func DelayMapEntry(#env: {String: EnvEntry}, #var: String, #entry: MapEntry) -> {String: EnvEntry}
-→ SetDelayEntries(#env, MapPut(GetDelayEntries(#env), #var, Cons(#entry, GetDelayEntriesForVar(#env, #var))))
+→ let #entries = GetDelayEntries(#env)
+  let #nenv = MapRemove(#env, "delay")
+  SetDelayEntries(#nenv, MapPut(#entries, #var, (#entry, GetDelayEntriesForVar(#env, #var)...)))
 
 // --- rule annotations
 
