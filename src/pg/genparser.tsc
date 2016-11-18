@@ -240,7 +240,7 @@ rule MakeRuleSpecs((), METALEXER, {#E})    →
         fragment CRSX_START_EMBED_CHAR : '⟨';
         fragment CRSX_END_EMBED_CHAR   : '⟩';
     ⟧
-  
+
 rule MakeRuleSpecs((#ruleSpec, #ruleSpec*...), #mode, {#E})  → Concat(MakeRuleSpec(#ruleSpec, #mode, {#E}), MakeRuleSpecs(#ruleSpec*, #mode, {#E}))
 
 //

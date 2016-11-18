@@ -123,6 +123,20 @@ namespace tosca {
         return static_cast<const Term*>(this)->GetGVariable();
     }
 
+    bool Term::IsMap() const
+    {
+        return false;
+    }
+
+    void Term::MapKeys(std::set<Term*>& keys) const
+    {
+    }
+
+    Optional<Term> Term::MapGetValue(Context& ctx, Term& key) const
+    {
+        return Optional<Term>::nullopt;
+    }
+
     bool Term::DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const
     {
         if (Symbol() != rhs.Symbol())

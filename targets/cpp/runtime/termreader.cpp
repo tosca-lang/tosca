@@ -92,6 +92,10 @@ namespace tosca
                     ReadChar();
                     token = RCURLY;
                     return;
+                case ':':
+                    ReadChar();
+                    token = COLON;
+                    return;
                 case '-':
                 {
                     char first = ReadChar();
@@ -292,7 +296,7 @@ namespace tosca
         return buffer.GetTerm();
     }
     
-    void TermParser::ParseTerm(Sink& sink)
+    void TermParser::ParseTerm(BufferSink& sink)
     {
         TermLexer::Token token = lexer.CurrentToken();
         switch (token)
@@ -349,12 +353,14 @@ namespace tosca
             case TermLexer::LCURLY:
             {
                 lexer.ConsumeToken();
-                std::string empty("");
-                Term& sub = sink.MakeTerm(empty);
-                sink.Start(sub);
+
+                // Only support string:string map.
+                sink.StartMap<StringTerm, StringTerm>();
+                ParseMap(sink);
+                sink.EndMap();
+
                 lexer.Match(TermLexer::RCURLY);
                 lexer.ConsumeToken();
-                sink.End();
                 break;
             }
             case TermLexer::COMMA:
@@ -367,7 +373,7 @@ namespace tosca
         }
     }
 
-    void TermParser::ParseArgs(Sink& sink)
+    void TermParser::ParseArgs(BufferSink& sink)
     {
         TermLexer::Token token = lexer.CurrentToken();
         switch (token)
@@ -402,7 +408,7 @@ namespace tosca
         }
     }
     
-    void TermParser::ParseTerms(Sink& sink)
+    void TermParser::ParseTerms(BufferSink& sink)
     {
         while (true)
         {
@@ -422,7 +428,7 @@ namespace tosca
         }
     }
    
-    void TermParser::ParseBinders(Sink& sink, std::vector<std::tuple<const std::string*, Variable*>>& local)
+    void TermParser::ParseBinders(BufferSink& sink, std::vector<std::tuple<const std::string*, Variable*>>& local)
     {
         while (true)
         {
@@ -448,6 +454,31 @@ namespace tosca
         }
     }
     
+    void TermParser::ParseMap(BufferSink& sink)
+    {
+        while (true)
+        {
+            lexer.Match(TermLexer::STRING);
+            const std::string& key = lexer.GetText();
+            lexer.ConsumeToken();
+
+            lexer.Match(TermLexer::COLON);
+            lexer.ConsumeToken();
+
+
+            lexer.Match(TermLexer::STRING);
+            const std::string& value = lexer.GetText();
+            lexer.ConsumeToken();
+
+            sink.MapEntry<StringTerm, StringTerm>(newStringTerm(key), newStringTerm(value));
+
+            if (lexer.CurrentToken() == TermLexer::RCURLY)
+                break;
+
+            lexer.Match(TermLexer::COMMA);
+            lexer.ConsumeToken();
+        }
+    }
     
     Variable* TermParser::FindVariable(const std::string& name)
     {

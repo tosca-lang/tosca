@@ -4,6 +4,8 @@
 
 #include <unordered_map>
 #include <compat.h>
+#include <iowrapper.h>
+#include <set>
 
 // Forward declarations
 template<typename V>
@@ -15,6 +17,7 @@ class List;
 template<typename a> ::Option<a>& newNONE(tosca::Context& ctx);
 template<typename a> ::Option<a>& newSOME(tosca::Context& ctx, a& param);
 template<typename a> ::List<a>& newNil(tosca::Context& ctx);
+template<typename a> ::List<a>& newCons(tosca::Context& ctx, a& value, List<a>& next);
 
 
 namespace tosca {
@@ -137,6 +140,11 @@ namespace tosca {
             return emptymap;
         }
 
+        bool IsMap() const
+        {
+            return true;
+        }
+
     };
 
 
@@ -187,15 +195,32 @@ namespace tosca {
 
         Option<V>& getValue(Context& ctx, K& key)
         {
-            auto search = map.find(&key);
+//            auto search = map.find(&key);
+//            if (search == map.end())
+//            {
+//                if (parent)
+//                    return parent.value().getValue(ctx, key);
+//
+//                return newNONE<V>(ctx);
+//            }
+//            return newSOME<V>(ctx, tosca::NewRef(*search->second));
+            Optional<Term> ovalue = MapGetValue(ctx, key);
+            if (ovalue)
+                return newSOME<V>(ctx, dynamic_cast<V&>(ovalue.value()));
+            return newNONE<V>(ctx);
+        }
+
+        Optional<Term> MapGetValue(Context& ctx, Term& key) const
+        {
+            auto search = map.find(&dynamic_cast<K&>(key));
             if (search == map.end())
             {
                 if (parent)
-                    return parent.value().getValue(ctx, key);
+                    return parent.value().MapGetValue(ctx, key);
 
-                return newNONE<V>(ctx);
+                return Optional<Term>::nullopt;
             }
-            return newSOME<V>(ctx, tosca::NewRef(*search->second));
+            return make_optional<Term>(tosca::NewRef(*search->second));
         }
 
         void putAll(MapTerm<K, V> map)
@@ -205,12 +230,57 @@ namespace tosca {
 
         List<V>& values(Context& ctx)
         {
-            throw new std::runtime_error("");
+            CMapTerm<K, V>* cmap = this;
+            List<V>* result = &newNil<V>(ctx);
+            while (true)
+            {
+                for (auto it = cmap->map.begin(); it != cmap->map.end(); it ++)
+                {
+                    it->second->AddRef();
+                    result = &newCons<V>(ctx, *it->second, *result);
+                }
+                if (!cmap->parent)
+                    break;
+
+                cmap = &cmap->parent.value();
+            }
+            return *result;
         }
 
         List<K>& keys(Context& ctx)
         {
-            throw new std::runtime_error("");
+            CMapTerm<K, V>* cmap = this;
+            List<K>* result = &newNil<K>(ctx);
+            while (true)
+            {
+                for (auto it = cmap->map.begin(); it != cmap->map.end(); it ++)
+                {
+                    it->first->AddRef();
+                    result = &newCons<K>(ctx, *it->first, *result);
+                }
+                if (!cmap->parent)
+                    break;
+
+                cmap = &cmap->parent.value();
+            }
+            return *result;
+        }
+
+        void MapKeys(std::set<Term*>& keys) const
+        {
+            const CMapTerm<K, V>* cmap = this;
+            while (true)
+            {
+                for (auto it = cmap->map.begin(); it != cmap->map.end(); it ++)
+                {
+                    it->first->AddRef();
+                    keys.insert(it->first);
+                }
+                if (!cmap->parent)
+                    break;
+
+                cmap = &cmap->parent.value();
+            }
         }
 
         bool isEmpty()
@@ -237,21 +307,61 @@ namespace tosca {
         Term& Substitute(tosca::Context& ctx, std::unordered_map<Variable*, Term*>& substitutes)
         {
             MapTerm<K, V>& copy = newMapTerm<K, V>();
-            CMapTerm<K, V>& cmap = *this;
+            CMapTerm<K, V>* cmap = this;
             while (true)
             {
-                for (auto it = cmap.map.begin(); it != cmap.map.end(); it ++)
+                for (auto it = cmap->map.begin(); it != cmap->map.end(); it ++)
                 {
                     it->first->AddRef();
                     it->second->AddRef();
                     copy.putValue(ctx, *it->first, dynamic_cast<V&>(it->second->Substitute(ctx, substitutes)));
                 }
-                if (!cmap.parent)
+                if (!cmap->parent)
                     break;
 
-                 cmap = cmap.parent.value();
+                 cmap = &cmap->parent.value();
             }
             return copy;
+        }
+
+        void Print(IOWrapper& out, int count, bool indent)
+        {
+            CMapTerm<K, V>* cmap = this;
+
+            out.Write('\n');
+            if (indent)
+                out.Indent(count);
+            out.Write('{');
+            count += 2;
+            bool first = true;
+            while (true)
+            {
+                for (auto it = cmap->map.begin(); it != cmap->map.end(); it ++)
+                {
+                    if (!first)
+                        out.Write(',');
+                    else
+                        first = false;
+                    out.Write('\n');
+                    if (indent)
+                        out.Indent(count);
+                    it->first->Print(out, count, indent);
+                    out.Write(':');
+                    it->second->Print(out, count + 2, indent);
+                }
+                if (!cmap->parent)
+                    break;
+
+                cmap = &cmap->parent.value();
+            }
+            count -= 2;
+            if (!isEmpty())
+            {
+                out.Write('\n');
+                if (indent)
+                    out.Indent(count);
+            }
+            out.Write('}');
         }
 
     protected:

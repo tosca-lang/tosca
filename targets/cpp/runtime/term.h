@@ -8,6 +8,7 @@
 #include <functional>
 #include <unordered_map>
 #include <unordered_set>
+#include <set>
 
 #include "compat.h"
 
@@ -132,6 +133,15 @@ namespace tosca {
 
         /* @return The variable when this term is a variable use, otherwise nullopt */
         Optional<Variable> GetGVariable();
+
+        /* @return true if this term is a map */
+        virtual bool IsMap() const;
+
+        /* @return the list of keys contained in this map. Only applicable when IsMap returns true */
+        virtual void MapKeys(std::set<Term*>& keys) const;
+
+        /* @return the value corresponding to the given keys. Only applicable when IsMap returns true */
+        virtual Optional<Term> MapGetValue(Context& ctx, Term& key) const;
 
         /**
          * Apply substitution on this term
@@ -342,7 +352,7 @@ namespace tosca {
         }
 
         /* @return this as a Variable or nullopt */
-        Optional<CStringTermVar> GetVariable() const;
+        virtual Optional<CStringTermVar> GetVariable() const;
 
         /* Make Variable of type String */
         static Variable& MakeVariable(Context& ctx, const std::string& hint);
@@ -417,7 +427,7 @@ namespace tosca {
         }
         
         /* @return this as a Variable or nullopt */
-        Optional<CDoubleTermVar> GetVariable() const;
+        virtual Optional<CDoubleTermVar> GetVariable() const;
 
         /* Make Variable of type Double */
         static Variable& MakeVariable(Context& ctx, const std::string& hint);
@@ -559,7 +569,7 @@ namespace std
         }
     };
 
-    // String
+    // const String
     template<>
     struct hash<const tosca::StringTerm*>
     {
@@ -580,6 +590,48 @@ namespace std
         }
     };
     
+    // double
+    template<>
+    struct hash<tosca::DoubleTerm*>
+    {
+    public:
+        size_t operator()(const tosca::DoubleTerm* d) const
+        {
+            return std::hash<double>{}(d->Unbox());
+            }
+    };
+
+    template<>
+    struct equal_to<tosca::DoubleTerm*>
+    {
+    public:
+        bool operator()(const tosca::DoubleTerm* lhs, const tosca::DoubleTerm* rhs) const
+        {
+            return lhs->Unbox() == rhs->Unbox();
+            }
+        };
+
+    // const Double
+    template<>
+    struct hash<const tosca::DoubleTerm*>
+    {
+    public:
+        size_t operator()(const tosca::DoubleTerm* d) const
+        {
+            return std::hash<double>{}(d->Unbox());
+        }
+    };
+
+    template<>
+    struct equal_to<const tosca::DoubleTerm*>
+    {
+    public:
+        bool operator()(const tosca::DoubleTerm* lhs, const tosca::DoubleTerm* rhs) const
+        {
+            return lhs->Unbox() == rhs->Unbox();
+        }
+    };
+
 }
 
 // Macro specializing both std::hash and std::equal_to for term.

@@ -308,7 +308,7 @@ a& EventualError(tosca::Context& ctx, tosca::StringTerm& format, List<tosca::Str
 template<typename a>
 a& Debug(tosca::Context& ctx, tosca::StringTerm& msg, Closure0<a>& result)
 {
-    std::cout << msg.Unbox();
+    std::cerr << msg.Unbox();
     msg.Release();
     return result.Eval(ctx);
 }

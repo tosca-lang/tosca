@@ -92,6 +92,7 @@ namespace tosca {
     
     Sink& BufferSink::EndMap()
     {
+        terms.pop_back();
         return *this;
     }
     

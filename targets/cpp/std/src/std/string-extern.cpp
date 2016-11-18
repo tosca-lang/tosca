@@ -84,12 +84,28 @@ StringTerm& DownCase(Context& ctx, StringTerm& str)
 
 StringTerm& Replace(Context& ctx, StringTerm& str, StringTerm& oldStr, StringTerm& newStr)
 {
-//    std::string& replaced = *(new std::string());
-//    for (std::string::iterator it= lower.begin(); it != lower.end(); ++it)
-//        *it = tolower(*it);
-//    str.Release();
-//    return newStringTerm(lower);
-    return newStringTerm("");
+    if (oldStr.Unbox().empty())
+    {
+        oldStr.Release();
+        newStr.Release();
+        return str;
+    }
+
+    std::string& result = *(new std::string(str.Unbox()));
+    const std::string& uoldStr = oldStr.Unbox();
+    const std::string& unewStr = newStr.Unbox();
+
+    size_t pos = 0;
+    while ((pos = result.find(uoldStr, pos)) != std::string::npos)
+    {
+        result.replace(pos, uoldStr.length(), unewStr);
+        pos += unewStr.length();
+    }
+    str.Release();
+    oldStr.Release();
+    newStr.Release();
+
+    return newStringTerm(result);
 }
 
 Bool& Contains(Context& ctx, StringTerm& str1, StringTerm& str2)
@@ -160,7 +176,17 @@ Bool& EndsWith(tosca::Context& ctx, tosca::StringTerm& str, tosca::StringTerm& s
 tosca::StringTerm& Trim(tosca::Context&, tosca::StringTerm& str)
 {
     const std::string& ustr = str.Unbox();
+    if (ustr.empty())
+        return str;
+
     std::string::size_type first = ustr.find_first_not_of(" \t\f\n\r\b");
+    if (first == std::string::npos)
+    {
+        // All whitespace characters.
+        str.Release();
+        return newStringTerm("");
+    }
+
     size_t last = ustr.find_last_not_of(" \t\f\n\r\b");
     StringTerm& result = newStringTerm(ustr.substr(first, (last-first+1)));
     str.Release();
@@ -169,8 +195,14 @@ tosca::StringTerm& Trim(tosca::Context&, tosca::StringTerm& str)
 
 List<tosca::StringTerm>& Split(tosca::Context& ctx, tosca::StringTerm& str, tosca::StringTerm& sep)
 {
-    std::cout << "Split not tested\n";
     const std::string& ustr = str.Unbox();
+    if (ustr.empty())
+    {
+        str.Release();
+        sep.Release();
+        return newNil<tosca::StringTerm>(ctx);
+    }
+
     const std::string& usep = sep.Unbox();
     List<tosca::StringTerm>* result = 0;
     
@@ -185,16 +217,22 @@ List<tosca::StringTerm>& Split(tosca::Context& ctx, tosca::StringTerm& str, tosc
         
         spos = pos + usep.length();
     }
-    result->SetSub(1, newNil<tosca::StringTerm>(ctx));
-    str.Release();
+    if (result)
+    {
+        result->SetSub(1, newNil<tosca::StringTerm>(ctx));
+        str.Release();
+    }
+    else
+    {
+        // sep was not found. Just return the original string, even when empty
+        result = &newCons(ctx, str, newNil<tosca::StringTerm>(ctx));
+    }
     sep.Release();
     return *result;
 }
 
 tosca::StringTerm& Squash(tosca::Context& ctx, tosca::StringTerm& str)
 {
-    std::cout << "Squash not tested\n";
-    
     std::string squashed;
     bool wasspace = false;
     

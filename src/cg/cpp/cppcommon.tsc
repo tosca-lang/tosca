@@ -651,7 +651,7 @@ if (⟨STRING: value⟩)
 
   rule CppPatternTerm(#env, cterm⟦ ##canno* ( f  ##csortanno? ) ##cterm[f] ⟧, #term, #csort, #storage, #cont)
   → CppPatternTerm(#env, #cterm[var:String], #term, #csort, #storage, #cont)
-
+  
   rule CppPatternTerm(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧, #term, #csort, #storage, #cont)
   → CppPatternNamedTerm(#env, #METAVAR, #cterm, #term, #csort, #storage, #cont)
 

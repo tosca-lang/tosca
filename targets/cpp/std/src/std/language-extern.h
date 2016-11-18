@@ -5,6 +5,7 @@
 
 #include <stdexcept>
 #include <fstream>
+#include <sstream>
 #include "ts.h"
 #include "termprinter.h"
 #include "termreader.h"
@@ -25,7 +26,10 @@ a& ParseResource(tosca::Context& ctx, tosca::StringTerm& category, tosca::String
     
     tosca::TermParser parser(&input);
     tosca::Term& term = parser.ParseTerm(ctx);
-    return dynamic_cast<a&>(term);
+    a& result = dynamic_cast<a&>(term);
+    category.Release();
+    filename.Release();
+    return result;
 }
 
 template <typename a, typename b>
@@ -41,6 +45,9 @@ b& Save(tosca::Context& ctx, tosca::StringTerm& category, tosca::StringTerm& fil
         std::fstream output(filename.Unbox(), std::ios_base::out);
         tosca::Print(static_cast<tosca::Term&>(term), output, false);
     }
+    category.Release();
+    filename.Release();
+    props.Release();
     
     return result;
 }
@@ -48,7 +55,14 @@ b& Save(tosca::Context& ctx, tosca::StringTerm& category, tosca::StringTerm& fil
 template <typename a>
 a& ParseText(tosca::Context& ctx, tosca::StringTerm& category, tosca::StringTerm& content)
 {
-    throw new std::runtime_error("");
+    std::stringstream input(content.Unbox(), std::ios_base::in);
+
+    tosca::TermParser parser(&input);
+    tosca::Term& term = parser.ParseTerm(ctx);
+    a& result = dynamic_cast<a&>(term);
+    category.Release();
+    content.Release();
+    return result;
 }
 
 #endif

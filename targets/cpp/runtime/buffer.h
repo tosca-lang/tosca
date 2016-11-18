@@ -22,9 +22,41 @@ public:
     
     /* @return the constructed term */
     Term& GetTerm();
-    
+
+    /**
+     * Start of map.
+     *
+     * The following events are the map key-value pairs
+     *
+     * @return this sink
+     */
+    template <typename K, typename V>
+    Sink& StartMap()
+    {
+        auto& term = newMapTerm<K, V>();
+        AddSub(term);
+        terms.push_back(&term);
+        return *this;
+    }
+
+    /**
+     * Receive map entry.
+     *
+     * @param key
+     * @param value
+     * @return this sink
+     */
+    template <typename K, typename V>
+    Sink& MapEntry(K& key, V& value)
+    {
+        MapTerm<K, V>& map = dynamic_cast<MapTerm<K, V>&>(*(terms.back()));
+        map.putValue(GetContext(), key, value);
+        return *this;
+    }
+   
+
     // --- Overrides
-    
+
     Sink& Start(const StringTerm& symbol);
     Sink& Start(Term& term);
     Sink& End();
@@ -32,13 +64,6 @@ public:
     Sink& Use(Variable& variable);
     Sink& Literal(const std::string& literal);
     Sink& Copy(Term& term);
-    
-    template <typename K, typename V> Sink& StartMap()
-    {
-        AddSub(newMapTerm<K, V>());
-        return *this;
-    }
-   
     Sink& EndMap();
     
     Variable& MakeFree(std::string& name);

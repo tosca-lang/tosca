@@ -31,7 +31,7 @@
 
 namespace tosca
 {
-    class Sink;
+    class BufferSink;
     class Variable;
     class Context;
     class Term;
@@ -40,7 +40,7 @@ namespace tosca
     {
     public:
         enum Token { CONSTRUCTOR, VARIABLE, STRING, NUMBER, LPAR, RPAR, LSQUARE, RSQUARE, ARROW, COMMA,
-            LCURLY, RCURLY, EEOF, INVALID };
+            LCURLY, RCURLY, COLON, EEOF, INVALID };
         
         /* Create lexer with C style input */
         TermLexer(FILE* in);
@@ -143,7 +143,7 @@ namespace tosca
         /*
          * Parses term and send result to the given sink 
          */
-        void ParseTerm(Sink& sink);
+        void ParseTerm(BufferSink& sink);
         
         /*
          * Parses term and return the produced term
@@ -160,10 +160,11 @@ namespace tosca
         /* Bound variables */
         std::unordered_map<std::string, tosca::Variable*> bound;
         
-        void ParseArgs(Sink& sink);
-        void ParseTerms(Sink& sink);
-        void ParseBinders(Sink& sink, std::vector<std::tuple<const std::string*, Variable*>>& localbound);
-        
+        void ParseArgs(BufferSink& sink);
+        void ParseTerms(BufferSink& sink);
+        void ParseBinders(BufferSink& sink, std::vector<std::tuple<const std::string*, Variable*>>& localbound);
+        void ParseMap(BufferSink& sink);
+
         Variable* FindVariable(const std::string& name);
     };
 }
