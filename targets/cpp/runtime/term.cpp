@@ -137,6 +137,12 @@ namespace tosca {
         return Optional<Term>::nullopt;
     }
 
+    void Term::MapPutValue(Context& ctx, Term& key, Term& value)
+    {
+        throw std::runtime_error("Error: cannot put a value on a non-map term.");
+    }
+
+
     bool Term::DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const
     {
         if (Symbol() != rhs.Symbol())

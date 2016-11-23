@@ -143,6 +143,9 @@ namespace tosca {
         /* @return the value corresponding to the given keys. Only applicable when IsMap returns true */
         virtual Optional<Term> MapGetValue(Context& ctx, Term& key) const;
 
+        /* Add key-value pair to map. Only applicable when IsMap returns true */
+        virtual void MapPutValue(Context& ctx, Term& key, Term& value);
+
         /**
          * Apply substitution on this term
          *

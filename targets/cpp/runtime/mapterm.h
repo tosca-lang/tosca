@@ -223,6 +223,11 @@ namespace tosca {
             return make_optional<Term>(tosca::NewRef(*search->second));
         }
 
+        void MapPutValue(Context& ctx, Term& key, Term& value)
+        {
+            putValue(ctx, dynamic_cast<K&>(key), dynamic_cast<V&>(value));
+        }
+
         void putAll(MapTerm<K, V> map)
         {
             throw new std::runtime_error("");

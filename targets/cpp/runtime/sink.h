@@ -87,12 +87,28 @@ public:
     virtual Sink& Literal(const std::string& literal) = 0;
     
     /**
+     * Start of map.
+     *
+     * @return this sink
+     */
+    virtual Sink& StartMap() = 0;
+
+    /**
+     * Receive a map entry.
+     *
+     * @param key
+     * @param value
+     * @return this sink
+     */
+    virtual Sink& MapEntry(Term& key, Term& value) = 0;
+
+    /**
      * End of map.
      *
      * @return this sink
      */
     virtual Sink& EndMap() = 0;
-    
+
     /**
      * Copy given term. Reference is consumed.
      * @param term

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javax.tools.JavaCompiler;
 import javax.tools.JavaCompiler.CompilationTask;
@@ -51,7 +52,7 @@ import org.transscript.tool.Utils;
  */
 public class Tool
 {
-	static HashMap<String, Consumer<Map<String, String>>> commands = new HashMap<>();
+	static HashMap<String, Function<Map<String, String>, Integer>> commands = new HashMap<>();
 	static HashMap<String, Runnable> helps = new HashMap<>();
 
 	static
@@ -63,7 +64,7 @@ public class Tool
 
 	}
 
-	static void addCommand(String name, Consumer<Map<String, String>> command, Runnable help)
+	static void addCommand(String name, Function<Map<String, String>, Integer> command, Runnable help)
 	{
 		commands.put(name, command);
 		helps.put(name, help);
@@ -81,7 +82,7 @@ public class Tool
 		System.out.println("  test          Run the tests defined in the Tosca program");
 		System.out.println("  parse         Parse a Tosca program");
 		System.out.println("\nFor additional help, type java -jar tosca.jar command help.");
-		System.exit(1);
+		System.exit(0);
 	}
 
 	/**
@@ -118,16 +119,16 @@ public class Tool
 	}
 
 	/** Build and run a Tosca system */
-	static void run(Map<String, String> env)
+	static int run(Map<String, String> env)
 	{
 		if (env.containsKey("cpp"))
-			runCpp(env);
-		else
-			runJava(env);
+			return runCpp(env);
+		
+		return runJava(env);
 	}
 
 	/** Build and run a Java Tosca system */
-	static void runJava(Map<String, String> env)
+	static int runJava(Map<String, String> env)
 	{
 		String clazz = env.get("class");
 		String rules = env.get("rules");
@@ -165,7 +166,7 @@ public class Tool
 			classLoader = classLoader(rules, resolveBuildDir(rules, env.get("build-dir")));
 		}
 
-		if (result != -1)
+		if (result == 0 && env.get("only-source") != null)
 		{
 			// Second: run
 			Map<String, Object> runEnv = new HashMap<>();
@@ -176,9 +177,11 @@ public class Tool
 			env.put("class", clazz);
 			
 			Context context = new Context();
-			rewrite(context, env, runEnv);
-			//output(context, env, term);
+			Term output = rewrite(context, env, runEnv);
+			return output == null ? 7 : 0;
 		}
+		
+		return 0;
 	}
 
 	/** Sends produced term to output configured in {@link #env} */
@@ -217,13 +220,13 @@ public class Tool
 	}
 
 	/** Build and run a C++ Tosca system */
-	private static void runCpp(Map<String, String> env)
+	private static int runCpp(Map<String, String> env)
 	{
 		String rules = env.get("rules");
 
 		if (rules == null)
 			helpRun();
-
+		
 		// Configure builder
 		Map<String, String> buildEnv = new HashMap<>();
 
@@ -234,15 +237,16 @@ public class Tool
 
 		int result = build(buildEnv);
 
-		if (result != -1)
+		if (result == 0 && buildEnv.get("only-source") != null)
 		{
 			String dest = resolveBuildDir(rules, env.get("build-dir"));
 			String name = Utils.getBaseName(rules);
 
 			String execdir = Paths.get(dest, "build", "exe", name).toString();
 
-			Utils.exec(execdir, false, Paths.get(".", name).toString());
+			return Utils.exec(execdir, false, Paths.get(".", name).toString());
 		}
+		return 0;
 	}
 
 	public static void helpBuild()
@@ -339,17 +343,19 @@ public class Tool
 		buildEnv.put("verbose", env.get("verbose"));
 
 		Systemdef.Result result = (Result) rewrite(context, buildEnv, internalEnv);
-		result = Term.force(context, result);
-		if (result.asFAILURE(context) == null)
+		if (result != null)
 		{
-			Listdef.List<StringTerm> files = result.asSuccess(context).getField1(context, true);
-			// Second: Compile 
-			if (env.get("java") != null)
-				return compileJava(context, env, files);
-			else if (env.get("cpp") != null)
-				return compileCpp(env, rules, dest);
+			result = Term.force(context, result);
+			if (result.asFAILURE(context) == null)
+			{
+				Listdef.List<StringTerm> files = result.asSuccess(context).getField1(context, true);
+				// Second: Compile 
+				if (env.get("java") != null)
+					return compileJava(context, env, files);
+				else if (env.get("cpp") != null)
+					return compileCpp(env, rules, dest);
+			}
 		}
-
 		return 2;
 	}
 
@@ -418,10 +424,10 @@ public class Tool
 	}
 
 	/** Test Tosca program */
-	static void test(Map<String, String> env)
+	static int test(Map<String, String> env)
 	{
 		env.put("main", "Tests");
-		run(env);
+		return run(env);
 	}
 
 	static void helpParse()
@@ -435,7 +441,7 @@ public class Tool
 	}
 
 	/** Just parse Tosca program */
-	static void parse(Map<String, String> env)
+	static int parse(Map<String, String> env)
 	{
 		String inputname = env.get("rules");
 		if (inputname == null)
@@ -465,11 +471,14 @@ public class Tool
 		catch (FileNotFoundException e)
 		{
 			Utils.fatal("File not found: " + inputname, e);
+			return 8;
 		}
 		catch (IOException e)
 		{
 			Utils.fatal("", e);
+			return 9;
 		}
+		return 0;
 	}
 
 	/** 
@@ -593,7 +602,6 @@ public class Tool
 	{
 		if (env.get("only-source") == null)
 		{
-
 			List<File> filesToCompile = new ArrayList<>();
 			for (String filename : Utils.toJava(context, files))
 			{
@@ -622,9 +630,9 @@ public class Tool
 				Utils.fatal("Error while closing Java compiler tool file manager", e);
 				return -1;
 			}
-			return result ? 0 : -1;
+			return result ? 0 : 3;
 		}
-		return -1;
+		return 0;
 	}
 
 	/** Cached tosca path */
@@ -772,7 +780,7 @@ public class Tool
 			printUsage();
 
 		String command = args[0];
-		Consumer<Map<String, String>> fun = commands.get(command);
+		Function<Map<String, String>, Integer> fun = commands.get(command);
 		if (fun == null)
 			printUsage();
 
@@ -815,7 +823,8 @@ public class Tool
 			if (environment.get("stacktrace") != null)
 				System.setProperty("stacktrace", "1");
 
-			fun.accept(environment);
+			int code = fun.apply(environment);
+			System.exit(code);
 		}
 	}
 

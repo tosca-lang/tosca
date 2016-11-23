@@ -89,14 +89,27 @@ namespace tosca {
         AddSub(newStringTerm(literal));
         return *this;
     }
-    
-    Sink& BufferSink::EndMap()
+
+    Sink& BufferSink::StartMap()
     {
-        terms.pop_back();
+        std::string symbol("dummy");
+        Start(MakeTerm(symbol));
+
         return *this;
     }
-    
-    
+
+    Sink& BufferSink::MapEntry(Term& key, Term& value)
+    {
+        Term& t = *(terms.back());
+        t.MapPutValue(GetContext(), key, value);
+        return *this;
+    }
+
+    Sink& BufferSink::EndMap()
+    {
+        return End();
+    }
+
     Sink& BufferSink::Copy(Term& term)
     {
         AddSub(term);

@@ -124,7 +124,7 @@ public class Utils
 		System.out.println(message);
 		if (e != null && System.getProperty("stacktrace") != null)
 			e.printStackTrace();
-		System.exit(0);
+		System.exit(1);
 		return (T) null;
 	}
 
@@ -287,7 +287,7 @@ public class Utils
 		catch (IOException | InterruptedException e)
 		{
 			fatal("An error occured while running " + String.join(" ", command), e);
-			return -1;
+			return 4;
 		}
 
 	}

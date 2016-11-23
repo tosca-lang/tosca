@@ -354,9 +354,11 @@ namespace tosca
             {
                 lexer.ConsumeToken();
 
-                // Only support string:string map.
-                sink.StartMap<StringTerm, StringTerm>();
-                ParseMap(sink);
+                sink.StartMap();
+
+                if (lexer.CurrentToken() != TermLexer::RCURLY)
+                    ParseMap(sink);
+
                 sink.EndMap();
 
                 lexer.Match(TermLexer::RCURLY);
@@ -465,12 +467,9 @@ namespace tosca
             lexer.Match(TermLexer::COLON);
             lexer.ConsumeToken();
 
-
-            lexer.Match(TermLexer::STRING);
-            const std::string& value = lexer.GetText();
-            lexer.ConsumeToken();
-
-            sink.MapEntry<StringTerm, StringTerm>(newStringTerm(key), newStringTerm(value));
+            BufferSink value(sink.GetContext());
+            ParseTerm(value);
+            sink.MapEntry(newStringTerm(key), value.GetTerm());
 
             if (lexer.CurrentToken() == TermLexer::RCURLY)
                 break;
