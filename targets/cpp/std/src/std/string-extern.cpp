@@ -210,7 +210,7 @@ List<tosca::StringTerm>& Split(tosca::Context& ctx, tosca::StringTerm& str, tosc
     std::string::size_type pos = 0;
     while ((pos = ustr.find(usep, spos)) != std::string::npos)
     {
-        List<tosca::StringTerm>& cons = dynamic_cast<List<tosca::StringTerm>&>(CCons<tosca::StringTerm>::Make(ctx));
+        List<tosca::StringTerm>& cons = dynamic_cast<List<tosca::StringTerm>&>(_CCons<tosca::StringTerm>::Make(ctx));
         cons.SetSub(0, newStringTerm(ustr.substr(spos, pos)));
         if (result)
             result->SetSub(1, cons);

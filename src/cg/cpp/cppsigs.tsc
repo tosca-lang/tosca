@@ -26,11 +26,11 @@ func CppSigs(#module: Module) -> Text4_text_sort
 †⟨CppIncludeTypes(GetImports(GetModuleContent(#module)))⟩
 
 using tosca::StringTerm;
-using tosca::CStringTerm;
-using tosca::CStringTermVar;
+using tosca::_CStringTerm;
+using tosca::_CStringTermVar;
 using tosca::DoubleTerm;
-using tosca::CDoubleTerm;
-using tosca::CDoubleTermVar;
+using tosca::_CDoubleTerm;
+using tosca::_CDoubleTermVar;
 using tosca::MapTerm;
 using tosca::Term;
 

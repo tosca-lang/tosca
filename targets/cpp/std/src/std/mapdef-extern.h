@@ -189,7 +189,7 @@ template <typename a, typename b>
 b& MapGetD(tosca::Context& ctx, MapTerm<a,tosca::Term>& map, a& key, b& dvalue)
 {
     auto& ovalue = MapGet<a, tosca::Term>(ctx, map, key);
-    Optional<CSOME<tosca::Term>> osome = ovalue.asSOME(ctx);
+    Optional<_CSOME<tosca::Term>> osome = ovalue.asSOME(ctx);
     if (osome)
     {
         dvalue.Release();
@@ -204,7 +204,7 @@ template <typename a, typename b>
 b& MapGetE(tosca::Context& ctx, MapTerm<a,tosca::Term>& map, a& key)
 {
     auto& ovalue = MapGet<a, tosca::Term>(ctx, map, key);
-    Optional<CSOME<tosca::Term>> osome = ovalue.asSOME(ctx);
+    Optional<_CSOME<tosca::Term>> osome = ovalue.asSOME(ctx);
     if (osome)
     {
         tosca::Term& result = osome.value().getValue1(ctx, true);

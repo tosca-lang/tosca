@@ -47,7 +47,7 @@ func HeaderGuard(#url: String) -> Text4_text_sort
 /* Generate C++ header inclusion declarations */
 func CppIncludeSigs(#imports: List<Core_cqidentifier_sort>) -> Text4_text_sort
 → TextFoldES(Map((imp) -> text⟦
-#include "⟨STRING: JoinQIdentifier(imp, "/", TRUE)⟩_sigs.h"⟧, #imports))
+#include "⟨STRING: JoinQIdentifier(imp, "/", TRUE)⟩.h"⟧, #imports))
 
 // --------- Templated method definitions
 

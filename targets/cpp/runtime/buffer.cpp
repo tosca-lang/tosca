@@ -139,7 +139,7 @@ namespace tosca {
     {
         if (terms.empty())
         {
-            CStringTerm st(symbol);
+            _CStringTerm st(symbol);
             return GetContext().MakeConstructor(st);
         }
         Term& t = *(terms.back());

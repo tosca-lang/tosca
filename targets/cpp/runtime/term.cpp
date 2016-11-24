@@ -481,9 +481,9 @@ namespace tosca {
         return Unbox();
     }
     
-    Optional<CStringTermVar> StringTerm::GetVariable() const
+    Optional<_CStringTermVar> StringTerm::GetVariable() const
     {
-        return Optional<CStringTermVar::CStringTermVar>::nullopt;
+        return Optional<_CStringTermVar::_CStringTermVar>::nullopt;
     }
 
     Variable& StringTerm::MakeVariable(Context& ctx, const std::string& hint)
@@ -508,53 +508,53 @@ namespace tosca {
         out.Write("\"");
     }
 
-    CStringTermVar::CStringTermVar(std::string name) : Variable(name)
+    _CStringTermVar::_CStringTermVar(std::string name) : Variable(name)
     {
     }
 
-    StringTerm& CStringTermVar::Use()
+    StringTerm& _CStringTermVar::Use()
     {
-        return *(new CStringTermVarUse(*this));
+        return *(new _CStringTermVarUse(*this));
     }
 
-    Term& CStringTermVar::GUse()
+    Term& _CStringTermVar::GUse()
     {
         return Use();
     }
 
-    CStringTermVarUse::CStringTermVarUse(CStringTermVar& v) : VariableUse::VariableUse(v)
+    _CStringTermVarUse::_CStringTermVarUse(_CStringTermVar& v) : VariableUse::VariableUse(v)
     {
     }
     
-    Optional<CStringTermVar> CStringTermVarUse::GetVariable() const
+    Optional<_CStringTermVar> _CStringTermVarUse::GetVariable() const
     {
-        return make_optional<CStringTermVar>(dynamic_cast<CStringTermVar&>(VariableUse::GetGVariable().value()));
+        return make_optional<_CStringTermVar>(dynamic_cast<_CStringTermVar&>(VariableUse::GetGVariable().value()));
     }
 
-    const std::string& CStringTermVarUse::Unbox() const
+    const std::string& _CStringTermVarUse::Unbox() const
     {
         return var.Symbol();
     }
     
-    CStringTerm::CStringTerm(const std::string&& val) : value(val)
+    _CStringTerm::_CStringTerm(const std::string&& val) : value(val)
     {
     }
     
-    CStringTerm::CStringTerm(const std::string& val) : value(val)
+    _CStringTerm::_CStringTerm(const std::string& val) : value(val)
     {
     }
 
-    CStringTerm::~CStringTerm()
+    _CStringTerm::~_CStringTerm()
     {}
 
 
-    Term& CStringTerm::Copy(Context& ctx)
+    Term& _CStringTerm::Copy(Context& ctx)
     {
         AddRef();
         return *this;
     }
 
-    const std::string& CStringTerm::Unbox() const
+    const std::string& _CStringTerm::Unbox() const
     {
         return value;
     }
@@ -570,9 +570,9 @@ namespace tosca {
         return std::hash<std::string>{}(Symbol());
     }
     
-    Optional<CDoubleTermVar> DoubleTerm::GetVariable() const
+    Optional<_CDoubleTermVar> DoubleTerm::GetVariable() const
     {
-        return Optional<CDoubleTermVar::CDoubleTermVar>::nullopt;
+        return Optional<_CDoubleTermVar::_CDoubleTermVar>::nullopt;
     }
 
     Variable& DoubleTerm::MakeVariable(Context& ctx, const std::string& hint)
@@ -592,45 +592,45 @@ namespace tosca {
         out.Write(Symbol());
     }
 
-    CDoubleTermVarUse::CDoubleTermVarUse(CDoubleTermVar& v) : VariableUse::VariableUse(v)
+    _CDoubleTermVarUse::_CDoubleTermVarUse(_CDoubleTermVar& v) : VariableUse::VariableUse(v)
     {
     }
 
-    Optional<CDoubleTermVar> CDoubleTermVarUse::GetVariable() const
+    Optional<_CDoubleTermVar> _CDoubleTermVarUse::GetVariable() const
     {
-        return make_optional<CDoubleTermVar>(dynamic_cast<CDoubleTermVar&>(VariableUse::GetGVariable().value()));
+        return make_optional<_CDoubleTermVar>(dynamic_cast<_CDoubleTermVar&>(VariableUse::GetGVariable().value()));
     }
     
-    CDoubleTermVar::CDoubleTermVar(std::string name) : Variable(std::move(name))
+    _CDoubleTermVar::_CDoubleTermVar(std::string name) : Variable(std::move(name))
     {
     }
 
-    DoubleTerm& CDoubleTermVar::Use()
+    DoubleTerm& _CDoubleTermVar::Use()
     {
-        return *(new CDoubleTermVarUse(*this));
+        return *(new _CDoubleTermVarUse(*this));
     }
 
-    Term& CDoubleTermVar::GUse()
+    Term& _CDoubleTermVar::GUse()
     {
         return Use();
     }
 
-    CDoubleTerm::CDoubleTerm(double val) : value(val), str(std::to_string((long double) val))
+    _CDoubleTerm::_CDoubleTerm(double val) : value(val), str(std::to_string((long double) val))
     {
     }
 
-    Term& CDoubleTerm::Copy(Context& ctx)
+    Term& _CDoubleTerm::Copy(Context& ctx)
     {
         AddRef();
         return *this;
     }
 
-    double CDoubleTerm::Unbox() const
+    double _CDoubleTerm::Unbox() const
     {
         return value;
     }
 
-    const std::string& CDoubleTerm::Symbol() const
+    const std::string& _CDoubleTerm::Symbol() const
     {
         return str;
     }
@@ -640,25 +640,25 @@ using namespace tosca;
 
 StringTerm& newStringTerm(std::string&& val)
 {
-    return *(new CStringTerm(val));
+    return *(new _CStringTerm(val));
 }
 
 StringTerm& newStringTerm(const std::string& val)
 {
-    return *(new CStringTerm(val));
+    return *(new _CStringTerm(val));
 }
 
-CStringTermVar& varStringTerm(tosca::Context& ctx, const std::string& hint)
+_CStringTermVar& varStringTerm(tosca::Context& ctx, const std::string& hint)
 {
-    return *(new CStringTermVar(ctx.MakeGlobalName(hint)));
+    return *(new _CStringTermVar(ctx.MakeGlobalName(hint)));
 }
 
 DoubleTerm& newDoubleTerm(double val)
 {
-    return *(new CDoubleTerm(val));
+    return *(new _CDoubleTerm(val));
 }
 
-CDoubleTermVar& varDoubleTerm(tosca::Context& ctx, const std::string& hint)
+_CDoubleTermVar& varDoubleTerm(tosca::Context& ctx, const std::string& hint)
 {
-    return *(new CDoubleTermVar(ctx.MakeGlobalName(hint)));
+    return *(new _CDoubleTermVar(ctx.MakeGlobalName(hint)));
 }

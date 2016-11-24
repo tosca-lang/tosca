@@ -647,7 +647,7 @@ if (⟨STRING: value⟩)
 
   rule CppPatternTerm(#env, cterm⟦ ##canno* [ v : ##csort ] ##cterm[v] ⟧, #term, #sort, ARGUMENT, #cont)
   → text⟦
-      C†⟨CppType(#csort)⟩Var& ⟨STRING: boundvar:String⟩ = †⟨GetParent(#env)⟩.value().getVar†⟨NumberToText(GetSubIndex(#env))⟩_†⟨NumberToText(GetSubBinderIndex(#env))⟩();†⟨
+      _C†⟨CppType(#csort)⟩Var& ⟨STRING: boundvar:String⟩ = †⟨GetParent(#env)⟩.value().getVar†⟨NumberToText(GetSubIndex(#env))⟩_†⟨NumberToText(GetSubBinderIndex(#env))⟩();†⟨
       CppPatternTerm(IncSubBinderIndex(AddVar(#env, var, Bound(text⟦⟨STRING: boundvar⟩⟧, SOME(#csort)))), #cterm[var], #term, #sort, ARGUMENT, #cont)⟩⟧
 
   rule CppPatternTerm(#env, cterm⟦ ##canno* ( f  ##csortanno? ) ##cterm[f] ⟧, #term, #csort, #storage, #cont)
@@ -692,14 +692,14 @@ func CppPatternVariable(Option<VarEntry>, {String : EnvEntry}, String, Option<Co
 
   // First variable occurrence: the term is a free variable.
   rule CppPatternVariable(NONE, #env, #variable, #csort, #term, #cont)
-  → text⟦¶Optional<C†⟨MaybeCppTypeD(#csort, text⟦⟧)⟩Var> ⟨STRING: ovar⟩ = †⟨#term⟩.GetVariable();
+  → text⟦¶Optional<_C†⟨MaybeCppTypeD(#csort, text⟦⟧)⟩Var> ⟨STRING: ovar⟩ = †⟨#term⟩.GetVariable();
 if (⟨STRING: ovar⟩)
 {→
-C†⟨MaybeCppTypeD(#csort, text⟦⟧)⟩Var& ⟨STRING: var⟩ = ⟨STRING: ovar⟩.value();
+_C†⟨MaybeCppTypeD(#csort, text⟦⟧)⟩Var& ⟨STRING: var⟩ = ⟨STRING: ovar⟩.value();
 †⟨CppApplyDelayEntries(AddVar(#env, #variable, Free(text⟦⟨STRING: var⟩⟧, #csort)), #variable, #cont)⟩←¶}⟧
 
   rule CppPatternVariable(SOME(Bound(#var, #sort)), #env, #variable, #csort, #term, #cont)
-  → text⟦¶Optional<C†⟨MaybeCppTypeD(#csort, text⟦⟧)⟩Var> ⟨STRING: ovar⟩ = †⟨#term⟩.GetVariable();
+  → text⟦¶Optional<_C†⟨MaybeCppTypeD(#csort, text⟦⟧)⟩Var> ⟨STRING: ovar⟩ = †⟨#term⟩.GetVariable();
 if (⟨STRING: ovar⟩ && †⟨#var⟩ == ⟨STRING: ovar⟩.value())
 {→†⟨#cont(#env)⟩←¶}⟧
 
@@ -1010,7 +1010,7 @@ func CppFreshesVariable({String : EnvEntry}, Option<Core_canno_sort>, Option<Var
     let #cpptype = CppType(#csort)
     let #ctx = GetContext(#env)
     PairCons(IncFreshCounter(AddVar(#env, #var, Fresh(#cppvar, SOME(#csort)))),
-             text⟦¶C†⟨#cpptype⟩Var& †⟨#cppvar⟩ = var†⟨#cpptype⟩(†⟨#ctx⟩, †⟨Text-QuoteEscape(Show(#var))⟩);⟧)
+             text⟦¶_C†⟨#cpptype⟩Var& †⟨#cppvar⟩ = var†⟨#cpptype⟩(†⟨#ctx⟩, †⟨Text-QuoteEscape(Show(#var))⟩);⟧)
 
   // New bound variable, no reuse
   rule CppFreshesVariable(#env, NONE, NONE, #var, csortanno?⟦ : ##csort ⟧, FALSE)
@@ -1018,7 +1018,7 @@ func CppFreshesVariable({String : EnvEntry}, Option<Core_canno_sort>, Option<Var
     let #cpptype = CppType(#csort)
     let #ctx = GetContext(#env)
     PairCons(IncCounter(AddVar(#env, #var, Bound(#cppvar, SOME(#csort)))),
-             text⟦¶C†⟨#cpptype⟩Var& †⟨#cppvar⟩ = var†⟨#cpptype⟩(†⟨#ctx⟩, †⟨Text-QuoteEscape(Show(#var))⟩);⟧)
+             text⟦¶_C†⟨#cpptype⟩Var& †⟨#cppvar⟩ = var†⟨#cpptype⟩(†⟨#ctx⟩, †⟨Text-QuoteEscape(Show(#var))⟩);⟧)
 
   // Fresh variable, reuse binder
   rule CppFreshesVariable(#env, SOME(canno⟦ @Reuse( ##METAVAR, ##NUMBER ) ⟧), NONE, #var, csortanno?⟦ : ##csort ⟧, TRUE)
@@ -1358,7 +1358,7 @@ func CppTypes2(Core_csort_sort, List<Text4_text_sort> /* formal params */) -> Li
        TextFold((#formal, #formals...), text⟦, ⟧) /* Formal params */⟩>⟧,)
 
   rule CppTypes2(csort⟦ ##canno* [ ##csort ] ##csort2 ⟧, #formals)
-  → Cons(text⟦C†⟨CppType(#csort)⟩Var⟧, CppTypes2(#csort2, #formals)) // TODO: Var must be printed before template args.
+  → Cons(text⟦_C†⟨CppType(#csort)⟩Var⟧, CppTypes2(#csort2, #formals)) // TODO: Var must be printed before template args.
 
   rule CppTypes2(csort⟦ ##canno* ( ##csort ) ##csort2 ⟧, #formals) // no higher-order csort for now.
   → CppTypes2(#csort2, Append(CppType(#csort), #formals))
@@ -1416,7 +1416,12 @@ func CppGetSortsTerms(#terms: List<Core_cterm_sort>) -> List<Text4_text_sort>
 
 /* Convert data sort name to corresponding C++ class name */
 func SortNameToCppClassName(#name: String) -> Text4_text_sort
-→ If(Equal(#name, "STRING"), ()->text⟦ESTRING⟧, ()->text⟦⟨STRING: Mangle(#name)⟩⟧)
+→ if Equal(#name, "STRING")
+    text⟦ESTRING⟧
+  else if Equal(#name, "Term")
+    text⟦tosca::Term⟧
+  else
+    text⟦⟨STRING: Mangle(#name)⟩⟧
 
 /* Convert data sort name to equivalent C++ class name reference */
 func SortNameToCppClassNameRef(#name: String) -> Text4_text_sort
@@ -1440,7 +1445,7 @@ func ParamFormCppClassName(#name: String, #csortvars?: List<Core_csortvars_sort>
 
 /* Convert data form to corresponding C++ class name */
 func FormCppClassName(#name: String) -> Text4_text_sort
-→ If(Equal(#name, "STRING"), ()->text⟦CSTRING⟧, ()->text⟦C⟨STRING: Mangle(#name)⟩⟧)
+→ If(Equal(#name, "STRING"), ()->text⟦CSTRING⟧, ()->text⟦_C⟨STRING: Mangle(#name)⟩⟧)
 
 /* Convert data form to corresponding C++ class name reference */
 func FormCppClassNameRef(#name: String) -> Text4_text_sort

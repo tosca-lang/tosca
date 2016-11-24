@@ -12,7 +12,6 @@
 
 #include "compat.h"
 
-
 namespace tosca {
 
     // Forward declarations
@@ -332,7 +331,7 @@ namespace tosca {
 
     // ----- String Term
     
-    class CStringTermVar;
+    class _CStringTermVar;
 
     // Base type
     class StringTerm: public Term
@@ -355,7 +354,7 @@ namespace tosca {
         }
 
         /* @return this as a Variable or nullopt */
-        virtual Optional<CStringTermVar> GetVariable() const;
+        virtual Optional<_CStringTermVar> GetVariable() const;
 
         /* Make Variable of type String */
         static Variable& MakeVariable(Context& ctx, const std::string& hint);
@@ -373,12 +372,12 @@ namespace tosca {
     /**
      * String term value
      */
-    class CStringTerm: public StringTerm
+    class _CStringTerm: public StringTerm
     {
     public:
-        CStringTerm(const std::string&& value);
-        CStringTerm(const std::string& value);
-        ~CStringTerm();
+        _CStringTerm(const std::string&& value);
+        _CStringTerm(const std::string& value);
+        ~_CStringTerm();
 
         // -- Overrides
 
@@ -393,20 +392,20 @@ namespace tosca {
     /**
      * Variable use of type String
      */
-    class CStringTermVarUse: public StringTerm, public VariableUse
+    class _CStringTermVarUse: public StringTerm, public VariableUse
     {
     public:
-        CStringTermVarUse(CStringTermVar& v);
+        _CStringTermVarUse(_CStringTermVar& v);
 
         // Overrides
         const std::string& Unbox() const;
-        Optional<CStringTermVar> GetVariable() const;
+        Optional<_CStringTermVar> GetVariable() const;
     };
 
-    class CStringTermVar: public Variable
+    class _CStringTermVar: public Variable
     {
     public:
-        CStringTermVar(std::string name);
+        _CStringTermVar(std::string name);
 
         // --- Overrides
         StringTerm& Use();
@@ -416,7 +415,7 @@ namespace tosca {
 
     // --- Numeric type (double)
     
-    class CDoubleTermVar;
+    class _CDoubleTermVar;
 
     class DoubleTerm: public Term
     {
@@ -430,7 +429,7 @@ namespace tosca {
         }
         
         /* @return this as a Variable or nullopt */
-        virtual Optional<CDoubleTermVar> GetVariable() const;
+        virtual Optional<_CDoubleTermVar> GetVariable() const;
 
         /* Make Variable of type Double */
         static Variable& MakeVariable(Context& ctx, const std::string& hint);
@@ -459,10 +458,10 @@ namespace tosca {
     /**
      * Double term value
      */
-    class CDoubleTerm: public DoubleTerm
+    class _CDoubleTerm: public DoubleTerm
     {
     public:
-        CDoubleTerm(double value);
+        _CDoubleTerm(double value);
        
         // -- Overrides
 
@@ -481,20 +480,20 @@ namespace tosca {
     /*
      * Variable Use of type Numeric
      */
-    class CDoubleTermVarUse: public DoubleTerm, public VariableUse
+    class _CDoubleTermVarUse: public DoubleTerm, public VariableUse
     {
     public:
-        CDoubleTermVarUse(CDoubleTermVar& v);
+        _CDoubleTermVarUse(_CDoubleTermVar& v);
         
         // Overrides
-        Optional<CDoubleTermVar> GetVariable() const;
+        Optional<_CDoubleTermVar> GetVariable() const;
         
     };
 
-    class CDoubleTermVar: public Variable
+    class _CDoubleTermVar: public Variable
     {
     public:
-        CDoubleTermVar(std::string name);
+        _CDoubleTermVar(std::string name);
         virtual DoubleTerm& Use();
         virtual Term& GUse();
     };
@@ -533,14 +532,14 @@ T& Subst(tosca::Context& c, T& term, std::initializer_list<tosca::Variable*> bin
 // Global string methods
 tosca::StringTerm& newStringTerm(std::string&& str);
 tosca::StringTerm& newStringTerm(const std::string& str);
-tosca::CStringTermVar& varStringTerm(tosca::Context& ctx, const std::string& hint);
+tosca::_CStringTermVar& varStringTerm(tosca::Context& ctx, const std::string& hint);
 
 // Global double methods
 
 // Construction
 
 tosca::DoubleTerm& newDoubleTerm(double value);
-tosca::CDoubleTermVar& varDoubleTerm(tosca::Context& ctx, const std::string& hint);
+tosca::_CDoubleTermVar& varDoubleTerm(tosca::Context& ctx, const std::string& hint);
 
 #include "mapterm.h"
 

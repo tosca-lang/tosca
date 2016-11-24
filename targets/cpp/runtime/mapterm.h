@@ -2,6 +2,8 @@
 #ifndef _MAPTERM
 #define _MAPTERM
 
+// DO NOT INCLUDE DIRECTLY. INSTEAD INCLUDE term.h
+
 #include <unordered_map>
 #include <compat.h>
 #include <iowrapper.h>
@@ -195,15 +197,6 @@ namespace tosca {
 
         Option<V>& getValue(Context& ctx, K& key)
         {
-//            auto search = map.find(&key);
-//            if (search == map.end())
-//            {
-//                if (parent)
-//                    return parent.value().getValue(ctx, key);
-//
-//                return newNONE<V>(ctx);
-//            }
-//            return newSOME<V>(ctx, tosca::NewRef(*search->second));
             Optional<Term> ovalue = MapGetValue(ctx, key);
             if (ovalue)
                 return newSOME<V>(ctx, dynamic_cast<V&>(ovalue.value()));
