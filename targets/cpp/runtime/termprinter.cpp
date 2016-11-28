@@ -42,4 +42,9 @@ namespace tosca {
         return stream.str();
     }
 
+    void PT(Term& term)
+    {
+        term.AddRef();
+        Print(term, true);
+    }
 }

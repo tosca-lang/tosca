@@ -463,9 +463,9 @@ func LoadDeclsS(TSystem, String, List<Core_cdecl_sort>, Bool) -> TSystem
   → LoadDeclsS(PutDataSortS(#system, #url, cdecl⟦ ##canno* data ##csortvars? ##CONSTRUCTOR ##cforms ⟧, #extends), #url, #cdecl+, #extends)
 
   // Extend existing data sort declaration
-  rule LoadDeclsS(#system, #url, cdecl+⟦ data ##csortvars? ##cidentifierqualifier* ##CONSTRUCTOR ##cforms ##cdecl+ ⟧, #extends)
+  rule LoadDeclsS(#system, #url, cdecl+⟦ ##canno* data ##csortvars? ##cidentifierqualifier* ##CONSTRUCTOR ##cforms ##cdecl+ ⟧, #extends)
   → LoadDeclsS(
-       LoadDeclsS(#system, ResolveImportAux(#system, #url, IdentifierQList(#cidentifierqualifier*, FALSE)), cdecl+⟦ data ##csortvars? ##CONSTRUCTOR ##cforms ⟧, TRUE),
+       LoadDeclsS(#system, ResolveImportAux(#system, #url, IdentifierQList(#cidentifierqualifier*, FALSE)), cdecl+⟦ ##canno* data ##csortvars? ##CONSTRUCTOR ##cforms ⟧, TRUE),
        #url, #cdecl+, #extends)
 
   // Sort alias declaration

@@ -4,6 +4,7 @@
 #define CORE_EXTERN_H_
 
 #include <unordered_set>
+#include <vector>
 #include "ts.h"
 #include "listdef_sigs.h"
 
@@ -74,7 +75,7 @@ List<b>* FreeVariablesImpl(tosca::Context& ctx, const tosca::Term& term, List<b>
     {
         tosca::Variable& v = ovar.value();
         auto search = bound.find(&v);
-        if (search == bound.end())
+        if (search == bound.end()) // If not found, it's a free var.
         {
             // Make sure the variable is of the same type as the expected type.
             tosca::Term& guse = v.GUse();
@@ -97,13 +98,22 @@ List<b>* FreeVariablesImpl(tosca::Context& ctx, const tosca::Term& term, List<b>
                 break;
             
             int binderidx = 0;
+            std::vector<tosca::Variable*> shadowed;
             while (true)
             {
                 Optional<tosca::Variable> binder = term.Binder(subidx, binderidx);
                 if (!binder)
                     break;
                 
-                bound.insert(&binder.value());
+                auto search = bound.find(&binder.value());
+                if (search == bound.end())
+                {
+                    shadowed.push_back(0);
+                    bound.insert(&binder.value());
+                }
+                else
+                    shadowed.push_back(*search);
+
                 binderidx ++;
             }
             
@@ -116,7 +126,10 @@ List<b>* FreeVariablesImpl(tosca::Context& ctx, const tosca::Term& term, List<b>
                 if (!binder)
                     break;
                 
-                bound.erase(&binder.value());
+                tosca::Variable* v = shadowed[binderidx];
+                if (!v)
+                    bound.erase(&binder.value());
+
                 binderidx ++;
             }
             

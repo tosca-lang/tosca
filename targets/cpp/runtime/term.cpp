@@ -1,6 +1,6 @@
 // Copyright (c) 2016 IBM Corporation.
 #include <iostream>
-
+#include <vector>
 #include "term.h"
 #include "compat.h"
 #include "ts.h"
@@ -166,6 +166,7 @@ namespace tosca {
 
             // Update variable map if any binders
             int j = 0;
+            std::vector<Variable*> shadowed;
             while (true)
             {
                 Optional<Variable> obinder1 = Binder(i, j);
@@ -178,7 +179,8 @@ namespace tosca {
                 if (!obinder1 && obinder2)
                     return false;
 
-                varmap.insert({&obinder1.value(), &obinder2.value()});
+                shadowed.push_back(varmap[&obinder1.value()]);
+                varmap[&obinder1.value()] = &obinder2.value();
                 j++;
             }
             // deep equal on subs
@@ -196,6 +198,9 @@ namespace tosca {
                     break; // no more binders. Move on.
 
                 varmap.erase(&obinder1.value());
+                Variable* s = shadowed[j];
+                if (s)
+                    varmap[&obinder1.value()] = s;
                 j++;
             }
             i++;
@@ -253,6 +258,7 @@ namespace tosca {
             {
                 // -- i'th subterm with binders, second and following copy: add new binders to substitution!
                 int j = 0;
+                std::vector<Term*> shadowed;
                 while (true)
                 {
                     Optional<Variable> ooldbinder = Binder(i, j);
@@ -262,6 +268,8 @@ namespace tosca {
                     Variable& oldbinder = ooldbinder.value();
                     Variable& subbinder = oldbinder.Copy(ctx);
 
+                    Term* s = substitutes[&oldbinder];
+                    shadowed.push_back(s);
                     substitutes[&oldbinder] = &subbinder.GUse(); // Acquire bound varuse reference
                     copy.SetBinder(i, j, subbinder);
                     j++;
@@ -283,6 +291,11 @@ namespace tosca {
                     Term* olduse = substitutes[&oldbinder];
                     substitutes.erase(&oldbinder);
                     olduse->Release(); // Release bound varuse reference
+
+                    Term* s = shadowed[j];
+                    if (s)
+                        substitutes[&oldbinder] = s;
+
                     j++;
                 }
             }

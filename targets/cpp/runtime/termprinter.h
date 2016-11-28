@@ -35,6 +35,13 @@ namespace tosca {
      * Print term to string
      */
     std::string PrintToString(Term& term, bool indent);
+
+    /*
+     * Print term to console using default options.
+     * @param term to print. DO NOT consume reference.
+     */
+    void PT(Term& term);
+
 }
 
 #endif
