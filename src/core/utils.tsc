@@ -68,7 +68,7 @@ func AddAnnotation(#CONSTRUCTOR: String, #anno*: List<Core_canno_sort>) ->  List
 /* Remove the given annotation from the list. Only remove the first found annotation. */
 func RemoveAnnotation(String, List<Core_canno_sort>) ->  List<Core_canno_sort>
 rule RemoveAnnotation(#anno, (                 )) → ()
-rule RemoveAnnotation(#anno, (#anno2, #annos...)) → If(EqualAnno(#anno, #anno2), ()->#annos, ()->(#anno2, RemoveAnnotation(#anno, #annos)...))
+rule RemoveAnnotation(#anno, (#anno2, #annos...)) → if EqualAnno(#anno, #anno2) #annos else (#anno2, RemoveAnnotation(#anno, #annos)...)
 
 /* Get the annotation arguments */
 func GetAnnotationArgs(Core_canno_sort) -> List<Core_cterm_sort>
@@ -406,11 +406,16 @@ rule CheckSameVariables((#x, #xs...), cterm*⟦ ##canno* ##VARIABLE ##csortanno?
 rule CheckSameVariables((          ), cterm*⟦                                           ⟧) → TRUE
 rule CheckSameVariables(#vars       , #cterm*                                           ) → FALSE
 
-/* @return `TRUE` if the two given list of `#terms` contains only variables. */
+/* @return `TRUE` if the given list of `#terms` contains only variables. */
 func AllVariables(List<Core_cterm_sort>) -> Bool
 rule AllVariables(cterm*⟦                                           ⟧) → TRUE
 rule AllVariables(cterm*⟦ ##canno* ##VARIABLE ##csortanno? ##cterm* ⟧) → AllVariables(#cterm*)
 rule AllVariables(#cterm*                                           ) → FALSE
+
+/* @return all top-level variables occuring in the given list of terms, or the empty list if not all terms are variables */
+func GetAllVariables(List<Core_cterm_sort>) -> List<String>
+rule GetAllVariables(cterm*⟦ ##canno* ##VARIABLE ##csortanno?  ##cterm* ⟧) → (#VARIABLE, GetAllVariables(#cterm*)...)
+rule GetAllVariables(#cterm*                                             ) → ()
 
 // --- Print utilities
 

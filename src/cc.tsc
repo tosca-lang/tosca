@@ -131,7 +131,7 @@ rule CCTerm(#env, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧)             
 rule CCTerm(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧)                       → CCFormal(CCEnvResetParams(#env), cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧, cterm⟦ ( f ##csortanno?[] ) ##cterm[f] ⟧)
 rule CCTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧)                                       → CCThunkUp(CCThunk(CCEnvResetParams(#env), #cterm))
 rule CCTerm(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧)                    → Error("Internal Error: named terms cannot occur in contraction.")
-rule CCTerm(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)       → CCLetExpr(#canno*, #METAVAR,  #csortanno?, CCTerm(#env, #cterm), #cterm2)
+rule CCTerm(#env, cterm⟦ ##canno* let ##METAVAR : ##csort = ##cterm ##cterm2 ⟧)          → CCLetExpr(#canno*, #METAVAR, #csort, CCTerm(CCEnvAddMetaVar(#env, #METAVAR, CCMeta(#METAVAR, #csort)), #cterm), #cterm2)
 rule CCTerm(#env, #cterm)                                                                → PairCons(#env, #cterm) // literal, and map (since only occur in pattern) don't need to be lifted!
 
 /* Traverses terms */
@@ -272,6 +272,7 @@ func CCCapture(CCEnv, Core_cterm_sort, {String : Core_cterm_sort}) -> {String : 
   rule CCCapture(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f]                       ⟧, #cptrs) → CCCapture(#env, #cterm[f], #cptrs)
   rule CCCapture(#env, cterm⟦ ##canno* thunk ##cterm                                       ⟧, #cptrs) → CCCapture(#env, #cterm, #cptrs)
   rule CCCapture(#env, cterm⟦ ##METAVAR ##csortanno? = ##cterm                             ⟧, #cptrs) → CCCapture(#env, #cterm, #cptrs)
+  rule CCCapture(#env, cterm⟦ ##canno* let ##METAVAR : ##csort = ##cterm ##cterm2          ⟧, #cptrs) → CCCapture(CCEnvAddMetaVar(#env, #METAVAR, CCMeta(#METAVAR, #csort)), #cterm2, CCCapture(#env, #cterm, #cptrs))
 
 func CCCaptureMaybeTerms(CCEnv, List<Core_cterms_sort>, {String : Core_cterm_sort}) -> {String : Core_cterm_sort}
 
@@ -341,13 +342,13 @@ rule CCMaybeTermsUp(PairCons(#env, #cterm*)) → PairCons(#env, cterms?⟦ ( ##c
 func CCTermsUp(PPair<CCEnv Core_cterm_sort>, List<Core_cterm_sort>) -> PPair<CCEnv List<Core_cterm_sort>>
 rule CCTermsUp(PairCons(#env, #cterm), #cterm*) → UnPair(CCTerms(#env, #cterm*), (env cterms) -> PairCons(env, cterm*⟦ ##cterm ⟨cterm*: cterms⟩ ⟧))
 
-func CCLetExpr(List<Core_canno_sort>, String, List<Core_csortanno_sort>, PPair<CCEnv Core_cterm_sort>, Core_cterm_sort) ->PPair<CCEnv Core_cterm_sort>
-rule CCLetExpr(#canno*, #METAVAR,  #csortanno?, PairCons(#env, #cterm), #cterm2)
-→ CCLetUp(#canno*, #METAVAR, #csortanno?, #cterm, CCTerm(#env, #cterm2))
+func CCLetExpr(List<Core_canno_sort>, String, Core_csort_sort, PPair<CCEnv Core_cterm_sort>, Core_cterm_sort) ->PPair<CCEnv Core_cterm_sort>
+rule CCLetExpr(#canno*, #METAVAR,  #csort, PairCons(#env, #cterm), #cterm2)
+→ CCLetUp(#canno*, #METAVAR, #csort, #cterm, CCTerm(#env, #cterm2))
 
-func CCLetUp(List<Core_canno_sort>, String, List<Core_csortanno_sort>, Core_cterm_sort, PPair<CCEnv Core_cterm_sort>) ->PPair<CCEnv Core_cterm_sort>
-rule CCLetUp(#canno*, #METAVAR,  #csortanno?, #cterm, PairCons(#env, #cterm2))
-→ PairCons(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
+func CCLetUp(List<Core_canno_sort>, String, Core_csort_sort, Core_cterm_sort, PPair<CCEnv Core_cterm_sort>) ->PPair<CCEnv Core_cterm_sort>
+rule CCLetUp(#canno*, #METAVAR,  #csort, #cterm, PairCons(#env, #cterm2))
+→ PairCons(#env, cterm⟦ ##canno* let ##METAVAR : ##csort = ##cterm ##cterm2 ⟧)
 
 // -- Test whether closure convertion is needed or not
 
@@ -404,6 +405,7 @@ func CCConvertCaptured(List<Core_cterm_sort>) -> Bool
   rule CCConvertCaptured(cterm*⟦ ##canno* [ x ##csortanno? ] ##cterm[x]                       ##cterm* ⟧) → Or(CCConvertBound((x,), #cterm[x]), CCConvertCaptured(#cterm*))
   rule CCConvertCaptured(cterm*⟦ ##canno* ( f ##csortanno? ) ##cterm[f]                       ##cterm* ⟧) → Or(CCConvertFormal((f,), #cterm[f]), CCConvertCaptured(#cterm*))
   rule CCConvertCaptured(cterm*⟦ ##canno* thunk ##cterm                                       ##cterm* ⟧) → TRUE
+  rule CCConvertCaptured(cterm*⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2       ##cterm* ⟧) → Error("Internal Error: let expression as function argument not supported yet.")
   rule CCConvertCaptured(cterm*⟦ ##METAVAR ##csortanno? = ##cterm                             ##cterm* ⟧) → Error("Internal Error: named terms cannot occur in contraction.")
   rule CCConvertCaptured(cterm*⟦                                                                       ⟧) → FALSE
 

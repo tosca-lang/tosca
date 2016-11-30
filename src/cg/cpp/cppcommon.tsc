@@ -1175,10 +1175,10 @@ func CppExprRefMeta(#env: {String: EnvEntry}, #canno*: List<Core_canno_sort>, #m
 func CppExprBoundVar({String : EnvEntry}, Option<Core_canno_sort>, List<Core_csortanno_sort>, [String]->Core_cterm_sort)
                      -> Tuple3<{String : EnvEntry} Text4_text_sort Text4_text_sort>
 
-  // Binder is not reused. Create a new one then.
+  // Binder is not reused. Get the new binder created during the fresh variable phase.
   rule CppExprBoundVar(#env, NONE, #csortanno?, [x]->#cterm[x])
   → let #counter = NumberToText(GetCounter(#env))
-    let #boundvar = text⟦bound†⟨#counter⟩⟧
+    let #boundvar = text⟦bound†⟨#counter⟩⟧ // already declared.
     let #term = CppExprTerm(AddVar(IncCounter(#env), var, Bound(#boundvar, MaybeSortAnnoToSort(#csortanno?))), #cterm[var])
     Tuple3(First3(#term), text⟦†⟨#boundvar⟩, †⟨Second3(#term)⟩⟧, Third3(#term))
 

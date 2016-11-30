@@ -62,14 +62,16 @@ func IsFallbackRule(Core_cdecl_sort) -> Bool
   → Not(HasOption(PickFirst(#cterm*, (term) -> Not(IsMeta(term)))))
 
 
-// --- Lifetime analysis (bottom up tree traversal)
+// --- Lifetime and binder reuse analysis (bottom up tree traversal)
 
 func AnalyzeRules(#system: TSystem, #rules: {String:List<Core_cdecl_sort>}) -> {String:List<Core_cdecl_sort>}
 → FoldlP((key rules)->MapPut(rules, key, Map((rule)->AnalyzeRule(#system, rule), UnSOME(MapGet(#rules, key)))), #rules, MapKeys(#rules))
 
 func AnalyzeRule(TSystem, Core_cdecl_sort) -> Core_cdecl_sort
 rule AnalyzeRule(#system, cdecl⟦ ##canno* rule ##cterm1 → ##cterm2 ⟧)
-→ UnPair(AnalyzeVar(AnalyzePattern(LEnvNew(#system, {},{}), #cterm1), #cterm2), (env term)->cdecl⟦ ⟨canno*: AnalyzeRuleAnno(env, #canno*)⟩ rule ##cterm1 → ⟨cterm: term⟩ ⟧)
+→ let #result = AnalyzeVar(AnalyzePattern(LEnvNew(#system, {},{}), #cterm1), #cterm2)
+  cdecl⟦ ⟨canno*: AnalyzeRuleAnno(Fst(#result), #canno*)⟩ rule ##cterm1 → ⟨cterm: Snd(#result)⟩ ⟧
+  //Debug(PrintTerm("", #decl), ()->#decl)
 
 // -- Analyze rule pattern: record metavariable arguments and free variables.
 
@@ -88,7 +90,7 @@ func AnalyzePattern(LEnv, Core_cterm_sort) -> LEnv
         ()->LEnvFree(#env, #VARIABLE))
 
   rule AnalyzePattern(#env, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧) // Check code gen for reuse x.
-  → LEnvUnBind(AnalyzePattern(LEnvBind(#env, x), #cterm[x]), x)
+  → LEnvUnBind(AnalyzePattern(LEnvBind(#env, x, FALSE), #cterm[x]), x)
 
   rule AnalyzePattern(#env, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧)
   → LEnvUnParam(AnalyzePattern(LEnvParam(#env, f), #cterm[f]), f)
@@ -138,10 +140,10 @@ func AnalyzeVar(LEnv, Core_cterm_sort) -> PPair<LEnv Core_cterm_sort>
 
   rule AnalyzeVar(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧)
   → let #entry = LEnvGetVar(#env, #VARIABLE)
-      AnalyzeVarVar(#entry, #env, #canno*, #VARIABLE, #csortanno?)
+    AnalyzeVarVar(#entry, #env, #canno*, #VARIABLE, #csortanno?)
 
   rule AnalyzeVar(#env, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧)
-  → AnalyzeVarBound(#canno*, [x]->PairCons(x, AnalyzeVar(LEnvBind(#env, x), #cterm[x])), #csort)
+  → AnalyzeVarBound(#canno*, [x]->PairCons(x, AnalyzeVar(LEnvBind(#env, x, FALSE), #cterm[x])), #csort)
 
   rule AnalyzeVar(#env, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧)
   → AnalyzeVarFormal(#env, cterm⟦ ⟨canno*: AnalyzeMayReuseLambda(#env, #cterm[f], (f,), #canno*)⟩ ( f : ##csort ) ##cterm[f] ⟧, ())
@@ -193,7 +195,7 @@ func AnalyzeVarMaybeSubst(LEnv, String, List<Core_csubst_sort>) -> PPair<LEnv Li
   → UnPair(AnalyzeMetaArgsReuse(#metavar, AnalyzeVarTerms(#env, #cterm*)), (env terms)->PairCons(env, csubst?⟦ [ ⟨cterm*: terms⟩ ] ⟧))
 
   rule AnalyzeVarMaybeSubst(#env, #metavar, #csubst?)
-  → PairCons(#env, #csubst?)
+  → PairCons(AnalyzeWeakVariables(#env, ()), #csubst?)
 
 func AnalyzeVarMeta(List<Core_canno_sort>, String, List<Core_cterms_sort>, PPair<LEnv List<Core_csubst_sort>>, List<Core_csortanno_sort>) -> PPair<LEnv Core_cterm_sort>
 rule AnalyzeVarMeta(#canno*, #METAVAR, #cterms?, PairCons(#env, #csubst?), #csortanno)
@@ -222,7 +224,8 @@ func AnalyzeVarVarDone(#env: LEnv, #canno*: List<Core_canno_sort>, #VARIABLE: St
 
 func AnalyzeVarBound(List<Core_canno_sort>, [String]->PPair<String PPair<LEnv Core_cterm_sort>>, Core_csort_sort) -> PPair<LEnv Core_cterm_sort>
 rule AnalyzeVarBound(#canno*, [x]->PairCons(#x, PairCons(#env, #cterm[x])), #csort)
-→ PairCons(LEnvUnBind(#env, #x), cterm⟦ ⟨canno*: AnalyzeMayReuseBound(LEnvGetVar(#env, #x), #canno*)⟩ [ x : ##csort ] ##cterm[x] ⟧)
+→ let #reuse =  LEnvGetVar(#env, #x)
+  PairCons(LEnvUnBind(#env, #x), cterm⟦ ⟨canno*: AnalyzeMayReuseBound(#reuse, #canno*)⟩ [ x : ##csort ] ⟨cterm: AnalyzeMayUnReuseBound(#reuse, x, #cterm[x])⟩ ⟧)
 
 /*
    Skip formal parameters and then analyze the lambda expression
@@ -260,9 +263,10 @@ rule AnalyzeVarThunkNoLambda(#canno*, PairCons(#env, #cterm))
 
 func AnalyzeVarLet(List<Core_canno_sort>, String, List<Core_csortanno_sort>, Core_cterm_sort, PPair<LEnv Core_cterm_sort>, Option<Numeric>) -> PPair<LEnv Core_cterm_sort>
 rule AnalyzeVarLet(#canno*, #METAVAR, #csortanno?, #cterm, PairCons(#env, #cterm2), #shadowed)
-→ If(HasOption(LEnvGetMetaCount(#env, #METAVAR)), // Check let variable is used.
-    ()->AnalyzeVarLet2(#canno*, #METAVAR, #csortanno?, AnalyzeVar(LEnvSetMetaCountO(#env, #METAVAR, #shadowed), #cterm), #cterm2),
-    ()->AnalyzeVar(#env, #cterm))
+→ if HasOption(LEnvGetMetaCount(#env, #METAVAR)) // Check let variable is used.
+    AnalyzeVarLet2(#canno*, #METAVAR, #csortanno?, AnalyzeVar(LEnvSetMetaCountO(#env, #METAVAR, #shadowed), #cterm), #cterm2)
+  else
+    AnalyzeVar(#env, #cterm)
 
 func AnalyzeVarLet2(List<Core_canno_sort>, String, List<Core_csortanno_sort>, PPair<LEnv Core_cterm_sort>, Core_cterm_sort) -> PPair<LEnv Core_cterm_sort>
 rule AnalyzeVarLet2(#canno*, #METAVAR, #csortanno?, PairCons(#env, #cterm), #cterm2)
@@ -275,9 +279,10 @@ func AnalyzeMayKeep(Option<Numeric>, List<Core_canno_sort>) -> List<Core_canno_s
   → #canno*
 
   rule AnalyzeMayKeep(SOME(#count), #canno*)
-  → If(GreaterThanOrEqual(#count, 1),
-      ()->canno*⟦ @Keep ##canno* ⟧,
-      ()->#canno*)
+  → if GreaterThanOrEqual(#count, 1)
+      canno*⟦ @Keep ##canno* ⟧
+    else
+      #canno*
 
 // Add @Captured(#...) annotation for meta-variables and variables occuring inside a lambda (and thunk)
 func AnalyzeCapturedAll(LEnv, List<String>, List<String>, List<Core_canno_sort>) -> List<Core_canno_sort>
@@ -329,7 +334,7 @@ func AnalyzeMayReuseLambda(LEnv, Core_cterm_sort, List<String>, List<Core_canno_
   rule AnalyzeMayReuseLambda(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #params, #canno*)
   → let #patternParams = LEnvGetMetaParams(#env, #METAVAR)
     let #args = MaybeTermsToTerms(#cterms?)
-      AnalyzeMayReuseLambdaArity(NumberEqual(ListLength(#patternParams), ListLength(#params)), #params, #args, #canno*)
+    AnalyzeMayReuseLambdaArity(NumberEqual(ListLength(#patternParams), ListLength(#params)), #params, #args, #canno*)
 
   rule AnalyzeMayReuseLambda(#env, #cterm, #params, #canno*)
   → #canno*
@@ -337,35 +342,51 @@ func AnalyzeMayReuseLambda(LEnv, Core_cterm_sort, List<String>, List<Core_canno_
 func AnalyzeMayReuseLambdaArity(Bool, List<String>, List<Core_cterm_sort>, List<Core_canno_sort>) -> List<Core_canno_sort>
 
   rule AnalyzeMayReuseLambdaArity(TRUE, #params, #args, #canno*)
-  → If(CheckSameVariables(#params, #args),
-      ()->canno*⟦ @NoLambda ##canno* ⟧,
-      ()->#canno*)
+  → if CheckSameVariables(#params, #args)
+      canno*⟦ @NoLambda ##canno* ⟧
+    else
+      #canno*
 
   rule AnalyzeMayReuseLambdaArity(FALSE, #params, #args, #canno*)
   → #canno*
 
-// -- Meta-application binder reuse analysis
+/* -- Meta-application binder reuse analysis
 
-/* If all arguments are bound or fresh variables and none of the binders have been reused, then reuse them... */
+  This analysis can become quite complex so for now it is very convervative.
+  The complex cases are handled by the developer through the use of annotation.
+
+  This analysis detects the reuse of binders for the following cases:
+  - Pattern : [x y]->W1( ..., #[x, y], ...)
+    Contract: [x y]->W2( ..., #[x, y], ...)
+    where W1 has no restrictions and
+          W2 does not contains meta variables other than one occurrence of #
+          # binders haven't already been reused (might be safe to relax this constraint)
+ */
+
+/* If all arguments are bound or fresh variables and none of the binders have been reused, then reuse them...
+   No need to check for arity here, as it has already been done in infer.tsc.
+ */
 func AnalyzeMetaArgsReuse(String, PPair<LEnv List<Core_cterm_sort>>) -> PPair<LEnv List<Core_cterm_sort>>
 rule AnalyzeMetaArgsReuse(#metavar, PairCons(#env, #terms))
-→ If(And(AnalyzeAllBoundOrFresh(#env, #terms), Not(LEnvIsReused(#env, #metavar))),
-    ()->AnalyzeReuseArgs(LEnvReuse(#env, #metavar), #metavar, #terms, (), 0),
-    ()->PairCons(#env, #terms))
+→ let #nenv = AnalyzeWeakVariables(#env, #terms)
+  if And(AnalyzeAllBoundOrFresh(#nenv, #terms), Not(LEnvIsReused(#nenv, #metavar)))
+    AnalyzeReuseArgs(LEnvReuse(#nenv, #metavar), #metavar, #terms, (), 0)
+  else
+    PairCons(#nenv, #terms)
 
-/*  */
+/* Apply variable reuse by adding @Reuse annotation on meta arguments. */
 func AnalyzeReuseArgs(LEnv, String, List<Core_cterm_sort>, List<Core_cterm_sort>, Numeric) -> PPair<LEnv List<Core_cterm_sort>>
 
   // TODO: rewrite for better performance. (no Append)
   rule AnalyzeReuseArgs(#env, #METAVAR, cterm*⟦ ##canno* ##VARIABLE ##csortanno? ##cterm* ⟧, #cterm*2, #index)
   → let #canno = canno⟦ @Reuse(##METAVAR, ⟨NUMBER: FormatInteger(#index)⟩) ⟧
-      AnalyzeReuseArgs(LEnvReuseVar(#env, #VARIABLE, #canno), #METAVAR, #cterm*,
+    AnalyzeReuseArgs(LEnvReuseVar(#env, #VARIABLE, #canno), #METAVAR, #cterm*,
                         Append(cterm⟦ ##canno ##canno* ##VARIABLE ##csortanno? ⟧, #cterm*2), Plus(#index, 1))
 
   rule AnalyzeReuseArgs(#env, #METAVAR, #cterm*, #cterm*2, #index)
   → PairCons(#env, #cterm*2)
 
-/* Tell whether all the given `#terms` are bound and fresh varaibles */
+/* Tell whether all the given `#terms` are bound and fresh variables, and that they can be reused. */
 func AnalyzeAllBoundOrFresh(LEnv, List<Core_cterm_sort>) -> Bool
 
   rule AnalyzeAllBoundOrFresh(#env, cterm*⟦⟧)
@@ -378,18 +399,32 @@ func AnalyzeAllBoundOrFresh(LEnv, List<Core_cterm_sort>) -> Bool
   → FALSE
 
 func AnalyzeAllBoundOrFreshVar(LEnv, Option<LEnvVarEntry>, List<Core_cterm_sort>) -> Bool
-rule AnalyzeAllBoundOrFreshVar(#env, SOME(LFRESH(#reused)), #cterm*) → AnalyzeAllBoundOrFresh(#env, #cterm*)
-rule AnalyzeAllBoundOrFreshVar(#env, SOME(LBOUND(#reused)), #cterm*) → AnalyzeAllBoundOrFresh(#env, #cterm*)
-rule AnalyzeAllBoundOrFreshVar(#env, SOME(#), #cterm*)               → FALSE
-rule AnalyzeAllBoundOrFreshVar(#env, NONE, #cterm*)                  → Error("Internal Error: undeclared variable")
+rule AnalyzeAllBoundOrFreshVar(#env, SOME(LFRESH(#reused       )), #cterm*) → AnalyzeAllBoundOrFresh(#env, #cterm*)
+rule AnalyzeAllBoundOrFreshVar(#env, SOME(LBOUND(#reused, FALSE)), #cterm*) → AnalyzeAllBoundOrFresh(#env, #cterm*)
+rule AnalyzeAllBoundOrFreshVar(#env, SOME(LBOUND(#reused, TRUE )), #cterm*) → FALSE
+rule AnalyzeAllBoundOrFreshVar(#env, SOME(#), #cterm*)                      → FALSE
+rule AnalyzeAllBoundOrFreshVar(#env, NONE, #cterm*)                         → Error("Internal Error: undeclared variable")
+
+/* Mark binders that cannot be reused because they can potentially be occuring in a shared subterm,
+   for instance when a binder is "moved up": [b]->F(#1, #2[b]), in which case #1 might contains shared 'b' occurences.
+  */
+func AnalyzeWeakVariables(#env: LEnv, #args: List<Core_cterm_sort>) -> LEnv
+→ let #freevars = GetAllVariables(#args)
+  FoldlP((key env)->AnalyzeWeakVariable(env, key, LEnvGetBoundVar(env, key), #freevars), #env, LEnvBoundVarKeys(#env))
+
+func AnalyzeWeakVariable(LEnv, String, Option<LEnvVarEntry>, List<String>) -> LEnv
+rule AnalyzeWeakVariable(#env, #key, SOME(LBOUND(#reused, TRUE )), #freevars) → #env
+rule AnalyzeWeakVariable(#env, #key, SOME(LBOUND(#reused, FALSE)), #freevars) → LEnvAddBoundVar(LEnvUnBind(#env, #key), #key, LBOUND(#reused, Not(Elem(#key, #freevars))))
+rule AnalyzeWeakVariable(#env, #key, #entry                      , #freevars) → #env
 
 /* Add @NoSubst annotation if all arguments are reused */
 func AnalyzeMayNoSubst(List<Core_cterm_sort>, List<Core_canno_sort>) ->  List<Core_canno_sort>
 
   rule AnalyzeMayNoSubst(cterm*⟦ ##canno* ##VARIABLE ##csortanno? ##cterm* ⟧, #canno*2)
-  → If(HasAnnotation("Reuse", #canno*),
-      ()->AnalyzeMayNoSubst(#cterm*, #canno*2),
-      ()->#canno*2)
+  → if HasAnnotation("Reuse", #canno*)
+      AnalyzeMayNoSubst(#cterm*, #canno*2)
+    else
+      #canno*2
 
   rule AnalyzeMayNoSubst(cterm*⟦⟧, #canno*)
   → canno*⟦ @NoSubst ##canno* ⟧
@@ -397,16 +432,72 @@ func AnalyzeMayNoSubst(List<Core_cterm_sort>, List<Core_canno_sort>) ->  List<Co
   rule AnalyzeMayNoSubst(#cterm*, #canno*)
   → #canno*
 
-/* Propagate @Reuse annoation to binder */
+/*
+ * Propagate @Reuse annotation (if any) to binder,
+ * only if there is no weak meta-variable(s) below the binder
+ */
 func AnalyzeMayReuseBound(Option<LEnvVarEntry>, List<Core_canno_sort>) -> List<Core_canno_sort>
-rule AnalyzeMayReuseBound(SOME(LBOUND(SOME(#canno))), #canno*) → canno*⟦ ##canno ##canno* ⟧
-rule AnalyzeMayReuseBound(#entry                    , #canno*) → #canno*
+rule AnalyzeMayReuseBound(SOME(LBOUND(SOME(#canno), FALSE)), #canno*) → canno*⟦ ##canno ##canno* ⟧
+rule AnalyzeMayReuseBound(SOME(LBOUND(SOME(#canno), TRUE )), #canno*) → #canno*
+rule AnalyzeMayReuseBound(#entry                          , #canno*) → #canno*
+
+/* Remove @Reuse and @NoSubst annotations if weak meta-variable(s) occurs below the binder */
+func AnalyzeMayUnReuseBound(Option<LEnvVarEntry>, String, Core_cterm_sort) -> Core_cterm_sort
+rule AnalyzeMayUnReuseBound(SOME(LBOUND(SOME(#canno), TRUE )), #boundvar, #term) → AnalyzeUnReuseTerm(#boundvar, #term)
+rule AnalyzeMayUnReuseBound(#entry                           , #boundvar, #term) → #term
+
+// -- Remove @Reuse annotation
+func AnalyzeUnReuseTerm(String, Core_cterm_sort) -> Core_cterm_sort
+
+  rule AnalyzeUnReuseTerm(#boundvar, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧)
+  → cterm⟦ ##canno* ##cqconstructor ##csortargs? ⟨cterms?: AnalyzeUnReuseMaybeTerms(#boundvar, #cterms?)⟩ ##csortanno? ⟧
+
+  rule AnalyzeUnReuseTerm(#boundvar, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno?  ⟧)
+  → let #csubst?2 = AnalyzeUnReuseMaybeSubst(#boundvar, #csubst?)
+    let #canno*2 = AnalyzeMayNoSubst(MaybeSubstToTerms(#csubst?2), RemoveAnnotation("NoSubst", #canno*))
+    cterm⟦ ##canno*2 ##METAVAR ⟨cterms?: AnalyzeUnReuseMaybeTerms(#boundvar, #cterms?)⟩ ##csubst?2 ##csortanno? ⟧
+
+  rule AnalyzeUnReuseTerm(#boundvar, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧)
+  → if SameVariable(#boundvar, #VARIABLE)
+      cterm⟦ ⟨canno*: RemoveAnnotation("Reuse", #canno*)⟩ ##VARIABLE ##csortanno? ⟧
+    else
+      cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧
+
+  rule AnalyzeUnReuseTerm(#boundvar, cterm⟦ ##canno* [ x ##csortanno? ] ##cterm[x] ⟧)
+  → cterm⟦ ##canno* [ x ##csortanno? ] ⟨cterm: AnalyzeUnReuseTerm(#boundvar, #cterm[x])⟩ ⟧
+
+  rule AnalyzeUnReuseTerm(#boundvar, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧)
+  → cterm⟦ ##canno* ( f ##csortanno? ) ⟨cterm: AnalyzeUnReuseTerm(#boundvar, #cterm[f])⟩ ⟧
+
+  rule AnalyzeUnReuseTerm(#boundvar, cterm⟦ ##canno* thunk ##cterm ⟧)
+  → cterm⟦ ##canno* thunk ⟨cterm: AnalyzeUnReuseTerm(#boundvar, #cterm)⟩ ⟧
+
+  rule AnalyzeUnReuseTerm(#boundvar, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
+  → cterm⟦ ##canno* let ##METAVAR ##csortanno? = ⟨cterm: AnalyzeUnReuseTerm(#boundvar, #cterm)⟩ ⟨cterm: AnalyzeUnReuseTerm(#boundvar, #cterm2)⟩ ⟧
+
+  rule AnalyzeUnReuseTerm(#boundvar, #cterm)
+  → #cterm
+
+func AnalyzeUnReuseMaybeTerms(String, List<Core_cterms_sort>) -> List<Core_cterms_sort>
+rule AnalyzeUnReuseMaybeTerms(#boundvar, cterms?⟦ ( ##cterm* ) ⟧) → cterms?⟦ ( ⟨cterm*: AnalyzeUnReuseTerms(#boundvar, #cterm*)⟩ ) ⟧
+rule AnalyzeUnReuseMaybeTerms(#boundvar, cterms?⟦              ⟧) → cterms?⟦⟧
+
+func AnalyzeUnReuseMaybeSubst(String, List<Core_csubst_sort>) -> List<Core_csubst_sort>
+rule AnalyzeUnReuseMaybeSubst(#boundvar, csubst?⟦ [ ##cterm* ] ⟧) → csubst?⟦ [ ⟨cterm*: AnalyzeUnReuseTerms(#boundvar, #cterm*)⟩ ] ⟧
+rule AnalyzeUnReuseMaybeSubst(#boundvar, csubst?⟦              ⟧) → csubst?⟦ ⟧
+
+func AnalyzeUnReuseTerms(String, List<Core_cterm_sort>) -> List<Core_cterm_sort>
+rule AnalyzeUnReuseTerms(#boundvar, cterm*⟦ ##cterm ##cterm* ⟧) → cterm*⟦ ⟨cterm: AnalyzeUnReuseTerm(#boundvar, #cterm)⟩ ⟨cterm*: AnalyzeUnReuseTerms(#boundvar, #cterm*)⟩ ⟧
+rule AnalyzeUnReuseTerms(#boundvar, cterm*⟦                  ⟧) → cterm*⟦ ⟧
 
 // --- Meta-variable and variables lifetime analysis environment
 
 type LArguments = PPair<List<Core_cterm_sort> List<Core_cterm_sort>>
 
-enum LEnvVarEntry | LFREE | LBOUND(Option<Core_canno_sort>) | LFORMAL | LFRESH(Option<Core_canno_sort>)
+enum LEnvVarEntry | LFREE
+                  | LBOUND(Option<Core_canno_sort>, Bool /* Can be free in in-scoped meta-variable? */)
+                  | LFORMAL
+                  | LFRESH(Option<Core_canno_sort>)
 
 enum LEnv | LEnv(TSystem,
                  {String:Numeric},      // meta-variable name associated to the number of times they are being used
@@ -494,7 +585,16 @@ func LEnvReuse(#env: LEnv, #metavar:String) -> LEnv
 // -- Bound variables (scoped and formal parameter)
 
 func LEnvBoundVar(LEnv) -> {String:LEnvVarEntry}
-rule LEnvBoundVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars)) → #inscope
+rule LEnvBoundVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars))
+→ #inscope
+
+func LEnvGetBoundVar(LEnv, String) -> Option<LEnvVarEntry>
+rule LEnvGetBoundVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars), #key)
+→ MapGet(#inscope, #key)
+
+func LEnvBoundVarKeys(LEnv) -> List<String>
+rule LEnvBoundVarKeys(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars))
+→ MapKeys(#inscope)
 
 func LEnvAddBoundVar(LEnv, String, LEnvVarEntry) -> LEnv
 rule LEnvAddBoundVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars), #var, #entry)
@@ -504,8 +604,8 @@ func LEnvRemoveBoundVar(LEnv, String) -> LEnv
 rule LEnvRemoveBoundVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars), #var)
 → LEnv(#system, #metas, #vars, #args, #reused, MapRemove(#inscope, #var), #fvars)
 
-func LEnvBind(#env: LEnv, #var: String) -> LEnv
-→ LEnvAddBoundVar(#env, #var, LBOUND(NONE))
+func LEnvBind(#env: LEnv, #var: String, #free: Bool) -> LEnv
+→ LEnvAddBoundVar(#env, #var, LBOUND(NONE, #free))
 
 func LEnvUnBind(#env: LEnv, #var: String) -> LEnv
 → LEnvRemoveBoundVar(#env, #var)
@@ -551,8 +651,8 @@ rule LEnvReuseVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars)
       ()->LEnv(#system, #metas, #vars, #args, #reused, #inscope, LEnvReuseFree(MapRemove(#fvars, #var), #var, MapGet(#fvars, #var), #canno)))
 
 func LEnvReuseBound({String:LEnvVarEntry}, String, LEnvVarEntry, Core_canno_sort) -> {String:LEnvVarEntry}
-rule LEnvReuseBound(#inscope, #var, LBOUND(#), #canno) → {#inscope, #var: LBOUND(SOME(#canno))}
-rule LEnvReuseBound(#inscope, #var, #        , #canno) → Error("Internal Error: cannot reuse a free variable or argument.")
+rule LEnvReuseBound(#inscope, #var, LBOUND(#, #free), #canno) → {#inscope, #var: LBOUND(SOME(#canno), #free)}
+rule LEnvReuseBound(#inscope, #var, #              , #canno) → Error("Internal Error: cannot reuse a free variable or argument.")
 
 func LEnvReuseFree({String:LEnvVarEntry}, String, Option<LEnvVarEntry>, Core_canno_sort) -> {String:LEnvVarEntry}
 rule LEnvReuseFree(#fvars, #var, SOME(LFRESH(#)), #canno) → {#fvars, #var: LFRESH(SOME(#canno))}
