@@ -264,7 +264,7 @@ func CCMetaVar(#name: String, #i: Numeric) -> String
 func CCCapture(CCEnv, Core_cterm_sort, {String : Core_cterm_sort}) -> {String : Core_cterm_sort}
 
   rule CCCapture(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧, #cptrs) → CCCaptureMaybeTerms(#env, #cterms?, #cptrs)
-  rule CCCapture(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno?          ⟧, #cptrs) → CCCaptureMaybeSubst(#env, #csubst?, CCCaptureMaybeTerms(#env, #cterms?, CCCaptureMeta(#env, #METAVAR, UnSOME(CCEnvGetMetaVar(#env, #METAVAR)), #cptrs)))
+  rule CCCapture(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno?          ⟧, #cptrs) → CCCaptureMaybeSubst(#env, #csubst?, CCCaptureMaybeTerms(#env, #cterms?, CCCaptureMeta(#env, #METAVAR, CCEnvGetMetaVar(#env, #METAVAR), #cptrs)))
   rule CCCapture(#env, cterm⟦ ##cliteral                                                   ⟧, #cptrs) → #cptrs
   rule CCCapture(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno?                             ⟧, #cptrs) → CCCaptureVar(#env, #VARIABLE, #cptrs)
   rule CCCapture(#env, cterm⟦ ##canno* { ##cmapentries? } ##csortanno?                     ⟧, #cptrs) → Error("CC: map capture not implemented yet")
@@ -272,7 +272,7 @@ func CCCapture(CCEnv, Core_cterm_sort, {String : Core_cterm_sort}) -> {String : 
   rule CCCapture(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f]                       ⟧, #cptrs) → CCCapture(#env, #cterm[f], #cptrs)
   rule CCCapture(#env, cterm⟦ ##canno* thunk ##cterm                                       ⟧, #cptrs) → CCCapture(#env, #cterm, #cptrs)
   rule CCCapture(#env, cterm⟦ ##METAVAR ##csortanno? = ##cterm                             ⟧, #cptrs) → CCCapture(#env, #cterm, #cptrs)
-  rule CCCapture(#env, cterm⟦ ##canno* let ##METAVAR : ##csort = ##cterm ##cterm2          ⟧, #cptrs) → CCCapture(CCEnvAddMetaVar(#env, #METAVAR, CCMeta(#METAVAR, #csort)), #cterm2, CCCapture(#env, #cterm, #cptrs))
+  rule CCCapture(#env, cterm⟦ ##canno* let ##METAVAR : ##csort = ##cterm ##cterm2          ⟧, #cptrs) → CCCapture(#env, #cterm2, CCCapture(#env, #cterm, #cptrs))
 
 func CCCaptureMaybeTerms(CCEnv, List<Core_cterms_sort>, {String : Core_cterm_sort}) -> {String : Core_cterm_sort}
 
@@ -289,10 +289,14 @@ func CCCaptureMaybeSubst(CCEnv, List<Core_csubst_sort>, {String : Core_cterm_sor
   rule CCCaptureMaybeSubst(#env, csubst?⟦ [ ##cterm* ] ⟧, #cptrs) → CCCaptureTerms(#env, #cterm*, #cptrs)
   rule CCCaptureMaybeSubst(#env, #csubst?              , #cptrs) → #cptrs
 
-func CCCaptureMeta(#env: CCEnv, #METAVAR: String, #varentry: CCVarEntry, #cptrs: {String : Core_cterm_sort}) -> {String : Core_cterm_sort}
-→ IfPresent(MapGet(#cptrs, #METAVAR),
-    (term)->#cptrs, // already captured.
-    ()->MapPut(#cptrs, #METAVAR, CCBoundTerm(GetBoundVarSorts(CCGetSort(#varentry)), GetFormalParamSorts(CCGetSort(#varentry)), #METAVAR, cterm*⟦⟧, GetFOSort(CCGetSort(#varentry)))))
+func CCCaptureMeta(#env: CCEnv, #METAVAR: String, #ovarentry: Option<CCVarEntry>, #cptrs: {String : Core_cterm_sort}) -> {String : Core_cterm_sort}
+→ if HasOption(#ovarentry)
+    let #varentry = UnSOME(#ovarentry)
+    IfPresent(MapGet(#cptrs, #METAVAR),
+      (term)->#cptrs, // already captured.
+      ()->MapPut(#cptrs, #METAVAR, CCBoundTerm(GetBoundVarSorts(CCGetSort(#varentry)), GetFormalParamSorts(CCGetSort(#varentry)), #METAVAR, cterm*⟦⟧, GetFOSort(CCGetSort(#varentry)))))
+  else
+    #cptrs // metavar not in the environment: it's local defined under the closure. Do not capture it.
 
 func CCCaptureVar(#env: CCEnv, #VARIABLE: String, #cptrs:{String : Core_cterm_sort}) -> {String : Core_cterm_sort}
 → IfPresent(MapGetVar(#cptrs, #VARIABLE),

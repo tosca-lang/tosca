@@ -266,7 +266,7 @@ rule AnalyzeVarLet(#canno*, #METAVAR, #csortanno?, #cterm, PairCons(#env, #cterm
 → if HasOption(LEnvGetMetaCount(#env, #METAVAR)) // Check let variable is used.
     AnalyzeVarLet2(#canno*, #METAVAR, #csortanno?, AnalyzeVar(LEnvSetMetaCountO(#env, #METAVAR, #shadowed), #cterm), #cterm2)
   else
-    AnalyzeVar(#env, #cterm)
+    AnalyzeVar(#env, #cterm2)
 
 func AnalyzeVarLet2(List<Core_canno_sort>, String, List<Core_csortanno_sort>, PPair<LEnv Core_cterm_sort>, Core_cterm_sort) -> PPair<LEnv Core_cterm_sort>
 rule AnalyzeVarLet2(#canno*, #METAVAR, #csortanno?, PairCons(#env, #cterm), #cterm2)
