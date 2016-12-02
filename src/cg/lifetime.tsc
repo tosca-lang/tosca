@@ -21,13 +21,19 @@ func IfBranchLifetime(Core_cterm_sort, Core_cterm_sort, List<Core_cterm_sort>, L
                        (String)->Text4_text_sort, (String)->Text4_text_sort, Bool) -> Text4_text_sort
 
   rule IfBranchLifetime(#true, cterm⟦ ##canno* ##METAVAR ##csortanno? ⟧, #cptrstrue, #cptrsfalse, #addref, #relref, TRUE)
-  → If(HasAnnotation("Ref", #canno*), ()->text⟦⟧, ()->#relref(#METAVAR))
+  → if HasAnnotation("Ref", #canno*)
+      text⟦⟧
+    else
+      #relref(#METAVAR)
 
   rule IfBranchLifetime(cterm⟦ ##canno* ##METAVAR ##csortanno? ⟧, #false, #cptrstrue, #cptrsfalse, #addref, #relref, FALSE)
-  → If(HasAnnotation("Ref", #canno*), ()->text⟦⟧, ()->#relref(#METAVAR))
+  → if HasAnnotation("Ref", #canno*)
+      text⟦⟧
+    else
+      #relref(#METAVAR)
 
   rule IfBranchLifetime(#true, #false, #cptrstrue, #cptrsfalse, #addref, #relref, #istrue)
-  → IfBranchReleaseOrRef(If(#istrue, ()->#true, ()->#false), #cptrstrue, #cptrsfalse, #addref, #relref, #istrue)
+  → IfBranchReleaseOrRef(if #istrue #true else #false, #cptrstrue, #cptrsfalse, #addref, #relref, #istrue)
 
 
 func IfBranchReleaseOrRef(#term: Core_cterm_sort, #cptrstrue: List<Core_cterm_sort>, #cptrsfalse: List<Core_cterm_sort>,

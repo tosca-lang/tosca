@@ -6,12 +6,10 @@
 #include <vector>
 
 #include "sink.h"
+#include "term.h"
 
 namespace tosca {
-    
-// Forward declarations
-template<typename K, typename V> class MapTerm;
-template<typename K, typename V> MapTerm<K, V>& newMapTerm();
+
 /*
  * Consume simple term events to construct in-memory term representation
  */
@@ -22,6 +20,15 @@ public:
     
     /* @return the constructed term */
     Term& GetTerm();
+
+    /* Start a typed map.
+       Only needed for top-level map. For submap, use StartMap which relied on Term.MakeSubTerm
+     */
+    template <typename K, typename V>
+    Sink& StartMapT(Context& ctx)
+    {
+        return Start(*(new CMapTerm<K, V>()));
+    }
 
     // --- Overrides
 

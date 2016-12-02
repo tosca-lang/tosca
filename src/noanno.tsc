@@ -73,9 +73,10 @@ func NoAnnoSortDefault(TSystem, Option<Core_cdecl_sort>, List<Core_cterms_sort>,
   → #csortdefault*
 
   rule NoAnnoSortDefault(#system, SOME(cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ⟧), #cterms?, #csortdefault*)
-  → If(HasAnnotation("Runtime", #canno*),
-       ()->(csortdefault⟦ ##CONSTRUCTOR ⟨cdefaultvalue?: NoAnnoDefault(#cterms?)⟩ ⟧, #csortdefault*...),
-       ()->#csortdefault*)
+  → if HasAnnotation("Runtime", #canno*)
+       (csortdefault⟦ ##CONSTRUCTOR ⟨cdefaultvalue?: NoAnnoDefault(#cterms?)⟩ ⟧, #csortdefault*...)
+    else
+       #csortdefault*
 
 func NoAnnoDefault(List<Core_cterms_sort>) -> List<Core_cdefaultvalue_sort>
 rule NoAnnoDefault(cterms?⟦              ⟧) → cdefaultvalue?⟦⟧
@@ -101,6 +102,7 @@ func NoAnnoRemoveRuntimeAnno2(TSystem, Option<Core_cdecl_sort>, Core_canno_sort,
 
   // Anno
   rule NoAnnoRemoveRuntimeAnno2(#system, SOME(cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ⟧), #canno, #canno*2)
-  → If(HasAnnotation("Runtime", #canno*),
-       ()->#canno*2,
-       ()->(#canno, #canno*2...))
+  → if HasAnnotation("Runtime", #canno*)
+       #canno*2
+    else
+       (#canno, #canno*2...)

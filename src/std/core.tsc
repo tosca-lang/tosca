@@ -23,6 +23,9 @@ type NoSubst = Bool
 /* Tell the compiler to reuse a matched binder */
 type Reuse = PPair<String /* meta-variable name */ Numeric /* binder position in meta arguments */>
 
+/* Tell the compiler the annotated term does not contains free variables for all in-scoped binders */
+type Closed = Bool
+
 /* Indicate whether the value of the type with this annotation is retained at runtime, when used as an annotation */
 //type Extern = Bool
 
@@ -47,7 +50,7 @@ func Eval<a>(a) -> a
 rule Eval(#) → #
 
 /* Dynamic cast of value of type `a` to value of type 'b' */
-@Extern func As<a b>(a) -> b 
+@Extern func As<a b>(a) -> b
 
 // --- External Environment
 
@@ -162,7 +165,6 @@ enum TryResult<a> | TrySuccess(a) | TryFailure(a)
 /* Enter new profiling scope */
 func CI-ThenEnter<a>(#ok: OK_SORT, #id: Numeric, #name: String, #result: (OK_SORT)->a) -> a
 rule CI-ThenEnter(OK, #id, #name, #result) → #result(OK)
-
 
 /* Exit profiling scope */
 @Extern func CI-Exit<a>(#id: Numeric, #result: ()-> a) -> a

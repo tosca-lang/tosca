@@ -632,7 +632,7 @@ if (⟨STRING: value⟩)
   // REVISIT: bound variable reordering, ie. (x)(y)#(y, x)
   // For now only accepts patterns of the form (x)...(y)#(x, ... y)
   rule CppPatternTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #term, #csort, #storage, #cont)
-  → text⟦†⟨CppPatternMaybeMetaArgs(#env, #METAVAR, #csubst?, #term, #csort, #storage, #cont)⟩⟧
+  → CppPatternMaybeMetaArgs(#env, #METAVAR, #csubst?, #term, #csort, #storage, #cont)
 
   rule CppPatternTerm(#env, cterm⟦ ##canno* ##VARIABLE  ##csortanno? ⟧, #term, #csort, #storage, #cont)
   → CppPatternVariable(MaybeGetVar(#env, #VARIABLE), #env, #VARIABLE, MaybeSortAnnoToSort(#csortanno?), #term, #cont)
@@ -655,6 +655,9 @@ if (⟨STRING: value⟩)
 
   rule CppPatternTerm(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧, #term, #csort, #storage, #cont)
   → CppPatternNamedTerm(#env, #METAVAR, #cterm, #term, #csort, #storage, #cont)
+
+  rule CppPatternTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #term, #csort, #storage, #cont)
+  → Error("Internal Error: invalid thunk in pattern.")
 
 // Pattern matching on construction arguments.
 func CppPatternMaybeSubs( {String : EnvEntry}, List<Core_cterms_sort>, Text4_text_sort, Option<PPair<Core_cdecl_sort Core_cform_sort>>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
@@ -1205,14 +1208,14 @@ func CppExprLambda(Bool /* Reuse? */, {String : EnvEntry}, Core_cterm_sort) -> T
 
 func CppExprLambdaNew({String : EnvEntry}, Core_cterm_sort, Numeric) -> Tuple3<{String : EnvEntry} Text4_text_sort Text4_text_sort>
 
- rule CppExprLambdaNew(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧, #arity)
- → CppExprLambdaNew(AddVar(#env, var, Formal(text⟦⟨STRING: var⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], Plus(#arity, 1))
+  rule CppExprLambdaNew(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #arity)
+  → let #terms = CppExprTerms(#env, SubList(MaybeTermsToTerms(#cterms?), #arity))
+    Tuple3(First3(#terms),
+         text⟦&†⟨CppConsMethodName(#CONSTRUCTOR, HasAnnotation("Data", #canno*))⟩†⟨Second3(#terms)⟩⟧,
+         Third3(#terms))
 
- rule CppExprLambdaNew(#env, cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧, #arity)
- → let #terms = CppExprTerms(#env, SubList(MaybeTermsToTerms(#cterms?), #arity))
-   Tuple3(First3(#terms),
-          text⟦&†⟨CppConsMethodName(#CONSTRUCTOR, HasAnnotation("Data", #canno*))⟩†⟨Second3(#terms)⟩⟧,
-          Third3(#terms))
+  rule CppExprLambdaNew(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧, #arity)
+  → CppExprLambdaNew(AddVar(#env, var, Formal(text⟦⟨STRING: var⟩⟧, MaybeSortAnnoToSort(#csortanno?))), #cterm[var], Plus(#arity, 1))
 
   rule CppExprLambdaNew(#env, #cterm, #arity)
   → Error("Internal Error: Invalid lambda expression. Lambda must be of the form (x .. y) -> C(x .. y, #1 .. #n)")
@@ -1222,6 +1225,9 @@ func CppLambdaTypeArgs(Core_cterm_sort) -> Text4_text_sort
 
   rule CppLambdaTypeArgs(cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧)
   → CppLambdaTypeArgs(#cterm[dummy])
+
+  rule CppLambdaTypeArgs(cterm⟦ ##canno* thunk ##cterm ⟧)
+  → CppLambdaTypeArgs(#cterm)
 
   // Generate type arguments.
   rule CppLambdaTypeArgs(cterm⟦ ##canno* ##csortqualifier* ##CONSTRUCTOR ##csortargs ##cterms? : ##csort ⟧)

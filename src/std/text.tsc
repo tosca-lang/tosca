@@ -36,28 +36,28 @@ func Text-User(String, Text4_text_sort) -> Text4_text_sort
 rule Text-User(#ParsePrefix, #Unparsed)
 → text⟦⟨STRING:#ParsePrefix⟩⟨STRING:"\u27e6\u27e6"⟩†⟨ #Unparsed ⟩⟨STRING:"\u27e7\u27e7"⟩⟧
 
-func Text-Token(eager String) -> Text4_text_sort
+func Text-Token(String) -> Text4_text_sort
 rule Text-Token(#t) → text⟦⟨STRING: #t ⟩⟧
 
-func Text-CommentToken(eager String) -> Text4_text_sort
+func Text-CommentToken(String) -> Text4_text_sort
 rule Text-CommentToken(#t) → text⟦⟨STRING: Replace(#t,"*/","*_/") ⟩⟧
 
-func Text-Comment(eager String) -> Text4_text_sort
+func Text-Comment(String) -> Text4_text_sort
 rule Text-Comment(#t) → text⟦⟨STRING: ConcatString(ConcatString("/*", Replace(#t,"*/","*_/")), "*/") ⟩⟧
 
-func Text-QuoteEscape(eager String) -> Text4_text_sort
+func Text-QuoteEscape(String) -> Text4_text_sort
 rule Text-QuoteEscape(#t) → text⟦⟨STRING: Escape(#t) ⟩⟧
 
-func Text-Integer(eager Numeric) -> Text4_text_sort
+func Text-Integer(Numeric) -> Text4_text_sort
 rule Text-Integer(#t) → text⟦⟨STRING: FormatNumber(#t) ⟩⟧
 
-func Text-Mangle(eager String) -> Text4_text_sort
+func Text-Mangle(String) -> Text4_text_sort
 rule Text-Mangle(#t) → text⟦⟨STRING: Mangle(#t) ⟩⟧
 
 /* Apply given function only if condition is met.
   Otherwise produces the empty text
 */
-func TextIf(#cond: Bool, #: ()->Text4_text_sort) -> Text4_text_sort
+func TextIf(#cond: Bool, # : ()->Text4_text_sort) -> Text4_text_sort
 → If(#cond, #, ()->text⟦⟧)
 
 /* Apply each item in the given list to the given function producing text.
@@ -97,8 +97,8 @@ func ReverseTextFold(List<Text4_text_sort>, Text4_text_sort) -> Text4_text_sort
 func StringToText(String) -> Text4_text_sort
 rule StringToText(#) → text⟦⟨STRING:#⟩⟧
 
-func NumberToText(eager Numeric) -> Text4_text_sort
+func NumberToText(Numeric) -> Text4_text_sort
 rule NumberToText(#n) → text⟦⟨STRING:FormatNumber(#n)⟩⟧
 
-func TextToString(eager Text4_text_sort) -> String
+func TextToString(Text4_text_sort) -> String
 rule TextToString(#) → Show<Text4_text_sort>(#)

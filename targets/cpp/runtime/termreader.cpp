@@ -461,7 +461,7 @@ namespace tosca
         while (true)
         {
             lexer.Match(TermLexer::STRING);
-            const std::string& key = lexer.GetText();
+            const std::string key = lexer.GetText();
             lexer.ConsumeToken();
 
             lexer.Match(TermLexer::COLON);

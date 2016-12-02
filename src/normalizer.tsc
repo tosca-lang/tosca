@@ -349,8 +349,11 @@ func NFormalParams(TransScript_formalParams_sort, Bool, Bool) -> Core_cterm_sort
   rule NFormalParams(formalParams⟦ ) -> ##term ⟧, FALSE, #inpattern)
   → NTerm(#term, #inpattern)
 
-  rule NFormalParams(formalParams⟦ ) -> ##term ⟧, TRUE, #inpattern)
-  → cterm⟦ thunk ⟨cterm: NTerm(#term, #inpattern)⟩ ⟧
+  rule NFormalParams(formalParams⟦ ) -> ##term ⟧, TRUE, TRUE)
+  → NTerm(#term, TRUE)
+
+  rule NFormalParams(formalParams⟦ ) -> ##term ⟧, TRUE, FALSE)
+  → cterm⟦ thunk ⟨cterm: NTerm(#term, FALSE)⟩ ⟧
 
 func NMaybeApply(List<TransScript_apply_sort>, Bool) -> List<Core_cterms_sort>
 rule NMaybeApply(apply?⟦             ⟧, #inpattern) → cterms?⟦⟧

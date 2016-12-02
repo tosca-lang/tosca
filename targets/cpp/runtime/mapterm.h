@@ -190,7 +190,7 @@ namespace tosca {
             if (search != map.end())
             {
                 // Entry has been replaced so release references to previous entry
-                search->first->Release();
+                key.Release();
                 search->second->Release();
             }
         }
