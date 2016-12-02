@@ -32,6 +32,13 @@ func MapGetD<a b>(#map: {a : b}, #key: a, #default: b) -> b
 → IfPresent(MapGet(#map, #key), (v)->v, ()->#default)
 
 /* Lookup entry for given key.
+ @return the value of type b or the evaluation of default value if not in the map
+*/
+func MapGetL<a b>(#map: {a : b}, #key: a, #default: ()->b) -> b
+→ IfPresent(MapGet(#map, #key), (v)->v, #default)
+
+
+/* Lookup entry for given key.
   @return the value of type b or raised an error if not in the map
 */
 func MapGetE<a b>(#map: {a : b}, #key: a) -> b
