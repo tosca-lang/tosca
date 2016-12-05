@@ -9,6 +9,7 @@
 namespace tosca {
 
     // Temporary debugging helpers.
+    static const bool TRACK_REFS = getenv("toscatrackref") != 0;
     static int allocated_count = 0;
     static std::unordered_map<class Ref*, int> allocated;
     static int track_allocated = -1;
@@ -18,7 +19,8 @@ namespace tosca {
         if (ref->refcount <= 0)
         {
             std::cerr << "Invalid use of freed reference ";
-            std::cerr << allocated[ref] << "\n";
+            if (TRACK_REFS)
+                std::cerr << allocated[ref] << "\n";
             return false;
         }
         return true;
@@ -28,9 +30,12 @@ namespace tosca {
 
     Ref::Ref(): refcount(1), track(false)
     {
-        allocated[this] = allocated_count ++;
-        if (track_allocated == allocated[this])
-          std::cerr << "\n[" << allocated[this] << "] created ";
+        if (TRACK_REFS)
+        {
+            allocated[this] = allocated_count ++;
+            if (track_allocated == allocated[this])
+                std::cerr << "\n[" << allocated[this] << "] created ";
+        }
     }
 
     Ref::~Ref()
@@ -44,7 +49,7 @@ namespace tosca {
         assert(Alive(this));
         
         refcount++;
-        if (track || track_allocated == allocated[this])
+        if (TRACK_REFS && (track || track_allocated == allocated[this]))
           std::cerr << "\n[" << allocated[this] << "] add ref " << refcount ;
     }
 
@@ -53,7 +58,7 @@ namespace tosca {
         assert(Alive(this));
         refcount--;
 
-        if (track || track_allocated == allocated[this])
+        if (TRACK_REFS && (track || track_allocated == allocated[this]))
           std::cerr << "\n[" << allocated[this] << "] released " << refcount;
         
         if (refcount == 0)
