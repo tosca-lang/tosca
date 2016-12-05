@@ -178,6 +178,10 @@ namespace tosca {
 
         MapTerm<K, V>& extend()
         {
+            static const bool mapreuse = getenv("nomapreuse") == 0;
+            if (mapreuse && this->refcount == 1)
+                return *this;
+
             this->AddRef();
             CMapTerm<K, V>& extended = *(new CMapTerm<K, V>(*this));
             return extended;
@@ -186,13 +190,14 @@ namespace tosca {
         void putValue(Context& ctx, K& key, V& value)
         {
             auto search = map.find(&key);
-            map[&key] = &value;
-            if (search != map.end())
-            {
-                // Entry has been replaced so release references to previous entry
-                key.Release();
+            const bool found = search != map.end();
+            if (found)
                 search->second->Release();
-            }
+
+            map[&key] = &value;
+
+            if (found)
+                key.Release();
         }
 
         Option<V>& getValue(Context& ctx, K& key)

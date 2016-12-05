@@ -30,7 +30,7 @@ namespace tosca {
     {
         allocated[this] = allocated_count ++;
         if (track_allocated == allocated[this])
-          std::cout << "\n[" << allocated[this] << "] created ";
+          std::cerr << "\n[" << allocated[this] << "] created ";
     }
 
     Ref::~Ref()
@@ -45,7 +45,7 @@ namespace tosca {
         
         refcount++;
         if (track || track_allocated == allocated[this])
-          std::cout << "\n[" << allocated[this] << "] add ref " << refcount ;
+          std::cerr << "\n[" << allocated[this] << "] add ref " << refcount ;
     }
 
     void Ref::Release()
@@ -54,7 +54,7 @@ namespace tosca {
         refcount--;
 
         if (track || track_allocated == allocated[this])
-          std::cout << "\n[" << allocated[this] << "] released " << refcount;
+          std::cerr << "\n[" << allocated[this] << "] released " << refcount;
         
         if (refcount == 0)
           delete this;
