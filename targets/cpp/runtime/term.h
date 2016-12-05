@@ -332,6 +332,7 @@ namespace tosca {
     // ----- String Term
     
     class _CStringTermVar;
+    class _CStringTermVarUse;
 
     // Base type
     class StringTerm: public Term
@@ -342,16 +343,6 @@ namespace tosca {
 
         /** Peek at native string value */
         virtual const std::string& Unbox() const;
-
-        inline bool operator==(const StringTerm& rhs)
-        {
-            return Unbox() == rhs.Unbox();
-        }
-
-        inline bool operator!=(const StringTerm& rhs)
-        {
-            return !(*this == rhs);
-        }
 
         /* @return this as a Variable or nullopt */
         virtual Optional<_CStringTermVar> GetVariable() const;
@@ -389,6 +380,16 @@ namespace tosca {
         const std::string value;
     };
 
+    class _CStringTermVar: public Variable
+    {
+    public:
+        _CStringTermVar(std::string name);
+
+        // --- Overrides
+        StringTerm& Use();
+        Term& GUse();
+    };
+
     /**
      * Variable use of type String
      */
@@ -402,20 +403,11 @@ namespace tosca {
         Optional<_CStringTermVar> GetVariable() const;
     };
 
-    class _CStringTermVar: public Variable
-    {
-    public:
-        _CStringTermVar(std::string name);
-
-        // --- Overrides
-        StringTerm& Use();
-        Term& GUse();
-    };
-
 
     // --- Numeric type (double)
     
     class _CDoubleTermVar;
+    class _CDoubleTermVarUse;
 
     class DoubleTerm: public Term
     {
@@ -436,23 +428,10 @@ namespace tosca {
         
         /* Make a new value of type double  */
         static Term& MakeTerm(Context& ctx, const std::string& symbol);
-
-        // Overrides
-
-        inline bool operator==(const DoubleTerm& rhs)
-        {
-            return Unbox() == rhs.Unbox();
-        }
-
-        inline bool operator!=(const DoubleTerm& rhs)
-        {
-            return !(*this == rhs);
-        }
         
         // Overrides
         size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn);
         void Print(IOWrapper& out, int count, bool indent);
-
     };
    
     /**
@@ -477,6 +456,14 @@ namespace tosca {
 
     };
 
+    class _CDoubleTermVar: public Variable
+    {
+    public:
+        _CDoubleTermVar(std::string name);
+        virtual DoubleTerm& Use();
+        virtual Term& GUse();
+    };
+
     /*
      * Variable Use of type Numeric
      */
@@ -487,16 +474,8 @@ namespace tosca {
         
         // Overrides
         Optional<_CDoubleTermVar> GetVariable() const;
-        
     };
 
-    class _CDoubleTermVar: public Variable
-    {
-    public:
-        _CDoubleTermVar(std::string name);
-        virtual DoubleTerm& Use();
-        virtual Term& GUse();
-    };
 
 }
 
