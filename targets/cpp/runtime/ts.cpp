@@ -4,8 +4,15 @@
 
 namespace tosca {
 
-    Context::Context() : ts(0)
-    {}
+	Context::Context() : ts(0)
+    {
+    	for (int i = 0; i < 2048; i ++)
+    		pools.push_back(std::vector<void*>());
+    }
+
+    Context::~Context()
+    {
+    }
 
     Term& Context::MakeConstructor(const StringTerm& symbol)
     {
@@ -20,8 +27,6 @@ namespace tosca {
     void Context::Register(const StringTerm& symbol, const TermFactory factory)
     {
         std::size_t s = std::hash<const tosca::StringTerm*>{}(&symbol);
-
-
         factories[&symbol] = factory;
     }
 
@@ -63,4 +68,42 @@ namespace tosca {
         track = str;
     }
     
+    // --- Memory management
+
+    void* Context::Allocate(std::size_t sz)
+    {
+    	std::vector<void*>& poolForSize = pools[sz];
+    	struct TaggedObj* obj;
+    	if (poolForSize.size() > 0)
+    	{
+    		obj = reinterpret_cast<struct TaggedObj*>(poolForSize.back());
+    		poolForSize.pop_back();
+    	}
+    	else
+    		obj = reinterpret_cast<struct TaggedObj*>(GetMem(sz + sizeof(Context*)));
+
+    	obj->context = this;
+		return &(obj->body);
+    }
+
+    void Context::Deallocate(void* ptr, std::size_t size)
+    {
+		std::vector<void*>& poolForSize = pools[size];
+		if (poolForSize.size() < 1024)
+			poolForSize.push_back(ptr);
+		else
+			ReleaseMem(ptr);
+    }
+
+    void* Context::GetMem(std::size_t sz)
+    {
+    	return ::operator new(sz);
+    }
+
+    void Context::ReleaseMem(void* ptr)
+    {
+    	::operator delete(static_cast<void*>(ptr));
+    }
+
+
 }

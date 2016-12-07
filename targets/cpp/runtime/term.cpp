@@ -10,9 +10,9 @@ namespace tosca {
 
     // Temporary debugging helpers.
     static const bool TRACK_REFS = getenv("toscatrackref") != 0;
-    static int allocated_count = 0;
-    static std::unordered_map<class Ref*, int> allocated;
-    static int track_allocated = -1;
+    static long allocated_count = 0;
+    static std::unordered_map<class Ref*, long> allocated;
+    static long track_allocated = getenv("toscatrackid") ? atol(getenv("toscatrackid")) : -1;
     
     static bool Alive(class Ref* ref)
     {
@@ -25,7 +25,7 @@ namespace tosca {
         }
         return true;
     }
-    
+
     // --- Ref
 
     Ref::Ref(): refcount(1), track(false)
@@ -47,7 +47,7 @@ namespace tosca {
     void Ref::AddRef()
     {
         assert(Alive(this));
-        
+
         refcount++;
         if (TRACK_REFS && (track || track_allocated == allocated[this]))
           std::cerr << "\n[" << allocated[this] << "] add ref " << refcount ;
@@ -60,12 +60,12 @@ namespace tosca {
 
         if (TRACK_REFS && (track || track_allocated == allocated[this]))
           std::cerr << "\n[" << allocated[this] << "] released " << refcount;
-        
+
         if (refcount == 0)
           delete this;
     }
-    
-    void Ref::Track(int id)
+
+    void Ref::Track(long id)
     {
         track_allocated = id;
     }
@@ -76,7 +76,6 @@ namespace tosca {
     Term::Term() : Ref() {}
 
     Term::~Term() {}
-
     
     const std::string& Term::Symbol() const
     {
@@ -275,7 +274,8 @@ namespace tosca {
 
                     Term* s = substitutes[&oldbinder];
                     shadowed.push_back(s);
-                    substitutes[&oldbinder] = &subbinder.GUse(); // Acquire bound varuse reference
+                    substitutes[&oldbinder] = &subbinder.GUse(ctx); // Acquire bound varuse reference
+                    subbinder.AddRef();
                     copy.SetBinder(i, j, subbinder);
                     j++;
                 }
@@ -429,6 +429,15 @@ namespace tosca {
     }
 
     // --- Variable Use
+    VariableUse::VariableUse(Variable& v) : var(v)
+    {
+    	var.uses++;
+    }
+
+    VariableUse::~VariableUse()
+    {
+    	var.Release();
+    }
 
     Optional<Variable> VariableUse::GetGVariable() const
     {
@@ -441,7 +450,7 @@ namespace tosca {
     {
     }
 
-    Term& Variable::GUse()
+    Term& Variable::GUse(Context& ctx)
     {
         throw std::runtime_error("Internal Error: cannot create untyped variable use.");
     }
@@ -511,7 +520,7 @@ namespace tosca {
 
     Term& StringTerm::MakeTerm(Context& ctx, const std::string& symbol)
     {
-        return newStringTerm(symbol);
+        return newStringTerm(ctx, symbol);
     }
 
     size_t StringTerm::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn)
@@ -530,14 +539,15 @@ namespace tosca {
     {
     }
 
-    StringTerm& _CStringTermVar::Use()
+    StringTerm& _CStringTermVar::Use(Context& ctx)
     {
-        return *(new _CStringTermVarUse(*this));
+    	this->AddRef();
+        return *(new (ctx) _CStringTermVarUse(*this));
     }
 
-    Term& _CStringTermVar::GUse()
+    Term& _CStringTermVar::GUse(Context& ctx)
     {
-        return Use();
+        return Use(ctx);
     }
 
     _CStringTermVarUse::_CStringTermVarUse(_CStringTermVar& v) : VariableUse::VariableUse(v)
@@ -602,7 +612,7 @@ namespace tosca {
     Term& DoubleTerm::MakeTerm(Context& ctx, const std::string& symbol)
     {
         double value = std::stod(symbol);
-        return newDoubleTerm(value);
+        return newDoubleTerm(ctx, value);
     }
 
     void DoubleTerm::Print(IOWrapper& out, int count, bool indent)
@@ -618,19 +628,20 @@ namespace tosca {
     {
         return make_optional<_CDoubleTermVar>(dynamic_cast<_CDoubleTermVar&>(VariableUse::GetGVariable().value()));
     }
-    
+
     _CDoubleTermVar::_CDoubleTermVar(std::string name) : Variable(std::move(name))
     {
     }
 
-    DoubleTerm& _CDoubleTermVar::Use()
+    DoubleTerm& _CDoubleTermVar::Use(Context& ctx)
     {
-        return *(new _CDoubleTermVarUse(*this));
+    	this->AddRef();
+        return *(new (ctx) _CDoubleTermVarUse(*this));
     }
 
-    Term& _CDoubleTermVar::GUse()
+    Term& _CDoubleTermVar::GUse(Context& ctx)
     {
-        return Use();
+        return Use(ctx);
     }
 
     _CDoubleTerm::_CDoubleTerm(double val) : value(val), str(std::to_string((long double) val))
@@ -652,31 +663,32 @@ namespace tosca {
     {
         return str;
     }
+
 }
 
 using namespace tosca;
 
-StringTerm& newStringTerm(std::string&& val)
+StringTerm& newStringTerm(tosca::Context& ctx, std::string&& val)
 {
-    return *(new _CStringTerm(val));
+    return *(new (ctx) _CStringTerm(val));
 }
 
-StringTerm& newStringTerm(const std::string& val)
+StringTerm& newStringTerm(tosca::Context& ctx, const std::string& val)
 {
-    return *(new _CStringTerm(val));
+    return *(new (ctx) _CStringTerm(val));
 }
 
 _CStringTermVar& varStringTerm(tosca::Context& ctx, const std::string& hint)
 {
-    return *(new _CStringTermVar(ctx.MakeGlobalName(hint)));
+    return *(new (ctx) _CStringTermVar(ctx.MakeGlobalName(hint)));
 }
 
-DoubleTerm& newDoubleTerm(double val)
+DoubleTerm& newDoubleTerm(tosca::Context& ctx, double val)
 {
-    return *(new _CDoubleTerm(val));
+    return *(new (ctx) _CDoubleTerm(val));
 }
 
 _CDoubleTermVar& varDoubleTerm(tosca::Context& ctx, const std::string& hint)
 {
-    return *(new _CDoubleTermVar(ctx.MakeGlobalName(hint)));
+    return *(new (ctx) _CDoubleTermVar(ctx.MakeGlobalName(hint)));
 }

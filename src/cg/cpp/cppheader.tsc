@@ -75,6 +75,7 @@ func CppFormMethod(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_
   → let #sorts? = MaybeSortsDefaultToMaybeSorts(#csortsdefault?)
     text⟦†⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
 †⟨CppFormDefaultConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormDestructor(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
 †⟨CppFormMethodSymbol(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩
 †⟨CppFormMethodMake(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
 †⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, TRUE)⟩

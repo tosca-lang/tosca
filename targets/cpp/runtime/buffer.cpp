@@ -79,14 +79,14 @@ namespace tosca {
     
     Sink& BufferSink::Use(Variable& variable)
     {
-        Term& use = variable.GUse();
+        Term& use = variable.GUse(GetContext());
         AddSub(use);
         return *this;
     }
     
     Sink& BufferSink::Literal(const std::string& literal)
     {
-        AddSub(newStringTerm(literal));
+        AddSub(newStringTerm(GetContext(), literal));
         return *this;
     }
 

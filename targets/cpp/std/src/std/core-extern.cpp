@@ -14,7 +14,7 @@ StringTerm& GetEnv(Context& ctx, StringTerm& key, StringTerm& def)
     if (value)
     {
         def.Release();
-        return newStringTerm(value);
+        return newStringTerm(ctx, value);
     }
     return def;
 }
@@ -33,7 +33,7 @@ DoubleTerm& BitMinus(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 {
     long lleft = left.Unbox();
     long lright = right.Unbox();
-    DoubleTerm& result = newDoubleTerm(lleft & ~lright);
+    DoubleTerm& result = newDoubleTerm(ctx, lleft & ~lright);
     left.Release();
     right.Release();
     return result;
@@ -43,7 +43,7 @@ DoubleTerm& BitOr(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 {
     long lleft = left.Unbox();
     long lright = right.Unbox();
-    DoubleTerm& result = newDoubleTerm(lleft | lright);
+    DoubleTerm& result = newDoubleTerm(ctx, lleft | lright);
     left.Release();
     right.Release();
     return result;
@@ -53,7 +53,7 @@ DoubleTerm& BitAnd(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 {
     long lleft = left.Unbox();
     long lright = right.Unbox();
-    DoubleTerm& result = newDoubleTerm(lleft & lright);
+    DoubleTerm& result = newDoubleTerm(ctx, lleft & lright);
     left.Release();
     right.Release();
     return result;

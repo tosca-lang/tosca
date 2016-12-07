@@ -15,7 +15,7 @@ template <typename a>
 tosca::StringTerm& PrintTerm(tosca::Context& ctx, tosca::StringTerm& category, a& term)
 {
     tosca::Term& t = dynamic_cast<tosca::Term&>(term);
-    return newStringTerm(tosca::PrintToString(t, true));
+    return newStringTerm(ctx, tosca::PrintToString(t, true));
 }
 
 template <typename a>

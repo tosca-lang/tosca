@@ -15,7 +15,7 @@ StringTerm& AfterFirst(Context& ctx, StringTerm& string, StringTerm& sep)
     const std::string& usep = sep.Unbox();
     std::string::size_type idx = ustring.find(usep);
 
-    StringTerm& result = newStringTerm((idx == -1) ? "" : ustring.substr(idx + 1));
+    StringTerm& result = newStringTerm(ctx, (idx == -1) ? "" : ustring.substr(idx + 1));
     string.Release();
     sep.Release();
     return result;
@@ -27,7 +27,7 @@ StringTerm& BeforeFirst(Context& ctx, StringTerm& string, StringTerm& sep)
     const std::string& usep = sep.Unbox();
     std::string::size_type idx = ustring.find(usep);
 
-    StringTerm& result = newStringTerm((idx == -1) ? ustring : ustring.substr(0, idx));
+    StringTerm& result = newStringTerm(ctx, (idx == -1) ? ustring : ustring.substr(0, idx));
     string.Release();
     sep.Release();
     return result;
@@ -45,21 +45,21 @@ Bool& StringEqual(Context& ctx, StringTerm& str1, StringTerm& str2)
 
 StringTerm& Escape(Context& ctx, StringTerm& str)
 {
-    StringTerm& result = newStringTerm(makeEscaped(ctx, str.Unbox().c_str()));
+    StringTerm& result = newStringTerm(ctx, makeEscaped(ctx, str.Unbox().c_str()));
     str.Release();
     return result;
 }
 
 DoubleTerm& Length(Context& ctx, StringTerm& str)
 {
-    DoubleTerm& result = newDoubleTerm(str.Unbox().size());
+    DoubleTerm& result = newDoubleTerm(ctx, str.Unbox().size());
     str.Release();
     return result;
 }
 
 StringTerm& Mangle(Context& ctx, StringTerm& str)
 {
-    StringTerm& result = newStringTerm(makeMangle(ctx, str.Unbox()));
+    StringTerm& result = newStringTerm(ctx, makeMangle(ctx, str.Unbox()));
     str.Release();
     return result;
 }
@@ -70,7 +70,7 @@ StringTerm& UpCase(Context& ctx, StringTerm& str)
     for (std::string::iterator it= upper.begin(); it != upper.end(); ++it)
         *it = toupper(*it);
     str.Release();
-    return newStringTerm(std::move(upper));
+    return newStringTerm(ctx, std::move(upper));
 }
 
 StringTerm& DownCase(Context& ctx, StringTerm& str)
@@ -79,7 +79,7 @@ StringTerm& DownCase(Context& ctx, StringTerm& str)
     for (std::string::iterator it= lower.begin(); it != lower.end(); ++it)
         *it = tolower(*it);
     str.Release();
-    return newStringTerm(lower);
+    return newStringTerm(ctx, lower);
 }
 
 StringTerm& Replace(Context& ctx, StringTerm& str, StringTerm& oldStr, StringTerm& newStr)
@@ -105,7 +105,7 @@ StringTerm& Replace(Context& ctx, StringTerm& str, StringTerm& oldStr, StringTer
     oldStr.Release();
     newStr.Release();
 
-    return newStringTerm(result);
+    return newStringTerm(ctx, result);
 }
 
 Bool& Contains(Context& ctx, StringTerm& str1, StringTerm& str2)
@@ -125,7 +125,7 @@ StringTerm& Substring(Context& ctx, StringTerm& str, DoubleTerm& from, DoubleTer
     std::string::size_type pos = static_cast<std::string::size_type>(from.Unbox());
     std::string::size_type end = static_cast<std::string::size_type>(to.Unbox());
     std::string::size_type count = end > pos ? end - pos : 0;
-    StringTerm& result = newStringTerm(ustr.substr(pos, count));
+    StringTerm& result = newStringTerm(ctx, ustr.substr(pos, count));
     str.Release();
     from.Release();
     return result;
@@ -135,7 +135,7 @@ StringTerm& Substring2(Context& ctx, StringTerm& str, DoubleTerm& from)
 {
     const std::string& ustr = str.Unbox();
     std::string::size_type pos = static_cast<std::string::size_type>(from.Unbox());
-    StringTerm& result = newStringTerm(ustr.substr(pos));
+    StringTerm& result = newStringTerm(ctx, ustr.substr(pos));
     str.Release();
     from.Release();
     return result;
@@ -173,7 +173,7 @@ Bool& EndsWith(tosca::Context& ctx, tosca::StringTerm& str, tosca::StringTerm& s
     return result;
 }
 
-tosca::StringTerm& Trim(tosca::Context&, tosca::StringTerm& str)
+tosca::StringTerm& Trim(tosca::Context& ctx, tosca::StringTerm& str)
 {
     const std::string& ustr = str.Unbox();
     if (ustr.empty())
@@ -184,11 +184,11 @@ tosca::StringTerm& Trim(tosca::Context&, tosca::StringTerm& str)
     {
         // All whitespace characters.
         str.Release();
-        return newStringTerm("");
+        return newStringTerm(ctx, "");
     }
 
     size_t last = ustr.find_last_not_of(" \t\f\n\r\b");
-    StringTerm& result = newStringTerm(ustr.substr(first, (last-first+1)));
+    StringTerm& result = newStringTerm(ctx, ustr.substr(first, (last-first+1)));
     str.Release();
     return result;
 }
@@ -211,7 +211,7 @@ List<tosca::StringTerm>& Split(tosca::Context& ctx, tosca::StringTerm& str, tosc
     while ((pos = ustr.find(usep, spos)) != std::string::npos)
     {
         List<tosca::StringTerm>& cons = dynamic_cast<List<tosca::StringTerm>&>(_CCons<tosca::StringTerm>::Make(ctx));
-        cons.SetSub(0, newStringTerm(ustr.substr(spos, pos)));
+        cons.SetSub(0, newStringTerm(ctx, ustr.substr(spos, pos)));
         if (result)
             result->SetSub(1, cons);
         
@@ -253,13 +253,13 @@ tosca::StringTerm& Squash(tosca::Context& ctx, tosca::StringTerm& str)
         }
     }
     str.Release();
-    return newStringTerm(squashed);
+    return newStringTerm(ctx, squashed);
 }
 
 tosca::DoubleTerm& Index(tosca::Context& ctx, tosca::StringTerm& string, tosca::StringTerm& pattern)
 {
     auto search = string.Unbox().find(pattern.Unbox());
-    tosca::DoubleTerm& result = newDoubleTerm(search == std::string::npos ? -1 : search);
+    tosca::DoubleTerm& result = newDoubleTerm(ctx, search == std::string::npos ? -1 : search);
     string.Release();
     pattern.Release();
     return result;

@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "closure.h"
 #include "term.h"
@@ -18,6 +19,7 @@ namespace tosca {
     {
     public:
         Context();
+        virtual ~Context();
 
         /**
          * Make new construction for the given external symbol
@@ -64,6 +66,20 @@ namespace tosca {
         /** Track global name */
         void Track(std::string&& name);
 
+        // Allocation helper
+
+        /** Allocate memory in the object pool, or in the heap when the pool is exhausted. */
+        void* Allocate(std::size_t sz);
+
+        /** Deallocate memory  */
+        void Deallocate(void* ptr, std::size_t size);
+
+        /** Low-level memory allocation. By default, call the global new operation  */
+        virtual void* GetMem(std::size_t sz);
+
+        /** Low-level memory deallocation, By default, call the global delete operation  */
+        virtual void ReleaseMem(void* ptr);
+
     private:
 
         // The factories
@@ -75,6 +91,9 @@ namespace tosca {
         // User-defined properties
         std::unordered_map<std::string, void*> properties;
         
+        // The generic pools
+        std::vector<std::vector<void*>> pools;
+
         // global counter.
         unsigned long long ts;
         
@@ -99,6 +118,34 @@ namespace tosca {
         return ref;
     }
 
+    // Helper struct storing Context along with objects.
+    struct TaggedObj
+   	{
+       	Context* context;
+       	void* body;
+   	} __attribute__((packed));
+
+	static const bool NOPOOL = getenv("toscanopool") != 0;
+
+    /** Allocate memory in the term pool, or in the heap when the term pool is exhausted. */
+    inline void* Allocate(std::size_t sz, Context& ctx)
+    {
+    	if (NOPOOL)
+    		return ::operator new (sz);
+    	return ctx.Allocate(sz);
+    }
+
+    /** Deallocate memory  */
+    inline void Deallocate(void* ptr, std::size_t size)
+    {
+    	if (NOPOOL)
+    		::operator delete (ptr);
+    	else
+    	{
+    		struct TaggedObj* tag = reinterpret_cast<struct TaggedObj*>(static_cast<uint8_t*>(ptr) - sizeof(Context*));
+    		tag->context->Deallocate(static_cast<void*>(tag), size);
+    	}
+    }
 }
 
 template<typename T>

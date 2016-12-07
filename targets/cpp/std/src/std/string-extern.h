@@ -30,9 +30,9 @@ extern Bool& StringEqual(tosca::Context&, tosca::StringTerm&, tosca::StringTerm&
 
 /* @return the concatenation of the given strings */
 template <typename T1>
-tosca::StringTerm& ConcatString(tosca::Context&)
+tosca::StringTerm& ConcatString(tosca::Context& ctx)
 {
-    return newStringTerm("");
+    return newStringTerm(ctx, "");
 }
 
 template <typename T1>
@@ -46,7 +46,7 @@ tosca::StringTerm& ConcatString(tosca::Context& ctx, T1& str, Ts&... strs)
 {
     tosca::StringTerm& s1 = static_cast<tosca::StringTerm&>(str);
     tosca::StringTerm& s2 = ConcatString(ctx, strs...);
-    tosca::StringTerm& result = newStringTerm(s1.Unbox() + s2.Unbox());
+    tosca::StringTerm& result = newStringTerm(ctx, s1.Unbox() + s2.Unbox());
     s1.Release();
     s2.Release();
     return result;

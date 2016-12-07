@@ -91,6 +91,7 @@ class †⟨FormCppClassName(#CONSTRUCTOR)⟩: public †⟨SortNameToCppClassNa
 {
 public:→
 †⟨CppFormConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
+†⟨CppFormDestructor(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
 †⟨CppFormMethodSymbol(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩
 †⟨CppFormMethodMake(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
 †⟨CppFormMethodCopy(#sortname, #csortvars?, #CONSTRUCTOR, FALSE)⟩
@@ -103,10 +104,14 @@ public:→
 †⟨CppFormMakeFree(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
 †⟨CppFormMakeBound(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
 †⟨CppFormMakeTerm(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
+static void* operator new(std::size_t sz, tosca::Context& ctx) { return tosca::Allocate(sz, ctx); }
+static void operator delete(void* ptr) { tosca::Deallocate(ptr, sizeof(†⟨FormCppClassName(#CONSTRUCTOR)⟩)); }
+
 ←protected:→
 †⟨MaybeCppClassFields(#sorts?, (isvar type index subindex)->CppDeclField(isvar, type, index, subindex))⟩
 †⟨CppFormDefaultConstructor(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩←
 };⟧
+
 
   rule CppFormClassDecl(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦†⟨CppTemplatePrefix(#csortvars?)⟩
@@ -126,7 +131,9 @@ public:→
 †⟨CppVarConstructorUse(#sortname, #csortvars?, FALSE)⟩
 †⟨CppVarMethodGetVariable(#sortname, #csortvars?, FALSE)⟩
 †⟨CppVarMethodGetGVariable(#sortname, #csortvars?, FALSE)⟩
-size_t HashCode() { return VariableUse::HashCode(); }←
+size_t HashCode() { return VariableUse::HashCode(); }
+static void* operator new(std::size_t sz, tosca::Context& ctx) { return tosca::Allocate(sz, ctx); }
+static void operator delete(void* ptr) { tosca::Deallocate(ptr, sizeof(†⟨FormCppClassName(#sortname)⟩Use)); }←
 };
 †⟨TextIf(IsEmpty(MaybeSortVarsToSorts(#csortvars?)), ()->text⟦¶STD_HASH_EQUAL_TO_TERM(†⟨FormCppClassName(#sortname)⟩Use)⟧)⟩⟧
 

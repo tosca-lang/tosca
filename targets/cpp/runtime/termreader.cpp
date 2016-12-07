@@ -469,7 +469,7 @@ namespace tosca
 
             BufferSink value(sink.GetContext());
             ParseTerm(value);
-            sink.MapEntry(newStringTerm(key), value.GetTerm());
+            sink.MapEntry(newStringTerm(sink.GetContext(), key), value.GetTerm());
 
             if (lexer.CurrentToken() == TermLexer::RCURLY)
                 break;

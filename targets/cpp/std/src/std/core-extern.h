@@ -78,7 +78,7 @@ List<b>* FreeVariablesImpl(tosca::Context& ctx, const tosca::Term& term, List<b>
         if (search == bound.end()) // If not found, it's a free var.
         {
             // Make sure the variable is of the same type as the expected type.
-            tosca::Term& guse = v.GUse();
+            tosca::Term& guse = v.GUse(ctx);
             b* vuse = dynamic_cast<b*>(&guse);
             if (vuse)
                 return &newCons<b>(ctx, *vuse, *result);
@@ -191,7 +191,7 @@ List<a>& ExceptVariables(tosca::Context& ctx, List<a>& lhs, List<a>& rhs)
         {
             tosca::Variable& v = ovar.value();
             if (index.find(&v) == index.end())
-                result = &newCons<a>(ctx, *dynamic_cast<a*>(&v.GUse()), *result);
+                result = &newCons<a>(ctx, *dynamic_cast<a*>(&v.GUse(ctx)), *result);
         }
         c = &cons.getValue2(ctx, true);
     }
@@ -221,7 +221,7 @@ List<a>& IntersectVariables(tosca::Context& ctx, List<a>& lhs, List<a>& rhs)
         {
             tosca::Variable& v = ovar.value();
             if (index.find(&v) != index.end())
-                result = &newCons<a>(ctx, *dynamic_cast<a*>(&v.GUse()), *result);
+                result = &newCons<a>(ctx, *dynamic_cast<a*>(&v.GUse(ctx)), *result);
         }
         c = &cons.getValue2(ctx, true);
     }
@@ -329,7 +329,7 @@ a& Debug(tosca::Context& ctx, tosca::StringTerm& msg, Closure0<a>& result)
 template<typename a>
 tosca::StringTerm& Show(tosca::Context& ctx, a& value)
 {
-  return newStringTerm(value.Symbol());
+  return newStringTerm(ctx, value.Symbol());
   //return newStringTerm("");
 }
 

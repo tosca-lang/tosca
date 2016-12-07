@@ -62,20 +62,21 @@ func CppFormDefs(String, Core_cform_sort) -> Text4_text_sort
   rule CppFormDefs(#sortname, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧)
   → let #sorts? = MaybeSortsDefaultToMaybeSorts(#csortsdefault?)
     text⟦
- †⟨CppFormConstructor(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
- †⟨CppFormDefaultConstructor(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
- †⟨CppFormMethodSymbol(#sortname, (), #CONSTRUCTOR, TRUE)⟩
- †⟨CppFormMethodMake(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
- †⟨CppFormMethodCopy(#sortname, (), #CONSTRUCTOR, TRUE)⟩
- †⟨CppFormMethodAs(#sortname, (), #CONSTRUCTOR, TRUE)⟩
- †⟨CppFormGetValue(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
- †⟨CppFormGetSub(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
- †⟨CppFormSetSub(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
- †⟨CppFormGetBinder(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
- †⟨CppFormSetBinder(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
- †⟨CppFormMakeFree(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
- †⟨CppFormMakeBound(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
- †⟨CppFormMakeTerm(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩⟧
+†⟨CppFormConstructor(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormDestructor(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormDefaultConstructor(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormMethodSymbol(#sortname, (), #CONSTRUCTOR, TRUE)⟩
+†⟨CppFormMethodMake(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormMethodCopy(#sortname, (), #CONSTRUCTOR, TRUE)⟩
+†⟨CppFormMethodAs(#sortname, (), #CONSTRUCTOR, TRUE)⟩
+†⟨CppFormGetValue(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormGetSub(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormSetSub(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormGetBinder(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormSetBinder(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormMakeFree(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormMakeBound(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormMakeTerm(#sortname, (), #CONSTRUCTOR, #sorts?, TRUE)⟩⟧
 
   rule CppFormDefs(#sortname, cform⟦ allows-variable ⟧)
   → text⟦
@@ -143,7 +144,7 @@ func CppRegisterDataSort(Core_cdecl_sort) -> Text4_text_sort
 func CppRegisterDataForm(String, Core_cform_sort) -> Text4_text_sort
 
   rule CppRegisterDataForm(#sortname, cform⟦ ##CONSTRUCTOR ##csortsdefault? ⟧)
-  → text⟦¶context.Register(newStringTerm(†⟨Text-QuoteEscape(#CONSTRUCTOR)⟩), †⟨CppFormQualifier(#CONSTRUCTOR, (), CFC_CONS, TRUE)⟩Make);⟧
+  → text⟦¶context.Register(newStringTerm(context, †⟨Text-QuoteEscape(#CONSTRUCTOR)⟩), †⟨CppFormQualifier(#CONSTRUCTOR, (), CFC_CONS, TRUE)⟩Make);⟧
 
   rule CppRegisterDataForm(#sortname, cform⟦ allows-variable ⟧)
-  → text⟦¶context.RegisterVariable(newStringTerm(†⟨Text-QuoteEscape(#sortname)⟩), reinterpret_cast<const VarFactory>(†⟨CppFnName(ConcatString("var", #sortname))⟩));⟧
+  → text⟦¶context.RegisterVariable(newStringTerm(context, †⟨Text-QuoteEscape(#sortname)⟩), reinterpret_cast<const VarFactory>(†⟨CppFnName(ConcatString("var", #sortname))⟩));⟧

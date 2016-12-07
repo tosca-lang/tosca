@@ -367,6 +367,7 @@ namespace tosca {
             out.Write('}');
         }
 
+
     protected:
         std::unordered_map<K*, V*> map;
 

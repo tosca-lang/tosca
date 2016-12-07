@@ -25,6 +25,9 @@ namespace tosca {
     class Maker;
     class IOWrapper;
     
+    void* Allocate(std::size_t sz, Context& ctx);
+    void Deallocate(void* ptr, std::size_t size);
+
     // Reference counting base facility.
     class Ref
     {
@@ -37,18 +40,28 @@ namespace tosca {
         Ref();
         virtual ~Ref();
 
-        /** Add new ref */
         void AddRef();
-
-        /** Release ref */
         void Release();
+//        /** Add new ref */
+//        inline void AddRef()
+//        {
+//        	refcount++;
+//        }
+//
+//        /** Release ref */
+//        inline void Release()
+//        {
+//        	refcount--;
+//        	if (refcount == 0)
+//        		delete this;
+//        }
 
         inline void Track()
         {
           track = true;
         }
         
-        static void Track(int id);
+        static void Track(long id);
         
     protected:
         bool track;
@@ -220,9 +233,10 @@ namespace tosca {
         virtual void Print(IOWrapper& out, int count, bool indent);
         
     protected:
-
         friend struct std::hash<std::reference_wrapper<tosca::Term>>;
         friend struct std::equal_to<std::reference_wrapper<tosca::Term>>;
+        friend class Context;
+        friend void Deallocate(void* ptr);
 
     };
     // Term
@@ -294,7 +308,19 @@ namespace tosca {
         virtual Variable& Copy(Context& ctx) const;
 
         /* @Brief Create an new use of this variable */
-        virtual Term& GUse();
+        virtual Term& GUse(Context& ctx);
+
+        // Custom allocation
+
+        static void* operator new(std::size_t sz, Context& ctx)
+        {
+        	return Allocate(sz, ctx);
+        }
+
+        static void operator delete(void* ptr)
+        {
+        	Deallocate(ptr, sizeof(Variable));
+        }
 
     protected:
         /* Globally unique variable name. Allowed to be changed. */
@@ -303,6 +329,8 @@ namespace tosca {
         /* Count the number of variable use (in the term tree) */
         unsigned long uses;
 
+        friend class VariableUse;
+
     };
 
 
@@ -310,8 +338,8 @@ namespace tosca {
     class VariableUse: public virtual Term
     {
     public:
-        VariableUse(Variable& v) : var(v) {}
-
+        VariableUse(Variable& v);
+        ~VariableUse();
         //-- Overrides
 
         Optional<Variable> GetGVariable() const;
@@ -370,6 +398,18 @@ namespace tosca {
         _CStringTerm(const std::string& value);
         ~_CStringTerm();
 
+        // -- Custom allocation
+
+        static void* operator new(std::size_t sz, Context& ctx)
+        {
+        	return Allocate(sz, ctx);
+        }
+
+        static void operator delete(void* ptr)
+        {
+        	Deallocate(ptr, sizeof(_CStringTerm));
+        }
+
         // -- Overrides
 
         Term& Copy(Context& ctx);
@@ -386,8 +426,8 @@ namespace tosca {
         _CStringTermVar(std::string name);
 
         // --- Overrides
-        StringTerm& Use();
-        Term& GUse();
+        StringTerm& Use(Context& ctx);
+        Term& GUse(Context& ctx);
     };
 
     /**
@@ -398,9 +438,22 @@ namespace tosca {
     public:
         _CStringTermVarUse(_CStringTermVar& v);
 
-        // Overrides
+        // -- Custom allocation
+
+		static void* operator new(std::size_t sz, Context& ctx)
+		{
+			return Allocate(sz, ctx);
+		}
+
+		static void operator delete(void* ptr)
+		{
+			Deallocate(ptr, sizeof(_CStringTermVarUse));
+		}
+
+        // -- Overrides
         const std::string& Unbox() const;
         Optional<_CStringTermVar> GetVariable() const;
+
     };
 
 
@@ -441,8 +494,19 @@ namespace tosca {
     {
     public:
         _CDoubleTerm(double value);
-       
-        // -- Overrides
+        // -- Custom allocation
+
+		static void* operator new(std::size_t sz, Context& ctx)
+		{
+			return Allocate(sz, ctx);
+		}
+
+		static void operator delete(void* ptr)
+		{
+			Deallocate(ptr, sizeof(_CDoubleTerm));
+		}
+
+		// -- Overrides
 
         Term& Copy(Context& ctx);
         double Unbox() const;
@@ -460,8 +524,8 @@ namespace tosca {
     {
     public:
         _CDoubleTermVar(std::string name);
-        virtual DoubleTerm& Use();
-        virtual Term& GUse();
+        virtual DoubleTerm& Use(Context& ctx);
+        virtual Term& GUse(Context& ctx);
     };
 
     /*
@@ -471,7 +535,19 @@ namespace tosca {
     {
     public:
         _CDoubleTermVarUse(_CDoubleTermVar& v);
-        
+
+        // -- Custom allocation
+
+		static void* operator new(std::size_t sz, Context& ctx)
+		{
+			return Allocate(sz, ctx);
+		}
+
+		static void operator delete(void* ptr)
+		{
+			Deallocate(ptr, sizeof(_CDoubleTermVarUse));
+		}
+
         // Overrides
         Optional<_CDoubleTermVar> GetVariable() const;
     };
@@ -509,15 +585,15 @@ T& Subst(tosca::Context& c, T& term, std::initializer_list<tosca::Variable*> bin
 
 
 // Global string methods
-tosca::StringTerm& newStringTerm(std::string&& str);
-tosca::StringTerm& newStringTerm(const std::string& str);
+tosca::StringTerm& newStringTerm(tosca::Context& ctx, std::string&& str);
+tosca::StringTerm& newStringTerm(tosca::Context& ctx, const std::string& str);
 tosca::_CStringTermVar& varStringTerm(tosca::Context& ctx, const std::string& hint);
 
 // Global double methods
 
 // Construction
 
-tosca::DoubleTerm& newDoubleTerm(double value);
+tosca::DoubleTerm& newDoubleTerm(tosca::Context& ctx, double value);
 tosca::_CDoubleTermVar& varDoubleTerm(tosca::Context& ctx, const std::string& hint);
 
 #include "mapterm.h"
