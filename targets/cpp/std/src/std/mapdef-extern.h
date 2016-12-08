@@ -2,12 +2,27 @@
 #ifndef MAPDEF_EXTERN_H_
 #define MAPDEF_EXTERN_H_
 
+#include <vector>
 #include "ts.h"
 #include "std/core.h"
+#include "std/listdef.h"
 #include "std/mapdef_sigs.h"
 
 template<typename a> class Option;
 class Bool;
+
+/**
+ * Convert std:vector to a List
+ */
+template<typename a>
+List<a>& VectorToList(tosca::Context& ctx, std::vector<a*>& vector)
+{
+	List<a>* result = &newNil<a>(ctx);
+	for (auto it = vector.begin(); it != vector.end(); it ++)
+		result = &newCons<a>(ctx, **it, *result);
+
+	return *result;
+}
 
 /**
  * Extend the given map with the given key-value pair.
@@ -96,7 +111,8 @@ Option<b>& MapGetVar(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
 template<typename a, typename b>
 List<a>& MapKeys(tosca::Context& ctx, tosca::MapTerm<a, b>& map)
 {
-    List<a>& keys = map.keys(ctx);
+	std::vector<a*> vkeys = map.keys(ctx);
+    List<a>& keys = VectorToList<a>(ctx, vkeys);
     map.Release();
     return keys;
 }
@@ -104,7 +120,7 @@ List<a>& MapKeys(tosca::Context& ctx, tosca::MapTerm<a, b>& map)
 template<typename a, typename b, typename c>
 List<c>& MapVarKeys(tosca::Context& ctx, tosca::MapTerm<a, b>& map)
 {
-    List<c>& keys = map.varKeys(ctx);
+	List<c>& keys = map.varKeys(ctx);
     map.Release();
     return keys;
 }
@@ -133,7 +149,8 @@ tosca::MapTerm<a, b>& MapNew(tosca::Context& ctx)
 template<typename a, typename b>
 List<b>& MapValues(tosca::Context& ctx, tosca::MapTerm<a, b>& map)
 {
-    List<b>& values = map.values(ctx);
+	std::vector<b*> vvalues = map.values(ctx);
+    List<b>& values = VectorToList<b>(ctx, vvalues);
     map.Release();
     return values;
 }

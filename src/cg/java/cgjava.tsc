@@ -885,7 +885,7 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
 
   rule JavaPatternTerm(#env, cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ⟧, #term, #csort, PARAMETER, #cont)
   → let #currentParam = JavaCurrentParam(#env)
-    let #nextParam = JavaNextParam(JAddVar(JavaMayDiscard(#env, #cterm[var:String], JGetRuleAnno(#env)), var:String, JBound(#term, MaybeSortAnnoToSort(#csortanno?))))
+    let #nextParam = JavaNextParam(JAddVar(JavaMayDiscard(#env, #cterm[var:String], JGetRuleAnno(#env)), var, JBound(#term, MaybeSortAnnoToSort(#csortanno?))))
       JavaPatternTerm(#nextParam, #cterm[var], #currentParam, SOME(JavaCurrentParamSort(#env)), PARAMETER, #cont)
 
   rule JavaPatternTerm(#env, cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ⟧, #term, #csort, ARGUMENT, #cont)
@@ -1141,11 +1141,11 @@ func SubSortFromTerm({String : JEnvEntry}, Core_cterm_sort) -> Option<Core_csort
   → MaybeSortAnnoToSort(#csortanno?)
 
   // TODO: maybe error?
-  rule SubSortFromTerm(#env, cterm⟦ ##canno* [ x ##csortanno?[] ] ##cterm[x] ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* [ x ##csortanno? ] ##cterm[x] ⟧)
   → SubSortFromTerm(#env, #cterm[var:String])
 
   // TODO: maybe error?
-  rule SubSortFromTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧)
   → SubSortFromTerm(#env, #cterm[var:String])
 
 func JSubSortFromVar(Option<JVarEntry>, String) -> Option<Core_csort_sort>

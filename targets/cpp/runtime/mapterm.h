@@ -8,6 +8,7 @@
 #include <compat.h>
 #include <iowrapper.h>
 #include <set>
+#include <vector>
 
 // Forward declarations
 template<typename V>
@@ -18,9 +19,6 @@ class List;
 
 template<typename a> ::Option<a>& newNONE(tosca::Context& ctx);
 template<typename a> ::Option<a>& newSOME(tosca::Context& ctx, a& param);
-template<typename a> ::List<a>& newNil(tosca::Context& ctx);
-template<typename a> ::List<a>& newCons(tosca::Context& ctx, a& value, List<a>& next);
-
 
 namespace tosca {
 
@@ -86,7 +84,7 @@ namespace tosca {
          * @param context
          * @return
          */
-        virtual List<V>& values(Context& ctx)
+        virtual std::vector<V*> values(Context& ctx)
         {
             throw new std::runtime_error("");
         }
@@ -96,7 +94,7 @@ namespace tosca {
          * @param context
          * @return
          */
-        virtual List<K>& keys(Context& ctx)
+        virtual std::vector<K*> keys(Context& ctx)
         {
             throw new std::runtime_error("");
         }
@@ -231,42 +229,43 @@ namespace tosca {
             throw new std::runtime_error("");
         }
 
-        List<V>& values(Context& ctx)
+        std::vector<V*> values(Context& ctx)
         {
             CMapTerm<K, V>* cmap = this;
-            List<V>* result = &newNil<V>(ctx);
+            std::vector<V*> result;
             while (true)
             {
                 for (auto it = cmap->map.begin(); it != cmap->map.end(); it ++)
                 {
                     it->second->AddRef();
-                    result = &newCons<V>(ctx, *it->second, *result);
+                    result.push_back(it->second);
                 }
                 if (!cmap->parent)
                     break;
 
                 cmap = &cmap->parent.value();
             }
-            return *result;
+
+        	 return result; // RVO
         }
 
-        List<K>& keys(Context& ctx)
+        std::vector<K*> keys(Context& ctx)
         {
             CMapTerm<K, V>* cmap = this;
-            List<K>* result = &newNil<K>(ctx);
+            std::vector<K*> result;
             while (true)
             {
                 for (auto it = cmap->map.begin(); it != cmap->map.end(); it ++)
                 {
                     it->first->AddRef();
-                    result = &newCons<K>(ctx, *it->first, *result);
+                    result.push_back(it->first);
                 }
                 if (!cmap->parent)
                     break;
 
                 cmap = &cmap->parent.value();
             }
-            return *result;
+            return result; // RVO
         }
 
         void MapKeys(std::set<Term*>& keys) const

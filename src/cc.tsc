@@ -128,7 +128,7 @@ func CCTerm(CCEnv, Core_cterm_sort) -> PPair<CCEnv Core_cterm_sort>
 rule CCTerm(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧) → CCConsUp(#canno*, #cqconstructor, #csortargs?, CCMaybeTerms(#env, #cterms?), #csortanno?)
 rule CCTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)          → CCMetaUp(#METAVAR, CCMaybeTerms(#env, #cterms?), #csubst?, #csortanno?)
 rule CCTerm(#env, cterm⟦ ##canno* ##VARIABLE : ##csort ⟧)                                → PairCons(CCEnvAddVar(#env, #VARIABLE, CCVar(#VARIABLE, #csort)), cterm⟦ ##canno* ##VARIABLE : ##csort ⟧)
-rule CCTerm(#env, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧)                          → CCBinderUp(#csort, [x] -> PairCons(x, CCTerm(CCEnvBind(@Closed #env, x, @Closed #csort), #cterm[x])))
+rule CCTerm(#env, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧)                          → CCBinderUp(#csort, [x] -> PairCons(x, CCTerm(CCEnvBind(#env, x, #csort), @NoSubst #cterm[x])))
 rule CCTerm(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧)                       → CCFormal(CCEnvResetParams(#env), cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧, cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧)
 rule CCTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧)                                       → CCThunkUp(#canno*, CCThunk(CCEnvResetParams(#env), #cterm))
 rule CCTerm(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧)                    → Error("Internal Error: named terms cannot occur in contraction.")
@@ -147,7 +147,7 @@ rule CCTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧) → CCTermsUp(CCTerm(#env, #c
 // --- Process formal parameters. Setup environment for possible lifting.
 
 func CCFormal(CCEnv, Core_cterm_sort, Core_cterm_sort /* original lambda term */) -> PPair<CCEnv Core_cterm_sort>
-rule CCFormal(#env, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧, #lambda) → CCFormalUp(#csort, [f] -> CCFormal(CCEnvAddParam(@Closed #env, f, @Closed #csort), #cterm[f], @Closed #lambda))
+rule CCFormal(#env, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧, #lambda) → CCFormalUp(#csort, [f] -> CCFormal(CCEnvAddParam(#env, f, #csort),  @NoSubst #cterm[f], #lambda))
 rule CCFormal(#env, cterm⟦ ##canno* ( f           ) ##cterm[f] ⟧, #lambda) → Error("Fatal error: missing formal parameter type in lambda (needed by closure converter)")
 rule CCFormal(#env, #cterm, #lambda)                                       → CCFormal2(#env, #cterm, #lambda)
 
@@ -336,7 +336,7 @@ rule CCBinderUp(#csort, [x] -> PairCons(#x, PairCons(#env, #cterm[x])))
 → PairCons(CCEnvUnBind(#env, #x), cterm⟦ [ x : ##csort ] ##cterm[x] ⟧ )
 
 func CCFormalUp(Core_csort_sort, [String] -> PPair<CCEnv Core_cterm_sort>) -> PPair<CCEnv Core_cterm_sort>
-rule CCFormalUp(#csort, [f] -> PairCons(#env, #cterm[f])) → PairCons(#env, cterm⟦ ( f : ##csort[] ) ##cterm[f] ⟧)
+rule CCFormalUp(#csort, [f] -> PairCons(#env, #cterm[f])) → PairCons(#env, cterm⟦ ( f : ##csort ) ##cterm[f] ⟧)
 
 func CCThunkUp(List<Core_canno_sort>, PPair<CCEnv Core_cterm_sort>) -> PPair<CCEnv Core_cterm_sort>
 rule CCThunkUp(#canno*, PairCons(#env, #cterm)) → PairCons(#env, cterm⟦ ##canno* thunk ##cterm ⟧)

@@ -74,7 +74,7 @@ func InferRuleUp(Core_cterm_sort, PPair<{String:IEnvEntry} Core_cterm_sort>) -> 
 rule InferRuleUp(#cterm1, PairCons(#env, #cterm2))
 → let #decl = ISubstRule(OptimizeSorts(#env), #cterm1, #cterm2)
   #decl
-  //Debug(PrintTerm("", #decl), ()->#decl)
+  //Debug(PrintTerm("", #cterm1), ()->#decl)
 
 // ---- Synthesize sorts
 
@@ -106,13 +106,13 @@ func InferTerm({String:IEnvEntry}, Core_cterm_sort, Core_csort_sort /* expected 
   → InferVar(#env, GetInPattern(#env), #VARIABLE, IGetVarSort(#env, #VARIABLE), MaybeSortAnnoToSort(#csortanno?), #esort)
 
   rule InferTerm(#env, cterm⟦ ##canno*1 [ v ##csortanno? ] ##cterm[v] ⟧, csort⟦ ##canno*2 [ ##csort1 ] ##csort ⟧)
-  → InferBinderUp([v] -> InferTerm(IAddBoundVarSort(@Closed #env, v, @Closed #csort1), #cterm[v], @Closed #csort), #csort1)
+  → InferBinderUp([v] -> InferTerm(IAddBoundVarSort(#env, v, #csort1), @NoSubst #cterm[v], #csort), #csort1)
 
   rule InferTerm(#env, cterm⟦ ##canno* [ v ##csortanno? ] ##cterm[v] ⟧, #esort)
   → Error("Type error") // TODO:
 
   rule InferTerm(#env, cterm⟦ ##canno*1 ( f ##csortanno? ) ##cterm[f] ⟧, csort⟦ ##canno*2 ( ##csort1 ) ##csort ⟧)
-  → InferFormalUp([f] -> InferTerm(IAddFormalSort(@Closed #env, f, @Closed #csort1), #cterm[f], @Closed #csort), #csort1)
+  → InferFormalUp([f] -> InferTerm(IAddFormalSort(#env, f, #csort1), @NoSubst #cterm[f], #csort), #csort1)
 
   rule InferTerm(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧, #esort)
   → Error("Type error") // TODO:
@@ -673,6 +673,7 @@ func OptimizeSort({String : Core_csort_sort}, List<String>, Option<Core_csort_so
 
 func OptimizeSortAux(Bool, {String : Core_csort_sort}, List<String>, String, Option<Core_csort_sort>) -> {String : Core_csort_sort}
 
+
    // dummy var -> quit
    rule OptimizeSortAux(TRUE, #sorts, #keys, #VARIABLE, #previous)
    → OptimizeSort(#sorts, #keys, NONE, #previous)
@@ -689,8 +690,8 @@ func ISubstTerm({String:IEnvEntry}, Core_cterm_sort) -> Core_cterm_sort
 rule ISubstTerm(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧) → cterm⟦ ##canno* ⟨cqconstructor: ISubstQCons(#env, #cqconstructor)⟩ ⟨csortargs?: ISubstMaybeSortArgs(#env, #csortargs?)⟩ ⟨cterms?: ISubstMaybeTerms(#env, #cterms?)⟩ ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
 rule ISubstTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)          → cterm⟦ ##canno* ##METAVAR ⟨cterms?: ISubstMaybeTerms(#env, #cterms?)⟩ ⟨csubst?: ISubstMaybeISubst(#env, #csubst?)⟩ ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
 rule ISubstTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧)                             → cterm⟦ ##canno* ##VARIABLE ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
-rule ISubstTerm(#env, cterm⟦ ##canno* [ x ##csortanno?[] ] ##cterm[x] ⟧)                     → cterm⟦ ##canno* [ x ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ] ⟨cterm: ISubstTerm(@Closed #env, #cterm[x])⟩ ⟧
-rule ISubstTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧)                     → cterm⟦ ##canno* ( f ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ) ⟨cterm: ISubstTerm(@Closed #env, #cterm[f])⟩ ⟧
+rule ISubstTerm(#env, cterm⟦ ##canno* [ x ##csortanno?[] ] ##cterm[x] ⟧)                     → cterm⟦ ##canno* [ x ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ] ⟨cterm: ISubstTerm(#env, @NoSubst #cterm[x])⟩ ⟧
+rule ISubstTerm(#env, cterm⟦ ##canno* ( f ##csortanno?[] ) ##cterm[f] ⟧)                     → cterm⟦ ##canno* ( f ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ) ⟨cterm: ISubstTerm(#env, @NoSubst #cterm[f])⟩ ⟧
 rule ISubstTerm(#env, cterm⟦ ##canno* { ##cmapentries? } ##csortanno? ⟧)                     → cterm⟦ ##canno* { ⟨cmapentries?: ISubstMaybeMapEntries(#env, #cmapentries?)⟩ } ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧
 rule ISubstTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧)                                       → cterm⟦ ##canno* thunk ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟧
 rule ISubstTerm(#env, cterm⟦ ##canno* ##METAVAR = ##cterm ⟧)                                 → cterm⟦ ##canno* ##METAVAR = ⟨cterm: ISubstTerm(#env, #cterm)⟩ ⟧

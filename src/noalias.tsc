@@ -52,10 +52,10 @@ func NoAliasTerm(DeclIndex, Core_cterm_sort) -> Core_cterm_sort
   → cterm⟦ ##canno* ##VARIABLE : ⟨csort: NoAliasSort(#aliases, #csort)⟩ ⟧
 
   rule NoAliasTerm(#aliases, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧)
-  → cterm⟦ ##canno* [ x : ⟨csort: NoAliasSort(@Closed #aliases, @Closed #csort)⟩] ⟨cterm: NoAliasTerm(@Closed #aliases, #cterm[x])⟩ ⟧
+  → cterm⟦ ##canno* [ x : ⟨csort: NoAliasSort(#aliases, #csort)⟩] ⟨cterm: NoAliasTerm(#aliases, @NoSubst #cterm[x])⟩ ⟧
 
   rule NoAliasTerm(#aliases, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧)
-  → cterm⟦ ##canno* ( f : ⟨csort: NoAliasSort(#aliases, #csort)⟩ ) ⟨cterm: NoAliasTerm(@Closed #aliases, #cterm[f])⟩ ⟧
+  → cterm⟦ ##canno* ( f : ⟨csort: NoAliasSort(#aliases, #csort)⟩ ) ⟨cterm: NoAliasTerm(#aliases, @NoSubst #cterm[f])⟩ ⟧
 
   rule NoAliasTerm(#aliases, cterm⟦ ##canno* { ##cmapentries? } : { ##cmapsort } ⟧)
   → cterm⟦ ##canno* { ⟨cmapentries?: NoAliasMaybeMapEntries(#aliases, #cmapentries?)⟩ } : { ⟨cmapsort: NoAliasMapSort(#aliases, #cmapsort)⟩ } ⟧
