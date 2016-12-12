@@ -24,7 +24,7 @@ namespace tosca {
 
     // Forward declarations
     template<typename K, typename V> class MapTerm;
-    template<typename K, typename V> MapTerm<K, V>& newMapTerm();
+    template<typename K, typename V> MapTerm<K, V>& newMapTerm(Context&);
     template<typename T> T& NewRef(T&);
 
     // MapTerm type definition
@@ -44,7 +44,7 @@ namespace tosca {
          *
          * @return A new non-shared map.
          */
-        virtual MapTerm<K, V>& extend()
+        virtual MapTerm<K, V>& extend(Context& ctx)
         {
             throw new std::runtime_error("");
         }
@@ -128,7 +128,7 @@ namespace tosca {
          */
         static Term& MakeTerm(Context& ctx, const std::string& symbol)
         {
-            return newMapTerm<K, V>();
+            return newMapTerm<K, V>(ctx);
         }
 
         // Overrides
@@ -153,10 +153,6 @@ namespace tosca {
     class CMapTerm: public MapTerm<K, V>
     {
     public:
-        CMapTerm() : parent(Optional<CMapTerm>::nullopt)
-        {
-        }
-
         virtual ~CMapTerm()
         {
             if (parent)
@@ -171,17 +167,17 @@ namespace tosca {
 
         Term& Copy(Context& ctx)
         {
-            return newMapTerm<K, V>();
+            return newMapTerm<K, V>(ctx);
         }
 
-        MapTerm<K, V>& extend()
+        MapTerm<K, V>& extend(Context& ctx)
         {
             static const bool mapreuse = getenv("nomapreuse") == 0;
             if (mapreuse && this->refcount == 1)
                 return *this;
 
             this->AddRef();
-            CMapTerm<K, V>& extended = *(new CMapTerm<K, V>(*this));
+            CMapTerm<K, V>& extended = *(new (ctx) CMapTerm<K, V>(*this));
             return extended;
         }
 
@@ -308,22 +304,24 @@ namespace tosca {
 
         Term& Substitute(tosca::Context& ctx, std::unordered_map<Variable*, Term*>& substitutes)
         {
-            MapTerm<K, V>& copy = newMapTerm<K, V>();
-            CMapTerm<K, V>* cmap = this;
-            while (true)
-            {
-                for (auto it = cmap->map.begin(); it != cmap->map.end(); it ++)
-                {
-                    it->first->AddRef();
-                    it->second->AddRef();
-                    copy.putValue(ctx, *it->first, dynamic_cast<V&>(it->second->Substitute(ctx, substitutes)));
-                }
-                if (!cmap->parent)
-                    break;
-
-                 cmap = &cmap->parent.value();
-            }
-            return copy;
+        //    this->AddRef();
+            return *this;
+            // MapTerm<K, V>& copy = newMapTerm<K, V>();
+            // CMapTerm<K, V>* cmap = this;
+            // while (true)
+            // {
+            //     for (auto it = cmap->map.begin(); it != cmap->map.end(); it ++)
+            //     {
+            //         it->first->AddRef();
+            //         it->second->AddRef();
+            //         copy.putValue(ctx, *it->first, dynamic_cast<V&>(it->second->Substitute(ctx, substitutes)));
+            //     }
+            //     if (!cmap->parent)
+            //         break;
+            //
+            //      cmap = &cmap->parent.value();
+            // }
+            // return copy;
         }
 
         void Print(IOWrapper& out, int count, bool indent)
@@ -366,6 +364,15 @@ namespace tosca {
             out.Write('}');
         }
 
+		static void* operator new(std::size_t sz, Context& ctx)
+		{
+			return Allocate(sz, ctx);
+		}
+
+		static void operator delete(void* ptr)
+		{
+			Deallocate(ptr, sizeof(CMapTerm<K, V>));
+		}
 
     protected:
         std::unordered_map<K*, V*> map;
@@ -373,15 +380,25 @@ namespace tosca {
         // Extended map
         Optional<CMapTerm> parent;
 
+        CMapTerm() : Ref(true), parent(Optional<CMapTerm>::nullopt)
+        {}
+
         CMapTerm(CMapTerm& parent): parent(make_optional<CMapTerm>(parent))
         {}
+
+        friend MapTerm<K, V>& newMapTerm<K, V>(Context& ctx);
+
+        static CMapTerm<K, V>& SINGLETON;
     };
+
+    template<typename K, typename V>
+    CMapTerm<K, V>& CMapTerm<K, V>::SINGLETON = *(::new CMapTerm<K, V>());
 
     // Construction
     template<typename K, typename V>
-    MapTerm<K, V>& newMapTerm()
+    MapTerm<K, V>& newMapTerm(Context& ctx)
     {
-        return *(new CMapTerm<K, V>());
+        return CMapTerm<K, V>::SINGLETON;
     }
 
 }

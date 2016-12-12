@@ -6,7 +6,7 @@ namespace tosca {
 
 	Context::Context() : ts(0)
     {
-    	for (int i = 0; i < 2048; i ++)
+    	for (int i = 0; i < 8192; i ++)
     		pools.push_back(std::vector<void*>());
     }
 
@@ -26,7 +26,6 @@ namespace tosca {
 
     void Context::Register(const StringTerm& symbol, const TermFactory factory)
     {
-        std::size_t s = std::hash<const tosca::StringTerm*>{}(&symbol);
         factories[&symbol] = factory;
     }
 
@@ -48,7 +47,7 @@ namespace tosca {
         
         if (name == track)
             std::cout << name << " created\n";
-        
+
         return name;
     }
 
@@ -89,7 +88,7 @@ namespace tosca {
     void Context::Deallocate(void* ptr, std::size_t size)
     {
 		std::vector<void*>& poolForSize = pools[size];
-		if (poolForSize.size() < 1024)
+		if (poolForSize.size() < 16384)
 			poolForSize.push_back(ptr);
 		else
 			ReleaseMem(ptr);

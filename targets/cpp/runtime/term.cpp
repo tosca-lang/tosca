@@ -1,8 +1,10 @@
 // Copyright (c) 2016 IBM Corporation.
 #include <iostream>
 #include <vector>
+#include <stack>
 #include "term.h"
 #include "compat.h"
+#include "termprinter.h"
 #include "ts.h"
 #include "iowrapper.h"
 
@@ -38,8 +40,19 @@ namespace tosca {
         }
     }
 
+    Ref::Ref(bool immortal): refcount(immortal ? IMMORTAL : 1), track(false)
+    {
+        if (TRACK_REFS)
+        {
+            allocated[this] = allocated_count ++;
+            if (track_allocated == allocated[this])
+                std::cerr << "\n[" << allocated[this] << "] created ";
+        }
+    }
+
     Ref::~Ref()
     {
+    	assert(refcount != IMMORTAL);
         //std::cout << "delete ref\n";
         //assert(refcount == 0); // refcount not zero when term allocated on stack
     }
@@ -47,22 +60,27 @@ namespace tosca {
     void Ref::AddRef()
     {
         assert(Alive(this));
-
-        refcount++;
-        if (TRACK_REFS && (track || track_allocated == allocated[this]))
-          std::cerr << "\n[" << allocated[this] << "] add ref " << refcount ;
+        if (refcount != IMMORTAL)
+        {
+        	refcount++;
+        	if (TRACK_REFS && (track || track_allocated == allocated[this]))
+        		std::cerr << "\n[" << allocated[this] << "] add ref " << refcount ;
+        }
     }
 
     void Ref::Release()
     {
         assert(Alive(this));
-        refcount--;
+        if (refcount != IMMORTAL)
+        {
+        	refcount--;
 
-        if (TRACK_REFS && (track || track_allocated == allocated[this]))
-          std::cerr << "\n[" << allocated[this] << "] released " << refcount;
+        	if (TRACK_REFS && (track || track_allocated == allocated[this]))
+        		std::cerr << "\n[" << allocated[this] << "] released " << refcount;
 
-        if (refcount == 0)
-          delete this;
+        	if (refcount == 0)
+        		delete this;
+        }
     }
 
     void Ref::Track(long id)
@@ -310,6 +328,233 @@ namespace tosca {
         return copy;
     }
 
+    Term& Term::Substitute2(tosca::Context& ctx, Term& term, std::unordered_map<Variable*, Term*>& substitutes)
+	{
+//    	std::cerr << " === start subst\n";
+//    	for (auto it = substitutes.begin(); it != substitutes.end(); it ++)
+//    	{
+//    		std::cerr << it->first->Symbol();
+//    		std::cerr << " -> ";
+//    		PT(*it->second);
+//    		std::cerr << "\n";
+//
+//    	}
+//
+//    	 std::cerr << "=== term\n";
+//
+//    	PT(term);
+    	std::vector<Term*> stack; // Stack of term. Own a reference to each term.
+    	std::vector<int> subidx;
+    	std::vector<bool> shared;
+    	std::vector<Term*> shadowed;
+
+    	stack.push_back(&term);
+    	subidx.push_back(0);
+    	shared.push_back(term.refcount > 1);
+
+    	Term* current;
+    	Term* output = 0;
+    	while (true)
+    	{
+    		if (output)
+			{
+    			// Going back up the tree. Update node on top of stack and move on to next sub (if any)
+    			stack.pop_back(); // no release of term: this has been done when setting the output
+    			subidx.pop_back();
+    			shared.pop_back();
+
+    			if (stack.empty())
+    				break; // Reached the top
+
+    			Term* parent = stack.back(); // Peek at parent
+				int subi = subidx.back();
+
+				if (&parent->Sub(subi).value() != output)
+				{
+					if (shared.back())
+					{
+						Term* newparent = &parent->Copy(ctx); // Make sure we don't overrides the other shared terms.
+
+						// For now set sub and binders here.
+						int i = 0;
+						while(true)
+						{
+							auto osub = parent->Sub(i);
+							if (!osub)
+								break;
+
+							osub.value().AddRef();
+							newparent->SetSub(i, osub.value());
+
+							int j = 0;
+							while (true)
+							{
+								auto obinder = parent->Binder(i, j);
+								if (!obinder)
+									break;
+
+								obinder.value().AddRef();
+								newparent->SetBinder(i, j, obinder.value());
+								j++;
+							}
+							i++;
+						}
+						stack.pop_back();
+						parent->Release();
+
+						parent = newparent;
+
+						stack.push_back(parent); // transfer ref
+
+						shared.pop_back();
+						shared.push_back(false);
+					}
+
+					parent->SetSub(subi, *output); // Transfer output ref
+				}
+				else
+					output->Release();
+
+				// Restore shadowed binders.
+				int j = 0;
+				while (true)
+				{
+					Optional<Variable> obinder = parent->Binder(subi, j);
+					if (!obinder)
+						break;
+
+					Term* s = shadowed.back();
+					shadowed.pop_back();
+					if (s)
+						substitutes[&obinder.value()] = s;
+					j++;
+				}
+
+				// Move on to next sibling or parent.
+				Optional<Term> osibling = parent->Sub(subi + 1);
+				if (osibling)
+				{
+					subi ++;
+					// Make sure one of the binders does not shadowed one of the substituted binders,
+					// in which case temporarily remove it from the substitution map.
+					int j = 0;
+					while (true)
+					{
+						Optional<Variable> obinder = parent->Binder(subi, j);
+						if (!obinder)
+							break;
+
+						Variable& binder = obinder.value();
+						auto s = substitutes.find(&binder);
+						if (s != substitutes.end())
+							shadowed.push_back(s->second);
+						else
+							shadowed.push_back(0);
+
+						substitutes.erase(&binder);
+						j++;
+					}
+
+					subidx.pop_back();
+					subidx.push_back(subi);
+
+					auto& sibling = osibling.value();
+					stack.push_back(&sibling);
+					subidx.push_back(0);
+					shared.push_back(sibling.refcount > 1 || shared.back());
+					sibling.AddRef(); // stack own a reference
+					output = 0; // move down
+				}
+				else
+				{
+					parent->AddRef();
+					output = parent; // move up with result.
+				}
+			}
+			else
+			{
+	    		current = stack.back();
+
+	    		// Going down the tree.
+				if (substitutes.empty())
+				{
+					// Nothing to substitute so stop traversal.
+					output = current; // Transfer ref
+				}
+				else
+				{
+					int subi = subidx.back();
+
+					// -- subi'th subterm with maybe binders
+					// If that's the case, make sure one of the binders does not shadowed one of the substituted binders,
+					// in which case remove it temporarily from the substitution map.
+
+					int j = 0;
+					while (true)
+					{
+						Optional<Variable> obinder = current->Binder(subi, j);
+						if (!obinder)
+							break;
+
+						Variable& binder = obinder.value();
+						auto s = substitutes.find(&binder);
+						if (s != substitutes.end())
+							shadowed.push_back(s->second);
+						else
+							shadowed.push_back(0);
+
+						substitutes.erase(&binder);
+						j++;
+					}
+
+					Optional<Variable> ovariable = current->GetGVariable();
+					if (ovariable)
+					{
+						auto substitute = substitutes.find(&ovariable.value());
+						if (substitute != substitutes.end())
+						{
+							output = substitute->second;
+							output->AddRef();
+							current->Release();
+						}
+						else
+							output = current; // Transfer ref
+					}
+					else if (current->IsMap())
+					{
+						output = &current->Substitute(ctx, substitutes);
+					}
+					else
+					{
+						Optional<Term> osub = current->Sub(subi); // peek at sub
+						if (!osub)
+						{
+							// No more sub: move back up
+							output = current; // Transfer ref
+						}
+						else
+						{
+							// --  Process on substituting first sub
+							Term& sub = osub.value();
+							stack.push_back(&sub);
+							subidx.push_back(0);
+							shared.push_back(osub.value().refcount > 1 || shared.back());
+							sub.AddRef(); // Done after shared.
+
+							assert(!output);
+						}
+					}
+					current = 0;
+				}
+			}
+    	}
+//    	std::cerr << "===  result\n";
+//       	PT(*output);
+//       	std::cerr << "===\n";
+
+       	return *output;
+	}
+
     size_t Term::HashCode()
     {
         std::unordered_set<tosca::Variable*> var;
@@ -510,7 +755,7 @@ namespace tosca {
     
     Optional<_CStringTermVar> StringTerm::GetVariable() const
     {
-        return Optional<_CStringTermVar::_CStringTermVar>::nullopt;
+        return Optional<_CStringTermVar>::nullopt;
     }
 
     Variable& StringTerm::MakeVariable(Context& ctx, const std::string& hint)
@@ -559,6 +804,11 @@ namespace tosca {
         return make_optional<_CStringTermVar>(dynamic_cast<_CStringTermVar&>(VariableUse::GetGVariable().value()));
     }
 
+    Optional<tosca::Variable> _CStringTermVarUse::GetGVariable() const
+    {
+    	return VariableUse::GetGVariable();
+    }
+
     const std::string& _CStringTermVarUse::Unbox() const
     {
         return var.Symbol();
@@ -600,7 +850,7 @@ namespace tosca {
     
     Optional<_CDoubleTermVar> DoubleTerm::GetVariable() const
     {
-        return Optional<_CDoubleTermVar::_CDoubleTermVar>::nullopt;
+        return Optional<_CDoubleTermVar>::nullopt;
     }
 
     Variable& DoubleTerm::MakeVariable(Context& ctx, const std::string& hint)
@@ -627,6 +877,11 @@ namespace tosca {
     Optional<_CDoubleTermVar> _CDoubleTermVarUse::GetVariable() const
     {
         return make_optional<_CDoubleTermVar>(dynamic_cast<_CDoubleTermVar&>(VariableUse::GetGVariable().value()));
+    }
+
+    Optional<tosca::Variable> _CDoubleTermVarUse::GetGVariable() const
+    {
+    	return VariableUse::GetGVariable();
     }
 
     _CDoubleTermVar::_CDoubleTermVar(std::string name) : Variable(std::move(name))

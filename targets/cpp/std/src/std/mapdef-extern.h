@@ -36,7 +36,7 @@ List<a>& VectorToList(tosca::Context& ctx, std::vector<a*>& vector)
 template<typename a, typename b>
 tosca::MapTerm<a, b>& MapPut(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key, b& value)
 {
-    tosca::MapTerm<a, b>& xmap = map.extend();
+    tosca::MapTerm<a, b>& xmap = map.extend(ctx);
     xmap.putValue(ctx, key, value);
     return xmap;
 }
@@ -51,7 +51,7 @@ tosca::MapTerm<a, b>& MapPut(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& 
 template<typename a, typename b>
 tosca::MapTerm<a, b>& MapAddAll(tosca::Context& ctx, tosca::MapTerm<a, b>& map1, tosca::MapTerm<a, b>& map2)
 {
-    tosca::MapTerm<a, b>& xmap = map1.extend();
+    tosca::MapTerm<a, b>& xmap = map1.extend(ctx);
     xmap.putAll(map2);
     return xmap;
 }
@@ -135,7 +135,7 @@ List<c>& MapVarKeys(tosca::Context& ctx, tosca::MapTerm<a, b>& map)
 template<typename a, typename b>
 tosca::MapTerm<a, b>& MapNew(tosca::Context& ctx)
 {
-    return *(new tosca::CMapTerm<a, b>());
+    return tosca::newMapTerm<a, b>(ctx);
 }
 
 /**

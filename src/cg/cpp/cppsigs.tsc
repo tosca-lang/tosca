@@ -104,6 +104,7 @@ public:→
 †⟨CppFormMakeFree(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
 †⟨CppFormMakeBound(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
 †⟨CppFormMakeTerm(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
+†⟨CppFormSingleton(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, FALSE)⟩
 static void* operator new(std::size_t sz, tosca::Context& ctx) { return tosca::Allocate(sz, ctx); }
 static void operator delete(void* ptr) { tosca::Deallocate(ptr, sizeof(†⟨FormCppClassName(#CONSTRUCTOR)⟩)); }
 

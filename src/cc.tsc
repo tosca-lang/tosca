@@ -126,10 +126,10 @@ func CCPatternMapEntry(CCEnv, Core_cmapentry_sort, Core_cmapsort_sort, CCBinders
 // TODO: extract boilerplate
 func CCTerm(CCEnv, Core_cterm_sort) -> PPair<CCEnv Core_cterm_sort>
 rule CCTerm(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧) → CCConsUp(#canno*, #cqconstructor, #csortargs?, CCMaybeTerms(#env, #cterms?), #csortanno?)
-rule CCTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)          → CCMetaUp(#METAVAR, CCMaybeTerms(#env, #cterms?), #csubst?, #csortanno?)
+rule CCTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)          → CCMetaUp(#canno*, #METAVAR, CCMaybeTerms(#env, #cterms?), #csubst?, #csortanno?)
 rule CCTerm(#env, cterm⟦ ##canno* ##VARIABLE : ##csort ⟧)                                → PairCons(CCEnvAddVar(#env, #VARIABLE, CCVar(#VARIABLE, #csort)), cterm⟦ ##canno* ##VARIABLE : ##csort ⟧)
-rule CCTerm(#env, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧)                          → CCBinderUp(#csort, [x] -> PairCons(x, CCTerm(CCEnvBind(#env, x, #csort), @NoSubst #cterm[x])))
-rule CCTerm(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧)                       → CCFormal(CCEnvResetParams(#env), cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧, cterm⟦ ( f ##csortanno? ) ##cterm[f] ⟧)
+rule CCTerm(#env, cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧)                          → CCBinderUp(#canno*, #csort, [x] -> PairCons(x, CCTerm(CCEnvBind(#env, x, #csort), @NoSubst #cterm[x])))
+rule CCTerm(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧)                       → CCFormal(CCEnvResetParams(#env), cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧)
 rule CCTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧)                                       → CCThunkUp(#canno*, CCThunk(CCEnvResetParams(#env), #cterm))
 rule CCTerm(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧)                    → Error("Internal Error: named terms cannot occur in contraction.")
 rule CCTerm(#env, cterm⟦ ##canno* let ##METAVAR : ##csort = ##cterm ##cterm2 ⟧)          → CCLetExpr(#canno*, #METAVAR, #csort, CCTerm(CCEnvAddMetaVar(#env, #METAVAR, CCMeta(#METAVAR, #csort)), #cterm), #cterm2)
@@ -147,7 +147,7 @@ rule CCTerms(#env, cterm*⟦ ##cterm ##cterm* ⟧) → CCTermsUp(CCTerm(#env, #c
 // --- Process formal parameters. Setup environment for possible lifting.
 
 func CCFormal(CCEnv, Core_cterm_sort, Core_cterm_sort /* original lambda term */) -> PPair<CCEnv Core_cterm_sort>
-rule CCFormal(#env, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧, #lambda) → CCFormalUp(#csort, [f] -> CCFormal(CCEnvAddParam(#env, f, #csort),  @NoSubst #cterm[f], #lambda))
+rule CCFormal(#env, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧, #lambda) → CCFormalUp(#canno*, #csort, [f] -> CCFormal(CCEnvAddParam(#env, f, #csort),  @NoSubst #cterm[f], #lambda))
 rule CCFormal(#env, cterm⟦ ##canno* ( f           ) ##cterm[f] ⟧, #lambda) → Error("Fatal error: missing formal parameter type in lambda (needed by closure converter)")
 rule CCFormal(#env, #cterm, #lambda)                                       → CCFormal2(#env, #cterm, #lambda)
 
@@ -328,15 +328,15 @@ rule CCBoundTerm2(csort*⟦ ##csort ##csort* ⟧, #METAVAR, #csubst?, #cterm*, #
 func CCConsUp(List<Core_canno_sort>, Core_cqconstructor_sort, List<Core_csortargs_sort>, PPair<CCEnv List<Core_cterms_sort>>, List<Core_csortanno_sort>) -> PPair<CCEnv Core_cterm_sort>
 rule CCConsUp(#canno*, #cqconstructor, #csortargs?, PairCons(#env, #cterms?), #csortanno?) → PairCons(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧)
 
-func CCMetaUp(String, PPair<CCEnv List<Core_cterms_sort>>, List<Core_csubst_sort>, List<Core_csortanno_sort>) -> PPair<CCEnv Core_cterm_sort>
-rule CCMetaUp(#METAVAR, PairCons(#env, #cterms?), #csubst?, #csortanno?) → PairCons(#env, cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)
+func CCMetaUp(List<Core_canno_sort>, String, PPair<CCEnv List<Core_cterms_sort>>, List<Core_csubst_sort>, List<Core_csortanno_sort>) -> PPair<CCEnv Core_cterm_sort>
+rule CCMetaUp(#canno*, #METAVAR, PairCons(#env, #cterms?), #csubst?, #csortanno?) → PairCons(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧)
 
-func CCBinderUp(Core_csort_sort, [String] -> PPair<String PPair<CCEnv Core_cterm_sort>>) -> PPair<CCEnv Core_cterm_sort>
-rule CCBinderUp(#csort, [x] -> PairCons(#x, PairCons(#env, #cterm[x])))
-→ PairCons(CCEnvUnBind(#env, #x), cterm⟦ [ x : ##csort ] ##cterm[x] ⟧ )
+func CCBinderUp(List<Core_canno_sort>, Core_csort_sort, [String] -> PPair<String PPair<CCEnv Core_cterm_sort>>) -> PPair<CCEnv Core_cterm_sort>
+rule CCBinderUp(#canno*, #csort, [x] -> PairCons(#x, PairCons(#env, #cterm[x])))
+→ PairCons(CCEnvUnBind(#env, #x), cterm⟦ ##canno* [ x : ##csort ] ##cterm[x] ⟧ )
 
-func CCFormalUp(Core_csort_sort, [String] -> PPair<CCEnv Core_cterm_sort>) -> PPair<CCEnv Core_cterm_sort>
-rule CCFormalUp(#csort, [f] -> PairCons(#env, #cterm[f])) → PairCons(#env, cterm⟦ ( f : ##csort ) ##cterm[f] ⟧)
+func CCFormalUp(List<Core_canno_sort>, Core_csort_sort, [String] -> PPair<CCEnv Core_cterm_sort>) -> PPair<CCEnv Core_cterm_sort>
+rule CCFormalUp(#canno*, #csort, [f] -> PairCons(#env, #cterm[f])) → PairCons(#env, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧)
 
 func CCThunkUp(List<Core_canno_sort>, PPair<CCEnv Core_cterm_sort>) -> PPair<CCEnv Core_cterm_sort>
 rule CCThunkUp(#canno*, PairCons(#env, #cterm)) → PairCons(#env, cterm⟦ ##canno* thunk ##cterm ⟧)

@@ -87,7 +87,8 @@ func CppFormMethod(String, List<Core_csortvars_sort>, Core_cform_sort) -> Text4_
 †⟨CppFormSetBinder(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
 †⟨CppFormMakeFree(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
 †⟨CppFormMakeBound(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
-†⟨CppFormMakeTerm(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩⟧
+†⟨CppFormMakeTerm(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩
+†⟨CppFormSingleton(#sortname, #csortvars?, #CONSTRUCTOR, #sorts?, TRUE)⟩⟧
 
   rule CppFormMethod(#sortname, #csortvars?, cform⟦ allows-variable ⟧)
   → text⟦†⟨CppVarConstructorVar(#sortname, #csortvars?, TRUE)⟩

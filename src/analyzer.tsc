@@ -61,17 +61,15 @@ func IsFallbackRule(Core_cdecl_sort) -> Bool
   rule IsFallbackRule(cdecl⟦ rule ##cqconstructor ##csortargs? ( ##cterm* ) ##csortanno? → ##cterm ⟧ )
   → Not(HasOption(PickFirst(#cterm*, (term) -> Not(IsMeta(term)))))
 
-
 // --- Lifetime and binder reuse analysis (bottom up tree traversal)
 
 func AnalyzeRules(#system: TSystem, #rules: {String:List<Core_cdecl_sort>}) -> {String:List<Core_cdecl_sort>}
 → FoldlP((key rules)->MapPut(rules, key, Map((rule)->AnalyzeRule(#system, rule), UnSOME(MapGet(#rules, key)))), #rules, MapKeys(#rules))
 
 func AnalyzeRule(TSystem, Core_cdecl_sort) -> Core_cdecl_sort
-rule AnalyzeRule(#system, cdecl⟦ ##canno* rule ##cterm1 → ##cterm2 ⟧)
-→ let #result = AnalyzeVar(AnalyzePattern(LEnvNew(#system, {},{}), #cterm1), #cterm2)
-  cdecl⟦ ⟨canno*: AnalyzeRuleAnno(Fst(#result), #canno*)⟩ rule ##cterm1 → ⟨cterm: Snd(#result)⟩ ⟧
-  //Debug(PrintTerm("", #decl), ()->#decl)
+rule AnalyzeRule(#system, cdecl⟦ ##canno* rule ##canno*2 ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? → ##cterm2 ⟧)
+→ let #result = AnalyzeVar(AnalyzePattern(LEnvNew(#system, {},{}), cterm⟦ ##canno*2 ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧), #cterm2)
+  cdecl⟦ ⟨canno*: AnalyzeRuleAnno(Fst(#result), #canno*)⟩ rule ##canno*2 ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno?  → ⟨cterm: Snd(#result)⟩ ⟧
 
 // -- Analyze rule pattern: record metavariable arguments and free variables.
 
@@ -381,8 +379,8 @@ rule AnalyzeMetaArgsReuse(#canno*, #metavar, PairCons(#env, #terms))
                 #env
               else
                 AnalyzeWeakVariables(#env, #terms)*/
-  let #nosubst =  HasAnnotation("NoSubst", #canno*)
-  if And(AnalyzeAllBoundOrFresh(#nenv, #terms, #nosubst), Not(LEnvIsReused(#nenv, #metavar))) // TODO: no subst even if binders already reused
+  let #nosubst = HasAnnotation("NoSubst", #canno*)
+  if And(AnalyzeAllBoundOrFresh(#nenv, #terms, #nosubst), Or(#nosubst, Not(LEnvIsReused(#nenv, #metavar))))
     AnalyzeReuseArgs(LEnvReuse(#nenv, #metavar), #nosubst, #metavar, #terms, (), 0)
   else
     PairCons(#nenv, #terms)
@@ -419,9 +417,9 @@ rule AnalyzeAllBoundOrFreshVar(#env, SOME(LFRESH(#reused                  )), #c
 rule AnalyzeAllBoundOrFreshVar(#env, SOME(LBOUND(#reused, FALSE, #onosubst)), #cterm*, #nosubst) → AnalyzeAllBoundOrFresh(#env, #cterm*, #nosubst)
 rule AnalyzeAllBoundOrFreshVar(#env, SOME(LBOUND(#reused, TRUE , #onosubst)), #cterm*, TRUE)     → AnalyzeAllBoundOrFresh(#env, #cterm*, TRUE)
 rule AnalyzeAllBoundOrFreshVar(#env, SOME(LBOUND(#reused, TRUE , #onosubst)), #cterm*, FALSE)    → FALSE
-rule AnalyzeAllBoundOrFreshVar(#env, SOME(#), #cterm*, FALSE)                         → FALSE
-rule AnalyzeAllBoundOrFreshVar(#env, SOME(#), #cterm*, TRUE)                          → Error("Invalid @NoSubst annotation on meta-variable requiring substitution.") // Should be a warning
-rule AnalyzeAllBoundOrFreshVar(#env, NONE   , #cterm*, #nosubst)                      → Error("Internal Error: undeclared variable")
+rule AnalyzeAllBoundOrFreshVar(#env, SOME(#), #cterm*, FALSE)                                    → FALSE
+rule AnalyzeAllBoundOrFreshVar(#env, SOME(#), #cterm*, TRUE)                                     → Error("Invalid @NoSubst annotation on meta-variable requiring substitution.") // Should be a warning
+rule AnalyzeAllBoundOrFreshVar(#env, NONE   , #cterm*, #nosubst)                                 → Error("Internal Error: undeclared variable")
 
 /* Mark binders that cannot be reused because they can potentially be occuring in a shared subterm,
    for instance when a binder is "moved up": [b]->F(#1, #2[b]), in which case #1 might contains shared free variable 'b'.

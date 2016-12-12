@@ -61,7 +61,7 @@ class †⟨ParamFormCppClassName(#sortname, (), CFC_VARUSE)⟩;⟧
    @param `#sortname`
    @param `#csortvars?`
    @param `#cform`
-   @param `#def` whether to generate the method definition in additition to its declaration.
+   @param `#def` whether to generate the method definition in addition to its declaration.
 */
 func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Text4_text_sort
 
@@ -70,7 +70,9 @@ func CppMethodNew(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> T
 †⟨CppTypeRefName(#csortvars?, #sortname)⟩ †⟨CppNewMethodName(#CONSTRUCTOR)⟩(tosca::Context& ctx†⟨MaybeCppFormalParams(MaybeSortsDefaultToMaybeSorts(#csortsdefault?), text⟦, ⟧, FALSE)⟩)†⟨
       If(#def, ()->text⟦
 {→
-return (*new (ctx) †⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩(†⟨MaybeCppFormalParams(MaybeSortsDefaultToMaybeSorts(#csortsdefault?), text⟦⟧, TRUE)⟩));←
+return †⟨If(HasSorts(MaybeSortsDefaultToMaybeSorts(#csortsdefault?)),
+              ()->text⟦(*new (ctx) †⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩(†⟨MaybeCppFormalParams(MaybeSortsDefaultToMaybeSorts(#csortsdefault?), text⟦⟧, TRUE)⟩));⟧,
+              ()->text⟦†⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩::SINGLETON;⟧)⟩←
 }⟧, ()->text⟦;⟧)⟩⟧
 
   rule CppMethodNew(#sortname, #csortvars?, cform⟦ allows-variable ⟧, #def)
@@ -96,7 +98,6 @@ func CppMethodAs(String, List<Core_csortvars_sort>, Core_cform_sort, Bool) -> Te
 return Optional<†⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩>::nullopt;←
 }⟧, ()->text⟦;⟧)⟩⟧
 
-
   rule CppMethodAs(#sortname, #csortvars?, cform⟦ allows-variable ⟧, #def)
   → text⟦⟧
 
@@ -121,8 +122,9 @@ func CppFormConstructor(#sortname: String, #csortvars?: List<Core_csortvars_sort
 → text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
 †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩†⟨FormCppClassName(#formname)⟩(†⟨MaybeCppFormalParams(#csorts?, text⟦⟧, FALSE)⟩)†⟨
     If(#def,
-      ()->text⟦†⟨TextIf(HasSorts(#csorts?),
-        ()->text⟦: †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppInitField(isvar, type, index, subindex))⟩⟧)⟩{}⟧,
+      ()->text⟦†⟨If(HasSorts(#csorts?),
+        ()->text⟦: †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppInitField(isvar, type, index, subindex))⟩⟧,
+        ()->text⟦: Ref(true)⟧)⟩{}⟧,
       ()->text⟦;⟧)⟩⟧
 
 /* Generate default class constructor corresponding to the given `#formname`. Only if not a constant, since otherwise it has already been generated. */
@@ -133,7 +135,6 @@ func CppFormDefaultConstructor(#sortname: String, #csortvars?: List<Core_csortva
       ()->text⟦†⟨TextIf(HasSorts(#csorts?),
         ()->text⟦: †⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppNullifyField(isvar, type, index, subindex))⟩⟧)⟩{}⟧,
       ()->text⟦;⟧)⟩⟧)
-
 
 /* Generate class destructor corresponding to the given `#formname`. */
 func CppFormDestructor(#sortname: String, #csortvars?: List<Core_csortvars_sort>, #formname: String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
@@ -151,7 +152,9 @@ func CppFormMethodMake(#sortname: String, #csortvars?: List<Core_csortvars_sort>
 → text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
 †⟨TextIf(Not(#def), ()->text⟦static ⟧)⟩tosca::Term& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Make(tosca::Context& ctx)†⟨
     If(#def,
-      ()->text⟦¶{ return *(new (ctx) †⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩()); }⟧,
+      ()->text⟦†⟨If(HasSorts(#csorts?),
+          ()->text⟦¶{ return *(new (ctx) †⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩()); }⟧,
+          ()->text⟦¶{ return †⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩::SINGLETON; }⟧)⟩⟧,
       ()->text⟦;⟧)⟩⟧
 
 /* Generate Use constructor corresponding to the given `#sortname`. */
@@ -479,6 +482,18 @@ default: assert(false);←
 func CppMakeTerm(Bool, Text4_text_sort, Numeric) -> Text4_text_sort
 rule CppMakeTerm(TRUE, #type, #index)  → text⟦⟧
 rule CppMakeTerm(FALSE, #type, #index) → text⟦¶case †⟨NumberToText(Minus(#index, 1))⟩: return †⟨#type⟩::MakeTerm(ctx, symbol);⟧
+
+/* Generate the SINGLETON static field method for the given `#formname`. Only if the form is constant */
+func CppFormSingleton(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #formname:String, #csorts?: List<Core_csorts_sort>, #def: Bool) -> Text4_text_sort
+→ if HasSorts(#csorts?)
+    text⟦⟧
+  else
+    text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+†⟨TextIf(Not(#def), ()->text⟦static ⟧)⟩†⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩& †⟨TextIf(#def, ()->text⟦†⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩::⟧)⟩SINGLETON†⟨
+      If(#def,
+        ()->text⟦ = *(::new †⟨ParamFormCppClassName(#formname, #csortvars?, CFC_CONS)⟩());⟧,
+        ()->text⟦;⟧)⟩⟧
+
 
 // --- Generate code for class field declarations, initialization, lookup, and update.
 

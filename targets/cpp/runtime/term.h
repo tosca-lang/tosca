@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <set>
+#include <climits>
 
 #include "compat.h"
 
@@ -38,6 +39,7 @@ namespace tosca {
         unsigned long refcount;
 
         Ref();
+        Ref(bool immortal);
         virtual ~Ref();
 
         void AddRef();
@@ -61,10 +63,19 @@ namespace tosca {
           track = true;
         }
         
+        /* @return true if this is a immortal reference */
+        inline bool IsImmortal()
+        {
+        	return refcount == IMMORTAL;
+        }
+
         static void Track(long id);
         
     protected:
         bool track;
+
+        // Immortal ref.
+        static const unsigned long IMMORTAL = ULONG_MAX;
     };
 
     /*
@@ -172,6 +183,7 @@ namespace tosca {
          * @return
          */
         virtual Term& Substitute(tosca::Context& c, std::unordered_map<Variable*, Term*>& substitutes);
+        static Term& Substitute2(tosca::Context& c, Term& term, std::unordered_map<Variable*, Term*>& substitutes); // Same but optimized
 
         /**
          * Deep term equality, modulo bound variables and map
@@ -453,6 +465,7 @@ namespace tosca {
         // -- Overrides
         const std::string& Unbox() const;
         Optional<_CStringTermVar> GetVariable() const;
+        Optional<Variable> GetGVariable() const;
 
     };
 
@@ -550,12 +563,15 @@ namespace tosca {
 
         // Overrides
         Optional<_CDoubleTermVar> GetVariable() const;
+		Optional<Variable> GetGVariable() const;
     };
 
 
 }
 
 // -- Substitution
+
+const bool TOSCAFASTSUBST = getenv("toscanofastsubst") == 0;
 
 template<typename T>
 T& Subst(tosca::Context& c, T& term, std::initializer_list<tosca::Variable*> binders, std::initializer_list<tosca::Term*> substitutes)
@@ -572,7 +588,7 @@ T& Subst(tosca::Context& c, T& term, std::initializer_list<tosca::Variable*> bin
     if (var != binders.end() || subst != substitutes.end())
         throw new std::runtime_error("Internal error: mismatch number of binders and substitutes");
 
-    tosca::Term& result = term.Substitute(c, map);
+    tosca::Term& result = (TOSCAFASTSUBST) ?  tosca::Term::Substitute2(c, term, map) : term.Substitute(c, map);
 
     subst = substitutes.begin();
     for (; subst != substitutes.end(); subst++)

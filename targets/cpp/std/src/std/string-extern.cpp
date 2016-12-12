@@ -15,7 +15,7 @@ StringTerm& AfterFirst(Context& ctx, StringTerm& string, StringTerm& sep)
     const std::string& usep = sep.Unbox();
     std::string::size_type idx = ustring.find(usep);
 
-    StringTerm& result = newStringTerm(ctx, (idx == -1) ? "" : ustring.substr(idx + 1));
+    StringTerm& result = newStringTerm(ctx, (idx == std::string::npos) ? "" : ustring.substr(idx + 1));
     string.Release();
     sep.Release();
     return result;
@@ -27,7 +27,7 @@ StringTerm& BeforeFirst(Context& ctx, StringTerm& string, StringTerm& sep)
     const std::string& usep = sep.Unbox();
     std::string::size_type idx = ustring.find(usep);
 
-    StringTerm& result = newStringTerm(ctx, (idx == -1) ? ustring : ustring.substr(0, idx));
+    StringTerm& result = newStringTerm(ctx, (idx == std::string::npos) ? ustring : ustring.substr(0, idx));
     string.Release();
     sep.Release();
     return result;

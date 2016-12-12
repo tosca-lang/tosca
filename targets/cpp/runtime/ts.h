@@ -104,14 +104,6 @@ namespace tosca {
     
     /** Add new reference to the given term */
     template<typename T>
-    T& Ref(T& term)
-    {
-        term.AddRef();
-        return term;
-    }
-    
-    /** Add new reference to the given term */
-    template<typename T>
     inline T& NewRef(T& ref)
     {
         ref.AddRef();
@@ -138,8 +130,8 @@ namespace tosca {
     /** Deallocate memory  */
     inline void Deallocate(void* ptr, std::size_t size)
     {
-    	if (NOPOOL)
-    		::operator delete (ptr);
+    	if (NOPOOL || static_cast<Ref*>(ptr)->IsImmortal())
+			::operator delete (ptr);
     	else
     	{
     		struct TaggedObj* tag = reinterpret_cast<struct TaggedObj*>(static_cast<uint8_t*>(ptr) - sizeof(Context*));

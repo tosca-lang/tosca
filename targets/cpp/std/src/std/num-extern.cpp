@@ -24,8 +24,6 @@ DoubleTerm& Minus(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 
 DoubleTerm& Times(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 {
-    double uleft = left.Unbox();
-    double uright = right.Unbox();
     DoubleTerm& result = newDoubleTerm(ctx, left.Unbox() * right.Unbox());
     left.Release();
     right.Release();
