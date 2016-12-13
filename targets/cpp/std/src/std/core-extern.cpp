@@ -2,6 +2,7 @@
 #include "core-extern.h"
 
 #include  <cstdlib>
+#include  <vector>
 #include "core.h"
 #include "listdef.h"
 
@@ -57,4 +58,49 @@ DoubleTerm& BitAnd(Context& ctx, DoubleTerm& left, DoubleTerm& right)
     left.Release();
     right.Release();
     return result;
+}
+
+bool IsFreeVariableImpl(Context& ctx, const Variable& var, const Term& term)
+{
+	std::vector<const Term*> stack;
+	stack.push_back(&term);
+	while (!stack.empty())
+	{
+		const Term& current = *stack.back();
+		stack.pop_back();
+
+		Optional<tosca::Variable> ovar = current.GetGVariable();
+		if (ovar)
+		{
+			if (ovar.value() == var)
+				return true;
+		}
+		else
+		{
+			for (int subidx = current.Arity() - 1; subidx >= 0; subidx --)
+			{
+				int binderidx = 0;
+				bool skipsub = false;
+				while (true)
+				{
+					Optional<tosca::Variable> binder = current.Binder(subidx, binderidx);
+					if (!binder)
+						break;
+
+					if (binder.value() == var)
+					{
+						// binder shadowed the variable: can't be free
+						skipsub = true;
+						break;
+					}
+
+					binderidx ++;
+				}
+
+				if (!skipsub)
+					stack.push_back(&current.Sub(subidx).value());
+			}
+		}
+	}
+	return false;
 }

@@ -172,6 +172,12 @@ public class CoreExtern
 		return null;
 	}
 
+	public static <a extends Term, b extends Term> Bool IsFreeVariable(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, a var, b term)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	public static <a extends Term, b extends Term> b VariableNameIs(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, a value_1733, StringTerm value_1734, b value_1735)
 	{
 		// TODO Auto-generated method stub

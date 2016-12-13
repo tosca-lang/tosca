@@ -27,7 +27,7 @@ public:
     template <typename K, typename V>
     Sink& StartMapT(Context& ctx)
     {
-        return Start(tosca::newMapTerm<K, V>(ctx));
+        return Start(tosca::newMapTerm<K, V>(ctx).extend(ctx));
     }
 
     // --- Overrides
@@ -38,6 +38,7 @@ public:
     Sink& Bind(Variable& binder);
     Sink& Use(Variable& variable);
     Sink& Literal(const std::string& literal);
+    Sink& Double(double literal);
     Sink& Copy(Term& term);
     Sink& StartMap();
     Sink& MapEntry(Term& key, Term& value);

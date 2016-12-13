@@ -150,6 +150,15 @@ List<b>& FreeVariables(tosca::Context& ctx, a& term)
     return fvs;
 }
 
+bool IsFreeVariableImpl(tosca::Context& ctx, const tosca::Variable& var, const tosca::Term& term);
+
+template<typename a, typename b>
+Bool& IsFreeVariable(tosca::Context& ctx, a& var, b& term)
+{
+    Bool& result = IsFreeVariableImpl(ctx, var.GetGVariable().value(), term) ? newTRUE(ctx) : newFALSE(ctx);
+    term.Release();
+    return result;
+}
 
 template<typename a>
 void IndexVariables(tosca::Context& ctx, List<a>& list, std::unordered_set<tosca::Variable*>& index)

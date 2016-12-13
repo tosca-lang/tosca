@@ -115,6 +115,14 @@ namespace tosca {
         return true;
     }
 
+    unsigned Term::Arity() const
+    {
+    	int arity = 0;
+    	while (Sub(arity))
+    		arity ++;
+    	return arity;
+    }
+
     Optional<Term> Term::Sub(int i) const
     {
         return Optional<Term>::nullopt;

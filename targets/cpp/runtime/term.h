@@ -101,6 +101,9 @@ namespace tosca {
         /** @return true when this term is data */
         virtual bool Data() const;
 
+        /** @return this term arity */
+        virtual unsigned Arity() const;
+
         /**
          * Peek at the ith subterm.
          *

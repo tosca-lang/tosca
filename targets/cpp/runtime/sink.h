@@ -85,7 +85,15 @@ public:
      * @return this sink
      */
     virtual Sink& Literal(const std::string& literal) = 0;
-    
+
+    /**
+     * Insert double literal subterm.
+     *
+     * @param literal to add.
+     * @return this sink
+     */
+    virtual Sink& Double(double literal) = 0;
+
     /**
      * Start of map.
      *

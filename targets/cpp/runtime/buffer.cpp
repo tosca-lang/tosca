@@ -90,6 +90,11 @@ namespace tosca {
         return *this;
     }
 
+    Sink& BufferSink::Double(double literal)
+    {
+        AddSub(newDoubleTerm(GetContext(), literal));
+        return *this;
+    }
     Sink& BufferSink::StartMap()
     {
         std::string symbol("dummy");

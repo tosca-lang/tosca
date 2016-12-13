@@ -129,6 +129,9 @@ func NotEqual<a>(#1: a, #2: a) -> Bool
 /* @return the list of free variables of type `b` in `#term` */
 @Extern func FreeVariables<a b>(#term: a) -> List<b>
 
+/* @return `TRUE` if `#var` is a free variable in `#term` */
+@Extern func IsFreeVariable<a b>(#var: a, #term: b) -> Bool
+
 /* @return a new list with just variables in both #vs1 and #vs2, of sort a. */
 @Extern func IntersectVariables<a>(List<a>, List<a>) -> List<a>
 
