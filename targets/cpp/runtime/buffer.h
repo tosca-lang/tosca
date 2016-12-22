@@ -27,7 +27,7 @@ public:
     template <typename K, typename V>
     Sink& StartMapT(Context& ctx)
     {
-        return Start(tosca::newMapTerm<K, V>(ctx).extend(ctx));
+        return Start(tosca::newMapTerm<K, V>(ctx));
     }
 
     // --- Overrides

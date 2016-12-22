@@ -19,7 +19,7 @@ cdecl
     : canno* RULE cterm ARROW cterm                                         /* Rule declaration */
     | canno* DATA  csortvars? cidentifierqualifier* CONSTRUCTOR cforms      /* Data sort declaration */
     | canno* ALIAS csortvars? CONSTRUCTOR csort                             /* Sort alias */
-    | canno* EXTERN? FUNC csortvars? csort CONSTRUCTOR csorts?              /* Function sort declaration */
+    | canno* EXTERN? FUNC csortvars? csort CONSTRUCTOR csortsdefault?       /* Function sort declaration */
     | IMPORT MODULE cqidentifier                                            /* Import module declaration */
     | IMPORT GRAMMAR  cqidentifier                                          /* Import grammar declaration */
     ;

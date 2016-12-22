@@ -70,7 +70,7 @@ namespace tosca {
         }
 
         static void Track(long id);
-        
+        static void PrintAlive();
     protected:
         bool track;
 
@@ -170,7 +170,7 @@ namespace tosca {
         virtual Optional<Term> MapGetValue(Context& ctx, Term& key) const;
 
         /* Add key-value pair to map. Only applicable when IsMap returns true */
-        virtual void MapPutValue(Context& ctx, Term& key, Term& value);
+        virtual Term& MapPutValue(Context& ctx, Term& key, Term& value);
 
         /**
          * Apply substitution on this term

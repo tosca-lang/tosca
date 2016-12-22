@@ -28,6 +28,8 @@ namespace tosca {
         return true;
     }
 
+
+
     // --- Ref
 
     Ref::Ref(): refcount(1), track(false)
@@ -79,13 +81,30 @@ namespace tosca {
         		std::cerr << "\n[" << allocated[this] << "] released " << refcount;
 
         	if (refcount == 0)
+        	{
+        		if (TRACK_REFS)
+        			allocated.erase(this);
+
         		delete this;
+        	}
         }
     }
 
     void Ref::Track(long id)
     {
         track_allocated = id;
+    }
+
+
+    void Ref::PrintAlive()
+    {
+    	if (TRACK_REFS)
+    	{
+    		for (auto it = allocated.begin(); it != allocated.end(); it++)
+    		{
+    			std::cerr << "\n[" << it->second << "] " << it->first->refcount;
+    		}
+    	}
     }
 
     // --- Term

@@ -690,7 +690,7 @@ func JavaMethod(#constructor: String, #classname: Text4_text_sort, #rules: {Stri
                         MapGet(#rules, #constructor))⟩⟧
 
 func JavaMethodSig({String : JEnvEntry}, Core_cdecl_sort, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
-rule JavaMethodSig(#env, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #rules)
+rule JavaMethodSig(#env, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧, #rules)
 → text⟦†⟨ReturnType(#csortvars?, #csort)⟩⟨STRING:Mangle(#CONSTRUCTOR)⟩(Context context†⟨ThunkMakerSig(#csortvars?)⟩†⟨
       JavaSigMaybeArgs(
          JSetMethodName(
@@ -699,7 +699,7 @@ rule JavaMethodSig(#env, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort #
                SetContext(JSetFnAnno(#env, #canno*), text⟦context⟧, 1),
                ThunkMakerArg(#csortvars?)),
              ThunkMaker(#csort)),
-           text⟦⟨STRING: Mangle(#CONSTRUCTOR)⟩⟧), #csorts?, #rules)⟩⟧   // )
+           text⟦⟨STRING: Mangle(#CONSTRUCTOR)⟩⟧), #csortsdefault?, #rules)⟩⟧   // )
 
 // --- Generate return type
 
@@ -750,53 +750,54 @@ func ThunkMaker(Core_csort_sort) -> Text4_text_sort
 
 // --- Generate method signature
 
-func JavaSigMaybeArgs({String : JEnvEntry}, List<Core_csorts_sort>, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
-  rule JavaSigMaybeArgs(#env, csorts?⟦⟧, #rules)
+func JavaSigMaybeArgs({String : JEnvEntry}, List<Core_csortsdefault_sort>, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
+  rule JavaSigMaybeArgs(#env, csortsdefault?⟦⟧, #rules)
   → JavaBody(#env, #rules)
 
-  rule JavaSigMaybeArgs(#env, csorts?⟦ ( ##csort* ) ⟧, #rules)
-  → JavaSigArgs(#env, #csort*, #rules)
+  rule JavaSigMaybeArgs(#env, csortsdefault?⟦ ( ##csortdefault* ) ⟧, #rules)
+  → JavaSigArgs(#env, #csortdefault*, #rules)
 
 // Generate method signature and record the argument names in the environment, keeping them in order
-func JavaSigArgs({String : JEnvEntry}, List<Core_csort_sort>, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
+func JavaSigArgs({String : JEnvEntry}, List<Core_csortdefault_sort>, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
 
-  rule JavaSigArgs(#env, csort*⟦ ⟧, #rules)
+
+  rule JavaSigArgs(#env, csortdefault*⟦ ⟧, #rules)
   → JavaBody(#env, #rules)
 
-  rule JavaSigArgs(#env, csort*⟦ ##csort ##csort* ⟧, #rules)
-  → JavaSigArg(#env, #csort, FALSE, SortToTypes(#csort), #csort*, #rules)
+  rule JavaSigArgs(#env, csortdefault*⟦ ##csort ##csortdefault* ⟧, #rules)
+  → JavaSigArg(#env, #csort, FALSE, SortToTypes(#csort), #csortdefault*, #rules)
 
 func JavaSigArg({String : JEnvEntry}, Core_csort_sort, Bool /* data? */,
-                List<Text4_text_sort> /* formal parameters */, List<Core_csort_sort>, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
+                List<Text4_text_sort> /* formal parameters */, List<Core_csortdefault_sort>, Option<List<Core_cdecl_sort>>) -> Text4_text_sort
 
  // Monomorphic sort
-   rule JavaSigArg(#env, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #data, (#type,), #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ ##canno* ##CONSTRUCTOR ##csorts? ⟧, #data, (#type,), #csortdefault*, #rules)
    → text⟦, †⟨#type⟩†⟨JavaVariadic(#canno*)⟩ ⟨STRING: value:String⟩†⟨
-       JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: value⟩⟧, csort⟦ ##CONSTRUCTOR ##csorts? ⟧), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
+       JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: value⟩⟧, csort⟦ ##CONSTRUCTOR ##csorts? ⟧), text⟦⟨STRING: value⟩⟧), #csortdefault*, #rules)⟩⟧
 
    // Sort variable
-   rule JavaSigArg(#env, csort⟦ ##canno* ##VARIABLE ⟧, #data, (#type,), #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ ##canno* ##VARIABLE ⟧, #data, (#type,), #csortdefault*, #rules)
    → text⟦, †⟨#type⟩†⟨JavaVariadic(#canno*)⟩ ⟨STRING: value:String⟩†⟨
-       JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: value⟩⟧, csort⟦ ##VARIABLE ⟧), text⟦⟨STRING: value⟩⟧), #csort*, #rules)⟩⟧
+       JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: value⟩⟧, csort⟦ ##VARIABLE ⟧), text⟦⟨STRING: value⟩⟧), #csortdefault*, #rules)⟩⟧
 
    // Syntactic variable sort
-   rule JavaSigArg(#env, csort⟦ ##canno* [ ##csort ] ##csort2 ⟧, #data, (#type, #types...), #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ ##canno* [ ##csort ] ##csort2 ⟧, #data, (#type, #types...), #csortdefault*, #rules)
    → text⟦, †⟨#type⟩ ⟨STRING: var:String⟩†⟨
-       JavaSigArg(JAddThunk(JAddParam(#env, text⟦⟨STRING: var⟩⟧, #csort), text⟦⟨STRING: var⟩⟧), #csort2, #data, #types, #csort*, #rules)⟩⟧
+       JavaSigArg(JAddThunk(JAddParam(#env, text⟦⟨STRING: var⟩⟧, #csort), text⟦⟨STRING: var⟩⟧), #csort2, #data, #types, #csortdefault*, #rules)⟩⟧
 
    // Formal parameter sort
-   rule JavaSigArg(#env, csort⟦ ##canno* ( ##csort ) ##csort2 ⟧, #data, #types, #csort*, #rules)
-   → JavaSigArg(#env, #csort2, #data, #types, #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ ##canno* ( ##csort ) ##csort2 ⟧, #data, #types, #csortdefault*, #rules)
+   → JavaSigArg(#env, #csort2, #data, #types, #csortdefault*, #rules)
 
-   rule JavaSigArg(#env, csort⟦ ##canno* { ##cmapsort* } ⟧, #data, (#type,), #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ ##canno* { ##cmapsort* } ⟧, #data, (#type,), #csortdefault*, #rules)
    → text⟦, †⟨#type⟩ ⟨STRING: map:String⟩†⟨
-       JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: map⟩⟧, csort⟦ { ##cmapsort* } ⟧), text⟦⟨STRING: map⟩⟧), #csort*, #rules)⟩⟧
+       JavaSigArgs(JAddThunk(JAddParam(#env, text⟦⟨STRING: map⟩⟧, csort⟦ { ##cmapsort* } ⟧), text⟦⟨STRING: map⟩⟧), #csortdefault*, #rules)⟩⟧
 
-   rule JavaSigArg(#env, csort⟦ ##canno* data ##csort ⟧, #data, #types, #csort*, #rules)
-   → JavaSigArg(#env, #csort, TRUE, #types, #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ ##canno* data ##csort ⟧, #data, #types, #csortdefault*, #rules)
+   → JavaSigArg(#env, #csort, TRUE, #types, #csortdefault*, #rules)
 
-   rule JavaSigArg(#env, csort⟦ ##canno* thunk ##csort ⟧, #data, #types, #csort*, #rules)
-   → JavaSigArg(#env, #csort, #data, #types, #csort*, #rules)
+   rule JavaSigArg(#env, csort⟦ ##canno* thunk ##csort ⟧, #data, #types, #csortdefault*, #rules)
+   → JavaSigArg(#env, #csort, #data, #types, #csortdefault*, #rules)
 
 // --- Generate method body
 

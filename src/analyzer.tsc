@@ -35,8 +35,8 @@ rule AnalyzeC(#system, Content(#imports, #rules, #datasorts, #alias, #funcsorts)
 // --- Fallback analysis
 
 func AnalyzeFallbackFunc({String:Core_cdecl_sort}, Core_cdecl_sort, Bool) -> {String:Core_cdecl_sort}
-rule AnalyzeFallbackFunc(#funcsorts, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #fallback)
-→ PutFuncSort(#funcsorts, cdecl⟦ ⟨canno*: AnalyzeFallbackAnno(#canno*, #fallback, HasAnnotation("Fallback", #canno*))⟩ ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, TRUE)
+rule AnalyzeFallbackFunc(#funcsorts, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧, #fallback)
+→ PutFuncSort(#funcsorts, cdecl⟦ ⟨canno*: AnalyzeFallbackAnno(#canno*, #fallback, HasAnnotation("Fallback", #canno*))⟩ ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧, TRUE)
 
 func AnalyzeFallbackAnno(List<Core_canno_sort>, Bool /* Fallback */, Bool /* Has Fallback */) -> List<Core_canno_sort>
 rule AnalyzeFallbackAnno(#anno*, TRUE, TRUE)   → #anno*

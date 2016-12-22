@@ -109,15 +109,16 @@ public class NumExtern
 		return null;
 	}
 
-	public static DoubleTerm Divide(Context context, DoubleTerm value_16564, DoubleTerm value_16565)
+	public static DoubleTerm Divide(Context context, DoubleTerm left, DoubleTerm right)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		DoubleTerm result = DoubleTerm.doubleTerm(left.unbox() / right.unbox());
+		left.release();
+		right.release();
+		return result;
 	}
 
 	public static DoubleTerm Modulo(Context context, DoubleTerm value_16574, DoubleTerm value_16575)
 	{
-		// TODO Auto-generated method stub
 		return null;
 	}
 

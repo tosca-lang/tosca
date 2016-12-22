@@ -36,8 +36,8 @@ func CppForwardDecl(Core_cdecl_sort) -> Text4_text_sort
   → text⟦†⟨CppTemplatePrefix(#csortvars?)⟩
 class †⟨SortNameToCppClassName(#CONSTRUCTOR)⟩;†⟨TextFoldES(Map((cform) -> CppForwardForm(#CONSTRUCTOR, #csortvars?, cform), #cform*))⟩⟧
 
-  rule CppForwardDecl(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
-  → CppFunctionDeclD({}, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, TRUE, TRUE)
+  rule CppForwardDecl(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧)
+  → CppFunctionDeclD({}, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧, TRUE, TRUE)
 
   rule CppForwardDecl(#cdecl)
   → text⟦⟧
@@ -553,27 +553,27 @@ func CppFunctionDecl(#env: {String : EnvEntry}, #key: String, #header: Bool) -> 
 → CppFunctionDeclD(#env, UnSOME(GetFuncSort(GetContent(#env), #key)), #header, FALSE)
 
 func CppFunctionDeclD({String : EnvEntry}, Core_cdecl_sort, Bool, Bool) -> Text4_text_sort
-rule CppFunctionDeclD(#env, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #header, #forward)
+rule CppFunctionDeclD(#env, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧, #header, #forward)
 → TextIf(And(Not(HasAnnotation("Extern", #canno*)), Or(#forward, Or(And(#header, Not(IsEmpty(#csortvars?))), And(Not(#header), IsEmpty(#csortvars?))))), ()->
   text⟦¶¶†⟨CppTemplatePrefix(#csortvars?)⟩
-†⟨CppTypeRef(#csort)⟩ †⟨CppFnName(#CONSTRUCTOR)⟩(tosca::Context& ctx†⟨CppMaybeFunctionParams(SetContext(SetFnAnno(#env, #canno*), text⟦ctx⟧, 1), #csorts?, (env) ->
+†⟨CppTypeRef(#csort)⟩ †⟨CppFnName(#CONSTRUCTOR)⟩(tosca::Context& ctx†⟨CppMaybeFunctionParams(SetContext(SetFnAnno(#env, #canno*), text⟦ctx⟧, 1), #csortsdefault?, (env) ->
       CppMaybeBody(env, #CONSTRUCTOR, GenBody(#csortvars?, #header, #forward)))⟩⟧) // missing )
 
-func CppMaybeFunctionParams({String : EnvEntry}, List<Core_csorts_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
-   rule CppMaybeFunctionParams(#env, csorts?⟦⟧, #cont)
+func CppMaybeFunctionParams({String : EnvEntry}, List<Core_csortsdefault_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+   rule CppMaybeFunctionParams(#env, csortsdefault?⟦⟧, #cont)
    → #cont(#env)
 
-   rule CppMaybeFunctionParams(#env, csorts?⟦ ( ##csort* ) ⟧, #cont)
-   → CppFunctionParams(NewParams(#env), #csort*, #cont)
+   rule CppMaybeFunctionParams(#env, csortsdefault?⟦ ( ##csortdefault* ) ⟧, #cont)
+   → CppFunctionParams(NewParams(#env), #csortdefault*, #cont)
 
 /* Generate method signature and record the argument names in the environment, keeping them in order */
-func CppFunctionParams({String : EnvEntry}, List<Core_csort_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
+func CppFunctionParams({String : EnvEntry}, List<Core_csortdefault_sort>, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule CppFunctionParams(#env, csort*⟦ ⟧, #cont)
+  rule CppFunctionParams(#env, csortdefault*⟦ ⟧, #cont)
    → #cont(#env)
 
-  rule CppFunctionParams(#env, csort*⟦ ##csort ##csort* ⟧, #cont)
-  → CppFunctionParam(#env, CppTypes(#csort), #csort, (env) -> CppFunctionParams(env, #csort*, #cont))
+  rule CppFunctionParams(#env, csortdefault*⟦ ##csort ##csortdefault* ⟧, #cont) // no default value: has been expanded
+  → CppFunctionParam(#env, CppTypes(#csort), #csort, (env) -> CppFunctionParams(env, #csortdefault*, #cont))
 
 func CppFunctionParam({String : EnvEntry}, List<Text4_text_sort>, Core_csort_sort, ({String : EnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 

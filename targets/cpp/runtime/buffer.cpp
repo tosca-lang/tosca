@@ -106,7 +106,23 @@ namespace tosca {
     Sink& BufferSink::MapEntry(Term& key, Term& value)
     {
         Term& t = *(terms.back());
-        t.MapPutValue(GetContext(), key, value);
+        Term& newmap = t.MapPutValue(GetContext(), key, value);
+        if (&newmap != &t)
+        {
+        	terms.pop_back();
+        	if (terms.empty())
+        		term = &newmap;
+        	else
+        	{
+        		subIndex.pop_back();
+        		int subindex = subIndex.back();
+        		Term& parent = *(terms.back());
+        		parent.SetSub(subindex - 1, newmap);
+        		subIndex.push_back(0);
+        	}
+
+        	terms.push_back(&newmap);
+        }
         return *this;
     }
 

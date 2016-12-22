@@ -5,6 +5,7 @@ import std::pairdef
 import std::string
 import std::num
 import std::text::Text4
+import std::text::printer
 
 // Fragment denoting term embedded in user language text.
 
@@ -86,10 +87,10 @@ func ReverseTextFold(List<Text4_text_sort>, Text4_text_sort) -> Text4_text_sort
   rule ReverseTextFold(()        , #sep)
   → text⟦⟧
 
-  rule ReverseTextFold(Cons(#1:Text4_text_sort, List<Text4_text_sort>::Nil), #sep)
+  rule ReverseTextFold((#1,), #sep)
   → text⟦†⟨ #1 ⟩⟧
 
-  rule ReverseTextFold(Cons(#1:Text4_text_sort, List<Text4_text_sort>::Cons(#2:Text4_text_sort, #s:List<Text4_text_sort>)), #sep)
+  rule ReverseTextFold((#1, #2, #s...), #sep)
   → text⟦†⟨ ReverseTextFold(Cons(#2, #s), #sep) ⟩†⟨ #sep ⟩†⟨ #1 ⟩⟧
 
 // -- Conversion
@@ -100,5 +101,5 @@ rule StringToText(#) → text⟦⟨STRING:#⟩⟧
 func NumberToText(Numeric) -> Text4_text_sort
 rule NumberToText(#n) → text⟦⟨STRING:FormatNumber(#n)⟩⟧
 
-func TextToString(Text4_text_sort) -> String
-rule TextToString(#) → Show<Text4_text_sort>(#)
+func TextToString(#text: Text4_text_sort) -> String
+→ PrintText(#text)

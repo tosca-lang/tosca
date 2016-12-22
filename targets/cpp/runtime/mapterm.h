@@ -176,7 +176,6 @@ namespace tosca {
             if (mapreuse && this->refcount == 1)
                 return *this;
 
-            this->AddRef();
             CMapTerm<K, V>& extended = *(new (ctx) CMapTerm<K, V>(*this));
             return extended;
         }
@@ -215,9 +214,11 @@ namespace tosca {
             return make_optional<Term>(tosca::NewRef(*search->second));
         }
 
-        void MapPutValue(Context& ctx, Term& key, Term& value)
+        Term& MapPutValue(Context& ctx, Term& key, Term& value)
         {
-            putValue(ctx, dynamic_cast<K&>(key), dynamic_cast<V&>(value));
+            tosca::MapTerm<K, V>& xmap = this->extend(ctx);
+            xmap.putValue(ctx, dynamic_cast<K&>(key), dynamic_cast<V&>(value));
+            return xmap;
         }
 
         void putAll(MapTerm<K, V> map)
@@ -283,7 +284,7 @@ namespace tosca {
 
         bool isEmpty()
         {
-            return map.empty() && (parent) ? parent.value().isEmpty() : true;
+            return map.empty() && ((parent) ? parent.value().isEmpty() : true);
         }
 
         bool containsKey(K key)

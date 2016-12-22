@@ -142,7 +142,7 @@ fnParams
     ;
 
 fnParam
-    : fnParamName? eager? sort variadic
+    : fnParamName? eager? sort defaultValue? variadic
     ;
 
 eager

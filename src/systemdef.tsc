@@ -360,7 +360,7 @@ rule PutFuncSortC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #
 → Content(#imports, #rules, #datasorts, #aliases, PutFuncSort(#funcsorts, #funcsort, #overwrite))
 
 func PutFuncSort({String : Core_cdecl_sort}, Core_cdecl_sort, Bool) -> {String : Core_cdecl_sort}
-rule PutFuncSort(#func, #decl = cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #overwrite)
+rule PutFuncSort(#func, #decl = cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧, #overwrite)
 //→ PutFuncSort1(MapGet(#func, #CONSTRUCTOR), #func, #CONSTRUCTOR,  cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, #overwrite)
 → PutFuncSort1(MapGet(#func, #CONSTRUCTOR), #func, #CONSTRUCTOR, #decl, #overwrite)
 
@@ -472,8 +472,8 @@ func LoadDeclsS(TSystem, String, List<Core_cdecl_sort>, Bool) -> TSystem
   rule LoadDeclsS(#system, #url, cdecl+⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ##cdecl+ ⟧, #extends)
   → LoadDeclsS(PutAliasS(#system, #url, cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ⟧), #url, #cdecl+, #extends)
 
-  rule LoadDeclsS(#system, #url, cdecl+⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ##cdecl+ ⟧, #extends)
-  → LoadDeclsS(PutFuncSortS(#system, #url, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧, FALSE), #url, #cdecl+, #extends)
+  rule LoadDeclsS(#system, #url, cdecl+⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ##cdecl+ ⟧, #extends)
+  → LoadDeclsS(PutFuncSortS(#system, #url, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧, FALSE), #url, #cdecl+, #extends)
 
   rule LoadDeclsS(#system, #url,  cdecl+⟦ ##canno* rule ##cterm → ##cterm2 ##cdecl+  ⟧, #extends)
   → LoadDeclsS(PutRuleS(#system, #url, cdecl⟦ ##canno* rule  ##cterm → ##cterm2 ⟧), #url, #cdecl+, #extends)

@@ -59,7 +59,7 @@ func NDecl(TransScript_decl_sort) -> List<Core_cdecl_sort>
   rule NDecl(decl⟦ ##anno* ##EXTERN? func ##constructor ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
   → cdecl+⟦
        ⟨canno*: NAnnos(#anno*)⟩
-       ##EXTERN? func ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨csort: NSort(#sort)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩  ⟨csorts?: NMaybeParamDecls(#fnParamDecls?)⟩
+       ##EXTERN? func ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨csort: NSort(#sort)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩  ⟨csortsdefault?: NMaybeParamDecls(#fnParamDecls?)⟩
                  ⟨cdecl+: NMaybeBody(#fnBody?, #constructor, #fnParamDecls?)⟩ ⟧
 
   /* Convert rule */
@@ -202,24 +202,24 @@ rule NAnno(anno⟦ @ ##METAVAR ⟧) → canno⟦ @ ##METAVAR ⟧
 
 // ---- Function declaration
 
-func NMaybeParamDecls(List<TransScript_fnParamDecls_sort>) -> List<Core_csorts_sort>
-rule NMaybeParamDecls(fnParamDecls?⟦                ⟧) → csorts?⟦⟧
-rule NMaybeParamDecls(fnParamDecls?⟦ (            ) ⟧) → csorts?⟦⟧
-rule NMaybeParamDecls(fnParamDecls?⟦ ( ##fnParam* ) ⟧) → csorts?⟦ ( ⟨csort*: NParams(#fnParam*)⟩ ) ⟧
+func NMaybeParamDecls(List<TransScript_fnParamDecls_sort>) -> List<Core_csortsdefault_sort>
+rule NMaybeParamDecls(fnParamDecls?⟦                ⟧) → csortsdefault?⟦⟧
+rule NMaybeParamDecls(fnParamDecls?⟦ (            ) ⟧) → csortsdefault?⟦⟧
+rule NMaybeParamDecls(fnParamDecls?⟦ ( ##fnParam* ) ⟧) → csortsdefault?⟦ ( ⟨csortdefault*: NParams(#fnParam*)⟩ ) ⟧
 
-func NParams(List<TransScript_fnParam_sort>) -> List<Core_csort_sort>
-rule NParams(fnParam*⟦ ##METAVAR : ##sort ... ⟧) → csort*⟦ ⟨csort: AnnotateSort(NSort(#sort), canno*⟦ @Variadic ⟧)⟩ ⟧
-rule NParams(fnParam*⟦             ##sort ... ⟧) → csort*⟦ ⟨csort: AnnotateSort(NSort(#sort), canno*⟦ @Variadic ⟧)⟩ ⟧
-rule NParams(fnParam*⟦ ##fnParam ##fnParam*   ⟧) → csort*⟦ ⟨csort: NParam(#fnParam)⟩ ⟨csort*: NParams(#fnParam*)⟩ ⟧
-rule NParams(fnParam*⟦                        ⟧) → csort*⟦⟧
+func NParams(List<TransScript_fnParam_sort>) -> List<Core_csortdefault_sort>
+rule NParams(fnParam*⟦ ##METAVAR : ##sort ... ⟧) → csortdefault*⟦ ⟨csort: AnnotateSort(NSort(#sort), canno*⟦ @Variadic ⟧)⟩ ⟧
+rule NParams(fnParam*⟦             ##sort ... ⟧) → csortdefault*⟦ ⟨csort: AnnotateSort(NSort(#sort), canno*⟦ @Variadic ⟧)⟩ ⟧
+rule NParams(fnParam*⟦ ##fnParam ##fnParam*   ⟧) → csortdefault*⟦ ⟨csortdefault: NParam(#fnParam)⟩ ⟨csortdefault*: NParams(#fnParam*)⟩ ⟧
+rule NParams(fnParam*⟦                        ⟧) → csortdefault*⟦⟧
 
-func NParam(TransScript_fnParam_sort) -> Core_csort_sort
-rule NParam(fnParam⟦ ##METAVAR : ##sort ⟧) → NSort(#sort)
-rule NParam(fnParam⟦ ##sort ⟧) → NSort(#sort)
+func NParam(TransScript_fnParam_sort) -> Core_csortdefault_sort
+rule NParam(fnParam⟦ ##METAVAR : ##sort ##defaultValue? ⟧) → csortdefault⟦ ⟨csort: NSort(#sort)⟩ ⟨cdefaultvalue?: NMaybeDefaultValue(#defaultValue?)⟩ ⟧
+rule NParam(fnParam⟦ ##sort ##defaultValue?             ⟧) → csortdefault⟦ ⟨csort: NSort(#sort)⟩ ⟨cdefaultvalue?: NMaybeDefaultValue(#defaultValue?)⟩ ⟧
 
 // deprecated
-rule NParam(fnParam⟦ ##METAVAR : eager ##sort ⟧) → csort⟦ data ⟨csort: NSort(#sort)⟩ ⟧
-rule NParam(fnParam⟦ eager ##sort             ⟧) → csort⟦ data ⟨csort: NSort(#sort)⟩ ⟧
+rule NParam(fnParam⟦ ##METAVAR : eager ##sort ⟧) → csortdefault⟦ data ⟨csort: NSort(#sort)⟩ ⟧
+rule NParam(fnParam⟦ eager ##sort             ⟧) → csortdefault⟦ data ⟨csort: NSort(#sort)⟩ ⟧
 
 rule NParam(fnParam⟦ ##METAVAR : ##sort ... ⟧) → Error("Error: variadic parameter must occur last")
 rule NParam(fnParam⟦ ##sort ...             ⟧) → Error("Error: variadic parameter must occur last")

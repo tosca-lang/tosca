@@ -21,7 +21,7 @@ func NoAnnoM(#system: TSystem, #module: Module) -> Module
 
 func NoAnnoC(TSystem, Content) -> Content
 rule NoAnnoC(#system, Content(#imports, #rules, #datasorts, #aliases, #funcsorts))
-→ Content(#imports, #rules, NoAnnoDataSorts(#system, #datasorts), #aliases, #funcsorts)
+→ Content(#imports, #rules, NoAnnoDataSorts(#system, #datasorts), #aliases, NoAnnoFuncSorts(#system, #funcsorts))
 
 // --- Data sorts
 
@@ -44,6 +44,19 @@ func NoAnnoForm(TSystem, Core_cform_sort, List<Core_csortdefault_sort>) -> Core_
   // TODO: annotation on variable
   rule NoAnnoForm(#system, #cform = cform⟦ allows-variable ⟧, #csortsdefault*)
   → #cform
+
+// --- function sorts
+
+func NoAnnoFuncSorts(#system: TSystem, #sorts: {String : Core_cdecl_sort}) -> {String : Core_cdecl_sort}
+→ FoldlP((key sorts)->MapPut(sorts, key, NoAnnoFuncSort(#system, UnSOME(MapGet(#sorts, key)))), #sorts, MapKeys(#sorts))
+
+
+func NoAnnoFuncSort(TSystem, Core_cdecl_sort) -> Core_cdecl_sort
+rule NoAnnoFuncSort(#system, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧)
+→ cdecl⟦ ⟨canno*: NoAnnoRemoveRuntimeAnno(#system, #canno*)⟩
+          ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ⟨csortsdefault?: NoAnnoMaybeSortsDefault(#system, #csortsdefault?, NoAnnoSortDefaults(#system, #canno*))⟩ ⟧
+
+// --- Expand runtime annotation.
 
 func NoAnnoMaybeSortsDefault(TSystem, List<Core_csortsdefault_sort>, List<Core_csortdefault_sort>) ->  List<Core_csortsdefault_sort>
 

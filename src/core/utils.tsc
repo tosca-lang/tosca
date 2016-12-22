@@ -19,11 +19,15 @@ rule IsMeta(cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧)              �
 rule IsMeta(cterm⟦ ##canno* thunk ##cterm ⟧)                              → IsMeta(#cterm)
 rule IsMeta(#term)                                               → FALSE
 
-
 /* @return `TRUE` if the given `#term` is a meta variable of the given `#name`  */
 func IsNamedMeta(Core_cterm_sort, String) -> Bool
 rule IsNamedMeta(cterm⟦ ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #name) → StringEqual(#METAVAR, #name)
 rule IsNamedMeta(#term, #name)                                               → FALSE
+
+/* @return `TRUE` if the term is a constant construction of the guven symbol */
+func IsConstruction(Core_cterm_sort, String) -> Bool
+rule IsConstruction(cterm⟦ ##canno* ##CONSTRUCTOR ##csortanno? ⟧, #symbol) → Equal(#CONSTRUCTOR, #symbol)
+rule IsConstruction(#cterm, #symbol)                                       → FALSE
 
 // Extract meta variables, associated with their annotations, out of the given list of `#terms`.
 func GetAnnoMetaVariables(List<Core_cterm_sort>) -> List<PPair<List<Core_canno_sort> String>>
@@ -156,7 +160,6 @@ rule RemoveSortAnnotation(#anno, csort⟦ ##canno* { ##cmapsort }          ⟧) 
 rule RemoveSortAnnotation(#anno, csort⟦ ##canno* data ##csort            ⟧) → csort⟦ ⟨canno*: RemoveAnnotation(#anno, #canno*)⟩ data ##csort            ⟧
 rule RemoveSortAnnotation(#anno, csort⟦ ##canno* thunk ##csort           ⟧) → csort⟦ ⟨canno*: RemoveAnnotation(#anno, #canno*)⟩ thunk ##csort           ⟧
 
-
 /* @return the string concatenation represeting the given `#qualifiedIdentifier` */
 func JoinQIdentifier(#cqiden: Core_cqidentifier_sort, #sep: String, #mangle:Bool) -> String
 → Join(QIdentifierList(#cqiden, #mangle), #sep)
@@ -199,26 +202,26 @@ func HasSorts(#csorts? :List<Core_csorts_sort>) -> Bool
 
 /* @return true if the sort declaration is parameterized */
 func HasSortVars(Core_cdecl_sort) -> Bool
-rule HasSortVars(cdecl⟦ ##canno* data ##csortvars ##CONSTRUCTOR ##cforms ⟧)                    → TRUE
-rule HasSortVars(cdecl⟦ ##canno* ##EXTERN? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧) → TRUE
-rule HasSortVars(#)                                                                            → FALSE
+rule HasSortVars(cdecl⟦ ##canno* data ##csortvars ##CONSTRUCTOR ##cforms ⟧)                           → TRUE
+rule HasSortVars(cdecl⟦ ##canno* ##EXTERN? func ##csortvars ##csort ##CONSTRUCTOR ##csortsdefault? ⟧) → TRUE
+rule HasSortVars(#)                                                                                   → FALSE
 
 /* @return sort declaration sort parameters, or `NONE` */
 func GetSortVars(Core_cdecl_sort) -> Option<Core_csortvars_sort>
-rule GetSortVars(cdecl⟦  ##canno* data ##csortvars ##CONSTRUCTOR ##cforms ⟧)                   → SOME(#csortvars)
-rule GetSortVars(cdecl⟦ ##canno* ##EXTERN? func ##csortvars ##csort ##CONSTRUCTOR ##csorts? ⟧) → SOME(#csortvars)
-rule GetSortVars(#)                                                                            → NONE
+rule GetSortVars(cdecl⟦  ##canno* data ##csortvars ##CONSTRUCTOR ##cforms ⟧)                          → SOME(#csortvars)
+rule GetSortVars(cdecl⟦ ##canno* ##EXTERN? func ##csortvars ##csort ##CONSTRUCTOR ##csortsdefault? ⟧) → SOME(#csortvars)
+rule GetSortVars(#)                                                                                   → NONE
 
 /* @return extract `csortvars?` from sort  */
 func GetMaybeSortVars(Core_cdecl_sort) -> List<Core_csortvars_sort>
-rule GetMaybeSortVars(cdecl⟦ ##canno* data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)                    → #csortvars?
-rule GetMaybeSortVars(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧) → #csortvars?
-rule GetMaybeSortVars(#cdecl                                                                       ) → ()
+rule GetMaybeSortVars(cdecl⟦ ##canno* data ##csortvars? ##CONSTRUCTOR ##cforms ⟧)                           → #csortvars?
+rule GetMaybeSortVars(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧) → #csortvars?
+rule GetMaybeSortVars(#cdecl                                                                              ) → ()
 
 /* @return the list of annotations for the given declaration */
 func GetAnnos(Core_cdecl_sort) -> List<Core_canno_sort>
-rule GetAnnos(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧) → #canno*
-rule GetAnnos(#)                                                                             → ()
+rule GetAnnos(cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧) → #canno*
+rule GetAnnos(#)                                                                                    → ()
 
 /* @return the conversion to `csort*` from `csortsdefault?` */
 func MaybeSortsDefaultToSorts(List<Core_csortsdefault_sort>) -> List<Core_csort_sort>
@@ -257,6 +260,10 @@ rule MaybeSortsToSorts(csorts?⟦ ( ##csort* ) ⟧)           → #csort*
 func SortsToMaybeSorts(List<Core_csort_sort>) -> List<Core_csorts_sort>
 rule SortsToMaybeSorts(csort*⟦⟧) → csorts?⟦⟧
 rule SortsToMaybeSorts(#csort* ) → csorts?⟦ ( ##csort* ) ⟧
+
+func SortsToMaybeSortsDefault(List<Core_csort_sort>) -> List<Core_csortsdefault_sort>
+rule SortsToMaybeSortsDefault(csort*⟦⟧) → csortsdefault?⟦⟧
+rule SortsToMaybeSortsDefault(#csort* ) → csortsdefault?⟦ ( ⟨csortdefault*: Map((csort)->csortdefault⟦ ⟨csort:csort⟩ ⟧, #csort*)⟩ ) ⟧
 
 /* @return sort from sort annotation, or NONE */
 func MaybeSortAnnoToSort(List<Core_csortanno_sort>) -> Option<Core_csort_sort>

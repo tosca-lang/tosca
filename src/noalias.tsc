@@ -161,5 +161,5 @@ func NoAliasFuncSorts(#aliases: DeclIndex, #sorts: {String : Core_cdecl_sort}) -
 → FoldlP((key sorts)->MapPut(sorts, key, NoAliasFuncSort(#aliases, UnSOME(MapGet(#sorts, key)))), {}, MapKeys(#sorts))
 
 func NoAliasFuncSort(DeclIndex, Core_cdecl_sort) -> Core_cdecl_sort
-rule NoAliasFuncSort(#aliases, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csorts? ⟧)
-→ cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ⟨csort: NoAliasSort(#aliases, #csort)⟩ ##CONSTRUCTOR ⟨csorts?: NoAliasMaybeSorts(#aliases, #csorts?)⟩ ⟧
+rule NoAliasFuncSort(#aliases, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧)
+→ cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ⟨csort: NoAliasSort(#aliases, #csort)⟩ ##CONSTRUCTOR ⟨csortsdefault?: NoAliasMaybeSortsDefault(#aliases, #csortsdefault?)⟩ ⟧

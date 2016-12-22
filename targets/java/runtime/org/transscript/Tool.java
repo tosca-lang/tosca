@@ -307,6 +307,8 @@ public class Tool
 
 		if (env.containsKey("infer"))
 			config.putValue(stringTerm("infer"), stringTerm("1"));
+		if (env.containsKey("locify"))
+			config.putValue(stringTerm("locify"), stringTerm("1"));
 		if (env.containsKey("nostd"))
 			System.setProperty("nostd", "1");
 

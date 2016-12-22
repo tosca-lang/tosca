@@ -218,7 +218,7 @@ func CCLiftedFunSort(#env : CCEnv, #name: String, #cterm: Core_cterm_sort, #capt
 
 func CCLiftedFunSort2(#env : CCEnv, #cterm: Core_cterm_sort, #sorts: List<Core_csort_sort>) -> Core_cdecl_sort
 → let #csort = CCReturnSort(TermSort(#cterm))
-  cdecl⟦ func ⟨csortvars?: CCUsedSortVars((#csort, #sorts...))⟩ ##csort ⟨CONSTRUCTOR: CCName(#env)⟩ ⟨csorts?: SortsToMaybeSorts(#sorts)⟩ ⟧
+  cdecl⟦ func ⟨csortvars?: CCUsedSortVars((#csort, #sorts...))⟩ ##csort ⟨CONSTRUCTOR: CCName(#env)⟩ ⟨csortsdefault?: SortsToMaybeSortsDefault(#sorts)⟩ ⟧
 
 func CCReturnSort(Option<Core_csort_sort>) -> Core_csort_sort
 rule CCReturnSort(NONE)         → Error("Fatal error: missing term sort annotation (needed by closure converter)")

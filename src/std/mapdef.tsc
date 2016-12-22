@@ -110,6 +110,12 @@ rule MMap2Fst(MMap2(#fst, #snd)) → #fst
 func MMap2Snd<a b c d>({a:b & c:d}) -> {c:d}
 rule MMap2Snd(MMap2(#fst, #snd)) → #snd
 
+func MMap3Fst<a b c d e f>({a:b & c:d & e:f}) -> {a:b}
+rule MMap3Fst(MMap3(#fst, #snd, #thd)) → #fst
+
+func MMap3Snd<a b c d e f>({a:b & c:d & e:f}) -> {c:d}
+rule MMap3Snd(MMap3(#fst, #snd, #thd)) → #snd
+
 /* Lookup entry for given key.
  @return the value of type b or the default value if not in the map
 */
