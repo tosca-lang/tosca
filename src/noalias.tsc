@@ -111,7 +111,7 @@ func NoAliasSortConstructor(List<Core_canno_sort>, Option<Core_cdecl_sort>, Decl
   → csort⟦ ##canno* ##CONSTRUCTOR ⟨csorts?: NoAliasMaybeSorts(#aliases, #csorts?)⟩ ⟧
 
   // TODO: consider propagating annotations.
-  rule NoAliasSortConstructor(#canno*, SOME(cdecl⟦ ##canno* alias ##CONSTRUCTOR1 ##csort ⟧), #aliases, #CONSTRUCTOR, csorts?⟦⟧)
+  rule NoAliasSortConstructor(#canno*, SOME(cdecl⟦ ##canno* alias ##CONSTRUCTOR1 ##csort ##cdefaultvalue? ⟧), #aliases, #CONSTRUCTOR, csorts?⟦⟧)
   → NoAliasSort(#aliases, #csort)
 
   rule NoAliasSortConstructor(#canno*, SOME(#cdecl), #aliases, #CONSTRUCTOR, #csorts?)

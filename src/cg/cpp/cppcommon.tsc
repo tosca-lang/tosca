@@ -627,7 +627,7 @@ func CppBodyRule({String : EnvEntry}, Core_cdecl_sort) -> Text4_text_sort
   rule CppBodyRule(#env, cdecl⟦ ##canno* rule  ##canno*2 ##CONSTRUCTOR ( ##cterm* ) ##csortanno? → ##cterm ⟧)
   → CppPattern(SetRuleAnno(#env, #canno*), #cterm*, #cterm)
 
-  rule CppBodyRule(#env, cdecl⟦ ##canno* rule ##CONSTRUCTOR → ##cterm ⟧)
+  rule CppBodyRule(#env, cdecl⟦ ##canno* rule  ##canno*2 ##CONSTRUCTOR → ##cterm ⟧)
   → CppContractum(SetRuleAnno(#env, #canno*), #cterm)
 
 // --- Pattern matching

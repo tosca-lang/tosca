@@ -46,25 +46,25 @@ func NDecl(TransScript_decl_sort) -> List<Core_cdecl_sort>
 
   /* Convert enum to data sort */
   rule NDecl(decl⟦ ##anno* enum ##identifierQualifier* ##constructor ##sortParams? ##variant+ ⟧)
-  → cdecl+⟦ ⟨canno*: NAnnos(#anno*)⟩
+  → cdecl+⟦ ⟨canno*: NAnnos(#anno*, TRUE)⟩
              data ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨cidentifierqualifier*: Map((ident)->NIdentifierQualifier(ident), #identifierQualifier*)⟩
                   ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ( ⟨cform*: NVariants(#variant+)⟩ ) ⟧
 
   /* Convert aliases */
-  rule NDecl(decl⟦ ##anno* type ##constructor ##sortParams? = ##sort ⟧)
-  → cdecl+⟦ ⟨canno*: NAnnos(#anno*)⟩
-             alias ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨csort: NSort(#sort)⟩ ⟧
+  rule NDecl(decl⟦ ##anno* type ##constructor ##sortParams? = ##sort ##defaultValue? ⟧)
+  → cdecl+⟦ ⟨canno*: NAnnos(#anno*, TRUE)⟩
+             alias ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨csort: NSort(#sort)⟩ ⟨cdefaultvalue?: NMaybeDefaultValue(#defaultValue?)⟩ ⟧
 
   /* Convert function. */
-  rule NDecl(decl⟦ ##anno* ##EXTERN? func ##constructor ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
+  rule NDecl(decl⟦ ##anno* ##EXTERN? func ##anno*2 ##constructor ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
   → cdecl+⟦
-       ⟨canno*: NAnnos(#anno*)⟩
+       ⟨canno*: NAnnos(Concat(#anno*, #anno*2), TRUE)⟩
        ##EXTERN? func ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨csort: NSort(#sort)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩  ⟨csortsdefault?: NMaybeParamDecls(#fnParamDecls?)⟩
-                 ⟨cdecl+: NMaybeBody(#fnBody?, #constructor, #fnParamDecls?)⟩ ⟧
+                 ⟨cdecl+: NMaybeBody(#fnBody?, #anno*2, #constructor, #fnParamDecls?)⟩ ⟧
 
   /* Convert rule */
   rule NDecl(decl⟦ ##anno* rule ##constructor ##args? ##bodySep ##term* ⟧)
-  → cdecl+⟦ ⟨canno*: NAnnos(#anno*)⟩
+  → cdecl+⟦ ⟨canno*: NAnnos(#anno*, TRUE)⟩
              rule ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨cterms?: NMaybeArgs(#args?, TRUE)⟩ → ⟨cterm: NTerms(#term*, FALSE)⟩ ⟧
 
 // ---- Enumeration
@@ -104,7 +104,7 @@ rule NMaybeDefaultValue(defaultValue?⟦ = ##term  ⟧) → cdefaultvalue?⟦ = 
 // ---- Sort
 
 func NSort(TransScript_sort_sort) -> Core_csort_sort
-rule NSort(sort⟦ ##anno* ##sortScope? ##paramSort ⟧) → NMaybeSortScope(NAnnos(#anno*), #sortScope?, #paramSort)
+rule NSort(sort⟦ ##anno* ##sortScope? ##paramSort ⟧) → NMaybeSortScope(NAnnos(#anno*, FALSE), #sortScope?, #paramSort)
 
 func NMaybeSortScope(List<Core_canno_sort>, List<TransScript_sortScope_sort>, TransScript_paramSort_sort) -> Core_csort_sort
 
@@ -193,12 +193,13 @@ func NMultiMapWrapper(#arity: Numeric) -> String
 
 // ---- Annotation
 
-func NAnnos(#anno*: List<TransScript_anno_sort>) -> List<Core_canno_sort>
-→ Map((anno)->NAnno(anno), #anno*)
+func NAnnos(#anno*: List<TransScript_anno_sort>, #sig: Bool) -> List<Core_canno_sort>
+→ Map((anno)->NAnno(anno, #sig), #anno*)
 
-func NAnno(TransScript_anno_sort) -> Core_canno_sort
-rule NAnno(anno⟦ @ ##qidentifier ##args? ⟧) → canno⟦ @ ⟨cqidentifier: NQIdentifier(#qidentifier)⟩ ⟨cterms?: NMaybeArgs(#args?, FALSE)⟩ ⟧
-rule NAnno(anno⟦ @ ##METAVAR ⟧) → canno⟦ @ ##METAVAR ⟧
+func NAnno(TransScript_anno_sort, Bool) -> Core_canno_sort
+rule NAnno(anno⟦ @ ##qidentifier ##args? ⟧, #sig) → canno⟦ @ ⟨cqidentifier: NQIdentifier(#qidentifier)⟩ ⟨cterms?: NMaybeArgs(#args?, FALSE)⟩ ⟧
+rule NAnno(anno⟦ @ ##METAVAR ⟧, FALSE) → canno⟦ @ ##METAVAR ⟧
+rule NAnno(anno⟦ @ ##METAVAR ⟧, TRUE)  → canno⟦ @ ⟨CONSTRUCTOR: RemoveFirstChar(#METAVAR)⟩ ⟧
 
 // ---- Function declaration
 
@@ -224,13 +225,13 @@ rule NParam(fnParam⟦ eager ##sort             ⟧) → csortdefault⟦ data �
 rule NParam(fnParam⟦ ##METAVAR : ##sort ... ⟧) → Error("Error: variadic parameter must occur last")
 rule NParam(fnParam⟦ ##sort ...             ⟧) → Error("Error: variadic parameter must occur last")
 
-func NMaybeBody(List<TransScript_fnBody_sort>, TransScript_constructor_sort, List<TransScript_fnParamDecls_sort>) -> List<Core_cdecl_sort>
+func NMaybeBody(List<TransScript_fnBody_sort>, List<TransScript_anno_sort>, TransScript_constructor_sort, List<TransScript_fnParamDecls_sort>) -> List<Core_cdecl_sort>
 
-  rule NMaybeBody(fnBody?⟦           ⟧, #constructor, #paramDecls?)
+  rule NMaybeBody(fnBody?⟦           ⟧, #anno*, #constructor, #paramDecls?)
   → cdecl+⟦⟧
 
-  rule NMaybeBody(fnBody?⟦ ##bodySep ##term* ⟧, #constructor, #paramDecls?)
-  → cdecl+⟦ rule ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨cterms?: NMaybePatternArgs(#paramDecls?)⟩ → ⟨cterm: NTerms(#term*, FALSE)⟩ ⟧
+  rule NMaybeBody(fnBody?⟦ ##bodySep ##term* ⟧, #anno*, #constructor, #paramDecls?)
+  → cdecl+⟦ rule ⟨canno*: NAnnos(#anno*, FALSE)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨cterms?: NMaybePatternArgs(#paramDecls?)⟩ → ⟨cterm: NTerms(#term*, FALSE)⟩ ⟧
 
 func NMaybePatternArgs(List<TransScript_fnParamDecls_sort>) -> List<Core_cterms_sort>
 rule NMaybePatternArgs(fnParamDecls?⟦                ⟧)  → cterms?⟦⟧
@@ -256,7 +257,7 @@ func NTerm(TransScript_term_sort, Bool) -> Core_cterm_sort
 rule NTerm(term⟦ ##annoterm ⟧, #inpattern) → NAnnoTerm(#annoterm, #inpattern)
 
 func NAnnoTerm(TransScript_annoterm_sort, Bool) -> Core_cterm_sort
-rule NAnnoTerm(annoterm⟦ ##anno* ##aterm ⟧, #inpattern) → NATerm(NAnnos(#anno*), #aterm, #inpattern)
+rule NAnnoTerm(annoterm⟦ ##anno* ##aterm ⟧, #inpattern) → NATerm(NAnnos(#anno*, FALSE), #aterm, #inpattern)
 
 func NATerm(List<Core_canno_sort>, TransScript_aterm_sort, Bool) -> Core_cterm_sort
 

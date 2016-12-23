@@ -52,13 +52,13 @@ func HasFallback(#orules: Option<List<Core_cdecl_sort>>) -> Bool
 
 func IsFallbackRule(Core_cdecl_sort) -> Bool
 
-  rule IsFallbackRule(cdecl⟦ rule ##cqconstructor ##csortargs? ##csortanno? → ##cterm ⟧)
+  rule IsFallbackRule(cdecl⟦ rule ##canno* ##cqconstructor ##csortargs? ##csortanno? → ##cterm ⟧)
   → TRUE
 
-  rule IsFallbackRule(cdecl⟦ rule ##cqconstructor ##csortargs? ( ) ##csortanno? → ##cterm ⟧)
+  rule IsFallbackRule(cdecl⟦ rule ##canno* ##cqconstructor ##csortargs? ( ) ##csortanno? → ##cterm ⟧)
   → TRUE
 
-  rule IsFallbackRule(cdecl⟦ rule ##cqconstructor ##csortargs? ( ##cterm* ) ##csortanno? → ##cterm ⟧ )
+  rule IsFallbackRule(cdecl⟦ rule ##canno* ##cqconstructor ##csortargs? ( ##cterm* ) ##csortanno? → ##cterm ⟧ )
   → Not(HasOption(PickFirst(#cterm*, (term) -> Not(IsMeta(term)))))
 
 // --- Lifetime and binder reuse analysis (bottom up tree traversal)

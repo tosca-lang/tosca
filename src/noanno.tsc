@@ -85,16 +85,16 @@ func NoAnnoSortDefault(TSystem, Option<Core_cdecl_sort>, List<Core_cterms_sort>,
   rule NoAnnoSortDefault(#system, NONE, #cterms?, #csortdefault*)
   → #csortdefault*
 
-  rule NoAnnoSortDefault(#system, SOME(cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ⟧), #cterms?, #csortdefault*)
+  rule NoAnnoSortDefault(#system, SOME(cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ##cdefaultvalue? ⟧), #cterms?, #csortdefault*)
   → if HasAnnotation("Runtime", #canno*)
-       (csortdefault⟦ ##CONSTRUCTOR ⟨cdefaultvalue?: NoAnnoDefault(#cterms?)⟩ ⟧, #csortdefault*...)
+       (csortdefault⟦ ##CONSTRUCTOR ⟨cdefaultvalue?: NoAnnoDefault(#cterms?, #cdefaultvalue?)⟩ ⟧, #csortdefault*...)
     else
        #csortdefault*
 
-func NoAnnoDefault(List<Core_cterms_sort>) -> List<Core_cdefaultvalue_sort>
-rule NoAnnoDefault(cterms?⟦              ⟧) → cdefaultvalue?⟦⟧
-rule NoAnnoDefault(cterms?⟦ ( ##cterm )  ⟧) → cdefaultvalue?⟦ = ##cterm ⟧
-rule NoAnnoDefault(cterms?⟦ ( ##cterm* ) ⟧) → Error("Error: too many arguments in runtime annotation")
+func NoAnnoDefault(List<Core_cterms_sort>,  List<Core_cdefaultvalue_sort>) -> List<Core_cdefaultvalue_sort>
+rule NoAnnoDefault(cterms?⟦              ⟧, #defaultvalue?) → #defaultvalue?
+rule NoAnnoDefault(cterms?⟦ ( ##cterm )  ⟧, #defaultvalue?) → cdefaultvalue?⟦ = ##cterm ⟧
+rule NoAnnoDefault(cterms?⟦ ( ##cterm* ) ⟧, #defaultvalue?) → Error("Error: too many arguments in runtime annotation")
 
 // Remove runtime annotations.
 func NoAnnoRemoveRuntimeAnno(TSystem, List<Core_canno_sort>) -> List<Core_canno_sort>
@@ -114,7 +114,7 @@ func NoAnnoRemoveRuntimeAnno2(TSystem, Option<Core_cdecl_sort>, Core_canno_sort,
   rule NoAnnoRemoveRuntimeAnno2(#system, NONE, #canno, #canno*) → (#canno, #canno*...)
 
   // Anno
-  rule NoAnnoRemoveRuntimeAnno2(#system, SOME(cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ⟧), #canno, #canno*2)
+  rule NoAnnoRemoveRuntimeAnno2(#system, SOME(cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ##cdefaultvalue? ⟧), #canno, #canno*2)
   → if HasAnnotation("Runtime", #canno*)
        #canno*2
     else

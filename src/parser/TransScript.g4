@@ -28,7 +28,7 @@ importDecl
 
 sortDecl
      : anno* ENUM identifierQualifier* constructor sortParams? (OR variant)+            /* Enumeration type declaration */
-     | anno* TYPE constructor sortParams? EQ sort                                       /* Type alias */
+     | anno* TYPE constructor sortParams? EQ sort defaultValue?                         /* Type alias */
      ;
 
 sortParams
@@ -123,7 +123,7 @@ bodySep
 
 // TODO: deprecate EXTERN
 fnDecl
-    : anno* EXTERN? FUNC constructor sortParams? fnParamDecls?
+    : anno* EXTERN? FUNC anno* constructor sortParams? fnParamDecls?
             FNTYPE sort fnBody?                                      /* Function declaration  */
     ;
 

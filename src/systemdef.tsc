@@ -325,8 +325,8 @@ rule PutRuleC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #rule
 
 /* Add rule to module content. Always succeed. */
 func PutRule({String : List<Core_cdecl_sort>}, Core_cdecl_sort) -> {String : List<Core_cdecl_sort>}
-rule PutRule(#rules, cdecl⟦ ##canno* rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
-→ PutRule1(MapGet(#rules, #CONSTRUCTOR), #rules, #CONSTRUCTOR, cdecl⟦ ##canno* rule ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
+rule PutRule(#rules, cdecl⟦ ##canno* rule ##canno*2 ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
+→ PutRule1(MapGet(#rules, #CONSTRUCTOR), #rules, #CONSTRUCTOR, cdecl⟦ ##canno* rule ##canno*2 ##CONSTRUCTOR ##cterms? → ##cterm ⟧)
 
 func PutRule1(Option<List<Core_cdecl_sort>>, {String : List<Core_cdecl_sort>}, String, Core_cdecl_sort) -> { String : List<Core_cdecl_sort> }
 rule PutRule1(NONE, #rules, #constructor, #rule)
@@ -382,8 +382,8 @@ rule PutAliasC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #ali
 
 /* Add alias to module content. Always succeed. */
 func PutAliasI({String : Core_cdecl_sort}, Core_cdecl_sort) -> {String : Core_cdecl_sort}
-rule PutAliasI(#aliases, cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ⟧)
-→ MapPut(#aliases, #CONSTRUCTOR, cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ⟧)
+rule PutAliasI(#aliases, cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ##cdefaultvalue? ⟧)
+→ MapPut(#aliases, #CONSTRUCTOR, cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ##cdefaultvalue? ⟧)
 
 // --- Declaration querying functions. Convention: function name is suffixed by D
 
@@ -469,8 +469,8 @@ func LoadDeclsS(TSystem, String, List<Core_cdecl_sort>, Bool) -> TSystem
        #url, #cdecl+, #extends)
 
   // Sort alias declaration
-  rule LoadDeclsS(#system, #url, cdecl+⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ##cdecl+ ⟧, #extends)
-  → LoadDeclsS(PutAliasS(#system, #url, cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ⟧), #url, #cdecl+, #extends)
+  rule LoadDeclsS(#system, #url, cdecl+⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ##cdefaultvalue? ##cdecl+ ⟧, #extends)
+  → LoadDeclsS(PutAliasS(#system, #url, cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ##cdefaultvalue? ⟧), #url, #cdecl+, #extends)
 
   rule LoadDeclsS(#system, #url, cdecl+⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ##cdecl+ ⟧, #extends)
   → LoadDeclsS(PutFuncSortS(#system, #url, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧, FALSE), #url, #cdecl+, #extends)
