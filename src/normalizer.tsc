@@ -58,14 +58,14 @@ func NDecl(TransScript_decl_sort) -> List<Core_cdecl_sort>
   /* Convert function. */
   rule NDecl(decl⟦ ##anno* ##EXTERN? func ##anno*2 ##constructor ##sortParams? ##fnParamDecls? -> ##sort ##fnBody? ⟧)
   → cdecl+⟦
-       ⟨canno*: NAnnos(Concat(#anno*, #anno*2), TRUE)⟩
+       ⟨canno*: NAnnos(Concat(#anno*2, #anno*), TRUE)⟩
        ##EXTERN? func ⟨csortvars?: NMaybeSortParams(#sortParams?)⟩ ⟨csort: NSort(#sort)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩  ⟨csortsdefault?: NMaybeParamDecls(#fnParamDecls?)⟩
                  ⟨cdecl+: NMaybeBody(#fnBody?, #anno*2, #constructor, #fnParamDecls?)⟩ ⟧
 
   /* Convert rule */
-  rule NDecl(decl⟦ ##anno* rule ##constructor ##args? ##bodySep ##term* ⟧)
+  rule NDecl(decl⟦ ##anno* rule ##anno*2 ##constructor ##args? ##bodySep ##term* ⟧)
   → cdecl+⟦ ⟨canno*: NAnnos(#anno*, TRUE)⟩
-             rule ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨cterms?: NMaybeArgs(#args?, TRUE)⟩ → ⟨cterm: NTerms(#term*, FALSE)⟩ ⟧
+             rule ⟨canno*: NAnnos(#anno*2, FALSE)⟩ ⟨CONSTRUCTOR: NConstructor(#constructor)⟩ ⟨cterms?: NMaybeArgs(#args?, TRUE)⟩ → ⟨cterm: NTerms(#term*, FALSE)⟩ ⟧
 
 // ---- Enumeration
 
