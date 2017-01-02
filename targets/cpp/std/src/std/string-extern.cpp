@@ -205,26 +205,62 @@ List<tosca::StringTerm>& Split(tosca::Context& ctx, tosca::StringTerm& str, tosc
 
     const std::string& usep = sep.Unbox();
     List<tosca::StringTerm>* result = 0;
-    
+    List<tosca::StringTerm>* last = 0;
+
     std::string::size_type spos = 0;
     std::string::size_type pos = 0;
+    int trailings = 0; // to discard empty trailing strings
     while ((pos = ustr.find(usep, spos)) != std::string::npos)
     {
-        List<tosca::StringTerm>& cons = dynamic_cast<List<tosca::StringTerm>&>(_CCons<tosca::StringTerm>::Make(ctx));
-        cons.SetSub(0, newStringTerm(ctx, ustr.substr(spos, pos)));
-        if (result)
-            result->SetSub(1, cons);
-        
+    	std::string::size_type count = pos - spos;
+    	if (count == 0)
+    	{
+    		trailings ++;
+    		continue;
+    	}
+    	for (; trailings > 0; trailings--)
+    	{
+    		List<tosca::StringTerm>& cons = dynamic_cast<List<tosca::StringTerm>&>(_CCons<tosca::StringTerm>::Make(ctx));
+    		cons.SetSub(0, newStringTerm(ctx, ""));
+    		if (last)
+    			last->SetSub(1, cons);
+    		last = &cons;
+
+    		if (!result)
+    			result = last;
+    	}
+
+    	List<tosca::StringTerm>& cons = dynamic_cast<List<tosca::StringTerm>&>(_CCons<tosca::StringTerm>::Make(ctx));
+    	cons.SetSub(0, newStringTerm(ctx, ustr.substr(spos, count)));
+    	if (last)
+    		last->SetSub(1, cons);
+    	last = &cons;
+
+    	if (!result)
+    		result = last;
+
         spos = pos + usep.length();
     }
-    if (result)
+    if (spos < ustr.length())
     {
-        result->SetSub(1, newNil<tosca::StringTerm>(ctx));
+    	List<tosca::StringTerm>& cons = dynamic_cast<List<tosca::StringTerm>&>(_CCons<tosca::StringTerm>::Make(ctx));
+    	cons.SetSub(0, newStringTerm(ctx, ustr.substr(spos)));
+    	if (last)
+    		last->SetSub(1, cons);
+    	last = &cons;
+
+    	if (!result)
+    		result = last;
+    }
+
+    if (last)
+    {
+        last->SetSub(1, newNil<tosca::StringTerm>(ctx));
         str.Release();
     }
     else
     {
-        // sep was not found. Just return the original string, even when empty
+        // sep was not found or only trailing empty strings. Just return the original string, even when empty
         result = &newCons(ctx, str, newNil<tosca::StringTerm>(ctx));
     }
     sep.Release();

@@ -32,7 +32,7 @@ namespace tosca {
 
     void Print(Term& term, bool indent)
     {
-        Print(term, std::cout, indent);
+        Print(term, std::cerr, indent);
     }
 
     std::string PrintToString(Term& term, bool indent)

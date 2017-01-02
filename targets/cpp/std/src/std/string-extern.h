@@ -84,7 +84,7 @@ extern Bool& EndsWith(tosca::Context&, tosca::StringTerm& str, tosca::StringTerm
 /* Trim leading and trailing spaces */
 extern tosca::StringTerm& Trim(tosca::Context&, tosca::StringTerm& str);
 
-/* Splits the string around the given separator string */
+/* Splits the string around the given separator string.*/
 extern List<tosca::StringTerm>& Split(tosca::Context& ctx, tosca::StringTerm& str, tosca::StringTerm& sep);
 
 /* @return the given string with all occurrences of white space collapsed to single ordinary spaces */
