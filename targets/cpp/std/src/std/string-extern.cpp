@@ -216,6 +216,7 @@ List<tosca::StringTerm>& Split(tosca::Context& ctx, tosca::StringTerm& str, tosc
     	if (count == 0)
     	{
     		trailings ++;
+    		spos += usep.length();
     		continue;
     	}
     	for (; trailings > 0; trailings--)
