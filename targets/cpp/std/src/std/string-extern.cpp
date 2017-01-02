@@ -45,7 +45,7 @@ Bool& StringEqual(Context& ctx, StringTerm& str1, StringTerm& str2)
 
 StringTerm& Escape(Context& ctx, StringTerm& str)
 {
-    StringTerm& result = newStringTerm(ctx, makeEscaped(ctx, str.Unbox().c_str()));
+    StringTerm& result = newStringTerm(ctx, makeEscaped(str.Unbox()));
     str.Release();
     return result;
 }
@@ -59,7 +59,7 @@ DoubleTerm& Length(Context& ctx, StringTerm& str)
 
 StringTerm& Mangle(Context& ctx, StringTerm& str)
 {
-    StringTerm& result = newStringTerm(ctx, makeMangle(ctx, str.Unbox()));
+    StringTerm& result = newStringTerm(ctx, makeMangle(str.Unbox()));
     str.Release();
     return result;
 }

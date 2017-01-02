@@ -4,6 +4,7 @@
 #include "sink.h"
 #include "buffer.h"
 #include "term.h"
+#include "strutils.h"
 #include "ts.h"
 
 
@@ -325,9 +326,15 @@ namespace tosca
                 break;
             }
             case TermLexer::NUMBER:
+            {
+            	sink.Literal(lexer.GetText());
+            	lexer.ConsumeToken();
+            	break;
+            }
             case TermLexer::STRING:
             {
-                sink.Literal(lexer.GetText());
+            	std::string unquote = makeRescaped(lexer.GetText());
+                sink.Literal(unquote);
                 lexer.ConsumeToken();
                 break;
             }

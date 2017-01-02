@@ -5,6 +5,7 @@
 #include "term.h"
 #include "compat.h"
 #include "termprinter.h"
+#include "strutils.h"
 #include "ts.h"
 #include "iowrapper.h"
 
@@ -803,7 +804,7 @@ namespace tosca {
     void StringTerm::Print(IOWrapper& out, int count, bool indent)
     {
         out.Write("\"");
-        out.Write(Unbox());
+        out.Write(makeEscaped(Unbox()));
         out.Write("\"");
     }
 
