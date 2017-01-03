@@ -927,7 +927,7 @@ namespace tosca {
         return Use(ctx);
     }
 
-    _CDoubleTerm::_CDoubleTerm(double val) : value(val), str(std::to_string((long double) val))
+    _CDoubleTerm::_CDoubleTerm(double val) : value(val), str(double15ToString(val))
     {
     }
 

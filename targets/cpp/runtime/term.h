@@ -166,10 +166,17 @@ namespace tosca {
         /* @return the list of keys contained in this map. Only applicable when IsMap returns true */
         virtual void MapKeys(std::set<Term*>& keys) const;
 
-        /* @return the value corresponding to the given keys. Only applicable when IsMap returns true */
+        /*
+         * Get the value corresponding to the given keys. Only applicable when IsMap returns true
+         * @param key. The reference is *NOT* consumed
+         */
         virtual Optional<Term> MapGetValue(Context& ctx, Term& key) const;
 
-        /* Add key-value pair to map. Only applicable when IsMap returns true */
+        /*
+         * Add key-value pair to map. Only applicable when IsMap returns true
+         * @param key. Consumed.
+         * @param value. Consumed.
+         */
         virtual Term& MapPutValue(Context& ctx, Term& key, Term& value);
 
         /**

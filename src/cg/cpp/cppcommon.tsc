@@ -917,7 +917,7 @@ func CppMayDiscard({String : EnvEntry}, Core_cterm_sort, List<Core_canno_sort>) 
   → #env
 
   rule CppMayDiscard(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧, #ruleanno*)
-  → #env
+  → CppMayDiscard(#env, #cterm[f], #ruleanno*)
 
   rule CppMayDiscard(#env, #cterm, #ruleanno*)
   → AddDiscard(#env, CurrentParam(#env))
@@ -926,7 +926,6 @@ func CppMayDiscardMeta(#env: {String : EnvEntry}, #meta: String, #keep: List<Cor
 → If(CppMustKeep(#keep, #meta), ()->#env, ()->AddDiscard(#env, CurrentParam(#env)))
 
 /* Discard term parameters not used in the contraction */
-// TODO: CLOSURES ARE NOT RELEASED YET!!
 func CppDiscard(#env: {String : EnvEntry}) -> Text4_text_sort
 → TextMapFoldES((param)->text⟦¶†⟨param⟩.Release();⟧, GetDiscard(#env))
 

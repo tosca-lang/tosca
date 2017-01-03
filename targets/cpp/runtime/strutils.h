@@ -17,4 +17,8 @@ extern std::string makeMangle(const std::string& src);
 /* Convert escaped string characters (without quotes) to UTF-8 form */
 extern std::string makeRescaped(const std::string& src);
 
+/* Convert double to string using 15 precision */
+extern std::string double15ToString(double value);
+
+
 #endif

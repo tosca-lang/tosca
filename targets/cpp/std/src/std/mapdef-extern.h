@@ -67,6 +67,7 @@ template<typename a, typename b>
 Option<b>& MapGet(tosca::Context& ctx, tosca::MapTerm<a, b>& map, a& key)
 {
    Option<b>& result = map.getValue(ctx, key);
+   key.Release();
    map.Release();
    return result;
 }
@@ -195,22 +196,19 @@ tosca::MapTerm<a, b>& MapFind(tosca::Context& ctx, c& value)
     return MapNew<a, b>(ctx);
 }
 
-template<typename a, typename b, typename c> c& MapReplace(tosca::Context& ctx, c& value_1377, tosca::MapTerm<a, b>& map_1378)
-{
-    throw new std::runtime_error("");
-}
-
 // --- Overload.
 
 template <typename a, typename b>
 b& MapGetD(tosca::Context& ctx, MapTerm<a,tosca::Term>& map, a& key, b& dvalue)
 {
-    auto& ovalue = MapGet<a, tosca::Term>(ctx, map, key);
+    auto& ovalue = MapGet<a, tosca::Term>(ctx, map, key); // transfer map and key refs
     Optional<_CSOME<tosca::Term>> osome = ovalue.asSOME(ctx);
     if (osome)
     {
-        dvalue.Release();
-        tosca::Term& result = osome.value().getValue1(ctx, true);
+    	tosca::Term& result = osome.value().getValue1(ctx, true);
+    	result.AddRef();
+    	dvalue.Release();
+        ovalue.Release();
         return dynamic_cast<b&>(result);
     }
     ovalue.Release();
@@ -225,11 +223,12 @@ b& MapGetE(tosca::Context& ctx, MapTerm<a,tosca::Term>& map, a& key)
     if (osome)
     {
         tosca::Term& result = osome.value().getValue1(ctx, true);
+        result.AddRef();
+        ovalue.Release();
         return dynamic_cast<b&>(result);
     }
     throw new std::runtime_error(key.Symbol() + " not found.");
 }
-
 
 
 #endif

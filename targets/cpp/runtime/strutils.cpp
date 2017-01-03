@@ -270,3 +270,11 @@ std::string makeRescaped(const std::string& ssrc)
     return dst;
 }
 
+/* Convert double to string using 15 precision */
+extern std::string double15ToString(double value)
+{
+	char buffer[128]; // more than enough
+	snprintf(buffer, 128, "%.15G", value);
+	std::string result(buffer);
+	return result;
+}

@@ -62,7 +62,7 @@ namespace tosca {
 
         /**
          * Get value corresponding to given key
-         * @param key
+         * @param key. The reference is NOT consumed.
          * @return An new reference to an optional typed term.
          */
         virtual Option<V>& getValue(Context& ctx, K& key)

@@ -100,8 +100,8 @@ StringTerm& FormatDecimal(Context& ctx, DoubleTerm& num)
 
 tosca::DoubleTerm& ToDecimal(tosca::Context& ctx, tosca::StringTerm& str)
 {
-    long long num;
-    if (std::sscanf(str.Unbox().c_str(), "%lld", &num) <= 0)
+    double num;
+    if (std::sscanf(str.Unbox().c_str(), "%lg", &num) <= 0)
         throw new std::runtime_error("Illegally formatted decimal: " + str.Unbox());
     str.Release();
     return newDoubleTerm(ctx, num);
