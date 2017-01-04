@@ -8,6 +8,7 @@ import std::pairdef
 import std::text
 import std::language
 import std::tuple
+import std::path
 import std::text::Text4
 
 import core::Core
@@ -820,15 +821,15 @@ if (⟨STRING: mval⟩)
       ()->#cont(DelayMapEntry(#env, #VARIABLE, MapEntry(cmapentry⟦ ##VARIABLE : ##cterm ⟧, #term, #cmapsort))))
 
   rule CppPatternMapEntry(#env, cmapentry⟦ ##STRING ⟧, #term, #cmapsort, #cont)
-  → text⟦¶if (†⟨#term⟩.contains(†⟨CppExprLiteral(cliteral⟦ ##STRING ⟧)⟩))
+  → text⟦¶if (†⟨#term⟩.contains(†⟨CppExprLiteral(#env, cliteral⟦ ##STRING ⟧)⟩))
 {→†⟨#cont(#env)⟩←}⟧
 
   rule CppPatternMapEntry(#env, cmapentry⟦ ¬ ##STRING ⟧, #term, #cmapsort, #cont)
-  → text⟦¶if (!†⟨#term⟩.contains(†⟨CppExprLiteral(cliteral⟦ ##STRING ⟧)⟩))
+  → text⟦¶if (!†⟨#term⟩.contains(†⟨CppExprLiteral(#env, cliteral⟦ ##STRING ⟧)⟩))
 {→†⟨#cont(#env)⟩←}⟧
 
   rule CppPatternMapEntry(#env, cmapentry⟦ ##STRING  : ##cterm ⟧, #term, #cmapsort, #cont)
- → text⟦¶auto ⟨STRING: mval⟩ = †⟨#term⟩.getValue(†⟨GetContext(#env)⟩, †⟨CppExprLiteral(cliteral⟦ ##STRING ⟧)⟩).asSOME(†⟨GetContext(#env)⟩);
+ → text⟦¶auto ⟨STRING: mval⟩ = †⟨#term⟩.getValue(†⟨GetContext(#env)⟩, †⟨CppExprLiteral(#env, cliteral⟦ ##STRING ⟧)⟩).asSOME(†⟨GetContext(#env)⟩);
 if (⟨STRING: mval⟩)
 {→
 †⟨CppType(GetMapValueSort(#cmapsort))⟩& ⟨STRING: value⟩ = ⟨STRING: mval⟩.value().getValue1(ctx, true);
@@ -1076,7 +1077,7 @@ func CppExprTerm({String : EnvEntry}, Core_cterm_sort) -> Tuple3<{String : EnvEn
  → CppExprConstruction(#env, #canno*, #CONSTRUCTOR, #csortargs?, #cterms?, #csortanno?)
 
  rule CppExprTerm(#env, cterm⟦ ##canno* ##cliteral ⟧)
- → Tuple3(#env, text⟦†⟨CppExprLiteral(#cliteral)⟩⟧, text⟦⟧)
+ → Tuple3(#env, text⟦†⟨CppExprLiteral(#env, #cliteral)⟩⟧, text⟦⟧)
 
  rule CppExprTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧)
  → CppExprMaybeVar(#env, #canno*, MaybeGetVar(#env, #VARIABLE), #VARIABLE)
@@ -1289,9 +1290,10 @@ func CppFindCptrMeta(#pairs:  List<PPair<List<Core_canno_sort> String>>, #METAVA
 
 // --- Literal
 
-func CppExprLiteral(Core_cliteral_sort) -> Text4_text_sort
-rule CppExprLiteral(cliteral⟦ ##STRING ⟧) → text⟦newStringTerm(ctx, †⟨Text-QuoteEscape(#STRING)⟩)⟧
-rule CppExprLiteral(cliteral⟦ ##NUMBER ⟧) → text⟦newDoubleTerm(ctx, ⟨STRING: #NUMBER⟩)⟧
+func CppExprLiteral({String : EnvEntry}, Core_cliteral_sort) -> Text4_text_sort
+rule CppExprLiteral(#env, cliteral⟦ ##STRING ⟧) → CppLiteralId(GetURL(#env), #STRING)
+//text⟦newStringTerm(ctx, †⟨Text-QuoteEscape(#STRING)⟩)⟧
+rule CppExprLiteral(#env, cliteral⟦ ##NUMBER ⟧) → text⟦newDoubleTerm(ctx, ⟨STRING: #NUMBER⟩)⟧
 
 // --- Sort translation functions
 
@@ -1497,6 +1499,10 @@ func CppFormClassSuffix(CppFormClassKind) -> Text4_text_sort
 rule CppFormClassSuffix(CFC_CONS)   → text⟦⟧
 rule CppFormClassSuffix(CFC_VAR)    → text⟦Var⟧
 rule CppFormClassSuffix(CFC_VARUSE) → text⟦Use⟧
+
+/* Literal id */
+func CppLiteralId(#url:String, #str:String) -> Text4_text_sort
+→ text⟦_l_⟨STRING: Mangle(PathFileStem(#url))⟩_⟨STRING: Mangle(#str)⟩⟧
 
 // --- helper function
 

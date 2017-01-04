@@ -33,6 +33,7 @@ enum EnvEntry | EContent(Content)
               | EFnAnno(List<Core_canno_sort>)
               | ENum(Numeric)
               | EBool(Bool)
+              | EString(String)
               | EMapVar({ String : VarEntry })
               | EContext(Text4_text_sort /* context variable */, Numeric /* Counter */)
               | EMapMeta({String : MetaEntry})
@@ -56,6 +57,9 @@ rule UnNum(ENum(#)) → #
 
 func UnBool(EnvEntry) -> Bool
 rule UnBool(EBool(#)) → #
+
+func UnString(EnvEntry) -> String
+rule UnString(EString(#)) → #
 
 func UnMapVar(EnvEntry) -> { String : VarEntry }
 rule UnMapVar(EMapVar(#)) → #
@@ -105,6 +109,14 @@ rule UnAnno(Anno(#1)) → #1
 /* Create a new empty environment */
 func CppNewEnv -> {String: EnvEntry}
 → MapNew
+
+// --- Module URL
+
+func SetURL(#env: {String: EnvEntry}, #url: String) -> {String: EnvEntry}
+→ SetValue(#env, "murl", EString(#url))
+
+func GetURL(#env: {String: EnvEntry}) -> String
+→ UnString(GetValue(#env, "murl"))
 
 // --- Module content
 

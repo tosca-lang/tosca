@@ -583,13 +583,13 @@ namespace tosca {
        	return *output;
 	}
 
-    size_t Term::HashCode()
+    size_t Term::HashCode() const
     {
         std::unordered_set<tosca::Variable*> var;
         return Hash(0, var);
     }
 
-    size_t Term::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn)
+    size_t Term::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn) const
     {
         Optional<Variable> ovar = GetGVariable();
         if (ovar)
@@ -598,7 +598,7 @@ namespace tosca {
             if (search != deBruijn.end())
                 return code * 19ll;
 
-            return code ^ std::hash<void*>{}(this);
+            return code ^ std::hash<const void*>{}(this);
         }
 
         int i = 0;
@@ -751,13 +751,13 @@ namespace tosca {
         return false;
     }
 
-    size_t VariableUse::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn)
+    size_t VariableUse::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn) const
     {
         auto search = deBruijn.find(&var);
         if (search != deBruijn.end())
             return code * 19ll;
 
-        return code ^ std::hash<void*>{}(this); // Free variable.
+        return code ^ std::hash<const void*>{}(this); // Free variable.
 
     }
 
@@ -796,9 +796,9 @@ namespace tosca {
         return newStringTerm(ctx, symbol);
     }
 
-    size_t StringTerm::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn)
+    size_t StringTerm::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn) const
     {
-        return std::hash<std::string>{}(Unbox());
+        return HashCode();
     }
 
     void StringTerm::Print(IOWrapper& out, int count, bool indent)
@@ -844,10 +844,17 @@ namespace tosca {
     
     _CStringTerm::_CStringTerm(const std::string&& val) : value(val)
     {
+    	hash = std::hash<std::string>{}(val);
     }
     
     _CStringTerm::_CStringTerm(const std::string& val) : value(val)
     {
+    	hash = std::hash<std::string>{}(val);
+    }
+
+    _CStringTerm::_CStringTerm(const std::string&& val, bool immortal) : Ref(immortal), value(val)
+    {
+    	hash = std::hash<std::string>{}(val);
     }
 
     _CStringTerm::~_CStringTerm()
@@ -865,15 +872,20 @@ namespace tosca {
         return value;
     }
 
+    size_t _CStringTerm::HashCode() const
+    {
+    	return hash;
+    }
+
     // --- Numeric
 
     DoubleTerm::~DoubleTerm()
     {
     }
 
-    size_t DoubleTerm::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn)
+    size_t DoubleTerm::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn) const
     {
-        return std::hash<std::string>{}(Symbol());
+        return std::hash<double>{}(Unbox());
     }
     
     Optional<_CDoubleTermVar> DoubleTerm::GetVariable() const

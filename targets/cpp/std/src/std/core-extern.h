@@ -286,7 +286,7 @@ tosca::DoubleTerm& BitAnd(tosca::Context& ctx, tosca::DoubleTerm& left, tosca::D
 
 
 template<typename a>
-a& CI_Enter(tosca::Context& ctx, tosca::DoubleTerm& mid, tosca::StringTerm& name,  Closure0<a>& result)
+a& CI_Enter(tosca::Context& ctx, tosca::DoubleTerm& mid, tosca::StringTerm& name, Closure0<a>& result)
 {
     mid.Release();
     name.Release();
@@ -299,7 +299,6 @@ a& CI_Exit(tosca::Context& ctx, tosca::DoubleTerm& mid, Closure0<a>& result)
     mid.Release();
     return result.Eval(ctx);
 }
-
 
 // --- Error
 
@@ -322,7 +321,6 @@ a& EventualError(tosca::Context& ctx, tosca::StringTerm& format, List<tosca::Str
     format.Release();
     arg.Release();
     return result.Eval(ctx);
-
 }
 
 // --- Debugging

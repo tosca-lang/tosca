@@ -15,18 +15,20 @@ import core::utils
 import cg::cpp::cppcommon
 import cg::cpp::cppenv
 import systemdef
-
 /* Generate C++ source file for module */
 func CppSource(#module: Module) -> Text4_text_sort
 → Debug("Generate C++ source file", ()->text⟦#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩.h"
+
+#include "hashpool.h"
 
 // Include template definitions
 †⟨CppIncludeDefs(GetImportsM(#module))⟩
 
 using namespace tosca;
 
+†⟨CppLiteralsDef(GetModuleURL(#module), MapKeys(GetStrsC(GetModuleContent(#module))))⟩
 †⟨CppClassDefs(MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
-†⟨CppFunctionDefs(SetContent(CppNewEnv, GetModuleContent(#module)))⟩
+†⟨CppFunctionDefs(SetURL(SetContent(CppNewEnv, GetModuleContent(#module)), GetModuleURL(#module)))⟩
 
 †⟨CppInitModule(Mangle(PathFileStem(GetModuleURL(#module))), GetImportsM(#module), GetDataSortsM(#module))⟩⟧)
 
@@ -35,6 +37,14 @@ func CppIncludeDefs(#imports: List<Core_cqidentifier_sort>) -> Text4_text_sort
 → TextFoldES(Map((imp) -> text⟦
 #include "⟨STRING: JoinQIdentifier(imp, "/", TRUE)⟩.h"⟧, #imports))
 
+// --------- Literals
+
+func CppLiteralsDef(#url:String, #strs: List<String>) -> Text4_text_sort
+→ TextFoldES(Map((str) -> CppLiteralDef(#url, str), #strs))
+
+func CppLiteralDef(#url:String, #str: String) -> Text4_text_sort
+→ text⟦
+StringTerm& †⟨CppLiteralId(#url, #str)⟩ = HashPool::newPooledStringTerm(†⟨Text-QuoteEscape(#str)⟩);⟧
 
 // --------- Data sorts
 

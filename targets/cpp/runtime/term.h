@@ -204,12 +204,12 @@ namespace tosca {
         /**
          * Compute term hash code
          */
-        virtual size_t HashCode();
+        virtual size_t HashCode() const;
 
         /**
          * Compute term hash code, modulo bound variables and map
          */
-        virtual size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn);
+        virtual size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn) const;
         
         /**
          * Make free variable compatible with the ith subterm.
@@ -366,9 +366,9 @@ namespace tosca {
 
         Optional<Variable> GetGVariable() const;
         bool DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const;
-        virtual size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn);
+        virtual size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn) const;
 
-        inline size_t HashCode()
+        inline size_t HashCode() const
         {
             return Term::HashCode();
         };
@@ -404,7 +404,7 @@ namespace tosca {
         static Term& MakeTerm(Context& ctx, const std::string& symbol);
         
         // Overrides
-        size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn);
+        size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn) const;
         const std::string& Symbol() const;
         void Print(IOWrapper& out, int count, bool indent);
 
@@ -417,6 +417,7 @@ namespace tosca {
     {
     public:
         _CStringTerm(const std::string&& value);
+        _CStringTerm(const std::string&& value, bool immortal);
         _CStringTerm(const std::string& value);
         ~_CStringTerm();
 
@@ -434,12 +435,16 @@ namespace tosca {
 
         // -- Overrides
 
+        size_t HashCode() const;
         Term& Copy(Context& ctx);
         const std::string& Unbox() const;
         
     protected:
         /** The string value. */
         const std::string value;
+
+        /** cached hash value */
+        size_t hash;
     };
 
     class _CStringTermVar: public Variable
@@ -506,7 +511,7 @@ namespace tosca {
         static Term& MakeTerm(Context& ctx, const std::string& symbol);
         
         // Overrides
-        size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn);
+        size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn) const;
         void Print(IOWrapper& out, int count, bool indent);
     };
    
@@ -638,7 +643,7 @@ namespace std
     public:
         size_t operator()(const tosca::StringTerm* str) const
         {
-            return std::hash<std::string>{}(str->Unbox());
+            return str->HashCode();
         }
     };
 
@@ -648,7 +653,7 @@ namespace std
     public:
         bool operator()(const tosca::StringTerm* lhs, const tosca::StringTerm* rhs) const
         {
-            return lhs->Unbox() == rhs->Unbox();
+            return lhs == rhs || lhs->Unbox() == rhs->Unbox();
         }
     };
 
@@ -659,7 +664,7 @@ namespace std
     public:
         size_t operator()(const tosca::StringTerm* str) const
         {
-            return std::hash<std::string>{}(str->Unbox());
+        	return str->HashCode();
         }
     };
 
@@ -669,7 +674,7 @@ namespace std
     public:
         bool operator()(const tosca::StringTerm* lhs, const tosca::StringTerm* rhs) const
         {
-            return lhs->Unbox() == rhs->Unbox();
+            return lhs == rhs || lhs->Unbox() == rhs->Unbox();
         }
     };
     
@@ -681,7 +686,7 @@ namespace std
         size_t operator()(const tosca::DoubleTerm* d) const
         {
             return std::hash<double>{}(d->Unbox());
-            }
+        }
     };
 
     template<>
@@ -690,9 +695,9 @@ namespace std
     public:
         bool operator()(const tosca::DoubleTerm* lhs, const tosca::DoubleTerm* rhs) const
         {
-            return lhs->Unbox() == rhs->Unbox();
-            }
-        };
+            return lhs == rhs || lhs->Unbox() == rhs->Unbox();
+        }
+    };
 
     // const Double
     template<>
@@ -711,7 +716,7 @@ namespace std
     public:
         bool operator()(const tosca::DoubleTerm* lhs, const tosca::DoubleTerm* rhs) const
         {
-            return lhs->Unbox() == rhs->Unbox();
+            return lhs == rhs || lhs->Unbox() == rhs->Unbox();
         }
     };
 

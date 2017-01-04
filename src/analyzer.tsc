@@ -28,9 +28,10 @@ func AnalyzeM(#system: TSystem, #module: Module) -> Module
 
 /* Module content analysis */
 func AnalyzeC(TSystem, Content) -> Content
-rule AnalyzeC(#system, Content(#imports, #rules, #datasorts, #alias, #funcsorts))
-→ Content(#imports, AnalyzeRules(#system, #rules), #datasorts, #alias,
-            FoldlP((name sorts) -> AnalyzeFallbackFunc(sorts, UnSOME(MapGet(#funcsorts, name)), HasFallback(MapGet(#rules, name))), #funcsorts, MapKeys(#funcsorts)))
+rule AnalyzeC(#system, Content(#imports, #rules, #datasorts, #alias, #funcsorts, #strs))
+→ let #arules = AnalyzeRules(#system, #rules)
+  Content(#imports, Fst(#arules), #datasorts, #alias,
+            FoldlP((name sorts) -> AnalyzeFallbackFunc(sorts, UnSOME(MapGet(#funcsorts, name)), HasFallback(MapGet(#rules, name))), #funcsorts, MapKeys(#funcsorts)), Snd(#arules))
 
 // --- Fallback analysis
 
@@ -63,13 +64,35 @@ func IsFallbackRule(Core_cdecl_sort) -> Bool
 
 // --- Lifetime and binder reuse analysis (bottom up tree traversal)
 
-func AnalyzeRules(#system: TSystem, #rules: {String:List<Core_cdecl_sort>}) -> {String:List<Core_cdecl_sort>}
-→ FoldlP((key rules)->MapPut(rules, key, Map((rule)->AnalyzeRule(#system, rule), UnSOME(MapGet(#rules, key)))), #rules, MapKeys(#rules))
+func AnalyzeRules(#system: TSystem, #rules: {String:List<Core_cdecl_sort>}) -> PPair<{String:List<Core_cdecl_sort>} {String:Bool}>
+→ AnalyzeRules2(#system, MapKeys(#rules), #rules, {})
 
-func AnalyzeRule(TSystem, Core_cdecl_sort) -> Core_cdecl_sort
-rule AnalyzeRule(#system, cdecl⟦ ##canno* rule ##canno*2 ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? → ##cterm2 ⟧)
-→ let #result = AnalyzeVar(AnalyzePattern(LEnvNew(#system, {},{}), cterm⟦ ##canno*2 ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧), #cterm2)
-  cdecl⟦ ⟨canno*: AnalyzeRuleAnno(Fst(#result), #canno*)⟩ rule ##canno*2 ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno?  → ⟨cterm: Snd(#result)⟩ ⟧
+func AnalyzeRules2(TSystem, List<String>, {String:List<Core_cdecl_sort>}, {String:Bool}) -> PPair<{String:List<Core_cdecl_sort>} {String:Bool}>
+
+  rule AnalyzeRules2(#system, (#key, #keys...), #rules, #strs)
+  → let #arulesForKey = AnalyzeRulesForKey(#system, UnSOME(MapGet(#rules, #key)), #strs)
+    let #arules = AnalyzeRules2(#system, #keys, MapPut(#rules, #key, Fst(#arulesForKey)), Snd(#arulesForKey))
+    PairCons(Fst(#arules), Snd(#arules))
+
+  rule AnalyzeRules2(#system, (), #rules, #strs)
+  → PairCons(#rules, #strs)
+
+func AnalyzeRulesForKey(TSystem, List<Core_cdecl_sort>, {String:Bool}) -> PPair<List<Core_cdecl_sort> {String:Bool}>
+
+  rule AnalyzeRulesForKey(#system, (#rule, #rules...), #strs)
+  → let #arule  = AnalyzeRule(#system, #rule, #strs)
+    let #arules = AnalyzeRulesForKey(#system, #rules, Snd(#arule))
+    PairCons((Fst(#arule), Fst(#arules)...), Snd(#arules))
+
+  rule AnalyzeRulesForKey(#system, (), #strs)
+  → PairCons((), #strs)
+/*
+FoldlP((key rules)->MapPut(Fst(rules), key, Map((rule)->AnalyzeRule(#system, rule), UnSOME(MapGet(Fst(#rules), key)))), PairCons(#rules, {}), MapKeys(#rules))*/
+
+func AnalyzeRule(TSystem, Core_cdecl_sort, {String:Bool}) -> PPair<Core_cdecl_sort {String:Bool}>
+rule AnalyzeRule(#system, cdecl⟦ ##canno* rule ##canno*2 ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? → ##cterm2 ⟧, #strs)
+→ let #result = AnalyzeVar(AnalyzePattern(LEnvNew(#system, {},{}, #strs), cterm⟦ ##canno*2 ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? ⟧), #cterm2)
+  PairCons(cdecl⟦ ⟨canno*: AnalyzeRuleAnno(Fst(#result), #canno*)⟩ rule ##canno*2 ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno?  → ⟨cterm: Snd(#result)⟩ ⟧, LEnvStrs(Fst(#result)))
 
 // -- Analyze rule pattern: record metavariable arguments and free variables.
 
@@ -102,6 +125,9 @@ func AnalyzePattern(LEnv, Core_cterm_sort) -> LEnv
   rule AnalyzePattern(#env, cterm⟦ ##canno* ##METAVAR ##csortanno? = ##cterm ⟧)
   → AnalyzePattern(#env, #cterm)
 
+  rule AnalyzePattern(#env, cterm⟦ ##canno* ##STRING ⟧)
+  → LEnvAddStr(#env, #STRING)
+
   rule AnalyzePattern(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
   →  Error("Internal Error: let expression cannot occur in pattern.")
 
@@ -118,7 +144,7 @@ func AnalyzePatternMap(#env: LEnv, #entries: List<Core_cmapentry_sort>) -> LEnv
 func AnalyzePatternEntry(LEnv, Core_cmapentry_sort) -> LEnv
 rule AnalyzePatternEntry(#env, cmapentry⟦ ##METAVAR : ##cterm  ⟧) → AnalyzePattern(#env, #cterm)
 rule AnalyzePatternEntry(#env, cmapentry⟦ ##VARIABLE : ##cterm ⟧) → AnalyzePattern(#env, #cterm)
-rule AnalyzePatternEntry(#env, cmapentry⟦ ##STRING : ##cterm   ⟧) → AnalyzePattern(#env, #cterm)
+rule AnalyzePatternEntry(#env, cmapentry⟦ ##STRING : ##cterm   ⟧) → AnalyzePattern(LEnvAddStr(#env, #STRING), #cterm)
 rule AnalyzePatternEntry(#env, #cmapentry                      ) → #env
 
 // -- Analyze rule contraction: annotate metavariable and variables and record their use in the environment
@@ -149,10 +175,13 @@ func AnalyzeVar(LEnv, Core_cterm_sort) -> PPair<LEnv Core_cterm_sort>
   rule AnalyzeVar(#env, cterm⟦ ##canno* thunk ##cterm ⟧)
   → IfConfigDef(LEnvSystem(#env), "cpp",
       (v)->AnalyzeVarThunkNoLambda(#canno*, AnalyzeVar(#env, #cterm)),
-      ( )->AnalyzeVarThunkLambda(#env, #canno*, AnalyzeVar(LEnvNew(LEnvSystem(#env), LEnvFreeVars(#env), LEnvArgs(#env)), #cterm)))
+      ( )->AnalyzeVarThunkLambda(#env, #canno*, AnalyzeVar(LEnvNew(LEnvSystem(#env), LEnvFreeVars(#env), LEnvArgs(#env), LEnvStrs(#env)), #cterm)))
 
   rule AnalyzeVar(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
   → AnalyzeVarLet(#canno*, #METAVAR, #csortanno?, #cterm, AnalyzeVar(LEnvRemoveMeta(#env, #METAVAR), #cterm2), LEnvGetMetaCount(#env, #METAVAR))
+
+  rule AnalyzeVar(#env, #cterm = cterm⟦ ##canno* ##STRING ⟧)
+  → PairCons(LEnvAddStr(#env, #STRING), #cterm)
 
   rule AnalyzeVar(#env, cterm⟦ ##canno* { ##cmapentries? } ##csortanno? ⟧)
   → Error("Internal Error: Map cannot occur in contraction. See normalizer.")
@@ -243,7 +272,7 @@ func AnalyzeVarFormal(LEnv, Core_cterm_sort, List<String>) -> PPair<LEnv Core_ct
   rule AnalyzeVarFormal(#env, #cterm, #params)
   → IfConfigDef(LEnvSystem(#env), "cpp",
       (v)->AnalyzeVar(#env, #cterm),
-      ( )->AnalyzeVarFormalUpLambda(#env, AnalyzeVar(LEnvNew(LEnvSystem(#env), LEnvFreeVars(#env), LEnvArgs(#env)), #cterm), #params))
+      ( )->AnalyzeVarFormalUpLambda(#env, AnalyzeVar(LEnvNew(LEnvSystem(#env), LEnvFreeVars(#env), LEnvArgs(#env), LEnvStrs(#env)), #cterm), #params))
 
 func AnalyzeVarFormalUp(List<Core_canno_sort>, [String]->PPair<String PPair<LEnv Core_cterm_sort>>, Core_csort_sort) -> PPair<LEnv Core_cterm_sort>
 rule AnalyzeVarFormalUp(#canno*, [f]->PairCons(#f, PairCons(#env, #cterm[f])), #csort)
@@ -523,23 +552,25 @@ enum LEnv | LEnv(TSystem,
                  {String:LArguments},   // Meta-variable parameters and bound variables (in pattern)
                  {String:Bool},         // Indicate whether all binders have been used for the associated meta-variable
                  {String:LEnvVarEntry}, // In-scope variables, excluding free and fresh
-                 {String:LEnvVarEntry}) // Free and fresh variable
+                 {String:LEnvVarEntry}, // Free and fresh variable
+                 {String:Bool})         // Set of string literals
 
 /* Create new environment */
-func LEnvNew(#system: TSystem, #fvars: {String:LEnvVarEntry}, #args: {String:LArguments}) -> LEnv → LEnv(#system, {},{},#args,{},{}, #fvars)
+func LEnvNew(#system: TSystem, #fvars: {String:LEnvVarEntry}, #args: {String:LArguments}, #strs:{String:Bool}) -> LEnv
+→ LEnv(#system, {},{},#args,{},{}, #fvars, #strs)
 
 // -- system
 
 func LEnvSystem(LEnv) -> TSystem
-rule LEnvSystem(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars)) → #system
+rule LEnvSystem(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs)) → #system
 
 // -- meta variable count
 
 func LEnvMetas(LEnv) -> {String:Numeric}
-rule LEnvMetas(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars)) → #metas
+rule LEnvMetas(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs)) → #metas
 
 func LEnvMetaKeys(LEnv) -> List<String>
-rule LEnvMetaKeys(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars)) → MapKeys(#metas)
+rule LEnvMetaKeys(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs)) → MapKeys(#metas)
 
 func LEnvGetMetaCount(#env: LEnv, #metavar: String) -> Option<Numeric>
 → MapGet(LEnvMetas(#env), #metavar)
@@ -549,42 +580,43 @@ func LEnvSetMetaCountO(LEnv, String, Option<Numeric>) -> LEnv
   rule LEnvSetMetaCountO(#env, #metavar, NONE)
   → LEnvRemoveMeta(#env, #metavar)
 
-  rule LEnvSetMetaCountO(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars), #metavar, SOME(#count))
+  rule LEnvSetMetaCountO(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs), #metavar, SOME(#count))
   → let #nmetas = MapRemove(#metas, #metavar)
-      LEnv(#system, MapPut(#nmetas, #metavar, #count), #vars, #args, #reused, #inscope, #fvars)
+      LEnv(#system, MapPut(#nmetas, #metavar, #count), #vars, #args, #reused, #inscope, #fvars, #strs)
 
-func LEnvIncMetaCount(#env: LEnv, #metavar: String) -> LEnv
-→ LEnv(LEnvSystem(#env), MapPut(LEnvMetas(#env), #metavar, IfPresent(LEnvGetMetaCount(#env, #metavar), (count)->Plus(count, 1), ()->1)), LEnvVars(#env),
-         LEnvArgs(#env), LEnvReused(#env), LEnvBoundVar(#env), LEnvFreeVars(#env))
+func LEnvIncMetaCount(LEnv, String) -> LEnv
+rule LEnvIncMetaCount(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs), #metavar)
+→ LEnv(#system, MapPut(#metas, #metavar, IfPresent(MapGet(#metas, #metavar), (count)->Plus(count, 1), ()->1)), #vars, #args, #reused, #inscope, #fvars, #strs)
 
 func LEnvRemoveMeta(LEnv, String) -> LEnv
-rule LEnvRemoveMeta(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars), #metavar: String)
-→ LEnv(#system, MapRemove(#metas, #metavar), #vars, #args, #reused, #inscope, #fvars)
+rule LEnvRemoveMeta(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs), #metavar: String)
+→ LEnv(#system, MapRemove(#metas, #metavar), #vars, #args, #reused, #inscope, #fvars, #strs)
 
 // -- variable count
 
 func LEnvVars(LEnv) -> {String:Numeric}
-rule LEnvVars(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars)) → #vars
+rule LEnvVars(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs)) → #vars
 
 func LEnvVarKeys(LEnv) ->  List<String>
-rule LEnvVarKeys(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars)) → MapKeys(#vars)
+rule LEnvVarKeys(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs)) → MapKeys(#vars)
 
 func LEnvGetVarCount(#env: LEnv, #var: String) -> Option<Numeric>
 → MapGet(LEnvVars(#env), #var)
 
-func LEnvIncVarCount(#env: LEnv, #var: String) -> LEnv
-→ LEnv(LEnvSystem(#env), LEnvMetas(#env), MapPut(LEnvVars(#env), #var, IfPresent(LEnvGetVarCount(#env, #var), (count)->Plus(count, 1), ()->1)),
-        LEnvArgs(#env), LEnvReused(#env), LEnvBoundVar(#env), LEnvFreeVars(#env))
+func LEnvIncVarCount(LEnv, String) -> LEnv
+rule LEnvIncVarCount(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs), #var)
+→ LEnv(#system, #metas, MapPut(#vars, #var, IfPresent(MapGet(#vars, #var), (count)->Plus(count, 1), ()->1)),
+       #args, #reused, #inscope, #fvars, #strs)
 
 // -- meta-variable arguments
 
 // TODO: can't use alias due to issue #33
 func LEnvArgs(LEnv) -> {String:PPair<List<Core_cterm_sort> List<Core_cterm_sort>>}
-rule LEnvArgs(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars)) → #args
+rule LEnvArgs(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs)) → #args
 
-func LEnvSetMetaArgs(#env: LEnv, #metavar: String, #params: List<Core_cterm_sort>, #bounds: List<Core_cterm_sort>) -> LEnv
-→ LEnv(LEnvSystem(#env), LEnvMetas(#env), LEnvVars(#env), MapPut(LEnvArgs(#env), #metavar, PairCons(#params, #bounds)), LEnvReused(#env),
-         LEnvBoundVar(#env), LEnvFreeVars(#env))
+func LEnvSetMetaArgs(LEnv, String, List<Core_cterm_sort>, List<Core_cterm_sort>) -> LEnv
+rule LEnvSetMetaArgs(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs), #metavar, #params, #bounds)
+ → LEnv(#system, #metas, #vars, MapPut(#args, #metavar, PairCons(#params, #bounds)), #reused, #inscope, #fvars, #strs)
 
 func LEnvGetMetaParams(#env: LEnv, #metavar:String) -> List<Core_cterm_sort>
 → IfPresent(MapGet(LEnvArgs(#env), #metavar), (args)->Fst(args), ()->())
@@ -592,35 +624,36 @@ func LEnvGetMetaParams(#env: LEnv, #metavar:String) -> List<Core_cterm_sort>
 // -- meta-variable reuse flag
 
 func LEnvReused(LEnv) -> {String:Bool}
-rule LEnvReused(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars)) → #reused
+rule LEnvReused(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs)) → #reused
 
 func LEnvIsReused(#env: LEnv, #metavar:String) -> Bool
 → IfPresent(MapGet(LEnvReused(#env), #metavar), (bool)->bool, ()->FALSE)
 
 func LEnvReuse(#env: LEnv, #metavar:String) -> LEnv
-→ LEnv(LEnvSystem(#env), LEnvMetas(#env), LEnvVars(#env), LEnvArgs(#env), MapPut(LEnvReused(#env), #metavar, TRUE), LEnvBoundVar(#env), LEnvFreeVars(#env))
+rule LEnvReuse(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs), #metavar)
+→ LEnv(#system, #metas, #vars, #args, MapPut(#reused, #metavar, TRUE), #inscope, #fvars, #strs)
 
 // -- Bound variables (scoped and formal parameter)
 
 func LEnvBoundVar(LEnv) -> {String:LEnvVarEntry}
-rule LEnvBoundVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars))
+rule LEnvBoundVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs))
 → #inscope
 
 func LEnvGetBoundVar(LEnv, String) -> Option<LEnvVarEntry>
-rule LEnvGetBoundVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars), #key)
+rule LEnvGetBoundVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs), #key)
 → MapGet(#inscope, #key)
 
 func LEnvBoundVarKeys(LEnv) -> List<String>
-rule LEnvBoundVarKeys(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars))
+rule LEnvBoundVarKeys(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs))
 → MapKeys(#inscope)
 
 func LEnvAddBoundVar(LEnv, String, LEnvVarEntry) -> LEnv
-rule LEnvAddBoundVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars), #var, #entry)
-→ LEnv(#system, #metas, #vars, #args, #reused, MapPut(#inscope, #var, #entry), #fvars)
+rule LEnvAddBoundVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs), #var, #entry)
+→ LEnv(#system, #metas, #vars, #args, #reused, MapPut(#inscope, #var, #entry), #fvars, #strs)
 
 func LEnvRemoveBoundVar(LEnv, String) -> LEnv
-rule LEnvRemoveBoundVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars), #var)
-→ LEnv(#system, #metas, #vars, #args, #reused, MapRemove(#inscope, #var), #fvars)
+rule LEnvRemoveBoundVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs), #var)
+→ LEnv(#system, #metas, #vars, #args, #reused, MapRemove(#inscope, #var), #fvars, #strs)
 
 func LEnvBind(#env: LEnv, #var: String, #free: Bool, #nosubst: Bool) -> LEnv
 → LEnvAddBoundVar(#env, #var, LBOUND(NONE, #free, #nosubst))
@@ -637,11 +670,11 @@ func LEnvUnParam(#env: LEnv, #var: String) -> LEnv
 // -- Free variables
 
 func LEnvFreeVars(LEnv) -> {String:LEnvVarEntry}
-rule LEnvFreeVars(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars)) → #fvars
+rule LEnvFreeVars(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs)) → #fvars
 
 func LEnvAddFreeVar(LEnv, String, LEnvVarEntry) -> LEnv
-rule LEnvAddFreeVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars), #var, #entry)
-→ LEnv(#system, #metas, #vars, #args, #reused, #inscope, MapPut(#fvars, #var, #entry))
+rule LEnvAddFreeVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs), #var, #entry)
+→ LEnv(#system, #metas, #vars, #args, #reused, #inscope, MapPut(#fvars, #var, #entry), #strs)
 
 func LEnvFree(#env: LEnv, #var: String) -> LEnv
 → LEnvAddFreeVar(#env, #var, LFREE)
@@ -650,8 +683,8 @@ func LEnvFresh(#env: LEnv, #var: String) -> LEnv
 → LEnvAddFreeVar(#env, #var, LFRESH(NONE))
 
 func LEnvMoveFreeVars(LEnv /* to */, LEnv /* from */) -> LEnv
-rule LEnvMoveFreeVars(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars), LEnv(#system2, #metas2, #vars2, #args2, #reused2, #inscope2, #fvars2))
-→ LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars2)
+rule LEnvMoveFreeVars(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs), LEnv(#system2, #metas2, #vars2, #args2, #reused2, #inscope2, #fvars2, #strs2))
+→ LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars2, #strs2 /* already includes all strings in #strs */)
 
 // -- Bound or free variables helper functions
 
@@ -662,11 +695,11 @@ func LEnvGetVar(#env: LEnv, #var: String) -> Option<LEnvVarEntry>
     ()->MapGet(LEnvFreeVars(#env), #var))
 
 func LEnvReuseVar(LEnv, String, Core_canno_sort, Bool) -> LEnv
-rule LEnvReuseVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars), #var, #canno, #nosubst)
+rule LEnvReuseVar(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs), #var, #canno, #nosubst)
 → let #entry = MapGet(#inscope, #var)
     IfPresent(#entry,
-      (entry)->LEnv(#system, #metas, #vars, #args, #reused, LEnvReuseBound(MapRemove(#inscope, #var), #var, entry, #canno, #nosubst), #fvars),
-      ()->LEnv(#system, #metas, #vars, #args, #reused, #inscope, LEnvReuseFree(MapRemove(#fvars, #var), #var, MapGet(#fvars, #var), #canno)))
+      (entry)->LEnv(#system, #metas, #vars, #args, #reused, LEnvReuseBound(MapRemove(#inscope, #var), #var, entry, #canno, #nosubst), #fvars, #strs),
+      ()->LEnv(#system, #metas, #vars, #args, #reused, #inscope, LEnvReuseFree(MapRemove(#fvars, #var), #var, MapGet(#fvars, #var), #canno), #strs))
 
 func LEnvReuseBound({String:LEnvVarEntry}, String, LEnvVarEntry, Core_canno_sort, Bool) -> {String:LEnvVarEntry}
 rule LEnvReuseBound(#inscope, #var, LBOUND(#, #free, #onosubst), #canno, #nosubst) → {#inscope, #var: LBOUND(SOME(#canno), #free, #nosubst)}
@@ -675,3 +708,12 @@ rule LEnvReuseBound(#inscope, #var, #                          , #canno, #nosubs
 func LEnvReuseFree({String:LEnvVarEntry}, String, Option<LEnvVarEntry>, Core_canno_sort) -> {String:LEnvVarEntry}
 rule LEnvReuseFree(#fvars, #var, SOME(LFRESH(#)), #canno) → {#fvars, #var: LFRESH(SOME(#canno))}
 rule LEnvReuseFree(#fvars, #var, #              , #canno) → Error("Internal Error: cannot reuse a free variable or argument.")
+
+// -- String Literal
+
+func LEnvStrs(LEnv) -> {String:Bool}
+rule LEnvStrs(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs)) → #strs
+
+func LEnvAddStr(LEnv, String) -> LEnv
+rule LEnvAddStr(LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, #strs), #str)
+→ LEnv(#system, #metas, #vars, #args, #reused, #inscope, #fvars, MapPut(#strs, #str, TRUE))

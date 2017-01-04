@@ -23,11 +23,11 @@ func NoAliasM(#system: TSystem, #module: Module) -> Module
 
 
 func NoAliasC(DeclIndex, Content) -> Content
-rule NoAliasC(#aliases, Content(#imports, #rules, #datasorts, #caliases, #funcsorts))
+rule NoAliasC(#aliases, Content(#imports, #rules, #datasorts, #caliases, #funcsorts, #strs))
 → let #rules     = NoAliasRules(#aliases, #rules)
   let #datasorts = NoAliasDataSorts(#aliases, #datasorts)
   let #funcsorts = NoAliasFuncSorts(#aliases, #funcsorts)
-    Content(#imports, #rules, #datasorts, {}, #funcsorts)
+    Content(#imports, #rules, #datasorts, {}, #funcsorts, #strs)
 
 // --- Rules
 

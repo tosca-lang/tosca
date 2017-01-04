@@ -45,7 +45,8 @@ enum Content
            {String /* Constructor */ : List<Core_cdecl_sort>},  /* Rules */
            {String /* Constructor */ : Core_cdecl_sort},        /* Data sorts */
            DeclIndex,                                           /* Sort aliases */
-           {String /* Constructor */ : Core_cdecl_sort})        /* Function sorts */
+           {String /* Constructor */ : Core_cdecl_sort},        /* Function sorts */
+           {String:Bool})                                       /* String Literals */
 
 /* Compilation result */
 enum Result | Success(List<String> /* All produced files (new and previously generated.) */) | FAILURE
@@ -80,13 +81,13 @@ func HasModule(#system: TSystem, #url: String) -> Bool
   @return An existing module or a new one.
  */
 func LookupOrCreateModule(#system: TSystem, #url: String /* url */) -> Module
-→ IfPresent(LookupModule(#system, #url), (mod)->mod, ()->Module(#url, Content((), {}, {}, {}, {}), FALSE))
+→ IfPresent(LookupModule(#system, #url), (mod)->mod, ()->Module(#url, Content((), {}, {}, {}, {}, {}), FALSE))
 
 /* Gets module for given url.
   @return An existing module or a new one.
  */
 func ExtractOrCreateModule(#system: TSystem, #url: String /* url */) -> PPair<TSystem Module>
-→ IfPresent(LookupModule(#system, #url), (mod)->PairCons(RemoveModule(#system, #url), mod), ()->PairCons(#system, Module(#url, Content((), {}, {}, {}, {}), FALSE)))
+→ IfPresent(LookupModule(#system, #url), (mod)->PairCons(RemoveModule(#system, #url), mod), ()->PairCons(#system, Module(#url, Content((), {}, {}, {}, {}, {}), FALSE)))
 
 /* Get import declarations for the module at given `#url` */
 func GetImportsS(#system: TSystem, #url: String) -> List<Core_cqidentifier_sort>
@@ -247,19 +248,19 @@ func PutAliasM(#module: Module, #alias: Core_cdecl_sort) -> Module
 // --- Content lookup functions. Convention: function name is suffixed by C
 
 func GetImports(Content) -> List<Core_cqidentifier_sort>
-rule GetImports(Content(#imports, #rules, #datasorts, #aliases, #funcsorts)) → #imports
+rule GetImports(Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #strs)) → #imports
 
 func GetRules(Content) -> {String: List<Core_cdecl_sort>}
-rule GetRules(Content(#imports, #rules, #datasorts, #aliases, #funcsorts)) → #rules
+rule GetRules(Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #strs)) → #rules
 
 /* @return The list of rules for the given `#key` in the given `#system` */
 func GetRulesForKeyC(Content, String) -> Option<List<Core_cdecl_sort>>
-rule GetRulesForKeyC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #key)
+rule GetRulesForKeyC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #strs), #key)
 → MapGet(#rules, #key)
 
 /* @return all indexed data sorts */
 func GetDataSortsC(Content) -> {String: Core_cdecl_sort}
-rule GetDataSortsC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts)) → #datasorts
+rule GetDataSortsC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #strs)) → #datasorts
 
 /* @return `TRUE` if `#sort` is a data sort in the given loaded `#content` */
 func IsDataSortC(#content: Content, #sort: Core_csort_sort) -> Bool
@@ -276,7 +277,7 @@ func FindFormC(#content: Content, #datasort: Core_csort_sort, #formname: String)
 → FindFormI(GetDataSortsC(#content), #datasort, #formname)
 
 func GetFuncSorts(Content) -> {String: Core_cdecl_sort}
-rule GetFuncSorts(Content(#imports, #rules, #datasorts, #aliases, #funcsorts)) → #funcsorts
+rule GetFuncSorts(Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #strs)) → #funcsorts
 
 /* @return the function sort for the given `#constructor` in the given module `#content`, or `NONE` */
 func GetFuncSort(#content: Content, #constructor: String) -> Option<Core_cdecl_sort>
@@ -288,7 +289,7 @@ func GetFuncSortCE(#content: Content, #key: String) -> Core_cdecl_sort
     ()->Error(ConcatString("Error: missing function declaration ", #key)))
 
 func GetAliasesC(Content) -> {String: Core_cdecl_sort}
-rule GetAliasesC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts)) → #aliases
+rule GetAliasesC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #strs)) → #aliases
 
 /* @return the alias declaration for the given `#constructor` in the given module `#content`, or `NONE` */
 func GetAliasC(#content: Content, #constructor: String) -> Option<Core_cdecl_sort>
@@ -298,30 +299,34 @@ func GetAliasC(#content: Content, #constructor: String) -> Option<Core_cdecl_sor
 func IndexAliasC(#content: Content, #index: DeclIndex) -> DeclIndex
 → MapAddAll(#index, GetAliasesC(#content))
 
+func GetStrsC(Content) -> {String:Bool}
+rule GetStrsC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #strs))
+→ #strs
+
 // --- Content mutation functions. Convention: function name is suffixed by C
 
 /* Add the given import `#identifier` to the given module `#content`. */
 func AddImportC(Content, Core_cqidentifier_sort) -> Content
-rule AddImportC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #identifier)
-→ Content(Append(#identifier, #imports), #rules, #datasorts, #aliases, #funcsorts)
+rule AddImportC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #strs), #identifier)
+→ Content(Append(#identifier, #imports), #rules, #datasorts, #aliases, #funcsorts, #strs)
 
 /*  Add the given data sort `#declaration` to the given module `#content`.
     Fail if the given data sort already exists and `#extends` is set to `FALSE`. */
 func PutDataSortC(Content, Core_cdecl_sort, Bool) -> Content
-rule PutDataSortC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #decl, #extends)
-→ Content(#imports, #rules, PutDataSort(#datasorts, #decl, #extends), #aliases, #funcsorts)
+rule PutDataSortC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #strs), #decl, #extends)
+→ Content(#imports, #rules, PutDataSort(#datasorts, #decl, #extends), #aliases, #funcsorts, #strs)
 
 /* Add `#rules` of given `#constructor` to module `#content`. Always succeed, replacing existing entry if any.
    @return the updated content */
 func PutRulesC(Content, String, List<Core_cdecl_sort>) -> Content
-rule PutRulesC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #constructor, #rulesForCons)
-→ Content(#imports, MapPut(#rules, #constructor, #rulesForCons), #datasorts, #aliases, #funcsorts)
+rule PutRulesC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #strs), #constructor, #rulesForCons)
+→ Content(#imports, MapPut(#rules, #constructor, #rulesForCons), #datasorts, #aliases, #funcsorts, #strs)
 
 /* Append the given `#rule` to module `#content`.
    @return the updated content */
 func PutRuleC(Content, Core_cdecl_sort) -> Content
-rule PutRuleC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #rule)
-→ Content(#imports, PutRule(#rules, #rule), #datasorts, #aliases, #funcsorts)
+rule PutRuleC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #strs), #rule)
+→ Content(#imports, PutRule(#rules, #rule), #datasorts, #aliases, #funcsorts, #strs)
 
 /* Add rule to module content. Always succeed. */
 func PutRule({String : List<Core_cdecl_sort>}, Core_cdecl_sort) -> {String : List<Core_cdecl_sort>}
@@ -356,8 +361,8 @@ func PutDataSort1(Option<Core_cdecl_sort>, {String: Core_cdecl_sort}, String, Co
 // FIXME: lazy call to MapGet...
 
 func PutFuncSortC(Content, Core_cdecl_sort, Bool) -> Content
-rule PutFuncSortC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #funcsort, #overwrite)
-→ Content(#imports, #rules, #datasorts, #aliases, PutFuncSort(#funcsorts, #funcsort, #overwrite))
+rule PutFuncSortC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #strs), #funcsort, #overwrite)
+→ Content(#imports, #rules, #datasorts, #aliases, PutFuncSort(#funcsorts, #funcsort, #overwrite), #strs)
 
 func PutFuncSort({String : Core_cdecl_sort}, Core_cdecl_sort, Bool) -> {String : Core_cdecl_sort}
 rule PutFuncSort(#func, #decl = cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧, #overwrite)
@@ -375,15 +380,18 @@ func PutFuncSort1(Option<Core_cdecl_sort>, { String : Core_cdecl_sort }, String,
   rule PutFuncSort1(SOME(#datasort:Core_cdecl_sort), #func, #constructor, #rule, FALSE)
   → Error(ConcatString("Function sort already declared:", #constructor))
 
-
 func PutAliasC(Content, Core_cdecl_sort) -> Content
-rule PutAliasC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts), #alias)
-→ Content(#imports, #rules, #datasorts, PutAliasI(#aliases, #alias), #funcsorts)
+rule PutAliasC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #strs), #alias)
+→ Content(#imports, #rules, #datasorts, PutAliasI(#aliases, #alias), #funcsorts, #strs)
 
 /* Add alias to module content. Always succeed. */
 func PutAliasI({String : Core_cdecl_sort}, Core_cdecl_sort) -> {String : Core_cdecl_sort}
 rule PutAliasI(#aliases, cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ##cdefaultvalue? ⟧)
 → MapPut(#aliases, #CONSTRUCTOR, cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ##cdefaultvalue? ⟧)
+
+func SetStrsC(Content, {String:Bool}) -> Content
+rule SetStrsC(Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #ostrs), #strs)
+→ Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #strs)
 
 // --- Declaration querying functions. Convention: function name is suffixed by D
 
@@ -444,7 +452,7 @@ func IfConfigDef<a>(#system: TSystem, #key: String, #true: (String)->a, #false: 
    @return loaded core program into internal representation
  */
 func LoadCore(#system: TSystem, #url: String, #core: Core_ccrsx_sort, #compiled: Bool) -> TSystem
-→ LoadCoreS(If(HasModule(#system, #url), ()->#system, ()->PutModule(#system, #url, Module(#url, Content((), {}, {}, {}, {}), #compiled))),
+→ LoadCoreS(If(HasModule(#system, #url), ()->#system, ()->PutModule(#system, #url, Module(#url, Content((), {}, {}, {}, {}, {}), #compiled))),
               #url, #core)
 
 func LoadCoreS(TSystem, String, Core_ccrsx_sort) -> TSystem

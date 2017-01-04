@@ -138,6 +138,7 @@ namespace tosca {
     		tag->context->Deallocate(static_cast<void*>(tag), size);
     	}
     }
+
 }
 
 template<typename T>

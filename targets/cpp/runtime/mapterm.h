@@ -176,8 +176,15 @@ namespace tosca {
             if (mapreuse && this->refcount == 1)
                 return *this;
 
-            CMapTerm<K, V>& extended = *(new (ctx) CMapTerm<K, V>(*this));
-            return extended;
+            // temp code for debugging non-immortal extension.
+            if (this->IsImmortal())
+            {
+            	CMapTerm<K, V>& extended = *(new (ctx) CMapTerm<K, V>(*this));
+            	return extended;
+            }
+
+        	CMapTerm<K, V>& extended = *(new (ctx) CMapTerm<K, V>(*this));
+        	return extended;
         }
 
         void putValue(Context& ctx, K& key, V& value)

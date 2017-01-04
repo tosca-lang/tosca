@@ -33,11 +33,12 @@ using tosca::DoubleTerm;
 using tosca::MapTerm;
 using tosca::Term;
 
+†⟨CppLiteralsDecl(GetModuleURL(#module), MapKeys(GetStrsC(GetModuleContent(#module))))⟩
 // Templated method definitions
 †⟨CppMethodDefs(MapValues(GetDataSortsC(GetModuleContent(#module))))⟩
 
 // Templated function definitions
-†⟨CppFunctionDefs(SetContent(CppNewEnv, GetModuleContent(#module)))⟩
+†⟨CppFunctionDefs(SetURL(SetContent(CppNewEnv, GetModuleContent(#module)), GetModuleURL(#module)))⟩
 #endif⟧)
 
 /* Generate C++ header guard */
@@ -48,6 +49,15 @@ func HeaderGuard(#url: String) -> Text4_text_sort
 func CppIncludeSigs(#imports: List<Core_cqidentifier_sort>) -> Text4_text_sort
 → TextFoldES(Map((imp) -> text⟦
 #include "⟨STRING: JoinQIdentifier(imp, "/", TRUE)⟩.h"⟧, #imports))
+
+// --------- Literals
+
+func CppLiteralsDecl(#url: String, #strs: List<String>) -> Text4_text_sort
+→ TextFoldES(Map((str) -> CppLiteralDecl(#url, str), #strs))
+
+func CppLiteralDecl(#url: String, #str: String) -> Text4_text_sort
+→ text⟦
+extern StringTerm& †⟨CppLiteralId(#url, #str)⟩;⟧
 
 // --------- Templated method definitions
 

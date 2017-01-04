@@ -132,7 +132,7 @@ public:→
 †⟨CppVarConstructorUse(#sortname, #csortvars?, FALSE)⟩
 †⟨CppVarMethodGetVariable(#sortname, #csortvars?, FALSE)⟩
 †⟨CppVarMethodGetGVariable(#sortname, #csortvars?, FALSE)⟩
-size_t HashCode() { return VariableUse::HashCode(); }
+size_t HashCode() const { return VariableUse::HashCode(); }
 static void* operator new(std::size_t sz, tosca::Context& ctx) { return tosca::Allocate(sz, ctx); }
 static void operator delete(void* ptr) { tosca::Deallocate(ptr, sizeof(†⟨FormCppClassName(#sortname)⟩Use)); }←
 };

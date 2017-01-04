@@ -20,8 +20,8 @@ func NoAnnoM(#system: TSystem, #module: Module) -> Module
             ()->SetModuleContent(#module, NoAnnoC(#system, GetModuleContent(#module))))
 
 func NoAnnoC(TSystem, Content) -> Content
-rule NoAnnoC(#system, Content(#imports, #rules, #datasorts, #aliases, #funcsorts))
-→ Content(#imports, #rules, NoAnnoDataSorts(#system, #datasorts), #aliases, NoAnnoFuncSorts(#system, #funcsorts))
+rule NoAnnoC(#system, Content(#imports, #rules, #datasorts, #aliases, #funcsorts, #strs))
+→ Content(#imports, #rules, NoAnnoDataSorts(#system, #datasorts), #aliases, NoAnnoFuncSorts(#system, #funcsorts), #strs)
 
 // --- Data sorts
 
