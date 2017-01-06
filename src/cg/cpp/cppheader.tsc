@@ -24,6 +24,8 @@ func CppHeader(#module: Module) -> Text4_text_sort
 #define †⟨HeaderGuard(GetModuleURL(#module))⟩
 #include "ts.h"
 #include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩_sigs.h"
+†⟨TextIf(HasExternFuncM(#module), ()->text⟦
+#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩-extern.h"⟧)⟩
 
 // Imports class declarations and signatures
 †⟨CppIncludeSigs(GetImports(GetModuleContent(#module)))⟩

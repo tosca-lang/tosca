@@ -143,7 +143,7 @@ task tarAll(type: Tar, dependsOn: ':targets:java:snapshot') {
 
   into ('targets/cpp/std/src/std/') {
     from 'targets/cpp/std/src/std'
-    include '*-extern.*'
+    include '*-extern*.*'
   }
 
 	into ('.') {

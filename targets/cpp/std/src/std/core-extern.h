@@ -3,20 +3,24 @@
 #ifndef CORE_EXTERN_H_
 #define CORE_EXTERN_H_
 
+#include "std/core-extern_sigs.h"
+#include "ts.h"
+#include "std/listdef.h"
+#include "std/core.h"
+
 #include <unordered_set>
 #include <vector>
-#include "ts.h"
-#include "listdef_sigs.h"
 
-// Forward declarations
-
-template<typename a> class List;
-template<typename a> List<a>& newNil(tosca::Context& ctx);
-template<typename a> List<a>& newCons(tosca::Context& ctx, a& param1, List<a>& param2);
-class Bool;
-
-extern Bool& newTRUE(tosca::Context& ctx);
-extern Bool& newFALSE(tosca::Context& ctx);
+//
+//// Forward declarations
+//
+//template<typename a> class List;
+//template<typename a> List<a>& newNil(tosca::Context& ctx);
+//template<typename a> List<a>& newCons(tosca::Context& ctx, a& param1, List<a>& param2);
+//class Bool;
+//
+//extern Bool& newTRUE(tosca::Context& ctx);
+//extern Bool& newFALSE(tosca::Context& ctx);
 
 // --- Evaluation
 
@@ -267,20 +271,6 @@ b& VariableNameIs(tosca::Context& ctx, a& var, tosca::StringTerm& name, b& resul
     // TODO:
     return result;
 }
-
-// --- Bit manipulation
-
-/* @return true when all bits in left are also in right. */
-Bool& BitSubSetEq(tosca::Context& ctx, tosca::DoubleTerm& left, tosca::DoubleTerm& right);
-
-/* @return the integer with the bits in left which are not in right.  */
-tosca::DoubleTerm& BitMinus(tosca::Context& ctx, tosca::DoubleTerm& left, tosca::DoubleTerm& right);
-
-/* @return the integer with the bits in either left and/or right */
-tosca::DoubleTerm& BitOr(tosca::Context& ctx, tosca::DoubleTerm& left, tosca::DoubleTerm& right);
-
-/* @return the integer with the bits in both left and right */
-tosca::DoubleTerm& BitAnd(tosca::Context& ctx, tosca::DoubleTerm& left, tosca::DoubleTerm& right);
 
 // --- Profiling
 

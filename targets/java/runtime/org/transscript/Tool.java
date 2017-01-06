@@ -103,6 +103,7 @@ public class Tool
 		System.out.println("  stacktrace                print stack trace when an error occur");
 		System.out.println("  bootparserpath=<name>     where to look for builtin parsers (ADVANCED)");
 		System.out.println("  bootstrap                 turn bootstrapping mode on (ADVANCED)");
+		System.out.println("  incremental               turn incremental compilation on (EXPERIMENTAL)");
 	}
 
 	static void helpRun()
@@ -150,6 +151,7 @@ public class Tool
 			buildEnv.put("rules", rules);
 			buildEnv.put("build-dir", env.get("build-dir"));
 			buildEnv.put("verbose", env.get("verbose"));
+			buildEnv.put("incremental", env.get("incremental"));
 			if (env.get("infer") != null)
 				buildEnv.put("infer", env.get("infer"));
 			if (env.get("nostd") != null)
@@ -233,6 +235,7 @@ public class Tool
 		buildEnv.put("rules", rules);
 		buildEnv.put("build-dir", env.get("build-dir"));
 		buildEnv.put("verbose", env.get("verbose"));
+		buildEnv.put("incremental", env.get("incremental"));
 		buildEnv.put("cpp", "1");
 
 		int result = build(buildEnv);
@@ -293,7 +296,7 @@ public class Tool
 		MapTerm<StringTerm, StringTerm> config = MapTerm.mapTerm();
 
 		config.putValue(stringTerm("build-dir"), stringTerm(dest));
-
+		
 		// Compute the location of the standard library.
 		if (env.containsKey("bootstrap"))
 		{
@@ -309,9 +312,11 @@ public class Tool
 			config.putValue(stringTerm("infer"), stringTerm("1"));
 		if (env.containsKey("locify"))
 			config.putValue(stringTerm("locify"), stringTerm("1"));
+		if (env.containsKey("incremental"))
+			config.putValue(stringTerm("inc"), stringTerm("1"));
 		if (env.containsKey("nostd"))
 			System.setProperty("nostd", "1");
-
+		
 		// First: Produce source file.
 		buildEnv.put("class", "org.transscript.compiler.Tosca");
 		buildEnv.put("main", "Compile");

@@ -1,4 +1,4 @@
-/* Copyright (c) 2016 IBM Corporation. */
+/* Copyright (c) 2016-2017 IBM Corporation. */
 import std::mapdef
 /* Collection of utility functions related to input/ouput . */
 
@@ -36,3 +36,19 @@ func SaveTerm<a b>(#filename: String, #term: a, #result: b) -> b
 
 /* Convert term to `String` using serializer identified by the given category */
 @Extern func PrintTerm<a>(String /* category */, a /* term */) -> String
+
+// --- File
+
+/* @return the last time the given file located at the given location has been modified */
+@Extern func FileLastModified(#url: String) -> Numeric
+
+/* @return TRUE if the two files are identical */
+@Extern func FileSame(#url1: String, #url2: String) -> Bool
+
+/* Move file from `#src` to `#dest`
+   @return TRUE if succeeded, FALSE otherwise */
+@Extern func FileMoveTo(#src: String, #dst: String) -> Bool
+
+/* Delete file at given location
+   @return TRUE if succeeded, FALSE otherwise */
+@Extern func FileDelete(#url: String) -> Bool

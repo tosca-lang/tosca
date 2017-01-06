@@ -161,6 +161,23 @@ func PickFirst1<a>(Bool, a, List<a>, (a) -> Bool) -> Option<a>
 rule PickFirst1(FALSE, #1, #s, #) → PickFirst(#s, #)
 rule PickFirst1(TRUE,  #1, #s, #) → SOME(#1)
 
+/*
+   Pick first element matching condition
+   @param  `List<a>` list
+   @return a pair of an element or NONE, associated with the index of the element or
+           the list length when none.
+*/
+func PickFirstAt<a>(List<a>, Numeric, (a) -> Bool) -> PPair<Option<a> Numeric>
+
+  rule PickFirstAt((#1, #s...), #idx, #)
+  → if #(#1)
+      PairCons(SOME(#1), #idx)
+    else
+      PickFirstAt(#s, Plus(#idx, 1), #)
+
+  rule PickFirstAt((), #idx, #)
+  → PairCons(NONE, #idx)
+
 /* Pick first option other than `NONE`.
    @return a `SOME` option, or `NONE` */
 func PickFirstO<a>(#list: List<Option<a>>) -> Option<a>
@@ -342,11 +359,11 @@ func MapM<a b c>((a b) -> PPair<a c>, a, List<b>) -> PPair<a List<c>>
 rule MapM(#, #state, #s) → MapM2<a b c>(#, #state, #s, ())
 
 func MapM2<a b c>((a b) -> PPair<a c>, a, List<b>, List<c>) -> PPair<a List<c>>
-rule MapM2(#, #state, (                    ), #rs) → PairCons(#state, #rs)
-rule MapM2(#, #state, Cons(#1:b, #s:List<b>), #rs) → MapM3<a b c>(#(#state, #1), #, #s, #rs)
+rule MapM2(#, #state, (         ), #rs) → PairCons(#state, #rs)
+rule MapM2(#, #state, (#1, #s...), #rs) → MapM3<a b c>(#(#state, #1), #, #s, #rs)
 
 func MapM3<a b c>(PPair<a c>, (a b) -> PPair<a c>, List<b>, List<c>) -> PPair<a List<c>>
-rule MapM3(PairCons(#nstate:a, #r:c), #, #s, #rs) → MapM2<a b c>(#, #nstate, #s, Append<c>(#r, #rs))
+rule MapM3(PairCons(#nstate, #r), #, #s, #rs) → MapM2<a b c>(#, #nstate, #s, Append(#r, #rs))
 
 
 /* `Filter((x) ->#C(x), #XS)`
@@ -368,8 +385,28 @@ rule Filter(#C, #XS) → Foldr((x y) -> ConditionalInsert(#C(x), x, y) , (), #XS
     @return a value, where the the function `#F` is applied left associatively to all `#X` in `#XS` starting from the accumulator `#Z`
 */
 func Foldl<a b>((a b) -> b, b, List<a>) -> b
-rule Foldl(#F, #Z, (         )) → #Z
 rule Foldl(#F, #Z, (#H, #T...)) → Foldl(#F, #F(#H,#Z), #T)
+rule Foldl(#F, #Z, (         )) → #Z
+
+/* `FoldlI((x y) -> #F(x,y), #Z, #XS)`
+    Same as above with early interruption. A way to simulate Foldlr with lazy evaluation
+    @param  `(x y) -> #F(x, y)` a function which takes as first argument an element of `#XS` and `#Z` as a secon and return a new value and an
+                                interruption flag
+    @param  `#Z`           the starting value of the accumulator
+    @param  `#XS`          a list
+    @return a value, where the the function `#F` is applied left associatively to all `#X` in `#XS` starting from the accumulator `#Z`
+*/
+func FoldlI<a b>((a b) -> PPair<Bool b>, b, List<a>) -> b
+
+  rule FoldlI(#F, #Z, (#H, #T...))
+  → let #r = #F(#H,#Z)
+    if Fst(#r)
+      Snd(#r)
+    else
+      FoldlI(#F, Snd(#r), #T)
+
+  rule FoldlI(#F, #Z, ())
+  → #Z
 
 /*
   @note `InterpreterWrap` for `FoldP` enforcing computation of argument list `#XS`

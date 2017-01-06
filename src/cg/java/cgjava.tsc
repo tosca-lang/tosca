@@ -66,6 +66,10 @@ func ToJavaAux(#system: TSystem, #module: Module, #source: String) -> Result
     ⟧,
     ()->Success((#source,)))
 
+/* Tell whether the generated files needed to be regenerated */
+func JavaNeedRegen(#system:TSystem, #url: String) -> Bool
+→ TRUE
+
 // --- Translate module
 
 /* Generate class for the given module */

@@ -144,7 +144,6 @@ namespace tosca {
         {
             return true;
         }
-
     };
 
 
@@ -174,7 +173,9 @@ namespace tosca {
         {
             static const bool mapreuse = getenv("nomapreuse") == 0;
             if (mapreuse && this->refcount == 1)
-                return *this;
+            	return Compact(ctx, false);
+
+            Compact(ctx, true);
 
             // temp code for debugging non-immortal extension.
             if (this->IsImmortal())
@@ -208,17 +209,24 @@ namespace tosca {
             return newNONE<V>(ctx);
         }
 
-        Optional<Term> MapGetValue(Context& ctx, Term& key) const
+        Optional<Term> MapGetValue(Context& ctx, Term& key)
         {
-            auto search = map.find(&dynamic_cast<K&>(key));
-            if (search == map.end())
-            {
-                if (parent)
-                    return parent.value().MapGetValue(ctx, key);
-
-                return Optional<Term>::nullopt;
-            }
-            return make_optional<Term>(tosca::NewRef(*search->second));
+        	Compact(ctx, true);
+        	CMapTerm<K, V>* cmap = this;
+        	while (true)
+        	{
+        		auto search = cmap->map.find(&dynamic_cast<K&>(key));
+        		if (search == cmap->map.end())
+        		{
+        			if (cmap->parent)
+        				cmap = &cmap->parent.value();
+        			else
+        				break;
+        		}
+        		else
+        			return make_optional<Term>(tosca::NewRef(*search->second));
+        	}
+        	return Optional<Term>::nullopt;
         }
 
         Term& MapPutValue(Context& ctx, Term& key, Term& value)
@@ -394,8 +402,53 @@ namespace tosca {
         CMapTerm(CMapTerm& parent): parent(make_optional<CMapTerm>(parent))
         {}
 
-        friend MapTerm<K, V>& newMapTerm<K, V>(Context& ctx);
+        /* Compact linked maps */
+        CMapTerm<K, V>& Compact(Context& ctx, bool onlyParent)
+        {
+        	if (onlyParent && !parent)
+        		return *this;
+        	if (!onlyParent && this->refcount > 1)
+        		return *this;
 
+        	// Search for the oldest map with only one reference
+        	std::vector<CMapTerm<K, V>*> candidates;
+        	CMapTerm<K, V>* oldest = onlyParent ? &parent.value() : this;
+        	while (true)
+        	{
+        		if (!oldest->parent || oldest->parent.value().refcount > 1)
+        			break;
+
+        		candidates.push_back(oldest);
+        		oldest = &oldest->parent.value();
+        	}
+
+        	// Add all candidates entries to the oldest map
+        	for (auto it = candidates.rbegin(); it != candidates.rend(); it ++)
+        	{
+        		CMapTerm<K, V>* cmap = *it;
+        		for (auto it2 = cmap->map.begin(); it2 != cmap->map.end(); it2 ++)
+        		{
+        			it2->first->AddRef();
+        			it2->second->AddRef();
+        			oldest->putValue(ctx, *it2->first, *it2->second);
+        		}
+        	}
+
+        	oldest->AddRef();
+
+        	if (onlyParent)
+        	{
+            	// Patch parent.
+        		parent.value().Release();
+        		parent = make_optional<CMapTerm>(*oldest);
+        		return *this;
+        	}
+
+        	this->Release();
+        	return *oldest;
+        }
+
+        friend MapTerm<K, V>& newMapTerm<K, V>(Context& ctx);
         static CMapTerm<K, V>& SINGLETON;
     };
 

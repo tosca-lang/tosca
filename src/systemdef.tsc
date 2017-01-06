@@ -481,10 +481,23 @@ func LoadDeclsS(TSystem, String, List<Core_cdecl_sort>, Bool) -> TSystem
   → LoadDeclsS(PutAliasS(#system, #url, cdecl⟦ ##canno* alias ##csortvars? ##CONSTRUCTOR ##csort ##cdefaultvalue? ⟧), #url, #cdecl+, #extends)
 
   rule LoadDeclsS(#system, #url, cdecl+⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ##cdecl+ ⟧, #extends)
-  → LoadDeclsS(PutFuncSortS(#system, #url, cdecl⟦ ##canno* ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧, FALSE), #url, #cdecl+, #extends)
+  → let #canno*2 = if HasNativeImpl(#system, #CONSTRUCTOR)
+                     AddAnnotation("Extern", #canno*)
+                   else
+                     #canno*
+    LoadDeclsS(PutFuncSortS(#system, #url, cdecl⟦ ##canno*2 ##EXTERN? func ##csortvars? ##csort ##CONSTRUCTOR ##csortsdefault? ⟧, FALSE), #url, #cdecl+, #extends)
 
-  rule LoadDeclsS(#system, #url,  cdecl+⟦ ##canno* rule ##cterm → ##cterm2 ##cdecl+  ⟧, #extends)
-  → LoadDeclsS(PutRuleS(#system, #url, cdecl⟦ ##canno* rule  ##cterm → ##cterm2 ⟧), #url, #cdecl+, #extends)
+  rule LoadDeclsS(#system, #url,  cdecl+⟦ ##canno* rule ##canno*2 ##csortqualifier* ##CONSTRUCTOR ##cterms? → ##cterm2 ##cdecl+  ⟧, #extends)
+  → if HasNativeImpl(#system, #CONSTRUCTOR)
+      LoadDeclsS(#system, #url, #cdecl+, #extends)
+    else
+      LoadDeclsS(PutRuleS(#system, #url, cdecl⟦ ##canno* rule ##canno*2 ##csortqualifier* ##CONSTRUCTOR ##cterms? → ##cterm2 ⟧), #url, #cdecl+, #extends)
+
+func HasNativeImpl(#system: TSystem, #name:String) -> Bool
+→ if HasOption(GetConfig(#system, "cpp"))
+    HasOption(PickFirst(("PickFirst", "PickFirstAt", "ReversePick", "Foldl", "FoldlI"), (n)->Equal(n, #name)))
+  else
+    FALSE
 
 // ---- Import function helpers
 

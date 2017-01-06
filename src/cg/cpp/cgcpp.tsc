@@ -9,6 +9,7 @@ import std::mapdef
 import std::text
 import std::path
 import std::string
+import std::num
 import std::language
 import std::text::Text4
 
@@ -22,18 +23,36 @@ import cg::cpp::cppsource
 
 /* Generate C++ source and header file for given `#module` */
 func ToCppM(#system:TSystem, #module: Module) -> Result
-→   ToCppAux(#system, #module,
-    TargetCppTypes(GetSystemURL(#system), GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")),
-    TargetCppSigs(GetSystemURL(#system), GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")),
-    TargetCppHeader(GetSystemURL(#system), GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")),
-    TargetCppSource(GetSystemURL(#system), GetModuleURL(#module), GetConfigDef(#system, "build-dir", "")))
+→ let #mainurl = GetSystemURL(#system)
+  let #url = GetModuleURL(#module)
+  let #buildir = GetConfigDef(#system, "build-dir", "")
+  let #types = TargetCppTypes(#mainurl, #url, #buildir)
+  let #sigs = TargetCppSigs(#mainurl, #url, #buildir)
+  let #header = TargetCppHeader(#mainurl, #url, #buildir)
+  let #source = TargetCppSource(#mainurl, #url, #buildir)
+  let #result = CppSaveAllTmp(#system, #module, #types, #sigs, #header, #source)
+  let #result1 = CppMoveTmp(#result, #types)
+  let #result2 = CppMoveTmp(#result1, #sigs)
+  let #result3 = CppMoveTmp(#result2, #header)
+  let #result4 = CppMoveTmp(#result3, #source)
+  #result4
 
-func ToCppAux(#system:TSystem, #module: Module, #types:String, #sigs:String, #header:String, #source:String) -> Result
-→ SaveResource("text", #types, CppTypes(#module),
-   ()->SaveResource("text", #sigs,  CppSigs(#module),
-   ()->SaveResource("text", #header, CppHeader(#module),
-   ()->SaveResource("text", #source, CppSource(#module),
-   ()->Success((#header, #source))))))
+func CppSaveAllTmp(#system:TSystem, #module: Module, #types:String, #sigs:String, #header:String, #source:String) -> Result
+→ SaveResource("text", ConcatString(#types, ".tmp"), CppTypes(#module), ()->
+  SaveResource("text", ConcatString(#sigs, ".tmp"),  CppSigs(#module), ()->
+  SaveResource("text", ConcatString(#header, ".tmp"), CppHeader(#module), ()->
+  SaveResource("text", ConcatString(#source, ".tmp"), CppSource(#module), ()->
+  Success((#header, #source))))))
+
+func CppMoveTmp(#result:Result, #filename: String) -> Result
+→ let #tmp = ConcatString(#filename, ".tmp")
+  if FileSame(#filename, #tmp)
+    Debug(ConcatString("delete ", #tmp), ()->#result)
+  else
+    if FileMoveTo(#tmp, #filename)
+      #result
+    else
+      Debug(ConcatString("delete ", #tmp), ()->#result)
 
 /* Get the absolute name of the target c++ header file containing forward declarations */
 func TargetCppTypes(#mainurl: String, #input: String, #dest: String) -> String
@@ -48,3 +67,19 @@ func TargetCppSigs(#mainurl: String, #input: String, #dest: String) -> String
 
 /* Get the absolute name of the target c++ source file */
 @Extern func TargetCppSource(#mainurl: String, #input: String, #dest: String) -> String
+
+/* Tell whether the generated files needed to be regenerated */
+func CppNeedRegen(#system:TSystem, #url: String) -> Bool
+→ let #mainurl = GetSystemURL(#system)
+  let #buildir = GetConfigDef(#system, "build-dir", "")
+  let #srcmod = FileLastModified(#url)
+  if GreaterThan(#srcmod, FileLastModified(TargetCppTypes(#mainurl, #url, #buildir)))
+    TRUE
+  else if GreaterThan(#srcmod, FileLastModified(TargetCppSigs(#mainurl, #url, #buildir)))
+    TRUE
+  else if GreaterThan(#srcmod, FileLastModified(TargetCppHeader(#mainurl, #url, #buildir)))
+    TRUE
+  else if GreaterThan(#srcmod, FileLastModified(TargetCppSource(#mainurl, #url, #buildir)))
+    TRUE
+  else
+    FALSE

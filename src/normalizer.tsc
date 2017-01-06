@@ -17,7 +17,7 @@ import std::language
 
 // ----- API
 
-// Convert TransScript to Core
+// Convert Tosca to Core
 func ToCore(String, TransScript_transscript_sort) -> Core_ccrsx_sort
 rule ToCore(#filename, transscript⟦ ##decl+ ⟧)
 → IfDef("nostd",

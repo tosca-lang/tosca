@@ -1,8 +1,5 @@
 /* Copyright (c) 2016 IBM Corporation. */
 
-enum Tuple2<a b>
-  | Tuple2(a, b)
-
 enum Tuple3<a b c>
   | Tuple3(a, b, c)
 

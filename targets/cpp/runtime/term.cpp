@@ -59,37 +59,37 @@ namespace tosca {
         //std::cout << "delete ref\n";
         //assert(refcount == 0); // refcount not zero when term allocated on stack
     }
-
-    void Ref::AddRef()
-    {
-        assert(Alive(this));
-        if (refcount != IMMORTAL)
-        {
-        	refcount++;
-        	if (TRACK_REFS && (track || track_allocated == allocated[this]))
-        		std::cerr << "\n[" << allocated[this] << "] add ref " << refcount ;
-        }
-    }
-
-    void Ref::Release()
-    {
-        assert(Alive(this));
-        if (refcount != IMMORTAL)
-        {
-        	refcount--;
-
-        	if (TRACK_REFS && (track || track_allocated == allocated[this]))
-        		std::cerr << "\n[" << allocated[this] << "] released " << refcount;
-
-        	if (refcount == 0)
-        	{
-        		if (TRACK_REFS)
-        			allocated.erase(this);
-
-        		delete this;
-        	}
-        }
-    }
+//
+//    void Ref::AddRef()
+//    {
+//        assert(Alive(this));
+//        if (refcount != IMMORTAL)
+//        {
+//        	refcount++;
+//        	if (TRACK_REFS && (track || track_allocated == allocated[this]))
+//        		std::cerr << "\n[" << allocated[this] << "] add ref " << refcount ;
+//        }
+//    }
+//
+//    void Ref::Release()
+//    {
+//        assert(Alive(this));
+//        if (refcount != IMMORTAL)
+//        {
+//        	refcount--;
+//
+//        	if (TRACK_REFS && (track || track_allocated == allocated[this]))
+//        		std::cerr << "\n[" << allocated[this] << "] released " << refcount;
+//
+//        	if (refcount == 0)
+//        	{
+//        		if (TRACK_REFS)
+//        			allocated.erase(this);
+//
+//        		delete this;
+//        	}
+//        }
+//    }
 
     void Ref::Track(long id)
     {
@@ -182,7 +182,7 @@ namespace tosca {
     {
     }
 
-    Optional<Term> Term::MapGetValue(Context& ctx, Term& key) const
+    Optional<Term> Term::MapGetValue(Context& ctx, Term& key)
     {
         return Optional<Term>::nullopt;
     }
@@ -911,8 +911,7 @@ namespace tosca {
     }
 
     _CDoubleTermVarUse::_CDoubleTermVarUse(_CDoubleTermVar& v) : VariableUse::VariableUse(v)
-    {
-    }
+    {}
 
     Optional<_CDoubleTermVar> _CDoubleTermVarUse::GetVariable() const
     {
@@ -957,6 +956,12 @@ namespace tosca {
     const std::string& _CDoubleTerm::Symbol() const
     {
         return str;
+    }
+
+    bool _CDoubleTerm::DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const
+    {
+    	const _CDoubleTerm* lhs = dynamic_cast<const _CDoubleTerm*>(&rhs);
+    	return lhs != 0 && lhs->Unbox() == value;
     }
 
 }

@@ -42,21 +42,25 @@ namespace tosca {
         Ref(bool immortal);
         virtual ~Ref();
 
-        void AddRef();
-        void Release();
-//        /** Add new ref */
-//        inline void AddRef()
-//        {
-//        	refcount++;
-//        }
-//
-//        /** Release ref */
-//        inline void Release()
-//        {
-//        	refcount--;
-//        	if (refcount == 0)
-//        		delete this;
-//        }
+//        void AddRef();
+//        void Release();
+        /** Add new ref */
+        inline void AddRef()
+        {
+        	if (refcount != IMMORTAL)
+        		refcount++;
+        }
+
+        /** Release ref */
+        inline void Release()
+        {
+        	if (refcount != IMMORTAL)
+        	{
+        		refcount--;
+        		if (refcount == 0)
+        			delete this;
+        	}
+        }
 
         inline void Track()
         {
@@ -139,7 +143,7 @@ namespace tosca {
         /**
          * Deep term equality operator, modulo variable and maps.
          */
-        inline bool operator==(const Term& rhs) const
+        bool operator==(const Term& rhs) const
         {
             std::unordered_map<Variable*, Variable*> varmap;
             return DeepEquals(rhs, varmap);
@@ -148,10 +152,9 @@ namespace tosca {
         /**
          * Deep term non-equality operator, modulo variable and maps.
          */
-        inline bool operator!=(const Term& rhs) const
+        bool operator!=(const Term& rhs) const
         {
-            std::unordered_map<Variable*, Variable*> varmap;
-            return !DeepEquals(rhs, varmap);
+        	return !(*this == rhs);
         }
 
         /* @return The variable when this term is a variable use, otherwise nullopt */
@@ -170,7 +173,7 @@ namespace tosca {
          * Get the value corresponding to the given keys. Only applicable when IsMap returns true
          * @param key. The reference is *NOT* consumed
          */
-        virtual Optional<Term> MapGetValue(Context& ctx, Term& key) const;
+        virtual Optional<Term> MapGetValue(Context& ctx, Term& key);
 
         /*
          * Add key-value pair to map. Only applicable when IsMap returns true
@@ -352,7 +355,6 @@ namespace tosca {
         unsigned long uses;
 
         friend class VariableUse;
-
     };
 
 
@@ -539,6 +541,8 @@ namespace tosca {
         Term& Copy(Context& ctx);
         double Unbox() const;
         const std::string& Symbol() const;
+        bool DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const;
+
     protected:
         /** The double value. */
         double value;

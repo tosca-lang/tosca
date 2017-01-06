@@ -2,14 +2,13 @@
 #ifndef MAPDEF_EXTERN_H_
 #define MAPDEF_EXTERN_H_
 
+#include "std/mapdef-extern_sigs.h"
+
 #include <vector>
 #include "ts.h"
 #include "std/core.h"
 #include "std/listdef.h"
 #include "std/mapdef_sigs.h"
-
-template<typename a> class Option;
-class Bool;
 
 /**
  * Convert std:vector to a List

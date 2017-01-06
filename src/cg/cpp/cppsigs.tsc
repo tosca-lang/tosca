@@ -21,7 +21,7 @@ func CppSigs(#module: Module) -> Text4_text_sort
 #include "ts.h"
 #include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩_types.h"
 †⟨TextIf(HasExternFuncM(#module), ()->text⟦
-#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩-extern.h"⟧)⟩
+#include "⟨STRING: Mangle(PathFileStem(GetModuleURL(#module)))⟩-extern_sigs.h"⟧)⟩
 
 †⟨CppIncludeTypes(GetImports(GetModuleContent(#module)))⟩
 

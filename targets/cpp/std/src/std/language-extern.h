@@ -3,13 +3,13 @@
 #ifndef LANGUAGE_EXTERN_H
 #define LANGUAGE_EXTERN_H
 
+#include "language-extern_sigs.h"
+
 #include <stdexcept>
 #include <fstream>
 #include <sstream>
-#include "ts.h"
 #include "termprinter.h"
 #include "termreader.h"
-#include "term.h"
 
 template <typename a>
 tosca::StringTerm& PrintTerm(tosca::Context& ctx, tosca::StringTerm& category, a& term)
@@ -64,5 +64,6 @@ a& ParseText(tosca::Context& ctx, tosca::StringTerm& category, tosca::StringTerm
     content.Release();
     return result;
 }
+
 
 #endif
