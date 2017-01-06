@@ -228,7 +228,7 @@ rule RemoveDuplicates((#X, #XS...)) → (#X, RemoveDuplicates(Filter((x) -> Not(
    @return length of `#XS`
 */
 func ListLength<a>(List<a>) -> Numeric
-rule ListLength(#XS) → IWrapFoldlP((x y) -> Plus(1, y), 0, #XS)
+rule ListLength(#XS) → Foldl((x y)->Plus(1, y), 0, #XS)
 
 /* `Intersect(#XS, #YS)`
    @param  `#XS` list

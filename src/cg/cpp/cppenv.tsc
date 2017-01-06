@@ -13,6 +13,7 @@ import std::text::Text4
 import core::Core
 import systemdef
 import cg::utils
+import naming
 
 /* Variable entry */
 enum VarEntry

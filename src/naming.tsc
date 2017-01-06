@@ -1,0 +1,30 @@
+// Copyright (c) 2017 IBM Corporation.
+
+/* Utility functions helping generating unique names */
+import std::mapdef
+import std::pairdef
+import std::num
+import std::string
+
+//
+type Names = {String: Numeric}     // base base with their counters
+type ScopedNames = {String: Names} // scoped names
+
+
+/* Reset counters for the given named scope */
+func NamingResetScope(#names: ScopedNames, #scope: String) -> ScopedNames
+→ {#names, #scope: {}}
+
+/* Generate new name
+   @param names naming state
+   @param scope scope name
+   @param base name
+*/
+func NamingNewName(#scopes: ScopedNames, #scope: String, #base: String) -> PPair<ScopedNames String>
+→ let #names = MapGetD(#scopes, #scope, {})
+  let #scopes2 = MapRemove(#scopes, #scope)
+  let #index = MapGetD(#names, #base, -1)
+  let #name = if Equal(#index, -1) #base else ConcatString(#base, "_", FormatInteger(#index))
+  let #names2 = {#names, #base:Plus(#index, 1)}
+  let #scopes3 = {#scopes2, #scope: #names2}
+  PairCons(#scopes3, #name)
