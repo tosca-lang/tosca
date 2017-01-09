@@ -403,16 +403,19 @@ func AnalyzeMayReuseLambdaArity(Bool, List<String>, List<Core_cterm_sort>, List<
  */
 func AnalyzeMetaArgsReuse(List<Core_canno_sort>, String, PPair<LEnv List<Core_cterm_sort>>) -> PPair<LEnv List<Core_cterm_sort>>
 rule AnalyzeMetaArgsReuse(#canno*, #metavar, PairCons(#env, #terms))
-→ let #nenv = AnalyzeWeakVariables(#env, #terms)
-             /*if HasAnnotation("Closed", #canno*) // The user tells us the term is (partially-)closed.
-                #env
-              else
-                AnalyzeWeakVariables(#env, #terms)*/
-  let #nosubst = HasAnnotation("NoSubst", #canno*)
-  if And(AnalyzeAllBoundOrFresh(#nenv, #terms, #nosubst), Or(#nosubst, Not(LEnvIsReused(#nenv, #metavar))))
-    AnalyzeReuseArgs(LEnvReuse(#nenv, #metavar), #nosubst, #metavar, #terms, (), 0)
+→ if HasAnnotation("Subst", #canno*)
+    PairCons(#env, #terms)
   else
-    PairCons(#nenv, #terms)
+    let #nenv = AnalyzeWeakVariables(#env, #terms)
+               /*if HasAnnotation("Closed", #canno*) // The user tells us the term is (partially-)closed.
+                  #env
+                else
+                  AnalyzeWeakVariables(#env, #terms)*/
+    let #nosubst = HasAnnotation("NoSubst", #canno*)
+    if And(AnalyzeAllBoundOrFresh(#nenv, #terms, #nosubst), Or(#nosubst, Not(LEnvIsReused(#nenv, #metavar))))
+      AnalyzeReuseArgs(LEnvReuse(#nenv, #metavar), #nosubst, #metavar, #terms, (), 0)
+    else
+      PairCons(#nenv, #terms)
 
 /* Apply variable reuse by adding @Reuse annotation on meta arguments. */
 func AnalyzeReuseArgs(LEnv, Bool, String, List<Core_cterm_sort>, List<Core_cterm_sort>, Numeric) -> PPair<LEnv List<Core_cterm_sort>>

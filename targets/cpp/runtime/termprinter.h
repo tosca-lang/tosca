@@ -30,7 +30,7 @@ namespace tosca {
      * @param term to print. Consume reference.
      */
     void Print(Term& term, bool indent);
- 
+
     /*
      * Print term to string
      */

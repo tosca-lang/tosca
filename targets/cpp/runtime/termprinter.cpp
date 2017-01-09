@@ -12,22 +12,30 @@
 
 namespace tosca {
    
+	static void Print(Term& term, IOWrapper& out, PrintOptions& options)
+	{
+		term.Print(out, options);
+		term.Release();
+	}
+
     void Print(Term& term, FILE* out, bool indent)
     {
         IOFILEWrapper wrapper(out);
-        Print(term, wrapper, indent);
+        PrintOptions options(indent, false);
+        Print(term, wrapper, options);
     }
     
     void Print(Term& term, std::ostream& out, bool indent)
     {
         IOStreamWrapper wrapper(out);
-        Print(term, wrapper, indent);
+        PrintOptions options(indent, false);
+        Print(term, wrapper, options);
     }
     
     void Print(Term& term, IOWrapper& out, bool indent)
     {
-        term.Print(out, 0, indent);
-        term.Release();
+    	PrintOptions options(indent, false);
+        Print(term, out, options);
     }
 
     void Print(Term& term, bool indent)
@@ -38,7 +46,9 @@ namespace tosca {
     std::string PrintToString(Term& term, bool indent)
     {
         std::stringstream stream;
-        Print(term, stream, indent);
+        IOStreamWrapper wrapper(stream);
+        PrintOptions options(indent, true);
+        Print(term, wrapper, options);
         return stream.str();
     }
 

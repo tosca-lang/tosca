@@ -340,15 +340,15 @@ namespace tosca {
             // return copy;
         }
 
-        void Print(IOWrapper& out, int count, bool indent)
+        void Print(IOWrapper& out, PrintOptions& options)
         {
             CMapTerm<K, V>* cmap = this;
 
             out.Write('\n');
-            if (indent)
-                out.Indent(count);
+            if (options.indent)
+                out.Indent(options.count);
             out.Write('{');
-            count += 2;
+            options.count += 2;
             bool first = true;
             while (true)
             {
@@ -359,23 +359,25 @@ namespace tosca {
                     else
                         first = false;
                     out.Write('\n');
-                    if (indent)
-                        out.Indent(count);
-                    it->first->Print(out, count, indent);
+                    if (options.indent)
+                        out.Indent(options.count);
+                    it->first->Print(out, options);
                     out.Write(':');
-                    it->second->Print(out, count + 2, indent);
+                    options.count += 2;
+                    it->second->Print(out, options);
+                    options.count -= 2;
                 }
                 if (!cmap->parent)
                     break;
 
                 cmap = &cmap->parent.value();
             }
-            count -= 2;
+            options.count -= 2;
             if (!isEmpty())
             {
                 out.Write('\n');
-                if (indent)
-                    out.Indent(count);
+                if (options.indent)
+                    out.Indent(options.count);
             }
             out.Write('}');
         }

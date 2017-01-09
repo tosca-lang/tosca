@@ -82,6 +82,24 @@ namespace tosca {
         static const unsigned long IMMORTAL = ULONG_MAX;
     };
 
+    /** Options controlling term printing */
+    class PrintOptions
+    {
+    public:
+    	PrintOptions(bool _indent, bool _escape);
+
+    	/* Current indentation level */
+    	int count;
+
+    	/* whether to indent term */
+    	bool indent;
+
+    	/* whether to escape string value */
+    	    	bool escape;
+
+
+    };
+
     /*
      * Base class for terms
      */
@@ -255,7 +273,7 @@ namespace tosca {
         /**
          * Print this term.
          */
-        virtual void Print(IOWrapper& out, int count, bool indent);
+        virtual void Print(IOWrapper& out, PrintOptions& options);
         
     protected:
         friend struct std::hash<std::reference_wrapper<tosca::Term>>;
@@ -408,7 +426,7 @@ namespace tosca {
         // Overrides
         size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn) const;
         const std::string& Symbol() const;
-        void Print(IOWrapper& out, int count, bool indent);
+        void Print(IOWrapper& out, PrintOptions& options);
 
     };
 
@@ -514,7 +532,7 @@ namespace tosca {
         
         // Overrides
         size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn) const;
-        void Print(IOWrapper& out, int count, bool indent);
+        void Print(IOWrapper& out, PrintOptions& options);
     };
    
     /**

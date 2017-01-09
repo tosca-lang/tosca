@@ -108,6 +108,12 @@ namespace tosca {
     	}
     }
 
+    // --- Print options
+
+
+    PrintOptions::PrintOptions(bool _indent, bool _escape) : count(0), indent(_indent), escape(_escape)
+    {}
+
     // --- Term
 
 
@@ -663,12 +669,12 @@ namespace tosca {
         throw std::runtime_error("Internal error: enumeration does not allow associated values.");
     }
 
-    void Term::Print(IOWrapper& out, int count, bool indent)
+    void Term::Print(IOWrapper& out, PrintOptions& options)
     {
         // TODO: support for UTF-8
         out.Write('\n');
-        if (indent)
-            out.Indent(count);
+        if (options.indent)
+            out.Indent(options.count);
         out.Write(Symbol());
 
         // Print subs
@@ -694,7 +700,9 @@ namespace tosca {
                 if (Binder(i, 0))
                     out.Write("]->");
 
-                osub.value().Print(out, count + 2, indent);
+                options.count += 2;
+                osub.value().Print(out, options);
+                options.count -= 2;
                 osub = Sub(++i);
             }
             out.Write(")");
@@ -801,10 +809,10 @@ namespace tosca {
         return HashCode();
     }
 
-    void StringTerm::Print(IOWrapper& out, int count, bool indent)
+    void StringTerm::Print(IOWrapper& out, PrintOptions& options)
     {
         out.Write("\"");
-        out.Write(makeEscaped(Unbox()));
+        out.Write(options.escape ? makeEscaped(Unbox()): Unbox());
         out.Write("\"");
     }
 
@@ -905,7 +913,7 @@ namespace tosca {
         return newDoubleTerm(ctx, value);
     }
 
-    void DoubleTerm::Print(IOWrapper& out, int count, bool indent)
+    void DoubleTerm::Print(IOWrapper& out, PrintOptions& options)
     {
         out.Write(Symbol());
     }
