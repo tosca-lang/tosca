@@ -18,10 +18,6 @@ namespace tosca {
 		/* Create pooled StringTerm */
 		static StringTerm& newPooledStringTerm(const std::string&& str);
 
-	private:
-		/* String pool */
-		static std::unordered_map<std::string, StringTerm*> strpool;
-
 	};
 
 }

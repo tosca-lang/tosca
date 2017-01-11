@@ -114,10 +114,6 @@ static void escape(char **sourcep, char **targetp, char *endsource, char *endtar
     *sourcep = (char*)s;
     *targetp = (char*)t;
 }
-
-/**
- *  Convert UTF-8 chars to external escaped string form.
- */
 std::string makeEscaped(const std::string& src)
 {
     size_t src_length = src.length();

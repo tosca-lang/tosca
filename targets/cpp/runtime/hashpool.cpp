@@ -5,11 +5,13 @@
 
 using namespace tosca;
 
-std::unordered_map<std::string, StringTerm*> HashPool::strpool;
 
 StringTerm& HashPool::newPooledStringTerm(const std::string&& str)
 {
-	auto search = strpool.find(str);
+	static std::unordered_map<std::string, StringTerm*> strpool;
+
+	std::string s(str);
+	auto search = strpool.find(s);
 	if (search == strpool.end())
 	{
 		strpool[str] = ::new _CStringTerm(str, true);
