@@ -72,7 +72,7 @@ Bool& DeepEqual(tosca::Context& ctx, a& lhs, a& rhs)
 // --- Syntactic Variable
 
 template <typename b>
-List<b>* FreeVariablesImpl(tosca::Context& ctx, const tosca::Term& term, List<b>* result, std::unordered_set<tosca::Variable*>& bound)
+List<b>* FreeVariablesImpl(tosca::Context& ctx, const tosca::Term& term, List<b>* result, std::unordered_set<tosca::Variable*>& bound, std::unordered_set<tosca::Variable*>& free)
 {
     Optional<tosca::Variable> ovar = term.GetGVariable();
     if (ovar)
@@ -81,13 +81,20 @@ List<b>* FreeVariablesImpl(tosca::Context& ctx, const tosca::Term& term, List<b>
         auto search = bound.find(&v);
         if (search == bound.end()) // If not found, it's a free var.
         {
-            // Make sure the variable is of the same type as the expected type.
-            tosca::Term& guse = v.GUse(ctx);
-            b* vuse = dynamic_cast<b*>(&guse);
-            if (vuse)
-                return &newCons<b>(ctx, *vuse, *result);
-            
-            guse.Release();
+        	// Already accounted for?
+        	auto search2 = free.find(&v);
+        	if (search2 == free.end())
+        	{
+        		// Make sure the variable is of the same type as the expected type.
+        		tosca::Term& guse = v.GUse(ctx);
+        		b* vuse = dynamic_cast<b*>(&guse);
+        		if (vuse)
+        		{
+        			free.insert(&v);
+        			return &newCons<b>(ctx, *vuse, *result);
+        		}
+        		guse.Release();
+        	}
         }
         
         return result;
@@ -121,7 +128,7 @@ List<b>* FreeVariablesImpl(tosca::Context& ctx, const tosca::Term& term, List<b>
                 binderidx ++;
             }
             
-            result = FreeVariablesImpl(ctx, osub.value(), result, bound);
+            result = FreeVariablesImpl(ctx, osub.value(), result, bound, free);
             
             binderidx = 0;
             while (true)
@@ -149,7 +156,8 @@ template<typename a, typename b>
 List<b>& FreeVariables(tosca::Context& ctx, a& term)
 {
     std::unordered_set<tosca::Variable*> bound;
-    List<b>& fvs = *FreeVariablesImpl(ctx, term, &newNil<b>(ctx), bound);
+    std::unordered_set<tosca::Variable*> free;
+    List<b>& fvs = *FreeVariablesImpl(ctx, term, &newNil<b>(ctx), bound, free);
     term.Release();
     return fvs;
 }
