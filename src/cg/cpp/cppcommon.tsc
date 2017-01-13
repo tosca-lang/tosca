@@ -321,7 +321,7 @@ void †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩SetSub(int
 assert(sub.refcount > 0);
 switch (subi)
 {→†⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppSetSub(isvar, type, index))⟩
-default: assert(false);←
+default: throw std::out_of_range("Index: " + subi);←
 }←
 }⟧, ()->text⟦;⟧)⟩⟧)
 
@@ -384,7 +384,7 @@ void †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩SetBinder(
 {→
 switch (i)
 {→†⟨CppSetSubBinders(MaybeSortsToSorts(#csorts?), 1)⟩
-default: assert(false);←
+default: throw std::out_of_range("Index: " + i);←
 }←
 }⟧, ()->text⟦;⟧)⟩⟧)
 
@@ -400,7 +400,7 @@ case †⟨NumberToText(Minus(#index, 1))⟩:
 {→
 switch (j)
 {→†⟨CppClassField(CppTypes(#csort), #index, 1, (isvar type index subindex)->CppSetBinder(isvar, type, index, subindex))⟩
-default: assert(false);←
+default: throw std::out_of_range("Index: " + j);←
 }
 break;←
 }⟧,
@@ -425,7 +425,7 @@ tosca::Variable& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)�
 If(#def, ()->text⟦¶{→
 switch (subi)
 {→†⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppMakeFreeVariable(isvar, type, index))⟩
-default: assert(false);←
+default: throw std::out_of_range("Index: " + subi);←
 }←
 }⟧, ()->text⟦;⟧)⟩⟧)
 
@@ -436,7 +436,7 @@ tosca::Variable& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)�
 If(#def, ()->text⟦¶{→
 switch (subi)
 {→†⟨CppMakeBoundBinders(MaybeSortsToSorts(#csorts?), 1)⟩
-default: assert(false);←
+default: throw std::out_of_range("Index: " + subi);←
 }←
 }⟧, ()->text⟦;⟧)⟩⟧)
 
@@ -452,7 +452,7 @@ case †⟨NumberToText(Minus(#index, 1))⟩:
 {→
 switch (binderi)
 {→†⟨CppClassField(CppTypes(#csort), #index, 1, (isvar type index subindex)->CppMakeBoundVariable(isvar, type, subindex))⟩
-default: assert(false);←
+default: throw std::out_of_range("Index: " + binderi);←
 }
 break;←
 }⟧,
@@ -475,7 +475,7 @@ tosca::Term& †⟨CppFormQualifier(#formname, #csortvars?, CFC_CONS, #def)⟩Ma
 If(#def, ()->text⟦¶{→
 switch (subi)
 {→†⟨MaybeCppClassFields(#csorts?, (isvar type index subindex)->CppMakeTerm(isvar, type, index))⟩
-default: assert(false);←
+default: throw std::out_of_range("Index: " + subi);←
 }←
 }⟧, ()->text⟦;⟧)⟩⟧)
 
@@ -1094,7 +1094,7 @@ func CppExprTerm({String : EnvEntry}, Core_cterm_sort) -> Tuple3<{String : EnvEn
 // TODO: reuse thunk
  rule CppExprTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧)
  → let #lambda = CppExprLambdaNew(#env, #cterm, 0)
-  Tuple3(First3(#lambda), text⟦thunk†⟨CppLambdaTypeArgs(#cterm)⟩(†⟨Second3(#lambda)⟩)⟧, Third3(#lambda))
+  Tuple3(First3(#lambda), text⟦thunk†⟨CppLambdaTypeArgs(#cterm)⟩(ctx, †⟨Second3(#lambda)⟩)⟧, Third3(#lambda))
 
  rule CppExprTerm(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧)
  → Error("Error: Let expression cannot occur within another expression: it must be a the top-level expression.")
@@ -1235,7 +1235,7 @@ func CppExprLambda(Bool /* Reuse? */, {String : EnvEntry}, Core_cterm_sort) -> T
   rule CppExprLambda(FALSE, #env, #cterm)
   → let #lambda = CppExprLambdaNew(#env, #cterm, 0)
     Tuple3(First3(#lambda),
-           text⟦closure†⟨CppLambdaTypeArgs(#cterm)⟩(†⟨Second3(#lambda)⟩)⟧,
+           text⟦closure†⟨CppLambdaTypeArgs(#cterm)⟩(ctx, †⟨Second3(#lambda)⟩)⟧,
            Third3(#lambda))
 
 func CppExprLambdaNew({String : EnvEntry}, Core_cterm_sort, Numeric) -> Tuple3<{String : EnvEntry} Text4_text_sort Text4_text_sort>

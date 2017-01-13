@@ -130,7 +130,7 @@ namespace tosca {
     /** Deallocate memory  */
     inline void Deallocate(void* ptr, std::size_t size)
     {
-    	if (NOPOOL || static_cast<Ref*>(ptr)->IsImmortal())
+    	if (NOPOOL)
 			::operator delete (ptr);
     	else
     	{

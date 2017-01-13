@@ -85,7 +85,7 @@ task textParsers(type: PG4Task) {
 // --- To make sure we don't delete something important by accident
 task cleanCoreParsers(overwrite : true) {}
 task cleanTransScriptParsers(overwrite : true) {}
-task cleanTextParsers(overwrite : true) {}
+task cleanTextParsers(overwrite : true) {} 
 
 // --- The tarball full distribution
 

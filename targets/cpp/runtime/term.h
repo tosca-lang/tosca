@@ -79,7 +79,7 @@ namespace tosca {
         bool track;
 
         // Immortal ref.
-        static const unsigned long IMMORTAL = ULONG_MAX;
+        static const unsigned long IMMORTAL = ULONG_MAX - 1UL;
     };
 
     /** Options controlling term printing */
@@ -95,8 +95,7 @@ namespace tosca {
     	bool indent;
 
     	/* whether to escape string value */
-    	    	bool escape;
-
+    	bool escape;
 
     };
 

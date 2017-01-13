@@ -77,6 +77,15 @@ task antlrAntlrTermParser(type: Antlr4Task) {
 	packageName = 'org.transscript.antlr'
 }
 
+task antlrMetaTSParser(type: Antlr4Task) {
+	description = 'Generate Antlr4 Java meta parser'
+	lexer = file(transScriptSrc + '/pg2/ANTLRMetaLexer.g4')
+	grammar = file(transScriptSrc + '/pg2/ANTLRMetaParser.g4')
+	generatedFileDir = file('src/org/tosca/antlr')
+	packageName = 'org.tosca.antlr'
+	superClass = 'org.transscript.antlr.TSParser'
+}
+
 task textMetaParser(type: Antlr4Task, dependsOn: ':textParsers') {
 	description = 'Generate Java Text meta parser'
 	lexer = file(transScriptSrc + '/std/text/Text4MetaLexer.g4')
@@ -96,7 +105,7 @@ task textTermParser(type: Antlr4Task, dependsOn: ':textParsers') {
 //-- Meta task to build all parsers.
 task buildParsers(
 	description: "Generate Java meta and term parsers for Antlr, TransScript, Core and Text",
-	dependsOn: ['coreMetaParser', 'toscaMetaParser', 
+	dependsOn: ['coreMetaParser', 'toscaMetaParser', 'antlrMetaTSParser',
 				'antlrMetaParser', 'antlrAntlrTermParser', 'textMetaParser'])
 
 // --- Java compilation

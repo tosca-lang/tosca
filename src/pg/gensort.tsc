@@ -3,10 +3,7 @@
  *
  * Generates sorts and basic printer from normalized ANTLR grammar.
  *
- * Note: the output is Text. It should be Crsx, when stable enough...
  */
-
-
 
 import Text::Text
 import Std::Core
@@ -17,10 +14,8 @@ import Std::String
 import Pg::Util
 
 /* Generates sorts and a basic printer for the given ANTLR grammar specification */
-func MakeSorts(ANTLR_grammarSpec_sort) -> Text4_text_sort
-rule MakeSorts(#)
-→
-MakeGrammarSpec(#, {"@index": INDEX(IndexGrammar(#))})
+func MakeSorts(#: ANTLR_grammarSpec_sort) -> Text4_text_sort
+→ MakeGrammarSpec(#, {"@index": INDEX(IndexGrammar(#))})
 
 /* Helper */
 func MakeGrammarSpec(ANTLR_grammarSpec_sort) -> Text4_text_sort
@@ -34,7 +29,7 @@ rule MakeModuleId(#id, [ok]->#[ok], {#E})
 → text⟦/* Generated File. */
 import std::core
 import std::listdef
-†⟨IfDef( "notext", text⟦⟧, 
+†⟨IfDef( "notext", text⟦⟧,
   text⟦
 import std::text::Text4
 import std::text⟧)⟩
@@ -63,7 +58,6 @@ func MaybeMakeSort(Bool /* String rule? */, ANTLR_ruleSpec_sort, Cont<Text4_text
 rule MaybeMakeSort(TRUE, #ruleBlock, #cont, {#E})  → ApplyCont(#cont, {#E})
 rule MaybeMakeSort(FALSE, #ruleBlock, #cont, {#E}) → MakeSort(#ruleBlock, #cont, {#E})
 
-
 /* Generates sort and printer for parser rule by iterating over the grammar alternatives
    and incrementally building the printer in the environment.
  */
@@ -88,7 +82,7 @@ rule MakeSortTail(OK, #cont, {#E, "@sortname": TEXT(#sortname),
 //
 func MakeForms(ANTLR_ruleBlock_sort, [OK_SORT]->Text4_text_sort) -> Text4_text_sort
 rule MakeForms(ruleBlock⟦ #alternative #labeledAlt_S1?  #ruleAltList_S1* ⟧, [ok]->#[ok], {#E})
-→ MakeForm(IfDef( "truevar", GetElementOptionAlternative(#alternative, "variable"), ()), GetElementOptionAlternative(#alternative, "type"), #alternative, #labeledAlt_S1?, 1, IsEmpty(#ruleAltList_S1*), 
+→ MakeForm(IfDef( "truevar", GetElementOptionAlternative(#alternative, "variable"), ()), GetElementOptionAlternative(#alternative, "type"), #alternative, #labeledAlt_S1?, 1, IsEmpty(#ruleAltList_S1*),
       [ok  count]->MakeRuleAltList_S1s(ok, count, #ruleAltList_S1*, [o2]->#[o2]), {#E})
 
 //
@@ -98,7 +92,7 @@ rule MakeRuleAltList_S1s(OK, #count, (), [ok]->#[ok], {#E})
 → #[OK, {#E}]
 
 rule MakeRuleAltList_S1s(OK, #count, ruleAltList_S1*⟦ | #alternative #labeledAlt_S1? #ruleAltList_S1* ⟧, [ok]->#[ok], {#E})
-→ MakeForm(IfDef( "truevar", GetElementOptionAlternative(#alternative, "variable"), ()), GetElementOptionAlternative(#alternative, "type"), #alternative, #labeledAlt_S1?, #count, FALSE, 
+→ MakeForm(IfDef( "truevar", GetElementOptionAlternative(#alternative, "variable"), ()), GetElementOptionAlternative(#alternative, "type"), #alternative, #labeledAlt_S1?, #count, FALSE,
       [ok  count]->MakeRuleAltList_S1s(ok, count, #ruleAltList_S1*, [o2]->#[o2]), {#E})
 
 //
@@ -188,8 +182,8 @@ rule MakeArguments(OK, #count, (), [ok]->#[ok], {#E})
 → #[OK, {#E}]
 
 rule MakeArguments(OK, #count, element*⟦ #element #element* ⟧, [ok]->#[ok], {#E, "@index": INDEX(RULEINDEX({#I}))})
-→ MaybeMakeArgument(IsFused(#element, #element*, RULEINDEX({#I})), IsSugarElement(#element, {#I}),  #element, #count, 
-      [ok  count]->MakeArguments(ok, count, #element*, [o2]->#[o2]), {#E, 
+→ MaybeMakeArgument(IsFused(#element, #element*, RULEINDEX({#I})), IsSugarElement(#element, {#I}),  #element, #count,
+      [ok  count]->MakeArguments(ok, count, #element*, [o2]->#[o2]), {#E,
      "@binders"    : TEXTS(())          // Collect <binds> variables
   })
 
@@ -255,7 +249,7 @@ rule MakeBinderArgument(#binder, #type, #key, SOME(#ruleref), #count, [ok  count
   "@freshes" : TEXTS(#freshes),
   "@prhs"    : TEXTS(#rhs)
 })
-→ 
+→
 #[OK ,#count, {#E,
     #key       : BOUNDVAR(#ruleref, #type),
     "@freshes" : TEXTS((text⟦[†⟨#type⟩]⟧, #freshes...)),
@@ -270,7 +264,7 @@ rule MaybeMakeBindsArgument((), #element, #count, [ok  count]->#[ok ,count], {#E
 → MaybeMakeSymbolArgument(GetElementOptionElement(#element, "variable"), GetElementOptionElement(#element, "type"), #element, #count, [ok  count]->#[ok ,count], {#E})
 
 rule MaybeMakeBindsArgument((#binds, #bindss...), #element, #count, [ok  count]->#[ok ,count], {#E, "@sort":TEXT(#sort), "@sep":TEXT(#sep)})
-→ MakeBindsArguments(OK, (#binds, #bindss...), 
+→ MakeBindsArguments(OK, (#binds, #bindss...),
    [ok]->MakeRawArgument(ok, #element, #count, [ok  count]->#[ok ,count]), {#E,
     "@sort"    : TEXT(text⟦†⟨#sort⟩†⟨#sep⟩[⟧),
     "@sep"     : TEXT(text⟦] -> ⟧)
@@ -426,8 +420,8 @@ rule MakeArgFromSuffixedBlock1(SOME(#ruleRef), #element*, #blkcnt, #count, [ok]-
 
 func MakeArgFromSuffixedBlock2(String, String, PPair<Text4_text_sort Text4_text_sort>, Numeric, [OK_SORT]->Text4_text_sort) -> Text4_text_sort
 
-rule MakeArgFromSuffixedBlock2(#blockRuleRef, #ruleRef, PairCons(#blocksort, #printer), #count, [ok]->#[ok], {#E, "@sort": TEXT(#sort), "@id": STRING(#id), "@plhs": TEXTS(#printerLHS), "@prhs": TEXTS(#printerRHS), 
-     "@sublist": WRAPPER([t  x]->#wrap[t ,x]), "@pt-subs":TEXT(#ptsubs), "@binders": TEXTS(#binders), 
+rule MakeArgFromSuffixedBlock2(#blockRuleRef, #ruleRef, PairCons(#blocksort, #printer), #count, [ok]->#[ok], {#E, "@sort": TEXT(#sort), "@id": STRING(#id), "@plhs": TEXTS(#printerLHS), "@prhs": TEXTS(#printerRHS),
+     "@sublist": WRAPPER([t  x]->#wrap[t ,x]), "@pt-subs":TEXT(#ptsubs), "@binders": TEXTS(#binders),
      "@index": INDEX(RULEINDEX({#I}))})
 → #[OK, {#E, "@sort": TEXT(text⟦†⟨#sort⟩List<⟨STRING:MakeSortName2(#id, #ruleRef, IsStringRuleRuleRef(#ruleRef, {#I}))⟩>⟧),
        "@plhs": TEXTS((MakeMetaVar(#count, (), FALSE), #printerLHS...)),
@@ -527,7 +521,7 @@ rule MakeMetaBinders((#arg,#args...)) → text⟦[†⟨ReverseTextFold((#arg,#a
 func MakeTerminalText(Numeric, List<Text4_text_sort>, Boolean) -> Text4_text_sort
 rule MakeTerminalText(#count, #binders, FALSE)
 → Text-String2(MakeMetaVar(#count, #binders, TRUE))
-  
+
 rule MakeTerminalText(#count, (), TRUE)
 → Text-String(text⟦TextFold(Map((x) -> StringToText(x), †⟨MakeMetaVar(#count, (), TRUE)⟩), †⟨Text-Text(text⟦ ⟧)⟩)⟧)
 
@@ -542,7 +536,7 @@ rule MakeRulerefText(#ruleRef, #count, #binders, TRUE, [t  x]->#wrap[t ,x], #sor
 → If( Equal( #sort, "String")
     , ()->Text-String2(text⟦TextFold(Map((x) ->  StringToText(x), †⟨#wrap[StringToText(#sort) ,MakeMetaVar(#count, #binders, TRUE)]⟩), †⟨Text-Text(text⟦ ⟧)⟩)⟧)
     , ()->Text-String(text⟦TextFold(Map((x) ->†⟨MakePrinterName({#E, "@ruleRef": STRING(#ruleRef)})⟩(x), †⟨#wrap[StringToText(#sort) ,MakeMetaVar(#count, #binders, TRUE)]⟩), †⟨Text-Text(text⟦ ⟧)⟩)⟧))
- 
+
 /* Generate an unique fake rule name for block. */
 func MakeBlockRuleName(String, Numeric) -> String
 rule MakeBlockRuleName(#parentRuleRef, #blockCount)
@@ -559,6 +553,3 @@ rule GetPrefix(#id) → ConcatString( #id, GetEnv( "prefixsep", "_"))
 
 func GetSortSuffix -> Text4_text_sort
 rule GetSortSuffix → GetEnv( "sortsuffix", "_sort")
-
-
-

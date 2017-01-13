@@ -327,7 +327,8 @@ namespace tosca
             }
             case TermLexer::NUMBER:
             {
-            	sink.Literal(lexer.GetText());
+            	double d = stod(lexer.GetText());
+            	sink.Double(d);
             	lexer.ConsumeToken();
             	break;
             }

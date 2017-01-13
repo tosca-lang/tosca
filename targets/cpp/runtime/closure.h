@@ -125,9 +125,9 @@ using tosca::Ref;
 #define BASE_CLOSURE(free)                                                                      \
   template<typename R TYPENAME(free) >                                                          \
   class Closure ## free : public tosca::Term                                                    \
-  {                                                                                             \
+  {                                                                                     	        \
   public:                                                                                       \
-    virtual R& Eval(tosca::Context& ctx PARAM(free)) = 0;                                       \
+    virtual R& Eval(tosca::Context& ctx PARAM(free)) = 0;                             	          \
   };                                                                                            \
 
 
@@ -165,7 +165,17 @@ using tosca::Ref;
       this->Release();                                                                          \
       return result;                                                                            \
     }                                                                                           \
-                                                                                                \
+   																							 \
+    static void* operator new(std::size_t sz, tosca::Context& ctx)							 \
+    {																							 \
+	  return tosca::Allocate(sz, ctx);														     \
+    }																							 \
+																								   \
+    static void operator delete(void* ptr) 													\
+    {																							\
+ 	  tosca::Deallocate(ptr, sizeof(Closure ## free ## C ## capture));	         				\
+    }																							\
+																								 \
     private:                                                                                    \
       ftype function;                                                                           \
       bool freeCptrs;                                                                           \
@@ -173,16 +183,16 @@ using tosca::Ref;
   };                                                                                            \
                                                                                                 \
   template<typename R TYPENAME(free) CTYPENAME(capture)>                                        \
-  Closure ## free <R TYPEARG(free)> & closure(R& (*function)(tosca::Context& TYPEARGREF(free) CTYPEARGREF(capture)) CPARAM(capture) )  \
+  Closure ## free <R TYPEARG(free)> & closure(tosca::Context& ctx, R& (*function)(tosca::Context& TYPEARGREF(free) CTYPEARGREF(capture)) CPARAM(capture) )  \
   {                                                                                             \
-    return *(new Closure ## free ## C ## capture <R TYPEARG(free) CTYPEARG(capture) >(function CPTRARG(capture) )); \
+    return *(new (ctx) Closure ## free ## C ## capture <R TYPEARG(free) CTYPEARG(capture) >(function CPTRARG(capture) )); \
   }
 
 #define THUNK(capture)                                                                            \
   template<typename R CTYPENAME(capture)>                                                         \
-  Closure0<R>& thunk(R& (*function)(tosca::Context& CTYPEARGREF(capture)) CPARAM(capture) )       \
+  Closure0<R>& thunk(tosca::Context& ctx, R& (*function)(tosca::Context& ctx CTYPEARGREF(capture)) CPARAM(capture) )       \
   {                                                                                               \
-    return *(new Closure0C ## capture <R CTYPEARG(capture)>(function CPTRARG(capture) ));         \
+    return *(new (ctx) Closure0C ## capture <R CTYPEARG(capture)>(function CPTRARG(capture) ));         \
   }
 
 BASE_CLOSURE(0)
