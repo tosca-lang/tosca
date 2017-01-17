@@ -501,7 +501,7 @@ namespace tosca {
 				}
 				else
 				{
-					parent->AddRef();
+		//			parent->AddRef();
 					output = parent; // move up with result.
 				}
 			}
