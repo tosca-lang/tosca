@@ -168,12 +168,12 @@ using tosca::Ref;
    																							 \
     static void* operator new(std::size_t sz, tosca::Context& ctx)							 \
     {																							 \
-	  return tosca::Allocate(sz, ctx);														     \
+	  return tosca::Allocate(sz, ctx);																     \
     }																							 \
 																								   \
     static void operator delete(void* ptr) 													\
     {																							\
- 	  tosca::Deallocate(ptr, sizeof(Closure ## free ## C ## capture));	         				\
+ 	  tosca::Deallocate(ptr, sizeof(Closure ## free ## C ## capture));	     							\
     }																							\
 																								 \
     private:                                                                                    \

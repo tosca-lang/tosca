@@ -1,17 +1,19 @@
 // Copyright (c) 2016 IBM Corporation.
 #include "ts.h"
 #include <iostream>
+#include "string.h"
 
 namespace tosca {
 
-	Context::Context() : ts(0)
+	Context::Context(Context& super) : ts(0), allocChar(*(new Allocator<char>(super)))
     {
-    	for (int i = 0; i < 8192; i ++)
+		for (int i = 0; i < 8192; i ++)
     		pools.push_back(std::vector<void*>());
     }
 
     Context::~Context()
     {
+    	delete &allocChar;
     }
 
     Term& Context::MakeConstructor(const StringTerm& symbol)
@@ -69,29 +71,45 @@ namespace tosca {
     
     // --- Memory management
 
+    static const bool POOL = getenv("toscanopool") == 0;
+
     void* Context::Allocate(std::size_t sz)
     {
-    	std::vector<void*>& poolForSize = pools[sz];
     	struct TaggedObj* obj;
-    	if (poolForSize.size() > 0)
+
+    	if (POOL && sz < 8192)
     	{
-    		obj = reinterpret_cast<struct TaggedObj*>(poolForSize.back());
-    		poolForSize.pop_back();
+    		std::vector<void*>& poolForSize = pools[sz];
+    		if (poolForSize.size() > 0)
+    		{
+    			obj = reinterpret_cast<struct TaggedObj*>(poolForSize.back());
+    			poolForSize.pop_back();
+    		}
+    		else
+    			obj = reinterpret_cast<struct TaggedObj*>(GetMem(sz + sizeof(Context*)));
     	}
     	else
     		obj = reinterpret_cast<struct TaggedObj*>(GetMem(sz + sizeof(Context*)));
 
-    	obj->context = this;
+
+		obj->context = this;
 		return &(obj->body);
     }
 
     void Context::Deallocate(void* ptr, std::size_t size)
     {
-		std::vector<void*>& poolForSize = pools[size];
-		if (poolForSize.size() < 16384)
-			poolForSize.push_back(ptr);
-		else
-			ReleaseMem(ptr);
+		if (POOL && size < 8192)
+    	{
+    		std::vector<void*>& poolForSize = pools[size];
+    		if (poolForSize.size() < 16384)
+    			poolForSize.push_back(ptr);
+    		else
+    			ReleaseMem(ptr);
+    	}
+    	else
+    	{
+    		ReleaseMem(ptr);
+    	}
     }
 
     void* Context::GetMem(std::size_t sz)
@@ -101,7 +119,7 @@ namespace tosca {
 
     void Context::ReleaseMem(void* ptr)
     {
-    	::operator delete(static_cast<void*>(ptr));
+    	::operator delete(ptr);
     }
 
 
