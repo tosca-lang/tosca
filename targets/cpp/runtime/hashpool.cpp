@@ -6,16 +6,16 @@
 using namespace tosca;
 
 
-StringTerm& HashPool::newPooledStringTerm(const std::string&& str)
+StringTerm& HashPool::newPooledStringTerm(const std::string& str)
 {
-	static std::unordered_map<std::string, StringTerm*> strpool;
+	static std::unordered_map<std::string, _CStringTerm> strpool;
 
-	std::string s(str);
-	auto search = strpool.find(s);
+	auto search = strpool.find(str);
 	if (search == strpool.end())
 	{
-		strpool[str] = ::new _CStringTerm(str, true);
-		return *strpool[str];
+		_CStringTerm entry(str, true);
+		strpool.insert({str, entry});
+		return strpool[str];
 	}
-	return *search->second;
+	return search->second;
 }

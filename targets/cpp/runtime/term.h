@@ -69,7 +69,7 @@ namespace tosca {
         }
         
         /* @return true if this is a immortal reference */
-        inline bool IsImmortal()
+        inline bool IsImmortal() const
         {
         	return refcount == IMMORTAL;
         }
@@ -281,49 +281,7 @@ namespace tosca {
         friend class Context;
         friend void Deallocate(void* ptr);
 
-    };
-    // Term
-
-    /* Unevaluated function (thunk) */
-    template<typename T>
-    class _LazyTerm: public Term
-    {
-    public:
-        _LazyTerm(Function f) :
-        function(f), value(Optional<T>::nullopt)
-        {
-        }
-
-        /** @return true when this term is data */
-        bool Data() const
-        {
-            return function == 0 ? value.value().Data() : false;
-        }
-
-        T Eval(Context& ctx)
-        {
-            if (!value)
-            {
-                value = function(ctx); // Acquire ref.
-                function = 0;
-            }
-            value.value().AddRef();
-            return value.value();
-        }
-
-    protected:
-        // the unevaluated value.
-        Function function;
-
-        // the evaluated value.
-        Optional<T> value;
-
-        _LazyTerm(T value): function(0)
-        {
-            value = make_optional(value);
-        }
-    };
-
+    };    // Term
 
     /* Base class for typed variables */
     class Variable: public Ref
@@ -436,10 +394,12 @@ namespace tosca {
     class _CStringTerm: public StringTerm
     {
     public:
-        _CStringTerm(const std::string& value, bool immortal);
+    	_CStringTerm();
+    	_CStringTerm(const std::string& value, bool immortal);
         _CStringTerm(const tosca::Context&, const std::string& value);
         _CStringTerm(const tosca::string& value);
         _CStringTerm(const tosca::Context& ctx, const char* value);
+        _CStringTerm(const _CStringTerm& other);
         ~_CStringTerm();
 
         // -- Custom allocation

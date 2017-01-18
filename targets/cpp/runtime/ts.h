@@ -151,19 +151,4 @@ namespace tosca {
 }
 
 
-
-template<typename T>
-T& force(tosca::Context& ctx, T& term)
-{
-    return term;
-}
-
-/* Small utility function turning a rvalue into an lvalue */
-template<typename T>
-T& lvalue(T&& r)
-{
-    return r;
-}
-
-
 #endif

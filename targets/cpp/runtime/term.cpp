@@ -847,6 +847,11 @@ namespace tosca {
         return var.Symbol();
     }
     
+    _CStringTerm::_CStringTerm() : Ref(true), value("", StaticAlloc())
+    {
+      	hash = std::hash<tosca::string>{}("");
+    }
+
     _CStringTerm::_CStringTerm(const tosca::Context& ctx, const std::string& val) : value(val.c_str(), ctx.allocChar)
     {
     	hash = std::hash<tosca::string>{}(value);
@@ -866,6 +871,10 @@ namespace tosca {
     {
     	hash = std::hash<tosca::string>{}(value);
     }
+
+    _CStringTerm::_CStringTerm(const _CStringTerm& other) : Ref(other.IsImmortal()), value(other.value), hash(other.hash)
+    {}
+
 
     _CStringTerm::~_CStringTerm()
     {}

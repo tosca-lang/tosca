@@ -16,7 +16,7 @@ namespace tosca {
 	public:
 
 		/* Create pooled StringTerm */
-		static StringTerm& newPooledStringTerm(const std::string&& str);
+		static StringTerm& newPooledStringTerm(const std::string& str);
 
 	};
 
