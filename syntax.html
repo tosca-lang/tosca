@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ANTLR4 Grammar &mdash; crsx 4.0.0-dev documentation</title>
+  <title>Language syntax &mdash; crsx 3.2.1.6 documentation</title>
   
 
   
@@ -28,8 +28,7 @@
   
 
   
-    <link rel="top" title="crsx 4.0.0-dev documentation" href="index.html"/>
-        <link rel="prev" title="Language Reference" href="reference.html"/> 
+    <link rel="top" title="crsx 3.2.1.6 documentation" href="index.html"/> 
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
@@ -60,30 +59,14 @@
         
           
           
-              <ul class="current">
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="started.html">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="started.html#system-requirements">System requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="started.html#download">Download</a></li>
-<li class="toctree-l2"><a class="reference internal" href="started.html#installation">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="started.html#running-a-sample">Running a sample</a></li>
 <li class="toctree-l2"><a class="reference internal" href="started.html#how-to-continue">How to continue</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="reference.html">Language Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="reference.html#simple-terms">Simple Terms</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference.html#functions">Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference.html#sorts">Sorts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference.html#module">Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference.html#grammar">Grammar</a></li>
-</ul>
-</li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">ANTLR4 Grammar</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#rules">Rules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#alternatives">Alternatives</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#elements">Elements</a></li>
-</ul>
-</li>
 </ul>
 
           
@@ -108,7 +91,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
       
-    <li>ANTLR4 Grammar</li>
+    <li>Language syntax</li>
       <li class="wy-breadcrumbs-aside">
         
       </li>
@@ -117,9 +100,14 @@
 </div>
           <div role="main" class="document">
             
-  <div class="section" id="antlr4-grammar">
-<h1>ANTLR4 Grammar<a class="headerlink" href="#antlr4-grammar" title="Permalink to this headline">¶</a></h1>
-<p>CRSX4 allows language syntaxes to be specified in ANTLR4, as an alternative way to define enumerations using an EBNF notation.</p>
+  <div class="section" id="language-syntax">
+<h1>Language syntax<a class="headerlink" href="#language-syntax" title="Permalink to this headline">¶</a></h1>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">Since CRSX 4. Previous CRSX uses a different syntax.</p>
+</div>
+<p>Language syntax provides an alternative way to define enumerations using an EBNF notation.
+This is very useful in particular when dealing with language constructs.</p>
 <p>For instance look at this typical constant declaration EBNF-like grammar definition:</p>
 <div class="highlight-python"><div class="highlight"><pre>let : &#39;let&#39; id &#39;=&#39; LITERAL
 </pre></div>
@@ -208,20 +196,13 @@ says to match any terms for the rule reference :code:`id` and for the token refe
           </div>
           <footer>
   
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-      
-        <a href="reference.html" class="btn btn-neutral" title="Language Reference"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
         &copy; Copyright 2015, Lionel Villard.
-      Last updated on Jun 01, 2015.
+      Last updated on Jan 18, 2017.
     </p>
   </div>
 
@@ -242,7 +223,7 @@ says to match any terms for the rule reference :code:`id` and for the token refe
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'4.0.0-dev',
+            VERSION:'3.2.1.6',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
@@ -251,7 +232,7 @@ says to match any terms for the rule reference :code:`id` and for the token refe
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

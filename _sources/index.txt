@@ -1,23 +1,19 @@
 
-################
-Welcome to CRSX!
-################
+#################
+Welcome to Tosca!
+#################
 
 .. toctree::
    :maxdepth: 2
 
    started
    intro
-   reference
-   syntax
 
-CRSX is a functional programming language designed to facilitate writing compilers and other syntax-directed transformation systems. 
 
-Its main features are:
+The purpose of Tosca is to implement an extended higher-order rewriting formalism to facilitate writing compilers
+and other syntax-directed transformation systems, specifically:
 
-* special notations for using embedded syntax, even higher order abstract syntax,
-* special support for symbol tables, environments, and attributes, as used in compilers,
-* an polymorphic sort system  
-* a fast runtime: CRSX systems are compiled directly to native code for effective execution.
-
-Under the cover, CRSX implements an extended higher-order rewriting formalism. 
++ Special notations for using embedded syntax, even higher order abstract syntax.
++ Special support for symbol tables, environments, and attributes, as used in compilers.
++ A polymorphic sort system (which in practice means that Tpsca systems are contraction schemes).
++ Tosca systems can be compiled directly to native code (so far in C++ or Java) for effective execution.

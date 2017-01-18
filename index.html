@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Welcome to CRSX! &mdash; crsx 4.0.0-dev documentation</title>
+  <title>Welcome to Tosca! &mdash; crsx 3.2.1.6 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="crsx 4.0.0-dev documentation" href="#"/>
+    <link rel="top" title="crsx 3.2.1.6 documentation" href="#"/>
         <link rel="next" title="Getting Started" href="started.html"/> 
 
   
@@ -64,26 +64,10 @@
 <li class="toctree-l1"><a class="reference internal" href="started.html">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="started.html#system-requirements">System requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="started.html#download">Download</a></li>
-<li class="toctree-l2"><a class="reference internal" href="started.html#installation">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="started.html#running-a-sample">Running a sample</a></li>
 <li class="toctree-l2"><a class="reference internal" href="started.html#how-to-continue">How to continue</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="reference.html">Language Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="reference.html#simple-terms">Simple Terms</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference.html#functions">Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference.html#sorts">Sorts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference.html#module">Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference.html#grammar">Grammar</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="syntax.html">ANTLR4 Grammar</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="syntax.html#rules">Rules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="syntax.html#alternatives">Alternatives</a></li>
-<li class="toctree-l2"><a class="reference internal" href="syntax.html#elements">Elements</a></li>
-</ul>
-</li>
 </ul>
 
           
@@ -108,7 +92,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="#">Docs</a> &raquo;</li>
       
-    <li>Welcome to CRSX!</li>
+    <li>Welcome to Tosca!</li>
       <li class="wy-breadcrumbs-aside">
         
       </li>
@@ -117,44 +101,27 @@
 </div>
           <div role="main" class="document">
             
-  <div class="section" id="welcome-to-crsx">
-<h1>Welcome to CRSX!<a class="headerlink" href="#welcome-to-crsx" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="welcome-to-tosca">
+<h1>Welcome to Tosca!<a class="headerlink" href="#welcome-to-tosca" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="started.html">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="started.html#system-requirements">System requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="started.html#download">Download</a></li>
-<li class="toctree-l2"><a class="reference internal" href="started.html#installation">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="started.html#running-a-sample">Running a sample</a></li>
 <li class="toctree-l2"><a class="reference internal" href="started.html#how-to-continue">How to continue</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="reference.html">Language Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="reference.html#simple-terms">Simple Terms</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference.html#functions">Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference.html#sorts">Sorts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference.html#module">Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference.html#grammar">Grammar</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="syntax.html">ANTLR4 Grammar</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="syntax.html#rules">Rules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="syntax.html#alternatives">Alternatives</a></li>
-<li class="toctree-l2"><a class="reference internal" href="syntax.html#elements">Elements</a></li>
-</ul>
-</li>
 </ul>
 </div>
-<p>CRSX is a functional programming language designed to facilitate writing compilers and other syntax-directed transformation systems.</p>
-<p>Its main features are:</p>
+<p>The purpose of Tosca is to implement an extended higher-order rewriting formalism to facilitate writing compilers
+and other syntax-directed transformation systems, specifically:</p>
 <ul class="simple">
-<li>special notations for using embedded syntax, even higher order abstract syntax,</li>
-<li>special support for symbol tables, environments, and attributes, as used in compilers,</li>
-<li>an polymorphic sort system</li>
-<li>a fast runtime: CRSX systems are compiled directly to native code for effective execution.</li>
+<li>Special notations for using embedded syntax, even higher order abstract syntax.</li>
+<li>Special support for symbol tables, environments, and attributes, as used in compilers.</li>
+<li>A polymorphic sort system (which in practice means that Tpsca systems are contraction schemes).</li>
+<li>Tosca systems can be compiled directly to native code (so far in C++ or Java) for effective execution.</li>
 </ul>
-<p>Under the cover, CRSX implements an extended higher-order rewriting formalism.</p>
 </div>
 
 
@@ -174,7 +141,7 @@
   <div role="contentinfo">
     <p>
         &copy; Copyright 2015, Lionel Villard.
-      Last updated on Jun 01, 2015.
+      Last updated on Jan 18, 2017.
     </p>
   </div>
 
@@ -195,7 +162,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'4.0.0-dev',
+            VERSION:'3.2.1.6',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
@@ -204,7 +171,7 @@
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
