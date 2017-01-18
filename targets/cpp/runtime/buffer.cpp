@@ -137,7 +137,7 @@ namespace tosca {
         return *this;
     }
     
-    Variable& BufferSink::MakeFree(std::string& name)
+    Variable& BufferSink::MakeFree(tosca::string& name)
     {
         if (terms.empty())
             throw std::runtime_error("Invalid top-level call to MakeFree.");
@@ -146,7 +146,7 @@ namespace tosca {
         return t.MakeFree(GetContext(), subindex, name);
     }
     
-    Variable& BufferSink::MakeBound(std::string& name)
+    Variable& BufferSink::MakeBound(tosca::string& name)
     {
         if (terms.empty())
             throw std::runtime_error("Invalid top-level call to MakeBound.");
@@ -160,7 +160,7 @@ namespace tosca {
     {
         if (terms.empty())
         {
-            _CStringTerm st(symbol);
+            _CStringTerm st(symbol, true); // immortal until end of this function
             return GetContext().MakeConstructor(st);
         }
         Term& t = *(terms.back());

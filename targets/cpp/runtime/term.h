@@ -12,6 +12,7 @@
 #include <climits>
 
 #include "compat.h"
+#include "tstring.h"
 
 namespace tosca {
 
@@ -112,7 +113,7 @@ namespace tosca {
         /**
          * Get the construction symbol or the empty string this is is not a construction.
          */
-        virtual const std::string& Symbol() const;
+        virtual const tosca::string& Symbol() const;
 
         /**
          * @return A shallow copy of this term. Subs are not initialized.
@@ -238,7 +239,7 @@ namespace tosca {
          * @param name of the variable.
          * @return a new variable or a std::out_of_range exception
          */
-        virtual Variable& MakeFree(Context& ctx, int i, const std::string& hint);
+        virtual Variable& MakeFree(Context& ctx, int i, const tosca::string& hint);
       
         /**
          * Make bound variable compatible with the jth binder on the ith subterm.
@@ -248,7 +249,7 @@ namespace tosca {
          * @param name of the variable.
          * @return a new variable or a std::out_of_range exception
          */
-        virtual Variable& MakeBound(Context& ctx, int i, int j, const std::string& hint);
+        virtual Variable& MakeBound(Context& ctx, int i, int j, const tosca::string& hint);
         
         /**
          * Make term compatible with the ith subterm.
@@ -262,7 +263,7 @@ namespace tosca {
         /*
          * Default fallback method for term not allowing making new variables
          */
-        static Variable& MakeVariable(Context& ctx, const std::string& hint);
+        static Variable& MakeVariable(Context& ctx, const tosca::string& hint);
         
         /*
          * Default fallback method for term not allowing making new subterms
@@ -329,7 +330,7 @@ namespace tosca {
     {
 
     public:
-        Variable(std::string name);
+        Variable(tosca::Context& ctx, tosca::string name);
 
         bool operator==(const Variable& other) const
         {
@@ -342,7 +343,7 @@ namespace tosca {
         }
 
         /* @return the name of this variable */
-        const std::string& Symbol() const;
+        const tosca::string& Symbol() const;
 
         /**
          * Make a new variable of the same type as this one.
@@ -366,7 +367,7 @@ namespace tosca {
 
     protected:
         /* Globally unique variable name. Allowed to be changed. */
-        std::string name;
+        tosca::string name;
 
         /* Count the number of variable use (in the term tree) */
         unsigned long uses;
@@ -411,20 +412,20 @@ namespace tosca {
         virtual ~StringTerm();
 
         /** Peek at native string value */
-        virtual const std::string& Unbox() const;
+        virtual const tosca::string& Unbox() const;
 
         /* @return this as a Variable or nullopt */
         virtual Optional<_CStringTermVar> GetVariable() const;
 
         /* Make Variable of type String */
-        static Variable& MakeVariable(Context& ctx, const std::string& hint);
+        static Variable& MakeVariable(Context& ctx, const tosca::string& hint);
       
         /* Make a new value string  */
         static Term& MakeTerm(Context& ctx, const std::string& symbol);
         
         // Overrides
         size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn) const;
-        const std::string& Symbol() const;
+        const tosca::string& Symbol() const;
         void Print(IOWrapper& out, PrintOptions& options);
 
     };
@@ -435,9 +436,10 @@ namespace tosca {
     class _CStringTerm: public StringTerm
     {
     public:
-        _CStringTerm(const std::string&& value);
-        _CStringTerm(const std::string&& value, bool immortal);
-        _CStringTerm(const std::string& value);
+        _CStringTerm(const std::string& value, bool immortal);
+        _CStringTerm(const tosca::Context&, const std::string& value);
+        _CStringTerm(const tosca::string& value);
+        _CStringTerm(const tosca::Context& ctx, const char* value);
         ~_CStringTerm();
 
         // -- Custom allocation
@@ -456,11 +458,11 @@ namespace tosca {
 
         size_t HashCode() const;
         Term& Copy(Context& ctx);
-        const std::string& Unbox() const;
+        const tosca::string& Unbox() const;
         
     protected:
         /** The string value. */
-        const std::string value;
+        const tosca::string value;
 
         /** cached hash value */
         size_t hash;
@@ -469,7 +471,7 @@ namespace tosca {
     class _CStringTermVar: public Variable
     {
     public:
-        _CStringTermVar(std::string name);
+        _CStringTermVar(tosca::Context& ctx, tosca::string name);
 
         // --- Overrides
         StringTerm& Use(Context& ctx);
@@ -497,7 +499,7 @@ namespace tosca {
 		}
 
         // -- Overrides
-        const std::string& Unbox() const;
+        const tosca::string& Unbox() const;
         Optional<_CStringTermVar> GetVariable() const;
         Optional<Variable> GetGVariable() const;
 
@@ -524,7 +526,7 @@ namespace tosca {
         virtual Optional<_CDoubleTermVar> GetVariable() const;
 
         /* Make Variable of type Double */
-        static Variable& MakeVariable(Context& ctx, const std::string& hint);
+        static Variable& MakeVariable(Context& ctx, const tosca::string& hint);
         
         /* Make a new value of type double  */
         static Term& MakeTerm(Context& ctx, const std::string& symbol);
@@ -540,7 +542,7 @@ namespace tosca {
     class _CDoubleTerm: public DoubleTerm
     {
     public:
-        _CDoubleTerm(double value);
+        _CDoubleTerm(tosca::Context& ctx, double value);
         // -- Custom allocation
 
 		static void* operator new(std::size_t sz, Context& ctx)
@@ -557,7 +559,7 @@ namespace tosca {
 
         Term& Copy(Context& ctx);
         double Unbox() const;
-        const std::string& Symbol() const;
+        const tosca::string& Symbol() const;
         bool DeepEquals(const Term& rhs, std::unordered_map<Variable*, Variable*>& varmap) const;
 
     protected:
@@ -565,14 +567,14 @@ namespace tosca {
         double value;
         
         /** The original double value as string. */
-        const std::string str;
+        const tosca::string str;
 
     };
 
     class _CDoubleTermVar: public Variable
     {
     public:
-        _CDoubleTermVar(std::string name);
+        _CDoubleTermVar(tosca::Context& ctx, tosca::string name);
         virtual DoubleTerm& Use(Context& ctx);
         virtual Term& GUse(Context& ctx);
     };
@@ -637,16 +639,18 @@ T& Subst(tosca::Context& c, T& term, std::initializer_list<tosca::Variable*> bin
 
 
 // Global string methods
-tosca::StringTerm& newStringTerm(tosca::Context& ctx, std::string&& str);
+tosca::StringTerm& newStringTerm(tosca::Context& ctx, const char* str);
 tosca::StringTerm& newStringTerm(tosca::Context& ctx, const std::string& str);
-tosca::_CStringTermVar& varStringTerm(tosca::Context& ctx, const std::string& hint);
+tosca::StringTerm& newStringTerm(tosca::Context& ctx, const tosca::string& str);
+
+tosca::_CStringTermVar& varStringTerm(tosca::Context& ctx, const tosca::string& hint);
 
 // Global double methods
 
 // Construction
 
 tosca::DoubleTerm& newDoubleTerm(tosca::Context& ctx, double value);
-tosca::_CDoubleTermVar& varDoubleTerm(tosca::Context& ctx, const std::string& hint);
+tosca::_CDoubleTermVar& varDoubleTerm(tosca::Context& ctx, const tosca::string& hint);
 
 #include "mapterm.h"
 
@@ -657,6 +661,7 @@ class Appendable {};
 // specialize std::hash and std::equal_to for string/double
 namespace std
 {
+
     // String
     template<>
     struct hash<tosca::StringTerm*>

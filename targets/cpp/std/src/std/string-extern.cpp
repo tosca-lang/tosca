@@ -11,11 +11,11 @@ using namespace tosca;
 
 StringTerm& AfterFirst(Context& ctx, StringTerm& string, StringTerm& sep)
 {
-    const std::string& ustring = string.Unbox();
-    const std::string& usep = sep.Unbox();
-    std::string::size_type idx = ustring.find(usep);
+    const tosca::string& ustring = string.Unbox();
+    const tosca::string& usep = sep.Unbox();
+    tosca::string::size_type idx = ustring.find(usep);
 
-    StringTerm& result = newStringTerm(ctx, (idx == std::string::npos) ? "" : ustring.substr(idx + 1));
+    StringTerm& result = newStringTerm(ctx, (idx == tosca::string::npos) ? "" : ustring.substr(idx + 1));
     string.Release();
     sep.Release();
     return result;
@@ -23,11 +23,11 @@ StringTerm& AfterFirst(Context& ctx, StringTerm& string, StringTerm& sep)
 
 StringTerm& BeforeFirst(Context& ctx, StringTerm& string, StringTerm& sep)
 {
-    const std::string& ustring = string.Unbox();
-    const std::string& usep = sep.Unbox();
-    std::string::size_type idx = ustring.find(usep);
+    const tosca::string& ustring = string.Unbox();
+    const tosca::string& usep = sep.Unbox();
+    tosca::string::size_type idx = ustring.find(usep);
 
-    StringTerm& result = newStringTerm(ctx, (idx == std::string::npos) ? ustring : ustring.substr(0, idx));
+    StringTerm& result = newStringTerm(ctx, (idx == tosca::string::npos) ? ustring : ustring.substr(0, idx));
     string.Release();
     sep.Release();
     return result;
@@ -35,8 +35,8 @@ StringTerm& BeforeFirst(Context& ctx, StringTerm& string, StringTerm& sep)
 
 Bool& StringEqual(Context& ctx, StringTerm& str1, StringTerm& str2)
 {
-    const std::string& ustr1 = str1.Unbox();
-    const std::string& ustr2 = str2.Unbox();
+    const tosca::string& ustr1 = str1.Unbox();
+    const tosca::string& ustr2 = str2.Unbox();
     Bool& result = ustr1 == ustr2 ? newTRUE(ctx) : newFALSE(ctx);
     str1.Release();
     str2.Release();
@@ -66,8 +66,8 @@ StringTerm& Mangle(Context& ctx, StringTerm& str)
 
 StringTerm& UpCase(Context& ctx, StringTerm& str)
 {
-    std::string upper(str.Unbox());
-    for (std::string::iterator it= upper.begin(); it != upper.end(); ++it)
+    tosca::string upper(str.Unbox());
+    for (tosca::string::iterator it= upper.begin(); it != upper.end(); ++it)
         *it = toupper(*it);
     str.Release();
     return newStringTerm(ctx, std::move(upper));
@@ -75,8 +75,8 @@ StringTerm& UpCase(Context& ctx, StringTerm& str)
 
 StringTerm& DownCase(Context& ctx, StringTerm& str)
 {
-    std::string& lower = *(new std::string(str.Unbox()));
-    for (std::string::iterator it= lower.begin(); it != lower.end(); ++it)
+    tosca::string& lower = *(new tosca::string(str.Unbox()));
+    for (tosca::string::iterator it= lower.begin(); it != lower.end(); ++it)
         *it = tolower(*it);
     str.Release();
     return newStringTerm(ctx, lower);
@@ -91,12 +91,12 @@ StringTerm& Replace(Context& ctx, StringTerm& str, StringTerm& oldStr, StringTer
         return str;
     }
 
-    std::string& result = *(new std::string(str.Unbox()));
-    const std::string& uoldStr = oldStr.Unbox();
-    const std::string& unewStr = newStr.Unbox();
+    tosca::string& result = *(new tosca::string(str.Unbox()));
+    const tosca::string& uoldStr = oldStr.Unbox();
+    const tosca::string& unewStr = newStr.Unbox();
 
     size_t pos = 0;
-    while ((pos = result.find(uoldStr, pos)) != std::string::npos)
+    while ((pos = result.find(uoldStr, pos)) != tosca::string::npos)
     {
         result.replace(pos, uoldStr.length(), unewStr);
         pos += unewStr.length();
@@ -110,9 +110,9 @@ StringTerm& Replace(Context& ctx, StringTerm& str, StringTerm& oldStr, StringTer
 
 Bool& Contains(Context& ctx, StringTerm& str1, StringTerm& str2)
 {
-    const std::string& ustr1 = str1.Unbox();
-    const std::string& ustr2 = str2.Unbox();
-    Bool& result = ustr1.find(ustr2) != std::string::npos ? newTRUE(ctx) : newFALSE(ctx);
+    const tosca::string& ustr1 = str1.Unbox();
+    const tosca::string& ustr2 = str2.Unbox();
+    Bool& result = ustr1.find(ustr2) != tosca::string::npos ? newTRUE(ctx) : newFALSE(ctx);
     str1.Release();
     str2.Release();
     return result;
@@ -121,10 +121,10 @@ Bool& Contains(Context& ctx, StringTerm& str1, StringTerm& str2)
 
 StringTerm& Substring(Context& ctx, StringTerm& str, DoubleTerm& from, DoubleTerm& to)
 {
-    const std::string& ustr = str.Unbox();
-    std::string::size_type pos = static_cast<std::string::size_type>(from.Unbox());
-    std::string::size_type end = static_cast<std::string::size_type>(to.Unbox());
-    std::string::size_type count = end > pos ? end - pos : 0;
+    const tosca::string& ustr = str.Unbox();
+    tosca::string::size_type pos = static_cast<tosca::string::size_type>(from.Unbox());
+    tosca::string::size_type end = static_cast<tosca::string::size_type>(to.Unbox());
+    tosca::string::size_type count = end > pos ? end - pos : 0;
     StringTerm& result = newStringTerm(ctx, ustr.substr(pos, count));
     str.Release();
     from.Release();
@@ -133,8 +133,8 @@ StringTerm& Substring(Context& ctx, StringTerm& str, DoubleTerm& from, DoubleTer
 
 StringTerm& Substring2(Context& ctx, StringTerm& str, DoubleTerm& from)
 {
-    const std::string& ustr = str.Unbox();
-    std::string::size_type pos = static_cast<std::string::size_type>(from.Unbox());
+    const tosca::string& ustr = str.Unbox();
+    tosca::string::size_type pos = static_cast<tosca::string::size_type>(from.Unbox());
     StringTerm& result = newStringTerm(ctx, ustr.substr(pos));
     str.Release();
     from.Release();
@@ -154,8 +154,8 @@ Bool& MatchRegex(Context& ctx, StringTerm& pattern, StringTerm& str)
 
 Bool& StartsWith(Context& ctx, StringTerm& str, StringTerm& prefix)
 {
-    const std::string& ustr = str.Unbox();
-    const std::string& uprefix = prefix.Unbox();
+    const tosca::string& ustr = str.Unbox();
+    const tosca::string& uprefix = prefix.Unbox();
     Bool& result = (!ustr.compare(0, uprefix.size(), uprefix)) ? newTRUE(ctx) : newFALSE(ctx);
     str.Release();
     prefix.Release();
@@ -164,8 +164,8 @@ Bool& StartsWith(Context& ctx, StringTerm& str, StringTerm& prefix)
 
 Bool& EndsWith(tosca::Context& ctx, tosca::StringTerm& str, tosca::StringTerm& suffix)
 {
-    const std::string& ustr = str.Unbox();
-    const std::string& usuffix = suffix.Unbox();
+    const tosca::string& ustr = str.Unbox();
+    const tosca::string& usuffix = suffix.Unbox();
     Bool& result = (ustr.size() >= usuffix.size()
                     && !ustr.compare(ustr.size() - usuffix.size(), usuffix.size(), usuffix)) ? newTRUE(ctx) : newFALSE(ctx);
     str.Release();
@@ -175,12 +175,12 @@ Bool& EndsWith(tosca::Context& ctx, tosca::StringTerm& str, tosca::StringTerm& s
 
 tosca::StringTerm& Trim(tosca::Context& ctx, tosca::StringTerm& str)
 {
-    const std::string& ustr = str.Unbox();
+    const tosca::string& ustr = str.Unbox();
     if (ustr.empty())
         return str;
 
-    std::string::size_type first = ustr.find_first_not_of(" \t\f\n\r\b");
-    if (first == std::string::npos)
+    tosca::string::size_type first = ustr.find_first_not_of(" \t\f\n\r\b");
+    if (first == tosca::string::npos)
     {
         // All whitespace characters.
         str.Release();
@@ -195,7 +195,7 @@ tosca::StringTerm& Trim(tosca::Context& ctx, tosca::StringTerm& str)
 
 List<tosca::StringTerm>& Split(tosca::Context& ctx, tosca::StringTerm& str, tosca::StringTerm& sep)
 {
-    const std::string& ustr = str.Unbox();
+    const tosca::string& ustr = str.Unbox();
     if (ustr.empty())
     {
         str.Release();
@@ -203,16 +203,16 @@ List<tosca::StringTerm>& Split(tosca::Context& ctx, tosca::StringTerm& str, tosc
         return newNil<tosca::StringTerm>(ctx);
     }
 
-    const std::string& usep = sep.Unbox();
+    const tosca::string& usep = sep.Unbox();
     List<tosca::StringTerm>* result = 0;
     List<tosca::StringTerm>* last = 0;
 
-    std::string::size_type spos = 0;
-    std::string::size_type pos = 0;
+    tosca::string::size_type spos = 0;
+    tosca::string::size_type pos = 0;
     int trailings = 0; // to discard empty trailing strings
-    while ((pos = ustr.find(usep, spos)) != std::string::npos)
+    while ((pos = ustr.find(usep, spos)) != tosca::string::npos)
     {
-    	std::string::size_type count = pos - spos;
+    	tosca::string::size_type count = pos - spos;
     	if (count == 0)
     	{
     		trailings ++;
@@ -270,7 +270,7 @@ List<tosca::StringTerm>& Split(tosca::Context& ctx, tosca::StringTerm& str, tosc
 
 tosca::StringTerm& Squash(tosca::Context& ctx, tosca::StringTerm& str)
 {
-    std::string squashed;
+    tosca::string squashed;
     bool wasspace = false;
     
     for (auto iter = str.Unbox().begin(); iter != str.Unbox().end(); iter++)
@@ -296,7 +296,7 @@ tosca::StringTerm& Squash(tosca::Context& ctx, tosca::StringTerm& str)
 tosca::DoubleTerm& Index(tosca::Context& ctx, tosca::StringTerm& string, tosca::StringTerm& pattern)
 {
     auto search = string.Unbox().find(pattern.Unbox());
-    tosca::DoubleTerm& result = newDoubleTerm(ctx, search == std::string::npos ? -1 : search);
+    tosca::DoubleTerm& result = newDoubleTerm(ctx, search == tosca::string::npos ? -1 : search);
     string.Release();
     pattern.Release();
     return result;

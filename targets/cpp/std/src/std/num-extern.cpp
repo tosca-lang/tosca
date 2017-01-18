@@ -102,7 +102,11 @@ tosca::DoubleTerm& ToDecimal(tosca::Context& ctx, tosca::StringTerm& str)
 {
     double num;
     if (std::sscanf(str.Unbox().c_str(), "%lg", &num) <= 0)
-        throw new std::runtime_error("Illegally formatted decimal: " + str.Unbox());
+    {
+    	std::string s("Illegally formatted decimal: ");
+    	s += str.Unbox().c_str();
+        throw new std::runtime_error(s);
+    }
     str.Release();
     return newDoubleTerm(ctx, num);
 }
@@ -112,7 +116,12 @@ DoubleTerm& Hex(Context& ctx, StringTerm& hex)
 {
     long long num;
     if (std::sscanf(hex.Unbox().c_str(), "%llX", &num) <= 0)
-        throw new std::runtime_error("Illegally formatted hex: " + hex.Unbox());
+    {
+    	std::string s("Illegally formatted hex: ");
+    	s += hex.Unbox().c_str();
+
+        throw new std::runtime_error(s);
+    }
     hex.Release();
     return newDoubleTerm(ctx, num);
 }

@@ -133,10 +133,10 @@ namespace tosca {
 
         // Overrides
 
-        const std::string& Symbol() const
+        const tosca::string& Symbol() const
         {
             // TODO: map have no symbol.
-            static const std::string emptymap("{}");
+            static const tosca::string emptymap("{}", StaticAlloc());
             return emptymap;
         }
 

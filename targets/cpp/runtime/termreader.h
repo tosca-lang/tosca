@@ -28,6 +28,7 @@
 #include <unordered_map>
 #include <vector>
 #include <tuple>
+#include "tstring.h"
 
 namespace tosca
 {
@@ -155,17 +156,17 @@ namespace tosca
         TermLexer lexer;
         
         /* Free variables */
-        std::unordered_map<std::string, tosca::Variable*> free;
+        std::unordered_map<tosca::string, tosca::Variable*> free;
         
         /* Bound variables */
-        std::unordered_map<std::string, tosca::Variable*> bound;
+        std::unordered_map<tosca::string, tosca::Variable*> bound;
         
         void ParseArgs(BufferSink& sink);
         void ParseTerms(BufferSink& sink);
-        void ParseBinders(BufferSink& sink, std::vector<std::tuple<const std::string*, Variable*>>& localbound);
+        void ParseBinders(BufferSink& sink, std::vector<std::tuple<const tosca::string*, Variable*>>& localbound);
         void ParseMap(BufferSink& sink);
 
-        Variable* FindVariable(const std::string& name);
+        Variable* FindVariable(const tosca::string& name);
     };
 }
 

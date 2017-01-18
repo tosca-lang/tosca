@@ -22,7 +22,7 @@ template <typename a>
 a& ParseResource(tosca::Context& ctx, tosca::StringTerm& category, tosca::StringTerm& filename)
 {
     // TODO: user-defined category
-    std::fstream input(filename.Unbox(), std::ios_base::in);
+    std::fstream input(filename.Unbox().c_str(), std::ios_base::in);
     
     tosca::TermParser parser(&input);
     tosca::Term& term = parser.ParseTerm(ctx);
@@ -42,7 +42,7 @@ b& Save(tosca::Context& ctx, tosca::StringTerm& category, tosca::StringTerm& fil
     
     //if (ucat == "" || ucat == "term")
     {
-        std::fstream output(filename.Unbox(), std::ios_base::out);
+        std::fstream output(filename.Unbox().c_str(), std::ios_base::out);
         tosca::Print(static_cast<tosca::Term&>(term), output, false);
     }
     category.Release();
@@ -55,7 +55,7 @@ b& Save(tosca::Context& ctx, tosca::StringTerm& category, tosca::StringTerm& fil
 template <typename a>
 a& ParseText(tosca::Context& ctx, tosca::StringTerm& category, tosca::StringTerm& content)
 {
-    std::stringstream input(content.Unbox(), std::ios_base::in);
+    std::stringstream input(content.Unbox().c_str(), std::ios_base::in);
 
     tosca::TermParser parser(&input);
     tosca::Term& term = parser.ParseTerm(ctx);

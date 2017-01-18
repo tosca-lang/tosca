@@ -56,7 +56,7 @@ namespace tosca {
          * @param hint
          * @return A new unique name
          */
-        std::string MakeGlobalName(const std::string& hint);
+        tosca::string MakeGlobalName(const tosca::string& hint);
         
         /** 
          * Add user-defined properties 
@@ -69,7 +69,7 @@ namespace tosca {
         void* GetProperty(const std::string& key);
         
         /** Track global name */
-        void Track(std::string&& name);
+        void Track(tosca::string&& name);
 
         // Allocation helper
 
@@ -86,7 +86,7 @@ namespace tosca {
         virtual void ReleaseMem(void* ptr);
 
         /* Custom char allocator */
-        Allocator<char>& allocChar;
+        const Allocator<char>& allocChar;
 
     private:
 
@@ -105,8 +105,8 @@ namespace tosca {
         // global counter.
         unsigned long long ts;
         
-        // Name to track
-        std::string track;
+        // Name to track (debugging purpose)
+        tosca::string track;
         
 
     };
@@ -148,74 +148,9 @@ namespace tosca {
     	}
     }
 
-	template<class T>
-	struct Allocator
-	{
-		typedef T value_type;
-		typedef size_t size_type;
-		typedef T* pointer;
-		typedef const T* const_pointer;
-		typedef T& reference;
-		typedef const T& const_reference;
-		typedef ptrdiff_t difference_type;
-		tosca::Context* context;
-
-		Allocator() : context(0)
-		{}
-
-		Allocator(tosca::Context& ctx) : context(&ctx)
-		{}
-
-		template<class U>
-		Allocator(const Allocator<U>& other)
-		{
-			context = other.context;
-		}
-
-		T* allocate(std::size_t n)
-		{
-			return static_cast<T*>(Allocate(n * sizeof(T), *context));
-		}
-
-		void deallocate(T* p, std::size_t n)
-		{
-			Deallocate(p, sizeof(T) * n);
-		}
-
-		template <typename U>
-		struct rebind
-		{
-			   typedef Allocator<U> other;
-		};
-
-		void construct (T* p, const T& value)
-		{
-			new ((void*) p) T(value);
-		}
-
-		void destroy (T* p)
-		{
-			p->~T();
-		}
-
-		size_type max_size () const
-		{
-			return ULONG_MAX / sizeof(T);
-		}
-
-	};
-
-	template<class T, class U>
-	bool operator==(const Allocator<T>& lhs, const Allocator<U>& rhs) {
-		return lhs.context == rhs.context;
-	}
-
-	template<class T, class U>
-	bool operator!=(const Allocator<T>& lhs, const Allocator<U>& rhs) {
-		return lhs.context != rhs.context;
-	}
-
 }
+
+
 
 template<typename T>
 T& force(tosca::Context& ctx, T& term)

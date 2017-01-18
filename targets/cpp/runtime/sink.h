@@ -3,6 +3,7 @@
 #define SINK_H_
 
 #include <string>
+#include "tstring.h"
 
 namespace tosca {
     class Variable;
@@ -133,13 +134,13 @@ public:
      * Throw runtime_exception when there is no pending subterm.
      * @param name 
      */
-    virtual Variable& MakeFree(std::string& name) = 0;
+    virtual Variable& MakeFree(tosca::string& name) = 0;
     
     /*
      * Make new bound variable compatible with the pending subbinder
      * Throw runtime_exception when there is no pending subterm.
      */
-    virtual Variable& MakeBound(std::string& name) = 0;
+    virtual Variable& MakeBound(tosca::string& name) = 0;
     
     /*
      * Make new term compatible with the pending subterm.

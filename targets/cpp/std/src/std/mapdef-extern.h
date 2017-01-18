@@ -226,7 +226,9 @@ b& MapGetE(tosca::Context& ctx, MapTerm<a,tosca::Term>& map, a& key)
         ovalue.Release();
         return dynamic_cast<b&>(result);
     }
-    throw new std::runtime_error(key.Symbol() + " not found.");
+    std::string s(key.Symbol().c_str());
+    s += " not found.";
+    throw new std::runtime_error(s);
 }
 
 

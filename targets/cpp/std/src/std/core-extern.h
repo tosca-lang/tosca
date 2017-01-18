@@ -303,7 +303,9 @@ a& CI_Exit(tosca::Context& ctx, tosca::DoubleTerm& mid, Closure0<a>& result)
 template<typename a>
 a& Error(tosca::Context& ctx, tosca::StringTerm& msg)
 {
-    throw std::runtime_error(msg.Unbox());
+	std::string s(msg.Unbox().c_str());
+	msg.Release();
+    throw std::runtime_error(s);
 }
 
 template<typename a>

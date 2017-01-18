@@ -1,6 +1,6 @@
 // Copyright (c) 2016 IBM Corporation.
 #include "strutils.h"
-#include "term.h"
+#include "ts.h"
 #include <cstring>
 
 // Interpret one Unicode relaxed UTF-8 character starting at s into codepoint c.
@@ -114,18 +114,36 @@ static void escape(char **sourcep, char **targetp, char *endsource, char *endtar
     *sourcep = (char*)s;
     *targetp = (char*)t;
 }
-std::string makeEscaped(const std::string& src)
+
+
+const char* makeEscapedC(const char* src)
 {
-    size_t src_length = src.length();
+    size_t src_length = strlen(src);
     size_t tmp_length = src_length*10+3; // enough space even if all are quotes!
-    char *tmp = (char *) alloca(tmp_length+1);
-    char *s = (char*)src.c_str();
+    char *tmp = (char *) malloc(tmp_length+1);
+    char *s = (char*)src;
     char *t = tmp;
     *(t++) = '"';
-    escape(&s, &t, ((char*)src.c_str())+src_length, tmp+tmp_length-2);
+    escape(&s, &t, ((char*)src)+src_length, tmp+tmp_length-2);
     *(t++) = '"';
     *(t++) = '\0';
-    return std::string(tmp);
+    return tmp;
+}
+
+std::string makeEscaped(const std::string& src)
+{
+	const char* escaped = makeEscapedC(src.c_str());
+    std::string result(escaped);
+    free((void*) escaped);
+    return result;
+}
+
+tosca::string makeEscaped(const tosca::string& src)
+{
+	const char* escaped = makeEscapedC(src.c_str());
+    tosca::string result(escaped, src.get_allocator());
+    free((void*) escaped);
+    return result;
 }
 
 /**
@@ -142,6 +160,19 @@ std::string makeMangle(const std::string& src)
     }
     return mangled;
 }
+
+tosca::string makeMangle(const tosca::string& src)
+{
+    tosca::string::size_type length = src.size();
+    tosca::string mangled(src);
+    for (tosca::string::size_type i = 0; i < length; ++i)
+    {
+        char c = src[i];
+        mangled[i] = (c == '/' ? '_' : c);
+    }
+    return mangled;
+}
+
 
 // Convert escaped string characters (without quotes) to UTF-8 form.
 // All characters in *sourcep are converted into characters starting at *targetp,
@@ -267,10 +298,10 @@ std::string makeRescaped(const std::string& ssrc)
 }
 
 /* Convert double to string using 15 precision */
-extern std::string double15ToString(double value)
+extern tosca::string double15ToString(const tosca::Context& ctx, double value)
 {
 	char buffer[128]; // more than enough
 	snprintf(buffer, 128, "%.15G", value);
-	std::string result(buffer);
+	tosca::string result(buffer, ctx.allocChar);
 	return result;
 }

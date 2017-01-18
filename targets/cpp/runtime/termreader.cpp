@@ -314,13 +314,16 @@ namespace tosca
             }
             case TermLexer::VARIABLE:
             {
-                Variable* var = FindVariable(lexer.GetText());
+            	tosca::string& name = *(new tosca::string(lexer.GetText().c_str(), sink.GetContext().allocChar));
+            	Variable* var = FindVariable(name);
                 if (var == 0)
                 {
-                    std::string& name = *(new std::string(lexer.GetText()));
                     var = &sink.MakeFree(name);
                     free.insert({name, var}); // Keep one var ref
                 }
+                else
+                	delete &name;
+
                 sink.Use(NewRef(*var));
                 lexer.ConsumeToken();
                 break;
@@ -341,7 +344,7 @@ namespace tosca
             }
             case TermLexer::LSQUARE:
             {
-                std::vector<std::tuple<const std::string*, Variable*>> local;
+                std::vector<std::tuple<const tosca::string*, Variable*>> local;
                 lexer.ConsumeToken();
                 ParseBinders(sink, local);
                 lexer.Match(TermLexer::RSQUARE);
@@ -438,7 +441,7 @@ namespace tosca
         }
     }
    
-    void TermParser::ParseBinders(BufferSink& sink, std::vector<std::tuple<const std::string*, Variable*>>& local)
+    void TermParser::ParseBinders(BufferSink& sink, std::vector<std::tuple<const tosca::string*, Variable*>>& local)
     {
         while (true)
         {
@@ -447,10 +450,10 @@ namespace tosca
             {
                 case TermLexer::VARIABLE:
                 {
-                    std::string& name = *(new std::string(lexer.GetText()));
+                    tosca::string& name = *(new tosca::string(lexer.GetText().c_str(), sink.GetContext().allocChar));
                     Variable& binder = sink.MakeBound(name);
                     bound[name] = &binder; // Keep one ref. See ParseTerm for Release
-                    local.push_back(std::tuple<const std::string*, Variable*>{&name, &binder});
+                    local.push_back(std::tuple<const tosca::string*, Variable*>{&name, &binder});
                     binder.AddRef();
                     sink.Bind(binder);
                     lexer.ConsumeToken();
@@ -487,7 +490,7 @@ namespace tosca
         }
     }
     
-    Variable* TermParser::FindVariable(const std::string& name)
+    Variable* TermParser::FindVariable(const tosca::string& name)
     {
         auto search1 = bound.find(name);
         if (search1 != bound.end())

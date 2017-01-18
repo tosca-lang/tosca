@@ -44,8 +44,8 @@ public:
     Sink& MapEntry(Term& key, Term& value);
     Sink& EndMap();
     
-    Variable& MakeFree(std::string& name);
-    Variable& MakeBound(std::string& name);
+    Variable& MakeFree(tosca::string& name);
+    Variable& MakeBound(tosca::string& name);
     Term& MakeTerm(std::string& symbol);
 protected:
     /** Constructed term */

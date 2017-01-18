@@ -36,16 +36,16 @@ namespace tosca {
         varFactories[&type] = factory;
     }
 
-    std::string Context::MakeGlobalName(const std::string& hint)
+    tosca::string Context::MakeGlobalName(const tosca::string& hint)
     {
-        std::string name;
-        std::string::size_type idx = hint.find("_");
+        tosca::string name(allocChar);
+        tosca::string::size_type idx = hint.find("_");
         if (idx != std::string::npos)
             name += hint.substr(0, idx);
         else
             name += hint;
         name += "_";
-        name += std::to_string(++ts);
+        name += std::to_string(++ts).c_str();
         
         if (name == track)
             std::cout << name << " created\n";
@@ -64,7 +64,7 @@ namespace tosca {
         return search == properties.end() ? 0 : search->second;
     }
 
-    void Context::Track(std::string&& str)
+    void Context::Track(tosca::string&& str)
     {
         track = str;
     }
@@ -121,6 +121,5 @@ namespace tosca {
     {
     	::operator delete(ptr);
     }
-
 
 }
