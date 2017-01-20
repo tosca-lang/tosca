@@ -206,9 +206,8 @@ return †⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩::Make
 
 /* Generate method GetVariable corresponding to the given `#sortname`. */
 func CppVarMethodGetVariable(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
-→ text⟦
-   †⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-   Optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩> †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩GetVariable() const†⟨
+→ text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
+Optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩> †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩GetVariable() const†⟨
    If(#def,
      ()->text⟦{
          return make_optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩>(dynamic_cast<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩&>(VariableUse::GetGVariable().value()));
@@ -218,7 +217,7 @@ func CppVarMethodGetVariable(#sortname: String, #csortvars?:List<Core_csortvars_
 /* Generate method GetGVariable corresponding to the given `#sortname`. Needed to resolve multiple inheritance ambiguity. */
 func CppVarMethodGetGVariable(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
 → text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-   Optional<tosca::Variable> †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩GetGVariable() const†⟨
+Optional<tosca::Variable> †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩GetGVariable() const†⟨
    If(#def,
      ()->text⟦ { return VariableUse::GetGVariable(); }⟧,
      ()->text⟦;⟧)⟩⟧

@@ -360,19 +360,6 @@ namespace tosca {
 
     Term& Term::Substitute2(tosca::Context& ctx, Term& term, std::unordered_map<Variable*, Term*>& substitutes)
 	{
-//    	std::cerr << " === start subst\n";
-//    	for (auto it = substitutes.begin(); it != substitutes.end(); it ++)
-//    	{
-//    		std::cerr << it->first->Symbol();
-//    		std::cerr << " -> ";
-//    		PT(*it->second);
-//    		std::cerr << "\n";
-//
-//    	}
-//
-//    	 std::cerr << "=== term\n";
-//
-//    	PT(term);
     	std::vector<Term*> stack; // Stack of term. Own a reference to each term.
     	std::vector<int> subidx;
     	std::vector<bool> shared;
@@ -593,15 +580,15 @@ namespace tosca {
 
     size_t Term::Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn) const
     {
-        Optional<Variable> ovar = GetGVariable();
-        if (ovar)
-        {
-            auto search = deBruijn.find(&ovar.value());
-            if (search != deBruijn.end())
-                return code * 19ll;
-
-            return code ^ std::hash<const void*>{}(this);
-        }
+//        Optional<Variable> ovar = GetGVariable();
+//        if (ovar)
+//        {
+//            auto search = deBruijn.find(&ovar.value());
+//            if (search != deBruijn.end())
+//                return code * 19ll;
+//
+//            return code ^ std::hash<const void*>{}(this);
+//        }
 
         int i = 0;
         while (true)

@@ -115,7 +115,7 @@ rule Not(FALSE) → TRUE
 func NotEqual<a>(#1: a, #2: a) -> Bool
 → Not(Equal(#1, #2))
 
-@Extern func DeepEqual<a>(a, a) -> Bool
+@Extern func DeepEqual<a>(a, a) -> Bool 
 
 // --- Bit manipulation
 

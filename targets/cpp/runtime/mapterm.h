@@ -9,6 +9,7 @@
 #include <iowrapper.h>
 #include <set>
 #include <vector>
+#include "talloc.h"
 
 // Forward declarations
 template<typename V>
@@ -26,6 +27,7 @@ namespace tosca {
     template<typename K, typename V> class MapTerm;
     template<typename K, typename V> MapTerm<K, V>& newMapTerm(Context&);
     template<typename T> T& NewRef(T&);
+
 
     // MapTerm type definition
     template<typename K, typename V>
@@ -180,11 +182,11 @@ namespace tosca {
             // temp code for debugging non-immortal extension.
             if (this->IsImmortal())
             {
-            	CMapTerm<K, V>& extended = *(new (ctx) CMapTerm<K, V>(*this));
+            	CMapTerm<K, V>& extended = *(new (ctx) CMapTerm<K, V>(ctx, *this));
             	return extended;
             }
 
-        	CMapTerm<K, V>& extended = *(new (ctx) CMapTerm<K, V>(*this));
+        	CMapTerm<K, V>& extended = *(new (ctx) CMapTerm<K, V>(ctx, *this));
         	return extended;
         }
 
@@ -318,26 +320,14 @@ namespace tosca {
             return true;
         }
 
+        size_t Hash(size_t code, std::unordered_set<tosca::Variable*>& deBruijn) const
+        {
+        	return code;
+        }
+
         Term& Substitute(tosca::Context& ctx, std::unordered_map<Variable*, Term*>& substitutes)
         {
-        //    this->AddRef();
             return *this;
-            // MapTerm<K, V>& copy = newMapTerm<K, V>();
-            // CMapTerm<K, V>* cmap = this;
-            // while (true)
-            // {
-            //     for (auto it = cmap->map.begin(); it != cmap->map.end(); it ++)
-            //     {
-            //         it->first->AddRef();
-            //         it->second->AddRef();
-            //         copy.putValue(ctx, *it->first, dynamic_cast<V&>(it->second->Substitute(ctx, substitutes)));
-            //     }
-            //     if (!cmap->parent)
-            //         break;
-            //
-            //      cmap = &cmap->parent.value();
-            // }
-            // return copy;
         }
 
         void Print(IOWrapper& out, PrintOptions& options)
@@ -393,7 +383,9 @@ namespace tosca {
 		}
 
     protected:
-        std::unordered_map<K*, V*> map;
+		typedef std::unordered_map<K*, V*, std::hash<K*>, std::equal_to<K*>, Allocator<std::pair<const K*, V*>>> tsmap;
+
+		tsmap map;
 
         // Extended map
         Optional<CMapTerm> parent;
@@ -401,7 +393,7 @@ namespace tosca {
         CMapTerm() : Ref(true), parent(Optional<CMapTerm>::nullopt)
         {}
 
-        CMapTerm(CMapTerm& parent): parent(make_optional<CMapTerm>(parent))
+        CMapTerm(Context& ctx, CMapTerm& parent): map(10, std::hash<K*>(), std::equal_to<K*>(), Allocator<std::pair<const K*, V*>>(ctx)), parent(make_optional<CMapTerm>(parent))
         {}
 
         /* Compact linked maps */

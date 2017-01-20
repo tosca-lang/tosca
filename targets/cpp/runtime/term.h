@@ -735,11 +735,9 @@ namespace std
         public:                                                                                   \
             bool operator()(T* lhs, T* rhs) const                                                 \
             {                                                                                     \
-                Optional<tosca::Variable> vlhs = lhs->GetGVariable();                             \
-                Optional<tosca::Variable> vrhs = rhs->GetGVariable();                             \
-                if (vlhs && vrhs)                                                                 \
-                    return &vlhs.value() == &vrhs.value();                                        \
-                return lhs == rhs;                                                                \
+        		if (lhs == rhs) 																\
+				  return true; 																\
+				return *lhs == *rhs;               											\
             }                                                                                     \
         };                                                                                        \
     }

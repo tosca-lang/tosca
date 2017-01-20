@@ -135,9 +135,8 @@ public:→
 size_t HashCode() const { return VariableUse::HashCode(); }
 static void* operator new(std::size_t sz, tosca::Context& ctx) { return tosca::Allocate(sz, ctx); }
 static void operator delete(void* ptr) { tosca::Deallocate(ptr, sizeof(†⟨FormCppClassName(#sortname)⟩Use)); }←
-};
-†⟨TextIf(IsEmpty(MaybeSortVarsToSorts(#csortvars?)), ()->text⟦¶STD_HASH_EQUAL_TO_TERM(†⟨FormCppClassName(#sortname)⟩Use)⟧)⟩⟧
-
+};⟧
+//†⟨TextIf(IsEmpty(MaybeSortVarsToSorts(#csortvars?)), ()->text⟦¶STD_HASH_EQUAL_TO_TERM(†⟨FormCppClassName(#sortname)⟩Use)⟧)⟩
 // --------- Form to class fields
 
 /* Field declaration helper */
