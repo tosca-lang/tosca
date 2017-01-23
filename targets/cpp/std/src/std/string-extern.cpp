@@ -15,7 +15,7 @@ StringTerm& AfterFirst(Context& ctx, StringTerm& string, StringTerm& sep)
     const tosca::string& usep = sep.Unbox();
     tosca::string::size_type idx = ustring.find(usep);
 
-    StringTerm& result = newStringTerm(ctx, (idx == tosca::string::npos) ? "" : ustring.substr(idx + 1));
+    StringTerm& result = newStringTerm(ctx, (idx == tosca::string::npos) ? "" : ustring.substr(idx + 1).c_str());
     string.Release();
     sep.Release();
     return result;
@@ -27,7 +27,7 @@ StringTerm& BeforeFirst(Context& ctx, StringTerm& string, StringTerm& sep)
     const tosca::string& usep = sep.Unbox();
     tosca::string::size_type idx = ustring.find(usep);
 
-    StringTerm& result = newStringTerm(ctx, (idx == tosca::string::npos) ? ustring : ustring.substr(0, idx));
+    StringTerm& result = newStringTerm(ctx, (idx == tosca::string::npos) ? ustring : ustring.substr(0, idx).c_str());
     string.Release();
     sep.Release();
     return result;
@@ -70,16 +70,16 @@ StringTerm& UpCase(Context& ctx, StringTerm& str)
     for (tosca::string::iterator it= upper.begin(); it != upper.end(); ++it)
         *it = toupper(*it);
     str.Release();
-    return newStringTerm(ctx, std::move(upper));
+    return newStringTerm(ctx, upper.c_str());
 }
 
 StringTerm& DownCase(Context& ctx, StringTerm& str)
 {
-    tosca::string& lower = *(new tosca::string(str.Unbox()));
+    tosca::string lower(str.Unbox());
     for (tosca::string::iterator it= lower.begin(); it != lower.end(); ++it)
         *it = tolower(*it);
     str.Release();
-    return newStringTerm(ctx, lower);
+    return newStringTerm(ctx, lower.c_str());
 }
 
 StringTerm& Replace(Context& ctx, StringTerm& str, StringTerm& oldStr, StringTerm& newStr)
@@ -91,7 +91,7 @@ StringTerm& Replace(Context& ctx, StringTerm& str, StringTerm& oldStr, StringTer
         return str;
     }
 
-    tosca::string& result = *(new tosca::string(str.Unbox()));
+    tosca::string result(str.Unbox());
     const tosca::string& uoldStr = oldStr.Unbox();
     const tosca::string& unewStr = newStr.Unbox();
 
@@ -105,7 +105,7 @@ StringTerm& Replace(Context& ctx, StringTerm& str, StringTerm& oldStr, StringTer
     oldStr.Release();
     newStr.Release();
 
-    return newStringTerm(ctx, result);
+    return newStringTerm(ctx, result.c_str());
 }
 
 Bool& Contains(Context& ctx, StringTerm& str1, StringTerm& str2)
@@ -125,7 +125,7 @@ StringTerm& Substring(Context& ctx, StringTerm& str, DoubleTerm& from, DoubleTer
     tosca::string::size_type pos = static_cast<tosca::string::size_type>(from.Unbox());
     tosca::string::size_type end = static_cast<tosca::string::size_type>(to.Unbox());
     tosca::string::size_type count = end > pos ? end - pos : 0;
-    StringTerm& result = newStringTerm(ctx, ustr.substr(pos, count));
+    StringTerm& result = newStringTerm(ctx, ustr.substr(pos, count).c_str());
     str.Release();
     from.Release();
     return result;
@@ -135,7 +135,7 @@ StringTerm& Substring2(Context& ctx, StringTerm& str, DoubleTerm& from)
 {
     const tosca::string& ustr = str.Unbox();
     tosca::string::size_type pos = static_cast<tosca::string::size_type>(from.Unbox());
-    StringTerm& result = newStringTerm(ctx, ustr.substr(pos));
+    StringTerm& result = newStringTerm(ctx, ustr.substr(pos).c_str());
     str.Release();
     from.Release();
     return result;
@@ -188,7 +188,7 @@ tosca::StringTerm& Trim(tosca::Context& ctx, tosca::StringTerm& str)
     }
 
     size_t last = ustr.find_last_not_of(" \t\f\n\r\b");
-    StringTerm& result = newStringTerm(ctx, ustr.substr(first, (last-first+1)));
+    StringTerm& result = newStringTerm(ctx, ustr.substr(first, (last-first+1)).c_str());
     str.Release();
     return result;
 }
@@ -232,7 +232,7 @@ List<tosca::StringTerm>& Split(tosca::Context& ctx, tosca::StringTerm& str, tosc
     	}
 
     	List<tosca::StringTerm>& cons = dynamic_cast<List<tosca::StringTerm>&>(_CCons<tosca::StringTerm>::Make(ctx));
-    	cons.SetSub(0, newStringTerm(ctx, ustr.substr(spos, count)));
+    	cons.SetSub(0, newStringTerm(ctx, ustr.substr(spos, count).c_str()));
     	if (last)
     		last->SetSub(1, cons);
     	last = &cons;
@@ -245,7 +245,7 @@ List<tosca::StringTerm>& Split(tosca::Context& ctx, tosca::StringTerm& str, tosc
     if (spos < ustr.length())
     {
     	List<tosca::StringTerm>& cons = dynamic_cast<List<tosca::StringTerm>&>(_CCons<tosca::StringTerm>::Make(ctx));
-    	cons.SetSub(0, newStringTerm(ctx, ustr.substr(spos)));
+    	cons.SetSub(0, newStringTerm(ctx, ustr.substr(spos).c_str()));
     	if (last)
     		last->SetSub(1, cons);
     	last = &cons;
@@ -290,7 +290,7 @@ tosca::StringTerm& Squash(tosca::Context& ctx, tosca::StringTerm& str)
         }
     }
     str.Release();
-    return newStringTerm(ctx, squashed);
+    return newStringTerm(ctx, squashed.c_str());
 }
 
 tosca::DoubleTerm& Index(tosca::Context& ctx, tosca::StringTerm& string, tosca::StringTerm& pattern)
