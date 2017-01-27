@@ -24,7 +24,7 @@ dependencies {
 }
 
 // -- Generate the Tosca compiler from .tsc source code.
-// -- Uses stable Tosca compiler, overriding builtin parsers. 
+// -- Uses stable Tosca compiler, overriding builtin parsers.
 
 task compileTosca(type: TransScriptTask, dependsOn:':targets:java:parsers:compileJava') { //, dependsOn:':targets:java:parsers:compileJava'
 	description = "Compile Tosca to Java source files."
@@ -32,6 +32,7 @@ task compileTosca(type: TransScriptTask, dependsOn:':targets:java:parsers:compil
 	dependencies= fileTree(dir: transScriptSrc, include: ['tosca.tsc', '**/*.tsc'])
 	outputDir   = project.hasProperty('dev') ? file('compilerdev') : file('compiler')
 	pkg = 'org.transscript.compiler'
+  parsers = 'org.tosca.antlr.ANTLRMetaParser'
 	bootparserpath =  "file:parsers/build/classes/main/" // override Tosca parsers location. MUST END WITH /
 	bootstrap = true
 	infer = true
@@ -61,7 +62,7 @@ sourceSets {
         java {
             srcDir 'runtime'
             srcDir project.hasProperty('dev') ? 'compilerdev' : 'compiler'
-			srcDir project.nparsers ? 'nparsers/src' : 'parsers/src'
+			      srcDir project.nparsers ? 'nparsers/src' : 'parsers/src'
         }
 
 		// Include TransScript source code for interpreter mode. Temporary.

@@ -315,7 +315,7 @@ public class Context
 		@Override
 		public Class<?> findClass(String name) throws ClassNotFoundException
 		{
-			if (name.startsWith("org.transscript."))
+			if (name.startsWith("org.transscript.") || name.startsWith("org.tosca."))
 			{
 				try
 				{

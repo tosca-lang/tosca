@@ -26,7 +26,10 @@ import core::Core
 import core::utils
 import parser::TransScript
 
-//import pg::util
+import pg::ANTLR
+import pg::normalizer
+import pg::gensort
+import pg::genparser
 
 //--- API
 
@@ -96,3 +99,20 @@ func NeedRegen(#system: TSystem, #url: String) -> Bool
     IfConfigDef(#system, "cpp", (v)->CppNeedRegen(#system, #url), ()->JavaNeedRegen(#system, #url))
   else
     TRUE
+
+// --- Parser generator
+
+/* Generate parser, meta-parser, printer and sorts
+ * for the grammar located at the given url */
+func PG(#url:String, #config: {String:String}) -> Result
+→ let #grammar = ParseResource("grammarSpec", #url)
+  let #norm = NormalizeGrammar(#grammar)
+  let #builddir = GetEnv("build-dir", ".")
+  let #stem = PathFileStem(#url)
+  let #sortfilename = ConcatString(#builddir, "/", #stem, ".tsc")
+  let #metapfilename = ConcatString(#builddir, "/", #stem, "MetaParser.g4")
+  let #metalfilename = ConcatString(#builddir, "/", #stem, "MetaLexer.g4")
+  SaveResource("text", #sortfilename, MakeSorts(#norm), ()->
+  SaveResource("text", #metapfilename, MakeMetaParser(#norm), ()->
+  SaveResource("text", #metalfilename, MakeMetaLexer(#norm), ()->
+  Success((#sortfilename, #metapfilename, #metalfilename)))))

@@ -53,7 +53,7 @@ func InferRules(#key: String, #rules: List<Core_cdecl_sort>, #content: Content, 
 func InferRule({String:IEnvEntry}, Core_cdecl_sort) -> Core_cdecl_sort
 rule InferRule(#env, cdecl⟦ ##canno* rule ##canno*2 ##CONSTRUCTOR ##csortargs? ##cterms? ##csortanno? → ##cterm ⟧)
 → let #funcSort = FindFuncSortS(IGetSystem(#env), #CONSTRUCTOR)
-  InferRuleAux(#env, #funcSort, #canno*2, #CONSTRUCTOR, #cterms?, #cterm)
+  Debug(ConcatString("Infer rule ", #CONSTRUCTOR), ()->InferRuleAux(#env, #funcSort, #canno*2, #CONSTRUCTOR, #cterms?, #cterm))
 
 func InferRuleAux({String:IEnvEntry}, Option<Core_cdecl_sort>, List<Core_canno_sort>, String, List<Core_cterms_sort>, Core_cterm_sort) -> Core_cdecl_sort
 
@@ -68,7 +68,7 @@ func InferRuleAux({String:IEnvEntry}, Option<Core_cdecl_sort>, List<Core_canno_s
 func InferPatternUp(String, PPair<{String:IEnvEntry} List<Core_cterms_sort>>, Core_csort_sort, Core_cterm_sort) -> Core_cdecl_sort
 rule InferPatternUp(#CONSTRUCTOR, PairCons(#env, #cterms?), #esort, #contractum)
 → let #nenv = SetInPattern(IPushBinderSorts(#env), FALSE)
-  InferRuleUp(cterm⟦ ##CONSTRUCTOR ##cterms? ⟧, Debug("Infer contractum", ()->InferTerm(#nenv, #contractum, #esort)))
+  InferRuleUp(cterm⟦ ##CONSTRUCTOR ##cterms? ⟧, InferTerm(#nenv, #contractum, #esort))
 
 func InferRuleUp(Core_cterm_sort, PPair<{String:IEnvEntry} Core_cterm_sort>) -> Core_cdecl_sort
 rule InferRuleUp(#cterm1, PairCons(#env, #cterm2))
@@ -657,16 +657,15 @@ func UnifyMaybeAlias({String:IEnvEntry}, Option<Core_cdecl_sort>, Core_csort_sor
   rule UnifyMaybeAlias(#env, NONE, #csort1, #csort2)
   → Error(ConcatString("Error: type ", ConcatString(PrintSort(#csort2), ConcatString(" is not an instance of type ", PrintSort(#csort1)))))
 
-
 // ---- Sort environment optimizer
 
 /* Optimize the sort environment by computing its transitive closure. */
 func OptimizeSorts(#env: {String : IEnvEntry}) -> {String : IEnvEntry}
 → let #sorts = GetSorts(#env)
   let #nenv = IRemoveSorts(#env)
-    Debug("OptimizeSorts", ()->SetSorts(#nenv, FoldlP((key sorts) -> OptimizeSort(sorts, (key,), MapGet(sorts, key), NONE),
+  SetSorts(#nenv, FoldlP((key sorts) -> OptimizeSort(sorts, (key,), MapGet(sorts, key), NONE),
                                                       #sorts,
-                                                      MapKeys(#sorts))))
+                                                      MapKeys(#sorts)))
 
 func OptimizeSort({String : Core_csort_sort}, List<String>, Option<Core_csort_sort>, Option<Core_csort_sort> /* previous sort */) -> {String : Core_csort_sort}
 
@@ -697,7 +696,7 @@ func OptimizeSortAux(Bool, {String : Core_csort_sort}, List<String>, String, Opt
 // ---- Apply sort instantiation
 
 func ISubstRule(#env: {String:IEnvEntry}, #cterm1: Core_cterm_sort, #cterm2: Core_cterm_sort) -> Core_cdecl_sort
-→ Debug("Subst rule", ()->cdecl⟦ rule ⟨cterm: ISubstTerm(#env, #cterm1)⟩ → ⟨cterm: ISubstTerm(#env, #cterm2)⟩ ⟧)
+→ cdecl⟦ rule ⟨cterm: ISubstTerm(#env, #cterm1)⟩ → ⟨cterm: ISubstTerm(#env, #cterm2)⟩ ⟧
 
 func ISubstTerm({String:IEnvEntry}, Core_cterm_sort) -> Core_cterm_sort
 rule ISubstTerm(#env, cterm⟦ ##canno* ##cqconstructor ##csortargs? ##cterms? ##csortanno? ⟧) → cterm⟦ ##canno* ⟨cqconstructor: ISubstQCons(#env, #cqconstructor)⟩ ⟨csortargs?: ISubstMaybeSortArgs(#env, #csortargs?)⟩ ⟨cterms?: ISubstMaybeTerms(#env, #cterms?)⟩ ⟨csortanno?: ISubstMaybeSortAnno(#env, #csortanno?)⟩ ⟧

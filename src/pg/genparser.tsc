@@ -74,25 +74,35 @@
  */
 
 
-import Pg::ANTLR
-import Pg::Util
-import Std::List
-import Std::Core
-import Std::String
+import pg::ANTLR
+import pg::util
+import std::listdef
+import std::core
+import std::string
+import std::num
+import std::text::Text4
+
+// --- Types
 
 enum Mode
     | PARSER     /* Generate term parser and lexer */
     | METAPARSER /* Generate meta parser */
     | METALEXER  /* Generate meta lexer */
 
+enum ParserEnvEntry | PEINDEX(RuleIndex) | PEBOOL(Bool) | PEDEFINED
 
-func MakeParser(ANTLR_grammarSpec_sort) -> ANTLR_grammarSpec_sort
+type ParserEnv = {String:ParserEnvEntry}
+
+// --- API
+
+
+func MakeParser(ANTLR_grammarSpec_sort) -> Text4_text_sort
 rule MakeParser(#) → ANTLR_Print_grammarSpec(MakeGrammarSpec(#, IndexGrammar(#), PARSER))
 
-func MakeMetaParser(ANTLR_grammarSpec_sort) -> ANTLR_grammarSpec_sort
+func MakeMetaParser(ANTLR_grammarSpec_sort) -> Text4_text_sort
 rule MakeMetaParser(#) → ANTLR_Print_grammarSpec(MakeGrammarSpec(#, IndexGrammar(#), METAPARSER))
 
-func MakeMetaLexer(ANTLR_grammarSpec_sort) -> ANTLR_grammarSpec_sort
+func MakeMetaLexer(ANTLR_grammarSpec_sort) ->Text4_text_sort
 rule MakeMetaLexer(#) → ANTLR_Print_grammarSpec(MakeGrammarSpec(#, IndexGrammar(#), METALEXER))
 
 // grammar ...
@@ -100,324 +110,362 @@ rule MakeMetaLexer(#) → ANTLR_Print_grammarSpec(MakeGrammarSpec(#, IndexGramma
 func MakeGrammarSpec(ANTLR_grammarSpec_sort, RuleIndex, Mode) -> ANTLR_grammarSpec_sort
 rule MakeGrammarSpec(grammarSpec⟦ #DOC_COMMENT? #grammarType #id ; #prequelConstruct* #rules #modeSpec* ⟧, #index, #mode)
 → grammarSpec⟦ #DOC_COMMENT?
-                    grammarType⟨expr:MakeGrammarType(#grammarType, #mode)⟩ id⟨expr:MakeGrammarId(#id, #mode)⟩ ;
-                    prequelConstruct*⟨expr:MakePrequelConstructs(#mode, UnwrapId(#id), #prequelConstruct*)⟩
-                    rules⟨expr:MakeRules(ApplyIf(#rules, IsMeta(#mode), [x]->LiftEbnfRules(x, #index)), #mode, {"$index": INDEX(#index)})⟩
-                    modeSpec*⟨expr:MakeModeSpec(#modeSpec*, #mode)⟩ ⟧
+                    ⟨grammarType:MakeGrammarType(#grammarType, #mode)⟩ ⟨id:MakeGrammarId(#id, #mode)⟩ ;
+                    ⟨prequelConstruct*:MakePrequelConstructs(#mode, UnwrapId(#id), #prequelConstruct*)⟩
+                    ⟨rules:MakeRules(If(IsModeMeta(#mode), ()->LiftEbnfRules(#rules, #index), ()->#rules), #mode, {"$index": PEINDEX(#index)})⟩
+                    ⟨modeSpec*:MakeModeSpec(#modeSpec*, #mode)⟩ ⟧
 
+//
 func MakeGrammarType(ANTLR_grammarType_sort, Mode) -> ANTLR_grammarType_sort
-
 rule MakeGrammarType(#grammarType, PARSER)       → #grammarType
 rule MakeGrammarType(#grammarType, METAPARSER)   → grammarType⟦ parser grammar ⟧
 rule MakeGrammarType(#grammarType, METALEXER)    → grammarType⟦ lexer grammar ⟧
 
+//
 func MakeGrammarId(ANTLR_id_sort, Mode) -> ANTLR_id_sort
-
-rule MakeGrammarId(id⟦ #TOKEN_REF ⟧, PARSER)     →  id⟦ TOKEN_REF⟨expr:ConcatString( #TOKEN_REF,  "Term")⟩ ⟧
-rule MakeGrammarId(id⟦ #TOKEN_REF ⟧, METAPARSER) →  id⟦ TOKEN_REF⟨expr:ConcatString( #TOKEN_REF,  "MetaParser")⟩ ⟧
-rule MakeGrammarId(id⟦ #TOKEN_REF ⟧, METALEXER)  →  id⟦ TOKEN_REF⟨expr:ConcatString( #TOKEN_REF,  "MetaLexer")⟩ ⟧
+rule MakeGrammarId(id⟦ #TOKEN_REF ⟧, PARSER)     →  id⟦ ⟨TOKEN_REF:ConcatString( #TOKEN_REF,  "Term")⟩ ⟧
+rule MakeGrammarId(id⟦ #TOKEN_REF ⟧, METAPARSER) →  id⟦ ⟨TOKEN_REF:ConcatString( #TOKEN_REF,  "MetaParser")⟩ ⟧
+rule MakeGrammarId(id⟦ #TOKEN_REF ⟧, METALEXER)  →  id⟦ ⟨TOKEN_REF:ConcatString( #TOKEN_REF,  "MetaLexer")⟩ ⟧
 
 // Add target language dependent actions.
-func MakePrequelConstructs(Mode, String, List<ANTLR_prequelConstruct>) -> List<ANTLR_prequelConstruct>
-rule MakePrequelConstructs(#mode, #id, #prequelConstruct*)
-→ Concat(LexerVocab(#mode, #id), ParserConstructs(#id, IsParser(#mode), IsMeta(#mode), GetPrequelAction("header", #prequelConstruct*), GetPrequelAction("members", #prequelConstruct*)))
+func MakePrequelConstructs(#mode: Mode, #id: String, #prequelConstruct*: List<ANTLR_prequelConstruct_sort>) -> List<ANTLR_prequelConstruct_sort>
+→ Concat(LexerVocab(#mode, #id), ParserConstructs(#id, IsParser(#mode), IsModeMeta(#mode),
+         GetPrequelAction("header", #prequelConstruct*), GetPrequelAction("members", #prequelConstruct*)))
 
-func LexerVocab(Mode, String) -> List<ANTLR_prequelConstruct>
-
+//
+func LexerVocab(Mode, String) -> List<ANTLR_prequelConstruct_sort>
 rule LexerVocab(PARSER, #id)      → ()
 rule LexerVocab(METALEXER, #id)   → ()
-rule LexerVocab(METAPARSER, #id)  → prequelConstruct*⟦ options { tokenVocab = STRING_LITERAL⟨expr:ConcatString( #id, "MetaLexer")⟩ ; } ⟧
+rule LexerVocab(METAPARSER, #id)  → prequelConstruct*⟦ options { tokenVocab = ⟨STRING_LITERAL:ConcatString( #id, "MetaLexer")⟩ ; } ⟧
 
-func ParserConstructs(String, Bool, Bool, String, String) -> List<ANTLR_prequelConstruct>
+//
+func ParserConstructs(String, Bool, Bool, String, String) -> List<ANTLR_prequelConstruct_sort>
+  rule ParserConstructs(#id, FALSE, #meta, #header, #members)    → ()
 
-rule ParserConstructs(#id, FALSE, #meta, #header, #members)    → ()
+  // TODO: string concatenation is quite ugly. Tosca should support string template!
+  rule ParserConstructs(#id, TRUE, #meta, #header, #members)
+  → prequelConstruct*⟦
+          @header ⟨ACTION:ConcatString( "{\n",
+               "import org.transscript.antlr.ToSinkListener;\n",
+               "import static org.transscript.antlr.ToSinkListener.fireEnterZOM;\n",
+               "import static org.transscript.antlr.ToSinkListener.fireExitZOM;\n",
+               "import static org.transscript.antlr.ToSinkListener.fireEnterOPT;\n",
+               "import static org.transscript.antlr.ToSinkListener.fireExitOPT;\n",
+               "import static org.transscript.antlr.ToSinkListener.fireEnterAlt;\n",
+               "import static org.transscript.antlr.ToSinkListener.fireExitAlt;\n",
+               "import static org.transscript.antlr.ToSinkListener.fireHide;\n",
+               "import static org.transscript.antlr.ToSinkListener.fireEnterSymbol;\n",
+               "import static org.transscript.antlr.ToSinkListener.fireExitSymbol;\n",
+               "import static org.transscript.antlr.ToSinkListener.fireEnterBinder;\n",
+               "import static org.transscript.antlr.ToSinkListener.fireExitBinder;\n",
+               "import static org.transscript.antlr.ToSinkListener.fireEnterBinds;\n",
+               "import static org.transscript.antlr.ToSinkListener.fireExitBinds;\n",
+               If( #meta , ()->"import static org.transscript.antlr.ToSinkListener.fireTail;\n" , ()->""),
+               If( #meta , ()->"import static org.transscript.antlr.ToSinkListener.fireTerm;\n" , ()->""),
+               If( #meta , ()->"import static org.transscript.antlr.ToSinkListener.fireEmbed;\n" , ()->""),
+               If( Not( #meta) , ()->#header , ()->""),
+          "}")⟩
 
-// TODO: string concatenation is quite ugly. CRSX should support string template!
-rule ParserConstructs(#id, TRUE, #meta, #header, #members)
-→ prequelConstruct*⟦
-        @header ACTION⟨expr:ConcatString( "{\n",
-             "import org.transscript.antlr.ToSinkListener;\n",
-             "import static org.transscript.antlr.ToSinkListener.fireEnterZOM;\n",
-             "import static org.transscript.antlr.ToSinkListener.fireExitZOM;\n",
-             "import static org.transscript.antlr.ToSinkListener.fireEnterOPT;\n",
-             "import static org.transscript.antlr.ToSinkListener.fireExitOPT;\n",
-             "import static org.transscript.antlr.ToSinkListener.fireEnterAlt;\n",
-             "import static org.transscript.antlr.ToSinkListener.fireExitAlt;\n",
-             "import static org.transscript.antlr.ToSinkListener.fireHide;\n",
-             "import static org.transscript.antlr.ToSinkListener.fireEnterSymbol;\n",
-             "import static org.transscript.antlr.ToSinkListener.fireExitSymbol;\n",
-             "import static org.transscript.antlr.ToSinkListener.fireEnterBinder;\n",
-             "import static org.transscript.antlr.ToSinkListener.fireExitBinder;\n",
-             "import static org.transscript.antlr.ToSinkListener.fireEnterBinds;\n",
-             "import static org.transscript.antlr.ToSinkListener.fireExitBinds;\n",
-             If( #meta , ()->"import static org.transscript.antlr.ToSinkListener.fireTail;\n" , ()->""),
-             If( #meta , ()->"import static org.transscript.antlr.ToSinkListener.fireTerm;\n" , ()->""),
-             If( #meta , ()->"import static org.transscript.antlr.ToSinkListener.fireEmbed;\n" , ()->""),
-             If( Not( #meta) , ()->#header , ()->""),
-        "}")⟩
+          @parser::members ⟨ACTION:ConcatString( "{\n",
+              If( #meta , ()->ConcatString( "public ", #id, "MetaParser() {}\n") , ()->""),
+              If( #meta , ()->"protected Lexer newLexer(CharStream stream)\n" , ()->""),
+              If( #meta , ()->"{\n\n" , ()->""),
+              If( #meta , ()->ConcatString( "return new ", #id, "MetaLexer(stream);\n") , ()->""),
+              If( #meta , ()->"}\n\n" , ()->""),
+              If( #meta , ()->"protected void initATN()\n{    _interp = new ParserATNSimulator(this, _ATN, _decisionToDFA, _sharedContextCache);\n}" , ()->""),
+              "protected String _prefix() { return \"", #id, "_\"; }\n",
+              IfDef( "catprefix", ()->ConcatString( "protected String _catprefix() { return \"", GetEnv("catprefix", ""), "\"; }\n"), ()->""),
+              "protected void _enterZOM() { fireEnterZOM(_parseListeners, _ctx); }\n",
+              "protected void _exitZOM()  { fireExitZOM(_parseListeners, _ctx); }\n",
+              "protected void _enterOOM() { _enterZOM(); }\n",
+              "protected void _exitOOM()  { _exitZOM(); }\n",
+              "protected void _enterOPT() { fireEnterOPT(_parseListeners, _ctx); }\n",
+              "protected void _exitOPT()  { fireExitOPT(_parseListeners, _ctx); }\n",
+              "protected void _enterAlt(String name) { fireEnterAlt(_parseListeners, _ctx, name); }\n",
+              "protected void _enterAlt() { fireEnterAlt(_parseListeners, _ctx); }\n",
+              "protected void _exitAlt()  { fireExitAlt(_parseListeners, _ctx); }\n",
+              "protected void _hide()     { fireHide(_parseListeners, _ctx); }\n",
+              "protected void _enterSymbol()  { fireEnterSymbol(_parseListeners, _ctx); }\n",
+              "protected void _exitSymbol()     { fireExitSymbol(_parseListeners, _ctx); }\n",
+              "protected void _enterBinder(String name)     { fireEnterBinder(_parseListeners, _ctx, name); }\n",
+              "protected void _exitBinder()     { fireExitBinder(_parseListeners, _ctx); }\n",
+              "protected void _enterBinds(String names) { fireEnterBinds(_parseListeners, _ctx, names); }\n",
+              "protected void _exitBinds()  { fireExitBinds(_parseListeners, _ctx); }\n",
+              If( #meta , ()->"protected void _embed()    { fireEmbed(_parseListeners, _ctx); }\n" , ()->""),
+              If( #meta , ()->"protected void _tail()     { fireTail(_parseListeners, _ctx); }\n" , ()->""),
+              If( #meta , ()->"protected void _term(String type)  { fireTerm(_parseListeners, _ctx, type); }\n" , ()->""),
+              If( #meta , ()->ConcatString( "protected String _metachar() { return ", MetaChar("\""), ";}\n") , ()->""),
+              If( Not( #meta) , ()->#members , ()->""),
+          "}")⟩
+      ⟧
 
-        @parser::members ACTION⟨expr:ConcatString( "{\n",
-            If( #meta , ()->ConcatString( "public ", #id, "MetaParser() {}\n") , ()->""),
-            If( #meta , ()->"protected Lexer newLexer(CharStream stream)\n" , ()->""),
-            If( #meta , ()->"{\n\n" , ()->""),
-            If( #meta , ()->ConcatString( "return new ", #id, "MetaLexer(stream);\n") , ()->""),
-            If( #meta , ()->"}\n\n" , ()->""),
-            If( #meta , ()->"protected void initATN()\n{    _interp = new ParserATNSimulator(this, _ATN, _decisionToDFA, _sharedContextCache);\n}" , ()->""),
-            "protected String _prefix() { return \"", #id, "_\"; }\n",
-            IfDef( "catprefix", ConcatString( "protected String _catprefix() { return \"", GetEnv( "catprefix"), "\"; }\n"), ""),
-            "protected void _enterZOM() { fireEnterZOM(_parseListeners, _ctx); }\n",
-            "protected void _exitZOM()  { fireExitZOM(_parseListeners, _ctx); }\n",
-            "protected void _enterOOM() { _enterZOM(); }\n",
-            "protected void _exitOOM()  { _exitZOM(); }\n",
-            "protected void _enterOPT() { fireEnterOPT(_parseListeners, _ctx); }\n",
-            "protected void _exitOPT()  { fireExitOPT(_parseListeners, _ctx); }\n",
-            "protected void _enterAlt(String name) { fireEnterAlt(_parseListeners, _ctx, name); }\n",
-            "protected void _enterAlt() { fireEnterAlt(_parseListeners, _ctx); }\n",
-            "protected void _exitAlt()  { fireExitAlt(_parseListeners, _ctx); }\n",
-            "protected void _hide()     { fireHide(_parseListeners, _ctx); }\n",
-            "protected void _enterSymbol()  { fireEnterSymbol(_parseListeners, _ctx); }\n",
-            "protected void _exitSymbol()     { fireExitSymbol(_parseListeners, _ctx); }\n",
-            "protected void _enterBinder(String name)     { fireEnterBinder(_parseListeners, _ctx, name); }\n",
-            "protected void _exitBinder()     { fireExitBinder(_parseListeners, _ctx); }\n",
-            "protected void _enterBinds(String names) { fireEnterBinds(_parseListeners, _ctx, names); }\n",
-            "protected void _exitBinds()  { fireExitBinds(_parseListeners, _ctx); }\n",
-            If( #meta , ()->"protected void _embed()    { fireEmbed(_parseListeners, _ctx); }\n" , ()->""),
-            If( #meta , ()->"protected void _tail()     { fireTail(_parseListeners, _ctx); }\n" , ()->""),
-            If( #meta , ()->"protected void _term(String type)  { fireTerm(_parseListeners, _ctx, type); }\n" , ()->""),
-            If( #meta , ()->ConcatString( "protected String _metachar() { return ", MetaChar("\""), ";}\n") , ()->""),
-            If( Not( #meta) , ()->#members , ()->""),
-        "}")⟩
-    ⟧
-
+//
 func GetPrequelAction(String, List<ANTLR_prequelConstruct_sort>) -> String
 
-rule GetPrequelAction(#actionid, ()) → ""
+  rule GetPrequelAction(#actionid, (prequelConstruct⟦ @ #RULE_REF #ACTION ⟧, #prequelConstruct*...))
+  → if Equal(#RULE_REF, #actionid)
+      TrimBraces(#ACTION)
+    else
+      GetPrequelAction(#actionid, #prequelConstruct*)
 
-rule GetPrequelAction(#actionid, (prequelConstruct⟦ @ #RULE_REF #ACTION ⟧, #prequelConstruct*...))
-→ If( Equal( #RULE_REF, #actionid) , ()->TrimBraces(#ACTION) , ()->GetPrequelAction(#actionid, #prequelConstruct*))
+  rule GetPrequelAction(#actionid, (#prequel, #prequelConstruct*...))
+  → GetPrequelAction(#actionid, #prequelConstruct*)
 
-rule GetPrequelAction(#actionid, (#prequel, #prequelConstruct*...))
-→ GetPrequelAction(#actionid, #prequelConstruct*)
+  rule GetPrequelAction(#actionid, ())
+  → ""
 
-func TrimBraces(String) -> String
-rule TrimBraces(#) → RemoveFirstChar(RemoveLastChar(Trim(#)))
+//
+func TrimBraces(#: String) -> String
+→ RemoveFirstChar(RemoveLastChar(Trim(#)))
 
+//
 func MakeModeSpec(List<ANTLR_modeSpec_sort>, Mode) -> List<ANTLR_modeSpec_sort>
 
-rule MakeModeSpec(#modeSpec*, PARSER)        → #modeSpec*
-rule MakeModeSpec(#modeSpec*, METAPARSER)    → #modeSpec*
-rule MakeModeSpec(#modeSpec*, METALEXER)     →
-    Concat(
-        modeSpec*⟦
-            mode CrsxEmbed;
+  rule MakeModeSpec(#modeSpec*, PARSER)
+  → #modeSpec*
 
-            CRSX_EMBED_END           : CRSX_END_EMBED_CHAR       -> popMode;
-            CRSX_EMBED_NESTED        : CRSX_START_EMBED_CHAR     -> pushMode(CrsxNestedEmbed), more;
-            CRSX_EMBEDDED            : .                         -> more;
+  rule MakeModeSpec(#modeSpec*, METAPARSER)
+  → #modeSpec*
 
-            mode CrsxNestedEmbed;
+  rule MakeModeSpec(#modeSpec*, METALEXER)
+  → Concat(
+          modeSpec*⟦
+              mode CrsxEmbed;
 
-            CRSX_NESTED_EMBED_END    : CRSX_END_EMBED_CHAR       -> popMode, more;
-            CRSX_NESTED_EMBED_NESTED : CRSX_START_EMBED_CHAR     -> pushMode(CrsxNestedEmbed), more;
-            CRSX_NESTED_EMBEDDED     : .                         -> more;
-        ⟧,
-        #modeSpec*
-    )
+              CRSX_EMBED_END           : CRSX_END_EMBED_CHAR       -> popMode;
+              CRSX_EMBED_NESTED        : CRSX_START_EMBED_CHAR     -> pushMode(CrsxNestedEmbed), more;
+              CRSX_EMBEDDED            : .                         -> more;
+
+              mode CrsxNestedEmbed;
+
+              CRSX_NESTED_EMBED_END    : CRSX_END_EMBED_CHAR       -> popMode, more;
+              CRSX_NESTED_EMBED_NESTED : CRSX_START_EMBED_CHAR     -> pushMode(CrsxNestedEmbed), more;
+              CRSX_NESTED_EMBEDDED     : .                         -> more;
+          ⟧,
+          #modeSpec*)
+
+
 // TODO: ANTLR Meta parser to support ModeSpec tail
 //
-func MakeRules(ANTLR_rules_sort, Mode) -> List<ANTLR_rules_sort>
-rule MakeRules(rules⟦ #ruleSpec* ⟧, #mode, {#E})
-→ rules⟦ ruleSpec*⟨expr:MakeRuleSpecs(#ruleSpec*, #mode, {#E})⟩ ⟧
+func MakeRules(ANTLR_rules_sort, Mode, ParserEnv) -> ANTLR_rules_sort
+rule MakeRules(rules⟦ #ruleSpec* ⟧, #mode, #E)
+→ rules⟦ ⟨ruleSpec*:MakeRuleSpecs(#ruleSpec*, #mode, #E)⟩ ⟧
 
 //
-func MakeRuleSpecs(List<ANTLR_ruleSpec_sort>, Mode) -> List<ANTLR_ruleSpec_sort>
+func MakeRuleSpecs(List<ANTLR_ruleSpec_sort>, Mode, ParserEnv) -> List<ANTLR_ruleSpec_sort>
 
-rule MakeRuleSpecs((), PARSER, {#E})       → ()
-rule MakeRuleSpecs((), METAPARSER, {#E})   → ()
-rule MakeRuleSpecs((), METALEXER, {#E})    →
-     ruleSpec*⟦
-        fragment CRSX_META_CHAR        : STRING_LITERAL⟨expr:MetaChar("'")⟩;
-        fragment CRSX_START_EMBED_CHAR : '⟨';
-        fragment CRSX_END_EMBED_CHAR   : '⟩';
-    ⟧
+  rule MakeRuleSpecs((), PARSER, #E)
+  → ()
 
-rule MakeRuleSpecs((#ruleSpec, #ruleSpec*...), #mode, {#E})  → Concat(MakeRuleSpec(#ruleSpec, #mode, {#E}), MakeRuleSpecs(#ruleSpec*, #mode, {#E}))
+  rule MakeRuleSpecs((), METAPARSER, #E)
+  → ()
+
+  rule MakeRuleSpecs((), METALEXER, #E)
+  → ruleSpec*⟦
+      fragment CRSX_META_CHAR        : ⟨STRING_LITERAL:MetaChar("'")⟩;
+      fragment CRSX_START_EMBED_CHAR : '⟨';
+      fragment CRSX_END_EMBED_CHAR   : '⟩'; ⟧
+
+  rule MakeRuleSpecs((#ruleSpec, #ruleSpec*...), #mode, #E)
+  → Concat(MakeRuleSpec(#ruleSpec, #mode, #E), MakeRuleSpecs(#ruleSpec*, #mode, #E))
 
 //
-func MakeRuleSpec(ANTLR_ruleSpec_sort, Mode) -> List<ANTLR_ruleSpec_sort>
+func MakeRuleSpec(ANTLR_ruleSpec_sort, Mode, ParserEnv) -> List<ANTLR_ruleSpec_sort>
 
-// Parser rule
-// RuleRef : RuleBlock ;
-rule MakeRuleSpec(ruleSpec⟦ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns?
-                 #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ;
-                 #exceptionHandler* #finallyClause? ⟧, #mode, {#E, "$index": INDEX(RULEINDEX({#I}))})
-→ Concat(MakeParserRuleSpec(parserRuleSpec⟦ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns?
-                 #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ;
-                 #exceptionHandler* #finallyClause?⟧, #mode, IsStringRuleRuleRef(#RULE_REF, {#I}), {#E}), MakeMetaRules(#mode, #RULE_REF, ToMeta(#RULE_REF), {#E}))
+  // Parser rule
+  // RuleRef : RuleBlock ;
+  rule MakeRuleSpec(ruleSpec⟦ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns?
+                   #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ;
+                   #exceptionHandler* #finallyClause? ⟧, #mode, {#E, "$index": PEINDEX(#I)})
+  → Concat(MakeParserRuleSpec(parserRuleSpec⟦ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns?
+                   #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ;
+                   #exceptionHandler* #finallyClause?⟧, #mode, IsStringRuleRuleRef(#RULE_REF, #I), #E), MakeMetaRules(#mode, #RULE_REF, ToMeta(#RULE_REF)))
 
-// Lexer rule
-rule MakeRuleSpec(ruleSpec⟦ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟧, #mode)
-→ If( Equal( #mode, METAPARSER) , ()->() , ()->(ruleSpec⟦ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟧,))
+  // Lexer rule
+  rule MakeRuleSpec(ruleSpec⟦ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟧, #mode, #E)
+  → if Equal(#mode, METAPARSER)
+      ()
+    else
+      (ruleSpec⟦ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟧,)
 
 // Decide to annotate or filter rule based on mode
-func MakeParserRuleSpec(ANTLR_parserRuleSpec_sort, Mode, Bool) -> List<ANTLR_ruleSpec_sort>
+func MakeParserRuleSpec(ANTLR_parserRuleSpec_sort, Mode, Bool, ParserEnv) -> List<ANTLR_ruleSpec_sort>
 
-rule MakeParserRuleSpec(#parserRuleSpec, METALEXER, #isstring, {#E})  → ()
+  rule MakeParserRuleSpec(#parserRuleSpec, METALEXER, #isstring, #E)
+  → ()
 
-rule MakeParserRuleSpec(parserRuleSpec⟦ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns?
-                 #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ;
-                 #exceptionHandler* #finallyClause? ⟧, PARSER, #isstring, {#E})
-→ ( ruleSpec⟦ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns?  #throwsSpec? #localsSpec? #rulePrequel*
-                        : ruleAltList⟨expr:MakeRuleAltList(#ruleAltList, #RULE_REF, PARSER, {#E, "$strule": #isstring})⟩ ;
-                        #exceptionHandler* #finallyClause?⟧, )
+  rule MakeParserRuleSpec(parserRuleSpec⟦ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns?
+                   #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ;
+                   #exceptionHandler* #finallyClause? ⟧, PARSER, #isstring, #E)
+  → ( ruleSpec⟦ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns?  #throwsSpec? #localsSpec? #rulePrequel*
+                          : ⟨ruleAltList:MakeRuleAltList(#ruleAltList, #RULE_REF, PARSER, {#E, "$strule": PEBOOL(#isstring)})⟩ ;
+                          #exceptionHandler* #finallyClause?⟧, )
 
-rule MakeParserRuleSpec(parserRuleSpec⟦ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns?
-                 #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ;
-                 #exceptionHandler* #finallyClause? ⟧, METAPARSER, #isstring, {#E})
-→ ( ruleSpec⟦ #RULE_REF : ruleAltList⟨expr:MakeRuleAltList(#ruleAltList, #RULE_REF, METAPARSER, {#E, "$strule": #isstring})⟩ ; ⟧, )
+  rule MakeParserRuleSpec(parserRuleSpec⟦ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns?
+                   #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ;
+                   #exceptionHandler* #finallyClause? ⟧, METAPARSER, #isstring, #E)
+  → ( ruleSpec⟦ #RULE_REF : ⟨ruleAltList:MakeRuleAltList(#ruleAltList, #RULE_REF, METAPARSER, {#E, "$strule": PEBOOL(#isstring)})⟩ ; ⟧, )
 
 //----- Parser Rule Block
 
 //
-func MakeRuleAltList(ANTLR_ruleAltList_sort, String, Mode) -> ANTLR_ruleAltList_sort
-rule MakeRuleAltList(ruleAltList⟦ #alternative #labeledAlt_S1? #ruleAltList_S1* ⟧, #RULE_REF, #mode, {#E})
-→ ruleAltList⟦ alternative⟨expr:MakeAlternative(#alternative, #labeledAlt_S1?, IsEmpty(#ruleAltList_S1*), 1, GetElementOptionAlternative(#alternative, "variable"), GetElementOptionAlternative(#alternative, "type"), #RULE_REF, IsMeta(#mode), {#E})⟩
-                 ruleAltList_S1*⟨expr:Concat(MakeRuleAltList_S1s(#ruleAltList_S1*, 2, #RULE_REF, IsMeta(#mode), {#E}), MakeMetaAltList(#RULE_REF, #mode, {#E}))⟩ ⟧
+func MakeRuleAltList(ANTLR_ruleAltList_sort, String, Mode, ParserEnv) -> ANTLR_ruleAltList_sort
+rule MakeRuleAltList(ruleAltList⟦ #alternative #labeledAlt_S1? #ruleAltList_S1* ⟧, #RULE_REF, #mode, #E)
+→ ruleAltList⟦ ⟨alternative:MakeAlternative(#alternative, #labeledAlt_S1?, IsEmpty(#ruleAltList_S1*), 1, GetElementOptionAlternative(#alternative, "variable"), GetElementOptionAlternative(#alternative, "type"), #RULE_REF, IsModeMeta(#mode), #E)⟩
+                 ⟨ruleAltList_S1*:Concat(MakeRuleAltList_S1s(#ruleAltList_S1*, 2, #RULE_REF, IsModeMeta(#mode), #E), MakeMetaAltList(#RULE_REF, #mode))⟩ ⟧
 
 //
-func MakeRuleAltList_S1s(List<ANTLR_ruleAltList_S1_sort>, Numeric, String, Bool /* Meta parser? */) -> List<ANTLR_ruleAltList_S1_sort>
+func MakeRuleAltList_S1s(List<ANTLR_ruleAltList_S1_sort>, Numeric, String, Bool /* Meta parser? */, ParserEnv) -> List<ANTLR_ruleAltList_S1_sort>
 
-rule MakeRuleAltList_S1s(ruleAltList_S1*⟦⟧, #count, #RULE_REF, #meta, {#E}) → ruleAltList_S1*⟦⟧
+  rule MakeRuleAltList_S1s(ruleAltList_S1*⟦⟧, #count, #RULE_REF, #meta, #E)
+  → ruleAltList_S1*⟦⟧
 
-rule MakeRuleAltList_S1s(ruleAltList_S1*⟦ | #alternative #labeledAlt_S1? #ruleAltList_S1* ⟧, #count, #RULE_REF, #meta, {#E})
-→ ruleAltList_S1*⟦ | alternative⟨expr:MakeAlternative(#alternative, #labeledAlt_S1?, FALSE, #count, GetElementOptionAlternative(#alternative, "variable"), GetElementOptionAlternative(#alternative, "type"), #RULE_REF, #meta, {#E})⟩
-                        ruleAltList_S1*⟨expr:MakeRuleAltList_S1s(#ruleAltList_S1*, Plus( #count, 1), #RULE_REF, #meta, {#E})⟩ ⟧
-
-//
-func MakeAlternative(ANTLR_alternative_sort, List<ANTLR_labeledAlt_S1>, Bool, Numeric, List<ElementOption>, List<ElementOption>, String, Bool /* Meta parser? */) -> ANTLR_alternative_sort
-
-rule MakeAlternative(alternative⟦ #element* ⟧, #labeledAlt_S1?, #unique, #count, #elementOptions, #type, #RULE_REF, #meta, {#E, "$strule": #strule})
-→ alternative⟦ element⟨expr:MakeEnterAltAction(#labeledAlt_S1?, #unique, #count, IsInternalRule(#RULE_REF), #strule, IfDef( "truevar", #elementOptions, ()), #type, #RULE_REF, {#E})⟩ element*⟨expr:MakeElements(#element*, (), #elementOptions, #type, #RULE_REF, #meta, {#E})⟩ ⟧
+  rule MakeRuleAltList_S1s(ruleAltList_S1*⟦ | #alternative #labeledAlt_S1? #ruleAltList_S1* ⟧, #count, #RULE_REF, #meta, #E)
+  → ruleAltList_S1*⟦ | ⟨alternative:MakeAlternative(#alternative, #labeledAlt_S1?, FALSE, #count, GetElementOptionAlternative(#alternative, "variable"), GetElementOptionAlternative(#alternative, "type"), #RULE_REF, #meta, #E)⟩
+                      ⟨ruleAltList_S1*:MakeRuleAltList_S1s(#ruleAltList_S1*, Plus( #count, 1), #RULE_REF, #meta, #E)⟩ ⟧
 
 //
-func MakeElements(List<ANTLR_element_sort>, List<ANTLR_element_sort>, List<ElementOption>, String, Bool /* Meta parser? */) -> List<ANTLR_element_sort>
-
-rule MakeElements(element*⟦⟧, #fused, #elementOptions, #type, #RULE_REF, #meta, {#E, "$strule": #strule})
-→ element*⟦ element⟨expr:MakeExitAltAction(IsInternalRule(#RULE_REF), #strule, IfDef( "truevar", #elementOptions, ()), #type, {#E})⟩ ⟧
-
-rule MakeElements(element*⟦ #element #element* ⟧, #fused, #elementOptions, #type, #RULE_REF, #meta, {#E, "$index": INDEX(#index)})
-→ MakeMaybeFusedElements(IsFused(#element, #element*, #index), If( #meta , ()->StripArgActionElement(#element) , ()->#element), #element*, #fused, #elementOptions, #type, #RULE_REF, #meta, {#E})
+func MakeAlternative(ANTLR_alternative_sort, List<ANTLR_labeledAlt_S1_sort>, Bool, Numeric, List<ElementOption>, List<ElementOption>, String, Bool /* Meta parser? */, ParserEnv) -> ANTLR_alternative_sort
+rule MakeAlternative(alternative⟦ #element* ⟧, #labeledAlt_S1?, #unique, #count, #elementOptions, #type, #RULE_REF, #meta, {#E, "$strule": PEBOOL(#strule)})
+→ alternative⟦ ⟨element:MakeEnterAltAction(#labeledAlt_S1?, #unique, #count, IsInternalRule(#RULE_REF), #strule,
+                                           IfDef("truevar", ()->#elementOptions, ()->()), #type, #RULE_REF)⟩
+               ⟨element*:MakeElements(#element*, (), #elementOptions, #type, #RULE_REF, #meta, #E)⟩ ⟧
 
 //
-func MakeMaybeFusedElements(Boolean, ANTLR_element_sort, List<ANTLR_element_sort>, List<ANTLR_element_sort>, List<ElementOption>, List<ElementOption>, String, Bool /* Meta parser? */) -> List<ANTLR_element_sort>
+func MakeElements(List<ANTLR_element_sort>, List<ANTLR_element_sort>, List<ElementOption>, List<ElementOption>, String, Bool /* Meta parser? */, ParserEnv) -> List<ANTLR_element_sort>
 
-// The element is fused: record and continue processing the remaining elements
-rule MakeMaybeFusedElements(TRUE, #element, #element*, #fused, #elementOptions, #type, #RULE_REF, #meta, {#E}) → MakeElements(#element*, Concat(#fused, (#element,)), #elementOptions, #type, #RULE_REF, #meta, {#E})
+  rule MakeElements(element*⟦⟧, #fused, #elementOptions, #type, #RULE_REF, #meta, {#E, "$strule": PEBOOL(#strule)})
+  → element*⟦ ⟨element:MakeExitAltAction(IsInternalRule(#RULE_REF), #strule, IfDef("truevar", ()->#elementOptions, ()->()), #type)⟩ ⟧
 
-// The element is not fused: proceed
-rule MakeMaybeFusedElements(FALSE, #element, #element*, #fused, #elementOptions, #type, #RULE_REF, #meta, {#E})
-→ element*⟦ element*⟨expr:Concat(MakeElement(#element, #fused, #RULE_REF, #meta, {#E}), MakeElements(#element*, (), #elementOptions, #type, #RULE_REF, #meta, {#E}))⟩ ⟧
-
-//
-func MakeElement(ANTLR_element_sort, List<ANTLR_element_sort>, String, Bool /* Meta parser? */) -> List<ANTLR_element_sort>
-
-rule MakeElement(element⟦ #labeledElement #element_A1_S1 ⟧, #fused, #RULE_REF, #meta, {#E})
-→ MakeLabeledElement(#labeledElement, #element_A1_S1, #fused, #RULE_REF, #meta, {#E})
-
-rule MakeElement(element⟦ #atom #ebnfSuffix ⟧, #fused, #RULE_REF, #meta, {#E})
-→ WrapElement(element⟦ #atom #ebnfSuffix ⟧, #ebnfSuffix, #fused, #RULE_REF, #meta)
-
-rule MakeElement(element⟦ #atom ⟧, (), #RULE_REF, #meta, {#E, "$index": INDEX(RULEINDEX({#I})), "$strule":#strule})
-→ MaybeHideAtom(IsSugarAtom(#atom, {#I}), #strule, #atom, element⟦ #atom ⟧, {#E})
-
-rule MakeElement(element⟦ #block #ebnfSuffix ⟧, #fused, #RULE_REF, #meta, {#E})
-→ WrapElement(element⟦ block⟨expr:HideConstBlock(#block, {#E})⟩ #ebnfSuffix ⟧, #ebnfSuffix, #fused, #RULE_REF, #meta)
-
-rule MakeElement(element⟦ #block ⟧, (), #RULE_REF, #meta, {#E})
-→ element*⟦ block⟨expr:HideConstBlock(#block, {#E})⟩ ⟧
-
-// Preserve action/semantic predicate
-rule MakeElement(element⟦ #ACTION #QUESTION? ⟧, (), #RULE_REF, #meta, {#E})
-→ element*⟦ #ACTION #QUESTION? ⟧
+  rule MakeElements(element*⟦ #element #element* ⟧, #fused, #elementOptions, #type, #RULE_REF, #meta, {#E, "$index": PEINDEX(#index)})
+  → MakeMaybeFusedElements(IsFused(#element, #element*, #index), If( #meta , ()->StripArgActionElement(#element) , ()->#element), #element*, #fused, #elementOptions, #type, #RULE_REF, #meta, #E)
 
 //
-func MakeLabeledElement(ANTLR_labeledElement_sort, ANTLR_element_A1_S1, List<ANTLR_element_sort>, String, Bool /* Meta parser? */) -> List<ANTLR_element_sort>
+func MakeMaybeFusedElements(Bool, ANTLR_element_sort, List<ANTLR_element_sort>, List<ANTLR_element_sort>, List<ElementOption>, List<ElementOption>, String, Bool /* Meta parser? */, ParserEnv) -> List<ANTLR_element_sort>
 
-rule MakeLabeledElement(labeledElement⟦ #id #labeledElement_S1 #atom ⟧, #element_A1_S1, #fused, #RULE_REF, #meta, {#E, "$index": INDEX(RULEINDEX({#I})), "$strule":#strule})
-→ MaybeHideAtom(IsSugarAtom(#atom, {#I}), #strule, #atom, element⟦ #id #labeledElement_S1 #atom #element_A1_S1 ⟧)
+  // The element is fused: record and continue processing the remaining elements
+  rule MakeMaybeFusedElements(TRUE, #element, #element*, #fused, #elementOptions, #type, #RULE_REF, #meta, #E)
+  → MakeElements(#element*, Concat(#fused, (#element,)), #elementOptions, #type, #RULE_REF, #meta, #E)
 
-rule MakeLabeledElement(labeledElement⟦ #id #labeledElement_S1 #block ⟧, #element_A1_S1, #fused, #RULE_REF, #meta, {#E, "$index": INDEX(RULEINDEX({#I}))})
-→ ( element⟦ #id #labeledElement_S1 block⟨expr:HideConstBlock(#block, {#E})⟩ #element_A1_S1 ⟧, )
+  // The element is not fused: proceed
+  rule MakeMaybeFusedElements(FALSE, #element, #element*, #fused, #elementOptions, #type, #RULE_REF, #meta, #E)
+  → element*⟦ ⟨element*:Concat(MakeElement(#element, #fused, #RULE_REF, #meta, #E), MakeElements(#element*, (), #elementOptions, #type, #RULE_REF, #meta, #E))⟩ ⟧
+
+//
+func MakeElement(ANTLR_element_sort, List<ANTLR_element_sort>, String, Bool /* Meta parser? */, ParserEnv) -> List<ANTLR_element_sort>
+
+  rule MakeElement(element⟦ #labeledElement #element_A1_S1 ⟧, #fused, #RULE_REF, #meta, #E)
+  → MakeLabeledElement(#labeledElement, #element_A1_S1, #fused, #RULE_REF, #meta, #E)
+
+  rule MakeElement(element⟦ #atom #ebnfSuffix ⟧, #fused, #RULE_REF, #meta, #E)
+  → WrapElement(element⟦ #atom #ebnfSuffix ⟧, #ebnfSuffix, #fused, #RULE_REF, #meta)
+
+  rule MakeElement(element⟦ #atom ⟧, (), #RULE_REF, #meta, {#E, "$index": PEINDEX(#I), "$strule":PEBOOL(#strule)})
+  → MaybeHideAtom(IsSugarAtom(#atom, #I), #strule, #atom, element⟦ #atom ⟧)
+
+  rule MakeElement(element⟦ #block #ebnfSuffix ⟧, #fused, #RULE_REF, #meta, #E)
+  → WrapElement(element⟦ ⟨block:HideConstBlock(#block, #E)⟩ #ebnfSuffix ⟧, #ebnfSuffix, #fused, #RULE_REF, #meta)
+
+  rule MakeElement(element⟦ #block ⟧, (), #RULE_REF, #meta, #E)
+  → element*⟦ ⟨block:HideConstBlock(#block, #E)⟩ ⟧
+
+  // Preserve action/semantic predicate
+  rule MakeElement(element⟦ #ACTION #QUESTION? ⟧, (), #RULE_REF, #meta, #E)
+  → element*⟦ #ACTION #QUESTION? ⟧
+
+//
+func MakeLabeledElement(ANTLR_labeledElement_sort, ANTLR_element_A1_S1_sort, List<ANTLR_element_sort>, String, Bool /* Meta parser? */, ParserEnv) -> List<ANTLR_element_sort>
+
+  rule MakeLabeledElement(labeledElement⟦ #id #labeledElement_S1 #atom ⟧, #element_A1_S1, #fused, #RULE_REF, #meta, {#E, "$index": PEINDEX(#I), "$strule":PEBOOL(#strule)})
+  → MaybeHideAtom(IsSugarAtom(#atom, #I), #strule, #atom, element⟦ #id #labeledElement_S1 #atom #element_A1_S1 ⟧)
+
+  rule MakeLabeledElement(labeledElement⟦ #id #labeledElement_S1 #block ⟧, #element_A1_S1, #fused, #RULE_REF, #meta, {#E, "$index": PEINDEX(#I)})
+  → ( element⟦ #id #labeledElement_S1 ⟨block:HideConstBlock(#block, #E)⟩ #element_A1_S1 ⟧, )
 
 // Wrap element with action depending on its attached EBNF suffix
 func WrapElement(ANTLR_element_sort, ANTLR_ebnfSuffix_sort, List<ANTLR_element_sort>, String, Bool /* Meta parser? */) -> List<ANTLR_element_sort>
 
-rule WrapElement(#element, ebnfSuffix⟦ ? ⟧, #element*, #RULE_REF, #meta) → Concat(element*⟦ {_enterOPT();} #element* ⟧, Concat( (#element,), Concat(MakeTail(#RULE_REF, #meta), element*⟦ {_exitOPT();} ⟧)))
-rule WrapElement(#element, ebnfSuffix⟦ * ⟧, #element*, #RULE_REF, #meta) → Concat(element*⟦ {_enterZOM();} #element* ⟧, Concat( (#element,), Concat(MakeTail(#RULE_REF, #meta), element*⟦ {_exitZOM();} ⟧)))
-rule WrapElement(#element, ebnfSuffix⟦ + ⟧, #element*, #RULE_REF, #meta) → Concat(element*⟦ {_enterOOM();} #element* ⟧, Concat( (#element,), Concat(MakeTail(#RULE_REF, #meta), element*⟦ {_exitOOM();} ⟧)))
+  rule WrapElement(#element, ebnfSuffix⟦ ? ⟧, #element*, #RULE_REF, #meta)
+  → Concat(element*⟦ {_enterOPT();} #element* ⟧, Concat( (#element,), Concat(MakeTail(#RULE_REF, #meta), element*⟦ {_exitOPT();} ⟧)))
+
+  rule WrapElement(#element, ebnfSuffix⟦ * ⟧, #element*, #RULE_REF, #meta)
+  → Concat(element*⟦ {_enterZOM();} #element* ⟧, Concat( (#element,), Concat(MakeTail(#RULE_REF, #meta), element*⟦ {_exitZOM();} ⟧)))
+
+  rule WrapElement(#element, ebnfSuffix⟦ + ⟧, #element*, #RULE_REF, #meta)
+  → Concat(element*⟦ {_enterOOM();} #element* ⟧, Concat( (#element,), Concat(MakeTail(#RULE_REF, #meta), element*⟦ {_exitOOM();} ⟧)))
 
 // Produce grammar to match/contract a sequence tail.
 func MakeTail(String, Bool /* meta? */) -> List<ANTLR_element_sort>
-rule MakeTail(#RULE_REF, FALSE)    → element*⟦ ⟧
-rule MakeTail(#RULE_REF, TRUE)     → element*⟦ ({_tail();} (ACTION⟨expr:ConcatString( "{_term(\"", #RULE_REF, "\");}")⟩ TOKEN_REF⟨expr:ConcatString( "MT_", #RULE_REF)⟩ | {_embed();} TOKEN_REF⟨expr:ConcatString( "ET_", #RULE_REF)⟩ CRSX_EMBED_END))? ⟧
+
+  rule MakeTail(#RULE_REF, FALSE)
+  → element*⟦ ⟧
+
+  rule MakeTail(#RULE_REF, TRUE)
+  → element*⟦ ({_tail();} (⟨ACTION:ConcatString( "{_term(\"", #RULE_REF, "\");}")⟩
+              ⟨TOKEN_REF:ConcatString( "MT_", #RULE_REF)⟩ | {_embed();}
+              ⟨TOKEN_REF:ConcatString( "ET_", #RULE_REF)⟩ CRSX_EMBED_END))? ⟧
 
 // Produce grammar to hide constant production (unless part of a string rule).
-func MaybeHideAtom(Boolean, Bool, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */) -> List<ANTLR_element_sort>
+func MaybeHideAtom(Bool, Bool, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */) -> List<ANTLR_element_sort>
 rule MaybeHideAtom(TRUE, FALSE, #atom, #element)  → element*⟦ {_hide();} #element ⟧
 rule MaybeHideAtom(TRUE, TRUE, #atom, #element)  → element*⟦ #element ⟧
 rule MaybeHideAtom(FALSE, #strule,#atom, #element) → MaybeBinderAtom(GetElementOptionAtom(#atom, "boundvar"), #atom, #element)
 
 // Produce grammar for binder
 func MaybeBinderAtom(List<ElementOption>, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */) -> List<ANTLR_element_sort>
-rule MaybeBinderAtom((), #atom, #element)
-→ MaybeBindsAtom(GetElementOptionAtom(#atom, "bound"), #atom, #element)
 
-rule MaybeBinderAtom((BINDER(#binder),), #atom, #element)
-→ element*⟦ ACTION⟨expr:ConcatString( "{_enterBinder(\"", #binder, "\");}")⟩ element⟨expr:#element⟩ {_exitBinder();} ⟧
+  rule MaybeBinderAtom((), #atom, #element)
+  → MaybeBindsAtom(GetElementOptionAtom(#atom, "bound"), #atom, #element)
+
+  rule MaybeBinderAtom((BINDER(#binder),), #atom, #element)
+  → element*⟦ ⟨ACTION:ConcatString( "{_enterBinder(\"", #binder, "\");}")⟩ ⟨element:#element⟩ {_exitBinder();} ⟧
 
 // Produce grammar for binds
 func MaybeBindsAtom(List<ElementOption>, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */) -> List<ANTLR_element_sort>
-rule MaybeBindsAtom((), #atom, #element)
-→ MaybeSymbolAtom(GetElementOptionAtom(#atom, "variable"), #atom, #element)
 
-rule MaybeBindsAtom((#binds, #bindss...), #atom, #element)
-→ element*⟦ ACTION⟨expr:ConcatString(Foldl([val  result]->ConcatString(result, ConcatString(" ", UnBINDS(val))), "{_enterBinds(\"", (#binds, #bindss...)), "\");}")⟩
-             element⟨expr:#element⟩
-             {_exitBinds();} ⟧
+  rule MaybeBindsAtom((), #atom, #element)
+  → MaybeSymbolAtom(GetElementOptionAtom(#atom, "variable"), #atom, #element)
+
+  rule MaybeBindsAtom((#binds, #bindss...), #atom, #element)
+  → element*⟦ ⟨ACTION:ConcatString(Foldl((val result)->ConcatString(result, " ", UnBINDS(val)), "{_enterBinds(\"", (#binds, #bindss...)), "\");}")⟩
+               ⟨element:#element⟩
+               {_exitBinds();} ⟧
 
 // Produce grammar for symbol
 func MaybeSymbolAtom(List<ElementOption>, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */) -> List<ANTLR_element_sort>
-rule MaybeSymbolAtom((), #atom, #element)
-→ element*⟦ element⟨expr:#element⟩ ⟧
 
-rule MaybeSymbolAtom((SYMBOL(#ruleref),), #atom, #element)
-→ element*⟦ {_enterSymbol();} element⟨expr:#element⟩ {_exitSymbol();} ⟧
+  rule MaybeSymbolAtom((), #atom, #element)
+  → element*⟦ ⟨element:#element⟩ ⟧
+
+  rule MaybeSymbolAtom((SYMBOL(#ruleref),), #atom, #element)
+  → element*⟦ {_enterSymbol();} ⟨element:#element⟩ {_exitSymbol();} ⟧
 
 // Produce grammar to hide constant productions inside a block.
 
-func HideConstBlock(ANTLR_block_sort) -> ANTLR_block_sort
-rule HideConstBlock(block⟦ ( #altList ) ⟧, {#E})  → block⟦ ( altList⟨expr:HideConstAltList(#altList, {#E})⟩ ) ⟧
+func HideConstBlock(ANTLR_block_sort, ParserEnv) -> ANTLR_block_sort
+rule HideConstBlock(block⟦ ( #altList ) ⟧, #E)  → block⟦ ( ⟨altList:HideConstAltList(#altList, #E)⟩ ) ⟧
 
-func HideConstAltList(ANTLR_altList_sort) -> ANTLR_altList_sort
-rule HideConstAltList(altList⟦ #alternative #altList_S1* ⟧, {#E})  → altList⟦ alternative⟨expr:HideConstAlternative(#alternative, {#E})⟩ altList_S1*⟨expr:HideConstAltList_S1s(#altList_S1*, {#E})⟩ ⟧
+func HideConstAltList(ANTLR_altList_sort, ParserEnv) -> ANTLR_altList_sort
+rule HideConstAltList(altList⟦ #alternative #altList_S1* ⟧, #E)  → altList⟦ ⟨alternative:HideConstAlternative(#alternative, #E)⟩ ⟨altList_S1*:HideConstAltList_S1s(#altList_S1*, #E)⟩ ⟧
 
-func HideConstAltList_S1s(List<ANTLR_altList_S1_sort>) -> List<ANTLR_altList_S1_sort>
-rule HideConstAltList_S1s(altList_S1*⟦  ⟧)  → altList_S1*⟦  ⟧
-rule HideConstAltList_S1s(altList_S1*⟦ | #alternative #altList_S1* ⟧) → altList_S1*⟦ | alternative⟨expr:HideConstAlternative(#alternative)⟩ altList_S1*⟨expr:HideConstAltList_S1s(#altList_S1*)⟩ ⟧
+func HideConstAltList_S1s(List<ANTLR_altList_S1_sort>, ParserEnv) -> List<ANTLR_altList_S1_sort>
+rule HideConstAltList_S1s(altList_S1*⟦  ⟧, #E)  → altList_S1*⟦  ⟧
+rule HideConstAltList_S1s(altList_S1*⟦ | #alternative #altList_S1* ⟧, #E) → altList_S1*⟦ | ⟨alternative:HideConstAlternative(#alternative, #E)⟩ ⟨altList_S1*:HideConstAltList_S1s(#altList_S1*, #E)⟩ ⟧
 
-func HideConstAlternative(ANTLR_alternative_sort) -> ANTLR_alternative_sort
-rule HideConstAlternative(alternative⟦ #elementOptions? #element* ⟧, {#E})  → alternative⟦ #elementOptions? element*⟨expr:HideConstElements(#element*, {#E})⟩ ⟧
+func HideConstAlternative(ANTLR_alternative_sort, ParserEnv) -> ANTLR_alternative_sort
+rule HideConstAlternative(alternative⟦ #elementOptions? #element* ⟧, #E)  → alternative⟦ #elementOptions? ⟨element*:HideConstElements(#element*, #E)⟩ ⟧
 
-func HideConstElements(List<ANTLR_element_sort>) -> List<ANTLR_element_sort>
-rule HideConstElements(element*⟦ ⟧, {#E})                     → element*⟦ ⟧
-rule HideConstElements(element*⟦ #element #element* ⟧, {#E})  → Concat(HideConstElement(#element, {#E}), HideConstElements(#element*, {#E}))
+func HideConstElements(List<ANTLR_element_sort>, ParserEnv) -> List<ANTLR_element_sort>
+rule HideConstElements(element*⟦ ⟧, #E)                     → element*⟦ ⟧
+rule HideConstElements(element*⟦ #element #element* ⟧, #E)  → Concat(HideConstElement(#element, #E), HideConstElements(#element*, #E))
 
-func HideConstElement(ANTLR_element_sort) -> List<ANTLR_element_sort>
+func HideConstElement(ANTLR_element_sort, ParserEnv) -> List<ANTLR_element_sort>
 
-rule HideConstElement(element⟦ #atom ⟧, {#E, "$index": INDEX(RULEINDEX({#I})),  "$strule": #strule})
-→ MaybeHideAtom(IsConstantAtom(#atom, {#I}), #strule, #atom, element⟦ #atom ⟧)
+  rule HideConstElement(element⟦ #atom ⟧, {#E, "$index": PEINDEX(#I),  "$strule": PEBOOL(#strule)})
+  → MaybeHideAtom(IsConstantAtom(#atom, #I), #strule, #atom, element⟦ #atom ⟧)
 
-rule HideConstElement(element⟦ #element ⟧, {#E})  → element*⟦ #element ⟧
+  rule HideConstElement(element⟦ #element ⟧, #E)
+  → element*⟦ #element ⟧
 
 // Don't recurse into block: trivial blocks don't have nested blocks.
 
@@ -425,57 +473,56 @@ rule HideConstElement(element⟦ #element ⟧, {#E})  → element*⟦ #element �
 
 // Make the "enterAlt" action. If only 1 alternative, command takes no alternative number.
 // If a name is specified, use it.
-
+func MakeEnterAltAction(List<ANTLR_labeledAlt_S1_sort>, Bool, Numeric, Bool, Bool, List<ElementOption>, List<ElementOption>, String) -> ANTLR_element_sort
 rule MakeEnterAltAction(#labeledAlt_S1?, #unique, #count, TRUE, #istring, #elementOptions, #type, #rulename)                       → element⟦ {} ⟧
 rule MakeEnterAltAction(#labeledAlt_S1?, #unique, #count, FALSE, TRUE, #elementOptions,  #type, #rulename)                         → element⟦ {} ⟧
-rule MakeEnterAltAction(#labeledAlt_S1?, #unique, #count, FALSE, FALSE, (SYMBOL(NONE),), (), #rulename)                        → element⟦ {} ⟧
-rule MakeEnterAltAction((ANTLR_labeledAlt_S1(#POUND, #altid),), #unique, #count, FALSE, FALSE, #elementOptions, #type, #rulename) → element⟦ ACTION⟨expr:ConcatString( "{_enterAlt(\"", UnwrapId(#altid), "\");}")⟩ ⟧
-rule MakeEnterAltAction((), TRUE /* Unique */, #count, FALSE, FALSE, #elementOptions, #type, #rulename)                           → element⟦ ACTION⟨expr:ConcatString( "{_enterAlt(\"", #rulename, "\");}")⟩ ⟧
-rule MakeEnterAltAction((), FALSE /* Not Unique */, #count, FALSE, FALSE, #elementOptions, #type, #rulename)                      → element⟦ ACTION⟨expr:ConcatString( "{_enterAlt(\"", #rulename, "_A", FormatNumber( #count), "\");}")⟩ ⟧
+rule MakeEnterAltAction(#labeledAlt_S1?, #unique, #count, FALSE, FALSE, (SYMBOL(NONE),), (), #rulename)                            → element⟦ {} ⟧
+rule MakeEnterAltAction((ANTLR_labeledAlt_S1(#POUND, #altid),), #unique, #count, FALSE, FALSE, #elementOptions, #type, #rulename)  → element⟦ ⟨ACTION:ConcatString( "{_enterAlt(\"", UnwrapId(#altid), "\");}")⟩ ⟧
+rule MakeEnterAltAction((), TRUE /* Unique */, #count, FALSE, FALSE, #elementOptions, #type, #rulename)                            → element⟦ ⟨ACTION:ConcatString( "{_enterAlt(\"", #rulename, "\");}")⟩ ⟧
+rule MakeEnterAltAction((), FALSE /* Not Unique */, #count, FALSE, FALSE, #elementOptions, #type, #rulename)                       → element⟦ ⟨ACTION:ConcatString( "{_enterAlt(\"", #rulename, "_A", FormatNumber( #count), "\");}")⟩ ⟧
 
 // Make the "exitAlt" action
-rule MakeExitAltAction(TRUE, #isstring, #elementOptions, #type)   → element⟦ {} ⟧
-rule MakeExitAltAction(FALSE, TRUE, #elementOptions, #type)      → element⟦ {} ⟧
-rule MakeExitAltAction(FALSE, FALSE, (SYMBOL(NONE),), ())        → element⟦ {} ⟧
-rule MakeExitAltAction(FALSE, FALSE, #elementOptions, #type)     → element⟦ {_exitAlt();} ⟧
+func MakeExitAltAction(Bool, Bool, List<ElementOption>, List<ElementOption>) -> ANTLR_element_sort
+rule MakeExitAltAction(TRUE, #isstring, #elementOptions, #type) → element⟦ {} ⟧
+rule MakeExitAltAction(FALSE, TRUE, #elementOptions, #type)     → element⟦ {} ⟧
+rule MakeExitAltAction(FALSE, FALSE, (SYMBOL(NONE),), ())       → element⟦ {} ⟧
+rule MakeExitAltAction(FALSE, FALSE, #elementOptions, #type)    → element⟦ {_exitAlt();} ⟧
 
 //----- Generate the _EOF rules.
 
 func MakeMetaRules(Mode, String /* RULE_REF */, String /* Resolved rule ref */) -> List<ANTLR_ruleSpec_sort>
 
-rule MakeMetaRules(PARSER, #RULE_REF, #resolved)        → ()
+  rule MakeMetaRules(PARSER, #RULE_REF, #resolved)        → ()
 
-rule MakeMetaRules(METAPARSER, #RULE_REF, #resolved)    → MakeMetaRulesMetaParser(IsList(#RULE_REF), #RULE_REF)
+  rule MakeMetaRules(METAPARSER, #RULE_REF, #resolved)    → MakeMetaRulesMetaParser(IsList(#RULE_REF), #RULE_REF)
 
-rule MakeMetaRules(METALEXER, #RULE_REF, #resolved)
-→ (
-      ruleSpec⟦ TOKEN_REF⟨expr:ConcatString( "MT_", #RULE_REF)⟩  : CRSX_META_CHAR STRING_LITERAL⟨expr:ConcatString( "'", #resolved, "'")⟩([0-9_][0-9a-zA-Z_]*)?('['[0-9a-z,]*']')? ; ⟧,
-      ruleSpec⟦ TOKEN_REF⟨expr:ConcatString( "ET_", #RULE_REF)⟩  : CRSX_START_EMBED_CHAR STRING_LITERAL⟨expr:If( Equal( #resolved, GetEnv( "defaultRule", "")) , ()->"" , ()->ConcatString( "'", #resolved, ":'"))⟩  -> pushMode(CrsxEmbed); ⟧
-  )
+  rule MakeMetaRules(METALEXER, #RULE_REF, #resolved)
+  → (
+        ruleSpec⟦ ⟨TOKEN_REF:ConcatString( "MT_", #RULE_REF)⟩  : CRSX_META_CHAR ⟨STRING_LITERAL:ConcatString( "'", #resolved, "'")⟩([0-9_][0-9a-zA-Z_]*)?('['[0-9a-z,]*']')? ; ⟧,
+        ruleSpec⟦ ⟨TOKEN_REF:ConcatString( "ET_", #RULE_REF)⟩  : CRSX_START_EMBED_CHAR ⟨STRING_LITERAL:If( Equal(#resolved, GetEnv("defaultRule", "")) , ()->"" , ()->ConcatString( "'", #resolved, ":'"))⟩  -> pushMode(CrsxEmbed); ⟧
+    )
 
-func MakeMetaRulesMetaParser(Boolean, String /* RULE_REF */) -> List<ANTLR_ruleSpec_sort>
+func MakeMetaRulesMetaParser(Bool, String /* RULE_REF */) -> List<ANTLR_ruleSpec_sort>
 
-rule MakeMetaRulesMetaParser(TRUE, #RULE_REF)
-→ (
-    ruleSpec⟦ RULE_REF⟨expr:ConcatString( #RULE_REF, "_EOF")⟩ : (#RULE_REF|{_enterZOM();}{_exitZOM();}) EOF ; ⟧,
-  )
+  rule MakeMetaRulesMetaParser(TRUE, #RULE_REF)
+  → (ruleSpec⟦ ⟨RULE_REF:ConcatString( #RULE_REF, "_EOF")⟩ : (#RULE_REF|{_enterZOM();}{_exitZOM();}) EOF ; ⟧,)
 
-rule MakeMetaRulesMetaParser(FALSE, #RULE_REF)
-→ (
-    ruleSpec⟦ RULE_REF⟨expr:ConcatString( #RULE_REF, "_EOF")⟩ : #RULE_REF EOF ; ⟧,
-  )
-
+  rule MakeMetaRulesMetaParser(FALSE, #RULE_REF)
+  → (ruleSpec⟦ ⟨RULE_REF:ConcatString( #RULE_REF, "_EOF")⟩ : #RULE_REF EOF ; ⟧,)
 
 //----- Generate additional alternatives, for META and EMBED. Only for meta parser
 
 func MakeMetaAltList(String, Mode) -> List<ANTLR_ruleAltList_S1_sort>
 
-rule MakeMetaAltList(#RULE_REF, PARSER)      → ()
-rule MakeMetaAltList(#RULE_REF, METALEXER)   → ()
+  rule MakeMetaAltList(#RULE_REF, PARSER)
+  → ()
 
-rule MakeMetaAltList(#RULE_REF, METAPARSER)
-→
-ruleAltList_S1*⟦ | ACTION⟨expr:ConcatString( "{_term(\"", #RULE_REF, "\");}")⟩ TOKEN_REF⟨expr:ConcatString( "MT_", #RULE_REF)⟩ | {_embed();} TOKEN_REF⟨expr:ConcatString( "ET_", #RULE_REF)⟩ CRSX_EMBED_END ⟧
+  rule MakeMetaAltList(#RULE_REF, METALEXER)
+  → ()
+
+  rule MakeMetaAltList(#RULE_REF, METAPARSER)
+  → ruleAltList_S1*⟦ | ⟨ACTION:ConcatString( "{_term(\"", #RULE_REF, "\");}")⟩ ⟨TOKEN_REF:ConcatString( "MT_", #RULE_REF)⟩
+                     | {_embed();} ⟨TOKEN_REF:ConcatString( "ET_", #RULE_REF)⟩ CRSX_EMBED_END ⟧
 
 /*
  * LiftEbnfRules
@@ -497,268 +544,266 @@ ruleAltList_S1*⟦ | ACTION⟨expr:ConcatString( "{_term(\"", #RULE_REF, "\");}"
  */
 func LiftEbnfRules(ANTLR_rules_sort, RuleIndex) -> ANTLR_rules_sort
 rule LiftEbnfRules(rules⟦ #ruleSpec* ⟧, #index)
-→ rules⟦ ruleSpec*⟨expr:LiftEbnfRuleSpecs(OK, #ruleSpec*, [ok]->Nil, {"$index": INDEX(#index)})⟩ ⟧
+→ rules⟦ ⟨ruleSpec*:LiftEbnfRuleSpecs(#ruleSpec*, {"$index": PEINDEX(#index)}, (env)->Nil)⟩ ⟧
 
-func LiftEbnfRuleSpecs(OK_SORT, List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
+func LiftEbnfRuleSpecs(List<ANTLR_ruleSpec_sort>, ParserEnv, (ParserEnv)->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
 
-rule LiftEbnfRuleSpecs(OK, (), [ok]->#[ok], {#E})
-→ #[OK, {#E}]
+  rule LiftEbnfRuleSpecs((), #E, (env)->#(env))
+  → #(#E)
 
-rule LiftEbnfRuleSpecs(OK, (#ruleSpec, #ruleSpec*...), [ok]->#[ok], {#E})
-→ LiftEbnfRuleSpec(#ruleSpec, [ok]->LiftEbnfRuleSpecs(ok, #ruleSpec*, [ok]->#[ok]), {#E})
+  rule LiftEbnfRuleSpecs((#ruleSpec, #ruleSpec*...), #E, (env)->#(env))
+  → LiftEbnfRuleSpec(#ruleSpec, #E, (env)->LiftEbnfRuleSpecs(#ruleSpec*, env, (env)->#(env)))
 
-func LiftEbnfRuleSpec(ANTLR_ruleSpec_sort) -> List<ANTLR_ruleSpec_sort>
+func LiftEbnfRuleSpec(ANTLR_ruleSpec_sort, ParserEnv, (ParserEnv)->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
 
-rule LiftEbnfRuleSpec(ruleSpec⟦ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns?
-                 #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ;
-                 #exceptionHandler* #finallyClause?  ⟧, [ok]->#[ok], {#E})
-→ (
-    ruleSpec⟦ #RULE_REF : ruleAltList⟨expr:LiftEbnfRuleAltList(#ruleAltList, {#E})⟩ ; ⟧,   // First pass
-    MakeEbnfRuleAltList(#ruleAltList, [ok]->#[ok], {#E})                                      // Second pass
-  ...)
+  rule LiftEbnfRuleSpec(ruleSpec⟦ #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns?
+                   #throwsSpec? #localsSpec? #rulePrequel* : #ruleAltList ;
+                   #exceptionHandler* #finallyClause?  ⟧, #E, (env)->#(env))
+  → (
+      ruleSpec⟦ #RULE_REF : ⟨ruleAltList:LiftEbnfRuleAltList(#ruleAltList, #E)⟩ ; ⟧,   // First pass
+      MakeEbnfRuleAltList(#ruleAltList, #E, (env)->#(env))...                             // Second pass
+    )
 
-rule LiftEbnfRuleSpec(ruleSpec⟦ #lexerRule ⟧, [ok]->#[ok], {#E})
-→ ( ruleSpec⟦ #lexerRule ⟧, #[OK, {#E}]...)
+  rule LiftEbnfRuleSpec(ruleSpec⟦ #lexerRule ⟧, #E, (env)->#(env))
+  → (ruleSpec⟦ #lexerRule ⟧, #(#E)...)
 
 // --- First Pass: rewrite the original rule.
 
-func LiftEbnfRuleAltList(ANTLR_ruleAltList_sort) -> ANTLR_ruleAltList_sort
-
-rule LiftEbnfRuleAltList(ruleAltList⟦ #element* #labeledAlt_S1? #ruleAltList_S1* ⟧, {#E})
+func LiftEbnfRuleAltList(ANTLR_ruleAltList_sort, ParserEnv) -> ANTLR_ruleAltList_sort
+rule LiftEbnfRuleAltList(ruleAltList⟦ #element* #labeledAlt_S1? #ruleAltList_S1* ⟧, #E)
 → ruleAltList⟦
-    element*⟨expr:LiftEbnfElements(#element*, {#E})⟩ #labeledAlt_S1?
-    ruleAltList_S1*⟨expr:LiftEbnfRuleAltList_S1s(#ruleAltList_S1*, {#E})⟩⟧
+    ⟨element*:LiftEbnfElements(#element*, #E)⟩ #labeledAlt_S1?
+    ⟨ruleAltList_S1*:LiftEbnfRuleAltList_S1s(#ruleAltList_S1*, #E)⟩⟧
 
-func LiftEbnfRuleAltList_S1s(List<ANTLR_ruleAltList_S1_sort>) -> List<ANTLR_ruleAltList_S1_sort>
+func LiftEbnfRuleAltList_S1s(List<ANTLR_ruleAltList_S1_sort>, ParserEnv) -> List<ANTLR_ruleAltList_S1_sort>
 
-rule LiftEbnfRuleAltList_S1s(ruleAltList_S1*⟦⟧, {#E})
-→ ruleAltList_S1*⟦⟧
+  rule LiftEbnfRuleAltList_S1s(ruleAltList_S1*⟦⟧, #E)
+  → ruleAltList_S1*⟦⟧
 
-rule LiftEbnfRuleAltList_S1s(ruleAltList_S1*⟦ | #element* #labeledAlt_S1? #ruleAltList_S1* ⟧, {#E})
-→ ruleAltList_S1*⟦
-    | element*⟨expr:LiftEbnfElements(#element*, {#E})⟩ #labeledAlt_S1?
-    ruleAltList_S1*⟨expr:LiftEbnfRuleAltList_S1s(#ruleAltList_S1*, {#E})⟩ ⟧
+  rule LiftEbnfRuleAltList_S1s(ruleAltList_S1*⟦ | #element* #labeledAlt_S1? #ruleAltList_S1* ⟧, #E)
+  → ruleAltList_S1*⟦
+      | ⟨element*:LiftEbnfElements(#element*, #E)⟩ #labeledAlt_S1?
+      ⟨ruleAltList_S1*:LiftEbnfRuleAltList_S1s(#ruleAltList_S1*, #E)⟩ ⟧
 
-func LiftEbnfElements(List<ANTLR_element_sort>) -> List<ANTLR_element_sort>
+func LiftEbnfElements(List<ANTLR_element_sort>, ParserEnv) -> List<ANTLR_element_sort>
 
-rule LiftEbnfElements(element*⟦⟧, {#E})
-→ element*⟦⟧
+  rule LiftEbnfElements(element*⟦ #element #element* ⟧, {#E, "$index": PEINDEX(#index)})
+  → LiftEbnfMaybeFusedElement(IsFused(#element, #element*, #index), #element, #element*, #E)
 
-rule LiftEbnfElements(element*⟦ #element #element* ⟧, {#E, "$index": INDEX(#index)})
-→ LiftEbnfMaybeFusedElement(IsFused(#element, #element*, #index), #element, #element*, {#E})
+  rule LiftEbnfElements(element*⟦⟧, #E)
+  → element*⟦⟧
 
-func LiftEbnfMaybeFusedElement(Boolean, ANTLR_element_sort, List<ANTLR_element_sort>) -> List<ANTLR_element_sort>
+func LiftEbnfMaybeFusedElement(Bool, ANTLR_element_sort, List<ANTLR_element_sort>, ParserEnv) -> List<ANTLR_element_sort>
 
-// Element is not fused: proceed..
-rule LiftEbnfMaybeFusedElement(FALSE, #element, #element*, {#E})
-→ LiftEbnfElement(#element, #element*, {#E})
+  // Element is not fused: proceed..
+  rule LiftEbnfMaybeFusedElement(FALSE, #element, #element*, #E)
+  → LiftEbnfElement(#element, #element*, #E)
 
-// Element is fused: skip it as one of the following elements will generate a reference to the lifted rule
-rule LiftEbnfMaybeFusedElement(TRUE, #element, #element*, {#E})
-→ LiftEbnfElements(#element*, {#E})
+  // Element is fused: skip it as one of the following elements will generate a reference to the lifted rule
+  rule LiftEbnfMaybeFusedElement(TRUE, #element, #element*, #E)
+  → LiftEbnfElements(#element*, #E)
 
 // Lift no-fused element
-func LiftEbnfElement(ANTLR_element_sort, List<ANTLR_element_sort>) -> List<ANTLR_element_sort>
+func LiftEbnfElement(ANTLR_element_sort, List<ANTLR_element_sort>, ParserEnv) -> List<ANTLR_element_sort>
 
-// labeled single atom: maybe lift.
-rule LiftEbnfElement(element⟦ #id #labeledElement_S1 #atom ⟧, #element*, {#E})
-→ element*⟦ #id #labeledElement_S1 atom⟨expr:LiftEbnfAtom(#atom, {#E})⟩ element*⟨expr:LiftEbnfElements(#element*, {#E})⟩ ⟧
+  // labeled single atom: maybe lift.
+  rule LiftEbnfElement(element⟦ #id #labeledElement_S1 #atom ⟧, #element*, #E)
+  → element*⟦ #id #labeledElement_S1 ⟨atom:LiftEbnfAtom(#atom, #E)⟩ ⟨element*:LiftEbnfElements(#element*, #E)⟩ ⟧
 
-// labeled suffixed atom: lift
-rule LiftEbnfElement(element⟦ #id #labeledElement_S1 #atom #ebnfSuffix ⟧, #element*, {#E})
-→ element*⟦ atom⟨expr:LiftedRuleNameAtom(#atom, SOME(#ebnfSuffix))⟩ element*⟨expr:LiftEbnfElements(#element*, {#E})⟩ ⟧
+  // labeled suffixed atom: lift
+  rule LiftEbnfElement(element⟦ #id #labeledElement_S1 #atom #ebnfSuffix ⟧, #element*, #E)
+  → element*⟦ ⟨atom:LiftedRuleNameAtom(#atom, SOME(#ebnfSuffix))⟩ ⟨element*:LiftEbnfElements(#element*, #E)⟩ ⟧
 
-// labeled single trivial (after normalization) block: keep it unchanged
-rule LiftEbnfElement(element⟦ #id #labeledElement_S1 #block ⟧, #element*, {#E})
-→ element*⟦ #id #labeledElement_S1 #block element*⟨expr:LiftEbnfElements(#element*, {#E})⟩ ⟧
+  // labeled single trivial (after normalization) block: keep it unchanged
+  rule LiftEbnfElement(element⟦ #id #labeledElement_S1 #block ⟧, #element*, #E)
+  → element*⟦ #id #labeledElement_S1 #block ⟨element*:LiftEbnfElements(#element*, #E)⟩ ⟧
 
-// labeled suffixed trivial (after normalization) block: lift
-rule LiftEbnfElement(element⟦ #id #labeledElement_S1 #block #ebnfSuffix ⟧, #element*, {#E})
-→ element*⟦ RULE_REF⟨expr:LiftedRuleNameBlock(#block, SOME(#ebnfSuffix), {#E})⟩ element*⟨expr:LiftEbnfElements(#element*, {#E})⟩ ⟧
+  // labeled suffixed trivial (after normalization) block: lift
+  rule LiftEbnfElement(element⟦ #id #labeledElement_S1 #block #ebnfSuffix ⟧, #element*, #E)
+  → element*⟦ ⟨RULE_REF:LiftedRuleNameBlock(#block, SOME(#ebnfSuffix), #E)⟩ ⟨element*:LiftEbnfElements(#element*, #E)⟩ ⟧
 
-// Single atom element: maybe lift
-rule LiftEbnfElement(element⟦ #atom ⟧, #element*, {#E})
-→ element*⟦ atom⟨expr:LiftEbnfAtom(#atom, {#E})⟩ element*⟨expr:LiftEbnfElements(#element*, {#E})⟩ ⟧
+  // Single atom element: maybe lift
+  rule LiftEbnfElement(element⟦ #atom ⟧, #element*, #E)
+  → element*⟦ ⟨atom:LiftEbnfAtom(#atom, #E)⟩ ⟨element*:LiftEbnfElements(#element*, #E)⟩ ⟧
 
-// Suffixed atom element
-rule LiftEbnfElement(element⟦ #atom #ebnfSuffix ⟧, #element*, {#E})
-→ element*⟦ atom⟨expr:LiftedRuleNameAtom(#atom, SOME(#ebnfSuffix))⟩ element*⟨expr:LiftEbnfElements(#element*, {#E})⟩ ⟧
+  // Suffixed atom element
+  rule LiftEbnfElement(element⟦ #atom #ebnfSuffix ⟧, #element*, #E)
+  → element*⟦ ⟨atom:LiftedRuleNameAtom(#atom, SOME(#ebnfSuffix))⟩ ⟨element*:LiftEbnfElements(#element*, #E)⟩ ⟧
 
-// Single trivial block
-rule LiftEbnfElement(element⟦ #block  ⟧, #element*, {#E})
-→  element*⟦ #block element*⟨expr:LiftEbnfElements(#element*, {#E})⟩ ⟧
+  // Single trivial block
+  rule LiftEbnfElement(element⟦ #block  ⟧, #element*, #E)
+  →  element*⟦ #block ⟨element*:LiftEbnfElements(#element*, #E)⟩ ⟧
 
-// Suffixed trivial block
-rule LiftEbnfElement(element⟦ #block #ebnfSuffix ⟧, #element*, {#E})
-→ element*⟦ RULE_REF⟨expr:LiftedRuleNameBlock(#block, SOME(#ebnfSuffix), {#E})⟩ element*⟨expr:LiftEbnfElements(#element*, {#E})⟩ ⟧
+  // Suffixed trivial block
+  rule LiftEbnfElement(element⟦ #block #ebnfSuffix ⟧, #element*, #E)
+  → element*⟦ ⟨RULE_REF:LiftedRuleNameBlock(#block, SOME(#ebnfSuffix), #E)⟩ ⟨element*:LiftEbnfElements(#element*, #E)⟩ ⟧
 
-// Just an action: preserve
-rule LiftEbnfElement(element⟦ #ACTION #QUESTION? ⟧, #element*, {#E})
-→ element*⟦ #ACTION #QUESTION? element*⟨expr:LiftEbnfElements(#element*, {#E})⟩ ⟧
+  // Just an action: preserve
+  rule LiftEbnfElement(element⟦ #ACTION #QUESTION? ⟧, #element*, #E)
+  → element*⟦ #ACTION #QUESTION? ⟨element*:LiftEbnfElements(#element*, #E)⟩ ⟧
 
 // Lift atom if not sugar
-func LiftEbnfAtom(ANTLR_atom_sort) -> ANTLR_atom_sort
+func LiftEbnfAtom(ANTLR_atom_sort, ParserEnv) -> ANTLR_atom_sort
+rule LiftEbnfAtom(#atom, {#E, "$index": PEINDEX(#I)})
+→ LiftEbnfAtom2(IsSugarAtom(#atom, #I), #atom, #E)
 
-rule LiftEbnfAtom(#atom, {#E, "$index": INDEX(RULEINDEX({#I}))})
-→ LiftEbnfAtom2(IsSugarAtom(#atom, {#I}), #atom, {#E})
+func LiftEbnfAtom2(Bool, ANTLR_atom_sort, ParserEnv) -> ANTLR_atom_sort
 
-func LiftEbnfAtom2(Boolean, ANTLR_atom_sort) -> ANTLR_atom_sort
+  // Sugar atom: skip
+  rule LiftEbnfAtom2(TRUE , #atom, #E) → #atom
 
-// Sugar atom: skip
-rule LiftEbnfAtom2(TRUE , #atom, {#E}) → #atom
+  // Not constant: lift
+  rule LiftEbnfAtom2(FALSE, atom⟦ #TOKEN_REF #elementOptions? ⟧, #E)
+  → atom⟦ ⟨RULE_REF:LiftedRuleNameTokenRef(#TOKEN_REF, NONE)⟩ #elementOptions? ⟧
 
-// Not constant: lift
-rule LiftEbnfAtom2(FALSE, atom⟦ #TOKEN_REF #elementOptions? ⟧, {#E})
-→ atom⟦ RULE_REF⟨expr:LiftedRuleNameTokenRef(#TOKEN_REF, NONE)⟩ #elementOptions? ⟧
-
-rule LiftEbnfAtom2(FALSE, atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, {#E})
-→ atom⟦ RULE_REF⟨expr:LiftedRuleNameRuleRef(#RULE_REF, NONE)⟩ #elementOptions? ⟧
+  rule LiftEbnfAtom2(FALSE, atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, #E)
+  → atom⟦ ⟨RULE_REF:LiftedRuleNameRuleRef(#RULE_REF, NONE)⟩ #elementOptions? ⟧
 
 // --- Second  Pass: Generate new rules
 
-func MakeEbnfRuleAltList(ANTLR_ruleAltList_sort, [OK_SORT]->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
+func MakeEbnfRuleAltList(ANTLR_ruleAltList_sort, ParserEnv, (ParserEnv)->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
+rule MakeEbnfRuleAltList(ruleAltList⟦ #element* #labeledAlt_S1? #ruleAltList_S1* ⟧, #E, (env)->#(env))
+→ MakeEbnfElements(#element*, (), #E, (env)->MakeEbnfRuleAltList_S1s(#ruleAltList_S1*, env, (env)->#(env)))
 
-rule MakeEbnfRuleAltList(ruleAltList⟦ #element* #labeledAlt_S1? #ruleAltList_S1* ⟧, [ok]->#[ok], {#E})
-→ MakeEbnfElements(#element*, (), [ok]->MakeEbnfRuleAltList_S1s(ok, #ruleAltList_S1*, [ok]->#[ok]), {#E})
+func MakeEbnfRuleAltList_S1s(List<ANTLR_ruleAltList_S1_sort>, ParserEnv, (ParserEnv)->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
 
-func MakeEbnfRuleAltList_S1s(ANTLR_ruleAltList_sort, [OK_SORT]->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
-rule MakeEbnfRuleAltList_S1s(OK, ruleAltList_S1*⟦⟧, [ok]->#[ok], {#E})
-→ #[OK, {#E}]
+  rule MakeEbnfRuleAltList_S1s(ruleAltList_S1*⟦ | #element* #labeledAlt_S1? #ruleAltList_S1* ⟧, #E, (env)->#(env))
+  → MakeEbnfElements(#element*, (), #E, (env)->MakeEbnfRuleAltList_S1s(#ruleAltList_S1*, env, (env)->#(env)))
 
-rule MakeEbnfRuleAltList_S1s(OK, ruleAltList_S1*⟦ | #element* #labeledAlt_S1? #ruleAltList_S1* ⟧, [ok]->#[ok], {#E})
-→ MakeEbnfElements(#element*, (), [ok]->MakeEbnfRuleAltList_S1s(ok, #ruleAltList_S1*, [ok]->#[ok]), {#E})
+  rule MakeEbnfRuleAltList_S1s(ruleAltList_S1*⟦⟧, #E, (env)->#(env))
+  → #(#E)
 
-func MakeEbnfElements(List<ANTLR_element_sort>, List<ANTLR_element_sort>, [OK_SORT]->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
+//
+func MakeEbnfElements(List<ANTLR_element_sort>, List<ANTLR_element_sort>, ParserEnv, (ParserEnv)->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
 
-rule MakeEbnfElements(element*⟦⟧, #fused, [ok]->#[ok], {#E})
-→ #[OK, {#E}]
+  rule MakeEbnfElements(element*⟦ #element #element* ⟧, #fused, {#E, "$index": PEINDEX(#index)}, (env)->#(env))
+  → MakeEbnfMaybeFusedElements(IsFused(#element, #element*, #index), #element, #element*, #fused, #E, (env)->#(env))
 
-rule MakeEbnfElements(element*⟦ #element #element* ⟧, #fused, [ok]->#[ok], {#E, "$index": INDEX(#index)})
-→ MakeEbnfMaybeFusedElements(IsFused(#element, #element*, #index), #element, #element*, #fused, [ok]->#[ok], {#E})
+  rule MakeEbnfElements(element*⟦⟧, #fused, #E, (env)->#(env))
+  → #(#E)
 
-func MakeEbnfMaybeFusedElements(Boolean, List<ANTLR_element_sort>, List<ANTLR_element_sort>, [OK_SORT]->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
+//
+func MakeEbnfMaybeFusedElements(Bool, ANTLR_element_sort, List<ANTLR_element_sort>, List<ANTLR_element_sort>, ParserEnv, (ParserEnv)->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
 
-// Element is not fused: proceed..
-rule MakeEbnfMaybeFusedElements(FALSE, #element, #element*, #fused, [ok]->#[ok], {#E})
-→ MakeEbnfElement(#element, #element*, #fused, [ok]->#[ok], {#E})
+  // Element is not fused: proceed..
+  rule MakeEbnfMaybeFusedElements(FALSE, #element, #element*, #fused, #E, (env)->#(env))
+  → MakeEbnfElement(#element, #element*, #fused, #E, (env)->#(env))
 
-// Element is fused. Record
-rule MakeEbnfMaybeFusedElements(TRUE, #element, #element*, #fused, [ok]->#[ok], {#E})
-→ MakeEbnfElements(#element*, Concat(#fused, (#element,)), [ok]->#[ok], {#E})
+  // Element is fused. Record
+  rule MakeEbnfMaybeFusedElements(TRUE, #element, #element*, #fused, #E, (env)->#(env))
+  → MakeEbnfElements(#element*, Concat(#fused, (#element,)), #E, (env)->#(env))
 
-func MakeEbnfElement(ANTLR_element_sort, List<ANTLR_element_sort>,  List<ANTLR_element_sort>, [OK_SORT]->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
+func MakeEbnfElement(ANTLR_element_sort, List<ANTLR_element_sort>,  List<ANTLR_element_sort>, ParserEnv, (ParserEnv)->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
 
-// labeled single atom: lift to allow metavar. #fused must be empty (guaranteed by IsFused)
-rule MakeEbnfElement(element⟦ #id #labeledElement_S1 #atom ⟧, #element*, (), [ok]->#[ok], {#E})
-→ MakeEbnfAtom(#atom, NONE, element⟦ #id #labeledElement_S1 #atom ⟧, #element*, (), [ok]->#[ok], {#E})
+  // labeled single atom: lift to allow metavar. #fused must be empty (guaranteed by IsFused)
+  rule MakeEbnfElement(element⟦ #id #labeledElement_S1 #atom ⟧, #element*, (), #E, (env)->#(env))
+  → MakeEbnfAtom(#atom, NONE, element⟦ #id #labeledElement_S1 #atom ⟧, #element*, (), #E, (env)->#(env))
 
-// labeled suffixed atom: lift
-rule MakeEbnfElement(element⟦ #id #labeledElement_S1 #atom #ebnfSuffix ⟧, #element*, #fused, [ok]->#[ok], {#E})
-→ MakeEbnfAtom(#atom, SOME(#ebnfSuffix), element⟦ #id #labeledElement_S1 atom⟨expr:TrimEltOptionAtom(#atom)⟩ #ebnfSuffix ⟧, #element*, #fused, [ok]->#[ok], {#E})
+  // labeled suffixed atom: lift
+  rule MakeEbnfElement(element⟦ #id #labeledElement_S1 #atom #ebnfSuffix ⟧, #element*, #fused, #E, (env)->#(env))
+  → MakeEbnfAtom(#atom, SOME(#ebnfSuffix), element⟦ #id #labeledElement_S1 ⟨atom:TrimEltOptionAtom(#atom)⟩ #ebnfSuffix ⟧, #element*, #fused, #E, (env)->#(env))
 
-// labeled single trivial (after normalization) block: skip. #fused must be empty (guaranteed by IsFused)
-rule MakeEbnfElement(element⟦ #id #labeledElement_S1 #block ⟧, #element*, (), [ok]->#[ok], {#E})
-→ MakeEbnfElements(#element*, (), [ok]->#[ok], {#E})
+  // labeled single trivial (after normalization) block: skip. #fused must be empty (guaranteed by IsFused)
+  rule MakeEbnfElement(element⟦ #id #labeledElement_S1 #block ⟧, #element*, (), #E, (env)->#(env))
+  → MakeEbnfElements(#element*, (), #E, (env)->#(env))
 
-// labeled suffixed trivial (after normalization) block: lift
-rule MakeEbnfElement(element⟦ #id #labeledElement_S1 #block #ebnfSuffix ⟧, #element*, #fused, [ok]->#[ok], {#E})
-→ MakeLiftedRule(OK, LiftedRuleNameBlock(#block, SOME(#ebnfSuffix), {#E}), element⟦ #id #labeledElement_S1 #block #ebnfSuffix ⟧, #element*, #fused, [ok]->#[ok], {#E})
+  // labeled suffixed trivial (after normalization) block: lift
+  rule MakeEbnfElement(element⟦ #id #labeledElement_S1 #block #ebnfSuffix ⟧, #element*, #fused, #E, (env)->#(env))
+  → MakeLiftedRule(LiftedRuleNameBlock(#block, SOME(#ebnfSuffix), #E), element⟦ #id #labeledElement_S1 #block #ebnfSuffix ⟧, #element*, #fused, #E, (env)->#(env))
 
-// Single atom element: lift to allow metavar. #fused must be empty (guaranteed by IsFused)
-rule MakeEbnfElement(element⟦ #atom ⟧, #element*, (), [ok]->#[ok], {#E})
-→ MakeEbnfAtom(#atom, NONE, element⟦ atom⟨expr:TrimEltOptionAtom(#atom)⟩ ⟧, #element*, (), [ok]->#[ok], {#E})
+  // Single atom element: lift to allow metavar. #fused must be empty (guaranteed by IsFused)
+  rule MakeEbnfElement(element⟦ #atom ⟧, #element*, (), #E, (env)->#(env))
+  → MakeEbnfAtom(#atom, NONE, element⟦ ⟨atom:TrimEltOptionAtom(#atom)⟩ ⟧, #element*, (), #E, (env)->#(env))
 
-// Suffixed atom element: lift
-rule MakeEbnfElement(element⟦ #atom #ebnfSuffix ⟧, #element*, #fused, [ok]->#[ok], {#E})
-→ MakeEbnfAtom(#atom, SOME(#ebnfSuffix), element⟦ #atom #ebnfSuffix ⟧, #element*, #fused, [ok]->#[ok], {#E})
+  // Suffixed atom element: lift
+  rule MakeEbnfElement(element⟦ #atom #ebnfSuffix ⟧, #element*, #fused, #E, (env)->#(env))
+  → MakeEbnfAtom(#atom, SOME(#ebnfSuffix), element⟦ #atom #ebnfSuffix ⟧, #element*, #fused, #E, (env)->#(env))
 
-// Single trivial block: skip. #fused must be empty (guaranteed by IsFused)
-rule MakeEbnfElement(element⟦ #block ⟧, #element*, (), [ok]->#[ok], {#E})
-→ MakeEbnfElements(#element*, (), [ok]->#[ok], {#E})
+  // Single trivial block: skip. #fused must be empty (guaranteed by IsFused)
+  rule MakeEbnfElement(element⟦ #block ⟧, #element*, (), #E, (env)->#(env))
+  → MakeEbnfElements(#element*, (), #E, (env)->#(env))
 
-// Suffixed trivial block: lift
-rule MakeEbnfElement(element⟦ #block #ebnfSuffix ⟧, #element*, #fused, [ok]->#[ok], {#E})
-→ MakeLiftedRule(OK, LiftedRuleNameBlock(#block, SOME(#ebnfSuffix), {#E}), element⟦ #block #ebnfSuffix ⟧, #element*, #fused, [ok]->#[ok], {#E})
+  // Suffixed trivial block: lift
+  rule MakeEbnfElement(element⟦ #block #ebnfSuffix ⟧, #element*, #fused, #E, (env)->#(env))
+  → MakeLiftedRule(LiftedRuleNameBlock(#block, SOME(#ebnfSuffix), #E), element⟦ #block #ebnfSuffix ⟧, #element*, #fused, #E, (env)->#(env))
 
-// Action: skip
-rule MakeEbnfElement(element⟦ #ACTION #QUESTION? ⟧, #element*, #fused, [ok]->#[ok], {#E})
-→ MakeEbnfElements(#element*, (), [ok]->#[ok], {#E})
+  // Action: skip
+  rule MakeEbnfElement(element⟦ #ACTION #QUESTION? ⟧, #element*, #fused, #E, (env)->#(env))
+  → MakeEbnfElements(#element*, (), #E, (env)->#(env))
 
-func MakeEbnfAtom(ANTLR_atom_sort, Option<ANTLR_ebnfSuffix_sort>, ANTLR_element_sort, List<ANTLR_element_sort>, List<ANTLR_element_sort>, [OK_SORT]->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
+//
+func MakeEbnfAtom(ANTLR_atom_sort, Option<ANTLR_ebnfSuffix_sort>, ANTLR_element_sort, List<ANTLR_element_sort>, List<ANTLR_element_sort>, ParserEnv, (ParserEnv)->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
 
-rule MakeEbnfAtom(atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, NONE, #element, #element*, #fused, [ok]->#[ok], {#E})
-→ MakeEbnfElements(#element*, #fused, [ok]->#[ok], {#E})
+  rule MakeEbnfAtom(atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, NONE, #element, #element*, #fused, #E, (env)->#(env))
+  → MakeEbnfElements(#element*, #fused, #E, (env)->#(env))
 
-rule MakeEbnfAtom(atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, SOME(#ebnfSuffix), #element, #element*, #fused, [ok]->#[ok], {#E})
-→ MakeLiftedRule(OK, LiftedRuleNameRuleRef(#RULE_REF, SOME(#ebnfSuffix)), #element, #element*, #fused, [ok]->#[ok], {#E})
+  rule MakeEbnfAtom(atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, SOME(#ebnfSuffix), #element, #element*, #fused, #E, (env)->#(env))
+  → MakeLiftedRule(LiftedRuleNameRuleRef(#RULE_REF, SOME(#ebnfSuffix)), #element, #element*, #fused, #E, (env)->#(env))
 
-// Test if atom is constant, which in this case don't lift token
-rule MakeEbnfAtom(atom⟦ #TOKEN_REF #elementOptions? ⟧, NONE, #element, #element*, #fused, [ok]->#[ok], {#E, "$index": INDEX(RULEINDEX({#I}))})
-→ MakeEbnfSingleToken(IsSugarAtom(atom⟦ #TOKEN_REF #elementOptions? ⟧, {#I}), atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, [ok]->#[ok], {#E})
+  // Test if atom is constant, which in this case don't lift token
+  rule MakeEbnfAtom(atom⟦ #TOKEN_REF #elementOptions? ⟧, NONE, #element, #element*, #fused, {#E, "$index": PEINDEX(#I)}, (env)->#(env))
+  → MakeEbnfSingleToken(IsSugarAtom(atom⟦ #TOKEN_REF #elementOptions? ⟧, #I), atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, #E, (env)->#(env))
 
-rule MakeEbnfAtom(atom⟦ #TOKEN_REF #elementOptions? ⟧, SOME(#ebnfSuffix), #element, #element*, #fused, [ok]->#[ok], {#E,  "$index": INDEX(RULEINDEX({#I}))})
-→ MakeEbnfToken(IsSugarAtom(atom⟦ #TOKEN_REF #elementOptions? ⟧, {#I}),
-         atom⟦ #TOKEN_REF #elementOptions? ⟧, SOME(#ebnfSuffix), #element, #element*, #fused, [ok]->#[ok], {#E})
+  rule MakeEbnfAtom(atom⟦ #TOKEN_REF #elementOptions? ⟧, SOME(#ebnfSuffix), #element, #element*, #fused, {#E, "$index": PEINDEX(#I)}, (env)->#(env))
+  → MakeEbnfToken(IsSugarAtom(atom⟦ #TOKEN_REF #elementOptions? ⟧, #I),
+           atom⟦ #TOKEN_REF #elementOptions? ⟧, SOME(#ebnfSuffix), #element, #element*, #fused, #E, (env)->#(env))
 
-// Constant string literal. move on.
-rule MakeEbnfAtom(atom⟦ #STRING_LITERAL #elementOptions? ⟧, NONE, #element, #element*, #fused, [ok]->#[ok], {#E})
-→ MakeEbnfElements(#element*, #fused, [ok]->#[ok], {#E})
+  // Constant string literal. move on.
+  rule MakeEbnfAtom(atom⟦ #STRING_LITERAL #elementOptions? ⟧, NONE, #element, #element*, #fused, #E, (env)->#(env))
+  → MakeEbnfElements(#element*, #fused, #E, (env)->#(env))
 
-// Non-constant string literal. not supported yet.
-//{#E}MakeEbnfAtom[{#L}%atom⟦ #STRING_LITERAL #elementOptions? ⟧, SOME[#ebnfSuffix],  #element, #element*, #fused, ok.#[ok]]
-//→ {#E}MakeEbnfElements[#element*, #fused, ok.#[ok]];
+  // Non-constant string literal. not supported yet.
+  //#EMakeEbnfAtom[{#L}%atom⟦ #STRING_LITERAL #elementOptions? ⟧, SOME[#ebnfSuffix],  #element, #element*, #fused, ok.#[ok]]
+  //→ #EMakeEbnfElements[#element*, #fused, ok.#[ok]];
 
+//
+func MakeEbnfSingleToken(Bool, ANTLR_atom_sort, ANTLR_element_sort, List<ANTLR_element_sort>, List<ANTLR_element_sort>, ParserEnv, (ParserEnv)->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
 
-func MakeEbnfSingleToken(Boolean, ANTLR_atom_sort, ANTLR_element_sort, List<ANTLR_element_sort>, List<ANTLR_element_sort>, [OK_SORT]->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
+  // Not a constant token: lift it to allow metavariable
+  rule MakeEbnfSingleToken(FALSE, atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, #E, (env)->#(env))
+  → MakeLiftedRule(LiftedRuleNameTokenRef(#TOKEN_REF, NONE), #element, #element*, #fused, #E, (env)->#(env))
 
-// Not a constant token: lift it to allow metavariable
-rule MakeEbnfSingleToken(FALSE, atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, [ok]->#[ok], {#E})
-→ MakeLiftedRule(OK, LiftedRuleNameTokenRef(#TOKEN_REF, NONE), #element, #element*, #fused, [ok]->#[ok], {#E})
+  // Constant token: skip
+  rule MakeEbnfSingleToken(TRUE, atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, #E, (env)->#(env))
+  → MakeEbnfElements(#element*, #fused, #E, (env)->#(env))
 
-// Constant token: skip
-rule MakeEbnfSingleToken(TRUE, atom⟦ #TOKEN_REF ⟧, #element, #element*, #fused, [ok]->#[ok], {#E})
-→ MakeEbnfElements(#element*, #fused, [ok]->#[ok], {#E})
+//
+func MakeEbnfToken(Bool, ANTLR_atom_sort, Option<ANTLR_ebnfSuffix_sort>, ANTLR_element_sort, List<ANTLR_element_sort>, List<ANTLR_element_sort>, ParserEnv, (ParserEnv)->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
 
+  // Not a constant: lift single token, as well as enbf token.
+  rule MakeEbnfToken(FALSE, atom⟦ #TOKEN_REF #elementOptions? ⟧, SOME(#ebnfSuffix), element⟦ #TOKEN_REF2 #elementOptions?2 #ebnfSuffix ⟧, #element*, #fused, #E, (env)->#(env))
+  → MakeEbnfSingleToken(FALSE, atom⟦ #TOKEN_REF ⟧, element⟦ #TOKEN_REF ⟧, element*⟦⟧, element*⟦⟧, #E,
+      (env)->MakeLiftedRule(LiftedRuleNameTokenRef(#TOKEN_REF, SOME(#ebnfSuffix)), element⟦ ⟨TOKEN_REF:TokenToRuleName(#TOKEN_REF2)⟩ #elementOptions?2  #ebnfSuffix ⟧, #element*, #fused, env, (env)->#(env)))
 
-func MakeEbnfToken(Boolean, ANTLR_atom_sort, Option<ANTLR_ebnfSuffix_sort>, ANTLR_element_sort, List<ANTLR_element_sort>, List<ANTLR_element_sort>, [OK_SORT]->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
+  // A constant: just lift the enbf token.
+  rule MakeEbnfToken(TRUE, atom⟦ #TOKEN_REF #elementOptions? ⟧, SOME(#ebnfSuffix), #element, #element*, #fused, #E, (env)->#(env))
+  → MakeLiftedRule(LiftedRuleNameTokenRef(#TOKEN_REF, SOME(#ebnfSuffix)), #element, #element*, #fused, #E, (env)->#(env))
 
-// Not a constant: lift single token, as well as enbf token.
-rule MakeEbnfToken(FALSE, atom⟦ #TOKEN_REF #elementOptions? ⟧, SOME(#ebnfSuffix), element⟦ #TOKEN_REF2 #elementOptions?2 #ebnfSuffix ⟧, #element*, #fused, [ok]->#[ok], {#E})
-→ MakeEbnfSingleToken(FALSE, atom⟦ #TOKEN_REF ⟧, element⟦ #TOKEN_REF ⟧, element*⟦⟧, element*⟦⟧,
-    [ok]->MakeLiftedRule(ok, LiftedRuleNameTokenRef(#TOKEN_REF, SOME(#ebnfSuffix)), element⟦ TOKEN_REF⟨expr:TokenToRuleName(#TOKEN_REF2)⟩ #elementOptions?2  #ebnfSuffix ⟧, #element*, #fused, [ok]->#[ok]), {#E})
-
-// A constant: just lift the enbf token.
-rule MakeEbnfToken(TRUE, atom⟦ #TOKEN_REF #elementOptions? ⟧, SOME(#ebnfSuffix), #element, #element*, #fused, [ok]->#[ok], {#E})
-→ MakeLiftedRule(OK, LiftedRuleNameTokenRef(#TOKEN_REF, SOME(#ebnfSuffix)), #element, #element*, #fused, [ok]->#[ok], {#E})
-
-
-func MakeLiftedRule(OK_SORT, String, ANTLR_element_sort, List<ANTLR_element_sort>, List<ANTLR_element_sort>, [OK_SORT]->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
-
-rule MakeLiftedRule(OK, #key, #element, #element*, #fused, [ok]->#[ok], {#E})
-→ IfDef( #key,
-    MakeEbnfElements(#element*, (), [ok]->#[ok], {#E}),
-    (ruleSpec⟦ RULE_REF⟨expr:#key⟩ : element*⟨expr:Concat(#fused, (#element,))⟩ ; ⟧ , MakeEbnfElements(#element*, (), [ok]->#[ok], {#E, #key: DEFINED})...))
+func MakeLiftedRule(String, ANTLR_element_sort, List<ANTLR_element_sort>, List<ANTLR_element_sort>, ParserEnv, (ParserEnv)->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
+rule MakeLiftedRule(#key, #element, #element*, #fused, #E, (env)->#(env))
+→ IfDef(#key,
+    ()->MakeEbnfElements(#element*, (), #E, (env)->#(env)),
+    ()->(ruleSpec⟦ ⟨RULE_REF:#key⟩ : ⟨element*:Concat(#fused, (#element,))⟩ ; ⟧ , MakeEbnfElements(#element*, (), {#E, #key: PEDEFINED}, (env)->#(env) )...))
 
 // -- Helpers
 
 // Generate lifted rule name from trivial block. Extract the non-constant atom
-func LiftedRuleNameBlock(ANTLR_block_sort, Option<ANTLR_ebnfSuffix_sort>) -> String
-
-rule LiftedRuleNameBlock(#block, #ebnfSuffix, {#E, "$index": INDEX(#index)})
+func LiftedRuleNameBlock(ANTLR_block_sort, Option<ANTLR_ebnfSuffix_sort>, ParserEnv) -> String
+rule LiftedRuleNameBlock(#block, #ebnfSuffix, {#E, "$index": PEINDEX(#index)})
 → LiftedRuleNameRuleRef(UnSOME(GetRefBlock(#block, (), #index)), #ebnfSuffix)
 
 // Generate lifted rule name from atom
 func LiftedRuleNameAtom(ANTLR_atom_sort, Option<ANTLR_ebnfSuffix_sort>) -> ANTLR_atom_sort
 
-//LiftedRuleNameAtom[{#L}%atom⟨ #range ⟩, #ebnfSuffix] → $[Error, $[:, "Invalid range ", #range, " in parser rule. It must be defined as a lexer rule (a token)."]];
-rule LiftedRuleNameAtom(atom⟦ #STRING_LITERAL #elementOptions? ⟧, #ebnfSuffix)
-→ Error( ConcatString( "Invalid non-constant string literal ", #STRING_LITERAL, " in parser rule. It must be defined as a lexer rule (a token)."))
+  //LiftedRuleNameAtom[{#L}%atom⟨ #range ⟩, #ebnfSuffix] → $[Error, $[:, "Invalid range ", #range, " in parser rule. It must be defined as a lexer rule (a token)."]];
+  rule LiftedRuleNameAtom(atom⟦ #STRING_LITERAL #elementOptions? ⟧, #ebnfSuffix)
+  → Error( ConcatString( "Invalid non-constant string literal ", #STRING_LITERAL, " in parser rule. It must be defined as a lexer rule (a token)."))
 
-rule LiftedRuleNameAtom(atom⟦ #TOKEN_REF #elementOptions? ⟧, #ebnfSuffix)
-→ atom⟦ RULE_REF⟨expr:LiftedRuleNameRuleRef(TokenToRuleName(#TOKEN_REF), #ebnfSuffix)⟩ #elementOptions? ⟧
+  rule LiftedRuleNameAtom(atom⟦ #TOKEN_REF #elementOptions? ⟧, #ebnfSuffix)
+  → atom⟦ ⟨RULE_REF:LiftedRuleNameRuleRef(TokenToRuleName(#TOKEN_REF), #ebnfSuffix)⟩ #elementOptions? ⟧
 
-rule LiftedRuleNameAtom(atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, #ebnfSuffix)
-→ atom⟦ RULE_REF⟨expr:LiftedRuleNameRuleRef(#RULE_REF, #ebnfSuffix)⟩ #elementOptions? ⟧
+  rule LiftedRuleNameAtom(atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧, #ebnfSuffix)
+  → atom⟦ ⟨RULE_REF:LiftedRuleNameRuleRef(#RULE_REF, #ebnfSuffix)⟩ #elementOptions? ⟧
 
 //
 //// TODO: other cases...
@@ -782,56 +827,48 @@ rule TokenToRuleName(#token) → ConcatString( DownCase( #token), "_TOK")
 
 // Convert internal rule name to a string to be used for meta and category
 func ToMeta(String) -> String
-
-rule ToMeta(#RuleRef) →
-    If( EndsWith( #RuleRef, "_TOK_OPT") , ()->ConcatString( UpCase( BeforeFirst( #RuleRef, "_TOK_OPT")), "?")
-    , ()->If( EndsWith( #RuleRef, "_TOK_ZOM") , ()->ConcatString( UpCase( BeforeFirst( #RuleRef, "_TOK_ZOM")), "*")
-    , ()->If( EndsWith( #RuleRef, "_TOK_OOM") , ()->ConcatString( UpCase( BeforeFirst( #RuleRef, "_TOK_OOM")), "+")
-    , ()->If( EndsWith( #RuleRef, "_OPT") , ()->ConcatString( BeforeFirst( #RuleRef, "_OPT"), "?")
-    , ()->If( EndsWith( #RuleRef, "_ZOM") , ()->ConcatString( BeforeFirst( #RuleRef, "_ZOM"), "*")
-    , ()->If( EndsWith( #RuleRef, "_OOM") , ()->ConcatString( BeforeFirst( #RuleRef, "_OOM"), "+")
-    , ()->If( EndsWith( #RuleRef, "_TOK") , ()->UpCase( BeforeFirst( #RuleRef, "_TOK"))
-    , ()->#RuleRef)))))))
+rule ToMeta(#RuleRef)
+→ if EndsWith(#RuleRef, "_TOK_OPT")       ConcatString(UpCase(BeforeFirst(#RuleRef, "_TOK_OPT")), "?")
+  else if EndsWith( #RuleRef, "_TOK_ZOM") ConcatString( UpCase( BeforeFirst( #RuleRef, "_TOK_ZOM")), "*")
+  else if EndsWith( #RuleRef, "_TOK_OOM") ConcatString( UpCase( BeforeFirst( #RuleRef, "_TOK_OOM")), "+")
+  else if EndsWith( #RuleRef, "_OPT")     ConcatString( BeforeFirst( #RuleRef, "_OPT"), "?")
+  else if EndsWith( #RuleRef, "_ZOM")     ConcatString( BeforeFirst( #RuleRef, "_ZOM"), "*")
+  else if EndsWith( #RuleRef, "_OOM")     ConcatString( BeforeFirst( #RuleRef, "_OOM"), "+")
+  else if EndsWith( #RuleRef, "_TOK")     UpCase( BeforeFirst( #RuleRef, "_TOK"))
+  else                                    #RuleRef
 
 // Whether mode is meta
-func IsMeta(Mode) -> Bool
-
-rule IsMeta(PARSER)      → FALSE
-rule IsMeta(METAPARSER)  → TRUE
-rule IsMeta(METALEXER)   → TRUE
+func IsModeMeta(Mode) -> Bool
+rule IsModeMeta(PARSER)      → FALSE
+rule IsModeMeta(METAPARSER)  → TRUE
+rule IsModeMeta(METALEXER)   → TRUE
 
 // Whether mode is parser
 func IsParser(Mode) -> Bool
-
 rule IsParser(PARSER)      → TRUE
 rule IsParser(METAPARSER)  → TRUE
 rule IsParser(METALEXER)   → FALSE
 
 // Whether mode is lexer
 func IsLexer(Mode) -> Bool
-
 rule IsLexer(PARSER)      → FALSE
 rule IsLexer(METAPARSER)  → FALSE
 rule IsLexer(METALEXER)   → TRUE
 
 // Whether the rule is internal.
-func IsInternalRule(String) -> Bool
-
-rule IsInternalRule(#RuleRef) →
-    If( EndsWith( #RuleRef, "_OPT") , ()->TRUE
-    , ()->If( EndsWith( #RuleRef, "_ZOM") , ()->TRUE
-    , ()->If( EndsWith( #RuleRef, "_OOM") , ()->TRUE
-    , ()->If( EndsWith( #RuleRef, "_TOK") , ()->TRUE
-    , ()->FALSE))))
+func IsInternalRule(#RuleRef: String) -> Bool
+→ if      EndsWith( #RuleRef, "_OPT") TRUE
+  else if EndsWith( #RuleRef, "_ZOM") TRUE
+  else if EndsWith( #RuleRef, "_OOM") TRUE
+  else if EndsWith( #RuleRef, "_TOK") TRUE
+  else                                FALSE
 
 
 // Whether the rule produces a  list
-func IsList(String) -> Boolean
-rule IsList(#RuleRef) →
-    If( EndsWith( #RuleRef, "_ZOM") , ()->TRUE
-    , ()->If( EndsWith( #RuleRef, "_OOM") , ()->TRUE
-    , ()->FALSE))
-
+func IsList(#RuleRef: String) -> Bool
+→ if EndsWith(#RuleRef, "_ZOM")       TRUE
+  else if EndsWith( #RuleRef, "_OOM") TRUE
+  else                                FALSE
 
 // The meta sequence of characters
 func MetaChar(String) -> String

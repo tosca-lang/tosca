@@ -644,7 +644,7 @@ func SortToTypes2(Core_csort_sort, List<Text4_text_sort> /* formal params */) ->
   → Cons(text⟦Var†⟨SortToType(#csort)⟩⟧, SortToTypes2(#csort2, #formals))
 
   rule SortToTypes2(csort⟦ ( ##csort ) ##csort2 ⟧, #formals)
-  → SortToTypes2(#csort2, Concat<Text4_text_sort>(#formals, SortToTypes(#csort)))
+  → SortToTypes2(#csort2, Concat(#formals, SortToTypes(#csort)))
 
   rule SortToTypes2(csort⟦ { ##csort1 : ##csort2 } ⟧, ())
   → Cons(text⟦MapTerm<†⟨SortToType(#csort1)⟩,†⟨SortToType(#csort2)⟩>⟧, Nil)
@@ -737,10 +737,10 @@ func ThunkMaker(Core_csort_sort) -> Text4_text_sort
   → text⟦tm⟨STRING: #VARIABLE⟩.apply⟧
 
   rule ThunkMaker(csort⟦ ##canno* [ ##csort ] ##csort2 ⟧)
-  → Error<Text4_text_sort>("Internal error: a function cannot return scoped values")
+  → Error("Internal error: a function cannot return scoped values")
 
   rule ThunkMaker(csort⟦ ##canno* ( ##csort ) ##csort2 ⟧)
-  → Error<Text4_text_sort>("Internal error: a function cannot return another function")
+  → Error("Internal error: a function cannot return another function")
 
   // Java infers map types.
   rule ThunkMaker(csort⟦ ##canno* { ##cmapsort } ⟧)
@@ -883,7 +883,7 @@ func JavaPatternTerm({String : JEnvEntry}, Core_cterm_sort, Text4_text_sort /* C
   // REVISIT: bound variable reordering, ie. (x)(y)#(y, x)
   // For now only accepts patterns of the form (x)...(y)#(x, ... y)
   rule JavaPatternTerm(#env, cterm⟦ ##canno* ##METAVAR ##cterms? ##csubst? ##csortanno? ⟧, #term, #csort, #storage, #cont)
-  → text⟦†⟨JavaPatternMaybeMetaArgs(#env, #canno*, #METAVAR, #csubst?, #term, #csort, #storage, #cont)⟩⟧
+  → JavaPatternMaybeMetaArgs(#env, #canno*, #METAVAR, #csubst?, #term, #csort, #storage, #cont)
 
   rule JavaPatternTerm(#env, cterm⟦ ##canno* ##VARIABLE ##csortanno? ⟧, #term, #csort, #storage, #cont)
   → JavaPatternVariable(JGetVarO(#env, #VARIABLE), #env, #VARIABLE, MaybeSortAnnoToSort(#csortanno?), #term, #cont)
@@ -929,15 +929,15 @@ func JavaPatternSubs({String : JEnvEntry}, List<Core_cterm_sort>,
                      Text4_text_sort /* parent term */, Numeric /* Current subindex */, Option<List<Core_csort_sort>>, /* sub sorts, if known */
                      ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
-  rule JavaPatternSubs(#env, cterm*⟦⟧,  #term, #index, #csort*, #cont)
-  → #cont(#env)
-
   rule JavaPatternSubs(#env, cterm*⟦ ##cterm ##cterm* ⟧, #term, #index, #csort*, #cont)
   → text⟦
       †⟨MaybeSortToType(SubSort(#env, #cterm, #csort*))⟩ ⟨STRING: sub:String⟩ = †⟨#term⟩.getField†⟨FieldSuffix(#index)⟩(†⟨GetContext(#env)⟩, true);†⟨
       JavaPatternTerm(JavaSetSubBinderIndex(SetParent(SetSubIndex(#env, #index), #term), 1),
                   #cterm, text⟦⟨STRING: sub⟩⟧, SubSort(#env, #cterm, #csort*), ARGUMENT,
                   (x) -> JavaPatternSubs(x, #cterm*, #term, NumberPlus(#index, 1), Maybe((x)->Tail(x), #csort*), #cont))⟩⟧
+
+  rule JavaPatternSubs(#env, cterm*⟦⟧,  #term, #index, #csort*, #cont)
+  → #cont(#env)
 
 
 // --- Variable pattern matching outside of meta
@@ -1103,11 +1103,12 @@ func ResolveTypeParamCons(Option<Core_csort_sort>) -> Text4_text_sort
 
   rule ResolveTypeParamCons(SOME(#))
   → text⟦⟧
+  
 
 /* Get sub sort. Get it from term and if not available on sort */
 func SubSort({String : JEnvEntry}, Core_cterm_sort, Option<List<Core_csort_sort>>) -> Option<Core_csort_sort>
 rule SubSort(#env, #cterm, #csorts?)
-→ SubSort2(SubSortFromTerm(#env, #cterm), #csorts?)
+→ SubSort2(TermSort(#cterm), NONE)
 
 func SubSort2(Option<Core_csort_sort>, Option<List<Core_csort_sort>>) -> Option<Core_csort_sort>
 rule SubSort2(SOME(#csort), #)                       → SOME(#csort)
@@ -1149,8 +1150,7 @@ func SubSortFromTerm({String : JEnvEntry}, Core_cterm_sort) -> Option<Core_csort
   rule SubSortFromTerm(#env, cterm⟦ ##canno* [ x ##csortanno? ] ##cterm[x] ⟧)
   → SubSortFromTerm(#env, #cterm[var:String])
 
-  // TODO: maybe error?
-  rule SubSortFromTerm(#env, cterm⟦ ##canno* ( f ##csortanno? ) ##cterm[f] ⟧)
+  rule SubSortFromTerm(#env, cterm⟦ ##canno* ( f : ##csort ) ##cterm[f] ⟧)
   → SubSortFromTerm(#env, #cterm[var:String])
 
 func JSubSortFromVar(Option<JVarEntry>, String) -> Option<Core_csort_sort>

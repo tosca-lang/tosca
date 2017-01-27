@@ -23,23 +23,29 @@
 
 import std::core
 import std::listdef
+import std::string
+import std::num
+import std::text::Text4
 import pg::util
 import pg::ANTLR
 import pg::trivial
 
 /* API: Normalize the ANTLR grammar spec */
-func Normalize(ANTLR_grammarSpec_sort) -> ANTLR_grammarSpec_sort
-rule Normalize(#) → NormGrammarSpec(#)
+func NormalizeGrammar(#: ANTLR_grammarSpec_sort) -> ANTLR_grammarSpec_sort
+→ NormGrammarSpec(#)
 
 func NormalizePP(ANTLR_grammarSpec_sort) -> Text4_text_sort
 rule NormalizePP(#) → ANTLR_Print_grammarSpec(NormGrammarSpec(#))
 
+/* Environment entry sort */
+enum NormEntry | STRING(String) | NUM(Numeric) | BOOL(Bool) | INDEX(RuleIndex)
 
 /* Normalize the ANTLR grammar spec */
+func NormGrammarSpec(ANTLR_grammarSpec_sort) -> ANTLR_grammarSpec_sort
 rule NormGrammarSpec(grammarSpec⟦ #DOC_COMMENT? #grammarType #id ; #prequelConstruct* #ruleSpec* #modeSpec* ⟧)
 →
 grammarSpec⟦ #grammarType #id ; #prequelConstruct*
-                  ruleSpec*⟨expr:Concat(NST-Rules(#ruleSpec*, {}), NormRules(#ruleSpec*, {"@id": STRING(UnwrapId(#id)), "@index": IndexRules(#ruleSpec*)}))⟩ #modeSpec* ⟧
+                  ⟨ruleSpec*:Concat(NST-Rules(#ruleSpec*, {}), NormRules(#ruleSpec*, {"@id": STRING(UnwrapId(#id)), "@index": INDEX(IndexRules(#ruleSpec*))}))⟩ #modeSpec* ⟧
 
 /* Normalize prequel constructs */
 // TODO: first need to update the meta antlr parser.
@@ -66,8 +72,13 @@ grammarSpec⟦ #grammarType #id ; #prequelConstruct*
 //NormPrequelConstructs[#prequelConstruct*];
 
 // Normalize rules specification
-rule NormRules((), {#E})                       → ()
-rule NormRules((#ruleSpec, #ruleSpec*...), {#E})  → Concat(NormRuleSpec(#ruleSpec, {#E}), NormRules(#ruleSpec*, {#E}))
+func NormRules(List<ANTLR_ruleSpec_sort>, {String:NormEntry}) -> List<ANTLR_ruleSpec_sort>
+
+  rule NormRules((#ruleSpec, #ruleSpec*...), #E)
+  → Concat(NormRuleSpec(#ruleSpec, #E), NormRules(#ruleSpec*, #E))
+
+  rule NormRules((), #E)
+  → ()
 
 /*
  * Normalize parser rule.
@@ -77,304 +88,324 @@ rule NormRules((#ruleSpec, #ruleSpec*...), {#E})  → Concat(NormRuleSpec(#ruleS
  * - the second pass creates new parser rules corresponding to the subrules.
  * - the third pass creates token for string literals. (could be inlined but easier this way).
  */
-rule NormRuleSpec(ruleSpec⟦ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec?
-                                  #rulePrequel* : #ruleAltList ; #exceptionHandler* #finallyClause? ⟧, {#E})
-→ (
-    ruleSpec⟦ #ruleModifiers? #RULE_REF  #ARG_ACTION?  #ruleReturns? #throwsSpec? #localsSpec?
-                       #rulePrequel* : ruleAltList⟨expr:NormRuleAltList(#ruleAltList, {#E, "@rule":STRING(#RULE_REF)})⟩ ; #exceptionHandler* #finallyClause? ⟧, // First pass
-   // Concat[{#E; "@rule":STRING[#RULE_REF]}NSR-RuleAltList[#ruleAltList],                                            // Second pass
+func NormRuleSpec(ANTLR_ruleSpec_sort, {String:NormEntry}) -> List<ANTLR_ruleSpec_sort>
 
-)
+  rule NormRuleSpec(ruleSpec⟦ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec?
+                                    #rulePrequel* : #ruleAltList ; #exceptionHandler* #finallyClause? ⟧, #E)
+  → (
+      ruleSpec⟦ #ruleModifiers? #RULE_REF  #ARG_ACTION?  #ruleReturns? #throwsSpec? #localsSpec?
+                         #rulePrequel* : ⟨ruleAltList:NormRuleAltList(#ruleAltList, {#E, "@rule":STRING(#RULE_REF)})⟩ ; #exceptionHandler* #finallyClause? ⟧,
+    )
 
-rule NormRuleSpec(ruleSpec⟦ #lexerRule ⟧, {#E})
-→ ( ruleSpec⟦ #lexerRule ⟧, )
+
+  rule NormRuleSpec(ruleSpec⟦ #lexerRule ⟧, #E)
+  → ( ruleSpec⟦ #lexerRule ⟧, )
 
 //--------- First Pass: eliminate subrules
 
 // Iterates over rule alternatives
-rule NormRuleAltList(ruleAltList⟦ #labeledAlt #ruleAltList_S1* ⟧, {#E})
+func NormRuleAltList(ANTLR_ruleAltList_sort, {String:NormEntry}) -> ANTLR_ruleAltList_sort
+rule NormRuleAltList(ruleAltList⟦ #labeledAlt #ruleAltList_S1* ⟧, #E)
 → ruleAltList⟦
-        labeledAlt⟨expr:NormLabeledAlt(#labeledAlt, {#E, "@alt":NUM(1), "@unique": BOOL(IsEmpty(#ruleAltList_S1*))})⟩
-        ruleAltList_S1*⟨expr:NormRuleAltList_S1s(#ruleAltList_S1*, {#E, "@alt":NUM(2), "@unique": BOOL(FALSE)})⟩
+        ⟨labeledAlt:NormLabeledAlt(#labeledAlt, {#E, "@alt":NUM(1), "@unique": BOOL(IsEmpty(#ruleAltList_S1*))})⟩
+        ⟨ruleAltList_S1*:NormRuleAltList_S1s(#ruleAltList_S1*, {#E, "@alt":NUM(2), "@unique": BOOL(FALSE)})⟩
   ⟧
 
 //
-rule NormRuleAltList_S1s(ruleAltList_S1*⟦⟧, {#E}) →ruleAltList_S1*⟦⟧
+func NormRuleAltList_S1s(List<ANTLR_ruleAltList_S1_sort>, {String:NormEntry}) -> List<ANTLR_ruleAltList_S1_sort>
 
-rule NormRuleAltList_S1s(ruleAltList_S1*⟦ | #labeledAlt #ruleAltList_S1* ⟧, {#E, "@alt":NUM(#count)})
-→ ruleAltList_S1*⟦
-    | labeledAlt⟨expr:NormLabeledAlt(#labeledAlt, {#E})⟩
-    ruleAltList_S1*⟨expr:NormRuleAltList_S1s(#ruleAltList_S1*, {#E, "@alt":NUM(Plus( #count, 1))})⟩ 
-  ⟧
+  rule NormRuleAltList_S1s(ruleAltList_S1*⟦ | #labeledAlt #ruleAltList_S1* ⟧, {#E, "@alt":NUM(#count)})
+  → ruleAltList_S1*⟦
+      | ⟨labeledAlt:NormLabeledAlt(#labeledAlt, #E)⟩
+      ⟨ruleAltList_S1*:NormRuleAltList_S1s(#ruleAltList_S1*, {#E, "@alt":NUM(Plus( #count, 1))})⟩⟧
+
+  rule NormRuleAltList_S1s(ruleAltList_S1*⟦⟧, #E)
+  → ruleAltList_S1*⟦⟧
 
 // Normalize a labeled alternative. Ignore the label for now (TODO: could be used for better ADT value name)
-rule NormLabeledAlt(labeledAlt⟦ #alternative #labeledAlt_S1? ⟧, {#E})
-→ labeledAlt⟦ alternative⟨expr:NormAlternative(#alternative, {#E})⟩ #labeledAlt_S1? ⟧
+func NormLabeledAlt(ANTLR_labeledAlt_sort, {String:NormEntry}) -> ANTLR_labeledAlt_sort
+rule NormLabeledAlt(labeledAlt⟦ #alternative #labeledAlt_S1? ⟧, #E)
+→ labeledAlt⟦ ⟨alternative:NormAlternative(#alternative, #E)⟩ #labeledAlt_S1? ⟧
 
 // Normalize an alternative.
 // Keep element options intact as they specify either associativity or failed semantic predicate
-rule NormAlternative(alternative⟦ #elementOptions? #element* ⟧, {#E})
-→ alternative⟦ #elementOptions? element*⟨expr:NormElements(#element*, {#E, "@sub":NUM(1)})⟩ ⟧
+func NormAlternative(ANTLR_alternative_sort, {String:NormEntry}) -> ANTLR_alternative_sort
+rule NormAlternative(alternative⟦ #elementOptions? #element* ⟧, #E)
+→ alternative⟦ #elementOptions? ⟨element*:NormElements(#element*, {#E, "@sub":NUM(1)})⟩ ⟧
 
 // Iterate over alternative elements.
-func NormElements(List<ANTLR_element_sort>) -> List<ANTLR_element_sort>
+func NormElements(List<ANTLR_element_sort>, {String:NormEntry}) -> List<ANTLR_element_sort>
 
-// No more elements.
-rule NormElements(element*⟦⟧, {#E}) → element*⟦⟧
+  // Labeled element optionally followed by an ebnfSuffix
+  rule NormElements(element*⟦ #labeledElement #element_A1_S1 #element* ⟧, #E)
+  → NormLabeledElement(#labeledElement, #element_A1_S1, #element*, #E)
 
-// Labeled element optionally followed by an ebnfSuffix
-rule NormElements(element*⟦ #labeledElement #element_A1_S1 #element* ⟧, {#E})
-→ NormLabeledElement(#labeledElement, #element_A1_S1, #element*, {#E})
+  // A string literal optionally followed by an ebnfSuffix. Replace by token.
+  rule NormElements(element*⟦ #STRING_LITERAL #elementOptions? #element_A2_S1 #element* ⟧, #E)
+  → element*⟦ ⟨atom:NormMakeToken(#STRING_LITERAL, #elementOptions?)⟩ #element_A2_S1 ⟨element*:NormElements(#element*, #E)⟩ ⟧
 
-// A string literal optionally followed by an ebnfSuffix. Replace by token.
-rule NormElements(element*⟦ #STRING_LITERAL #elementOptions? #element_A2_S1 #element* ⟧, {#E})
-→ element*⟦ atom⟨expr:NormMakeToken(#STRING_LITERAL, #elementOptions?)⟩ #element_A2_S1 element*⟨expr:NormElements(#element*, {#E})⟩ ⟧
+  // Element is an atom optionally followed by an ebnfSuffix. Leave it this way.
+  rule NormElements(element*⟦ #atom #element_A2_S1 #element* ⟧, #E)
+  → element*⟦ #atom #element_A2_S1 ⟨element*:NormElements(#element*, #E)⟩ ⟧
 
-// Element is an atom optionally followed by an ebnfSuffix. Leave it this way.
-rule NormElements(element*⟦ #atom #element_A2_S1 #element* ⟧, {#E})
-→ element*⟦ #atom #element_A2_S1 element*⟨expr:NormElements(#element*, {#E})⟩ ⟧
+  // Ebnf
+  // This is a subrule -> lift only if it contains at least two non-constant productions
+  rule NormElements(element*⟦ #block #blockSuffix? #element* ⟧, {#E, "@index": INDEX({#I})})
+  → NormBlock(TrivialBlock(#block, {#I}), #block, #blockSuffix?, #element*, #E)
 
-// Ebnf
-// This is a subrule -> lift only if it contains at least two non-constant productions
-rule NormElements(element*⟦ #block #blockSuffix? #element* ⟧, {#E, "@index": RULEINDEX({#I})})
-→ NormBlock(TrivialBlock(#block, {#I}), #block, #blockSuffix?, #element*, {#E})
+  // Action or semantic predicate. Preserve.
+  rule NormElements(element*⟦ #ACTION #QUESTION? #element* ⟧, #E)
+  → element*⟦ #ACTION #QUESTION? ⟨element*:NormElements(#element*, #E)⟩ ⟧
 
-// Action or semantic predicate. Preserve.
-rule NormElements(element*⟦ #ACTION #QUESTION? #element* ⟧, {#E})
-→ element*⟦ #ACTION #QUESTION? element*⟨expr:NormElements(#element*, {#E})⟩ ⟧
+  // No more elements.
+  rule NormElements(element*⟦⟧, #E)
+  → element*⟦⟧
+
 
 // Normalize a block
-func NormBlock(Boolean, ANTLR_block_sort, List<ANTLR_blockSuffix_sort>, List<ANTLR_element_sort>) -> List<ANTLR_element_sort>
+func NormBlock(Bool, ANTLR_block_sort, List<ANTLR_blockSuffix_sort>, List<ANTLR_element_sort>, {String:NormEntry}) -> List<ANTLR_element_sort>
 
-// Trivial block: don't lift.
-rule NormBlock(TRUE, #block, #blockSuffix?, #element*, {#E})
-→ element*⟦ #block #blockSuffix? element*⟨expr:NormElements(#element*, {#E})⟩ ⟧
+  // Trivial block: don't lift.
+  rule NormBlock(TRUE, #block, #blockSuffix?, #element*, #E)
+  → element*⟦ #block #blockSuffix? ⟨element*:NormElements(#element*, #E)⟩ ⟧
 
-// Not trivial block: lift
-rule NormBlock(FALSE, #block, #blockSuffix?, #element*, {#E, "@sub":NUM(#count)})
-→ element*⟦
-    atom⟨expr:SubruleAtom({#E})⟩ element_A2_S1⟨expr:SubruleSuffix(#blockSuffix?, {#E})⟩
-    element*⟨expr:NormElements(#element*, {#E,"@sub": NUM(Plus( #count, 1))})⟩
-  ⟧
+  // Not trivial block: lift
+  rule NormBlock(FALSE, #block, #blockSuffix?, #element*, {#E, "@sub":NUM(#count)})
+  → element*⟦
+      ⟨atom:SubruleAtom(#E)⟩ ⟨element_A2_S1:SubruleSuffix(#blockSuffix?)⟩
+      ⟨element*:NormElements(#element*, {#E,"@sub": NUM(Plus( #count, 1))})⟩⟧
 
 // Normalize labeled eleement
-func NormLabeledElement(ANTLR_labeledElement_sort, ANTLR_element_A1_S1_sort, List<ANTLR_element_sort>) -> ANTLR_element_sort
+func NormLabeledElement(ANTLR_labeledElement_sort, ANTLR_element_A1_S1_sort, List<ANTLR_element_sort>, {String:NormEntry}) ->  List<ANTLR_element_sort>
 
-rule NormLabeledElement(labeledElement⟦ #id #labeledElement_S1 #atom ⟧, #element_A1_S1, #element*, {#E})
-→ element*⟦ #id #labeledElement_S1 #atom  #element_A1_S1 element*⟨expr:NormElements(#element*, {#E})⟩ ⟧
+  rule NormLabeledElement(labeledElement⟦ #id #labeledElement_S1 #atom ⟧, #element_A1_S1, #element*, #E)
+  → element*⟦ #id #labeledElement_S1 #atom  #element_A1_S1 ⟨element*:NormElements(#element*, #E)⟩ ⟧
 
-rule NormLabeledElement(labeledElement⟦ #id #labeledElement_S1 #block ⟧, #element_A1_S1, #element*, {#E, "@index": RULEINDEX({#I})})
-→ element*⟦ #id #labeledElement_S1 block⟨expr:NormBlock(TrivialBlock(#block, {#I}), #block, Ebnf1ToBlockSuffix(#element_A1_S1), #element*, {#E})⟩ ⟧
+  // TODO: implement Ebnf1ToBlockSuffix
+/*
+  rule NormLabeledElement(labeledElement⟦ #id #labeledElement_S1 #block ⟧, #element_A1_S1, #element*, {#E, "@index": INDEX({#I})})
+  → element*⟦ #id #labeledElement_S1 ⟨block:NormBlock(TrivialBlock(#block, {#I}), #block, Ebnf1ToBlockSuffix(#element_A1_S1), #element*, #E)⟩ ⟧*/
 
 //--------- Second Pass: Generate subrules
-
+/*
 // TODO: THIS IS WRONG!! must return ruleSpec*
-
-rule NSR-RuleAltList(ruleAltList⟦ #labeledAlt #ruleAltList_S1* ⟧, {#E})
-→ ruleAltList⟦ ruleAltList⟨expr:Concat(
+rule NSR-RuleAltList(ruleAltList⟦ #labeledAlt #ruleAltList_S1* ⟧, #E)
+→ ruleAltList⟦ ⟨ruleAltList:Concat(
     NSR-LabeledAlt(#labeledAlt, {#E, "@alt":NUM(1), "@unique": BOOL(IsEmpty(#ruleAltList_S1*))}),
     NSR-RuleAltList_S1s(#ruleAltList_S1*, {#E, "@alt":NUM(2), "@unique": BOOL(FALSE)}))⟩
 ⟧
 
 //
-rule NSR-RuleAltList_S1s(ruleAltList_S1*⟦⟧, {#E}) → ruleAltList_S1*⟦⟧
+rule NSR-RuleAltList_S1s(ruleAltList_S1*⟦⟧, #E) → ruleAltList_S1*⟦⟧
 
 rule NSR-RuleAltList_S1s(ruleAltList_S1*⟦ | #labeledAlt #ruleAltList_S1*⟧, {#E, "@alt":NUM(#count)})
-→ ruleAltList_S1*⟦ ruleAltList_S1*⟨expr:Concat(
-    NSR-LabeledAlt(#labeledAlt, {#E}),
+→ ruleAltList_S1*⟦ ⟨ruleAltList_S1*:Concat(
+    NSR-LabeledAlt(#labeledAlt, #E),
     NSR-RuleAltList_S1s(#ruleAltList_S1*, {#E, "@alt":NUM(Plus( #count, 1))}))⟩
 ⟧
 
 //
-rule NSR-LabeledAlt(labeledAlt⟦ #alternative #labeledAlt_S1?⟧, {#E})
-→ NSR-Alternative(#alternative, {#E})
+rule NSR-LabeledAlt(labeledAlt⟦ #alternative #labeledAlt_S1?⟧, #E)
+→ NSR-Alternative(#alternative, #E)
 
 //
-rule NSR-Alternative(alternative⟦ #elementOptions? #element*⟧, {#E})
+rule NSR-Alternative(alternative⟦ #elementOptions? #element*⟧, #E)
 → NSR-Elements(#element*, {#E, "@sub":NUM(1)})
 
 //
-rule NSR-Elements(element*⟦⟧, {#E})
+rule NSR-Elements(element*⟦⟧, #E)
 → element*⟦⟧
 
-rule NSR-Elements(element*⟦ #labeledElement #element_A1_S1 #element* ⟧, {#E})
-→ NSR-LabeledElement(#labeledElement, #element*, {#E})
+rule NSR-Elements(element*⟦ #labeledElement #element_A1_S1 #element* ⟧, #E)
+→ NSR-LabeledElement(#labeledElement, #element*, #E)
 
-rule NSR-Elements(element*⟦ #atom #element_A2_S1 #element*⟧, {#E})
-→ NSR-Elements(#element*, {#E})
+rule NSR-Elements(element*⟦ #atom #element_A2_S1 #element*⟧, #E)
+→ NSR-Elements(#element*, #E)
 
 // This is a subrule -> generate new parser rule if non-trivial and recursively normalize
-rule NSR-Elements(element*⟦ #block #blockSuffix? #element*⟧, {#E, "@index": RULEINDEX({#I})})
-→ NSR-Block(TrivialBlock(#block, {#I}), LOC({#L}), #block, #blockSuffix?, #element*, {#E})
+rule NSR-Elements(element*⟦ #block #blockSuffix? #element*⟧, {#E, "@index": INDEX({#I})})
+→ NSR-Block(TrivialBlock(#block, {#I}), LOC({#L}), #block, #blockSuffix?, #element*, #E)
 
-rule NSR-Elements(element*⟦ #ACTION #QUESTION? #element*⟧, {#E})
-→ NSR-Elements(#element*, {#E})
+rule NSR-Elements(element*⟦ #ACTION #QUESTION? #element*⟧, #E)
+→ NSR-Elements(#element*, #E)
 
 // Labeled Element
 
-rule NSR-LabeledElement(labeledElement⟦ #id #labeledElement_S1 #atom ⟧, #element*, {#E})
-→ NSR-Elements(#element*, {#E})
+rule NSR-LabeledElement(labeledElement⟦ #id #labeledElement_S1 #atom ⟧, #element*, #E)
+→ NSR-Elements(#element*, #E)
 
-rule NSR-LabeledElement(labeledElement⟦ #id #labeledElement_S1 #block ⟧, #element*, {#E})
-→ NSR-Elements(element*⟦ #block #element* ⟧, {#E})
+rule NSR-LabeledElement(labeledElement⟦ #id #labeledElement_S1 #block ⟧, #element*, #E)
+→ NSR-Elements(element*⟦ #block #element* ⟧, #E)
 
 // Trivial block. Don't generate lifted rule
-rule NSR-Block(TRUE, #LOC, #block, #blockSuffix?, #element*, {#E})
-→ NSR-Elements(#element*, {#E})
+rule NSR-Block(TRUE, #LOC, #block, #blockSuffix?, #element*, #E)
+→ NSR-Elements(#element*, #E)
 
 // Non-Trivial block. Generate lifted rule
 rule NSR-Block(FALSE, LOC({#L}), #block, #blockSuffix?, #element*, {#E, "@sub": NUM(#count)})
-→ element*⟦ element*⟨expr:Concat(
-    NormRuleSpec(ruleSpec⟦ RULE_REF⟨expr:SubruleRuleref({#E})⟩ : ruleBlock⟨expr:Block2RuleBlock(#block)⟩ ; ⟧, {#E}),
-    NSR-Elements(#element*, {#E,"@sub": NUM(Plus( #count, 1))}))⟩ ⟧
+→ element*⟦ ⟨element*:Concat(
+    NormRuleSpec(ruleSpec⟦ ⟨RULE_REF:SubruleRuleref(#E)⟩ : ⟨ruleBlock:Block2RuleBlock(#block)⟩ ; ⟧, #E),
+    NSR-Elements(#element*, {#E,"@sub": NUM(Plus( #count, 1))}))⟩ ⟧*/
 
 //--------- Third Pass: Generate tokens
 
 //
-rule NST-Rules(#ruleSpec*, {#E}) → NST-RuleSpecs(OK, #ruleSpec*, [ok]->ruleSpec*⟦⟧, {#E})
+func NST-Rules(#ruleSpec*: List<ANTLR_ruleSpec_sort>, #E: {String:Bool}) -> List<ANTLR_ruleSpec_sort>
+→ NST-RuleSpecs(#ruleSpec*, #E, (env)->ruleSpec*⟦⟧)
 
-rule NST-RuleSpecs(OK, (), [ok]->#[ok], {#E})                      → #[OK, {#E}]
-rule NST-RuleSpecs(OK, (#ruleSpec, #ruleSpec*...), [ok]->#[ok], {#E}) → NST-RuleSpec(#ruleSpec, [ok]->NST-RuleSpecs(ok, #ruleSpec*, [ok]->#[ok]), {#E})
+func NST-RuleSpecs(List<ANTLR_ruleSpec_sort>, {String:Bool}, ({String:Bool})->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
 
+  rule NST-RuleSpecs((), #E, #result)
+  → #result(#E)
 
-rule NST-RuleSpec(ruleSpec⟦ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec?
-                            #rulePrequel* : #ruleAltList ; #exceptionHandler* #finallyClause? ⟧, [ok]->#[ok], {#E})
-→ NST-RuleAltList(#ruleAltList, [ok]->#[ok], {#E})
+  rule NST-RuleSpecs((#ruleSpec, #ruleSpec*...), #E, #result)
+  → NST-RuleSpec(#ruleSpec, #E, (env)->NST-RuleSpecs(#ruleSpec*, env, #result))
 
-rule NST-RuleSpec(#lexerSpec, [ok]->#[ok], {#E})
-→ #[OK, {#E}]
+func NST-RuleSpec(ANTLR_ruleSpec_sort, {String:Bool}, ({String:Bool})->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
 
+  rule NST-RuleSpec(ruleSpec⟦ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec?
+                              #rulePrequel* : #ruleAltList ; #exceptionHandler* #finallyClause? ⟧, #E, #result)
+  → NST-RuleAltList(#ruleAltList, #E, #result)
 
-//
-rule NST-RuleAltList(ruleAltList⟦ #labeledAlt #ruleAltList_S1* ⟧, [ok]->#[ok], {#E})
-→ NST-LabeledAlt(OK, #labeledAlt, [ok]->NST-RuleAltList_S1s(ok, #ruleAltList_S1*, [ok]->#[ok]), {#E})
-
-//
-rule NST-RuleAltList_S1s(OK, ruleAltList_S1*⟦⟧, [ok]->#[ok], {#E})
-→ #[OK, {#E}]
-
-rule NST-RuleAltList_S1s(OK, ruleAltList_S1*⟦ | #labeledAlt #ruleAltList_S1* ⟧, [ok]->#[ok], {#E})
-→ NST-LabeledAlt(OK, #labeledAlt, [ok]->NST-RuleAltList_S1s(ok, #ruleAltList_S1*, [ok]->#[ok]), {#E})
+  rule NST-RuleSpec(#lexerSpec, #E, #result)
+  → #result(#E)
 
 //
-rule NST-AltList(OK, altList⟦ #alternative #altList_S1* ⟧, [ok]->#[ok], {#E})
-→ NST-Alternative(OK, #alternative, [ok]->NST-AltList_S1s(ok, #altList_S1*, [ok]->#[ok]), {#E})
+func NST-RuleAltList(ANTLR_ruleAltList_sort, {String:Bool}, ({String:Bool})->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
+rule NST-RuleAltList(ruleAltList⟦ #labeledAlt #ruleAltList_S1* ⟧, #E, #result)
+→ NST-LabeledAlt(#labeledAlt, #E, (env)->NST-RuleAltList_S1s(#ruleAltList_S1*, env, #result))
 
 //
-rule NST-AltList_S1s(OK, altList_S1*⟦ | #alternative #altList_S1* ⟧, [ok]->#[ok], {#E})
-→ NST-Alternative(OK, #alternative, [ok]->NST-AltList_S1s(ok, #altList_S1*, [ok]->#[ok]), {#E})
+func NST-RuleAltList_S1s(List<ANTLR_ruleAltList_S1_sort>, {String:Bool}, ({String:Bool})->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
 
-rule NST-AltList_S1s(OK, altList_S1*⟦ ⟧, [ok]->#[ok], {#E})
-→ #[OK, {#E}]
+  rule NST-RuleAltList_S1s(ruleAltList_S1*⟦⟧, #E, #result)
+  → #result(#E)
 
-//
-rule NST-LabeledAlt(OK, labeledAlt⟦ #alternative #labeledAlt_S1? ⟧, [ok]->#[ok], {#E})
-→ NST-Alternative(OK, #alternative, [ok]->#[ok], {#E})
+  rule NST-RuleAltList_S1s(ruleAltList_S1*⟦ | #labeledAlt #ruleAltList_S1* ⟧, #E, #result)
+  → NST-LabeledAlt(#labeledAlt, #E, (env)->NST-RuleAltList_S1s(#ruleAltList_S1*, env, #result))
 
 //
-rule NST-Alternative(OK, alternative⟦ #elementOptions? #element* ⟧, [ok]->#[ok], {#E})
-→ NST-Elements(OK, #element*, [ok]->#[ok], {#E})
+func NST-AltList(ANTLR_altList_sort, {String:Bool}, ({String:Bool})->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
+rule NST-AltList(altList⟦ #alternative #altList_S1* ⟧, #E, #result)
+→ NST-Alternative(#alternative, #E, (env)->NST-AltList_S1s(#altList_S1*, env, #result))
 
 //
-rule NST-Elements(OK, element*⟦⟧, [ok]->#[ok], {#E})
-→ #[OK, {#E}]
+func NST-AltList_S1s(List<ANTLR_altList_S1_sort>, {String:Bool}, ({String:Bool})->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
 
-rule NST-Elements(OK, element*⟦ #labeledElement #element_A1_S1 #element* ⟧, [ok]->#[ok], {#E})
-→ NST-LabeledElement(OK, #labeledElement, #element*, [ok]->#[ok], {#E})
+  rule NST-AltList_S1s(altList_S1*⟦ | #alternative #altList_S1* ⟧, #E, #result)
+  → NST-Alternative(#alternative, #E, (env)->NST-AltList_S1s(#altList_S1*, env, #result))
 
-rule NST-Elements(OK, element*⟦ #STRING_LITERAL #elementOptions? #element_A2_S1 #element* ⟧, [ok]->#[ok], {#E})
-→ IfDef( #STRING_LITERAL, NST-Elements(OK, #element*, [ok]->#[ok], {#E}),
-     (ruleSpec⟦ TOKEN_REF⟨expr:NormMakeTokenRef(#STRING_LITERAL)⟩ : #STRING_LITERAL ; ⟧,
-            NST-Elements(OK, #element*, [ok]->#[ok], {#E, #STRING_LITERAL:TRUE})...))
+  rule NST-AltList_S1s(altList_S1*⟦ ⟧, #E, #result)
+  → #result(#E)
+
+//
+func NST-LabeledAlt(ANTLR_labeledAlt_sort, {String:Bool}, ({String:Bool})->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
+rule NST-LabeledAlt(labeledAlt⟦ #alternative #labeledAlt_S1? ⟧, #E, #result)
+→ NST-Alternative(#alternative, #E, #result)
+
+//
+func NST-Alternative(ANTLR_alternative_sort, {String:Bool}, ({String:Bool})->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
+rule NST-Alternative(alternative⟦ #elementOptions? #element* ⟧, #E, #result)
+→ NST-Elements(#element*, #E, #result)
+
+func NST-Elements(List<ANTLR_element_sort>, {String:Bool}, ({String:Bool})->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
+
+  rule NST-Elements(element*⟦⟧, #E, #result)
+  → #result(#E)
+
+  rule NST-Elements(element*⟦ #labeledElement #element_A1_S1 #element* ⟧, #E, #result)
+  → NST-LabeledElement(#labeledElement, #element*, #E, #result)
+
+  rule NST-Elements(element*⟦ #STRING_LITERAL #elementOptions? #element_A2_S1 #element* ⟧, #E, #result)
+  → if HasOption(MapGet(#E, #STRING_LITERAL))
+      NST-Elements(#element*, #E, #result)
+    else
+      (ruleSpec⟦ ⟨TOKEN_REF:NormMakeTokenRef(#STRING_LITERAL)⟩ : #STRING_LITERAL ; ⟧,
+       NST-Elements(#element*, {#E, #STRING_LITERAL:TRUE}, #result)...)
 
 
-rule NST-Elements(OK, element*⟦ #atom #element_A2_S1 #element* ⟧, [ok]->#[ok], {#E})
-→ NST-Elements(OK, #element*, [ok]->#[ok], {#E})
+  rule NST-Elements(element*⟦ #atom #element_A2_S1 #element* ⟧, #E, #result)
+  → NST-Elements(#element*, #E, #result)
 
-rule NST-Elements(OK, element*⟦ ( #block_S1? #altList ) #blockSuffix? #element* ⟧, [ok]->#[ok], {#E})
-→ NST-AltList(OK, #altList, [ok]->NST-Elements(ok, #element*, [ok]->#[ok]), {#E})
+  rule NST-Elements(element*⟦ ( #block_S1? #altList ) #blockSuffix? #element* ⟧, #E, #result)
+  → NST-AltList(#altList, #E, (env)->NST-Elements(#element*, env, #result))
 
-rule NST-Elements(OK, element*⟦ #ACTION #QUESTION? #element*⟧, [ok]->#[ok], {#E})
-→ NST-Elements(OK, #element*, [ok]->#[ok], {#E})
+  rule NST-Elements(element*⟦ #ACTION #QUESTION? #element*⟧, #E, #result)
+  → NST-Elements(#element*, #E, #result)
 
 // Labeled Element
+func NST-LabeledElement(ANTLR_labeledElement_sort, List<ANTLR_element_sort>, {String:Bool}, ({String:Bool})->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
 
-rule NST-LabeledElement(OK, labeledElement⟦ #id #labeledElement_S1 #atom ⟧, #element*, [ok]->#[ok], {#E})
-→ NST-Elements(OK, element*⟦ #atom #element* ⟧, [ok]->#[ok], {#E})
+  rule NST-LabeledElement(labeledElement⟦ #id #labeledElement_S1 #atom ⟧, #element*, #E, #result)
+  → NST-Elements(element*⟦ #atom #element* ⟧, #E, #result)
 
-rule NST-LabeledElement(OK, labeledElement⟦ #id #labeledElement_S1 #block ⟧, #element*, [ok]->#[ok], {#E})
-→ NST-Elements(element*⟦ #block #element* ⟧, [ok]->#[ok], {#E})
+  rule NST-LabeledElement(labeledElement⟦ #id #labeledElement_S1 #block ⟧, #element*, #E, #result)
+  → NST-Elements(element*⟦ #block #element* ⟧, #E, #result)
 
 // Helpers
 
-rule SubruleAtom ({#E})→  atom⟦ RULE_REF⟨expr:SubruleRuleref({#E})⟩ ⟧
+func SubruleAtom(#E: {String:NormEntry}) -> ANTLR_atom_sort
+→ atom⟦ ⟨RULE_REF:SubruleRuleref(#E)⟩ ⟧
 
 //
-rule SubruleRuleref
-({#E,
-    "@rule": STRING(#rule), "@sub": NUM(#subCount),
-    "@alt":NUM(#altCount), "@unique": BOOL(#unique)
-})→
-SubruleRuleref2(#rule, #altCount, #unique, #subCount)
+func SubruleRuleref({String:NormEntry}) -> String
+rule SubruleRuleref({#E,
+                        "@rule": STRING(#rule), "@sub": NUM(#subCount),
+                        "@alt":NUM(#altCount), "@unique": BOOL(#unique)})
+→ if #unique
+    ConcatString( #rule, "_S", FormatNumber(#subCount))
+  else
+    ConcatString( #rule, "_A", FormatNumber(#altCount), "_S", FormatNumber(#subCount))
 
-rule SubruleRuleref2(#rule, #altCount, TRUE, #subCount)
-→
-ConcatString( #rule, "_S", FormatNumber( #subCount))
-
-rule SubruleRuleref2(#rule, #altCount, FALSE, #subCount)
-→
-ConcatString( #rule, "_A", FormatNumber( #altCount), "_S", FormatNumber( #subCount))
-
+//
 func SubruleSuffix(List<ANTLR_blockSuffix_sort>) -> ANTLR_element_A2_S1_sort
 
-//
-rule SubruleSuffix(())
-→
-//%element⟨⟩; // TODO: update antlr meta parser
-ANTLR_element_A2_S1_A2
+  rule SubruleSuffix((ANTLR_blockSuffix(#ebnfSuffix),))
+  → element_A2_S1⟦ #ebnfSuffix ⟧
 
-rule SubruleSuffix((ANTLR_blockSuffix(#ebnfSuffix, {#L}),))
-→
-element_A2_S1⟦ #ebnfSuffix ⟧
+  rule SubruleSuffix(())
+  → ANTLR_element_A2_S1_A2
 
 //
-rule Block2RuleBlock(ANTLR_block(#LPAREN, (), ANTLR_altList(#alternative, #altList_S1*, {#L2}), #RPAREN, {#L}))
+func Block2RuleBlock(ANTLR_block_sort) -> ANTLR_ruleBlock_sort
+rule Block2RuleBlock(ANTLR_block(#LPAREN, (), ANTLR_altList(#alternative, #altList_S1*), #RPAREN))
 →
 //{#L}%ruleBlock⟨ #alternative #altList_S1* ⟩;
-ANTLR_ruleBlock(ANTLR_ruleAltList(ANTLR_labeledAlt(#alternative, (), {#L}), AltList2RuleAltList(#altList_S1*), {#L}), {#L})
+ANTLR_ruleBlock(ANTLR_ruleAltList(ANTLR_labeledAlt(#alternative, ()), AltList2RuleAltList(#altList_S1*)))
 
-rule AltList2RuleAltList(())
-→
-()
 
-rule AltList2RuleAltList((ANTLR_altList_S1(#OR, #alternative, {#L}), #altList_S1*...))
-→
-(ANTLR_ruleAltList_S1(#OR, ANTLR_labeledAlt(#alternative, (), {#L}), {#L}), AltList2RuleAltList(#altList_S1*)...)
+func AltList2RuleAltList(List<ANTLR_altList_S1_sort>) -> List<ANTLR_ruleAltList_S1_sort>
+
+  rule AltList2RuleAltList((ANTLR_altList_S1(#OR, #alternative), #altList_S1*...))
+  → (ANTLR_ruleAltList_S1(#OR, ANTLR_labeledAlt(#alternative, ())), AltList2RuleAltList(#altList_S1*)...)
+
+  rule AltList2RuleAltList(())
+  → ()
 
 func NormMakeToken(String, List<ANTLR_elementOptions_sort>) -> ANTLR_atom_sort
-rule NormMakeToken(#string, #elementOptions?) → atom⟦ TOKEN_REF⟨expr:NormMakeTokenRef(#string)⟩ #elementOptions? ⟧
+rule NormMakeToken(#string, #elementOptions?) → atom⟦ ⟨TOKEN_REF:NormMakeTokenRef(#string)⟩ #elementOptions? ⟧
 
 // TODO: generic algo for operators
-rule NormMakeTokenRef(#string)
+func NormMakeTokenRef(#string:String) -> String
 →
-If( Equal( #string, "'('") , ()->"LPAR"
-, ()->If( Equal( #string, "')'") , ()->"RPAR"
-, ()->If( Equal( #string, "':'") , ()->"COLON"
-, ()->If( Equal( #string, "'.'") , ()->"DOT"
-, ()->If( Equal( #string, "'..'") , ()->"DOTDOT"
-, ()->If( Equal( #string, "'--'") , ()->"DASHDASH"
-, ()->If( Equal( #string, "'::'") , ()->"COLONCOLON"
-, ()->If( Equal( #string, "'#'") , ()->"HASH"
-, ()->If( Equal( #string, "'##'") , ()->"HASHHASH"
-, ()->If( Equal( #string, "'++'") , ()->"PLUSPLUS"
-, ()->If( Equal( #string, "'*'") , ()->"STAR"
-, ()->If( Equal( #string, "'+'") , ()->"PLUS"
-, ()->If( Equal( #string, "'?'") , ()->"QUEST"
-, ()->If( Equal( #string, "','") , ()->"COMMA"
-, ()->If( Equal( #string, "'|'") , ()->"OR"
-, ()->If( Equal( #string, "'&'") , ()->"AND"
-, ()->If( Equal( #string, "'->'") , ()->"ARROW"
-, ()->If( Equal( #string, "'λ'") , ()->"LAMBDA"
-, ()->If( Equal( #string, "'@'") , ()->"AT"
-
-, ()->ConcatString( "SL", UpCase( Replace( Rescape( #string), "-", "_"))))))))))))))))))))))
+if Equal(#string, "'('")       "LPAR"
+else if Equal(#string, "')'")  "RPAR"
+else if Equal(#string, "':'")  "COLON"
+else if Equal(#string, "'.'")  "DOT"
+else if Equal(#string, "'..'") "DOTDOT"
+else if Equal(#string, "'--'") "DASHDASH"
+else if Equal(#string, "'::'") "COLONCOLON"
+else if Equal(#string, "'#'")  "HASH"
+else if Equal(#string, "'##'") "HASHHASH"
+else if Equal(#string, "'++'") "PLUSPLUS"
+else if Equal(#string, "'*'")  "STAR"
+else if Equal(#string, "'+'")  "PLUS"
+else if Equal(#string, "'?'")  "QUEST"
+else if Equal(#string, "','")  "COMMA"
+else if Equal(#string, "'|'")  "OR"
+else if Equal(#string, "'&'")  "AND"
+else if Equal(#string, "'->'") "ARROW"
+else if Equal(#string, "'λ'")  "LAMBDA"
+else if Equal(#string, "'@'")  "AT"
+else
+  ConcatString( "SL", UpCase( Replace( Rescape( #string), "-", "_")))

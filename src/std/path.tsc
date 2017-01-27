@@ -16,13 +16,17 @@ func PathJoin(#path: List<String>) -> String
 
 /* @return the last component of a path, the file name */
 func PathFileName(#path: String) -> String
-→ If<String>(Contains(#path, "/"), ()->AfterLast(#path, "/"), ()->#path)
+→ if Contains(#path, "/")
+    AfterLast(#path, "/")
+  else
+    #path
 
 /* @return the file name without the extension */
 func PathFileStem(#path: String) -> String
-→ If<String>(Contains(PathFileName(#path), "."),
-    ()->BeforeLast(PathFileName(#path), "."),
-    ()->PathFileName(#path))
+→ if Contains(PathFileName(#path), ".")
+    BeforeLast(PathFileName(#path), ".")
+  else
+    PathFileName(#path)
 
 /* @return the given path's parent */
 func PathParent(#path: List<String>) -> List<String>

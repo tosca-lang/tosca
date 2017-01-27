@@ -1,29 +1,25 @@
-/* Generated File. */
+import std::text
+import std::text::Text4
+import std::core
 
-import Text::Text
-import Std::Text
-import Std::Core
-
-
-
-enum ANTLR_grammarSpec_sort  | ANTLR_grammarSpec(List<String>, ANTLR_grammarType_sort, ANTLR_id_sort, String, List<ANTLR_prequelConstruct_sort>, ANTLR_rules_sort, List<ANTLR_modeSpec_sort>) 
+enum ANTLR_grammarSpec_sort  | ANTLR_grammarSpec(List<String>, ANTLR_grammarType_sort, ANTLR_id_sort, String, List<ANTLR_prequelConstruct_sort>, ANTLR_rules_sort, List<ANTLR_modeSpec_sort>)
 
 func ANTLR_Print_grammarSpec(ANTLR_grammarSpec_sort) -> Text4_text_sort
-rule ANTLR_Print_grammarSpec(ANTLR_grammarSpec(#1, #2, #3, #4, #5, #6, #7)) → text⟦ †⟨TextFold(Object([x]->StringToText(x), #1), text⟦ ⟧)⟩ †⟨ANTLR_Print_grammarType(#2)⟩ †⟨ANTLR_Print_id(#3)⟩ ⟨STRING:#4⟩ †⟨TextFold(Object([x]->ANTLR_Print_prequelConstruct(x), #5), text⟦ ⟧)⟩ †⟨ANTLR_Print_rules(#6)⟩ †⟨TextFold(Object([x]->ANTLR_Print_modeSpec(x), #7), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_grammarSpec(ANTLR_grammarSpec(#1, #2, #3, #4, #5, #6, #7)) → text⟦ †⟨TextFold(Map((x)->StringToText(x), #1), text⟦ ⟧)⟩ †⟨ANTLR_Print_grammarType(#2)⟩ †⟨ANTLR_Print_id(#3)⟩ ⟨STRING:#4⟩ †⟨TextFold(Map((x)->ANTLR_Print_prequelConstruct(x), #5), text⟦ ⟧)⟩ †⟨ANTLR_Print_rules(#6)⟩ †⟨TextFold(Map((x)->ANTLR_Print_modeSpec(x), #7), text⟦ ⟧)⟩⟧
 
-enum ANTLR_grammarType_sort  | ANTLR_grammarType(ANTLR_grammarType_S1_sort) 
+enum ANTLR_grammarType_sort  | ANTLR_grammarType(ANTLR_grammarType_S1_sort)
 
 func ANTLR_Print_grammarType(ANTLR_grammarType_sort) -> Text4_text_sort
 rule ANTLR_Print_grammarType(ANTLR_grammarType(#1)) → text⟦ †⟨ANTLR_Print_grammarType_S1(#1)⟩⟧
 
-enum ANTLR_grammarType_S1_sort  | ANTLR_grammarType_S1_A1(String, String) | ANTLR_grammarType_S1_A2(String, String) | ANTLR_grammarType_S1_A3(String) 
+enum ANTLR_grammarType_S1_sort  | ANTLR_grammarType_S1_A1(String, String) | ANTLR_grammarType_S1_A2(String, String) | ANTLR_grammarType_S1_A3(String)
 
 func ANTLR_Print_grammarType_S1(ANTLR_grammarType_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_grammarType_S1(ANTLR_grammarType_S1_A1(#1, #2)) → text⟦ ⟨STRING:#1⟩ ⟨STRING:#2⟩⟧
 rule ANTLR_Print_grammarType_S1(ANTLR_grammarType_S1_A2(#1, #2)) → text⟦ ⟨STRING:#1⟩ ⟨STRING:#2⟩⟧
 rule ANTLR_Print_grammarType_S1(ANTLR_grammarType_S1_A3(#1)) → text⟦ ⟨STRING:#1⟩⟧
 
-enum ANTLR_prequelConstruct_sort  | ANTLR_prequelConstruct_A1(ANTLR_optionsSpec_sort) | ANTLR_prequelConstruct_A2(ANTLR_delegateGrammars_sort) | ANTLR_prequelConstruct_A3(ANTLR_tokensSpec_sort) | ANTLR_prequelConstruct_A4(ANTLR_action_sort) 
+enum ANTLR_prequelConstruct_sort  | ANTLR_prequelConstruct_A1(ANTLR_optionsSpec_sort) | ANTLR_prequelConstruct_A2(ANTLR_delegateGrammars_sort) | ANTLR_prequelConstruct_A3(ANTLR_tokensSpec_sort) | ANTLR_prequelConstruct_A4(ANTLR_action_sort)
 
 func ANTLR_Print_prequelConstruct(ANTLR_prequelConstruct_sort) -> Text4_text_sort
 rule ANTLR_Print_prequelConstruct(ANTLR_prequelConstruct_A1(#1)) → text⟦ †⟨ANTLR_Print_optionsSpec(#1)⟩⟧
@@ -31,150 +27,150 @@ rule ANTLR_Print_prequelConstruct(ANTLR_prequelConstruct_A2(#1)) → text⟦ †
 rule ANTLR_Print_prequelConstruct(ANTLR_prequelConstruct_A3(#1)) → text⟦ †⟨ANTLR_Print_tokensSpec(#1)⟩⟧
 rule ANTLR_Print_prequelConstruct(ANTLR_prequelConstruct_A4(#1)) → text⟦ †⟨ANTLR_Print_action(#1)⟩⟧
 
-enum ANTLR_optionsSpec_sort  | ANTLR_optionsSpec(String, List<ANTLR_optionsSpec_S1_sort>, String) 
+enum ANTLR_optionsSpec_sort  | ANTLR_optionsSpec(String, List<ANTLR_optionsSpec_S1_sort>, String)
 
 func ANTLR_Print_optionsSpec(ANTLR_optionsSpec_sort) -> Text4_text_sort
-rule ANTLR_Print_optionsSpec(ANTLR_optionsSpec(#1, #2, #3)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Object([x]->ANTLR_Print_optionsSpec_S1(x), #2), text⟦ ⟧)⟩ ⟨STRING:#3⟩⟧
+rule ANTLR_Print_optionsSpec(ANTLR_optionsSpec(#1, #2, #3)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Map((x)->ANTLR_Print_optionsSpec_S1(x), #2), text⟦ ⟧)⟩ ⟨STRING:#3⟩⟧
 
-enum ANTLR_optionsSpec_S1_sort  | ANTLR_optionsSpec_S1(ANTLR_option_sort, String) 
+enum ANTLR_optionsSpec_S1_sort  | ANTLR_optionsSpec_S1(ANTLR_option_sort, String)
 
 func ANTLR_Print_optionsSpec_S1(ANTLR_optionsSpec_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_optionsSpec_S1(ANTLR_optionsSpec_S1(#1, #2)) → text⟦ †⟨ANTLR_Print_option(#1)⟩ ⟨STRING:#2⟩⟧
 
-enum ANTLR_option_sort  | ANTLR_option(ANTLR_id_sort, String, ANTLR_optionValue_sort) 
+enum ANTLR_option_sort  | ANTLR_option(ANTLR_id_sort, String, ANTLR_optionValue_sort)
 
 func ANTLR_Print_option(ANTLR_option_sort) -> Text4_text_sort
 rule ANTLR_Print_option(ANTLR_option(#1, #2, #3)) → text⟦ †⟨ANTLR_Print_id(#1)⟩ ⟨STRING:#2⟩ †⟨ANTLR_Print_optionValue(#3)⟩⟧
 
-enum ANTLR_optionValue_sort  | ANTLR_optionValue_A1(ANTLR_id_sort, List<ANTLR_optionValue_A1_S1_sort>) | ANTLR_optionValue_A2(String) | ANTLR_optionValue_A3(String) | ANTLR_optionValue_A4(String) 
+enum ANTLR_optionValue_sort  | ANTLR_optionValue_A1(ANTLR_id_sort, List<ANTLR_optionValue_A1_S1_sort>) | ANTLR_optionValue_A2(String) | ANTLR_optionValue_A3(String) | ANTLR_optionValue_A4(String)
 
 func ANTLR_Print_optionValue(ANTLR_optionValue_sort) -> Text4_text_sort
-rule ANTLR_Print_optionValue(ANTLR_optionValue_A1(#1, #2)) → text⟦ †⟨ANTLR_Print_id(#1)⟩ †⟨TextFold(Object([x]->ANTLR_Print_optionValue_A1_S1(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_optionValue(ANTLR_optionValue_A1(#1, #2)) → text⟦ †⟨ANTLR_Print_id(#1)⟩ †⟨TextFold(Map((x)->ANTLR_Print_optionValue_A1_S1(x), #2), text⟦ ⟧)⟩⟧
 rule ANTLR_Print_optionValue(ANTLR_optionValue_A2(#1)) → text⟦ ⟨STRING:#1⟩⟧
 rule ANTLR_Print_optionValue(ANTLR_optionValue_A3(#1)) → text⟦ ⟨STRING:#1⟩⟧
 rule ANTLR_Print_optionValue(ANTLR_optionValue_A4(#1)) → text⟦ ⟨STRING:#1⟩⟧
 
-enum ANTLR_optionValue_A1_S1_sort  | ANTLR_optionValue_A1_S1(String, ANTLR_id_sort) 
+enum ANTLR_optionValue_A1_S1_sort  | ANTLR_optionValue_A1_S1(String, ANTLR_id_sort)
 
 func ANTLR_Print_optionValue_A1_S1(ANTLR_optionValue_A1_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_optionValue_A1_S1(ANTLR_optionValue_A1_S1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_id(#2)⟩⟧
 
-enum ANTLR_delegateGrammars_sort  | ANTLR_delegateGrammars(String, ANTLR_delegateGrammar_sort, List<ANTLR_delegateGrammars_S1_sort>, String) 
+enum ANTLR_delegateGrammars_sort  | ANTLR_delegateGrammars(String, ANTLR_delegateGrammar_sort, List<ANTLR_delegateGrammars_S1_sort>, String)
 
 func ANTLR_Print_delegateGrammars(ANTLR_delegateGrammars_sort) -> Text4_text_sort
-rule ANTLR_Print_delegateGrammars(ANTLR_delegateGrammars(#1, #2, #3, #4)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_delegateGrammar(#2)⟩ †⟨TextFold(Object([x]->ANTLR_Print_delegateGrammars_S1(x), #3), text⟦ ⟧)⟩ ⟨STRING:#4⟩⟧
+rule ANTLR_Print_delegateGrammars(ANTLR_delegateGrammars(#1, #2, #3, #4)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_delegateGrammar(#2)⟩ †⟨TextFold(Map((x)->ANTLR_Print_delegateGrammars_S1(x), #3), text⟦ ⟧)⟩ ⟨STRING:#4⟩⟧
 
-enum ANTLR_delegateGrammars_S1_sort  | ANTLR_delegateGrammars_S1(String, ANTLR_delegateGrammar_sort) 
+enum ANTLR_delegateGrammars_S1_sort  | ANTLR_delegateGrammars_S1(String, ANTLR_delegateGrammar_sort)
 
 func ANTLR_Print_delegateGrammars_S1(ANTLR_delegateGrammars_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_delegateGrammars_S1(ANTLR_delegateGrammars_S1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_delegateGrammar(#2)⟩⟧
 
-enum ANTLR_delegateGrammar_sort  | ANTLR_delegateGrammar_A1(ANTLR_id_sort, String, ANTLR_id_sort) | ANTLR_delegateGrammar_A2(ANTLR_id_sort) 
+enum ANTLR_delegateGrammar_sort  | ANTLR_delegateGrammar_A1(ANTLR_id_sort, String, ANTLR_id_sort) | ANTLR_delegateGrammar_A2(ANTLR_id_sort)
 
 func ANTLR_Print_delegateGrammar(ANTLR_delegateGrammar_sort) -> Text4_text_sort
 rule ANTLR_Print_delegateGrammar(ANTLR_delegateGrammar_A1(#1, #2, #3)) → text⟦ †⟨ANTLR_Print_id(#1)⟩ ⟨STRING:#2⟩ †⟨ANTLR_Print_id(#3)⟩⟧
 rule ANTLR_Print_delegateGrammar(ANTLR_delegateGrammar_A2(#1)) → text⟦ †⟨ANTLR_Print_id(#1)⟩⟧
 
-enum ANTLR_tokensSpec_sort  | ANTLR_tokensSpec(String, ANTLR_id_sort, List<ANTLR_tokensSpec_S1_sort>, List<String>, String) 
+enum ANTLR_tokensSpec_sort  | ANTLR_tokensSpec(String, ANTLR_id_sort, List<ANTLR_tokensSpec_S1_sort>, List<String>, String)
 
 func ANTLR_Print_tokensSpec(ANTLR_tokensSpec_sort) -> Text4_text_sort
-rule ANTLR_Print_tokensSpec(ANTLR_tokensSpec(#1, #2, #3, #4, #5)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_id(#2)⟩ †⟨TextFold(Object([x]->ANTLR_Print_tokensSpec_S1(x), #3), text⟦ ⟧)⟩ †⟨TextFold(Object([x]->StringToText(x), #4), text⟦ ⟧)⟩ ⟨STRING:#5⟩⟧
+rule ANTLR_Print_tokensSpec(ANTLR_tokensSpec(#1, #2, #3, #4, #5)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_id(#2)⟩ †⟨TextFold(Map((x)->ANTLR_Print_tokensSpec_S1(x), #3), text⟦ ⟧)⟩ †⟨TextFold(Map((x)->StringToText(x), #4), text⟦ ⟧)⟩ ⟨STRING:#5⟩⟧
 
-enum ANTLR_tokensSpec_S1_sort  | ANTLR_tokensSpec_S1(String, ANTLR_id_sort) 
+enum ANTLR_tokensSpec_S1_sort  | ANTLR_tokensSpec_S1(String, ANTLR_id_sort)
 
 func ANTLR_Print_tokensSpec_S1(ANTLR_tokensSpec_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_tokensSpec_S1(ANTLR_tokensSpec_S1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_id(#2)⟩⟧
 
-enum ANTLR_action_sort  | ANTLR_action(String, List<ANTLR_action_S1_sort>, ANTLR_id_sort, String) 
+enum ANTLR_action_sort  | ANTLR_action(String, List<ANTLR_action_S1_sort>, ANTLR_id_sort, String)
 
 func ANTLR_Print_action(ANTLR_action_sort) -> Text4_text_sort
-rule ANTLR_Print_action(ANTLR_action(#1, #2, #3, #4)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Object([x]->ANTLR_Print_action_S1(x), #2), text⟦ ⟧)⟩ †⟨ANTLR_Print_id(#3)⟩ ⟨STRING:#4⟩⟧
+rule ANTLR_Print_action(ANTLR_action(#1, #2, #3, #4)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Map((x)->ANTLR_Print_action_S1(x), #2), text⟦ ⟧)⟩ †⟨ANTLR_Print_id(#3)⟩ ⟨STRING:#4⟩⟧
 
-enum ANTLR_action_S1_sort  | ANTLR_action_S1(ANTLR_actionScopeName_sort, String) 
+enum ANTLR_action_S1_sort  | ANTLR_action_S1(ANTLR_actionScopeName_sort, String)
 
 func ANTLR_Print_action_S1(ANTLR_action_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_action_S1(ANTLR_action_S1(#1, #2)) → text⟦ †⟨ANTLR_Print_actionScopeName(#1)⟩ ⟨STRING:#2⟩⟧
 
-enum ANTLR_actionScopeName_sort  | ANTLR_actionScopeName_A1(ANTLR_id_sort) | ANTLR_actionScopeName_A2(String) | ANTLR_actionScopeName_A3(String) 
+enum ANTLR_actionScopeName_sort  | ANTLR_actionScopeName_A1(ANTLR_id_sort) | ANTLR_actionScopeName_A2(String) | ANTLR_actionScopeName_A3(String)
 
 func ANTLR_Print_actionScopeName(ANTLR_actionScopeName_sort) -> Text4_text_sort
 rule ANTLR_Print_actionScopeName(ANTLR_actionScopeName_A1(#1)) → text⟦ †⟨ANTLR_Print_id(#1)⟩⟧
 rule ANTLR_Print_actionScopeName(ANTLR_actionScopeName_A2(#1)) → text⟦ ⟨STRING:#1⟩⟧
 rule ANTLR_Print_actionScopeName(ANTLR_actionScopeName_A3(#1)) → text⟦ ⟨STRING:#1⟩⟧
 
-enum ANTLR_modeSpec_sort  | ANTLR_modeSpec(String, ANTLR_id_sort, String, List<ANTLR_lexerRule_sort>) 
+enum ANTLR_modeSpec_sort  | ANTLR_modeSpec(String, ANTLR_id_sort, String, List<ANTLR_lexerRule_sort>)
 
 func ANTLR_Print_modeSpec(ANTLR_modeSpec_sort) -> Text4_text_sort
-rule ANTLR_Print_modeSpec(ANTLR_modeSpec(#1, #2, #3, #4)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_id(#2)⟩ ⟨STRING:#3⟩ †⟨TextFold(Object([x]->ANTLR_Print_lexerRule(x), #4), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_modeSpec(ANTLR_modeSpec(#1, #2, #3, #4)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_id(#2)⟩ ⟨STRING:#3⟩ †⟨TextFold(Map((x)->ANTLR_Print_lexerRule(x), #4), text⟦ ⟧)⟩⟧
 
-enum ANTLR_rules_sort  | ANTLR_rules(List<ANTLR_ruleSpec_sort>) 
+enum ANTLR_rules_sort  | ANTLR_rules(List<ANTLR_ruleSpec_sort>)
 
 func ANTLR_Print_rules(ANTLR_rules_sort) -> Text4_text_sort
-rule ANTLR_Print_rules(ANTLR_rules(#1)) → text⟦ †⟨TextFold(Object([x]->ANTLR_Print_ruleSpec(x), #1), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_rules(ANTLR_rules(#1)) → text⟦ †⟨TextFold(Map((x)->ANTLR_Print_ruleSpec(x), #1), text⟦ ⟧)⟩⟧
 
-enum ANTLR_ruleSpec_sort  | ANTLR_ruleSpec_A1(ANTLR_parserRuleSpec_sort) | ANTLR_ruleSpec_A2(ANTLR_lexerRule_sort) 
+enum ANTLR_ruleSpec_sort  | ANTLR_ruleSpec_A1(ANTLR_parserRuleSpec_sort) | ANTLR_ruleSpec_A2(ANTLR_lexerRule_sort)
 
 func ANTLR_Print_ruleSpec(ANTLR_ruleSpec_sort) -> Text4_text_sort
 rule ANTLR_Print_ruleSpec(ANTLR_ruleSpec_A1(#1)) → text⟦¶†⟨ANTLR_Print_parserRuleSpec(#1)⟩⟧
 rule ANTLR_Print_ruleSpec(ANTLR_ruleSpec_A2(#1)) → text⟦¶†⟨ANTLR_Print_lexerRule(#1)⟩⟧
 
-enum ANTLR_parserRuleSpec_sort  | ANTLR_parserRuleSpec(List<String>, List<ANTLR_ruleModifiers_sort>, String, List<String>, List<ANTLR_ruleReturns_sort>, List<ANTLR_throwsSpec_sort>, List<ANTLR_localsSpec_sort>, List<ANTLR_rulePrequel_sort>, String, ANTLR_ruleBlock_sort, String, ANTLR_exceptionGroup_sort) 
+enum ANTLR_parserRuleSpec_sort  | ANTLR_parserRuleSpec(List<String>, List<ANTLR_ruleModifiers_sort>, String, List<String>, List<ANTLR_ruleReturns_sort>, List<ANTLR_throwsSpec_sort>, List<ANTLR_localsSpec_sort>, List<ANTLR_rulePrequel_sort>, String, ANTLR_ruleBlock_sort, String, ANTLR_exceptionGroup_sort)
 
 func ANTLR_Print_parserRuleSpec(ANTLR_parserRuleSpec_sort) -> Text4_text_sort
-rule ANTLR_Print_parserRuleSpec(ANTLR_parserRuleSpec(#1, #2, #3, #4, #5, #6, #7, #8, #9, #10, #11, #12)) → text⟦ †⟨TextFold(Object([x]->StringToText(x), #1), text⟦ ⟧)⟩ †⟨TextFold(Object([x]->ANTLR_Print_ruleModifiers(x), #2), text⟦ ⟧)⟩ ⟨STRING:#3⟩ †⟨TextFold(Object([x]->StringToText(x), #4), text⟦ ⟧)⟩ †⟨TextFold(Object([x]->ANTLR_Print_ruleReturns(x), #5), text⟦ ⟧)⟩ †⟨TextFold(Object([x]->ANTLR_Print_throwsSpec(x), #6), text⟦ ⟧)⟩ †⟨TextFold(Object([x]->ANTLR_Print_localsSpec(x), #7), text⟦ ⟧)⟩ †⟨TextFold(Object([x]->ANTLR_Print_rulePrequel(x), #8), text⟦ ⟧)⟩ ⟨STRING:#9⟩ †⟨ANTLR_Print_ruleBlock(#10)⟩ ⟨STRING:#11⟩ †⟨ANTLR_Print_exceptionGroup(#12)⟩⟧
+rule ANTLR_Print_parserRuleSpec(ANTLR_parserRuleSpec(#1, #2, #3, #4, #5, #6, #7, #8, #9, #10, #11, #12)) → text⟦ †⟨TextFold(Map((x)->StringToText(x), #1), text⟦ ⟧)⟩ †⟨TextFold(Map((x)->ANTLR_Print_ruleModifiers(x), #2), text⟦ ⟧)⟩ ⟨STRING:#3⟩ †⟨TextFold(Map((x)->StringToText(x), #4), text⟦ ⟧)⟩ †⟨TextFold(Map((x)->ANTLR_Print_ruleReturns(x), #5), text⟦ ⟧)⟩ †⟨TextFold(Map((x)->ANTLR_Print_throwsSpec(x), #6), text⟦ ⟧)⟩ †⟨TextFold(Map((x)->ANTLR_Print_localsSpec(x), #7), text⟦ ⟧)⟩ †⟨TextFold(Map((x)->ANTLR_Print_rulePrequel(x), #8), text⟦ ⟧)⟩ ⟨STRING:#9⟩ †⟨ANTLR_Print_ruleBlock(#10)⟩ ⟨STRING:#11⟩ †⟨ANTLR_Print_exceptionGroup(#12)⟩⟧
 
-enum ANTLR_exceptionGroup_sort  | ANTLR_exceptionGroup(List<ANTLR_exceptionHandler_sort>, List<ANTLR_finallyClause_sort>) 
+enum ANTLR_exceptionGroup_sort  | ANTLR_exceptionGroup(List<ANTLR_exceptionHandler_sort>, List<ANTLR_finallyClause_sort>)
 
 func ANTLR_Print_exceptionGroup(ANTLR_exceptionGroup_sort) -> Text4_text_sort
-rule ANTLR_Print_exceptionGroup(ANTLR_exceptionGroup(#1, #2)) → text⟦ †⟨TextFold(Object([x]->ANTLR_Print_exceptionHandler(x), #1), text⟦ ⟧)⟩ †⟨TextFold(Object([x]->ANTLR_Print_finallyClause(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_exceptionGroup(ANTLR_exceptionGroup(#1, #2)) → text⟦ †⟨TextFold(Map((x)->ANTLR_Print_exceptionHandler(x), #1), text⟦ ⟧)⟩ †⟨TextFold(Map((x)->ANTLR_Print_finallyClause(x), #2), text⟦ ⟧)⟩⟧
 
-enum ANTLR_exceptionHandler_sort  | ANTLR_exceptionHandler(String, String, String) 
+enum ANTLR_exceptionHandler_sort  | ANTLR_exceptionHandler(String, String, String)
 
 func ANTLR_Print_exceptionHandler(ANTLR_exceptionHandler_sort) -> Text4_text_sort
 rule ANTLR_Print_exceptionHandler(ANTLR_exceptionHandler(#1, #2, #3)) → text⟦ ⟨STRING:#1⟩ ⟨STRING:#2⟩ ⟨STRING:#3⟩⟧
 
-enum ANTLR_finallyClause_sort  | ANTLR_finallyClause(String, String) 
+enum ANTLR_finallyClause_sort  | ANTLR_finallyClause(String, String)
 
 func ANTLR_Print_finallyClause(ANTLR_finallyClause_sort) -> Text4_text_sort
 rule ANTLR_Print_finallyClause(ANTLR_finallyClause(#1, #2)) → text⟦ ⟨STRING:#1⟩ ⟨STRING:#2⟩⟧
 
-enum ANTLR_rulePrequel_sort  | ANTLR_rulePrequel_A1(ANTLR_optionsSpec_sort) | ANTLR_rulePrequel_A2(ANTLR_ruleAction_sort) 
+enum ANTLR_rulePrequel_sort  | ANTLR_rulePrequel_A1(ANTLR_optionsSpec_sort) | ANTLR_rulePrequel_A2(ANTLR_ruleAction_sort)
 
 func ANTLR_Print_rulePrequel(ANTLR_rulePrequel_sort) -> Text4_text_sort
 rule ANTLR_Print_rulePrequel(ANTLR_rulePrequel_A1(#1)) → text⟦ †⟨ANTLR_Print_optionsSpec(#1)⟩⟧
 rule ANTLR_Print_rulePrequel(ANTLR_rulePrequel_A2(#1)) → text⟦ †⟨ANTLR_Print_ruleAction(#1)⟩⟧
 
-enum ANTLR_ruleReturns_sort  | ANTLR_ruleReturns(String, String) 
+enum ANTLR_ruleReturns_sort  | ANTLR_ruleReturns(String, String)
 
 func ANTLR_Print_ruleReturns(ANTLR_ruleReturns_sort) -> Text4_text_sort
 rule ANTLR_Print_ruleReturns(ANTLR_ruleReturns(#1, #2)) → text⟦ ⟨STRING:#1⟩ ⟨STRING:#2⟩⟧
 
-enum ANTLR_throwsSpec_sort  | ANTLR_throwsSpec(String, ANTLR_id_sort, List<ANTLR_throwsSpec_S1_sort>) 
+enum ANTLR_throwsSpec_sort  | ANTLR_throwsSpec(String, ANTLR_id_sort, List<ANTLR_throwsSpec_S1_sort>)
 
 func ANTLR_Print_throwsSpec(ANTLR_throwsSpec_sort) -> Text4_text_sort
-rule ANTLR_Print_throwsSpec(ANTLR_throwsSpec(#1, #2, #3)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_id(#2)⟩ †⟨TextFold(Object([x]->ANTLR_Print_throwsSpec_S1(x), #3), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_throwsSpec(ANTLR_throwsSpec(#1, #2, #3)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_id(#2)⟩ †⟨TextFold(Map((x)->ANTLR_Print_throwsSpec_S1(x), #3), text⟦ ⟧)⟩⟧
 
-enum ANTLR_throwsSpec_S1_sort  | ANTLR_throwsSpec_S1(String, ANTLR_id_sort) 
+enum ANTLR_throwsSpec_S1_sort  | ANTLR_throwsSpec_S1(String, ANTLR_id_sort)
 
 func ANTLR_Print_throwsSpec_S1(ANTLR_throwsSpec_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_throwsSpec_S1(ANTLR_throwsSpec_S1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_id(#2)⟩⟧
 
-enum ANTLR_localsSpec_sort  | ANTLR_localsSpec(String, String) 
+enum ANTLR_localsSpec_sort  | ANTLR_localsSpec(String, String)
 
 func ANTLR_Print_localsSpec(ANTLR_localsSpec_sort) -> Text4_text_sort
 rule ANTLR_Print_localsSpec(ANTLR_localsSpec(#1, #2)) → text⟦ ⟨STRING:#1⟩ ⟨STRING:#2⟩⟧
 
-enum ANTLR_ruleAction_sort  | ANTLR_ruleAction(String, ANTLR_id_sort, String) 
+enum ANTLR_ruleAction_sort  | ANTLR_ruleAction(String, ANTLR_id_sort, String)
 
 func ANTLR_Print_ruleAction(ANTLR_ruleAction_sort) -> Text4_text_sort
 rule ANTLR_Print_ruleAction(ANTLR_ruleAction(#1, #2, #3)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_id(#2)⟩ ⟨STRING:#3⟩⟧
 
-enum ANTLR_ruleModifiers_sort  | ANTLR_ruleModifiers(List<ANTLR_ruleModifier_sort>) 
+enum ANTLR_ruleModifiers_sort  | ANTLR_ruleModifiers(List<ANTLR_ruleModifier_sort>)
 
 func ANTLR_Print_ruleModifiers(ANTLR_ruleModifiers_sort) -> Text4_text_sort
-rule ANTLR_Print_ruleModifiers(ANTLR_ruleModifiers(#1)) → text⟦ †⟨TextFold(Object([x]->ANTLR_Print_ruleModifier(x), #1), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_ruleModifiers(ANTLR_ruleModifiers(#1)) → text⟦ †⟨TextFold(Map((x)->ANTLR_Print_ruleModifier(x), #1), text⟦ ⟧)⟩⟧
 
-enum ANTLR_ruleModifier_sort  | ANTLR_ruleModifier_A1(String) | ANTLR_ruleModifier_A2(String) | ANTLR_ruleModifier_A3(String) | ANTLR_ruleModifier_A4(String) 
+enum ANTLR_ruleModifier_sort  | ANTLR_ruleModifier_A1(String) | ANTLR_ruleModifier_A2(String) | ANTLR_ruleModifier_A3(String) | ANTLR_ruleModifier_A4(String)
 
 func ANTLR_Print_ruleModifier(ANTLR_ruleModifier_sort) -> Text4_text_sort
 rule ANTLR_Print_ruleModifier(ANTLR_ruleModifier_A1(#1)) → text⟦ ⟨STRING:#1⟩⟧
@@ -182,190 +178,190 @@ rule ANTLR_Print_ruleModifier(ANTLR_ruleModifier_A2(#1)) → text⟦ ⟨STRING:#
 rule ANTLR_Print_ruleModifier(ANTLR_ruleModifier_A3(#1)) → text⟦ ⟨STRING:#1⟩⟧
 rule ANTLR_Print_ruleModifier(ANTLR_ruleModifier_A4(#1)) → text⟦ ⟨STRING:#1⟩⟧
 
-enum ANTLR_ruleBlock_sort  | ANTLR_ruleBlock(ANTLR_ruleAltList_sort) 
+enum ANTLR_ruleBlock_sort  | ANTLR_ruleBlock(ANTLR_ruleAltList_sort)
 
 func ANTLR_Print_ruleBlock(ANTLR_ruleBlock_sort) -> Text4_text_sort
 rule ANTLR_Print_ruleBlock(ANTLR_ruleBlock(#1)) → text⟦ †⟨ANTLR_Print_ruleAltList(#1)⟩⟧
 
-enum ANTLR_ruleAltList_sort  | ANTLR_ruleAltList(ANTLR_labeledAlt_sort, List<ANTLR_ruleAltList_S1_sort>) 
+enum ANTLR_ruleAltList_sort  | ANTLR_ruleAltList(ANTLR_labeledAlt_sort, List<ANTLR_ruleAltList_S1_sort>)
 
 func ANTLR_Print_ruleAltList(ANTLR_ruleAltList_sort) -> Text4_text_sort
-rule ANTLR_Print_ruleAltList(ANTLR_ruleAltList(#1, #2)) → text⟦†⟨ANTLR_Print_labeledAlt(#1)⟩ †⟨TextFold(Object([x]->ANTLR_Print_ruleAltList_S1(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_ruleAltList(ANTLR_ruleAltList(#1, #2)) → text⟦†⟨ANTLR_Print_labeledAlt(#1)⟩ †⟨TextFold(Map((x)->ANTLR_Print_ruleAltList_S1(x), #2), text⟦ ⟧)⟩⟧
 
-enum ANTLR_ruleAltList_S1_sort  | ANTLR_ruleAltList_S1(String, ANTLR_labeledAlt_sort) 
+enum ANTLR_ruleAltList_S1_sort  | ANTLR_ruleAltList_S1(String, ANTLR_labeledAlt_sort)
 
 func ANTLR_Print_ruleAltList_S1(ANTLR_ruleAltList_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_ruleAltList_S1(ANTLR_ruleAltList_S1(#1, #2)) → text⟦¶⟨STRING:#1⟩ †⟨ANTLR_Print_labeledAlt(#2)⟩⟧
 
-enum ANTLR_labeledAlt_sort  | ANTLR_labeledAlt(ANTLR_alternative_sort, List<ANTLR_labeledAlt_S1_sort>) 
+enum ANTLR_labeledAlt_sort  | ANTLR_labeledAlt(ANTLR_alternative_sort, List<ANTLR_labeledAlt_S1_sort>)
 
 func ANTLR_Print_labeledAlt(ANTLR_labeledAlt_sort) -> Text4_text_sort
-rule ANTLR_Print_labeledAlt(ANTLR_labeledAlt(#1, #2)) → text⟦ †⟨ANTLR_Print_alternative(#1)⟩ †⟨TextFold(Object([x]->ANTLR_Print_labeledAlt_S1(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_labeledAlt(ANTLR_labeledAlt(#1, #2)) → text⟦ †⟨ANTLR_Print_alternative(#1)⟩ †⟨TextFold(Map((x)->ANTLR_Print_labeledAlt_S1(x), #2), text⟦ ⟧)⟩⟧
 
-enum ANTLR_labeledAlt_S1_sort  | ANTLR_labeledAlt_S1(String, ANTLR_id_sort) 
+enum ANTLR_labeledAlt_S1_sort  | ANTLR_labeledAlt_S1(String, ANTLR_id_sort)
 
 func ANTLR_Print_labeledAlt_S1(ANTLR_labeledAlt_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_labeledAlt_S1(ANTLR_labeledAlt_S1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_id(#2)⟩⟧
 
-enum ANTLR_lexerRule_sort  | ANTLR_lexerRule(List<String>, List<String>, String, String, ANTLR_lexerRuleBlock_sort, String) 
+enum ANTLR_lexerRule_sort  | ANTLR_lexerRule(List<String>, List<String>, String, String, ANTLR_lexerRuleBlock_sort, String)
 
 func ANTLR_Print_lexerRule(ANTLR_lexerRule_sort) -> Text4_text_sort
-rule ANTLR_Print_lexerRule(ANTLR_lexerRule(#1, #2, #3, #4, #5, #6)) → text⟦ †⟨TextFold(Object([x]->StringToText(x), #1), text⟦ ⟧)⟩ †⟨TextFold(Object([x]->StringToText(x), #2), text⟦ ⟧)⟩ ⟨STRING:#3⟩ ⟨STRING:#4⟩ †⟨ANTLR_Print_lexerRuleBlock(#5)⟩ ⟨STRING:#6⟩⟧
+rule ANTLR_Print_lexerRule(ANTLR_lexerRule(#1, #2, #3, #4, #5, #6)) → text⟦ †⟨TextFold(Map((x)->StringToText(x), #1), text⟦ ⟧)⟩ †⟨TextFold(Map((x)->StringToText(x), #2), text⟦ ⟧)⟩ ⟨STRING:#3⟩ ⟨STRING:#4⟩ †⟨ANTLR_Print_lexerRuleBlock(#5)⟩ ⟨STRING:#6⟩⟧
 
-enum ANTLR_lexerRuleBlock_sort  | ANTLR_lexerRuleBlock(ANTLR_lexerAltList_sort) 
+enum ANTLR_lexerRuleBlock_sort  | ANTLR_lexerRuleBlock(ANTLR_lexerAltList_sort)
 
 func ANTLR_Print_lexerRuleBlock(ANTLR_lexerRuleBlock_sort) -> Text4_text_sort
 rule ANTLR_Print_lexerRuleBlock(ANTLR_lexerRuleBlock(#1)) → text⟦ †⟨ANTLR_Print_lexerAltList(#1)⟩⟧
 
-enum ANTLR_lexerAltList_sort  | ANTLR_lexerAltList(ANTLR_lexerAlt_sort, List<ANTLR_lexerAltList_S1_sort>) 
+enum ANTLR_lexerAltList_sort  | ANTLR_lexerAltList(ANTLR_lexerAlt_sort, List<ANTLR_lexerAltList_S1_sort>)
 
 func ANTLR_Print_lexerAltList(ANTLR_lexerAltList_sort) -> Text4_text_sort
-rule ANTLR_Print_lexerAltList(ANTLR_lexerAltList(#1, #2)) → text⟦ †⟨ANTLR_Print_lexerAlt(#1)⟩ †⟨TextFold(Object([x]->ANTLR_Print_lexerAltList_S1(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_lexerAltList(ANTLR_lexerAltList(#1, #2)) → text⟦ †⟨ANTLR_Print_lexerAlt(#1)⟩ †⟨TextFold(Map((x)->ANTLR_Print_lexerAltList_S1(x), #2), text⟦ ⟧)⟩⟧
 
-enum ANTLR_lexerAltList_S1_sort  | ANTLR_lexerAltList_S1(String, ANTLR_lexerAlt_sort) 
+enum ANTLR_lexerAltList_S1_sort  | ANTLR_lexerAltList_S1(String, ANTLR_lexerAlt_sort)
 
 func ANTLR_Print_lexerAltList_S1(ANTLR_lexerAltList_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_lexerAltList_S1(ANTLR_lexerAltList_S1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_lexerAlt(#2)⟩⟧
 
-enum ANTLR_lexerAlt_sort  | ANTLR_lexerAlt_A1(ANTLR_lexerElements_sort, List<ANTLR_lexerCommands_sort>) | ANTLR_lexerAlt_A2 
+enum ANTLR_lexerAlt_sort  | ANTLR_lexerAlt_A1(ANTLR_lexerElements_sort, List<ANTLR_lexerCommands_sort>) | ANTLR_lexerAlt_A2
 
 func ANTLR_Print_lexerAlt(ANTLR_lexerAlt_sort) -> Text4_text_sort
-rule ANTLR_Print_lexerAlt(ANTLR_lexerAlt_A1(#1, #2)) → text⟦ †⟨ANTLR_Print_lexerElements(#1)⟩ †⟨TextFold(Object([x]->ANTLR_Print_lexerCommands(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_lexerAlt(ANTLR_lexerAlt_A1(#1, #2)) → text⟦ †⟨ANTLR_Print_lexerElements(#1)⟩ †⟨TextFold(Map((x)->ANTLR_Print_lexerCommands(x), #2), text⟦ ⟧)⟩⟧
 rule ANTLR_Print_lexerAlt(ANTLR_lexerAlt_A2()) → text⟦⟧
 
-enum ANTLR_lexerElements_sort  | ANTLR_lexerElements(List<ANTLR_lexerElement_sort>) 
+enum ANTLR_lexerElements_sort  | ANTLR_lexerElements(List<ANTLR_lexerElement_sort>)
 
 func ANTLR_Print_lexerElements(ANTLR_lexerElements_sort) -> Text4_text_sort
-rule ANTLR_Print_lexerElements(ANTLR_lexerElements(#1)) → text⟦ †⟨TextFold(Object([x]->ANTLR_Print_lexerElement(x), #1), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_lexerElements(ANTLR_lexerElements(#1)) → text⟦ †⟨TextFold(Map((x)->ANTLR_Print_lexerElement(x), #1), text⟦ ⟧)⟩⟧
 
-enum ANTLR_lexerElement_sort  | ANTLR_lexerElement_A1(ANTLR_labeledLexerElement_sort, List<ANTLR_ebnfSuffix_sort>) | ANTLR_lexerElement_A2(ANTLR_lexerAtom_sort, List<ANTLR_ebnfSuffix_sort>) | ANTLR_lexerElement_A3(ANTLR_lexerBlock_sort, List<ANTLR_ebnfSuffix_sort>) | ANTLR_lexerElement_A4(String, List<String>) 
+enum ANTLR_lexerElement_sort  | ANTLR_lexerElement_A1(ANTLR_labeledLexerElement_sort, List<ANTLR_ebnfSuffix_sort>) | ANTLR_lexerElement_A2(ANTLR_lexerAtom_sort, List<ANTLR_ebnfSuffix_sort>) | ANTLR_lexerElement_A3(ANTLR_lexerBlock_sort, List<ANTLR_ebnfSuffix_sort>) | ANTLR_lexerElement_A4(String, List<String>)
 
 func ANTLR_Print_lexerElement(ANTLR_lexerElement_sort) -> Text4_text_sort
-rule ANTLR_Print_lexerElement(ANTLR_lexerElement_A1(#1, #2)) → text⟦ †⟨ANTLR_Print_labeledLexerElement(#1)⟩ †⟨TextFold(Object([x]->ANTLR_Print_ebnfSuffix(x), #2), text⟦ ⟧)⟩⟧
-rule ANTLR_Print_lexerElement(ANTLR_lexerElement_A2(#1, #2)) → text⟦ †⟨ANTLR_Print_lexerAtom(#1)⟩ †⟨TextFold(Object([x]->ANTLR_Print_ebnfSuffix(x), #2), text⟦ ⟧)⟩⟧
-rule ANTLR_Print_lexerElement(ANTLR_lexerElement_A3(#1, #2)) → text⟦ †⟨ANTLR_Print_lexerBlock(#1)⟩ †⟨TextFold(Object([x]->ANTLR_Print_ebnfSuffix(x), #2), text⟦ ⟧)⟩⟧
-rule ANTLR_Print_lexerElement(ANTLR_lexerElement_A4(#1, #2)) → text⟦ ⟨STRING:#1⟩†⟨TextFold(Object([x]->StringToText(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_lexerElement(ANTLR_lexerElement_A1(#1, #2)) → text⟦ †⟨ANTLR_Print_labeledLexerElement(#1)⟩ †⟨TextFold(Map((x)->ANTLR_Print_ebnfSuffix(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_lexerElement(ANTLR_lexerElement_A2(#1, #2)) → text⟦ †⟨ANTLR_Print_lexerAtom(#1)⟩ †⟨TextFold(Map((x)->ANTLR_Print_ebnfSuffix(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_lexerElement(ANTLR_lexerElement_A3(#1, #2)) → text⟦ †⟨ANTLR_Print_lexerBlock(#1)⟩ †⟨TextFold(Map((x)->ANTLR_Print_ebnfSuffix(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_lexerElement(ANTLR_lexerElement_A4(#1, #2)) → text⟦ ⟨STRING:#1⟩†⟨TextFold(Map((x)->StringToText(x), #2), text⟦ ⟧)⟩⟧
 
-enum ANTLR_labeledLexerElement_sort  | ANTLR_labeledLexerElement(ANTLR_id_sort, ANTLR_labeledLexerElement_S1_sort, ANTLR_labeledLexerElement_S2_sort) 
+enum ANTLR_labeledLexerElement_sort  | ANTLR_labeledLexerElement(ANTLR_id_sort, ANTLR_labeledLexerElement_S1_sort, ANTLR_labeledLexerElement_S2_sort)
 
 func ANTLR_Print_labeledLexerElement(ANTLR_labeledLexerElement_sort) -> Text4_text_sort
 rule ANTLR_Print_labeledLexerElement(ANTLR_labeledLexerElement(#1, #2, #3)) → text⟦ †⟨ANTLR_Print_id(#1)⟩ †⟨ANTLR_Print_labeledLexerElement_S1(#2)⟩ †⟨ANTLR_Print_labeledLexerElement_S2(#3)⟩⟧
 
-enum ANTLR_labeledLexerElement_S1_sort  | ANTLR_labeledLexerElement_S1_A1(String) | ANTLR_labeledLexerElement_S1_A2(String) 
+enum ANTLR_labeledLexerElement_S1_sort  | ANTLR_labeledLexerElement_S1_A1(String) | ANTLR_labeledLexerElement_S1_A2(String)
 
 func ANTLR_Print_labeledLexerElement_S1(ANTLR_labeledLexerElement_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_labeledLexerElement_S1(ANTLR_labeledLexerElement_S1_A1(#1)) → text⟦ ⟨STRING:#1⟩⟧
 rule ANTLR_Print_labeledLexerElement_S1(ANTLR_labeledLexerElement_S1_A2(#1)) → text⟦ ⟨STRING:#1⟩⟧
 
-enum ANTLR_labeledLexerElement_S2_sort  | ANTLR_labeledLexerElement_S2_A1(ANTLR_lexerAtom_sort) | ANTLR_labeledLexerElement_S2_A2(ANTLR_block_sort) 
+enum ANTLR_labeledLexerElement_S2_sort  | ANTLR_labeledLexerElement_S2_A1(ANTLR_lexerAtom_sort) | ANTLR_labeledLexerElement_S2_A2(ANTLR_block_sort)
 
 func ANTLR_Print_labeledLexerElement_S2(ANTLR_labeledLexerElement_S2_sort) -> Text4_text_sort
 rule ANTLR_Print_labeledLexerElement_S2(ANTLR_labeledLexerElement_S2_A1(#1)) → text⟦ †⟨ANTLR_Print_lexerAtom(#1)⟩⟧
 rule ANTLR_Print_labeledLexerElement_S2(ANTLR_labeledLexerElement_S2_A2(#1)) → text⟦ †⟨ANTLR_Print_block(#1)⟩⟧
 
-enum ANTLR_lexerBlock_sort  | ANTLR_lexerBlock(String, ANTLR_lexerAltList_sort, String) 
+enum ANTLR_lexerBlock_sort  | ANTLR_lexerBlock(String, ANTLR_lexerAltList_sort, String)
 
 func ANTLR_Print_lexerBlock(ANTLR_lexerBlock_sort) -> Text4_text_sort
 rule ANTLR_Print_lexerBlock(ANTLR_lexerBlock(#1, #2, #3)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_lexerAltList(#2)⟩ ⟨STRING:#3⟩⟧
 
-enum ANTLR_lexerCommands_sort  | ANTLR_lexerCommands(String, ANTLR_lexerCommand_sort, List<ANTLR_lexerCommands_S1_sort>) 
+enum ANTLR_lexerCommands_sort  | ANTLR_lexerCommands(String, ANTLR_lexerCommand_sort, List<ANTLR_lexerCommands_S1_sort>)
 
 func ANTLR_Print_lexerCommands(ANTLR_lexerCommands_sort) -> Text4_text_sort
-rule ANTLR_Print_lexerCommands(ANTLR_lexerCommands(#1, #2, #3)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_lexerCommand(#2)⟩ †⟨TextFold(Object([x]->ANTLR_Print_lexerCommands_S1(x), #3), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_lexerCommands(ANTLR_lexerCommands(#1, #2, #3)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_lexerCommand(#2)⟩ †⟨TextFold(Map((x)->ANTLR_Print_lexerCommands_S1(x), #3), text⟦ ⟧)⟩⟧
 
-enum ANTLR_lexerCommands_S1_sort  | ANTLR_lexerCommands_S1(String, ANTLR_lexerCommand_sort) 
+enum ANTLR_lexerCommands_S1_sort  | ANTLR_lexerCommands_S1(String, ANTLR_lexerCommand_sort)
 
 func ANTLR_Print_lexerCommands_S1(ANTLR_lexerCommands_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_lexerCommands_S1(ANTLR_lexerCommands_S1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_lexerCommand(#2)⟩⟧
 
-enum ANTLR_lexerCommand_sort  | ANTLR_lexerCommand_A1(ANTLR_lexerCommandName_sort, String, ANTLR_lexerCommandExpr_sort, String) | ANTLR_lexerCommand_A2(ANTLR_lexerCommandName_sort) 
+enum ANTLR_lexerCommand_sort  | ANTLR_lexerCommand_A1(ANTLR_lexerCommandName_sort, String, ANTLR_lexerCommandExpr_sort, String) | ANTLR_lexerCommand_A2(ANTLR_lexerCommandName_sort)
 
 func ANTLR_Print_lexerCommand(ANTLR_lexerCommand_sort) -> Text4_text_sort
 rule ANTLR_Print_lexerCommand(ANTLR_lexerCommand_A1(#1, #2, #3, #4)) → text⟦ †⟨ANTLR_Print_lexerCommandName(#1)⟩ ⟨STRING:#2⟩ †⟨ANTLR_Print_lexerCommandExpr(#3)⟩ ⟨STRING:#4⟩⟧
 rule ANTLR_Print_lexerCommand(ANTLR_lexerCommand_A2(#1)) → text⟦ †⟨ANTLR_Print_lexerCommandName(#1)⟩⟧
 
-enum ANTLR_lexerCommandName_sort  | ANTLR_lexerCommandName_A1(ANTLR_id_sort) | ANTLR_lexerCommandName_A2(String) 
+enum ANTLR_lexerCommandName_sort  | ANTLR_lexerCommandName_A1(ANTLR_id_sort) | ANTLR_lexerCommandName_A2(String)
 
 func ANTLR_Print_lexerCommandName(ANTLR_lexerCommandName_sort) -> Text4_text_sort
 rule ANTLR_Print_lexerCommandName(ANTLR_lexerCommandName_A1(#1)) → text⟦ †⟨ANTLR_Print_id(#1)⟩⟧
 rule ANTLR_Print_lexerCommandName(ANTLR_lexerCommandName_A2(#1)) → text⟦ ⟨STRING:#1⟩⟧
 
-enum ANTLR_lexerCommandExpr_sort  | ANTLR_lexerCommandExpr_A1(ANTLR_id_sort) | ANTLR_lexerCommandExpr_A2(String) 
+enum ANTLR_lexerCommandExpr_sort  | ANTLR_lexerCommandExpr_A1(ANTLR_id_sort) | ANTLR_lexerCommandExpr_A2(String)
 
 func ANTLR_Print_lexerCommandExpr(ANTLR_lexerCommandExpr_sort) -> Text4_text_sort
 rule ANTLR_Print_lexerCommandExpr(ANTLR_lexerCommandExpr_A1(#1)) → text⟦ †⟨ANTLR_Print_id(#1)⟩⟧
 rule ANTLR_Print_lexerCommandExpr(ANTLR_lexerCommandExpr_A2(#1)) → text⟦ ⟨STRING:#1⟩⟧
 
-enum ANTLR_altList_sort  | ANTLR_altList(ANTLR_alternative_sort, List<ANTLR_altList_S1_sort>) 
+enum ANTLR_altList_sort  | ANTLR_altList(ANTLR_alternative_sort, List<ANTLR_altList_S1_sort>)
 
 func ANTLR_Print_altList(ANTLR_altList_sort) -> Text4_text_sort
-rule ANTLR_Print_altList(ANTLR_altList(#1, #2)) → text⟦ †⟨ANTLR_Print_alternative(#1)⟩ †⟨TextFold(Object([x]->ANTLR_Print_altList_S1(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_altList(ANTLR_altList(#1, #2)) → text⟦ †⟨ANTLR_Print_alternative(#1)⟩ †⟨TextFold(Map((x)->ANTLR_Print_altList_S1(x), #2), text⟦ ⟧)⟩⟧
 
-enum ANTLR_altList_S1_sort  | ANTLR_altList_S1(String, ANTLR_alternative_sort) 
+enum ANTLR_altList_S1_sort  | ANTLR_altList_S1(String, ANTLR_alternative_sort)
 
 func ANTLR_Print_altList_S1(ANTLR_altList_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_altList_S1(ANTLR_altList_S1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_alternative(#2)⟩⟧
 
-enum ANTLR_alternative_sort  | ANTLR_alternative(List<ANTLR_elementOptions_sort>, List<ANTLR_element_sort>) 
+enum ANTLR_alternative_sort  | ANTLR_alternative(List<ANTLR_elementOptions_sort>, List<ANTLR_element_sort>)
 
 func ANTLR_Print_alternative(ANTLR_alternative_sort) -> Text4_text_sort
-rule ANTLR_Print_alternative(ANTLR_alternative(#1, #2)) → text⟦ †⟨TextFold(Object([x]->ANTLR_Print_elementOptions(x), #1), text⟦ ⟧)⟩ †⟨TextFold(Object([x]->ANTLR_Print_element(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_alternative(ANTLR_alternative(#1, #2)) → text⟦ †⟨TextFold(Map((x)->ANTLR_Print_elementOptions(x), #1), text⟦ ⟧)⟩ †⟨TextFold(Map((x)->ANTLR_Print_element(x), #2), text⟦ ⟧)⟩⟧
 
-enum ANTLR_element_sort  | ANTLR_element_A1(ANTLR_labeledElement_sort, ANTLR_element_A1_S1_sort) | ANTLR_element_A2(ANTLR_atom_sort, ANTLR_element_A2_S1_sort) | ANTLR_element_A3(ANTLR_ebnf_sort) | ANTLR_element_A4(String, List<String>) 
+enum ANTLR_element_sort  | ANTLR_element_A1(ANTLR_labeledElement_sort, ANTLR_element_A1_S1_sort) | ANTLR_element_A2(ANTLR_atom_sort, ANTLR_element_A2_S1_sort) | ANTLR_element_A3(ANTLR_ebnf_sort) | ANTLR_element_A4(String, List<String>)
 
 func ANTLR_Print_element(ANTLR_element_sort) -> Text4_text_sort
 rule ANTLR_Print_element(ANTLR_element_A1(#1, #2)) → text⟦ †⟨ANTLR_Print_labeledElement(#1)⟩ †⟨ANTLR_Print_element_A1_S1(#2)⟩⟧
 rule ANTLR_Print_element(ANTLR_element_A2(#1, #2)) → text⟦ †⟨ANTLR_Print_atom(#1)⟩ †⟨ANTLR_Print_element_A2_S1(#2)⟩⟧
 rule ANTLR_Print_element(ANTLR_element_A3(#1)) → text⟦ †⟨ANTLR_Print_ebnf(#1)⟩⟧
-rule ANTLR_Print_element(ANTLR_element_A4(#1, #2)) → text⟦ ⟨STRING:#1⟩†⟨TextFold(Object([x]->StringToText(x), #2), text⟦⟧)⟩⟧
+rule ANTLR_Print_element(ANTLR_element_A4(#1, #2)) → text⟦ ⟨STRING:#1⟩†⟨TextFold(Map((x)->StringToText(x), #2), text⟦⟧)⟩⟧
 
-enum ANTLR_element_A1_S1_sort  | ANTLR_element_A1_S1_A1(ANTLR_ebnfSuffix_sort) | ANTLR_element_A1_S1_A2 
+enum ANTLR_element_A1_S1_sort  | ANTLR_element_A1_S1_A1(ANTLR_ebnfSuffix_sort) | ANTLR_element_A1_S1_A2
 
 func ANTLR_Print_element_A1_S1(ANTLR_element_A1_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_element_A1_S1(ANTLR_element_A1_S1_A1(#1)) → text⟦ †⟨ANTLR_Print_ebnfSuffix(#1)⟩⟧
 rule ANTLR_Print_element_A1_S1(ANTLR_element_A1_S1_A2()) → text⟦⟧
 
-enum ANTLR_element_A2_S1_sort  | ANTLR_element_A2_S1_A1(ANTLR_ebnfSuffix_sort) | ANTLR_element_A2_S1_A2 
+enum ANTLR_element_A2_S1_sort  | ANTLR_element_A2_S1_A1(ANTLR_ebnfSuffix_sort) | ANTLR_element_A2_S1_A2
 
 func ANTLR_Print_element_A2_S1(ANTLR_element_A2_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_element_A2_S1(ANTLR_element_A2_S1_A1(#1)) → text⟦ †⟨ANTLR_Print_ebnfSuffix(#1)⟩⟧
 rule ANTLR_Print_element_A2_S1(ANTLR_element_A2_S1_A2()) → text⟦⟧
 
-enum ANTLR_labeledElement_sort  | ANTLR_labeledElement(ANTLR_id_sort, ANTLR_labeledElement_S1_sort, ANTLR_labeledElement_S2_sort) 
+enum ANTLR_labeledElement_sort  | ANTLR_labeledElement(ANTLR_id_sort, ANTLR_labeledElement_S1_sort, ANTLR_labeledElement_S2_sort)
 
 func ANTLR_Print_labeledElement(ANTLR_labeledElement_sort) -> Text4_text_sort
 rule ANTLR_Print_labeledElement(ANTLR_labeledElement(#1, #2, #3)) → text⟦ †⟨ANTLR_Print_id(#1)⟩ †⟨ANTLR_Print_labeledElement_S1(#2)⟩ †⟨ANTLR_Print_labeledElement_S2(#3)⟩⟧
 
-enum ANTLR_labeledElement_S1_sort  | ANTLR_labeledElement_S1_A1(String) | ANTLR_labeledElement_S1_A2(String) 
+enum ANTLR_labeledElement_S1_sort  | ANTLR_labeledElement_S1_A1(String) | ANTLR_labeledElement_S1_A2(String)
 
 func ANTLR_Print_labeledElement_S1(ANTLR_labeledElement_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_labeledElement_S1(ANTLR_labeledElement_S1_A1(#1)) → text⟦ ⟨STRING:#1⟩⟧
 rule ANTLR_Print_labeledElement_S1(ANTLR_labeledElement_S1_A2(#1)) → text⟦ ⟨STRING:#1⟩⟧
 
-enum ANTLR_labeledElement_S2_sort  | ANTLR_labeledElement_S2_A1(ANTLR_atom_sort) | ANTLR_labeledElement_S2_A2(ANTLR_block_sort) 
+enum ANTLR_labeledElement_S2_sort  | ANTLR_labeledElement_S2_A1(ANTLR_atom_sort) | ANTLR_labeledElement_S2_A2(ANTLR_block_sort)
 
 func ANTLR_Print_labeledElement_S2(ANTLR_labeledElement_S2_sort) -> Text4_text_sort
 rule ANTLR_Print_labeledElement_S2(ANTLR_labeledElement_S2_A1(#1)) → text⟦ †⟨ANTLR_Print_atom(#1)⟩⟧
 rule ANTLR_Print_labeledElement_S2(ANTLR_labeledElement_S2_A2(#1)) → text⟦ †⟨ANTLR_Print_block(#1)⟩⟧
 
-enum ANTLR_ebnf_sort  | ANTLR_ebnf(ANTLR_block_sort, List<ANTLR_blockSuffix_sort>) 
+enum ANTLR_ebnf_sort  | ANTLR_ebnf(ANTLR_block_sort, List<ANTLR_blockSuffix_sort>)
 
 func ANTLR_Print_ebnf(ANTLR_ebnf_sort) -> Text4_text_sort
-rule ANTLR_Print_ebnf(ANTLR_ebnf(#1, #2)) → text⟦ †⟨ANTLR_Print_block(#1)⟩ †⟨TextFold(Object([x]->ANTLR_Print_blockSuffix(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_ebnf(ANTLR_ebnf(#1, #2)) → text⟦ †⟨ANTLR_Print_block(#1)⟩ †⟨TextFold(Map((x)->ANTLR_Print_blockSuffix(x), #2), text⟦ ⟧)⟩⟧
 
-enum ANTLR_blockSuffix_sort  | ANTLR_blockSuffix(ANTLR_ebnfSuffix_sort) 
+enum ANTLR_blockSuffix_sort  | ANTLR_blockSuffix(ANTLR_ebnfSuffix_sort)
 
 func ANTLR_Print_blockSuffix(ANTLR_blockSuffix_sort) -> Text4_text_sort
 rule ANTLR_Print_blockSuffix(ANTLR_blockSuffix(#1)) → text⟦ †⟨ANTLR_Print_ebnfSuffix(#1)⟩⟧
 
-enum ANTLR_ebnfSuffix_sort  | ANTLR_ebnfSuffix_A1(String, List<String>) | ANTLR_ebnfSuffix_A2(String, List<String>) | ANTLR_ebnfSuffix_A3(String, List<String>) 
+enum ANTLR_ebnfSuffix_sort  | ANTLR_ebnfSuffix_A1(String, List<String>) | ANTLR_ebnfSuffix_A2(String, List<String>) | ANTLR_ebnfSuffix_A3(String, List<String>)
 
 func ANTLR_Print_ebnfSuffix(ANTLR_ebnfSuffix_sort) -> Text4_text_sort
-rule ANTLR_Print_ebnfSuffix(ANTLR_ebnfSuffix_A1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Object([x]->StringToText(x), #2), text⟦ ⟧)⟩⟧
-rule ANTLR_Print_ebnfSuffix(ANTLR_ebnfSuffix_A2(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Object([x]->StringToText(x), #2), text⟦ ⟧)⟩⟧
-rule ANTLR_Print_ebnfSuffix(ANTLR_ebnfSuffix_A3(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Object([x]->StringToText(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_ebnfSuffix(ANTLR_ebnfSuffix_A1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Map((x)->StringToText(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_ebnfSuffix(ANTLR_ebnfSuffix_A2(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Map((x)->StringToText(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_ebnfSuffix(ANTLR_ebnfSuffix_A3(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Map((x)->StringToText(x), #2), text⟦ ⟧)⟩⟧
 
-enum ANTLR_lexerAtom_sort  | ANTLR_lexerAtom_A1(ANTLR_range_sort) | ANTLR_lexerAtom_A2(ANTLR_terminal_sort) | ANTLR_lexerAtom_A3(String) | ANTLR_lexerAtom_A4(ANTLR_notSet_sort) | ANTLR_lexerAtom_A5(String) | ANTLR_lexerAtom_A6(String, List<ANTLR_elementOptions_sort>) 
+enum ANTLR_lexerAtom_sort  | ANTLR_lexerAtom_A1(ANTLR_range_sort) | ANTLR_lexerAtom_A2(ANTLR_terminal_sort) | ANTLR_lexerAtom_A3(String) | ANTLR_lexerAtom_A4(ANTLR_notSet_sort) | ANTLR_lexerAtom_A5(String) | ANTLR_lexerAtom_A6(String, List<ANTLR_elementOptions_sort>)
 
 func ANTLR_Print_lexerAtom(ANTLR_lexerAtom_sort) -> Text4_text_sort
 rule ANTLR_Print_lexerAtom(ANTLR_lexerAtom_A1(#1)) → text⟦ †⟨ANTLR_Print_range(#1)⟩⟧
@@ -373,90 +369,90 @@ rule ANTLR_Print_lexerAtom(ANTLR_lexerAtom_A2(#1)) → text⟦ †⟨ANTLR_Print
 rule ANTLR_Print_lexerAtom(ANTLR_lexerAtom_A3(#1)) → text⟦ ⟨STRING:#1⟩⟧
 rule ANTLR_Print_lexerAtom(ANTLR_lexerAtom_A4(#1)) → text⟦ †⟨ANTLR_Print_notSet(#1)⟩⟧
 rule ANTLR_Print_lexerAtom(ANTLR_lexerAtom_A5(#1)) → text⟦ ⟨STRING:#1⟩⟧
-rule ANTLR_Print_lexerAtom(ANTLR_lexerAtom_A6(#1, #2)) → text⟦ ⟨STRING:#1⟩†⟨TextFold(Object([x]->ANTLR_Print_elementOptions(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_lexerAtom(ANTLR_lexerAtom_A6(#1, #2)) → text⟦ ⟨STRING:#1⟩†⟨TextFold(Map((x)->ANTLR_Print_elementOptions(x), #2), text⟦ ⟧)⟩⟧
 
-enum ANTLR_atom_sort  | ANTLR_atom_A1(ANTLR_range_sort) | ANTLR_atom_A2(ANTLR_terminal_sort) | ANTLR_atom_A3(ANTLR_ruleref_sort) | ANTLR_atom_A4(ANTLR_notSet_sort) | ANTLR_atom_A5(String, List<ANTLR_elementOptions_sort>) 
+enum ANTLR_atom_sort  | ANTLR_atom_A1(ANTLR_range_sort) | ANTLR_atom_A2(ANTLR_terminal_sort) | ANTLR_atom_A3(ANTLR_ruleref_sort) | ANTLR_atom_A4(ANTLR_notSet_sort) | ANTLR_atom_A5(String, List<ANTLR_elementOptions_sort>)
 
 func ANTLR_Print_atom(ANTLR_atom_sort) -> Text4_text_sort
 rule ANTLR_Print_atom(ANTLR_atom_A1(#1)) → text⟦ †⟨ANTLR_Print_range(#1)⟩⟧
 rule ANTLR_Print_atom(ANTLR_atom_A2(#1)) → text⟦ †⟨ANTLR_Print_terminal(#1)⟩⟧
 rule ANTLR_Print_atom(ANTLR_atom_A3(#1)) → text⟦ †⟨ANTLR_Print_ruleref(#1)⟩⟧
 rule ANTLR_Print_atom(ANTLR_atom_A4(#1)) → text⟦ †⟨ANTLR_Print_notSet(#1)⟩⟧
-rule ANTLR_Print_atom(ANTLR_atom_A5(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Object([x]->ANTLR_Print_elementOptions(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_atom(ANTLR_atom_A5(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Map((x)->ANTLR_Print_elementOptions(x), #2), text⟦ ⟧)⟩⟧
 
-enum ANTLR_notSet_sort  | ANTLR_notSet_A1(String, ANTLR_setElement_sort) | ANTLR_notSet_A2(String, ANTLR_blockSet_sort) 
+enum ANTLR_notSet_sort  | ANTLR_notSet_A1(String, ANTLR_setElement_sort) | ANTLR_notSet_A2(String, ANTLR_blockSet_sort)
 
 func ANTLR_Print_notSet(ANTLR_notSet_sort) -> Text4_text_sort
 rule ANTLR_Print_notSet(ANTLR_notSet_A1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_setElement(#2)⟩⟧
 rule ANTLR_Print_notSet(ANTLR_notSet_A2(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_blockSet(#2)⟩⟧
 
-enum ANTLR_blockSet_sort  | ANTLR_blockSet(String, ANTLR_setElement_sort, List<ANTLR_blockSet_S1_sort>, String) 
+enum ANTLR_blockSet_sort  | ANTLR_blockSet(String, ANTLR_setElement_sort, List<ANTLR_blockSet_S1_sort>, String)
 
 func ANTLR_Print_blockSet(ANTLR_blockSet_sort) -> Text4_text_sort
-rule ANTLR_Print_blockSet(ANTLR_blockSet(#1, #2, #3, #4)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_setElement(#2)⟩ †⟨TextFold(Object([x]->ANTLR_Print_blockSet_S1(x), #3), text⟦ ⟧)⟩ ⟨STRING:#4⟩⟧
+rule ANTLR_Print_blockSet(ANTLR_blockSet(#1, #2, #3, #4)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_setElement(#2)⟩ †⟨TextFold(Map((x)->ANTLR_Print_blockSet_S1(x), #3), text⟦ ⟧)⟩ ⟨STRING:#4⟩⟧
 
-enum ANTLR_blockSet_S1_sort  | ANTLR_blockSet_S1(String, ANTLR_setElement_sort) 
+enum ANTLR_blockSet_S1_sort  | ANTLR_blockSet_S1(String, ANTLR_setElement_sort)
 
 func ANTLR_Print_blockSet_S1(ANTLR_blockSet_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_blockSet_S1(ANTLR_blockSet_S1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_setElement(#2)⟩⟧
 
-enum ANTLR_setElement_sort  | ANTLR_setElement_A1(String, List<ANTLR_elementOptions_sort>) | ANTLR_setElement_A2(String, List<ANTLR_elementOptions_sort>) | ANTLR_setElement_A3(ANTLR_range_sort) | ANTLR_setElement_A4(String) 
+enum ANTLR_setElement_sort  | ANTLR_setElement_A1(String, List<ANTLR_elementOptions_sort>) | ANTLR_setElement_A2(String, List<ANTLR_elementOptions_sort>) | ANTLR_setElement_A3(ANTLR_range_sort) | ANTLR_setElement_A4(String)
 
 func ANTLR_Print_setElement(ANTLR_setElement_sort) -> Text4_text_sort
-rule ANTLR_Print_setElement(ANTLR_setElement_A1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Object([x]->ANTLR_Print_elementOptions(x), #2), text⟦ ⟧)⟩⟧
-rule ANTLR_Print_setElement(ANTLR_setElement_A2(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Object([x]->ANTLR_Print_elementOptions(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_setElement(ANTLR_setElement_A1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Map((x)->ANTLR_Print_elementOptions(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_setElement(ANTLR_setElement_A2(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Map((x)->ANTLR_Print_elementOptions(x), #2), text⟦ ⟧)⟩⟧
 rule ANTLR_Print_setElement(ANTLR_setElement_A3(#1)) → text⟦ †⟨ANTLR_Print_range(#1)⟩⟧
 rule ANTLR_Print_setElement(ANTLR_setElement_A4(#1)) → text⟦ ⟨STRING:#1⟩⟧
 
-enum ANTLR_block_sort  | ANTLR_block(String, List<ANTLR_block_S1_sort>, ANTLR_altList_sort, String) 
+enum ANTLR_block_sort  | ANTLR_block(String, List<ANTLR_block_S1_sort>, ANTLR_altList_sort, String)
 
 func ANTLR_Print_block(ANTLR_block_sort) -> Text4_text_sort
-rule ANTLR_Print_block(ANTLR_block(#1, #2, #3, #4)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Object([x]->ANTLR_Print_block_S1(x), #2), text⟦ ⟧)⟩ †⟨ANTLR_Print_altList(#3)⟩ ⟨STRING:#4⟩⟧
+rule ANTLR_Print_block(ANTLR_block(#1, #2, #3, #4)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Map((x)->ANTLR_Print_block_S1(x), #2), text⟦ ⟧)⟩ †⟨ANTLR_Print_altList(#3)⟩ ⟨STRING:#4⟩⟧
 
-enum ANTLR_block_S1_sort  | ANTLR_block_S1(List<ANTLR_optionsSpec_sort>, List<ANTLR_ruleAction_sort>, String) 
+enum ANTLR_block_S1_sort  | ANTLR_block_S1(List<ANTLR_optionsSpec_sort>, List<ANTLR_ruleAction_sort>, String)
 
 func ANTLR_Print_block_S1(ANTLR_block_S1_sort) -> Text4_text_sort
-rule ANTLR_Print_block_S1(ANTLR_block_S1(#1, #2, #3)) → text⟦ †⟨TextFold(Object([x]->ANTLR_Print_optionsSpec(x), #1), text⟦ ⟧)⟩ †⟨TextFold(Object([x]->ANTLR_Print_ruleAction(x), #2), text⟦ ⟧)⟩ ⟨STRING:#3⟩⟧
+rule ANTLR_Print_block_S1(ANTLR_block_S1(#1, #2, #3)) → text⟦ †⟨TextFold(Map((x)->ANTLR_Print_optionsSpec(x), #1), text⟦ ⟧)⟩ †⟨TextFold(Map((x)->ANTLR_Print_ruleAction(x), #2), text⟦ ⟧)⟩ ⟨STRING:#3⟩⟧
 
-enum ANTLR_ruleref_sort  | ANTLR_ruleref(String, List<String>, List<ANTLR_elementOptions_sort>) 
+enum ANTLR_ruleref_sort  | ANTLR_ruleref(String, List<String>, List<ANTLR_elementOptions_sort>)
 
 func ANTLR_Print_ruleref(ANTLR_ruleref_sort) -> Text4_text_sort
-rule ANTLR_Print_ruleref(ANTLR_ruleref(#1, #2, #3)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Object([x]->StringToText(x), #2), text⟦ ⟧)⟩ †⟨TextFold(Object([x]->ANTLR_Print_elementOptions(x), #3), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_ruleref(ANTLR_ruleref(#1, #2, #3)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Map((x)->StringToText(x), #2), text⟦ ⟧)⟩ †⟨TextFold(Map((x)->ANTLR_Print_elementOptions(x), #3), text⟦ ⟧)⟩⟧
 
-enum ANTLR_range_sort  | ANTLR_range(String, String, String) 
+enum ANTLR_range_sort  | ANTLR_range(String, String, String)
 
 func ANTLR_Print_range(ANTLR_range_sort) -> Text4_text_sort
 rule ANTLR_Print_range(ANTLR_range(#1, #2, #3)) → text⟦ ⟨STRING:#1⟩ ⟨STRING:#2⟩ ⟨STRING:#3⟩⟧
 
-enum ANTLR_terminal_sort  | ANTLR_terminal_A1(String, List<ANTLR_elementOptions_sort>) | ANTLR_terminal_A2(String, List<ANTLR_elementOptions_sort>) 
+enum ANTLR_terminal_sort  | ANTLR_terminal_A1(String, List<ANTLR_elementOptions_sort>) | ANTLR_terminal_A2(String, List<ANTLR_elementOptions_sort>)
 
 func ANTLR_Print_terminal(ANTLR_terminal_sort) -> Text4_text_sort
-rule ANTLR_Print_terminal(ANTLR_terminal_A1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Object([x]->ANTLR_Print_elementOptions(x), #2), text⟦ ⟧)⟩⟧
-rule ANTLR_Print_terminal(ANTLR_terminal_A2(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Object([x]->ANTLR_Print_elementOptions(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_terminal(ANTLR_terminal_A1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Map((x)->ANTLR_Print_elementOptions(x), #2), text⟦ ⟧)⟩⟧
+rule ANTLR_Print_terminal(ANTLR_terminal_A2(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨TextFold(Map((x)->ANTLR_Print_elementOptions(x), #2), text⟦ ⟧)⟩⟧
 
-enum ANTLR_elementOptions_sort  | ANTLR_elementOptions(String, ANTLR_elementOption_sort, List<ANTLR_elementOptions_S1_sort>, String) 
+enum ANTLR_elementOptions_sort  | ANTLR_elementOptions(String, ANTLR_elementOption_sort, List<ANTLR_elementOptions_S1_sort>, String)
 
 func ANTLR_Print_elementOptions(ANTLR_elementOptions_sort) -> Text4_text_sort
-rule ANTLR_Print_elementOptions(ANTLR_elementOptions(#1, #2, #3, #4)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_elementOption(#2)⟩ †⟨TextFold(Object([x]->ANTLR_Print_elementOptions_S1(x), #3), text⟦ ⟧)⟩ ⟨STRING:#4⟩⟧
+rule ANTLR_Print_elementOptions(ANTLR_elementOptions(#1, #2, #3, #4)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_elementOption(#2)⟩ †⟨TextFold(Map((x)->ANTLR_Print_elementOptions_S1(x), #3), text⟦ ⟧)⟩ ⟨STRING:#4⟩⟧
 
-enum ANTLR_elementOptions_S1_sort  | ANTLR_elementOptions_S1(String, ANTLR_elementOption_sort) 
+enum ANTLR_elementOptions_S1_sort  | ANTLR_elementOptions_S1(String, ANTLR_elementOption_sort)
 
 func ANTLR_Print_elementOptions_S1(ANTLR_elementOptions_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_elementOptions_S1(ANTLR_elementOptions_S1(#1, #2)) → text⟦ ⟨STRING:#1⟩ †⟨ANTLR_Print_elementOption(#2)⟩⟧
 
-enum ANTLR_elementOption_sort  | ANTLR_elementOption_A1(ANTLR_id_sort) | ANTLR_elementOption_A2(ANTLR_id_sort, String, ANTLR_elementOption_S1_sort) 
+enum ANTLR_elementOption_sort  | ANTLR_elementOption_A1(ANTLR_id_sort) | ANTLR_elementOption_A2(ANTLR_id_sort, String, ANTLR_elementOption_S1_sort)
 
 func ANTLR_Print_elementOption(ANTLR_elementOption_sort) -> Text4_text_sort
 rule ANTLR_Print_elementOption(ANTLR_elementOption_A1(#1)) → text⟦ †⟨ANTLR_Print_id(#1)⟩⟧
 rule ANTLR_Print_elementOption(ANTLR_elementOption_A2(#1, #2, #3)) → text⟦ †⟨ANTLR_Print_id(#1)⟩ ⟨STRING:#2⟩ †⟨ANTLR_Print_elementOption_S1(#3)⟩⟧
 
-enum ANTLR_elementOption_S1_sort  | ANTLR_elementOption_S1_A1(ANTLR_id_sort) | ANTLR_elementOption_S1_A2(String) 
+enum ANTLR_elementOption_S1_sort  | ANTLR_elementOption_S1_A1(ANTLR_id_sort) | ANTLR_elementOption_S1_A2(String)
 
 func ANTLR_Print_elementOption_S1(ANTLR_elementOption_S1_sort) -> Text4_text_sort
 rule ANTLR_Print_elementOption_S1(ANTLR_elementOption_S1_A1(#1)) → text⟦ †⟨ANTLR_Print_id(#1)⟩⟧
 rule ANTLR_Print_elementOption_S1(ANTLR_elementOption_S1_A2(#1)) → text⟦ ⟨STRING:#1⟩⟧
 
-enum ANTLR_id_sort  | ANTLR_id_A1(String) | ANTLR_id_A2(String) 
+enum ANTLR_id_sort  | ANTLR_id_A1(String) | ANTLR_id_A2(String)
 
 func ANTLR_Print_id(ANTLR_id_sort) -> Text4_text_sort
 rule ANTLR_Print_id(ANTLR_id_A1(#1)) → text⟦ ⟨STRING:#1⟩⟧

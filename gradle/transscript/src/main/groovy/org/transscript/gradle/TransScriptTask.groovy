@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2016 IBM Corporation.
+// Copyright (c) 2015-2017 IBM Corporation.
 package org.transscript.gradle
 
 import java.io.File; 
@@ -7,7 +7,6 @@ import javax.swing.text.InternationalFormatter.IncrementAction;
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.*
-//import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 
 class TransScriptTask extends DefaultTask {
 
@@ -54,22 +53,15 @@ class TransScriptTask extends DefaultTask {
     @Optional
     boolean nostd = false
     
-     /*  
-    TransScriptTask()
-    {
-       outputs.upToDateWhen {
-         return false
-       }
-    } */
+    @Input
+    @Optional
+    String parsers = ""
     
 	@TaskAction
-	//def generate(IncrementalTaskInputs inputs) {
 	def generate() {
         logger.info("Tosca classpath: ${project.configurations.transscript.files}")
 		
 		sources.each { source ->
-		//inputs.outOfDate { change ->
-			//def source = change.file
 			
 			logger.lifecycle "process ${source}"
 			
@@ -95,6 +87,9 @@ class TransScriptTask extends DefaultTask {
 			if (!"".equals(pkg))
 				jargs << "javabasepackage=${pkg}"
 			
+			if (!"".equals(parsers))
+				jargs << "parsers=${parsers}"
+			
 			logger.debug "run Tosca with args" + " " + jargs
 			
 			 project.javaexec {
@@ -103,13 +98,8 @@ class TransScriptTask extends DefaultTask {
 				args      = jargs
 				jvmArgs   = ['-Xss8192K', '-ea']
 			}
-		//}
 		}
 		
-		/*inputs.removed { change ->
-			def source = change.file
-			logger.lifecycle "should removed generated file corresponding to ${source}"
-		}*/
 	}
 	
 }
