@@ -126,7 +126,9 @@ public class Tool {
 		System.out.println("  location=<value>          location type name. Default is no location");
 		System.out.println("  metaprefix=<value>        meta variable prefix. Default is #");
 		System.out.println("  defaultrule=<value>       default grammar rule name.");
+		System.out.println("  catprefix=<value>         category prefix. Default is empty.");
 		System.out.println("  notext                    omit text package import (ADVANCED).");
+		System.out.println("  truevar                   enable better mapping for variable option (ADVANCED).");
 		System.out.println("  bootparserpath=<name>     where to look for builtin parsers (ADVANCED)");
 
 		System.exit(0);
@@ -471,6 +473,9 @@ public class Tool {
 		if (env.get("notext") != null)
 			System.setProperty("notext", "1");
 
+		if (env.get("truevar") != null)
+			System.setProperty("truevar", "1");
+
 		if (env.get("prefixsep") != null)
 			System.setProperty("prefixsep", env.get("prefixsep"));
 
@@ -485,6 +490,12 @@ public class Tool {
 
 		if (env.get("default") != null)
 			System.setProperty("defaultrule", env.get("defaultrule"));
+		
+		if (env.get("import") != null)
+			System.setProperty("import", env.get("import"));
+
+		if (env.get("catprefix") != null)
+			System.setProperty("catprefix", env.get("catprefix"));
 
 		System.setProperty("build-dir", resolveBuildDir(grammar, env.get("build-dir")));
 

@@ -133,9 +133,11 @@ public class StringExtern
 		return result;
 	}
 
-	public static StringTerm Rescape(Context context, StringTerm x_634)
+	public static StringTerm Rescape(Context context, StringTerm str)
 	{
-		throw new RuntimeException();
+		StringTerm result = stringTerm(StringUtils.unquoteJava(str.unbox()));
+		str.release();
+		return result;
 	}
 
 	/**

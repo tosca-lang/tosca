@@ -40,7 +40,7 @@ import std::listdef
   ()->text⟦
 import std::text::Text4
 import std::text⟧)⟩
-
+†⟨IfDef("import", ()->text⟦⟨STRING: Rescape(GetEnv("import", ""))⟩⟧, ()->text⟦⟧)⟩
 †⟨#cont({#E, "@id": STRING(#id)})⟩⟧
 
 /* Generates sort and printer for grammar rules */
