@@ -602,11 +602,12 @@ rule IsStringRuleRuleRef(#RULE_REF, #I) → IsStringRuleMaybeRule(MapGet(#I, #RU
 
 func IsStringRuleMaybeRule(Option<ANTLR_ruleSpec_sort>, String) -> Bool
 
-  rule IsStringRuleMaybeRule(NONE, #RULE_REF)
-  → Error(ConcatString("Error: undefined rule ", #RULE_REF))
 
   rule IsStringRuleMaybeRule(SOME(#ruleSpec), #RULE_REF)
   → IsStringRuleRuleSpec(#ruleSpec)
+
+  rule IsStringRuleMaybeRule(NONE, #RULE_REF)
+  → FALSE //Error(ConcatString("Error: undefined rule ", #RULE_REF))
 
 func IsStringRuleRuleSpec(ANTLR_ruleSpec_sort) -> Bool
 
@@ -736,5 +737,5 @@ func TrimEltOptionAtom(ANTLR_atom_sort) -> ANTLR_atom_sort
   rule TrimEltOptionAtom(atom⟦ #STRING_LITERAL #elementOptions? ⟧)
   → atom⟦ #STRING_LITERAL ⟧
 
-  rule TrimEltOptionAtom(atom⟦ #RULE_REF #ARG_ACTION? ⟧)
+  rule TrimEltOptionAtom(atom⟦ #RULE_REF #ARG_ACTION? #elementOptions? ⟧)
   → atom⟦ #RULE_REF #ARG_ACTION? ⟧

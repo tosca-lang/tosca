@@ -140,7 +140,9 @@ rule LexerVocab(METAPARSER, #id)  → prequelConstruct*⟦ options { tokenVocab 
 
 //
 func ParserConstructs(String, Bool, Bool, String, String) -> List<ANTLR_prequelConstruct_sort>
-  rule ParserConstructs(#id, FALSE, #meta, #header, #members)    → ()
+
+  rule ParserConstructs(#id, FALSE, #meta, #header, #members)
+  → ()
 
   // TODO: string concatenation is quite ugly. Tosca should support string template!
   rule ParserConstructs(#id, TRUE, #meta, #header, #members)
@@ -185,9 +187,9 @@ func ParserConstructs(String, Bool, Bool, String, String) -> List<ANTLR_prequelC
               "protected void _enterAlt() { fireEnterAlt(_parseListeners, _ctx); }\n",
               "protected void _exitAlt()  { fireExitAlt(_parseListeners, _ctx); }\n",
               "protected void _hide()     { fireHide(_parseListeners, _ctx); }\n",
-              "protected void _enterSymbol()  { fireEnterSymbol(_parseListeners, _ctx); }\n",
+              "protected void _enterSymbol(String type)  { fireEnterSymbol(_parseListeners, _ctx, type); }\n",
               "protected void _exitSymbol()     { fireExitSymbol(_parseListeners, _ctx); }\n",
-              "protected void _enterBinder(String name)     { fireEnterBinder(_parseListeners, _ctx, name); }\n",
+              "protected void _enterBinder(String name, String type)     { fireEnterBinder(_parseListeners, _ctx, name, type); }\n",
               "protected void _exitBinder()     { fireExitBinder(_parseListeners, _ctx); }\n",
               "protected void _enterBinds(String names) { fireEnterBinds(_parseListeners, _ctx, names); }\n",
               "protected void _exitBinds()  { fireExitBinds(_parseListeners, _ctx); }\n",
@@ -282,11 +284,11 @@ func MakeRuleSpec(ANTLR_ruleSpec_sort, Mode, ParserEnv) -> List<ANTLR_ruleSpec_s
                    #exceptionHandler* #finallyClause?⟧, #mode, IsStringRuleRuleRef(#RULE_REF, #I), #E), MakeMetaRules(#mode, #RULE_REF, ToMeta(#RULE_REF)))
 
   // Lexer rule
+  rule MakeRuleSpec(ruleSpec⟦ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟧, METAPARSER, #E)
+  → ()
+
   rule MakeRuleSpec(ruleSpec⟦ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟧, #mode, #E)
-  → if Equal(#mode, METAPARSER)
-      ()
-    else
-      (ruleSpec⟦ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟧,)
+  → (ruleSpec⟦ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟧,)
 
 // Decide to annotate or filter rule based on mode
 func MakeParserRuleSpec(ANTLR_parserRuleSpec_sort, Mode, Bool, ParserEnv) -> List<ANTLR_ruleSpec_sort>
@@ -311,8 +313,16 @@ func MakeParserRuleSpec(ANTLR_parserRuleSpec_sort, Mode, Bool, ParserEnv) -> Lis
 //
 func MakeRuleAltList(ANTLR_ruleAltList_sort, String, Mode, ParserEnv) -> ANTLR_ruleAltList_sort
 rule MakeRuleAltList(ruleAltList⟦ #alternative #labeledAlt_S1? #ruleAltList_S1* ⟧, #RULE_REF, #mode, #E)
-→ ruleAltList⟦ ⟨alternative:MakeAlternative(#alternative, #labeledAlt_S1?, IsEmpty(#ruleAltList_S1*), 1, GetElementOptionAlternative(#alternative, "variable"), GetElementOptionAlternative(#alternative, "type"), #RULE_REF, IsModeMeta(#mode), #E)⟩
-                 ⟨ruleAltList_S1*:Concat(MakeRuleAltList_S1s(#ruleAltList_S1*, 2, #RULE_REF, IsModeMeta(#mode), #E), MakeMetaAltList(#RULE_REF, #mode))⟩ ⟧
+//→ ruleAltList⟦ ⟨alternative:MakeAlternative(#alternative, #labeledAlt_S1?, IsEmpty(#ruleAltList_S1*), 1, GetElementOptionAlternative(#alternative, "variable"), GetElementOptionAlternative(#alternative, "type"), #RULE_REF, IsModeMeta(#mode), #E)⟩
+//                 ⟨ruleAltList_S1*:Concat(MakeRuleAltList_S1s(#ruleAltList_S1*, 2, #RULE_REF, IsModeMeta(#mode), #E), MakeMetaAltList(#RULE_REF, #mode))⟩ ⟧
+
+→ ReMakeRuleAltList(Concat(MakeMetaAltList(#RULE_REF, #mode),
+                    Concat(ruleAltList_S1*⟦ | ⟨alternative: MakeAlternative(#alternative, #labeledAlt_S1?, IsEmpty(#ruleAltList_S1*), 1, GetElementOptionAlternative(#alternative, "variable"), GetElementOptionAlternative(#alternative, "type"), #RULE_REF, IsModeMeta(#mode), #E)⟩ ⟧,
+                            MakeRuleAltList_S1s(#ruleAltList_S1*, 2, #RULE_REF, IsModeMeta(#mode), #E))))
+
+
+func ReMakeRuleAltList(List<ANTLR_ruleAltList_S1_sort>) -> ANTLR_ruleAltList_sort
+rule ReMakeRuleAltList(ruleAltList_S1*⟦ | #labeledAlt #ruleAltList_S1* ⟧) → ruleAltList⟦ #labeledAlt #ruleAltList_S1* ⟧
 
 //
 func MakeRuleAltList_S1s(List<ANTLR_ruleAltList_S1_sort>, Numeric, String, Bool /* Meta parser? */, ParserEnv) -> List<ANTLR_ruleAltList_S1_sort>
@@ -409,22 +419,25 @@ func MakeTail(String, Bool /* meta? */) -> List<ANTLR_element_sort>
 func MaybeHideAtom(Bool, Bool, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */) -> List<ANTLR_element_sort>
 rule MaybeHideAtom(TRUE, FALSE, #atom, #element)  → element*⟦ {_hide();} #element ⟧
 rule MaybeHideAtom(TRUE, TRUE, #atom, #element)  → element*⟦ #element ⟧
-rule MaybeHideAtom(FALSE, #strule,#atom, #element) → MaybeBinderAtom(GetElementOptionAtom(#atom, "boundvar"), #atom, #element)
+rule MaybeHideAtom(FALSE, #strule,#atom, #element) → MaybeBinderAtom(GetElementOptionAtom(#atom, "boundvar"), GetElementOptionAtom(#atom, "type"), #atom, #element)
 
 // Produce grammar for binder
-func MaybeBinderAtom(List<ElementOption>, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */) -> List<ANTLR_element_sort>
+func MaybeBinderAtom(List<ElementOption>, List<ElementOption>, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */) -> List<ANTLR_element_sort>
 
-  rule MaybeBinderAtom((), #atom, #element)
+  rule MaybeBinderAtom((), #type, #atom, #element)
   → MaybeBindsAtom(GetElementOptionAtom(#atom, "bound"), #atom, #element)
 
-  rule MaybeBinderAtom((BINDER(#binder),), #atom, #element)
-  → element*⟦ ⟨ACTION:ConcatString( "{_enterBinder(\"", #binder, "\");}")⟩ ⟨element:#element⟩ {_exitBinder();} ⟧
+  rule MaybeBinderAtom((BINDER(#binder),), (), #atom, #element)
+  → element*⟦ ⟨ACTION:ConcatString( "{_enterBinder(\"", #binder, "\",\"String\");}")⟩ ⟨element:#element⟩ {_exitBinder();} ⟧
+
+  rule MaybeBinderAtom((BINDER(#binder),), (TYPE(#type),), #atom, #element)
+  → element*⟦ ⟨ACTION:ConcatString( "{_enterBinder(\"", #binder, "\",\"", #type, "\");}")⟩ ⟨element:#element⟩ {_exitBinder();} ⟧
 
 // Produce grammar for binds
 func MaybeBindsAtom(List<ElementOption>, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */) -> List<ANTLR_element_sort>
 
   rule MaybeBindsAtom((), #atom, #element)
-  → MaybeSymbolAtom(GetElementOptionAtom(#atom, "variable"), #atom, #element)
+  → MaybeSymbolAtom(GetElementOptionAtom(#atom, "variable"), GetElementOptionAtom(#atom, "type"), #atom, #element)
 
   rule MaybeBindsAtom((#binds, #bindss...), #atom, #element)
   → element*⟦ ⟨ACTION:ConcatString(Foldl((val result)->ConcatString(result, " ", UnBINDS(val)), "{_enterBinds(\"", (#binds, #bindss...)), "\");}")⟩
@@ -432,13 +445,16 @@ func MaybeBindsAtom(List<ElementOption>, ANTLR_atom_sort /* extracted atom */, A
                {_exitBinds();} ⟧
 
 // Produce grammar for symbol
-func MaybeSymbolAtom(List<ElementOption>, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */) -> List<ANTLR_element_sort>
+func MaybeSymbolAtom(List<ElementOption>, List<ElementOption>, ANTLR_atom_sort /* extracted atom */, ANTLR_element_sort /* the atom or labeled atom */) -> List<ANTLR_element_sort>
 
-  rule MaybeSymbolAtom((), #atom, #element)
+  rule MaybeSymbolAtom((), #type, #atom, #element)
   → element*⟦ ⟨element:#element⟩ ⟧
 
-  rule MaybeSymbolAtom((SYMBOL(#ruleref),), #atom, #element)
-  → element*⟦ {_enterSymbol();} ⟨element:#element⟩ {_exitSymbol();} ⟧
+  rule MaybeSymbolAtom((SYMBOL(#ruleref),), (), #atom, #element)
+  → element*⟦ {_enterSymbol("String");} ⟨element:#element⟩ {_exitSymbol();} ⟧
+
+  rule MaybeSymbolAtom((SYMBOL(#ruleref),), (TYPE(#type),), #atom, #element)
+  → element*⟦ ⟨ACTION: ConcatString("{_enterSymbol(\"", #type, "\");}")⟩  ⟨element:#element⟩ {_exitSymbol();} ⟧
 
 // Produce grammar to hide constant productions inside a block.
 
@@ -499,7 +515,7 @@ func MakeMetaRules(Mode, String /* RULE_REF */, String /* Resolved rule ref */) 
   rule MakeMetaRules(METALEXER, #RULE_REF, #resolved)
   → (
         ruleSpec⟦ ⟨TOKEN_REF:ConcatString( "MT_", #RULE_REF)⟩  : CRSX_META_CHAR ⟨STRING_LITERAL:ConcatString( "'", #resolved, "'")⟩([0-9_][0-9a-zA-Z_]*)?('['[0-9a-z,]*']')? ; ⟧,
-        ruleSpec⟦ ⟨TOKEN_REF:ConcatString( "ET_", #RULE_REF)⟩  : CRSX_START_EMBED_CHAR ⟨STRING_LITERAL:If( Equal(#resolved, GetEnv("defaultRule", "")) , ()->"" , ()->ConcatString( "'", #resolved, ":'"))⟩  -> pushMode(CrsxEmbed); ⟧
+        ruleSpec⟦ ⟨TOKEN_REF:ConcatString( "ET_", #RULE_REF)⟩  : CRSX_START_EMBED_CHAR ⟨STRING_LITERAL:If( Equal(#resolved, GetEnv("defaultrule", "")) , ()->"" , ()->ConcatString( "'", #resolved, ":'"))⟩  -> pushMode(CrsxEmbed); ⟧
     )
 
 func MakeMetaRulesMetaParser(Bool, String /* RULE_REF */) -> List<ANTLR_ruleSpec_sort>
@@ -781,9 +797,10 @@ func MakeEbnfToken(Bool, ANTLR_atom_sort, Option<ANTLR_ebnfSuffix_sort>, ANTLR_e
 
 func MakeLiftedRule(String, ANTLR_element_sort, List<ANTLR_element_sort>, List<ANTLR_element_sort>, ParserEnv, (ParserEnv)->List<ANTLR_ruleSpec_sort>) -> List<ANTLR_ruleSpec_sort>
 rule MakeLiftedRule(#key, #element, #element*, #fused, #E, (env)->#(env))
-→ IfDef(#key,
-    ()->MakeEbnfElements(#element*, (), #E, (env)->#(env)),
-    ()->(ruleSpec⟦ ⟨RULE_REF:#key⟩ : ⟨element*:Concat(#fused, (#element,))⟩ ; ⟧ , MakeEbnfElements(#element*, (), {#E, #key: PEDEFINED}, (env)->#(env) )...))
+→ if HasOption(MapGet(#E, #key))
+    MakeEbnfElements(#element*, (), #E, (env)->#(env))
+  else
+    (ruleSpec⟦ ⟨RULE_REF:#key⟩ : ⟨element*:Concat(#fused, (#element,))⟩ ; ⟧ , MakeEbnfElements(#element*, (), {#E, #key: PEDEFINED}, (env)->#(env) )...)
 
 // -- Helpers
 

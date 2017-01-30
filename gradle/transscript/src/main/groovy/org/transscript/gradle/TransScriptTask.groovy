@@ -57,6 +57,30 @@ class TransScriptTask extends DefaultTask {
     @Optional
     String parsers = ""
     
+    @Input
+	@Optional
+	String metaprefix = ""
+	
+	@Input
+    @Optional
+    String defaultrule = ""
+    
+    @Input
+    @Optional
+    String sortsuffix = "_sort"
+    
+    @Input
+    @Optional
+    String prefixsep = "_"
+    
+    @Input
+    @Optional
+    boolean notext = false
+        
+    @Input
+    @Optional
+    String location = ""
+    
 	@TaskAction
 	def generate() {
         logger.info("Tosca classpath: ${project.configurations.transscript.files}")
@@ -68,7 +92,10 @@ class TransScriptTask extends DefaultTask {
 			def jargs = []
 				
 			jargs << command
-			jargs << "rules=${source}"
+			if ("pg".equals(command))
+				jargs << "grammar=${source}"
+			else	
+				jargs << "rules=${source}"
 			if (sourceOnly)
 				jargs << "only-source"
             if (bootstrap)
@@ -79,7 +106,18 @@ class TransScriptTask extends DefaultTask {
                 jargs << "infer"
             if (nostd)
                 jargs << "nostd"
-			jargs << "build-dir=${outputDir}" 
+            if (!"".equals(metaprefix))
+            	jargs << "metaprefix=${metaprefix}"
+            if (!"".equals(defaultrule))
+          	  	jargs << "defaultrule=${defaultrule}"
+           	jargs << "suffix=${sortsuffix}"
+           	jargs << "prefixsep=${prefixsep}"
+           	if (notext)
+                jargs << "notext"
+          	if (!"".equals(location))
+          	  	jargs << "location=${location}"
+           
+            jargs << "build-dir=${outputDir}" 
 			if (bootparserpath != null)
 				jargs << "bootparserpath=${bootparserpath}"
 			jargs << "base=${sources.dir}"

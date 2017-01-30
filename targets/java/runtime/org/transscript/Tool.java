@@ -125,7 +125,7 @@ public class Tool {
 		System.out.println("  suffix=<value>            type suffix. Default is _sort");
 		System.out.println("  location=<value>          location type name. Default is no location");
 		System.out.println("  metaprefix=<value>        meta variable prefix. Default is #");
-		System.out.println("  default=<value>           default grammar rule name.");
+		System.out.println("  defaultrule=<value>       default grammar rule name.");
 		System.out.println("  notext                    omit text package import (ADVANCED).");
 		System.out.println("  bootparserpath=<name>     where to look for builtin parsers (ADVANCED)");
 
@@ -484,7 +484,7 @@ public class Tool {
 			System.setProperty("metaprefix", env.get("metaprefix"));
 
 		if (env.get("default") != null)
-			System.setProperty("defaultRule", env.get("default"));
+			System.setProperty("defaultrule", env.get("defaultrule"));
 
 		System.setProperty("build-dir", resolveBuildDir(grammar, env.get("build-dir")));
 

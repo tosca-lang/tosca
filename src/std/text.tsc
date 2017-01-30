@@ -14,16 +14,15 @@ rule Text-Embed(#TermText) → text⟦⟨STRING:"\u27e8"⟩†⟨ #TermText ⟩�
 
 // Fragment denoting string embedded in user language text.
 
-func Text-String(Text4_text_sort) -> Text4_text_sort
-rule Text-String(#TermText) → text⟦⟨STRING:"\u2020\u2020"⟩⟨STRING:"\u27e8"⟩†⟨ #TermText ⟩⟨STRING:"\u27e9"⟩⟧
+//func Text-String(Text4_text_sort) -> Text4_text_sort
+//rule Text-String(#TermText) → text⟦⟨STRING:"\u2020\u2020"⟩⟨STRING:"\u27e8"⟩†⟨ #TermText ⟩⟨STRING:"\u27e9"⟩⟧
 
-func Text-String2(Text4_text_sort) -> Text4_text_sort
-rule Text-String2(#TermText) → text⟦⟨STRING:"\u27e8"⟩STRING: †⟨ #TermText ⟩⟨STRING:"\u27e9"⟩⟧
+func Text-String(Text4_text_sort) -> Text4_text_sort
+rule Text-String(#TermText) → text⟦⟨STRING:"\u27e8"⟩STRING: †⟨ #TermText ⟩⟨STRING:"\u27e9"⟩⟧
 
 // Fragment to be parsed as generated text (to be printed).
-
 func Text-Text(Text4_text_sort) -> Text4_text_sort
-rule Text-Text(#content) → Text-User("text", #content)
+rule Text-Text(#content) → text⟦⟨STRING:"\u2020"⟩⟨STRING:"\u27e8"⟩†⟨#content⟩⟨STRING:"\u27e9"⟩⟧
 
 /* `Text-ConcatPair(#Pair)`
  * Concat pair of `Text`
@@ -35,7 +34,7 @@ rule Text-ConcatPair(PairCons(#1, #2)) → text⟦†⟨#1⟩†⟨#2⟩⟧
 
 func Text-User(String, Text4_text_sort) -> Text4_text_sort
 rule Text-User(#ParsePrefix, #Unparsed)
-→ text⟦⟨STRING:#ParsePrefix⟩⟨STRING:"\u27e6\u27e6"⟩†⟨ #Unparsed ⟩⟨STRING:"\u27e7\u27e7"⟩⟧
+→ text⟦⟨STRING:#ParsePrefix⟩⟨STRING:"\u27e6"⟩†⟨ #Unparsed ⟩⟨STRING:"\u27e7"⟩⟧
 
 func Text-Token(String) -> Text4_text_sort
 rule Text-Token(#t) → text⟦⟨STRING: #t ⟩⟧

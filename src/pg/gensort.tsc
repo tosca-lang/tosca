@@ -58,9 +58,9 @@ func SMakeRuleSpec(ANTLR_ruleSpec_sort, SortEnv, (SortEnv)->Text4_text_sort) -> 
   rule SMakeRuleSpec(ruleSpec⟦ #DOC_COMMENT? #ruleModifiers? #RULE_REF #ARG_ACTION? #ruleReturns? #throwsSpec? #localsSpec?
                               #rulePrequel* : #ruleBlock ; #exceptionHandler* #finallyClause? ⟧, #E, #cont)
   → if IsStringRulePrequels(#rulePrequel*)
-      SMakeSort(#ruleBlock, {#E, "@ruleRef": STRING(#RULE_REF)}, #cont)
-    else
       #cont(#E)
+    else
+      SMakeSort(#ruleBlock, {#E, "@ruleRef": STRING(#RULE_REF)}, #cont)
 
   rule SMakeRuleSpec(ruleSpec⟦ #FRAGMENT? #TOKEN_REF : #lexerRuleBlock ; ⟧, #E, #cont)
   → #cont(#E)
@@ -75,7 +75,10 @@ func SMakeRuleSpec(ANTLR_ruleSpec_sort, SortEnv, (SortEnv)->Text4_text_sort) -> 
    and incrementally building the printer in the environment.
  */
 func SMakeSort(#ruleBlock: ANTLR_ruleBlock_sort, #E: SortEnv, #cont: (SortEnv)->Text4_text_sort) -> Text4_text_sort
-→ text⟦¶¶enum †⟨SMakeSortName(#E)⟩ †⟨SMakeForms(#ruleBlock, {#E, "@sortname" : TEXT(SMakeSortName(#E)),
+→ text⟦
+
+†⟨IfDef("location", ()->text⟦@⟨STRING: GetEnv("location", "")⟩⟧, ()->text⟦⟧)⟩
+enum †⟨SMakeSortName(#E)⟩ †⟨SMakeForms(#ruleBlock, {#E, "@sortname" : TEXT(SMakeSortName(#E)),
         "@sort"     : TEXT(text⟦⟧),
         "@pt-name"  : TEXT(SMakePrinterName(#E)),
         "@pt-rules" : TEXT(text⟦⟧),
@@ -89,7 +92,10 @@ rule SMakeSortTail({#E, "@sortname": TEXT(#sortname),
                        "@pt-name" : TEXT(#printerName),
                        "@pt-rules": TEXT(#printerRules),
                        "@pt-subs" : TEXT(#printerSubs)}, #cont)
-→ text⟦†⟨#sort⟩¶¶func †⟨#printerName⟩(†⟨#sortname⟩) -> Text4_text_sort†⟨#printerRules⟩†⟨#printerSubs⟩†⟨#cont(#E)⟩⟧
+→ text⟦†⟨#sort⟩
+
+
+func †⟨#printerName⟩(†⟨#sortname⟩) -> Text4_text_sort†⟨#printerRules⟩†⟨#printerSubs⟩†⟨#cont(#E)⟩⟧
 
 //
 func SMakeForms(ANTLR_ruleBlock_sort, SortEnv, (SortEnv)->Text4_text_sort) -> Text4_text_sort
@@ -118,7 +124,7 @@ func SMakeForm(List<ElementOption>, List<ElementOption>, ANTLR_alternative_sort,
                      "@pt-rules" : TEXT(#printerRules),
                      "@pt-name"  : TEXT(#printerName)}, (count env)->#(count, env))
   → #(#count, {#E, "@sort"     : TEXT(text⟦†⟨#sort⟩ | allows-variable⟧),
-                   "@pt-rules" : TEXT(text⟦†⟨#printerRules⟩¶rule †⟨#printerName⟩(x) → †⟨Text-Text(Text-String2(text⟦Show(x)⟧))⟩⟧)})
+                   "@pt-rules" : TEXT(text⟦†⟨#printerRules⟩¶rule †⟨#printerName⟩(x) ⟨STRING:"\u2192"⟩ †⟨Text-User("text", Text-String(text⟦Show(x)⟧))⟩⟧)})
 
   rule SMakeForm((SYMBOL(#ref),), (TYPE(#type),), alternative⟦ #element* ⟧, #labeledAlt_S1?, #count, #unique, #E, (count env)->#(count, env))
   → SMakeFormNoDup(SMakeAlternativeName(#labeledAlt_S1?, #count, #unique, #E), #element*, #labeledAlt_S1?, #count, #unique, #E, (count env)->#(count, env))
@@ -150,7 +156,7 @@ rule SMakePrintingRule(#altName, {#E, "@pt-rules" : TEXT(#printerRules),
                                      "@prhs"     : TEXTS(#printerRuleRHS)}, (env)->#(env))
 → #({#E,
     "@pt-rules" : TEXT(text⟦†⟨#printerRules⟩
-rule †⟨#printerName⟩(†⟨#altName⟩(†⟨ReverseTextFold(#printerRuleLHS, text⟦, ⟧)⟩)) → †⟨Text-Text(ReverseTextFold(#printerRuleRHS, text⟦⟧))⟩⟧)})
+rule †⟨#printerName⟩(†⟨#altName⟩(†⟨ReverseTextFold(#printerRuleLHS, text⟦, ⟧)⟩)) ⟨STRING:"\u2192"⟩ †⟨Text-User("text", ReverseTextFold(#printerRuleRHS, text⟦⟧))⟩⟧)})
 
 /* Iterates over the elements (maybe none) of an alternative.
  */
@@ -245,7 +251,7 @@ func SMakeBinderArgument(String, Text4_text_sort, String, Option<String>, Numeri
   #(#count, {#E,
       #key       : BOUNDVAR(#ruleref, #type),
       "@freshes" : TEXTS((text⟦[†⟨#type⟩]⟧, #freshes...)),
-      "@prhs"    : TEXTS((Text-String2(text⟦Show(⟨STRING:#binder⟩)⟧), #rhs...))})
+      "@prhs"    : TEXTS((Text-String(text⟦Show(⟨STRING:#binder⟩)⟧), #rhs...))})
 
   // Binder on sugar: that's an error
   rule SMakeBinderArgument(#binder, #type, #key, NONE, #count, #E, (count env)->#(count, env))
@@ -410,13 +416,13 @@ rule SMakeArgFromSuffixedBlock2(#blockRuleRef, #ruleRef, PairCons(#blocksort, #p
 → #({#E, "@sort": TEXT(text⟦†⟨#sort⟩List<⟨STRING:SMakeSortName2(#id, #ruleRef, IsStringRuleRuleRef(#ruleRef, #I))⟩>⟧),
        "@plhs": TEXTS((SMakeMetaVar(#count, (), FALSE), #printerLHS...)),
        "@prhs": TEXTS((SMakeRulerefText(#blockRuleRef, #count, #binders, TRUE, #wrapper, SMakeSortName2(#id, #ruleRef, IsStringRuleRuleRef(#ruleRef, #I)), #E), #printerRHS...)),
-       "@pt-subs": TEXT(text⟦‹#ptsubs›‹#blocksort›‹#printer›⟧)})
+       "@pt-subs": TEXT(text⟦†⟨#ptsubs⟩†⟨#blocksort⟩†⟨#printer⟩⟧)})
 
 func SMakeSortForBlock(String, Text4_text_sort, String, Text4_text_sort, RuleIndex) -> PPair<Text4_text_sort/* sort */ Text4_text_sort /* printer */>
 rule SMakeSortForBlock(#id, #name, #ruleRef, #prhs, #I)
 → PairCons(
   text⟦¶func †⟨#name⟩(⟨STRING:SMakeSortName2(#id, #ruleRef, IsStringRuleRuleRef(#ruleRef, #I))⟩) -> Text4_text_sort⟧,
-  text⟦¶rule †⟨#name⟩(#1) → †⟨Text-Text(#prhs)⟩⟧)
+  text⟦¶rule †⟨#name⟩(#1) ⟨STRING:"\u2192"⟩ †⟨Text-User("text", #prhs)⟩⟧)
 
 // Helpers
 
@@ -506,28 +512,28 @@ rule SMakeMetaBinders((#arg,#args...)) → text⟦[†⟨ReverseTextFold((#arg,#
 //
 func SMakeTerminalText(Numeric, List<Text4_text_sort>, Bool) -> Text4_text_sort
 rule SMakeTerminalText(#count, #binders, FALSE)
-→ Text-String2(SMakeMetaVar(#count, #binders, TRUE))
+→ Text-String(SMakeMetaVar(#count, #binders, TRUE))
 
 rule SMakeTerminalText(#count, (), TRUE)
-→ Text-String(text⟦TextFold(Map((x) -> StringToText(x), †⟨SMakeMetaVar(#count, (), TRUE)⟩), †⟨Text-Text(text⟦ ⟧)⟩)⟧)
+→ Text-Text(text⟦TextFold(Map((x) -> StringToText(x), †⟨SMakeMetaVar(#count, (), TRUE)⟩), †⟨Text-User("text", text⟦ ⟧)⟩)⟧)
 
 func SMakeRulerefText(String, Numeric, List<Text4_text_sort>, Bool /* list? */, SortEnvEntry, String /* sort */, SortEnv) -> Text4_text_sort
 
   rule SMakeRulerefText(#Ruleref, #count, #binders, FALSE, WRAPPER((t x)->#wrap(t, x)), #sort, #E)
   → if Equal(#sort, "String")
-      Text-String2(text⟦†⟨SMakeMetaVar(#count, #binders, TRUE)⟩⟧)
+      Text-String(text⟦†⟨SMakeMetaVar(#count, #binders, TRUE)⟩⟧)
     else
-      Text-String(text⟦†⟨SMakePrinterName({#E, "@ruleRef": STRING(#Ruleref)})⟩(†⟨#wrap(StringToText(#sort), SMakeMetaVar(#count, #binders, TRUE))⟩)⟧)
+      Text-Text(text⟦†⟨SMakePrinterName({#E, "@ruleRef": STRING(#Ruleref)})⟩(†⟨#wrap(StringToText(#sort), SMakeMetaVar(#count, #binders, TRUE))⟩)⟧)
 
   rule SMakeRulerefText(#ruleRef, #count, #binders, TRUE, WRAPPER((t x)->#wrap(t, x)), #sort, #E)
   → if Equal(#sort, "String")
-      Text-String2(text⟦TextFold(Map((x) ->  StringToText(x), †⟨#wrap(StringToText(#sort),SMakeMetaVar(#count, #binders, TRUE))⟩), †⟨Text-Text(text⟦ ⟧)⟩)⟧)
+      Text-String(text⟦TextFold(Map((x) ->  StringToText(x), †⟨#wrap(StringToText(#sort),SMakeMetaVar(#count, #binders, TRUE))⟩), †⟨Text-User("text", text⟦ ⟧)⟩)⟧)
     else
-      Text-String(text⟦TextFold(Map((x) ->†⟨SMakePrinterName({#E, "@ruleRef": STRING(#ruleRef)})⟩(x), †⟨#wrap(StringToText(#sort) ,SMakeMetaVar(#count, #binders, TRUE))⟩), †⟨Text-Text(text⟦ ⟧)⟩)⟧)
+      Text-Text(text⟦TextFold(Map((x) ->†⟨SMakePrinterName({#E, "@ruleRef": STRING(#ruleRef)})⟩(x), †⟨#wrap(StringToText(#sort) ,SMakeMetaVar(#count, #binders, TRUE))⟩), †⟨Text-User("text", text⟦ ⟧)⟩)⟧)
 
 /* Generate an unique fake rule name for block. */
 func SMakeBlockRuleName(#parentRuleRef: String, #blockCount: Numeric) -> String
-→ ConcatString( #parentRuleRef, "_S", FormatNumber( #blockCount))
+→ ConcatString(#parentRuleRef, "_S", FormatNumber( #blockCount))
 
 func TokenRefToText(String, SortEnv) -> Text4_text_sort
 rule TokenRefToText(#tokenRef, {#E, "@index": INDEX(#I)}) → text⟦ ⟨STRING:UnQuote(UnSOME(GetConstantTokenRef(#tokenRef, #I)))⟩ ⟧

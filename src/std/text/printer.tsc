@@ -21,6 +21,7 @@ func PrintTextI(Text4_text_sort, String, Appendable) -> Appendable
 
 func PrintContent(Text4_content_sort, String, Appendable, Text4_text_sort) -> Appendable
 rule PrintContent(content⟦⟨⟨⟧, #indent, #result, #text)      → PrintTextI(#text, #indent, AppendableAppend(#result, StringToAppendable("⟨")))
+rule PrintContent(content⟦→→⟧, #indent, #result, #text)      → PrintTextI(#text, #indent, AppendableAppend(#result, StringToAppendable("→")))
 rule PrintContent(content⟦#STRING⟧, #indent, #result, #text) → PrintTextI(#text, #indent, AppendableAppend(#result, StringToAppendable(#STRING)))
 rule PrintContent(content⟦#BREAK⟧, #indent, #result,#text)   → PrintTextI(#text, #indent, AppendableAppend(AppendableAppend(#result, StringToAppendable("\n")), StringToAppendable(#indent)))
 rule PrintContent(content⟦†#text⟧, #indent, #result, #ntext) → PrintTextI(#ntext, #indent, PrintTextI(#text, #indent, #result))

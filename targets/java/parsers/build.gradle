@@ -79,8 +79,8 @@ task antlrAntlrTermParser(type: Antlr4Task) {
 
 task antlrMetaTSParser(type: Antlr4Task) {
 	description = 'Generate Antlr4 Java meta parser'
-	lexer = file(transScriptSrc + '/pg2/ANTLRMetaLexer.g4')
-	grammar = file(transScriptSrc + '/pg2/ANTLRMetaParser.g4')
+	lexer = file(transScriptSrc + '/pg/ANTLRMetaLexer.g4')
+	grammar = file(transScriptSrc + '/pg/ANTLRMetaParser.g4')
 	generatedFileDir = file('src/org/tosca/antlr')
 	packageName = 'org.tosca.antlr'
 	superClass = 'org.transscript.antlr.TSParser'
@@ -134,5 +134,5 @@ sourceSets {
 dependencies {
 	compile 'org.crsx:crsx3@jar'
 	compile 'org.antlr:antlr4:4.5'
-	compile project.hasProperty('dev') ? 'org.transscript:transscript:1.0.0-SNAPSHOT@jar' : 'org.transscript:transscript:1.0.0-ALPHA@jar' 
+	compile project.hasProperty('dev') ? 'org.transscript:transscript:1.0.0-SNAPSHOT@jar' : 'org.transscript:transscript:1.0.0-ALPHA@jar'
 }

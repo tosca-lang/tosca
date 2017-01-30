@@ -62,6 +62,18 @@ task coreParsers(type: PG4Task) {
     locsort = 'Region({})'
 }
 
+task coreParsers2(type: TransScriptTask) {
+	description = "Generate Core term and meta parsers"
+	command = "pg"
+	dependencies = fileTree(dir: 'src/core', include: ['Core.g4'])
+	sources     = fileTree(dir: 'src/core', include: ['Core.g4'])
+	outputDir   = file('src/core2/')
+	bootparserpath =  "file:parsers/build/classes/main/" // override Tosca parsers location. MUST END WITH /
+	metaprefix = '##'
+	location   = 'Region({})'
+}
+
+
 task toscaParsers(type: PG4Task) {
     description 'Generate Tosca term and meta parsers'
     source = file('src/parser/TransScript.g4')
@@ -71,6 +83,17 @@ task toscaParsers(type: PG4Task) {
 	//locsort = 'Region({})'
 }
 
+task toscaParsers2(type: TransScriptTask) {
+    description 'Generate Tosca term and meta parsers'
+    command = "pg"
+    dependencies = fileTree(dir: 'src/parser', include: ['TransScript.g4'])
+    sources     = fileTree(dir: 'src/parser', include: ['TransScript.g4'])
+    outputDir   = file('src/parser2/')
+    bootparserpath =  "file:parsers/build/classes/main/" // override Tosca parsers location. MUST END WITH /
+    metaprefix = '##'
+//    location   = 'Region({})'
+}
+
 task textParsers(type: PG4Task) {
     description 'Generate Text term and meta parsers'
     source = file('src/std/text/Text4.g4')
@@ -78,6 +101,17 @@ task textParsers(type: PG4Task) {
     defaultRule = 'text'
 	ncg = true
 	notext = true
+}
+
+task textParsers2(type: TransScriptTask) {
+    description 'Generate Text term and meta parsers'
+    command = "pg"
+    dependencies = fileTree(dir: 'src/std/text', include: ['Text4.g4'])
+    sources     = fileTree(dir: 'src/std/text', include: ['Text4.g4'])
+    outputDir   = file('src/std/text2/')
+    bootparserpath =  "file:parsers/build/classes/main/" // override Tosca parsers location. MUST END WITH /
+    defaultrule = 'text'
+	  notext = true
 }
 
 // --- dependencies
