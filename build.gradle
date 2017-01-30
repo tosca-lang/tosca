@@ -52,7 +52,7 @@ dependencies {
 }
 
 // --- Generate all meta and term parsers
-
+/*
 task coreParsers(type: PG4Task) {
     description "Generate Core term and meta parsers"
     source = file('src/core/Core.g4')
@@ -60,9 +60,9 @@ task coreParsers(type: PG4Task) {
     metaPrefix = '##'
 	ncg = true
     locsort = 'Region({})'
-}
+}*/
 
-task coreParsers2(type: TransScriptTask) {
+task coreParsers(type: TransScriptTask) {
 	description = "Generate Core term and meta parsers"
 	command = "pg"
 	dependencies = fileTree(dir: 'src/core', include: ['Core.g4'])
@@ -73,7 +73,7 @@ task coreParsers2(type: TransScriptTask) {
 	location   = 'Region({})'
 }
 
-
+/*
 task toscaParsers(type: PG4Task) {
     description 'Generate Tosca term and meta parsers'
     source = file('src/parser/TransScript.g4')
@@ -81,9 +81,9 @@ task toscaParsers(type: PG4Task) {
     metaPrefix = '##'
 	ncg =  true
 	//locsort = 'Region({})'
-}
+}*/
 
-task toscaParsers2(type: TransScriptTask) {
+task toscaParsers(type: TransScriptTask) {
     description 'Generate Tosca term and meta parsers'
     command = "pg"
     dependencies = fileTree(dir: 'src/parser', include: ['TransScript.g4'])
@@ -93,7 +93,7 @@ task toscaParsers2(type: TransScriptTask) {
     metaprefix = '##'
 //    location   = 'Region({})'
 }
-
+/*
 task textParsers(type: PG4Task) {
     description 'Generate Text term and meta parsers'
     source = file('src/std/text/Text4.g4')
@@ -101,9 +101,9 @@ task textParsers(type: PG4Task) {
     defaultRule = 'text'
 	ncg = true
 	notext = true
-}
+}*/
 
-task textParsers2(type: TransScriptTask) {
+task textParsers(type: TransScriptTask) {
     description 'Generate Text term and meta parsers'
     command = "pg"
     dependencies = fileTree(dir: 'src/std/text', include: ['Text4.g4'])
