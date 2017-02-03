@@ -30,4 +30,4 @@ To make sure that everything is working as planned, just type ``./gradlew smoket
 How to continue
 ===============
 
-For the reference manual, jump to the :doc:`intro` .
+For the manual, jump to the :doc:`semantic` .

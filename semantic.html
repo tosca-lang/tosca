@@ -1,0 +1,278 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Syntax and Semantic &mdash; Tosca 1.0 BETA documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Tosca 1.0 BETA documentation" href="index.html"/>
+        <link rel="next" title="Lexical Definition" href="lexical.html"/>
+        <link rel="prev" title="Getting Started" href="started.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="index.html" class="fa fa-home"> Tosca</a>
+        
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="started.html#system-requirements">System requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="started.html#download">Download</a></li>
+<li class="toctree-l2"><a class="reference internal" href="started.html#how-to-continue">How to continue</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Syntax and Semantic</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#concrete-syntax">Concrete syntax</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lexical.html">Lexical Definition</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#constructor">Constructor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#meta-variable">Meta-Variable</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tool.html">Tool</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tool.html#compiler">Compiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tool.html#parser-generator">Parser Generator</a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">Tosca</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Syntax and Semantic</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <div class="section" id="syntax-and-semantic">
+<h1>Syntax and Semantic<a class="headerlink" href="#syntax-and-semantic" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="concrete-syntax">
+<span id="id1"></span><h2>Concrete syntax<a class="headerlink" href="#concrete-syntax" title="Permalink to this headline">¶</a></h2>
+<p>Concrete syntax provides an alternative way to define enumerations using an EBNF notation (currently based on ANTLR4).
+This is very useful in particular when dealing with language constructs.</p>
+<div class="section" id="overview">
+<h3>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h3>
+<p>For instance look at this typical constant declaration EBNF-like grammar definition:</p>
+<div class="highlight-python"><div class="highlight"><pre>let : &#39;let&#39; id &#39;=&#39; LITERAL
+</pre></div>
+</div>
+<p>where <code class="code docutils literal"><span class="pre">let</span></code> is a grammar rule definition, followed by the grammar rule elements. This gets expanded to the following enumeration:</p>
+<div class="highlight-python"><div class="highlight"><pre>enum Let_sort | Let(Id_sort, String /* LITERAL */)
+</pre></div>
+</div>
+<p>While this can shorten enumeration definition, language syntax can also be used in pattern and contraction, for instance:</p>
+<div class="highlight-python"><div class="highlight"><pre>Compile(let⟦ let #id = #LITERAL ⟧) → ...
+</pre></div>
+</div>
+<p>The expression <code class="code docutils literal"><span class="pre">let⟦</span> <span class="pre">code</span> <span class="pre">⟧</span></code> indicates <em>code</em> follows the let <em>meta</em> syntax.</p>
+<p>The following sections semi-formally describe the concreate syntax feature.</p>
+</div>
+<div class="section" id="rules">
+<h3>Rules<a class="headerlink" href="#rules" title="Permalink to this headline">¶</a></h3>
+<p>Tosca allows defining <em>grammar rule</em> as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>rulename : block ;
+</pre></div>
+</div>
+<p>For each grammar rule, Tosca generates an enumeration and a category:</p>
+<div class="highlight-python"><div class="highlight"><pre>enum Rulename_sort | ...
+rulename⟦ ... ⟧
+</pre></div>
+</div>
+</div>
+<div class="section" id="alternatives">
+<h3>Alternatives<a class="headerlink" href="#alternatives" title="Permalink to this headline">¶</a></h3>
+<p>A grammar rule consists of a set of <em>alternatives</em> separated by the &#8216;|&#8217; character:</p>
+<div class="highlight-python"><div class="highlight"><pre>rulename : alternative1 | ... | alternativen ;
+</pre></div>
+</div>
+<p>Each alternative corresponds to an enumeration value::</p>
+<div class="highlight-python"><div class="highlight"><pre>enum Rulename_sort | Rulename_A1( ... ) | Rulename_A2( ... ) | ...
+</pre></div>
+</div>
+<p>when the rule contains only one alternative, the <em>_An</em> suffix is omitted.</p>
+</div>
+<div class="section" id="elements">
+<h3>Elements<a class="headerlink" href="#elements" title="Permalink to this headline">¶</a></h3>
+<p>An alternative is composed of a sequence, possibly empty, of <em>elements</em>. An element can either be:</p>
+<ul class="simple">
+<li>a literal ;</li>
+<li>a reference to a rule ;</li>
+<li>or a reference to a token.</li>
+</ul>
+<div class="section" id="sort">
+<h4>Sort<a class="headerlink" href="#sort" title="Permalink to this headline">¶</a></h4>
+<p>Literals and tokens are always mapped to the <code class="code docutils literal"><span class="pre">$String</span></code> sort. Rule references are mapped to their corresponding sort name.
+Going back to the let example above, here how it looks::</p>
+<div class="highlight-python"><div class="highlight"><pre>let : &#39;let&#39; id &#39;=&#39; LITERAL
+enum Let_sort |  Let(Id_sort /* rule reference */, String /* token reference */)
+</pre></div>
+</div>
+<p>In the case the alternative has no element, the generated constructor has no arguments.</p>
+</div>
+<div class="section" id="pattern">
+<h4>Pattern<a class="headerlink" href="#pattern" title="Permalink to this headline">¶</a></h4>
+<p>For each rule and token declaration, there is a special grammar token used to match any terms. The name of the special token is constructed as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>META_CHAR rulename [0-9]*
+</pre></div>
+</div>
+<p>By default, <em>META_CHAR</em> is the &#8216;#&#8217; character.:</p>
+<div class="highlight-python"><div class="highlight"><pre>  Compile( let⟦ let #id = #LITERAL ⟧ ) → ...
+
+says to match any terms for the rule reference :code:`id` and for the token reference :code:`LITERAL`. This pattern is expanded to the following term::
+
+  Compile( Let(#id, #LITERAL) ) → ...
+</pre></div>
+</div>
+</div>
+<div class="section" id="contraction">
+<h4>Contraction<a class="headerlink" href="#contraction" title="Permalink to this headline">¶</a></h4>
+<p>Each element, other than literals, can be constructed by arbitrary rewrites. This is achieved by <em>embedding</em> CRSX code within the language syntax.</p>
+<p>For instance:</p>
+<div class="highlight-python"><div class="highlight"><pre>Compile( let⟦ let #id = #LITERAL ⟧ ) → local⟦ var ⟨id: #id⟩ := #LITERAL ⟧
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="lexical.html" class="btn btn-neutral float-right" title="Lexical Definition">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="started.html" class="btn btn-neutral" title="Getting Started"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Lionel Villard.
+      Last updated on Feb 03, 2017.
+    </p>
+  </div>
+
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0 BETA',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

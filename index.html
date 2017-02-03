@@ -67,7 +67,20 @@
 <li class="toctree-l2"><a class="reference internal" href="started.html#how-to-continue">How to continue</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="semantic.html">Syntax and Semantic</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="semantic.html#concrete-syntax">Concrete syntax</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lexical.html">Lexical Definition</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#constructor">Constructor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#meta-variable">Meta-Variable</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tool.html">Tool</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tool.html#compiler">Compiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tool.html#parser-generator">Parser Generator</a></li>
+</ul>
+</li>
 </ul>
 
           
@@ -111,16 +124,33 @@
 <li class="toctree-l2"><a class="reference internal" href="started.html#how-to-continue">How to continue</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="semantic.html">Syntax and Semantic</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="semantic.html#concrete-syntax">Concrete syntax</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lexical.html">Lexical Definition</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#constructor">Constructor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#meta-variable">Meta-Variable</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tool.html">Tool</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tool.html#compiler">Compiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tool.html#parser-generator">Parser Generator</a></li>
+</ul>
+</li>
 </ul>
 </div>
-<p>The purpose of Tosca is to implement an extended higher-order rewriting formalism to facilitate writing compilers
-and other syntax-directed transformation systems, specifically:</p>
+<p>The purpose of Tosca is to facilitate writing compilers and other syntax-directed transformation systems,
+by providing:</p>
 <ul class="simple">
-<li>Special notations for using embedded syntax, even higher order abstract syntax.</li>
-<li>Special support for symbol tables, environments, and attributes, as used in compilers.</li>
-<li>A polymorphic sort system (which in practice means that Tpsca systems are contraction schemes).</li>
-<li>Tosca systems can be compiled directly to native code (so far in C++ or Java) for effective execution.</li>
+<li>a programming language with<ul>
+<li>special notations for using embedded syntax, even higher order abstract syntax</li>
+<li>special support for symbol tables, environments, and attributes, as used in compilers</li>
+<li>a polymorphic type system</li>
+</ul>
+</li>
+<li>a compiler generating high-level, readable Java 8 or C++ code, for effective execution</li>
+<li>a meta parser generator enabling concrete syntax pattern matching and correct instantiation</li>
 </ul>
 </div>
 
@@ -141,7 +171,7 @@ and other syntax-directed transformation systems, specifically:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2017, Lionel Villard.
-      Last updated on Jan 18, 2017.
+      Last updated on Feb 03, 2017.
     </p>
   </div>
 
@@ -171,7 +201,7 @@ and other syntax-directed transformation systems, specifically:</p>
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

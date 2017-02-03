@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Introduction &mdash; Tosca 1.0 BETA documentation</title>
+  <title>Lexical Definition &mdash; Tosca 1.0 BETA documentation</title>
   
 
   
@@ -29,7 +29,8 @@
 
   
     <link rel="top" title="Tosca 1.0 BETA documentation" href="index.html"/>
-        <link rel="prev" title="Getting Started" href="started.html"/> 
+        <link rel="next" title="Tool" href="tool.html"/>
+        <link rel="prev" title="Syntax and Semantic" href="semantic.html"/> 
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
@@ -67,7 +68,20 @@
 <li class="toctree-l2"><a class="reference internal" href="started.html#how-to-continue">How to continue</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="semantic.html">Syntax and Semantic</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="semantic.html#concrete-syntax">Concrete syntax</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Lexical Definition</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#constructor">Constructor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#meta-variable">Meta-Variable</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tool.html">Tool</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tool.html#compiler">Compiler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tool.html#parser-generator">Parser Generator</a></li>
+</ul>
+</li>
 </ul>
 
           
@@ -92,7 +106,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
       
-    <li>Introduction</li>
+    <li>Lexical Definition</li>
       <li class="wy-breadcrumbs-aside">
         
       </li>
@@ -101,13 +115,26 @@
 </div>
           <div role="main" class="document">
             
-  <div class="section" id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<p>CRS stands for Combinatory Reduction Systems, which is a powerful rewriting formalism invented by P. Aczel and J. W. Klop.
-The idea of CRS is to allow rewrite rules that support matching of variable binding constructs and substitution as
-part of rewrite steps, collectively known as higher-order rewriting.</p>
-<p>Tosca implements CRS with a number of extension borrowed from functional programming and semantics,
-to facilitate using CRS for writing compilers and similar “real world” transformation systems.</p>
+  <div class="section" id="lexical-definition">
+<h1>Lexical Definition<a class="headerlink" href="#lexical-definition" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="constructor">
+<h2>Constructor<a class="headerlink" href="#constructor" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>Syntax::</dt>
+<dd>CONSTRUCTOR       : ConsHead ConsChar* Ebnf?;
+ConsHead          : Upper | UnicodeS | &#8216;_&#8217; | &#8216;$&#8217;;
+ConsChar          : Alpha | Digit | Unicode | &#8216;_&#8217; | &#8216;-&#8216; | &#8216;$&#8217;;</dd>
+</dl>
+<p>Constructors start with an upper case character or an underscore. The $ sign is for internal use only.</p>
+</div>
+<div class="section" id="meta-variable">
+<h2>Meta-Variable<a class="headerlink" href="#meta-variable" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>Syntax::</dt>
+<dd>METAVAR           : &#8216;#&#8217; (Alpha | Digit | &#8216;-&#8216; | &#8216;_&#8217; | Unicode)* Ebnf? Digit*</dd>
+</dl>
+<p>Meta-variables start with the <code class="docutils literal"><span class="pre">#</span></code></p>
+</div>
 </div>
 
 
@@ -116,8 +143,10 @@ to facilitate using CRS for writing compilers and similar “real world” trans
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
+        <a href="tool.html" class="btn btn-neutral float-right" title="Tool">Next <span class="fa fa-arrow-circle-right"></span></a>
       
-        <a href="started.html" class="btn btn-neutral" title="Getting Started"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+        <a href="semantic.html" class="btn btn-neutral" title="Syntax and Semantic"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -127,7 +156,7 @@ to facilitate using CRS for writing compilers and similar “real world” trans
   <div role="contentinfo">
     <p>
         &copy; Copyright 2017, Lionel Villard.
-      Last updated on Jan 18, 2017.
+      Last updated on Feb 03, 2017.
     </p>
   </div>
 
@@ -157,7 +186,7 @@ to facilitate using CRS for writing compilers and similar “real world” trans
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
