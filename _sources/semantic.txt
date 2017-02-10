@@ -1,7 +1,97 @@
 Syntax and Semantic
 *******************
 
+Functions
+=========
+
+Tosca programs are composed of ``functions``. The basic syntax is::
+
+  func Main() -> Numeric → 0
+
+``func`` indicates this declaration is a function named ``Main``, which must be a :ref:`constructor <constructors>`.
+The function return type must be specified after the ``->`` separator, in this case ``Numeric``. The function body
+is commonly written after the character ``→`` (U+2192) or for unicode-adverse people after the ``=`` symbol.
+Note that there is no semicolons after ``0``.
+
+Functions can take parameters::
+
+  func Compile(#program: Program, #target: String) -> Compiled → ...
+
+This function takes 2 comma-separated parameters, ``#program`` of type ``Program`` and ``#target`` of type ``String``.
+Function signatures must specify parameter types. For function without parameters, the parenthesis are optional::
+
+  func Main -> Numeric → 0
+
+which is the same as the first declaration of ``Main`` above.
+
+Rules
+=====
+
+The function body is optional and instead it can be described as a set of ``rules``. In that case, the parameter names in the
+function signature can be omitted::
+
+  func Compile(Program, String) -> Compiled
+
+A ``rule`` consists of a pattern and a body. For instance::
+
+  rule Compile(#program, #target) → ...
+
+A ``rule`` starts with the keyword ``rule``, followed by the name of the function which the rule applied to and a comma-separated
+list of patterns enclosed within parenthesis. The rule body occurs after the ``→`` (or ``=``) character.
+
+Tosca supports two kinds of pattern:
+
+* Meta-variables to match all values, and
+* enumeration :ref:`destructuring <enumdestructuring>`
+
+Patterns usually match only a subset of all possible values and multiple rules are used to cover all cases. Tosca evaluates rules
+in lexical order, from top to bottom. The first one to match is evaluated, ignoring the other rules.
+
+For instance::
+
+  func And(Bool, Bool) -> Bool
+  rule And(TRUE, TRUE) → TRUE
+  rule And(#1  , #2)   → FALSE
+
+This defines the function ``And`` and two associated rules. When this function is evaluated, the top-most rule is first considered:
+if the two arguments are the value ``TRUE``, then the function returns ``TRUE``. Otherwise, the next rule is considered, and in
+this case it's a *catch all* rule evaluating to ``FALSE``.
+
+Enums
+=====
+
+An `enum` is a type defining multiple cases a value can be. The type ``Bool`` is an enumeration with two cases::
+
+  enum Bool | TRUE
+            | FALSE
+
+The enum type name is a :ref:`constructor <constructors>` followed by a list of cases starting with the character ``|``.
+Each case is a :ref:`constructor <constructors>`.
+
+It is possible to associate values independently to each case. For example, the ``Option`` type, commonly found in functional programming language,
+is defined in Tosca as follows::
+
+  enum Option<a> | SOME(a) | NONE
+
+``SOME`` takes one parameter of type ``a`` (see :ref:`generics` for more details on what's ``a`` in this context).
+
+
+.. _enumdestructuring:
+
+Destructuring
+-------------
+
+TBA.
+
+.. _generics:
+
+Generics
+========
+
+TBA.
+
 .. _concrete-syntax:
+
 
 Concrete syntax
 ===============

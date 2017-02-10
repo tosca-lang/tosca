@@ -29,8 +29,8 @@
 
   
     <link rel="top" title="Tosca 1.0 BETA documentation" href="index.html"/>
-        <link rel="next" title="Lexical Definition" href="lexical.html"/>
-        <link rel="prev" title="Getting Started" href="started.html"/> 
+        <link rel="next" title="Tool" href="tool.html"/>
+        <link rel="prev" title="Lexical Structure" href="lexical.html"/> 
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
@@ -68,18 +68,30 @@
 <li class="toctree-l2"><a class="reference internal" href="started.html#how-to-continue">How to continue</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Syntax and Semantic</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#concrete-syntax">Concrete syntax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lexical.html">Lexical Structure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#constructors">Constructors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#meta-variables">Meta-Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#variable-literals">Variable Literals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#string-literals">String Literals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#numeric-literals">Numeric Literals</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="lexical.html">Lexical Definition</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="lexical.html#constructor">Constructor</a></li>
-<li class="toctree-l2"><a class="reference internal" href="lexical.html#meta-variable">Meta-Variable</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Syntax and Semantic</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#functions">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rules">Rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#enums">Enums</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generics">Generics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#concrete-syntax">Concrete syntax</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tool.html">Tool</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="tool.html#compiler">Compiler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tool.html#parser-generator">Parser Generator</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">Terminology</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="terminology.html#term">Term</a></li>
+<li class="toctree-l2"><a class="reference internal" href="terminology.html#sort">Sort</a></li>
 </ul>
 </li>
 </ul>
@@ -117,8 +129,83 @@
             
   <div class="section" id="syntax-and-semantic">
 <h1>Syntax and Semantic<a class="headerlink" href="#syntax-and-semantic" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<p>Tosca programs are composed of <code class="docutils literal"><span class="pre">functions</span></code>. The basic syntax is:</p>
+<div class="highlight-python"><div class="highlight"><pre>func Main() -&gt; Numeric → 0
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">func</span></code> indicates this declaration is a function named <code class="docutils literal"><span class="pre">Main</span></code>, which must be a <a class="reference internal" href="lexical.html#constructors"><em>constructor</em></a>.
+The function return type must be specified after the <code class="docutils literal"><span class="pre">-&gt;</span></code> separator, in this case <code class="docutils literal"><span class="pre">Numeric</span></code>. The function body
+is commonly written after the character <code class="docutils literal"><span class="pre">→</span></code> (U+2192) or for unicode-adverse people after the <code class="docutils literal"><span class="pre">=</span></code> symbol.
+Note that there is no semicolons after <code class="docutils literal"><span class="pre">0</span></code>.</p>
+<p>Functions can take parameters:</p>
+<div class="highlight-python"><div class="highlight"><pre>func Compile(#program: Program, #target: String) -&gt; Compiled → ...
+</pre></div>
+</div>
+<p>This function takes 2 comma-separated parameters, <code class="docutils literal"><span class="pre">#program</span></code> of type <code class="docutils literal"><span class="pre">Program</span></code> and <code class="docutils literal"><span class="pre">#target</span></code> of type <code class="docutils literal"><span class="pre">String</span></code>.
+Function signatures must specify parameter types. For function without parameters, the parenthesis are optional:</p>
+<div class="highlight-python"><div class="highlight"><pre>func Main -&gt; Numeric → 0
+</pre></div>
+</div>
+<p>which is the same as the first declaration of <code class="docutils literal"><span class="pre">Main</span></code> above.</p>
+</div>
+<div class="section" id="rules">
+<h2>Rules<a class="headerlink" href="#rules" title="Permalink to this headline">¶</a></h2>
+<p>The function body is optional and instead it can be described as a set of <code class="docutils literal"><span class="pre">rules</span></code>. In that case, the parameter names in the
+function signature can be omitted:</p>
+<div class="highlight-python"><div class="highlight"><pre>func Compile(Program, String) -&gt; Compiled
+</pre></div>
+</div>
+<p>A <code class="docutils literal"><span class="pre">rule</span></code> consists of a pattern and a body. For instance:</p>
+<div class="highlight-python"><div class="highlight"><pre>rule Compile(#program, #target) → ...
+</pre></div>
+</div>
+<p>A <code class="docutils literal"><span class="pre">rule</span></code> starts with the keyword <code class="docutils literal"><span class="pre">rule</span></code>, followed by the name of the function which the rule applied to and a comma-separated
+list of patterns enclosed within parenthesis. The rule body occurs after the <code class="docutils literal"><span class="pre">→</span></code> (or <code class="docutils literal"><span class="pre">=</span></code>) character.</p>
+<p>Tosca supports two kinds of pattern:</p>
+<ul class="simple">
+<li>Meta-variables to match all values, and</li>
+<li>enumeration <a class="reference internal" href="#enumdestructuring"><em>destructuring</em></a></li>
+</ul>
+<p>Patterns usually match only a subset of all possible values and multiple rules are used to cover all cases. Tosca evaluates rules
+in lexical order, from top to bottom. The first one to match is evaluated, ignoring the other rules.</p>
+<p>For instance:</p>
+<div class="highlight-python"><div class="highlight"><pre>func And(Bool, Bool) -&gt; Bool
+rule And(TRUE, TRUE) → TRUE
+rule And(#1  , #2)   → FALSE
+</pre></div>
+</div>
+<p>This defines the function <code class="docutils literal"><span class="pre">And</span></code> and two associated rules. When this function is evaluated, the top-most rule is first considered:
+if the two arguments are the value <code class="docutils literal"><span class="pre">TRUE</span></code>, then the function returns <code class="docutils literal"><span class="pre">TRUE</span></code>. Otherwise, the next rule is considered, and in
+this case it&#8217;s a <em>catch all</em> rule evaluating to <code class="docutils literal"><span class="pre">FALSE</span></code>.</p>
+</div>
+<div class="section" id="enums">
+<h2>Enums<a class="headerlink" href="#enums" title="Permalink to this headline">¶</a></h2>
+<p>An <cite>enum</cite> is a type defining multiple cases a value can be. The type <code class="docutils literal"><span class="pre">Bool</span></code> is an enumeration with two cases:</p>
+<div class="highlight-python"><div class="highlight"><pre>enum Bool | TRUE
+          | FALSE
+</pre></div>
+</div>
+<p>The enum type name is a <a class="reference internal" href="lexical.html#constructors"><em>constructor</em></a> followed by a list of cases starting with the character <code class="docutils literal"><span class="pre">|</span></code>.
+Each case is a <a class="reference internal" href="lexical.html#constructors"><em>constructor</em></a>.</p>
+<p>It is possible to associate values independently to each case. For example, the <code class="docutils literal"><span class="pre">Option</span></code> type, commonly found in functional programming language,
+is defined in Tosca as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>enum Option&lt;a&gt; | SOME(a) | NONE
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">SOME</span></code> takes one parameter of type <code class="docutils literal"><span class="pre">a</span></code> (see <a class="reference internal" href="#generics"><em>Generics</em></a> for more details on what&#8217;s <code class="docutils literal"><span class="pre">a</span></code> in this context).</p>
+<div class="section" id="destructuring">
+<span id="enumdestructuring"></span><h3>Destructuring<a class="headerlink" href="#destructuring" title="Permalink to this headline">¶</a></h3>
+<p>TBA.</p>
+</div>
+</div>
+<div class="section" id="generics">
+<span id="id1"></span><h2>Generics<a class="headerlink" href="#generics" title="Permalink to this headline">¶</a></h2>
+<p>TBA.</p>
+</div>
 <div class="section" id="concrete-syntax">
-<span id="id1"></span><h2>Concrete syntax<a class="headerlink" href="#concrete-syntax" title="Permalink to this headline">¶</a></h2>
+<span id="id2"></span><h2>Concrete syntax<a class="headerlink" href="#concrete-syntax" title="Permalink to this headline">¶</a></h2>
 <p>Concrete syntax provides an alternative way to define enumerations using an EBNF notation (currently based on ANTLR4).
 This is very useful in particular when dealing with language constructs.</p>
 <div class="section" id="overview">
@@ -138,8 +225,8 @@ This is very useful in particular when dealing with language constructs.</p>
 <p>The expression <code class="code docutils literal"><span class="pre">let⟦</span> <span class="pre">code</span> <span class="pre">⟧</span></code> indicates <em>code</em> follows the let <em>meta</em> syntax.</p>
 <p>The following sections semi-formally describe the concreate syntax feature.</p>
 </div>
-<div class="section" id="rules">
-<h3>Rules<a class="headerlink" href="#rules" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h3>Rules<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>Tosca allows defining <em>grammar rule</em> as follows:</p>
 <div class="highlight-python"><div class="highlight"><pre>rulename : block ;
 </pre></div>
@@ -213,10 +300,10 @@ says to match any terms for the rule reference :code:`id` and for the token refe
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="lexical.html" class="btn btn-neutral float-right" title="Lexical Definition">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="tool.html" class="btn btn-neutral float-right" title="Tool">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="started.html" class="btn btn-neutral" title="Getting Started"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="lexical.html" class="btn btn-neutral" title="Lexical Structure"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -226,7 +313,7 @@ says to match any terms for the rule reference :code:`id` and for the token refe
   <div role="contentinfo">
     <p>
         &copy; Copyright 2017, Lionel Villard.
-      Last updated on Feb 03, 2017.
+      Last updated on Feb 10, 2017.
     </p>
   </div>
 

@@ -7,9 +7,10 @@ Welcome to Tosca!
    :maxdepth: 2
 
    started
-   semantic
    lexical
+   semantic
    tool
+   terminology
 
 The purpose of Tosca is to facilitate writing compilers and other syntax-directed transformation systems,
 by providing:

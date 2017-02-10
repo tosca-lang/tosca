@@ -12,12 +12,12 @@ Tosca has been tested on OSX and Ubuntu.
 Download
 ========
 
-Tosca is hosted on github.com. To download and enter the directory, type the following commands in a terminal:
+Tosca is hosted on github.com. First clone the repository locally:
 
 .. code-block:: sh
 
-    git clone https://github.com/tosca-lang/tosca.git
-    cd tosca
+ git clone https://github.com/tosca-lang/tosca.git
+ cd tosca
 
 The build system is Gradle, and typing this command will build everything:
 
@@ -30,4 +30,4 @@ To make sure that everything is working as planned, just type ``./gradlew smoket
 How to continue
 ===============
 
-For the manual, jump to the :doc:`semantic` .
+For the "book", jump to the :doc:`lexical` section.

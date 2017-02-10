@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Lexical Definition &mdash; Tosca 1.0 BETA documentation</title>
+  <title>Lexical Structure &mdash; Tosca 1.0 BETA documentation</title>
   
 
   
@@ -29,8 +29,8 @@
 
   
     <link rel="top" title="Tosca 1.0 BETA documentation" href="index.html"/>
-        <link rel="next" title="Tool" href="tool.html"/>
-        <link rel="prev" title="Syntax and Semantic" href="semantic.html"/> 
+        <link rel="next" title="Syntax and Semantic" href="semantic.html"/>
+        <link rel="prev" title="Getting Started" href="started.html"/> 
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
@@ -68,13 +68,18 @@
 <li class="toctree-l2"><a class="reference internal" href="started.html#how-to-continue">How to continue</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="semantic.html">Syntax and Semantic</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="semantic.html#concrete-syntax">Concrete syntax</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Lexical Structure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#constructors">Constructors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#meta-variables">Meta-Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#variable-literals">Variable Literals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#string-literals">String Literals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#numeric-literals">Numeric Literals</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Lexical Definition</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#constructor">Constructor</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#meta-variable">Meta-Variable</a></li>
+<li class="toctree-l1"><a class="reference internal" href="semantic.html">Syntax and Semantic</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="semantic.html#functions">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="semantic.html#rules">Rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="semantic.html#concrete-syntax">Concrete syntax</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tool.html">Tool</a><ul>
@@ -106,7 +111,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
       
-    <li>Lexical Definition</li>
+    <li>Lexical Structure</li>
       <li class="wy-breadcrumbs-aside">
         
       </li>
@@ -115,25 +120,60 @@
 </div>
           <div role="main" class="document">
             
-  <div class="section" id="lexical-definition">
-<h1>Lexical Definition<a class="headerlink" href="#lexical-definition" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="constructor">
-<h2>Constructor<a class="headerlink" href="#constructor" title="Permalink to this headline">¶</a></h2>
-<dl class="docutils">
-<dt>Syntax::</dt>
-<dd>CONSTRUCTOR       : ConsHead ConsChar* Ebnf?;
-ConsHead          : Upper | UnicodeS | &#8216;_&#8217; | &#8216;$&#8217;;
-ConsChar          : Alpha | Digit | Unicode | &#8216;_&#8217; | &#8216;-&#8216; | &#8216;$&#8217;;</dd>
-</dl>
-<p>Constructors start with an upper case character or an underscore. The $ sign is for internal use only.</p>
+  <div class="section" id="lexical-structure">
+<h1>Lexical Structure<a class="headerlink" href="#lexical-structure" title="Permalink to this headline">¶</a></h1>
+<p>This sections enumerates the basic building blocks use to write Tosca programs.</p>
+<div class="section" id="constructors">
+<span id="id1"></span><h2>Constructors<a class="headerlink" href="#constructors" title="Permalink to this headline">¶</a></h2>
+<p>A <code class="docutils literal"><span class="pre">constructor</span></code> is a name used to identify various Tosca concepts, such as types, enumeration cases
+and function. It must start with a uppercase character, or <code class="docutils literal"><span class="pre">_</span></code>. The <code class="docutils literal"><span class="pre">$</span></code> character is reserved for internal
+use only.
+Here the exact <code class="docutils literal"><span class="pre">constructor</span></code> syntax:</p>
+<div class="highlight-python"><div class="highlight"><pre>CONSTRUCTOR       : ConsHead ConsChar* Ebnf?;
+ConsHead          : Upper | UnicodeS | &#39;_&#39; | &#39;$&#39;;
+ConsChar          : Alpha | Digit | Unicode | &#39;_&#39; | &#39;-&#39; | &#39;$&#39;;
+fragment Digit    : [0-9];
+fragment Upper    : [A-Z];
+fragment Lower    : [a-z];
+fragment Alpha    : [a-zA-Z];
+fragment Unicode  : ~[\u0000-\u00FF\uD800-\uDBFF] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
+fragment UnicodeS : ~[\u0000-\u00FF\uD800-\uDBFF\u27e6\u27e7\u27e8\u27e9\u2192] | [\uD800-\uDBFF] [\uDC00-\uDFFF];
+fragment Ebnf     : &#39;*&#39; | &#39;?&#39; | &#39;+&#39;;
+</pre></div>
 </div>
-<div class="section" id="meta-variable">
-<h2>Meta-Variable<a class="headerlink" href="#meta-variable" title="Permalink to this headline">¶</a></h2>
-<dl class="docutils">
-<dt>Syntax::</dt>
-<dd>METAVAR           : &#8216;#&#8217; (Alpha | Digit | &#8216;-&#8216; | &#8216;_&#8217; | Unicode)* Ebnf? Digit*</dd>
-</dl>
-<p>Meta-variables start with the <code class="docutils literal"><span class="pre">#</span></code></p>
+</div>
+<div class="section" id="meta-variables">
+<h2>Meta-Variables<a class="headerlink" href="#meta-variables" title="Permalink to this headline">¶</a></h2>
+<p>Tosca calls <code class="docutils literal"><span class="pre">meta-variable</span></code> what is usually just called variable in other programming languages.
+After all Tosca is a meta-compiler. A <code class="docutils literal"><span class="pre">meta-variable</span></code> starts with the <code class="docutils literal"><span class="pre">#</span></code> character. For instance
+<code class="docutils literal"><span class="pre">#</span></code>, <code class="docutils literal"><span class="pre">#1</span></code>, and <code class="docutils literal"><span class="pre">#let?1</span></code> are all valid meta-variable.</p>
+<p>Here the exact syntax:</p>
+<div class="highlight-python"><div class="highlight"><pre>METAVAR           : &#39;#&#39; (Alpha | Digit | &#39;-&#39; | &#39;_&#39; | Unicode)* Ebnf? Digit*
+</pre></div>
+</div>
+</div>
+<div class="section" id="variable-literals">
+<h2>Variable Literals<a class="headerlink" href="#variable-literals" title="Permalink to this headline">¶</a></h2>
+<p>A <code class="docutils literal"><span class="pre">variable</span></code> is a special literal that is mainly used to represent the variables of the language
+being compiled. It starts with a lower case character. For instance <code class="docutils literal"><span class="pre">var</span></code>, <code class="docutils literal"><span class="pre">i</span></code> and <code class="docutils literal"><span class="pre">l_Let1</span></code>
+are variables.</p>
+<div class="highlight-python"><div class="highlight"><pre>VARIABLE          : Lower (Alpha | Digit | &#39;-&#39; | &#39;_&#39;)*;
+</pre></div>
+</div>
+</div>
+<div class="section" id="string-literals">
+<h2>String Literals<a class="headerlink" href="#string-literals" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">Strings</span></code> are a sequence of zero or more characters enclosed within double-quotes.</p>
+<div class="highlight-python"><div class="highlight"><pre>STRING            :  &#39;&quot;&#39; (&#39;\\&quot;&#39;|&#39;&quot;&quot;&#39;|~&#39;&quot;&#39;)*? &#39;&quot;&#39;;
+</pre></div>
+</div>
+</div>
+<div class="section" id="numeric-literals">
+<h2>Numeric Literals<a class="headerlink" href="#numeric-literals" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">Numbers</span></code> are either integers, or decimals.</p>
+<div class="highlight-python"><div class="highlight"><pre>NUMBER: &#39;-&#39;? [0-9]+ (&#39;.&#39; [0-9]+)? | &#39;.&#39; [0-9]+;
+</pre></div>
+</div>
 </div>
 </div>
 
@@ -143,10 +183,10 @@ ConsChar          : Alpha | Digit | Unicode | &#8216;_&#8217; | &#8216;-&#8216; 
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="tool.html" class="btn btn-neutral float-right" title="Tool">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="semantic.html" class="btn btn-neutral float-right" title="Syntax and Semantic">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="semantic.html" class="btn btn-neutral" title="Syntax and Semantic"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="started.html" class="btn btn-neutral" title="Getting Started"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -156,7 +196,7 @@ ConsChar          : Alpha | Digit | Unicode | &#8216;_&#8217; | &#8216;-&#8216; 
   <div role="contentinfo">
     <p>
         &copy; Copyright 2017, Lionel Villard.
-      Last updated on Feb 03, 2017.
+      Last updated on Feb 10, 2017.
     </p>
   </div>
 
