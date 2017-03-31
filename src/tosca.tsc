@@ -87,15 +87,17 @@ func LoadModuleS(#system: TSystem, #url: String, #standard:Bool) -> TSystem
                   ParseResource("ccrsx", #url)
                 else
                   ToCore(#url, ParseResource("transscript", Debug(#url, ()->#url)))
-    LoadModuleAux(LoadCore(#system, #url, #core, Or(#standard, Not(NeedRegen(#system, #url)))), #url)
+    LoadModuleAux(LoadCore(#system, #url, #core, Or(#standard, Not(NeedRegen(#system, #url, #standard)))), #url)
 
 func LoadModuleAux(#system: TSystem, #url: String) -> TSystem
 = LoadImportedModules(#system, #url, GetImportsS(#system, #url))
 
 // --- Determine whether module source file is newer than the corresponding generated files.
 
-func NeedRegen(#system: TSystem, #url: String) -> Bool
-→ if HasOption(GetConfig(#system, "inc"))
+func NeedRegen(#system: TSystem, #url: String, #standard: Bool) -> Bool
+→ if #standard
+    FALSE
+  else if HasOption(GetConfig(#system, "inc"))
     IfConfigDef(#system, "cpp", (v)->CppNeedRegen(#system, #url), ()->JavaNeedRegen(#system, #url))
   else
     TRUE
