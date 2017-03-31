@@ -27,7 +27,7 @@ StringTerm& BeforeFirst(Context& ctx, StringTerm& string, StringTerm& sep)
     const tosca::string& usep = sep.Unbox();
     tosca::string::size_type idx = ustring.find(usep);
 
-    StringTerm& result = newStringTerm(ctx, (idx == tosca::string::npos) ? ustring : ustring.substr(0, idx).c_str());
+    StringTerm& result = newStringTerm(ctx, (idx == tosca::string::npos) ? ustring : ustring.substr(0, idx));
     string.Release();
     sep.Release();
     return result;
