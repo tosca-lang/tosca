@@ -163,7 +163,7 @@ namespace tosca
         
         void ParseArgs(BufferSink& sink);
         void ParseTerms(BufferSink& sink);
-        void ParseBinders(BufferSink& sink, std::vector<std::tuple<const tosca::string*, Variable*>>& localbound);
+        void ParseBinders(BufferSink& sink, std::vector<std::tuple<tosca::string, Variable*>>& localbound);
         void ParseMap(BufferSink& sink);
 
         Variable* FindVariable(const tosca::string& name);
