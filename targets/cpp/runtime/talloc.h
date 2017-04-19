@@ -62,6 +62,12 @@ namespace tosca
 			new ((void*) p) T(value);
 		}
 
+		template<class U, class... Args>
+		void construct(U* p, Args&&... args)
+		{
+			new ((void*) p) U(std::forward<Args>(args)...);
+		}
+
 		void destroy (T* p)
 		{
 			p->~T();
