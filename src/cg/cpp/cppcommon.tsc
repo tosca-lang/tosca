@@ -169,10 +169,10 @@ func CppVarConstructorUse(#sortname: String, #csortvars?:List<Core_csortvars_sor
 /* Generate base method GetVariable corresponding to the given `#sortname`. */
 func CppMethodGetVariable(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
 → text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-†⟨TextIf(Not(#def), ()->text⟦virtual ⟧)⟩Optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩> †⟨CppQualifier(#sortname, #csortvars?, #def)⟩GetVariable() const†⟨
+†⟨TextIf(Not(#def), ()->text⟦virtual ⟧)⟩Optional<†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩> †⟨CppQualifier(#sortname, #csortvars?, #def)⟩GetVariable() const†⟨
    If(#def,
      ()->text⟦¶{→
-return Optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩>::nullopt;←
+return Optional<†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩>::nullopt;←
 }⟧, ()->text⟦;⟧)⟩⟧
 
 /* Generate static method MakeVariable corresponding to the given `#sortname`. */
@@ -182,7 +182,7 @@ func CppMethodMakeVariable(#sortname: String, #csortvars?:List<Core_csortvars_so
    If(#def,
      ()->If(#allowvar,
        ()->text⟦¶{→
-return *(new (ctx) †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩(ctx, ctx.MakeGlobalName(hint)));←
+return *(new (ctx) †⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩(ctx, ctx.MakeGlobalName(hint)));←
 }⟧,    ()->text⟦¶{ return Term::MakeVariable(ctx, hint); }⟧),
      ()->text⟦;⟧)⟩⟧
 
@@ -207,10 +207,10 @@ return †⟨ParamFormCppClassName(#CONSTRUCTOR, #csortvars?, CFC_CONS)⟩::Make
 /* Generate method GetVariable corresponding to the given `#sortname`. */
 func CppVarMethodGetVariable(#sortname: String, #csortvars?:List<Core_csortvars_sort>, #def:Bool) -> Text4_text_sort
 → text⟦†⟨TextIf(#def, ()->CppTemplatePrefix(#csortvars?))⟩
-Optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩> †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩GetVariable() const†⟨
+Optional<†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩> †⟨CppFormQualifier(#sortname, #csortvars?, CFC_VARUSE, #def)⟩GetVariable() const†⟨
    If(#def,
      ()->text⟦{
-         return make_optional<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩>(dynamic_cast<†⟨CppFormQualifier(#sortname, #csortvars?, CFC_VAR, #def)⟩†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩&>(VariableUse::GetGVariable().value()));
+         return make_optional<†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩>(dynamic_cast<†⟨ParamFormCppClassName(#sortname, (), CFC_VAR)⟩&>(VariableUse::GetGVariable().value()));
        }⟧,
      ()->text⟦;⟧)⟩⟧
 
@@ -464,7 +464,7 @@ rule CppMakeFreeVariable(FALSE, #type, #index) → text⟦¶case †⟨NumberToT
 
 func CppMakeBoundVariable(Bool, Text4_text_sort, Numeric) -> Text4_text_sort
 rule CppMakeBoundVariable(FALSE, #type, #index)  → text⟦⟧
-rule CppMakeBoundVariable(TRUE, #type, #index) → text⟦¶case †⟨NumberToText(Minus(#index, 1))⟩: return *(new (ctx) †⟨#type⟩::†⟨#type⟩(ctx, ctx.MakeGlobalName(hint)));⟧
+rule CppMakeBoundVariable(TRUE, #type, #index) → text⟦¶case †⟨NumberToText(Minus(#index, 1))⟩: return *(new (ctx) †⟨#type⟩(ctx, ctx.MakeGlobalName(hint)));⟧
 
 
 /* Generate the MakeTerm method for the given `#formname` */

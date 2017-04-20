@@ -3,6 +3,7 @@
 #define _TALLOC_H
 
 #include <climits>
+#include <stddef.h>
 
 namespace tosca
 {
