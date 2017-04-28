@@ -238,6 +238,7 @@ public class ToSinkListener implements ParseTreeListener
 
 		this.nilDesc = sink.context().lookupDescriptor("Nil");
 		this.consDesc = sink.context().lookupDescriptor("Cons");
+		
 		this.parsets = prefix.equals("TransScript_");
 	}
 

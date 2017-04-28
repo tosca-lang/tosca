@@ -180,7 +180,8 @@ public class Tool {
 			classLoader = classLoader(rules, resolveBuildDir(rules, env.get("build-dir")));
 		}
 
-		if (result == 0 && env.get("only-source") != null) {
+		if (result == 0 && env.get("only-source") == null) {
+			System.out.println("run Tosca program");
 			// Second: run
 			Map<String, Object> runEnv = new HashMap<>();
 
@@ -490,7 +491,7 @@ public class Tool {
 
 		if (env.get("default") != null)
 			System.setProperty("defaultrule", env.get("defaultrule"));
-		
+
 		if (env.get("import") != null)
 			System.setProperty("import", env.get("import"));
 
@@ -644,10 +645,15 @@ public class Tool {
 	/** Compile the list of java files */
 	static int compileJava(Context context, Map<String, String> env, Listdef.List<StringTerm> files) {
 		if (env.get("only-source") == null) {
+			System.out.println("compile Java");
 			List<File> filesToCompile = new ArrayList<>();
-			for (String filename : Utils.toJava(context, files)) {
-				filesToCompile.add(new File(filename));
-			}
+			// for (String filename : Utils.toJava(context, files)) {
+			// filesToCompile.add(new File(filename));
+			// }
+			String rules = env.get("rules");
+			String dest = resolveBuildDir(rules, env.get("build-dir"));
+
+			javafiles(dest, filesToCompile);
 			List<String> optionList = new ArrayList<String>();
 
 			// Need the Tosca runtime and the generated parser on the classpath
@@ -671,6 +677,19 @@ public class Tool {
 			return result ? 0 : 3;
 		}
 		return 0;
+	}
+
+	static void javafiles(String dir, List<File> javafiles) {
+		File folder = new File(dir);
+		File[] listOfFiles = folder.listFiles();
+
+		for (int i = 0; i < listOfFiles.length; i++) {
+			if (listOfFiles[i].isFile() && listOfFiles[i].getName().endsWith(".java")) {
+				javafiles.add(listOfFiles[i]);
+			} else if (listOfFiles[i].isDirectory()) {
+				javafiles(listOfFiles[i].toString(), javafiles);
+			}
+		}
 	}
 
 	/** Cached tosca path */
@@ -749,7 +768,7 @@ public class Tool {
 		String mainMethod = env.get("main");
 		mainMethod = mainMethod == null ? "Main" : mainMethod;
 		Method main = Utils.getMethod(clss, mainMethod, argTypes);
-
+		
 		Term result;
 		try {
 			result = Normalizer.force(main, args);
