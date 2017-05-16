@@ -151,6 +151,12 @@ namespace tosca
          */
         Term& ParseTerm(Context& ctx);
         
+        /*
+         * Binds variable.
+         * Variable reference is consumed.
+         */
+        void BindVariable(Context& ctx, tosca::string name, tosca::Variable* var);
+
     private:
         /* The term lexer */
         TermLexer lexer;

@@ -289,6 +289,11 @@ namespace tosca
         	iter->second->Release();
     }
     
+    void TermParser::BindVariable(Context& ctx, tosca::string name, tosca::Variable* var)
+    {
+        free.insert({name, var});
+    }
+
     Term& TermParser::ParseTerm(Context& ctx)
     {
         BufferSink buffer(ctx);
