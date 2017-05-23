@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 
 import org.transscript.compiler.std.Core.Bool;
 import org.transscript.runtime.BufferSink;
@@ -150,10 +151,25 @@ public class LanguageExtern {
 		return ToJavaClassName(context, str);
 	}
 
-	public static <a extends Term> a ParseText(Context context, ThunkMaker<a> tma, StringTerm value_13144,
-			StringTerm value_13145) {
-		// TODO Auto-generated method stub
-		return null;
+	@SuppressWarnings("unchecked")
+	public static <a extends Term> a ParseText(Context context, ThunkMaker<a> tma, StringTerm category,
+			StringTerm text) {
+		Parser parser = context.getParser(category.unbox(), false);
+		if (parser == null)
+			throw new RuntimeException("Fatal error: no parser found for category " + category);
+
+		BufferSink buffer = context.makeBuffer();
+		try (Reader reader = new StringReader(text.unbox())) {
+			parser.parse(buffer, category.unbox(), reader, null, 0, 0, new Scoping(), new Scoping());
+		}  catch (IOException e) {
+			throw new RuntimeException(e);
+		} finally {
+			category.release();
+			text.release();
+		}
+
+		Term result = buffer.term();
+		return (a) result;
 	}
 
 	/**
