@@ -125,7 +125,6 @@ task cleanTextParsers(overwrite : true) {}
 
 task tarAll(type: Tar, dependsOn: ':targets:java:snapshot') {
 	baseName 'tosca'
-	classifier 'ALPHA'
 	version '1.0'
 	compression Compression.GZIP
 

@@ -51,7 +51,7 @@ template<typename a, typename b>
 tosca::MapTerm<a, b>& MapAddAll(tosca::Context& ctx, tosca::MapTerm<a, b>& map1, tosca::MapTerm<a, b>& map2)
 {
     tosca::MapTerm<a, b>& xmap = map1.extend(ctx);
-    xmap.putAll(map2);
+    xmap.putAll(ctx, map2);
     return xmap;
 }
 

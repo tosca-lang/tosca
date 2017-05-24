@@ -238,4 +238,13 @@ public class CoreExtern
 		return (b) value;
 	}
 
+	public static <a extends Term> a GetProperty(Context context, ThunkMaker<a> tma, StringTerm value_17889, a value_17890) {
+		throw new RuntimeException("Not implemented");
+	}
+
+	public static  <a extends Term, b extends Term> b PutProperty(Context context, ThunkMaker<a> tma, ThunkMaker<b> tmb, StringTerm value_17969,
+			a value_17970, Closure0<b> value_17971) {
+		throw new RuntimeException("Not implemented");
+	}
+
 }

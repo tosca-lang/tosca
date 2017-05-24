@@ -76,7 +76,7 @@ namespace tosca {
          * Put all entries in the given map into this map
          * @param map
          */
-        virtual void putAll(MapTerm<K, V> map)
+        virtual void putAll(Context& ctx, MapTerm<K, V> map)
         {
             throw new std::runtime_error("");
         }
@@ -238,9 +238,19 @@ namespace tosca {
             return xmap;
         }
 
-        void putAll(MapTerm<K, V> map)
+        void putAll(Context& ctx, MapTerm<K, V> map)
         {
-            throw new std::runtime_error("");
+        	std::vector<K*> keys = map.keys(ctx);
+        	for (auto it = keys.rbegin(); it != keys.rend(); it ++)
+        	{
+        		K& key = **it;
+        		Optional<Term> ovalue = map.MapGetValue(ctx, key);
+        		V& value = *(dynamic_cast<V*>(&ovalue.value()));
+
+        		key.AddRef();
+        		value.AddRef();
+        		putValue(ctx, key, value);
+        	}
         }
 
         std::vector<V*> values(Context& ctx)

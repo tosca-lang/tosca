@@ -60,6 +60,12 @@ rule Eval(#) → #
    the given `#default` string when no such key exists */
 @Extern func GetEnv(#key: String, #default: String) -> String
 
+// --- Internal environment
+
+@Extern func GetProperty<a>(#key: String, #default: a) -> a
+
+@Extern func PutProperty<a b>(#key: String /* Key */, #value: a, #result: ()->b) -> b 
+
 // --- Optional value
 
 enum Option<a> | SOME(a) | NONE
@@ -115,7 +121,7 @@ rule Not(FALSE) → TRUE
 func NotEqual<a>(#1: a, #2: a) -> Bool
 → Not(Equal(#1, #2))
 
-@Extern func DeepEqual<a>(a, a) -> Bool 
+@Extern func DeepEqual<a>(a, a) -> Bool
 
 // --- Bit manipulation
 

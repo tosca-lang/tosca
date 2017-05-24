@@ -48,6 +48,39 @@ a& IfDef(tosca::Context& ctx, tosca::StringTerm& key, Closure0<a>& ctrue, Closur
     return cfalse.Eval(ctx);
 }
 
+
+// --- Internal environment
+
+template<typename a>
+a& GetProperty(tosca::Context& ctx, tosca::StringTerm& key, a& def)
+{
+	std::string k(key.Unbox());
+	void* v = ctx.GetProperty(k);
+	key.Release();
+	if (v)
+	{
+		def.Release();
+		a& result = *(dynamic_cast<a*>(v));
+		result.AddRef();
+		return result;
+	}
+	return def;
+}
+
+template<typename a, typename b>
+a& PutProperty(tosca::Context& ctx, tosca::StringTerm& key, a& value, Closure0<b>& result)
+{
+	std::string k(key.Unbox());
+	void* v = ctx.GetProperty(k);
+	if (v)
+	{
+		dynamic_cast<tosca::Term*>(v)->Release();
+	}
+	ctx.PutProperty(k, &v);
+
+	return result.Eval(ctx);
+}
+
 // --- Boolean
 
 template<typename a, typename b>
