@@ -68,7 +68,7 @@ a& GetProperty(tosca::Context& ctx, tosca::StringTerm& key, a& def)
 }
 
 template<typename a, typename b>
-a& PutProperty(tosca::Context& ctx, tosca::StringTerm& key, a& value, Closure0<b>& result)
+b& PutProperty(tosca::Context& ctx, tosca::StringTerm& key, a& value, Closure0<b>& result)
 {
 	std::string k(key.Unbox());
 	void* v = ctx.GetProperty(k);
