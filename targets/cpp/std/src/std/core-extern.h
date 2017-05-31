@@ -60,7 +60,7 @@ a& GetProperty(tosca::Context& ctx, tosca::StringTerm& key, a& def)
 	if (v)
 	{
 		def.Release();
-		a& result = *(dynamic_cast<a*>(v));
+		a& result = *(static_cast<a*>(v));
 		result.AddRef();
 		return result;
 	}
@@ -74,7 +74,7 @@ b& PutProperty(tosca::Context& ctx, tosca::StringTerm& key, a& value, Closure0<b
 	void* v = ctx.GetProperty(k);
 	if (v)
 	{
-		dynamic_cast<tosca::Term*>(v)->Release();
+		static_cast<tosca::Term*>(v)->Release();
 	}
 	ctx.PutProperty(k, &v);
 

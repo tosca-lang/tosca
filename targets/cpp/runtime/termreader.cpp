@@ -473,16 +473,43 @@ namespace tosca
     {
         while (true)
         {
-            lexer.Match(TermLexer::STRING);
-            const std::string key = makeRescaped(lexer.GetText());
-            lexer.ConsumeToken();
+        	TermLexer::Token token = lexer.CurrentToken();
+        	tosca::Term* key;
+        	switch (token)
+        	{
+            	case TermLexer::VARIABLE:
+            	{
+            		tosca::string name(lexer.GetText().c_str(), sink.GetContext().allocChar);
+            		Variable* var = FindVariable(name);
+            		if (var == 0)
+            		{
+            			var = &sink.MakeFree(name);
+            			free.insert({name, var}); // Keep one var ref
+            		}
+            		var->AddRef();
+            		key = &(var->GUse(sink.GetContext()));
+            		lexer.ConsumeToken();
+            		break;
+            	}
+            	case TermLexer::STRING:
+            	{
+            		lexer.Match(TermLexer::STRING);
+            		const std::string skey = makeRescaped(lexer.GetText());
+            		key = &(newStringTerm(sink.GetContext(), skey));
+            		lexer.ConsumeToken();
+            		break;
+            	}
+            	default:
+            		throw std::runtime_error("Parse error.");
+        	}
+
 
             lexer.Match(TermLexer::COLON);
             lexer.ConsumeToken();
 
             BufferSink value(sink.GetContext());
             ParseTerm(value);
-            sink.MapEntry(newStringTerm(sink.GetContext(), key), value.GetTerm());
+            sink.MapEntry(*key, value.GetTerm());
 
             if (lexer.CurrentToken() == TermLexer::RCURLY)
                 break;
