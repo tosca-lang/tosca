@@ -45,4 +45,6 @@ public interface Parser
 	/** Set whether parser includes properties that track the extent of each constructor. */
 	public void setParserLocation(boolean captureLocations);
 
+	public void enableLoc();
+
 }

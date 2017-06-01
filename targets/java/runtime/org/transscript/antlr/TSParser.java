@@ -37,6 +37,8 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 {
 	// Constructor
 
+	private boolean sendloc;
+
 	/** Constructor used by TS to gather information about categories */
 	protected TSParser()
 	{
@@ -343,6 +345,16 @@ public class TSParser extends org.antlr.v4.runtime.Parser implements Parser, Clo
 			//super.syntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e);
 		}
 
+	}
+
+	@Override
+	public void enableLoc() {
+		sendloc = true;
+		
+	}
+
+	public boolean locEnabled() {
+		return sendloc;
 	}
 
 }

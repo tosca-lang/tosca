@@ -210,7 +210,7 @@ public class ToSinkListener implements ParseTreeListener
 
 	/** Listener state */
 	private State state;
-
+	
 	/**
 	 * Create an TS ANTLR listener 
 	 * @param sink      where to send events
@@ -240,6 +240,7 @@ public class ToSinkListener implements ParseTreeListener
 		this.consDesc = sink.context().lookupDescriptor("Cons");
 		
 		this.parsets = prefix.equals("TransScript_");
+		
 	}
 
 	/**
@@ -247,10 +248,8 @@ public class ToSinkListener implements ParseTreeListener
 	 */
 	protected void sendLocation(Token token)
 	{
-		// TODO
-		//		int column = token.getCharPositionInLine();
-		//		int line = token.getLine();
-		//		return Util.wrapWithLocation(sink, c, parser.getInputStream().getSourceName(), line, column);
+		if (parser.locEnabled())
+			sink.loc(token.getLine(), token.getCharPositionInLine());
 	}
 
 	/**
@@ -331,7 +330,6 @@ public class ToSinkListener implements ParseTreeListener
 				ParserRuleContext parentCtx = ruleContext.peek();
 				String ruleName = parser.getRuleNames()[parentCtx.getRuleIndex()];
 
-				sendLocation(parentCtx.getStart());
 				sink = sink.start(sink.context().lookupDescriptor(prefix + ruleName));
 		}
 	}
@@ -357,8 +355,6 @@ public class ToSinkListener implements ParseTreeListener
 			state = State.CONCRETE;
 		else
 		{
-			sendLocation(parentCtx.getStart());
-
 			// TEMPORARY BC BEHAVIOR
 			if (name.length() > 0 && Character.isDigit(name.charAt(0)))
 			{
@@ -397,6 +393,8 @@ public class ToSinkListener implements ParseTreeListener
 				state = State.PARSE;
 				break;
 			default :
+				sendLocation(context.start);
+				
 				sink.end();// end construction
 		}
 	}
@@ -685,8 +683,6 @@ public class ToSinkListener implements ParseTreeListener
 					{
 						case NUMERIC :
 						case STRING :
-							sendLocation(context.getSymbol());
-
 							String t = context.getText();
 
 							// TODO: SHOULD FIND A BETTER WAY, like another sort case.

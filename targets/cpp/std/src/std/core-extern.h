@@ -54,7 +54,7 @@ a& IfDef(tosca::Context& ctx, tosca::StringTerm& key, Closure0<a>& ctrue, Closur
 template<typename a>
 a& GetProperty(tosca::Context& ctx, tosca::StringTerm& key, a& def)
 {
-	std::string k(key.Unbox());
+	std::string k(key.Unbox().c_str());
 	void* v = ctx.GetProperty(k);
 	key.Release();
 	if (v)
@@ -70,7 +70,7 @@ a& GetProperty(tosca::Context& ctx, tosca::StringTerm& key, a& def)
 template<typename a, typename b>
 b& PutProperty(tosca::Context& ctx, tosca::StringTerm& key, a& value, Closure0<b>& result)
 {
-	std::string k(key.Unbox());
+	std::string k(key.Unbox().c_str());
 	void* v = ctx.GetProperty(k);
 	if (v)
 	{

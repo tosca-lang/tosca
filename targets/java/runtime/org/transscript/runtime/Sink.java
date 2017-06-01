@@ -100,6 +100,16 @@ public abstract class Sink
 	}
 	
 	/**
+	 * Receive location
+	 * @param term
+	 */
+	public Sink loc(int line, int column)
+	{
+		return this;
+	}
+	
+	
+	/**
 	 * @return the context
 	 */
 	public abstract Context context();

@@ -179,5 +179,13 @@ public class BufferSink extends Sink
 		addSub(term);
 		return this;
 	}
+	
+	@Override
+	public Sink loc(int line, int column)
+	{
+		MapTerm<StringTerm, StringTerm> l = MapTerm.mapTerm();
+		addSub(l);
+		return this;
+	}
 
 }

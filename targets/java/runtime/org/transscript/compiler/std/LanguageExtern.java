@@ -53,6 +53,8 @@ public class LanguageExtern {
 		if (parser == null)
 			throw new RuntimeException("Fatal error: no parser found for category " + category);
 
+		if (efilename.unbox().endsWith("fix"))
+			parser.enableLoc();
 		BufferSink buffer = context.makeBuffer();
 		try (Reader reader = new FileReader(efilename.unbox())) {
 			parser.parse(buffer, ecategory.unbox(), reader, null, 0, 0, new Scoping(), new Scoping());

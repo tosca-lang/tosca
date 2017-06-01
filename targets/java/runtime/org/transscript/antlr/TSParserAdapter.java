@@ -77,4 +77,10 @@ class TSParserAdapter implements Parser
 		parser.setParserLocation(captureLocations);
 	}
 
+	@Override
+	public void enableLoc() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
