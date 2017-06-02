@@ -844,6 +844,7 @@ public class ToSinkListener implements ParseTreeListener
 			if (innerParser == null)
 				throw new RuntimeException("Internal Error: missing Tosca metaparser.");
 
+			
 			if (isMeta())
 			{
 				BufferSink buffer = sink.context().makeBuffer();
@@ -853,7 +854,9 @@ public class ToSinkListener implements ParseTreeListener
 			else
 			{
 				// Regular term parsing. 
-				BufferSink buffer = new TermBufferSink(sink.context());
+				TermBufferSink buffer = new TermBufferSink(sink.context());
+				if (parser.locEnabled())
+					buffer.enableLoc();
 				((TSParser) innerParser.parser()).parse(buffer, "term", reader, null, line, column, bounds, freshes);
 				sink.copy(buffer.term());
 			}

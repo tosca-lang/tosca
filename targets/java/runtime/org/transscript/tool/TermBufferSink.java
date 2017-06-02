@@ -2,6 +2,7 @@
 
 package org.transscript.tool;
 
+import java.awt.SecondaryLoop;
 import java.util.ArrayDeque;
 import java.util.IdentityHashMap;
 
@@ -57,6 +58,8 @@ public class TermBufferSink extends BufferSink
 	/** Map TransScript variable to language-specific variable */
 	protected IdentityHashMap<Variable, Variable> vars;
 
+	public boolean locEnabled;
+	
 	// Constructor
 
 	/**
@@ -115,8 +118,11 @@ public class TermBufferSink extends BufferSink
 	public BufferSink end()
 	{
 		ConstructionDescriptor descriptor = descs.pop();
-		if (descriptor == consDesc && state == State.SKIP)
+		if (descriptor == consDesc && state == State.SKIP) {
+			super.loc(0, 0); // TODO.
+			
 			super.end();
+		}
 		else if (descriptor == singleListDesc && state == State.SKIP)
 		{
 			super.start(lnilDesc);
@@ -208,6 +214,11 @@ public class TermBufferSink extends BufferSink
 		pendingSort = null;
 		state = State.SKIP;
 		return this;
+	}
+
+	public void enableLoc() {
+		
+		locEnabled = true;
 	}
 
 }
