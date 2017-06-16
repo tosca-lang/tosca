@@ -277,7 +277,7 @@ void rescape(char **sourcep, char **targetp, char *endsource, char *endtarget)
     *targetp = (char*)t;
 }
 
-std::string makeRescaped(const std::string& ssrc)
+std::string makeRescaped(const std::string& ssrc, bool trim)
 {
 	size_t len = ssrc.length();
 	if (len == 0)
@@ -286,11 +286,17 @@ std::string makeRescaped(const std::string& ssrc)
 	const char* src = (char*) ssrc.c_str();
 
     char *s1 = (char*)src;
-    while (isspace(*s1))
-    	++s1; // trim front spaces
+    if (trim)
+    {
+    	while (isspace(*s1))
+    		++s1; // trim front spaces
+    }
     char *s2 = (char*)src + len;
-    while (isspace(*(s2-1)) && s1<s2)
-    	--s2; // trim back spaces
+    if (trim)
+    {
+    	while (isspace(*(s2-1)) && s1<s2)
+    		--s2; // trim back spaces
+    }
     if ((*s1 == '"' || *s1 == '\'') && *s1 == *(s2-1) && s1+2 <= s2)
     {
     	// trim quotes

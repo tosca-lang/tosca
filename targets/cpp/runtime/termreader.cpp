@@ -339,7 +339,7 @@ namespace tosca
             }
             case TermLexer::STRING:
             {
-            	std::string unquote = makeRescaped(lexer.GetText());
+            	std::string unquote = makeRescaped(lexer.GetText(), false);
                 sink.Literal(unquote);
                 lexer.ConsumeToken();
                 break;
@@ -494,7 +494,7 @@ namespace tosca
             	case TermLexer::STRING:
             	{
             		lexer.Match(TermLexer::STRING);
-            		const std::string skey = makeRescaped(lexer.GetText());
+            		const std::string skey = makeRescaped(lexer.GetText(), false);
             		key = &(newStringTerm(sink.GetContext(), skey));
             		lexer.ConsumeToken();
             		break;
