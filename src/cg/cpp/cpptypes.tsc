@@ -12,7 +12,7 @@ import cg::cpp::cppcommon
 import systemdef
 
 
-func CppTypes(#module: Module) -> Text4_text_sort
+func CppHeaderTypes(#module: Module) -> Text4_text_sort
 → Debug("Generate C++ types file", ()->text⟦
 #ifndef †⟨HeaderTypesGuard(GetModuleURL(#module))⟩
 #define †⟨HeaderTypesGuard(GetModuleURL(#module))⟩

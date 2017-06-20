@@ -38,7 +38,7 @@ func ToCppM(#system:TSystem, #module: Module) -> Result
   #result4
 
 func CppSaveAllTmp(#system:TSystem, #module: Module, #types:String, #sigs:String, #header:String, #source:String) -> Result
-→ SaveResource("text", ConcatString(#types, ".tmp"), CppTypes(#module), ()->
+→ SaveResource("text", ConcatString(#types, ".tmp"), CppHeaderTypes(#module), ()->
   SaveResource("text", ConcatString(#sigs, ".tmp"),  CppSigs(#module), ()->
   SaveResource("text", ConcatString(#header, ".tmp"), CppHeader(#module), ()->
   SaveResource("text", ConcatString(#source, ".tmp"), CppSource(#module), ()->

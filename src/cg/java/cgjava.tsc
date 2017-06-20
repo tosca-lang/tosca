@@ -931,7 +931,7 @@ func JavaPatternSubs({String : JEnvEntry}, List<Core_cterm_sort>,
 
   rule JavaPatternSubs(#env, cterm*⟦ ##cterm ##cterm* ⟧, #term, #index, #csort*, #cont)
   → text⟦
-      †⟨MaybeSortToType(SubSort(#env, #cterm, #csort*))⟩ ⟨STRING: sub:String⟩ = †⟨#term⟩.getField†⟨FieldSuffix(#index)⟩(†⟨GetContext(#env)⟩, true);†⟨
+      †⟨MaybeSortToType(SubSort(#env, #cterm, #csort*))⟩ ⟨STRING: sub:String⟩ = †⟨#term⟩.getField†⟨FieldSuffix(#index)⟩(†⟨GetJContext(#env)⟩, true);†⟨
       JavaPatternTerm(JavaSetSubBinderIndex(SetParent(SetSubIndex(#env, #index), #term), 1),
                   #cterm, text⟦⟨STRING: sub⟩⟧, SubSort(#env, #cterm, #csort*), ARGUMENT,
                   (x) -> JavaPatternSubs(x, #cterm*, #term, NumberPlus(#index, 1), Maybe((x)->Tail(x), #csort*), #cont))⟩⟧
@@ -1017,10 +1017,10 @@ func JavaPatternMapEntry({String : JEnvEntry}, Core_cmapentry_sort, Text4_text_s
   rule JavaPatternMapEntry(#env, cmapentry⟦ ##METAVAR : ##cterm ⟧, #term, #cmapsort, #cont)
   → IfPresent(JGetMetaVarO(#env, #METAVAR),
       (key)->text⟦
-        Option<†⟨SortToType(GetMapValueSort(#cmapsort))⟩> ⟨STRING: mval⟩ = †⟨#term⟩.getValue(†⟨GetContext(#env)⟩, †⟨key⟩).asSOME(†⟨GetContext(#env)⟩);
+        Option<†⟨SortToType(GetMapValueSort(#cmapsort))⟩> ⟨STRING: mval⟩ = †⟨#term⟩.getValue(†⟨GetJContext(#env)⟩, †⟨key⟩).asSOME(†⟨GetJContext(#env)⟩);
         if (⟨STRING: mval⟩ == null)
           break †⟨JGetLabel(#env)⟩;
-        †⟨SortToType(GetMapValueSort(#cmapsort))⟩ ⟨STRING: value⟩ = ⟨STRING: mval⟩.asSOME(†⟨GetContext(#env)⟩).getField1(†⟨GetContext(#env)⟩, false);
+        †⟨SortToType(GetMapValueSort(#cmapsort))⟩ ⟨STRING: value⟩ = ⟨STRING: mval⟩.asSOME(†⟨GetJContext(#env)⟩).getField1(†⟨GetJContext(#env)⟩, false);
         †⟨JavaPatternTerm(#env, #cterm, text⟦⟨STRING: value⟩⟧, SOME(GetMapValueSort(#cmapsort)), ARGUMENT, #cont)⟩⟧,
       ()->#cont(JDelayMapEntry(#env, #METAVAR, JMapEntry(cmapentry⟦ ##METAVAR : ##cterm ⟧, #term, #cmapsort))))
 
@@ -1043,10 +1043,10 @@ func JavaPatternMapEntry({String : JEnvEntry}, Core_cmapentry_sort, Text4_text_s
   rule JavaPatternMapEntry(#env, cmapentry⟦ ##VARIABLE : ##cterm ⟧, #term, #cmapsort, #cont)
   → IfPresent(JGetVarO(#env, #VARIABLE),
       (key)->text⟦
-        Option<†⟨SortToType(GetMapValueSort(#cmapsort))⟩> ⟨STRING: mval⟩ = †⟨#term⟩.getValue(†⟨GetContext(#env)⟩, †⟨UnJVarVar(key)⟩.use()).asSOME(†⟨GetContext(#env)⟩);
+        Option<†⟨SortToType(GetMapValueSort(#cmapsort))⟩> ⟨STRING: mval⟩ = †⟨#term⟩.getValue(†⟨GetJContext(#env)⟩, †⟨UnJVarVar(key)⟩.use()).asSOME(†⟨GetJContext(#env)⟩);
         if (⟨STRING: mval⟩ == null)
           break †⟨JGetLabel(#env)⟩;
-        †⟨SortToType(GetMapValueSort(#cmapsort))⟩ ⟨STRING: value⟩ = ⟨STRING: mval⟩.asSOME(†⟨GetContext(#env)⟩).getField1(†⟨GetContext(#env)⟩, false);
+        †⟨SortToType(GetMapValueSort(#cmapsort))⟩ ⟨STRING: value⟩ = ⟨STRING: mval⟩.asSOME(†⟨GetJContext(#env)⟩).getField1(†⟨GetJContext(#env)⟩, false);
         †⟨JavaPatternTerm(#env, #cterm, text⟦⟨STRING: value⟩⟧, SOME(GetMapValueSort(#cmapsort)), ARGUMENT, #cont)⟩⟧,
       ()->#cont(JDelayMapEntry(#env, #VARIABLE, JMapEntry(cmapentry⟦ ##VARIABLE : ##cterm ⟧, #term, #cmapsort))))
 
@@ -1064,10 +1064,10 @@ func JavaPatternMapEntry({String : JEnvEntry}, Core_cmapentry_sort, Text4_text_s
 
   rule JavaPatternMapEntry(#env, cmapentry⟦ ##STRING  : ##cterm ⟧, #term, #cmapsort, #cont)
  → text⟦
-      Option<†⟨SortToType(GetMapValueSort(#cmapsort))⟩> ⟨STRING: mval⟩ = †⟨#term⟩.getValue(†⟨GetContext(#env)⟩, †⟨Literal(cliteral⟦ ##STRING ⟧)⟩).asSOME(†⟨GetContext(#env)⟩);
+      Option<†⟨SortToType(GetMapValueSort(#cmapsort))⟩> ⟨STRING: mval⟩ = †⟨#term⟩.getValue(†⟨GetJContext(#env)⟩, †⟨Literal(cliteral⟦ ##STRING ⟧)⟩).asSOME(†⟨GetJContext(#env)⟩);
       if (⟨STRING: mval⟩ == null)
         break †⟨JGetLabel(#env)⟩;
-      †⟨SortToType(GetMapValueSort(#cmapsort))⟩ ⟨STRING: value⟩ = ⟨STRING: mval⟩.asSOME(†⟨GetContext(#env)⟩).getField1(†⟨GetContext(#env)⟩, false);
+      †⟨SortToType(GetMapValueSort(#cmapsort))⟩ ⟨STRING: value⟩ = ⟨STRING: mval⟩.asSOME(†⟨GetJContext(#env)⟩).getField1(†⟨GetJContext(#env)⟩, false);
       †⟨JavaPatternTerm(#env, #cterm, text⟦⟨STRING: value⟩⟧, SOME(GetMapValueSort(#cmapsort)), ARGUMENT, #cont)⟩⟧
 
 
@@ -1090,7 +1090,7 @@ func JavaPatternNamedTerm(#env: {String : JEnvEntry}, #canno*: List<Core_canno_s
 
 /* Generate force call if term is a parameter */
 func ForceParameter({String : JEnvEntry}, Text4_text_sort, Storage) -> Text4_text_sort
-  rule ForceParameter(#env, #term, PARAMETER) →  text⟦†⟨#term⟩ = force(†⟨GetContext(#env)⟩, †⟨#term⟩);⟧
+  rule ForceParameter(#env, #term, PARAMETER) →  text⟦†⟨#term⟩ = force(†⟨GetJContext(#env)⟩, †⟨#term⟩);⟧
   rule ForceParameter(#env, #term, #storage)  →  text⟦⟧
 
 /* Extract type parameter from constructor sort */
@@ -1326,13 +1326,13 @@ func JavaJFreshesVariable({String : JEnvEntry}, Option<Core_canno_sort>, Option<
   // Fresh variable, no reuse
   rule JavaJFreshesVariable(#env, NONE, NONE, #var, csortanno?⟦ : ##csort ⟧, TRUE, #cont)
   → text⟦
-      Var†⟨SortToType(#csort)⟩ fresh†⟨NumberToText(JGetFreshCounter(#env))⟩ = var†⟨SortToType(#csort)⟩(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show(#var))⟩);⟨
+      Var†⟨SortToType(#csort)⟩ fresh†⟨NumberToText(JGetFreshCounter(#env))⟩ = var†⟨SortToType(#csort)⟩(†⟨GetJContext(#env)⟩, †⟨Text-QuoteEscape(Show(#var))⟩);⟨
         #cont(JIncFreshCounter(JAddVar(#env, #var, JFresh(text⟦fresh†⟨NumberToText(JGetFreshCounter(#env))⟩⟧, SOME(#csort)))))⟩⟧
 
   // New bound variable, no reuse
   rule JavaJFreshesVariable(#env, NONE, NONE, #var, csortanno?⟦ : ##csort ⟧, FALSE, #cont)
   → text⟦
-      Var†⟨SortToType(#csort)⟩ bound†⟨NumberToText(JGetCounter(#env))⟩ = var†⟨SortToType(#csort)⟩(†⟨GetContext(#env)⟩, †⟨Text-QuoteEscape(Show(#var))⟩);⟨
+      Var†⟨SortToType(#csort)⟩ bound†⟨NumberToText(JGetCounter(#env))⟩ = var†⟨SortToType(#csort)⟩(†⟨GetJContext(#env)⟩, †⟨Text-QuoteEscape(Show(#var))⟩);⟨
         #cont(JIncCounter(JAddVar(#env, #var, JBound(text⟦bound†⟨NumberToText(JGetCounter(#env))⟩⟧, SOME(#csort)))))⟩⟧
 
   // Fresh variable, reuse binder.
@@ -1373,7 +1373,7 @@ func JavaExprTerm({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) 
 
   // TODO: reuse thunk
   rule JavaExprTerm(#env, cterm⟦ ##canno* thunk ##cterm ⟧, #cont)
-  → text⟦newClosure(†⟨GetContext(NewContext(#env))⟩ -> ⟨JavaExprTerm(NewContext(#env), #cterm, (env) -> text⟦†⟨JavaLambdaCaptures(#env, GetAnnotations(#cterm))⟩)⟨#cont(env)⟩⟧)⟩⟧
+  → text⟦newClosure(†⟨GetJContext(NewJContext(#env))⟩ -> ⟨JavaExprTerm(NewJContext(#env), #cterm, (env) -> text⟦†⟨JavaLambdaCaptures(#env, GetAnnotations(#cterm))⟩)⟨#cont(env)⟩⟧)⟩⟧
 
   rule JavaExprTerm(#env, cterm⟦ ##canno* let ##METAVAR ##csortanno? = ##cterm ##cterm2 ⟧, #cont)
   → Error("Error: Let expression cannot occur within another expression: it must be a the top-level expression.")
@@ -1499,8 +1499,8 @@ func JavaExprLambda(Bool /* Reuse? */, {String : JEnvEntry}, Core_cterm_sort, ({
   → JavaExprLambdaReuse(#env, StripBinders(#cterm), #cont)
 
   rule JavaExprLambda(FALSE, #env, #cterm, #cont)
-  → let #ncontext = NewContext(#env)
-      text⟦newClosure((†⟨GetContext(#ncontext)⟩†⟨JavaExprLambdaNew(#ncontext, #cterm, #cont)⟩⟧
+  → let #ncontext = NewJContext(#env)
+      text⟦newClosure((†⟨GetJContext(#ncontext)⟩†⟨JavaExprLambdaNew(#ncontext, #cterm, #cont)⟩⟧
 
 func JavaExprLambdaNew({String : JEnvEntry}, Core_cterm_sort, ({String : JEnvEntry}) -> Text4_text_sort) -> Text4_text_sort
 
@@ -1940,8 +1940,8 @@ func JIncParamCounter(#env: {String : JEnvEntry}) -> {String : JEnvEntry}
 
 // --- Context
 
-func GetContext({String : JEnvEntry}) -> Text4_text_sort
-rule GetContext(#env) → JGetValue<Text4_text_sort>(#env, "context", (x) -> UnJContext(x))
+func GetJContext({String : JEnvEntry}) -> Text4_text_sort
+rule GetJContext(#env) → JGetValue<Text4_text_sort>(#env, "context", (x) -> UnJContext(x))
 
 func GetContextCount({String : JEnvEntry}) -> Numeric
 rule GetContextCount(#env) → JGetValue<Numeric>(#env, "context", (x) -> UnJContextCount(x))
@@ -1949,8 +1949,8 @@ rule GetContextCount(#env) → JGetValue<Numeric>(#env, "context", (x) -> UnJCon
 func SetContext({String : JEnvEntry}, Text4_text_sort, Numeric) -> {String : JEnvEntry}
 rule SetContext(#env, #context, #count) → JSetValue(#env, "context", JContext(#context, #count))
 
-func NewContext({String : JEnvEntry}) -> {String : JEnvEntry}
-rule NewContext(#env)
+func NewJContext({String : JEnvEntry}) -> {String : JEnvEntry}
+rule NewJContext(#env)
 → SetContext(#env, text⟦c†⟨NumberToText(GetContextCount(#env))⟩⟧, Plus(GetContextCount(#env), 1))
 
 // --- function annotations
