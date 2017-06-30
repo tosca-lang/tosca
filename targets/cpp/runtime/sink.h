@@ -36,6 +36,8 @@ class Sink
 public:
     Sink(Context& ctx) : context(ctx) {}
     
+    virtual ~Sink() {}
+    
     /**
      * Start of construction.
      *
