@@ -10,6 +10,7 @@
 #include <unordered_set>
 #include <set>
 #include <climits>
+#include <atomic>
 
 #include "compat.h"
 #include "tstring.h"
@@ -37,7 +38,7 @@ namespace tosca {
         /**
          * Number of references to this instance.
          */
-        unsigned long refcount;
+        std::atomic<unsigned long> refcount;
 
         Ref();
         Ref(bool immortal);

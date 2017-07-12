@@ -12,7 +12,7 @@ Status
 
 This project is at an early development stage and fairly [active](https://github.com/tosca-lang/tosca/pulse). 
 
-The current compiler targets high-level type-safe (in most cases) readable Java 8 code. C++11 is being actively developed.
+The current compiler targets high-level type-safe (in most cases) readable code - your alternative of either Java 8 code or C++11 code.
 
 Getting Started
 ===============
@@ -32,7 +32,18 @@ Installing the Atom package
 ==================================
 
 Download [atom](https://atom.io), install it then start Atom. Go to Preferences (ctrl-, or command-, depending on your system), Install and search for language-tosca and then click on Install.
-    
+
+Changes
+=======
+* Version 1.0.7 - fixes non-thread-safe issue with ref counting in C++ backend.
+* Version 1.0.6 - fixes to make Tosca compile after clean pull from github
+* Version 1.0.5 - gcc 4.8 support for C++ backend.
+* Version 1.0.4 - Fix bug in PutProperty signature for C++ backend.
+* Version 1.0.3 - Add GetProperty and PutProperty in core.tsc. Implement MapAddAll.  Both Java and C++ backends.
+* Version 1.0.2 - Add ParseText for Java backend.
+* Version 1.0.1 - Add BindVariable function in TermParser, C++ backend.
+* Version 1.0.0 - Initial production release.
+
 Contributing
 ============
 
