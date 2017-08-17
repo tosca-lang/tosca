@@ -133,6 +133,25 @@ namespace tosca
                     ReadChar();
                     break; // skip whitespace
                     
+                case '/':
+                {
+                    ReadChar();
+                    char nc = CurrentChar();
+                    if ('/' == nc)
+                    {
+                        LineComment();
+                    }
+                    else if ('*' == nc)
+                    {
+                        BlockComment();
+                    }
+                    else
+                    {
+                        token = INVALID;
+                        return;
+                    }
+                    break;
+                }
                 default:
                     if (c >= 'a' && c <= 'z')
                         token = ReadVariable();
@@ -269,6 +288,40 @@ namespace tosca
                     ReadChar();
                     text += c;
                     break;
+            }
+        }
+    }
+
+    void TermLexer::LineComment()
+    {
+        while (true)
+        {
+            ReadChar();
+            char c = CurrentChar();
+            if ('\n' == c)
+            {
+                ReadChar();
+                return;
+            }
+        }
+    }
+
+    void TermLexer::BlockComment()
+    {
+        ReadChar();
+        while (true)
+        {
+            char c = CurrentChar();
+            ReadChar();
+
+            if ('*' == c)
+            {
+                char nc = CurrentChar();
+                if ('/' == nc)
+                {
+                    ReadChar();
+                    return;
+                }
             }
         }
     }

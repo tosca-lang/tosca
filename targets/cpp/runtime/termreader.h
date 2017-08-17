@@ -103,6 +103,12 @@ namespace tosca
         /* Read constructor token */
         Token ReadConstructor();
         
+        /* Advance to end of a line comment */
+        void LineComment();
+
+        /* Advance to end of a block comment */
+        void BlockComment();
+
         /* Current token */
         Token token;
         
