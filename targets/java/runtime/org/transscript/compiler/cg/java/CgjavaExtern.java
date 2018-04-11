@@ -15,14 +15,15 @@ import org.transscript.tool.Utils;
 public class CgjavaExtern
 {
 
-	public static StringTerm TargetJavaFilename(Context context, StringTerm input, StringTerm buildir, StringTerm mainurl, StringTerm pkg)
+	public static StringTerm TargetJavaFilename(Context context, StringTerm input, StringTerm base, StringTerm buildir, StringTerm mainurl, StringTerm pkg)
 	{
 		StringTerm einput = Term.force(context, input);
+		StringTerm ebase = Term.force(context, base);
 		StringTerm ebuildir = Term.force(context, buildir);
 		StringTerm emainurl = Term.force(context, mainurl);
 		StringTerm epkg = Term.force(context, pkg);
 		StringTerm r = StringTerm.stringTerm(
-				Utils.targetJavaFilename(einput.unbox(), ebuildir.unbox(), emainurl.unbox(), epkg.unbox(), true));
+				Utils.targetJavaFilename(einput.unbox(), ebase.unbox(), ebuildir.unbox(), emainurl.unbox(), epkg.unbox(), true));
 		einput.release();
 		ebuildir.release();
 		emainurl.release();

@@ -25,11 +25,12 @@ import cg::cpp::cppsource
 func ToCppM(#system:TSystem, #module: Module) -> Result
 → let #mainurl = GetSystemURL(#system)
   let #url = GetModuleURL(#module)
+  let #base = GetModuleURLBase(#module)
   let #buildir = GetConfigDef(#system, "build-dir", "")
-  let #types = TargetCppTypes(#mainurl, #url, #buildir)
-  let #sigs = TargetCppSigs(#mainurl, #url, #buildir)
-  let #header = TargetCppHeader(#mainurl, #url, #buildir)
-  let #source = TargetCppSource(#mainurl, #url, #buildir)
+  let #types = TargetCppTypes(#mainurl, #url, #base, #buildir)
+  let #sigs = TargetCppSigs(#mainurl, #url, #base, #buildir)
+  let #header = TargetCppHeader(#mainurl, #url, #base, #buildir)
+  let #source = TargetCppSource(#mainurl, #url, #base, #buildir)
   let #result = CppSaveAllTmp(#system, #module, #types, #sigs, #header, #source)
   let #result1 = CppMoveTmp(#result, #types)
   let #result2 = CppMoveTmp(#result1, #sigs)
@@ -55,31 +56,33 @@ func CppMoveTmp(#result:Result, #filename: String) -> Result
       Debug(ConcatString("delete ", #tmp), ()->#result)
 
 /* Get the absolute name of the target c++ header file containing forward declarations */
-func TargetCppTypes(#mainurl: String, #input: String, #dest: String) -> String
-→ Replace(TargetCppHeader(#mainurl, #input, #dest), ".h", "_types.h")
+func TargetCppTypes(#mainurl: String, #input: String, #base: String, #dest: String) -> String
+→ Replace(TargetCppHeader(#mainurl, #input, #base, #dest), ".h", "_types.h")
 
 /* Get the absolute name of the target c++ header file containing signatures */
-func TargetCppSigs(#mainurl: String, #input: String, #dest: String) -> String
-→ Replace(TargetCppHeader(#mainurl, #input, #dest), ".h", "_sigs.h")
+func TargetCppSigs(#mainurl: String, #input: String, #base: String, #dest: String) -> String
+→ Replace(TargetCppHeader(#mainurl, #input, #base, #dest), ".h", "_sigs.h")
 
 /* Get the absolute name of the target c++ header file */
-@Extern func TargetCppHeader(#mainurl: String, #input: String, #dest: String) -> String
+@Extern func TargetCppHeader(#mainurl: String, #input: String, #base: String, #dest: String) -> String
 
 /* Get the absolute name of the target c++ source file */
-@Extern func TargetCppSource(#mainurl: String, #input: String, #dest: String) -> String
+@Extern func TargetCppSource(#mainurl: String, #input: String, #base: String, #dest: String) -> String
 
 /* Tell whether the generated files needed to be regenerated */
-func CppNeedRegen(#system:TSystem, #url: String) -> Bool
+func CppNeedRegen(#system:TSystem, #url_and_base: URLAndBase) -> Bool
 → let #mainurl = GetSystemURL(#system)
   let #buildir = GetConfigDef(#system, "build-dir", "")
+  let #url = GetURLOfUnB(#url_and_base)
+  let #base = GetBaseOfUnB(#url_and_base)
   let #srcmod = FileLastModified(#url)
-  if GreaterThan(#srcmod, FileLastModified(TargetCppTypes(#mainurl, #url, #buildir)))
+  if GreaterThan(#srcmod, FileLastModified(TargetCppTypes(#mainurl, #url, #base, #buildir)))
     TRUE
-  else if GreaterThan(#srcmod, FileLastModified(TargetCppSigs(#mainurl, #url, #buildir)))
+  else if GreaterThan(#srcmod, FileLastModified(TargetCppSigs(#mainurl, #url, #base, #buildir)))
     TRUE
-  else if GreaterThan(#srcmod, FileLastModified(TargetCppHeader(#mainurl, #url, #buildir)))
+  else if GreaterThan(#srcmod, FileLastModified(TargetCppHeader(#mainurl, #url, #base, #buildir)))
     TRUE
-  else if GreaterThan(#srcmod, FileLastModified(TargetCppSource(#mainurl, #url, #buildir)))
+  else if GreaterThan(#srcmod, FileLastModified(TargetCppSource(#mainurl, #url, #base, #buildir)))
     TRUE
   else
     FALSE

@@ -52,3 +52,7 @@ func SaveTerm<a b>(#filename: String, #term: a, #result: b) -> b
 /* Delete file at given location
    @return TRUE if succeeded, FALSE otherwise */
 @Extern func FileDelete(#url: String) -> Bool
+
+/* Check whether file exists
+   @return TRUE if file exists, FALSE otherwise */
+@Extern func FileExists(#url: String) -> Bool

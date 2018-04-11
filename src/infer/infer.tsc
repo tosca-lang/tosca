@@ -33,8 +33,8 @@ func InferM(#system: TSystem, #module: Module) -> Module
     ( ) -> #module)
 
 func InferM2(TSystem, Module) -> Module
-rule InferM2(#system,  Module(#url, #content, #compiled))
-→ Debug(ConcatString("Type check ", #url), ()->Module(#url, InferContent(#system, #content), #compiled))
+rule InferM2(#system,  Module(#url_and_base, #content, #compiled))
+→ Debug(ConcatString("Type check ", GetURLOfUnB(#url_and_base)), ()->Module(#url_and_base, InferContent(#system, #content), #compiled))
 
 // -- Content
 

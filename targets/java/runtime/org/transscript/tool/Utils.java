@@ -303,13 +303,14 @@ public class Utils
 	 * @param pkg
 	 * @param makeDirs whether to make destination directories.
 	 */
-	public static String targetJavaFilename(String input, String dest, String mainurl, String pkg, boolean makeDirs)
+	public static String targetJavaFilename(String input, String base, String dest, String mainurl, String pkg, boolean makeDirs)
 	{
 		// Offset destination considering package and subpackage
 		if (pkg != null)
 			dest += File.separator + pkg.replace('.', File.separatorChar);
 
-		String subdir = relativePath(input, mainurl);
+		String subdir = base.equals("") ? relativePath(input, mainurl)
+                                                : relativePath(input, base+File.separatorChar+".");
 		dest = subdir.trim().equals("") ? dest : dest + File.separator + subdir;
 
 		if (makeDirs)
@@ -329,16 +330,18 @@ public class Utils
 	/**
 	 * Get the absolute name of the target cpp file
 	 * @param input Tosca file
+	 * @param input Base directory against which Tosca file name was resolved to be produced (if any)
 	 * @param dest target directory
 	 * @param mainurl TODO
 	 * @param makeDirs whether to make destination directories.
 	 * @param header whether to get the header target file name.
 	 */
-	public static String targetCppFilename(String input, String dest, String mainurl, boolean makeDirs, boolean header)
+	public static String targetCppFilename(String input, String base, String dest, String mainurl, boolean makeDirs, boolean header)
 	{
 		dest += File.separator + "src";
 
-		String subdir = relativePath(input, mainurl);
+		String subdir = base.equals("") ? relativePath(input, mainurl)
+						: relativePath(input, base+File.separator+".");
 		dest = subdir.trim().equals("") ? dest : dest + File.separator + subdir;
 
 		if (makeDirs)
