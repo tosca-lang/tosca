@@ -93,8 +93,11 @@ enum ParserEnvEntry | PEINDEX(RuleIndex) | PEBOOL(Bool) | PEDEFINED
 
 type ParserEnv = {String:ParserEnvEntry}
 
-// --- API
+enum ParserImplLang
+    | CPP
+    | JAVA
 
+// --- API
 
 func MakeParser(ANTLR_grammarSpec_sort) -> Text4_text_sort
 rule MakeParser(#) → ANTLR_Print_grammarSpec(MakeGrammarSpec(#, IndexGrammar(#), PARSER))
@@ -104,6 +107,10 @@ rule MakeMetaParser(#) → ANTLR_Print_grammarSpec(MakeGrammarSpec(#, IndexGramm
 
 func MakeMetaLexer(ANTLR_grammarSpec_sort) ->Text4_text_sort
 rule MakeMetaLexer(#) → ANTLR_Print_grammarSpec(MakeGrammarSpec(#, IndexGrammar(#), METALEXER))
+
+func ParserImplLangIsJava(ParserImplLang) -> Bool
+rule ParserImplLangIsJava(CPP)  → FALSE
+rule ParserImplLangIsJava(JAVA) → TRUE
 
 // grammar ...
 
@@ -127,10 +134,16 @@ rule MakeGrammarId(id⟦ #TOKEN_REF ⟧, PARSER)     →  id⟦ ⟨TOKEN_REF:Con
 rule MakeGrammarId(id⟦ #TOKEN_REF ⟧, METAPARSER) →  id⟦ ⟨TOKEN_REF:ConcatString( #TOKEN_REF,  "MetaParser")⟩ ⟧
 rule MakeGrammarId(id⟦ #TOKEN_REF ⟧, METALEXER)  →  id⟦ ⟨TOKEN_REF:ConcatString( #TOKEN_REF,  "MetaLexer")⟩ ⟧
 
+// Determine target language for parser implementation
+func GetParserImplLang() -> ParserImplLang
+→ if (StringEqual(GetEnv("target", ""), "cpp")) CPP else JAVA
+
 // Add target language dependent actions.
 func MakePrequelConstructs(#mode: Mode, #id: String, #prequelConstruct*: List<ANTLR_prequelConstruct_sort>) -> List<ANTLR_prequelConstruct_sort>
-→ Concat(LexerVocab(#mode, #id), ParserConstructs(#id, IsParser(#mode), IsModeMeta(#mode),
-         GetPrequelAction("header", #prequelConstruct*), GetPrequelAction("members", #prequelConstruct*)))
+→ let #parser_impl_lang = GetParserImplLang()
+  Concat(LexerVocab(#mode, #id), ParserConstructs(#id, IsParser(#mode), IsModeMeta(#mode),
+         #parser_impl_lang, GetPrequelAction("header", #prequelConstruct*),
+         GetPrequelAction("members", #prequelConstruct*)))
 
 //
 func LexerVocab(Mode, String) -> List<ANTLR_prequelConstruct_sort>
@@ -139,65 +152,73 @@ rule LexerVocab(METALEXER, #id)   → ()
 rule LexerVocab(METAPARSER, #id)  → prequelConstruct*⟦ options { tokenVocab = ⟨STRING_LITERAL:ConcatString( #id, "MetaLexer")⟩ ; } ⟧
 
 //
-func ParserConstructs(String, Bool, Bool, String, String) -> List<ANTLR_prequelConstruct_sort>
+func ParserConstructs(String, Bool, Bool, ParserImplLang, String, String) -> List<ANTLR_prequelConstruct_sort>
 
-  rule ParserConstructs(#id, FALSE, #meta, #header, #members)
+  rule ParserConstructs(#id, FALSE, #meta, #impl_lang, #header, #members)
   → ()
 
   // TODO: string concatenation is quite ugly. Tosca should support string template!
-  rule ParserConstructs(#id, TRUE, #meta, #header, #members)
+  rule ParserConstructs(#id, TRUE, #meta, #impl_lang, #header, #members)
   → prequelConstruct*⟦
           @header ⟨ACTION:ConcatString( "{\n",
-               "import org.transscript.antlr.ToSinkListener;\n",
-               "import static org.transscript.antlr.ToSinkListener.fireEnterZOM;\n",
-               "import static org.transscript.antlr.ToSinkListener.fireExitZOM;\n",
-               "import static org.transscript.antlr.ToSinkListener.fireEnterOPT;\n",
-               "import static org.transscript.antlr.ToSinkListener.fireExitOPT;\n",
-               "import static org.transscript.antlr.ToSinkListener.fireEnterAlt;\n",
-               "import static org.transscript.antlr.ToSinkListener.fireExitAlt;\n",
-               "import static org.transscript.antlr.ToSinkListener.fireHide;\n",
-               "import static org.transscript.antlr.ToSinkListener.fireEnterSymbol;\n",
-               "import static org.transscript.antlr.ToSinkListener.fireExitSymbol;\n",
-               "import static org.transscript.antlr.ToSinkListener.fireEnterBinder;\n",
-               "import static org.transscript.antlr.ToSinkListener.fireExitBinder;\n",
-               "import static org.transscript.antlr.ToSinkListener.fireEnterBinds;\n",
-               "import static org.transscript.antlr.ToSinkListener.fireExitBinds;\n",
-               If( #meta , ()->"import static org.transscript.antlr.ToSinkListener.fireTail;\n" , ()->""),
-               If( #meta , ()->"import static org.transscript.antlr.ToSinkListener.fireTerm;\n" , ()->""),
-               If( #meta , ()->"import static org.transscript.antlr.ToSinkListener.fireEmbed;\n" , ()->""),
-               If( Not( #meta) , ()->#header , ()->""),
+             If(ParserImplLangIsJava(#impl_lang),
+                ()->ConcatString(
+                     "import org.transscript.antlr.ToSinkListener;\n",
+                     "import static org.transscript.antlr.ToSinkListener.fireEnterZOM;\n",
+                     "import static org.transscript.antlr.ToSinkListener.fireExitZOM;\n",
+                     "import static org.transscript.antlr.ToSinkListener.fireEnterOPT;\n",
+                     "import static org.transscript.antlr.ToSinkListener.fireExitOPT;\n",
+                     "import static org.transscript.antlr.ToSinkListener.fireEnterAlt;\n",
+                     "import static org.transscript.antlr.ToSinkListener.fireExitAlt;\n",
+                     "import static org.transscript.antlr.ToSinkListener.fireHide;\n",
+                     "import static org.transscript.antlr.ToSinkListener.fireEnterSymbol;\n",
+                     "import static org.transscript.antlr.ToSinkListener.fireExitSymbol;\n",
+                     "import static org.transscript.antlr.ToSinkListener.fireEnterBinder;\n",
+                     "import static org.transscript.antlr.ToSinkListener.fireExitBinder;\n",
+                     "import static org.transscript.antlr.ToSinkListener.fireEnterBinds;\n",
+                     "import static org.transscript.antlr.ToSinkListener.fireExitBinds;\n",
+                     If( #meta , ()->"import static org.transscript.antlr.ToSinkListener.fireTail;\n" , ()->""),
+                     If( #meta , ()->"import static org.transscript.antlr.ToSinkListener.fireTerm;\n" , ()->""),
+                     If( #meta , ()->"import static org.transscript.antlr.ToSinkListener.fireEmbed;\n" , ()->"")) ,
+                ()->ConcatString(
+                     "// Header code not yet implemented for C++\n")),
+             If( Not( #meta) , ()->#header , ()->""),
           "}")⟩
 
           @parser::members ⟨ACTION:ConcatString( "{\n",
-              If( #meta , ()->ConcatString( "public ", #id, "MetaParser() {}\n") , ()->""),
-              If( #meta , ()->"protected Lexer newLexer(CharStream stream)\n" , ()->""),
-              If( #meta , ()->"{\n\n" , ()->""),
-              If( #meta , ()->ConcatString( "return new ", #id, "MetaLexer(stream);\n") , ()->""),
-              If( #meta , ()->"}\n\n" , ()->""),
-              If( #meta , ()->"protected void initATN()\n{    _interp = new ParserATNSimulator(this, _ATN, _decisionToDFA, _sharedContextCache);\n}" , ()->""),
-              "protected String _prefix() { return \"", #id, "_\"; }\n",
-              IfDef( "catprefix", ()->ConcatString( "protected String _catprefix() { return \"", GetEnv("catprefix", ""), "\"; }\n"), ()->""),
-              "protected void _enterZOM() { fireEnterZOM(_parseListeners, _ctx); }\n",
-              "protected void _exitZOM()  { fireExitZOM(_parseListeners, _ctx); }\n",
-              "protected void _enterOOM() { _enterZOM(); }\n",
-              "protected void _exitOOM()  { _exitZOM(); }\n",
-              "protected void _enterOPT() { fireEnterOPT(_parseListeners, _ctx); }\n",
-              "protected void _exitOPT()  { fireExitOPT(_parseListeners, _ctx); }\n",
-              "protected void _enterAlt(String name) { fireEnterAlt(_parseListeners, _ctx, name); }\n",
-              "protected void _enterAlt() { fireEnterAlt(_parseListeners, _ctx); }\n",
-              "protected void _exitAlt()  { fireExitAlt(_parseListeners, _ctx); }\n",
-              "protected void _hide()     { fireHide(_parseListeners, _ctx); }\n",
-              "protected void _enterSymbol(String type)  { fireEnterSymbol(_parseListeners, _ctx, type); }\n",
-              "protected void _exitSymbol()     { fireExitSymbol(_parseListeners, _ctx); }\n",
-              "protected void _enterBinder(String name, String type)     { fireEnterBinder(_parseListeners, _ctx, name, type); }\n",
-              "protected void _exitBinder()     { fireExitBinder(_parseListeners, _ctx); }\n",
-              "protected void _enterBinds(String names) { fireEnterBinds(_parseListeners, _ctx, names); }\n",
-              "protected void _exitBinds()  { fireExitBinds(_parseListeners, _ctx); }\n",
-              If( #meta , ()->"protected void _embed()    { fireEmbed(_parseListeners, _ctx); }\n" , ()->""),
-              If( #meta , ()->"protected void _tail()     { fireTail(_parseListeners, _ctx); }\n" , ()->""),
-              If( #meta , ()->"protected void _term(String type)  { fireTerm(_parseListeners, _ctx, type); }\n" , ()->""),
-              If( #meta , ()->ConcatString( "protected String _metachar() { return ", MetaChar("\""), ";}\n") , ()->""),
-              If( Not( #meta) , ()->#members , ()->""),
+             If(ParserImplLangIsJava(#impl_lang),
+                ()->ConcatString(
+                    If( #meta , ()->ConcatString( "public ", #id, "MetaParser() {}\n") , ()->""),
+                    If( #meta , ()->"protected Lexer newLexer(CharStream stream)\n" , ()->""),
+                    If( #meta , ()->"{\n\n" , ()->""),
+                    If( #meta , ()->ConcatString( "return new ", #id, "MetaLexer(stream);\n") , ()->""),
+                    If( #meta , ()->"}\n\n" , ()->""),
+                    If( #meta , ()->"protected void initATN()\n{    _interp = new ParserATNSimulator(this, _ATN, _decisionToDFA, _sharedContextCache);\n}" , ()->""),
+                    "protected String _prefix() { return \"", #id, "_\"; }\n",
+                    IfDef( "catprefix", ()->ConcatString( "protected String _catprefix() { return \"", GetEnv("catprefix", ""), "\"; }\n"), ()->""),
+                    "protected void _enterZOM() { fireEnterZOM(_parseListeners, _ctx); }\n",
+                    "protected void _exitZOM()  { fireExitZOM(_parseListeners, _ctx); }\n",
+                    "protected void _enterOOM() { _enterZOM(); }\n",
+                    "protected void _exitOOM()  { _exitZOM(); }\n",
+                    "protected void _enterOPT() { fireEnterOPT(_parseListeners, _ctx); }\n",
+                    "protected void _exitOPT()  { fireExitOPT(_parseListeners, _ctx); }\n",
+                    "protected void _enterAlt(String name) { fireEnterAlt(_parseListeners, _ctx, name); }\n",
+                    "protected void _enterAlt() { fireEnterAlt(_parseListeners, _ctx); }\n",
+                    "protected void _exitAlt()  { fireExitAlt(_parseListeners, _ctx); }\n",
+                    "protected void _hide()     { fireHide(_parseListeners, _ctx); }\n",
+                    "protected void _enterSymbol(String type)  { fireEnterSymbol(_parseListeners, _ctx, type); }\n",
+                    "protected void _exitSymbol()     { fireExitSymbol(_parseListeners, _ctx); }\n",
+                    "protected void _enterBinder(String name, String type)     { fireEnterBinder(_parseListeners, _ctx, name, type); }\n",
+                    "protected void _exitBinder()     { fireExitBinder(_parseListeners, _ctx); }\n",
+                    "protected void _enterBinds(String names) { fireEnterBinds(_parseListeners, _ctx, names); }\n",
+                    "protected void _exitBinds()  { fireExitBinds(_parseListeners, _ctx); }\n",
+                    If( #meta , ()->"protected void _embed()    { fireEmbed(_parseListeners, _ctx); }\n" , ()->""),
+                    If( #meta , ()->"protected void _tail()     { fireTail(_parseListeners, _ctx); }\n" , ()->""),
+                    If( #meta , ()->"protected void _term(String type)  { fireTerm(_parseListeners, _ctx, type); }\n" , ()->""),
+                    If( #meta , ()->ConcatString( "protected String _metachar() { return ", MetaChar("\""), ";}\n") , ()->"")) ,
+                ()->ConcatString(
+                    "// Member code not yet implemented for C++\n")),
+             If( Not( #meta) , ()->#members , ()->""),
           "}")⟩
       ⟧
 

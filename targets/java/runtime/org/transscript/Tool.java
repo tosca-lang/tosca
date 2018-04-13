@@ -116,7 +116,7 @@ public class Tool {
 
 	static void helpPG() {
 		System.out.println("Usage: java -jar <tosca.jar> pg [<args>]");
-		System.out.println("Generate meta parser and types from a grammar specification.");
+		System.out.println("Generate parser or meta-parser and types from a grammar specification.");
 		System.out.println("\n<args> are:");
 		System.out.println(
 				"  build-dir=<directory>     where to store the generated files. Default is current directory");
@@ -127,6 +127,10 @@ public class Tool {
 		System.out.println("  metaprefix=<value>        meta variable prefix. Default is #");
 		System.out.println("  defaultrule=<value>       default grammar rule name.");
 		System.out.println("  catprefix=<value>         category prefix. Default is empty.");
+		System.out.println("  meta                      generate meta-parser (default)");
+		System.out.println("  regular                   generate regular parser");
+		System.out.println("  cpp                       generate parser in C++");
+		System.out.println("  java                      generate parser in Java (default)");
 		System.out.println("  notext                    omit text package import (ADVANCED).");
 		System.out.println("  truevar                   enable better mapping for variable option (ADVANCED).");
 		System.out.println("  bootparserpath=<name>     where to look for builtin parsers (ADVANCED)");
@@ -488,6 +492,12 @@ public class Tool {
 
 		if (env.get("metaprefix") != null)
 			System.setProperty("metaprefix", env.get("metaprefix"));
+
+		if (env.get("regular") == null)
+			System.setProperty("genmetaparser", "1");
+
+		// Set default target language to Java if C++ not specified
+		System.setProperty("target", (env.get("cpp") != null) ? "cpp" : "java");
 
 		if (env.get("default") != null)
 			System.setProperty("defaultrule", env.get("defaultrule"));
