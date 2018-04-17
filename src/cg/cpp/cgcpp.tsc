@@ -70,11 +70,11 @@ func TargetCppSigs(#mainurl: String, #input: String, #base: String, #dest: Strin
 @Extern func TargetCppSource(#mainurl: String, #input: String, #base: String, #dest: String) -> String
 
 /* Tell whether the generated files needed to be regenerated */
-func CppNeedRegen(#system:TSystem, #url_and_base: URLAndBase) -> Bool
+func CppNeedRegen(#system:TSystem, #module_url: URLAndBase) -> Bool
 → let #mainurl = GetSystemURL(#system)
   let #buildir = GetConfigDef(#system, "build-dir", "")
-  let #url = GetURLOfUnB(#url_and_base)
-  let #base = GetBaseOfUnB(#url_and_base)
+  let #url = GetURLOfUnB(#module_url)
+  let #base = GetBaseOfUnB(#module_url)
   let #srcmod = FileLastModified(#url)
   if GreaterThan(#srcmod, FileLastModified(TargetCppTypes(#mainurl, #url, #base, #buildir)))
     TRUE

@@ -40,7 +40,7 @@ import pg::genparser
  */
 func Compile(#url: String, #config: {String:String}) -> Result
 = let #system = InitSystem(#url, #config)
-  let #loaded = LoadModuleS(#system, URLAndBase(#url,""), FALSE)
+  let #loaded = LoadModuleS(#system, URLAndBase("", #url), FALSE)
   CompileS(NoAnnoS(#loaded))
 
 // --- Compilation
@@ -79,8 +79,8 @@ func LoadImport(#system: TSystem, #url:String, #import: Core_cqidentifier_sort) 
 = LoadModuleS(#system, ResolveImport(#system, #url, #import), IsStandardImport(#system, #import))
 
 /* Load module content and update system */
-func LoadModuleS(#system: TSystem, #url_and_base: URLAndBase, #standard:Bool) -> TSystem
-= let #url = GetURLOfUnB(#url_and_base)
+func LoadModuleS(#system: TSystem, #module_url: URLAndBase, #standard:Bool) -> TSystem
+= let #url = GetURLOfUnB(#module_url)
   if HasModule(#system, #url)
      #system
   else
@@ -88,18 +88,18 @@ func LoadModuleS(#system: TSystem, #url_and_base: URLAndBase, #standard:Bool) ->
                   ParseResource("ccrsx", #url)
                 else
                   ToCore(#url, ParseResource("transscript", Debug(#url, ()->#url)))
-    LoadModuleAux(LoadCore(#system, #url_and_base, #core, Or(#standard, Not(NeedRegen(#system, #url_and_base, #standard)))), #url)
+    LoadModuleAux(LoadCore(#system, #module_url, #core, Or(#standard, Not(NeedRegen(#system, #module_url, #standard)))), #url)
 
 func LoadModuleAux(#system: TSystem, #url: String) -> TSystem
 = LoadImportedModules(#system, #url, GetImportsS(#system, #url))
 
 // --- Determine whether module source file is newer than the corresponding generated files.
 
-func NeedRegen(#system: TSystem, #url_and_base: URLAndBase, #standard: Bool) -> Bool
+func NeedRegen(#system: TSystem, #module_url: URLAndBase, #standard: Bool) -> Bool
 → if #standard
     FALSE
   else if HasOption(GetConfig(#system, "inc"))
-    IfConfigDef(#system, "cpp", (v)->CppNeedRegen(#system, #url_and_base), ()->JavaNeedRegen(#system, #url_and_base))
+    IfConfigDef(#system, "cpp", (v)->CppNeedRegen(#system, #module_url), ()->JavaNeedRegen(#system, #module_url))
   else
     TRUE
 

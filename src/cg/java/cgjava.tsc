@@ -67,7 +67,7 @@ func ToJavaAux(#system: TSystem, #module: Module, #source: String) -> Result
     ()->Success((#source,)))
 
 /* Tell whether the generated files needed to be regenerated */
-func JavaNeedRegen(#system:TSystem, #url_and_base: URLAndBase) -> Bool
+func JavaNeedRegen(#system:TSystem, #module_url: URLAndBase) -> Bool
 → TRUE
 
 // --- Translate module
@@ -1103,7 +1103,7 @@ func ResolveTypeParamCons(Option<Core_csort_sort>) -> Text4_text_sort
 
   rule ResolveTypeParamCons(SOME(#))
   → text⟦⟧
-  
+
 
 /* Get sub sort. Get it from term and if not available on sort */
 func SubSort({String : JEnvEntry}, Core_cterm_sort, Option<List<Core_csort_sort>>) -> Option<Core_csort_sort>
@@ -1582,9 +1582,11 @@ func RegisterDataForm(String, String, Core_cform_sort) -> Text4_text_sort
        context.registerVarMaker(†⟨Text-QuoteEscape(#sortname)⟩, ⟨STRING:#classname⟩::var⟨STRING: Mangle(#sortname)⟩);⟧
 
 /* Print package declaration */
-func PackageDeclaration(#url_and_base: URLAndBase, #mainurl: String, #package: String) -> Text4_text_sort
-rule PackageDeclaration(URLAndBase(#url,#base): URLAndBase, #mainurl: String, #package: String)
-→ let #relative_path = if (StringEqual(#base, ""))
+func PackageDeclaration(#module_url: URLAndBase, #mainurl: String, #package: String) -> Text4_text_sort
+rule PackageDeclaration(#module_url: URLAndBase, #mainurl: String, #package: String)
+→ let #url = GetURLOfUnB(#module_url)
+  let #base = GetBaseOfUnB(#module_url)
+  let #relative_path = if (StringEqual(#base, ""))
                          RelativePath(#url, #mainurl)
                        else
                          RelativePath(#url, ConcatString(#base, "/."))
