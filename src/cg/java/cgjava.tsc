@@ -22,13 +22,13 @@ import cg::utils
 
 /* Generates Java code for the given `#module` */
 func ToJavaM(#system: TSystem, #module: Module) -> Result
-→ ToJavaAux(#system, #module, TargetJavaFilename(GetModuleURL(#module), GetConfigDef(#system, "build-dir", ""),
+→ ToJavaAux(#system, #module, TargetJavaFilename(GetModuleURL(#module), GetModuleURLBase(#module), GetConfigDef(#system, "build-dir", ""),
     GetSystemURL(#system), GetConfigDef(#system, "package", "")))
 
 func ToJavaAux(#system: TSystem, #module: Module, #source: String) -> Result
 → SaveResource("text", #source, text⟦
       /** Generated File */
-      †⟨PackageDeclaration(GetModuleURL(#module), GetSystemURL(#system), GetConfigDef(#system, "package", ""))⟩
+      †⟨PackageDeclaration(GetModuleURLAndBase(#module), GetSystemURL(#system), GetConfigDef(#system, "package", ""))⟩
 
       import java.util.function.Function;
 
@@ -67,7 +67,7 @@ func ToJavaAux(#system: TSystem, #module: Module, #source: String) -> Result
     ()->Success((#source,)))
 
 /* Tell whether the generated files needed to be regenerated */
-func JavaNeedRegen(#system:TSystem, #url: String) -> Bool
+func JavaNeedRegen(#system:TSystem, #module_url: URLAndBase) -> Bool
 → TRUE
 
 // --- Translate module
@@ -1103,7 +1103,7 @@ func ResolveTypeParamCons(Option<Core_csort_sort>) -> Text4_text_sort
 
   rule ResolveTypeParamCons(SOME(#))
   → text⟦⟧
-  
+
 
 /* Get sub sort. Get it from term and if not available on sort */
 func SubSort({String : JEnvEntry}, Core_cterm_sort, Option<List<Core_csort_sort>>) -> Option<Core_csort_sort>
@@ -1582,8 +1582,15 @@ func RegisterDataForm(String, String, Core_cform_sort) -> Text4_text_sort
        context.registerVarMaker(†⟨Text-QuoteEscape(#sortname)⟩, ⟨STRING:#classname⟩::var⟨STRING: Mangle(#sortname)⟩);⟧
 
 /* Print package declaration */
-func PackageDeclaration(#url: String, #mainurl: String, #package: String) -> Text4_text_sort
-→ PackageDeclaration2(#package, Replace(RelativePath(#url, #mainurl), "/", "."))
+func PackageDeclaration(#module_url: URLAndBase, #mainurl: String, #package: String) -> Text4_text_sort
+rule PackageDeclaration(#module_url: URLAndBase, #mainurl: String, #package: String)
+→ let #url = GetURLOfUnB(#module_url)
+  let #base = GetBaseOfUnB(#module_url)
+  let #relative_path = if (StringEqual(#base, ""))
+                         RelativePath(#url, #mainurl)
+                       else
+                         RelativePath(#url, ConcatString(#base, "/."))
+  PackageDeclaration2(#package, Replace(#relative_path, "/", "."))
 
 func PackageDeclaration2(#base: String, #sub: String) -> Text4_text_sort
 → PackageDeclaration3(#base, If(StringEqual(Trim(#base), ""), ()->"", ()->"."), #sub)
@@ -1616,7 +1623,7 @@ func ClassName(#name: String) -> String
 → Mangle(UpCaseFirst(AfterLast(BeforeLast(#name, "."), "/")))
 
 /* Get the absolute name of the target java file */
-@Extern func TargetJavaFilename(#input: String, #dest: String, #mainurl:String, #package: String) -> String
+@Extern func TargetJavaFilename(#input: String, #base: String, #dest: String, #mainurl:String, #package: String) -> String
 
 /* Get sub directory of `#module` relative to `#mainmodule` */
 @Extern func RelativePath(#input: String, #mainurl:String) -> String

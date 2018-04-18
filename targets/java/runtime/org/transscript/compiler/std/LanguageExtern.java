@@ -229,4 +229,10 @@ public class LanguageExtern {
 		return result;
 	}
 
+	public static Bool FileExists(Context context, StringTerm filename) {
+		File file = new File(filename.unbox());
+		Bool result = file.exists() ? Core.TRUE(context) : Core.FALSE(context);
+		filename.release();
+		return result;
+	}
 }
