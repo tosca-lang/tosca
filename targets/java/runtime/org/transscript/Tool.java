@@ -90,6 +90,8 @@ public class Tool {
 				"  class=<classname>         the name of the compiled Tosca program to run. Cannot be used with option rules");
 		System.out.println(
 				"  build-dir=<directory>     where to store the intermediate files. Default is current directory");
+		System.out.println(
+				"  import-dir=<directory>    where to find imported modules. Default is current directory. Can occur multiple times.");
 		// System.out.println(" base=<name> base source directory");
 		System.out.println("  javabasepackage=<name>    Java base package name of generated Java files");
 		System.out.println("  parsers=<classnames>      comma separated list of parsers classname");
@@ -291,6 +293,8 @@ public class Tool {
 
 		String dest = resolveBuildDir(rules, env.get("build-dir"));
 
+		String importPaths = env.get("import-dir");
+
 		String parsers = "org.transscript.core.CoreMetaParser,org.transscript.parser.TransScriptMetaParser,org.transscript.text.Text4MetaParser";
 		if (env.get("parsers") != null)
 			parsers += "," + env.get("parsers");
@@ -298,6 +302,11 @@ public class Tool {
 		Map<String, String> buildEnv = new HashMap<>(env);
 		Map<String, Object> internalEnv = new HashMap<>();
 		MapTerm<StringTerm, StringTerm> config = MapTerm.mapTerm();
+
+		if (importPaths != null)
+		{
+			config.putValue(stringTerm("import-dir"), stringTerm(importPaths));
+		}
 
 		config.putValue(stringTerm("build-dir"), stringTerm(dest));
 

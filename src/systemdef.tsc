@@ -31,8 +31,23 @@ enum TSystem | TSystem(String /* Initial url */, {String /* url */ : Module}, {S
 func InitSystem(#url: String, #config: {String:String}) -> TSystem
 → TSystem(#url, MapNew, #config)
 
+/* Module's base URL and the relative URL for where it is found.
+  The full URL is ConcatString(baseURL, "/", relativeURL)
+  If the baseURL is empty "", then the URL is the relativeURL */
+enum URLAndBase | URLAndBase(String /* base URL */, String /* relative URL */)
+
+func GetURLOfUnB(URLAndBase) -> String
+rule GetURLOfUnB(URLAndBase(#base,#rel))
+ → if StringEqual(#base, "") #rel else ConcatString(#base, "/", #rel)
+
+func GetBaseOfUnB(URLAndBase) -> String
+rule GetBaseOfUnB(URLAndBase(#base,#rel)) → #base
+
+func GetRelativeOfUnB(URLAndBase) -> String
+rule GetRelativeOfUnB(URLAndBase(#base,#rel)) → #rel
+
 /* A Tosca module  */
-enum Module | Module(String /* filename */, Content /* of module */, Bool /* Compiled? */)
+enum Module | Module(URLAndBase /* base+filename */, Content /* of module */, Bool /* Compiled? */)
 
 // --- module representation
 
@@ -81,13 +96,13 @@ func HasModule(#system: TSystem, #url: String) -> Bool
   @return An existing module or a new one.
  */
 func LookupOrCreateModule(#system: TSystem, #url: String /* url */) -> Module
-→ IfPresent(LookupModule(#system, #url), (mod)->mod, ()->Module(#url, Content((), {}, {}, {}, {}, {}), FALSE))
+→ IfPresent(LookupModule(#system, #url), (mod)->mod, ()->Module(URLAndBase("", #url), Content((), {}, {}, {}, {}, {}), FALSE))
 
 /* Gets module for given url.
   @return An existing module or a new one.
  */
 func ExtractOrCreateModule(#system: TSystem, #url: String /* url */) -> PPair<TSystem Module>
-→ IfPresent(LookupModule(#system, #url), (mod)->PairCons(RemoveModule(#system, #url), mod), ()->PairCons(#system, Module(#url, Content((), {}, {}, {}, {}, {}), FALSE)))
+→ IfPresent(LookupModule(#system, #url), (mod)->PairCons(RemoveModule(#system, #url), mod), ()->PairCons(#system, Module(URLAndBase("", #url), Content((), {}, {}, {}, {}, {}), FALSE)))
 
 /* Get import declarations for the module at given `#url` */
 func GetImportsS(#system: TSystem, #url: String) -> List<Core_cqidentifier_sort>
@@ -165,7 +180,15 @@ func PutAliasS(#system: TSystem, #url: String, #alias: Core_cdecl_sort) -> TSyst
 
 /* Gets module URL */
 func GetModuleURL(Module) -> String
-rule GetModuleURL(Module(#url, #content, #compiled)) → #url
+rule GetModuleURL(Module(#module_url, #content, #compiled)) → GetURLOfUnB(#module_url)
+
+/* Gets module URL */
+func GetModuleURLBase(Module) -> String
+rule GetModuleURLBase(Module(#module_url, #content, #compiled)) → GetBaseOfUnB(#module_url)
+
+/* Gets module URL and Base */
+func GetModuleURLAndBase(Module) -> URLAndBase
+rule GetModuleURLAndBase(Module(#module_url, #content, #compiled)) → #module_url
 
 /* Gets module content */
 func GetModuleContent(Module) -> Content
@@ -451,8 +474,9 @@ func IfConfigDef<a>(#system: TSystem, #key: String, #true: (String)->a, #false: 
    @param `#core` core program
    @return loaded core program into internal representation
  */
-func LoadCore(#system: TSystem, #url: String, #core: Core_ccrsx_sort, #compiled: Bool) -> TSystem
-→ LoadCoreS(If(HasModule(#system, #url), ()->#system, ()->PutModule(#system, #url, Module(#url, Content((), {}, {}, {}, {}, {}), #compiled))),
+func LoadCore(#system: TSystem, #module_url: URLAndBase, #core: Core_ccrsx_sort, #compiled: Bool) -> TSystem
+→ let #url = GetURLOfUnB(#module_url)
+  LoadCoreS(If(HasModule(#system, #url), ()->#system, ()->PutModule(#system, #url, Module(#module_url, Content((), {}, {}, {}, {}, {}), #compiled))),
               #url, #core)
 
 func LoadCoreS(TSystem, String, Core_ccrsx_sort) -> TSystem
@@ -473,7 +497,7 @@ func LoadDeclsS(TSystem, String, List<Core_cdecl_sort>, Bool) -> TSystem
   // Extend existing data sort declaration
   rule LoadDeclsS(#system, #url, cdecl+⟦ ##canno* data ##csortvars? ##cidentifierqualifier* ##CONSTRUCTOR ##cforms ##cdecl+ ⟧, #extends)
   → LoadDeclsS(
-       LoadDeclsS(#system, ResolveImportAux(#system, #url, IdentifierQList(#cidentifierqualifier*, FALSE)), cdecl+⟦ ##canno* data ##csortvars? ##CONSTRUCTOR ##cforms ⟧, TRUE),
+       LoadDeclsS(#system, GetURLOfUnB(ResolveImportAux(#system, #url, IdentifierQList(#cidentifierqualifier*, FALSE))), cdecl+⟦ ##canno* data ##csortvars? ##CONSTRUCTOR ##cforms ⟧, TRUE),
        #url, #cdecl+, #extends)
 
   // Sort alias declaration
@@ -502,13 +526,36 @@ func HasNativeImpl(#system: TSystem, #name:String) -> Bool
 // ---- Import function helpers
 
 /* Convert Tosca module into an url */
-func ResolveImport(#system: TSystem, #url:String, #import: Core_cqidentifier_sort) -> String
+func ResolveImport(#system: TSystem, #url:String, #import: Core_cqidentifier_sort) -> URLAndBase
 → ResolveImportAux(#system, #url, QIdentifierList(#import, FALSE))
 
-func ResolveImportAux(#system: TSystem, #url:String, #name: List<String>) -> String
-→ ConcatString(If(IsStandardPrefix(Head(#name)), ()->GetConfigDef(#system, "baseStd", ""), ()->PathJoin(PathParent(Path(GetSystemURL(#system))))),
-   ConcatString("/",
-   ConcatString(Join(#name, "/"), ".tsc")))
+func ResolveImportAux(#system: TSystem, #url:String, #name: List<String>) -> URLAndBase
+→ let #tail = ConcatString(Join(#name, "/"), ".tsc")
+  let #baseStd = GetConfigDef(#system, "baseStd", "")
+  if IsStandardPrefix(Head(#name))
+    URLAndBase(#baseStd, #tail)
+  else
+    IfConfigDef(#system, "import-dir",
+        (paths)->CheckImportPaths(#system, Split(paths, " "), #tail),
+        ()->ResolveDefaultImportPath(#system, #tail))
+
+/* Search import paths for Tosca module */
+func CheckImportPaths(#system: TSystem, #import-paths: List<String>, #tail: String) -> URLAndBase
+
+  rule CheckImportPaths(#system, (#path, #other_paths...), #tail)
+   → let #module_url = URLAndBase(#path, #tail)
+     let #check-path = GetURLOfUnB(#module_url)
+     if FileExists(#check-path)
+       #module_url
+     else
+       CheckImportPaths(#system, #other_paths, #tail)
+
+  rule CheckImportPaths(#system, (), #tail)
+   → ResolveDefaultImportPath(#system, #tail)
+
+func ResolveDefaultImportPath(#system: TSystem, #tail: String) -> URLAndBase
+→ let #base = PathJoin(PathParent(Path(GetSystemURL(#system))))
+  URLAndBase(#base, #tail)
 
 /* @return `TRUE` if the given `#import` is a standard library module */
 func IsStandardImport(#system: TSystem, #import: Core_cqidentifier_sort) -> Bool

@@ -40,7 +40,7 @@ import pg::genparser
  */
 func Compile(#url: String, #config: {String:String}) -> Result
 = let #system = InitSystem(#url, #config)
-  let #loaded = LoadModuleS(#system, #url, FALSE)
+  let #loaded = LoadModuleS(#system, URLAndBase("", #url), FALSE)
   CompileS(NoAnnoS(#loaded))
 
 // --- Compilation
@@ -79,26 +79,27 @@ func LoadImport(#system: TSystem, #url:String, #import: Core_cqidentifier_sort) 
 = LoadModuleS(#system, ResolveImport(#system, #url, #import), IsStandardImport(#system, #import))
 
 /* Load module content and update system */
-func LoadModuleS(#system: TSystem, #url: String, #standard:Bool) -> TSystem
-= if HasModule(#system, #url)
+func LoadModuleS(#system: TSystem, #module_url: URLAndBase, #standard:Bool) -> TSystem
+= let #url = GetURLOfUnB(#module_url)
+  if HasModule(#system, #url)
      #system
   else
     let #core = if EndsWith(#url, ".tscc")
                   ParseResource("ccrsx", #url)
                 else
                   ToCore(#url, ParseResource("transscript", Debug(#url, ()->#url)))
-    LoadModuleAux(LoadCore(#system, #url, #core, Or(#standard, Not(NeedRegen(#system, #url, #standard)))), #url)
+    LoadModuleAux(LoadCore(#system, #module_url, #core, Or(#standard, Not(NeedRegen(#system, #module_url, #standard)))), #url)
 
 func LoadModuleAux(#system: TSystem, #url: String) -> TSystem
 = LoadImportedModules(#system, #url, GetImportsS(#system, #url))
 
 // --- Determine whether module source file is newer than the corresponding generated files.
 
-func NeedRegen(#system: TSystem, #url: String, #standard: Bool) -> Bool
+func NeedRegen(#system: TSystem, #module_url: URLAndBase, #standard: Bool) -> Bool
 → if #standard
     FALSE
   else if HasOption(GetConfig(#system, "inc"))
-    IfConfigDef(#system, "cpp", (v)->CppNeedRegen(#system, #url), ()->JavaNeedRegen(#system, #url))
+    IfConfigDef(#system, "cpp", (v)->CppNeedRegen(#system, #module_url), ()->JavaNeedRegen(#system, #module_url))
   else
     TRUE
 

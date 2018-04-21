@@ -18,12 +18,13 @@ public class CgcppExtern
 {
 
 	/** Get the absolute name of the target c++ source file */
-	public static StringTerm TargetCppSource(Context context, StringTerm mainurl, StringTerm input, StringTerm buildir)
+	public static StringTerm TargetCppSource(Context context, StringTerm mainurl, StringTerm input, StringTerm base, StringTerm buildir)
 	{
 		StringTerm emainurl = force(context, mainurl);
 		StringTerm einput = force(context, input);
+		StringTerm ebase = force(context, base);
 		StringTerm ebuildir = force(context, buildir);
-		StringTerm r = stringTerm(Utils.targetCppFilename(einput.unbox(), ebuildir.unbox(), emainurl.unbox(), true, false));
+		StringTerm r = stringTerm(Utils.targetCppFilename(einput.unbox(), ebase.unbox(), ebuildir.unbox(), emainurl.unbox(), true, false));
 		emainurl.release();
 		einput.release();
 		ebuildir.release();
@@ -31,12 +32,13 @@ public class CgcppExtern
 	}
 
 	/** Get the absolute name of the target c++ header file */
-	public static StringTerm TargetCppHeader(Context context, StringTerm mainurl, StringTerm input, StringTerm buildir)
+	public static StringTerm TargetCppHeader(Context context, StringTerm mainurl, StringTerm input, StringTerm base, StringTerm buildir)
 	{
 		StringTerm emainurl = force(context, mainurl);
 		StringTerm einput = force(context, input);
+		StringTerm ebase = force(context, base);
 		StringTerm ebuildir = force(context, buildir);
-		StringTerm r = stringTerm(Utils.targetCppFilename(einput.unbox(), ebuildir.unbox(), emainurl.unbox(), true, true));
+		StringTerm r = stringTerm(Utils.targetCppFilename(einput.unbox(), ebase.unbox(), ebuildir.unbox(), emainurl.unbox(), true, true));
 		emainurl.release();
 		einput.release();
 		ebuildir.release();
