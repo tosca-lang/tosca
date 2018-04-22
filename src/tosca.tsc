@@ -115,7 +115,7 @@ func PG(#url:String, #config: {String:String}) -> Result
   let #sortfilename = ConcatString(#builddir, "/", #stem, ".tsc")
   let #metapfilename = ConcatString(#builddir, "/", #stem, "MetaParser.g4")
   let #metalfilename = ConcatString(#builddir, "/", #stem, "MetaLexer.g4")
-  let #pfilename = ConcatString(#builddir, "/", #stem, "Parser.g4")
+  let #pfilename = ConcatString(#builddir, "/", #stem, "Term.g4")
   SaveResource("text", #sortfilename, MakeSorts(#norm), ()->
   IfDef("genmetaparser",
         ()->SaveResource("text", #metapfilename, MakeMetaParser(#norm), ()->
