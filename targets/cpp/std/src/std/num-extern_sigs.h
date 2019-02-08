@@ -6,6 +6,11 @@
 #include "ts.h"
 #include "core_types.h"
 
+tosca::DoubleTerm& GetDefine_INTEGER_MAX_DBL_PRECISION(tosca::Context& ctx);
+tosca::DoubleTerm& GetDefine_INTEGER_MIN_DBL_PRECISION(tosca::Context& ctx);
+tosca::DoubleTerm& ClipToMaxOrMin(tosca::Context& ctx, tosca::DoubleTerm& dTerm);
+Bool& IsWithinIntegerPrecision(tosca::Context& ctx, tosca::DoubleTerm& dTerm);
+
 tosca::DoubleTerm& Plus(tosca::Context& ctx, tosca::DoubleTerm& left, tosca::DoubleTerm& right);
 tosca::DoubleTerm& Minus(tosca::Context& ctx, tosca::DoubleTerm& left, tosca::DoubleTerm& right);
 tosca::DoubleTerm& Times(tosca::Context& ctx, tosca::DoubleTerm& left, tosca::DoubleTerm& right);

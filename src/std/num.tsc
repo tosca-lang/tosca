@@ -5,6 +5,32 @@
  */
 import std::core
 
+// --- integer max and min declarations
+
+/* @return Internal number to represent integer max based on double's
+           precision (mantissa is 53 bits). Note that integer is 
+           language specific. In C++ the integer primitive is long 
+           long (64 bits). In Java the integer primitive is int 
+           (32 bits). */
+@Extern func GetDefine_INTEGER_MAX_DBL_PRECISION() -> Numeric
+
+/* @return Internal number to represent integer min based on double's
+           precision (mantissa is 53 bits). Note that integer is 
+           language specific. In C++ the integer primitive is long 
+           long (64 bits). In Java the integer primitive is int 
+           (32 bits). */
+@Extern func GetDefine_INTEGER_MIN_DBL_PRECISION() -> Numeric
+
+/* @return clip the number given to the internal integer max or min
+           if it is outside of that interval, otherwise return the 
+           original number */
+@Extern func ClipToMaxOrMin(Numeric) -> Numeric
+
+/* @return TRUE if and only if the the number given is within the
+           internal integer min to max interval */
+@Extern func IsWithinIntegerPrecision(Numeric) -> Bool
+
+
 @Extern func Plus(Numeric, Numeric) -> Numeric
 @Extern func Minus(Numeric, Numeric) -> Numeric
 @Extern func Times(Numeric, Numeric) -> Numeric

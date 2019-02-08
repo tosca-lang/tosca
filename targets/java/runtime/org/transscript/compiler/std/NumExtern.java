@@ -13,6 +13,68 @@ import org.transscript.runtime.StringTerm;
 
 public class NumExtern
 {
+	/* @brief Internal number to represent integer max based on double's
+	          precision (mantissa is 53 bits). Note that integer is 
+	          language specific. In C++ the integer primitive is long 
+	          long (64 bits). In Java the integer primitive is int 
+	          (32 bits). */
+	final private static double INTEGER_MAX_DBL_PRECISION = Integer.MAX_VALUE;
+
+	/* @brief Internal number to represent integer min based on double's
+	          precision (mantissa is 53 bits). Note that integer is 
+	          language specific. In C++ the integer primitive is long 
+	          long (64 bits). In Java the integer primitive is int 
+	          (32 bits). */
+	final private static double INTEGER_MIN_DBL_PRECISION = Integer.MIN_VALUE;
+
+	final public static DoubleTerm GetDefine_INTEGER_MAX_DBL_PRECISION(Context context)
+	{
+		return DoubleTerm.doubleTerm(INTEGER_MAX_DBL_PRECISION);
+	}
+
+	final public static DoubleTerm GetDefine_INTEGER_MIN_DBL_PRECISION(Context context)
+	{
+		return DoubleTerm.doubleTerm(INTEGER_MIN_DBL_PRECISION);
+	}
+
+	final public static DoubleTerm ClipToMaxOrMin(Context context, DoubleTerm dTerm)
+	{
+		DoubleTerm result;
+		DoubleTerm edTerm = dTerm.eval(context);
+		double d = edTerm.unbox();
+		if (d > INTEGER_MAX_DBL_PRECISION)
+		{
+			result = GetDefine_INTEGER_MAX_DBL_PRECISION(context);
+		}
+		else if (d < INTEGER_MIN_DBL_PRECISION)
+		{
+			result = GetDefine_INTEGER_MIN_DBL_PRECISION(context);
+		}
+		else
+		{
+			result = DoubleTerm.doubleTerm(d);
+		}
+		edTerm.release();
+		return result;
+	}
+
+	public static Bool IsWithinIntegerPrecision(Context context, DoubleTerm dTerm)
+	{
+		Bool result;
+		DoubleTerm edTerm = dTerm.eval(context);
+		double d = edTerm.unbox();
+		if (d > INTEGER_MAX_DBL_PRECISION ||
+		    d < INTEGER_MIN_DBL_PRECISION)
+		{
+			result = Core.FALSE(context);
+		}
+		else
+		{
+			result = Core.TRUE(context);
+		}
+		edTerm.release();
+		return result;
+	}
 
 	final public static DoubleTerm Plus(Context context, DoubleTerm left, DoubleTerm right)
 	{
@@ -85,8 +147,9 @@ public class NumExtern
 
 	public static StringTerm FormatInteger(Context context, DoubleTerm num)
 	{
-		StringTerm result = stringTerm(Integer.toString((int) num.unbox()));
-		num.release();
+		DoubleTerm unumTerm = ClipToMaxOrMin(context, num);
+		StringTerm result = stringTerm(Integer.toString((int) unumTerm.unbox()));
+		unumTerm.release();
 		return result;
 	}
 
