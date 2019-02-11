@@ -35,7 +35,8 @@ Download [atom](https://atom.io), install it then start Atom. Go to Preferences 
 
 Changes
 =======
-* Verxion 1.0.8 - add support for import-path directories, add support for line comments and block comments in term reader, fixes various memory leaks.  Fixes issues 41, 43, 44, 45.
+* Version 1.0.9 - Fix overflows in FormatInteger.
+* Version 1.0.8 - add support for import-path directories, add support for line comments and block comments in term reader, fixes various memory leaks.  Fixes issues 41, 43, 44, 45.
 * Version 1.0.7 - fixes non-thread-safe issue with ref counting in C++ backend.
 * Version 1.0.6 - fixes to make Tosca compile after clean pull from github
 * Version 1.0.5 - gcc 4.8 support for C++ backend.

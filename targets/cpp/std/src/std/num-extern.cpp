@@ -6,6 +6,69 @@
 
 using namespace tosca;
 
+// integer max and min definitions
+
+/* @brief Internal number to represent integer max based on double's
+          precision (mantissa is 53 bits). Note that integer is 
+          language specific. In C++ the integer primitive is long 
+          long (64 bits). In Java the integer primitive is int 
+          (32 bits). */
+#define INTEGER_MAX_DBL_PRECISION (1LL<<53)
+
+/* @brief Internal number to represent integer min based on double's
+          precision (mantissa is 53 bits). Note that integer is 
+          language specific. In C++ the integer primitive is long 
+          long (64 bits). In Java the integer primitive is int 
+          (32 bits). */
+#define INTEGER_MIN_DBL_PRECISION ((1LL<<53) * -1)
+
+DoubleTerm& GetDefine_INTEGER_MAX_DBL_PRECISION(Context& ctx)
+{
+  return newDoubleTerm(ctx, INTEGER_MAX_DBL_PRECISION);
+}
+
+DoubleTerm& GetDefine_INTEGER_MIN_DBL_PRECISION(Context& ctx)
+{
+  return newDoubleTerm(ctx, INTEGER_MIN_DBL_PRECISION);
+}
+
+DoubleTerm& ClipToMaxOrMin(Context& ctx, DoubleTerm& dTerm)
+{
+  DoubleTerm result;
+  double d = dTerm.Unbox();
+  if (d > INTEGER_MAX_DBL_PRECISION)
+  {
+    dTerm.Release();
+    return GetDefine_INTEGER_MAX_DBL_PRECISION(ctx);
+  }
+  else if (d < INTEGER_MIN_DBL_PRECISION)
+  {
+    dTerm.Release();
+    return GetDefine_INTEGER_MIN_DBL_PRECISION(ctx);
+  }
+  else
+  {
+    dTerm.Release();
+    return newDoubleTerm(ctx, d);
+  }
+}
+
+Bool& IsWithinIntegerPrecision(Context& ctx, DoubleTerm& dTerm)
+{
+  double d = dTerm.Unbox();
+  if (d > INTEGER_MAX_DBL_PRECISION ||
+      d < INTEGER_MIN_DBL_PRECISION)
+  {
+    dTerm.Release();
+    return newFALSE(ctx);
+  }
+  else
+  {
+    dTerm.Release();
+    return newTRUE(ctx);
+  }
+}
+
 DoubleTerm& Plus(Context& ctx, DoubleTerm& left, DoubleTerm& right)
 {
     DoubleTerm& result = newDoubleTerm(ctx, left.Unbox() + right.Unbox());
@@ -82,8 +145,9 @@ StringTerm& FormatNumber(Context& ctx, DoubleTerm& num)
 
 StringTerm& FormatInteger(Context& ctx, DoubleTerm& num)
 {
-    long long unum = (long long) num.Unbox();
-    num.Release();
+    DoubleTerm& unumTerm = ClipToMaxOrMin(ctx, num);
+    long long unum = (long long) unumTerm.Unbox();
+    unumTerm.Release();
     char* str = (char*) alloca((size_t) 32);
     snprintf(str, (size_t) 31, "%lld", unum);
     return newStringTerm(ctx, str);
