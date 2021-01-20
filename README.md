@@ -35,7 +35,8 @@ Download [atom](https://atom.io), install it then start Atom. Go to Preferences 
 
 Changes
 =======
-* Version 1.0.9 - Fix overflows in FormatInteger.
+* Version 1.0.10 - Fix compilation error with gcc 10.  Fixes issue 50.
+* Version 1.0.9 - Fix overflows in FormatInteger.  Fixes issue 48.
 * Version 1.0.8 - add support for import-path directories, add support for line comments and block comments in term reader, fixes various memory leaks.  Fixes issues 41, 43, 44, 45.
 * Version 1.0.7 - fixes non-thread-safe issue with ref counting in C++ backend.
 * Version 1.0.6 - fixes to make Tosca compile after clean pull from github
